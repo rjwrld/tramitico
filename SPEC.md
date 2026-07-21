@@ -26,7 +26,8 @@ ask with rate limits, sign-in for history, groundedness eval in CI, deployed on 
 | Language | ES corpus/answers; EN app chrome, README, demo | [#11](https://github.com/rjwrld/tramitico/issues/11) |
 | Eval set | ~20–30 hand-written Q&As; peer questions post-launch | [#12](https://github.com/rjwrld/tramitico/issues/12) |
 | Done bar | §5 IN-list + green CI w/ eval gate + deployed + docs | [#14](https://github.com/rjwrld/tramitico/issues/14) |
-| Stack | Next.js App Router · Supabase (Postgres/pgvector/Auth) · Claude Sonnet via Vercel AI SDK · Vitest/Playwright/GHA/Vercel | BRIEF §4 |
+| Stack | Next.js App Router · Supabase (Postgres/pgvector/Auth) · Claude Sonnet via Vercel AI SDK · **shadcn/ui + AI Elements** · Vitest/Playwright/GHA/Vercel — re-confirmed layer-by-layer post-map | BRIEF §4 |
+| Branding | **DESIGN.md authored before build** (impeccable-driven): palette as shadcn CSS vars, type, tone, citation-chip look | spec discussion |
 
 ## 3. Corpus
 
@@ -94,7 +95,9 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   exact-term queries (tramos, CCSS, CABYS codes) reward the lexical leg. Top-k ≈ 8 fused → answer.
 - **Embedding model:** Voyage vs OpenAI `text-embedding-3-small` — **ADR during Week 2**,
   benchmarked on the eval set; the exportación vocabulary-gap question is the canary.
-- **Answer assembly:** Claude Sonnet via Vercel AI SDK, streaming. System prompt constrains
+- **Answer assembly:** Claude **Sonnet by default, model as env var** — Week 3 runs Haiku 4.5
+  through the same groundedness gate as a cost/quality comparison (portfolio material either way).
+  Via Vercel AI SDK, streaming. System prompt constrains
   answers to retrieved chunks; when retrieval is empty/weak, the answer says so and links the
   agency instead of guessing. MTSS questions get the encoded fact: the Labor Code mostly does
   not apply to independents.
@@ -121,6 +124,10 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
 ## 8. UI
 
 - Landing = chat, with the **top-10 pain questions** (appendix A) as one-click seeded prompts.
+- **Components: shadcn/ui; chat scaffolding from Vercel AI Elements** (shadcn-based registry —
+  streaming message list + sources primitives that become the citation chips). Owned code, themeable.
+- **Visual identity comes from DESIGN.md** (authored pre-build); the Week-2 UI prototype session
+  explores *layout* variants within that identity, and citation rendering is decided there (ADR).
 - Answers in Spanish; chrome/nav/README/demo in English. Citation chips + disclaimer per answer.
 - Signed-in: history sidebar. No other surfaces in MVP.
 
@@ -144,13 +151,15 @@ MCP server **not** required to feature — it gates only the "builds MCP servers
 
 ## 11. Week-by-week (refreshed)
 
-- **Wk 1 — foundation:** scaffold (Next.js + Supabase), schema + pgvector, corpus manifest,
+- **Pre-build (half-day):** DESIGN.md — branding session (impeccable skill): palette → shadcn
+  CSS variables, typography, tone, citation-chip look.
+- **Wk 1 — foundation:** scaffold (Next.js + Supabase + shadcn), schema + pgvector, corpus manifest,
   fetchers (SINALEVI API + Playwright for Hacienda), chunker (port prototype rules), first full
   ingestion run, CABYS curation.
 - **Wk 2 — RAG core:** hybrid retrieval + RRF, embedding ADR benchmark, answer assembly +
   citations + guardrail prompt, chat UI + seeded prompts, auth + history, rate limiting, unit tests.
-- **Wk 3 — harden + ship:** eval dataset + groundedness judge wired into CI, Playwright e2e,
-  README/ADRs/how-it-was-built, deploy, buffer.
+- **Wk 3 — harden + ship:** eval dataset + groundedness judge wired into CI, Haiku-vs-Sonnet
+  eval comparison, Playwright e2e, README/ADRs/how-it-was-built, deploy, buffer.
 
 ## 12. ADRs to write during build
 
