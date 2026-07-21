@@ -5,7 +5,9 @@
 > the full reasoning; this document holds the answers. [BRIEF.md](BRIEF.md) holds the original
 > motivation and remains the scope contract (§5 OUT-list is binding).
 >
-> **Status: ready for Week 1.** Building starts when this merges.
+> **Status: building.** Week 1 (foundation) landed 2026-07-21 — PRs [#15](https://github.com/rjwrld/tramitico/pull/15), [#16](https://github.com/rjwrld/tramitico/pull/16).
+> Build work is tracked as GitHub issues (label `build`); deviations discovered during the build
+> are recorded as ADRs in [docs/adr/](docs/adr/), and this spec links them where they amend it.
 
 ## 1. What ships
 
@@ -38,9 +40,11 @@ ingestion manifest (`corpus/manifest.json`) is the build-time source of truth, s
 
 Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3)):
 
-- **SINALEVI (laws/reglamentos):** the 3-call API — `GET Informacion` → `_BuscarVersionNorma`
-  (resolves the **vigente** version id; never trust the redirect default, it lands on version 1)
-  → `_CargarTextoCompleto`. Browser User-Agent required. Old SCIJ `nValor2` = `idFichaNorma`.
+- **SINALEVI (laws/reglamentos):** 3 calls, all `_BuscarVersionNorma`/`_CargarTextoCompleto` —
+  the shell page's version count is always 0; the real count comes from the ficha card ("1 de M").
+  Vigente id resolved explicitly (redirect default lands on version 1). Browser User-Agent
+  required. Old SCIJ `nValor2` = `idFichaNorma`. Incomplete TLS chain handled by vendoring the
+  GlobalSign intermediate — verification stays on. **Amended by [ADR 0001](docs/adr/0001-sinalevi-fetch-recipe.md).**
 - **hacienda.go.cr PDFs:** WAF fingerprints the TLS stack — fetch via **Playwright** (or
   curl-impersonate). Plain fetch/curl will never pass.
 - **CABYS:** reference data, not prose — ingest a **curated subset of developer-relevant codes**
@@ -64,6 +68,9 @@ Chunking rules ([#4](https://github.com/rjwrld/tramitico/issues/4), prototype on
    `Ficha Artículo N`, version pager) and mso/Word markup. Title blocks become doc metadata,
    never retrievable chunks. Preamble/considerandos → one chunk tagged `preambulo`.
 4. **Unstructured PDFs** (tramos decree): whole-doc chunk; window only if long.
+
+Chunk identity and boundary detection were refined against the live corpus (repeated artículo
+numbers in consolidated texts; quoted-reform false boundaries) — **[ADR 0002](docs/adr/0002-chunk-identity.md)**.
 
 ### Schema (Supabase)
 
