@@ -16,18 +16,18 @@ ask with rate limits, sign-in for history, groundedness eval in CI, deployed on 
 
 ## 2. Locked decisions (index)
 
-| Decision | Resolution | Ticket |
-|---|---|---|
-| Name | **Tramitico** (tramitico.com purchase in progress) | [#8](https://github.com/rjwrld/tramitico/issues/8) |
-| Corpus | ~14 official docs, Hacienda + CCSS; MTSS gap stated as fact | [#13](https://github.com/rjwrld/tramitico/issues/13) |
-| Chunking | Por-artículo + context header; hybrid retrieval | [#4](https://github.com/rjwrld/tramitico/issues/4) |
-| UI | Chat + top-10 pain questions as one-click prompts | [#9](https://github.com/rjwrld/tramitico/issues/9) |
-| Auth | Public ask (rate-limited); sign-in → history + higher limits | [#10](https://github.com/rjwrld/tramitico/issues/10) |
-| Language | ES corpus/answers; EN app chrome, README, demo | [#11](https://github.com/rjwrld/tramitico/issues/11) |
-| Eval set | ~20–30 hand-written Q&As; peer questions post-launch | [#12](https://github.com/rjwrld/tramitico/issues/12) |
-| Done bar | §5 IN-list + green CI w/ eval gate + deployed + docs | [#14](https://github.com/rjwrld/tramitico/issues/14) |
-| Stack | Next.js App Router · Supabase (Postgres/pgvector/Auth) · Claude Sonnet via Vercel AI SDK · **shadcn/ui + AI Elements** · Vitest/Playwright/GHA/Vercel — re-confirmed layer-by-layer post-map | BRIEF §4 |
-| Branding | **DESIGN.md authored before build** (impeccable-driven): palette as shadcn CSS vars, type, tone, citation-chip look | spec discussion |
+| Decision | Resolution                                                                                                                                                                                   | Ticket                                               |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Name     | **Tramitico** (tramitico.com purchase in progress)                                                                                                                                           | [#8](https://github.com/rjwrld/tramitico/issues/8)   |
+| Corpus   | ~14 official docs, Hacienda + CCSS; MTSS gap stated as fact                                                                                                                                  | [#13](https://github.com/rjwrld/tramitico/issues/13) |
+| Chunking | Por-artículo + context header; hybrid retrieval                                                                                                                                              | [#4](https://github.com/rjwrld/tramitico/issues/4)   |
+| UI       | Chat + top-10 pain questions as one-click prompts                                                                                                                                            | [#9](https://github.com/rjwrld/tramitico/issues/9)   |
+| Auth     | Public ask (rate-limited); sign-in → history + higher limits                                                                                                                                 | [#10](https://github.com/rjwrld/tramitico/issues/10) |
+| Language | ES corpus/answers; EN app chrome, README, demo                                                                                                                                               | [#11](https://github.com/rjwrld/tramitico/issues/11) |
+| Eval set | ~20–30 hand-written Q&As; peer questions post-launch                                                                                                                                         | [#12](https://github.com/rjwrld/tramitico/issues/12) |
+| Done bar | §5 IN-list + green CI w/ eval gate + deployed + docs                                                                                                                                         | [#14](https://github.com/rjwrld/tramitico/issues/14) |
+| Stack    | Next.js App Router · Supabase (Postgres/pgvector/Auth) · Claude Sonnet via Vercel AI SDK · **shadcn/ui + AI Elements** · Vitest/Playwright/GHA/Vercel — re-confirmed layer-by-layer post-map | BRIEF §4                                             |
+| Branding | **DESIGN.md authored before build** (impeccable-driven): palette as shadcn CSS vars, type, tone, citation-chip look                                                                          | spec discussion                                      |
 
 ## 3. Corpus
 
@@ -107,13 +107,13 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
 
 ## 6. API surface (route handlers)
 
-| Route | Auth | Purpose |
-|---|---|---|
-| `POST /api/ask` | optional | question → streamed answer + citations; enforces rate limit |
-| `GET /api/history` | required | user's saved Q&A (RLS) |
-| `POST /api/ingest` | CI/admin secret | re-run ingestion for a doc or all |
+| Route              | Auth            | Purpose                                                     |
+| ------------------ | --------------- | ----------------------------------------------------------- |
+| `POST /api/ask`    | optional        | question → streamed answer + citations; enforces rate limit |
+| `GET /api/history` | required        | user's saved Q&A (RLS)                                      |
+| `POST /api/ingest` | CI/admin secret | re-run ingestion for a doc or all                           |
 
-## 7. Auth & rate limiting  *(pinned here per #10)*
+## 7. Auth & rate limiting _(pinned here per #10)_
 
 - Supabase Auth (email + GitHub OAuth). History table under RLS.
 - **Anonymous: 10 questions/day** per subject = hash(IP + coarse UA). **Authed: 50/day** per user.
@@ -127,7 +127,7 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
 - **Components: shadcn/ui; chat scaffolding from Vercel AI Elements** (shadcn-based registry —
   streaming message list + sources primitives that become the citation chips). Owned code, themeable.
 - **Visual identity comes from DESIGN.md** (authored pre-build); the Week-2 UI prototype session
-  explores *layout* variants within that identity, and citation rendering is decided there (ADR).
+  explores _layout_ variants within that identity, and citation rendering is decided there (ADR).
 - Answers in Spanish; chrome/nav/README/demo in English. Citation chips + disclaimer per answer.
 - Signed-in: history sidebar. No other surfaces in MVP.
 
