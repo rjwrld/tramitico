@@ -1,0 +1,147 @@
+[
+  {
+    "code": "4781200000000",
+    "description": "Paquete de software de red",
+    "iva": "13%"
+  },
+  {
+    "code": "4781300000000",
+    "description": "Paquete de software de administración de base de datos",
+    "iva": "13%"
+  },
+  {
+    "code": "4781400000000",
+    "description": "Paquete de software de herramientas de desarrollo y lenguajes de programación",
+    "iva": "13%"
+  },
+  {
+    "code": "4782900000000",
+    "description": "Paquete de software de otras aplicaciones",
+    "iva": "13%"
+  },
+  {
+    "code": "7331100000000",
+    "description": "Servicios de concesión de licencias para el derecho de uso de programas informáticos (software)",
+    "iva": "13%",
+    "note": "Licenciamiento de uso de programas informáticos."
+  },
+  {
+    "code": "8313100000100",
+    "description": "Servicios de consultoría en software",
+    "iva": "13%",
+    "note": "Consultoría en software (no confundir con desarrollo)."
+  },
+  {
+    "code": "8313200000100",
+    "description": "Asistencia técnica para solucionar problemas de software",
+    "iva": "13%"
+  },
+  {
+    "code": "8313200000300",
+    "description": "Asistencia técnica para el traslado de sistema informático",
+    "iva": "13%"
+  },
+  {
+    "code": "8314100000100",
+    "description": "Servicios de diseño y desarrollo de tecnologías de información para aplicaciones",
+    "iva": "13%"
+  },
+  {
+    "code": "8314100000200",
+    "description": "Servicios de diseño y desarrollo de tecnologías de información para páginas web",
+    "iva": "13%",
+    "note": "Aplica a desarrollo de páginas y sitios web."
+  },
+  {
+    "code": "8314100000300",
+    "description": "Servicios de diseño y desarrollo de tecnologías de información para base de datos",
+    "iva": "13%"
+  },
+  {
+    "code": "8314100000400",
+    "description": "Servicios de integración de aplicaciones en sistemas existentes",
+    "iva": "13%"
+  },
+  {
+    "code": "8314100009900",
+    "description": "Servicios de diseño y desarrollo de aplicaciones informáticas, n.c.p.",
+    "iva": "13%"
+  },
+  {
+    "code": "8314200000100",
+    "description": "Servicios de diseño y de desarrollo de Intranet",
+    "iva": "13%"
+  },
+  {
+    "code": "8314200000200",
+    "description": "Servicios de diseño y de desarrollo de Extranet",
+    "iva": "13%"
+  },
+  {
+    "code": "8314200000300",
+    "description": "Servicios de diseño y de desarrollo de redes privadas virtuales",
+    "iva": "13%"
+  },
+  {
+    "code": "8314200000400",
+    "description": "Servicios de diseño y de desarrollo de seguridad de red",
+    "iva": "13%"
+  },
+  {
+    "code": "8314200009900",
+    "description": "Servicios de diseño y desarrollo de redes y sistemas informáticos, n.c.p.",
+    "iva": "13%"
+  },
+  {
+    "code": "8314300000000",
+    "description": "Servicios de diseño y desarrollo de software originales",
+    "iva": "13%",
+    "note": "El código más usado por desarrolladores freelance que crean software a la medida."
+  },
+  {
+    "code": "8315900000100",
+    "description": "Servicio de arrendamiento de espacio en rack",
+    "iva": "13%"
+  },
+  {
+    "code": "8315900000200",
+    "description": "Servicio de almacenamiento de datos",
+    "iva": "13%"
+  },
+  {
+    "code": "8315900000300",
+    "description": "Servicio de minería de datos",
+    "iva": "13%"
+  },
+  {
+    "code": "8315900009900",
+    "description": "Servicios de suministro de infraestructura informática para servicios de hospedaje (hosting), n.c.p.",
+    "iva": "13%"
+  },
+  {
+    "code": "8316100000000",
+    "description": "Servicios de gestión de redes informáticas",
+    "iva": "13%"
+  },
+  {
+    "code": "8316200000000",
+    "description": "Servicios de gestión de sistemas informáticos",
+    "iva": "13%"
+  },
+  {
+    "code": "8434100000000",
+    "description": "Servicios de descarga de programas informáticos (software) de sistemas",
+    "iva": "13%"
+  },
+  {
+    "code": "8434200000000",
+    "description": "Servicios de descarga de programas informáticos (software) de aplicaciones",
+    "iva": "13%"
+  },
+  {
+    "code": "8439200000000",
+    "description": "Servicios de programas informáticos (software) en línea (on-line), n.c.p.",
+    "iva": "13%",
+    "note": "Software como servicio (SaaS) en línea, n.c.p."
+  }
+]
