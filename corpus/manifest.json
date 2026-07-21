@@ -1,0 +1,117 @@
+{
+  "$comment": "Ingestion source of truth (SPEC §3). Seeded from docs/research/corpus-viability.md §1. kinds: sinalevi (3-call API, idFichaNorma; vigente version resolved at fetch), hacienda-pdf (Playwright fetch — WAF blocks plain HTTP), cabys (curated dev-relevant subset, task #8), unresolved (official source to locate during ingestion; never ingest secondary commentary).",
+  "documents": [
+    {
+      "doc_key": "ley-iva",
+      "title": "Ley del Impuesto sobre el Valor Agregado (texto consolidado)",
+      "norma": "Ley 6826",
+      "source": { "kind": "sinalevi", "idFichaNorma": 32526 }
+    },
+    {
+      "doc_key": "reglamento-iva",
+      "title": "Reglamento de la Ley del Impuesto sobre el Valor Agregado",
+      "norma": "Decreto Ejecutivo 41779",
+      "source": { "kind": "sinalevi", "idFichaNorma": 88953 }
+    },
+    {
+      "doc_key": "ley-9635",
+      "title": "Ley de Fortalecimiento de las Finanzas Públicas",
+      "norma": "Ley 9635",
+      "source": { "kind": "sinalevi", "idFichaNorma": 87720 }
+    },
+    {
+      "doc_key": "reglamento-titulo-iv-9635",
+      "title": "Reglamento al Título IV de la Ley 9635 (renta)",
+      "norma": "Decreto Ejecutivo (ver ficha)",
+      "source": { "kind": "sinalevi", "idFichaNorma": 88641 }
+    },
+    {
+      "doc_key": "reglamento-renta",
+      "title": "Reglamento de la Ley del Impuesto sobre la Renta",
+      "norma": "Decreto Ejecutivo (ver ficha)",
+      "source": { "kind": "sinalevi", "idFichaNorma": 95992 }
+    },
+    {
+      "doc_key": "tramos-renta-2026",
+      "title": "Tramos del Impuesto sobre la Renta, período fiscal 2026",
+      "norma": "Decreto Ejecutivo 45333-H",
+      "source": {
+        "kind": "hacienda-pdf",
+        "url": "https://www.hacienda.go.cr/docs/TramosRenta2026.pdf"
+      },
+      "notes": "Annual churn — re-fetch each fiscal year; figures only from this primary decree."
+    },
+    {
+      "doc_key": "ley-10363",
+      "title": "Ley del Trabajador Independiente",
+      "norma": "Ley 10363",
+      "source": { "kind": "sinalevi", "idFichaNorma": 99349 }
+    },
+    {
+      "doc_key": "ccss-bmc",
+      "title": "CCSS — Base Mínima Contributiva (decreto)",
+      "norma": "Decreto (ver ficha)",
+      "source": { "kind": "sinalevi", "idFichaNorma": 87782 },
+      "notes": "Annual churn — verify vigente version each re-crawl; figures only from primary decree."
+    },
+    {
+      "doc_key": "rts-requisitos",
+      "title": "Requisitos para optar por el Régimen de Tributación Simplificada",
+      "norma": null,
+      "source": {
+        "kind": "hacienda-pdf",
+        "url": "https://www.hacienda.go.cr/docs/RequisitosParaOptarPorElRegimenTributacionSimplificada.pdf"
+      },
+      "notes": "Key fact: liberal professionals are excluded from RTS (common misconception)."
+    },
+    {
+      "doc_key": "reglamento-comprobantes",
+      "title": "Reglamento de Comprobantes Electrónicos",
+      "norma": "Decreto Ejecutivo 44739-H",
+      "source": {
+        "kind": "unresolved",
+        "hint": "SINALEVI — locate idFichaNorma for Decreto 44739-H"
+      }
+    },
+    {
+      "doc_key": "disposiciones-v44",
+      "title": "Disposiciones técnicas de comprobantes electrónicos v4.4",
+      "norma": "MH-DGT-RES-0027-2024",
+      "source": {
+        "kind": "unresolved",
+        "hint": "hacienda.go.cr PDF/spec — locate direct URL (Playwright fetch)"
+      },
+      "notes": "Mandatory since 2025-09-01."
+    },
+    {
+      "doc_key": "dgt-export-servicios",
+      "title": "Resolución DGT — servicios exentos de IVA por exportación",
+      "norma": null,
+      "source": {
+        "kind": "unresolved",
+        "hint": "Locate the primary DGT resolution (EY/observador summaries are NOT ingestable)"
+      },
+      "notes": "Exemption requires consumption entirely outside CR, not merely billing abroad."
+    },
+    {
+      "doc_key": "tribu-cr-guia",
+      "title": "TRIBU-CR — comunicado y guía oficial de transición",
+      "norma": "CP-39-2025",
+      "source": {
+        "kind": "hacienda-pdf",
+        "url": "https://www.hacienda.go.cr/docs/CP39-2025.pdf"
+      },
+      "notes": "All declarations exclusively via TRIBU-CR since 2025-10-06 (Res. MH-DGT-RES-0011-2025)."
+    },
+    {
+      "doc_key": "cabys-dev",
+      "title": "CABYS — códigos relevantes para desarrollo de software y TI (subconjunto curado)",
+      "norma": null,
+      "source": {
+        "kind": "cabys",
+        "catalog": "https://www.bccr.fi.cr/indicadores-economicos/cat%C3%A1logo-de-bienes-y-servicios"
+      },
+      "notes": "Curated dev-relevant codes only (SPEC §3); full-catalog search out of scope."
+    }
+  ]
+}
