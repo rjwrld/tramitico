@@ -1,0 +1,6 @@
+node_modules
+.next
+pnpm-lock.yaml
+docs/corpus-samples
+prototype
+.playwright-mcp

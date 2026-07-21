@@ -5,10 +5,12 @@
 ## 1. Official government AI tools
 
 **TRAVI / Infoyasistencia (Ministerio de Hacienda chatbot)**
+
 - A chatbot embedded in Hacienda's "Hacienda Digital" self-service platform at infoyasistencia.hacienda.go.cr, accessible via the "TRAVI" button on hacienda.go.cr. Lets registered taxpayers create/track support tickets, request call-center callbacks, and navigate 40+ procedures. Sources: [Hacienda Facebook](https://www.facebook.com/ministeriodehaciendacr/posts/travi-chatbot-cuenta-con-m%C3%A1s-informaci%C3%B3n-sobre-servicios-tributariosla-administr/4488843801177800/), [GuruSoft](https://guru-soft.com/es/blog/costarica/conoce-el-nuevo-servicio-en-travi-chatbot-costa-rica/), [Hacienda presentation PDF](https://www.hacienda.go.cr/docs/PresentacionCharlaInfoyasistencia_TRAVI.pdf), [AI Observatory CR](https://www.observatorioia.org/en/proyectos/hacienda-asistente/)
 - The only operational citizen-facing government AI assistant in CR central government — but it is a navigation/ticketing tool, not a document-grounded Q&A engine with citations. No freelancer segmentation, no CCSS integration, no cited answers.
 
 **TRIBU-CR's internal AI engine**
+
 - The new integrated tax platform (replaced ATV on Oct 6, 2025) uses an AI engine that cross-checks electronic invoices against declarations and pre-fills draft returns. [El Financiero](https://www.elfinancierocr.com/finanzas/termino-la-espera-tribu-cr-empieza-a-funcionar-vea/FMORO342KRBL5EACGC43TG5YPE/story/), [TRIBU-CR official](https://www.hacienda.go.cr/TRIBU-CR.html)
 - Backend reconciliation, not a conversational assistant. Not a competitor, but signals Hacienda invests in AI internally.
 
@@ -19,6 +21,7 @@
 ## 2. Regional pattern (proves the category)
 
 LatAm wave of official tax-authority chatbots — none freelancer-specific, none citation-grounded RAG:
+
 - **Mexico SAT** — [Chat del SAT](https://chat.sat.gob.mx/), [Alegra on SAT AI](https://blog.alegra.com/mexico/inteligencia-artificial-en-el-sat/)
 - **Colombia DIAN** — "DIANA" FAQ chatbot. [CIAT](https://www.ciat.org/ciatblog-artificial-intelligence-applied-to-auditing/?lang=en)
 - **Chile SII** — AI assistant "Sofía". [Diario Financiero](https://www.df.cl/economia-y-politica/df-tax/el-sii-se-transforma-en-la-segunda-administracion-tributaria-en-la)
@@ -28,7 +31,7 @@ LatAm wave of official tax-authority chatbots — none freelancer-specific, none
 - **Satoko AI (Mexico)** — [satokoai.com](https://satokoai.com/) — AI tax assistant for the RESICO simplified regime (ISR/IVA calc, CFDI). Closest functional analog anywhere, but Mexico-only.
 - **Catalizadora.ai** — [blog](https://catalizadora.ai/blog/chatbot-para-despacho-contable-dudas-fiscales) — agency building RAG chatbots for accounting firms (retrieval over verified KBs, per-country fiscal training, human-escalation rules; "15-day Solo build"). Validates the technical pattern commercially in Spanish LatAm; no CR deployment found.
 - **rax.tax / TaxGPT** — US-tax only. [rax.tax](https://rax.tax/), [taxgpt.com](https://www.taxgpt.com/)
-- **Alegra IA** — strongest commercial AI+tax presence in CR, but answers questions about *your own bookkeeping data* (invoices, expenses; read-only MCP integration with ChatGPT/Claude), not tax-law/trámite questions. [Alegra CR AI](https://ayuda.alegra.com/int/inteligencia-artificial-en-alegra-cri)
+- **Alegra IA** — strongest commercial AI+tax presence in CR, but answers questions about _your own bookkeeping data_ (invoices, expenses; read-only MCP integration with ChatGPT/Claude), not tax-law/trámite questions. [Alegra CR AI](https://ayuda.alegra.com/int/inteligencia-artificial-en-alegra-cri)
 
 ## 4. Non-AI competitors (what devs use today)
 
@@ -54,7 +57,8 @@ No GitHub project found doing RAG over CR tax/legal documents; only e-invoicing 
 **(c) Redundant?** No.
 
 **(d) Open differentiation angles:**
-- Source-cited answers (nothing found cites specific leyes/resoluciones — and real guidance is genuinely ambiguous, e.g. IVA export-of-services turns on where the service is *consumed*: [observador.cr](https://observador.cr/el-iva-y-la-exportacion-de-servicios/), [EY alert](https://www.ey.com/es_ce/technical/tax/tax-alerts/costa-rica-la-dgt-emite-resolucion-sobre-servicios-relacionados))
+
+- Source-cited answers (nothing found cites specific leyes/resoluciones — and real guidance is genuinely ambiguous, e.g. IVA export-of-services turns on where the service is _consumed_: [observador.cr](https://observador.cr/el-iva-y-la-exportacion-de-servicios/), [EY alert](https://www.ey.com/es_ce/technical/tax/tax-alerts/costa-rica-la-dgt-emite-resolucion-sobre-servicios-relacionados))
 - Cross-agency integration (Hacienda + CCSS unified)
 - Developer-specific framing (foreign clients, export IVA, USD income)
 - Currency/change-tracking (TRIBU-CR rollout continues through 2028; 25% flat deduction for independent workers effective Jan 1, 2026: [Tico Times](https://ticotimes.net/2025/12/21/how-costa-ricas-2026-tax-changes-benefit-digital-nomads-and-expats)) — static guides struggle here; a maintained document index has a structural edge.
