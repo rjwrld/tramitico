@@ -167,7 +167,25 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      search_chunks: {
+        Args: {
+          match_count?: number;
+          query_embedding: string;
+          query_text: string;
+        };
+        Returns: {
+          articulo: string;
+          chunk_id: string;
+          content: string;
+          doc_key: string;
+          doc_title: string;
+          norma: string;
+          part: number;
+          path: string[];
+          score: number;
+          source: Json;
+        }[];
+      };
     };
     Enums: {
       [_ in never]: never;
