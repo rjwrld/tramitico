@@ -1,0 +1,279 @@
+/**
+ * Hybrid retrieval (SPEC §5, issue #20) — the contract /api/ask (#21) and the
+ * eval harness (#25) build against.
+ *
+ * The fusion itself lives in Postgres: `search_chunks` runs a pgvector cosine
+ * leg and a `spanish` full-text leg and fuses them with reciprocal rank fusion
+ * (k = 60). This module embeds the question with the same provider the corpus
+ * was embedded with, calls that RPC, and maps rows to typed chunks, citations,
+ * and the weak-retrieval signal the honest-fallback path keys off.
+ */
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "./database.types";
+import { createEmbedder, type Embedder } from "./ingestion/embedder";
+
+/** RRF constant, mirrored by the SQL function. */
+export const RRF_K = 60;
+
+/** Rows each leg contributes to the fusion, mirrored by the SQL function. */
+export const LEG_LIMIT = 20;
+
+/** Fused rows returned when the caller does not ask for a specific count. */
+export const DEFAULT_MATCH_COUNT = 8;
+
+/** `documents.source` jsonb (SPEC §4). */
+export interface DocumentSource {
+  kind?: string;
+  /** hacienda-pdf / plain url sources. */
+  url?: string;
+  /** cabys sources point at the catalog they were curated from. */
+  catalog?: string;
+  idFichaNorma?: number;
+  idVersionNorma?: number;
+}
+
+/** One row of `public.search_chunks`, wire shape. */
+export interface SearchChunksRow {
+  chunk_id: string;
+  doc_key: string;
+  doc_title: string;
+  norma: string | null;
+  articulo: string | null;
+  path: string[];
+  part: number;
+  content: string;
+  source: DocumentSource;
+  score: number;
+}
+
+export interface SearchChunksArgs {
+  /** Empty string disables the lexical leg — vector-only. */
+  query_text: string;
+  /**
+   * pgvector literal — `[0.1,0.2,…]`, which is what PostgREST casts. `null`
+   * disables the vector leg — lexical-only, which is also how retrieval keeps
+   * working if the embedding provider is down.
+   */
+  query_embedding: string | null;
+  match_count: number;
+}
+
+/**
+ * The slice of `SupabaseClient<Database>` retrieval needs — narrow enough that
+ * tests can hand in a fake without standing up PostgREST.
+ */
+export interface RetrievalRpcClient {
+  rpc(
+    fn: "search_chunks",
+    args: SearchChunksArgs,
+  ): PromiseLike<{
+    data: SearchChunksRow[] | null;
+    error: { message: string } | null;
+  }>;
+}
+
+export interface RetrievedChunk {
+  chunkId: string;
+  docKey: string;
+  docTitle: string;
+  norma: string | null;
+  articulo: string | null;
+  path: string[];
+  part: number;
+  content: string;
+  source: DocumentSource;
+  /** RRF score; comparable across chunks of one query, not across queries. */
+  score: number;
+}
+
+/** What an answer renders as a `Documento · Artículo` chip (SPEC §5). */
+export interface Citation {
+  docKey: string;
+  docTitle: string;
+  norma: string | null;
+  articulo: string | null;
+  url: string | null;
+}
+
+export interface RetrievalResult {
+  query: string;
+  chunks: RetrievedChunk[];
+  /** One entry per cited artículo, in fused order; parts collapse into one. */
+  citations: Citation[];
+  /** Score of the best chunk, 0 when nothing matched. */
+  topScore: number;
+  /** `topScore < WEAK_SCORE_THRESHOLD` — trigger for the honest fallback. */
+  isWeak: boolean;
+}
+
+export interface RetrieveOptions {
+  matchCount?: number;
+  client?: RetrievalRpcClient;
+  embedder?: Embedder;
+}
+
+/**
+ * A chunk both legs found scores at least 2/(k + LEG_LIMIT); a chunk only one
+ * leg found scores at most 1/(k + 1), which is strictly less. So this threshold
+ * says exactly one thing: *no chunk was corroborated by both the vector and the
+ * lexical leg*. #21 turns that into the honest fallback — say so and link the
+ * agency — instead of answering from a single-leg hit. #25 owns retuning it
+ * against the eval set.
+ */
+export const WEAK_SCORE_THRESHOLD = 2 / (RRF_K + LEG_LIMIT);
+
+/** Score one leg contributes to an id ranked `rank` (1-based). */
+export function rrfScore(rank: number, k = RRF_K): number {
+  if (!Number.isFinite(rank) || rank < 1) {
+    throw new Error(`rrfScore: rank must be >= 1, got ${rank}`);
+  }
+  return 1 / (k + rank);
+}
+
+/**
+ * Reference implementation of the fusion the SQL performs: sum each id's
+ * per-leg contribution, best first. The integration test cross-checks the RPC's
+ * scores against it, which is what keeps the two in step.
+ */
+export function fuseRrf(
+  legs: readonly (readonly string[])[],
+  k = RRF_K,
+): { id: string; score: number }[] {
+  const scores = new Map<string, number>();
+  for (const leg of legs) {
+    leg.forEach((id, index) => {
+      scores.set(id, (scores.get(id) ?? 0) + rrfScore(index + 1, k));
+    });
+  }
+  return [...scores]
+    .map(([id, score]) => ({ id, score }))
+    .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
+}
+
+/**
+ * Official address for a document's citation chip.
+ *
+ * SINALEVI fichas get the viewer link the site itself redirects legacy SCIJ
+ * URLs to; `param2` is left empty on purpose — that is what makes the viewer
+ * resolve and render the vigente version (a pinned version id renders the
+ * ficha's default tab instead of the text).
+ */
+export function citationUrl(
+  source: DocumentSource | null | undefined,
+): string | null {
+  if (!source) return null;
+  if (source.kind === "sinalevi" && source.idFichaNorma) {
+    return `https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=${source.idFichaNorma}&param2=&param3=1&param4=`;
+  }
+  const address = source.url ?? source.catalog;
+  if (!address) return null;
+  return /^https?:\/\//i.test(address) ? address : null;
+}
+
+export function toCitation(chunk: RetrievedChunk): Citation {
+  return {
+    docKey: chunk.docKey,
+    docTitle: chunk.docTitle,
+    norma: chunk.norma,
+    articulo: chunk.articulo,
+    url: citationUrl(chunk.source),
+  };
+}
+
+function toChunk(row: SearchChunksRow): RetrievedChunk {
+  return {
+    chunkId: row.chunk_id,
+    docKey: row.doc_key,
+    docTitle: row.doc_title,
+    norma: row.norma,
+    articulo: row.articulo,
+    path: row.path ?? [],
+    part: row.part,
+    content: row.content,
+    source: row.source ?? {},
+    score: row.score,
+  };
+}
+
+type GeneratedArgs = Database["public"]["Functions"]["search_chunks"]["Args"];
+
+/**
+ * Adapts a Supabase client to the retrieval contract. The generated types
+ * describe `source` as free-form `Json`, cannot express which RETURNS TABLE
+ * columns are nullable, and cannot express the nullable vector argument — so
+ * both shapes are re-asserted here. These are the only casts in the module,
+ * they sit at the database boundary, and the integration test covers them.
+ */
+export function asRetrievalClient(
+  client: SupabaseClient<Database>,
+): RetrievalRpcClient {
+  return {
+    rpc: (fn, args) =>
+      client.rpc(fn, args as GeneratedArgs).then(({ data, error }) => ({
+        data: (data ?? null) as SearchChunksRow[] | null,
+        error,
+      })),
+  };
+}
+
+/** Service-role client — `search_chunks` is granted to that role only. */
+export function createRetrievalClient(): RetrievalRpcClient {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    throw new Error(
+      "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required for retrieval",
+    );
+  }
+  return asRetrievalClient(
+    createClient<Database>(url, key, { auth: { persistSession: false } }),
+  );
+}
+
+export async function retrieve(
+  query: string,
+  options: RetrieveOptions = {},
+): Promise<RetrievalResult> {
+  const trimmed = query.trim();
+  if (trimmed === "") {
+    return {
+      query: trimmed,
+      chunks: [],
+      citations: [],
+      topScore: 0,
+      isWeak: true,
+    };
+  }
+
+  const embedder = options.embedder ?? createEmbedder();
+  const client = options.client ?? createRetrievalClient();
+  const [embedding] = await embedder.embed([trimmed]);
+
+  const { data, error } = await client.rpc("search_chunks", {
+    query_text: trimmed,
+    query_embedding: JSON.stringify(embedding),
+    match_count: options.matchCount ?? DEFAULT_MATCH_COUNT,
+  });
+  if (error) {
+    throw new Error(`search_chunks failed for "${trimmed}": ${error.message}`);
+  }
+
+  const chunks = (data ?? []).map(toChunk);
+  const seen = new Set<string>();
+  const citations: Citation[] = [];
+  for (const chunk of chunks) {
+    const key = `${chunk.docKey} ${chunk.articulo ?? ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    citations.push(toCitation(chunk));
+  }
+
+  const topScore = chunks[0]?.score ?? 0;
+  return {
+    query: trimmed,
+    chunks,
+    citations,
+    topScore,
+    isWeak: topScore < WEAK_SCORE_THRESHOLD,
+  };
+}
