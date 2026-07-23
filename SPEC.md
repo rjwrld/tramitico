@@ -8,6 +8,8 @@
 > **Status: building.** Week 1 (foundation) landed 2026-07-21 — PRs [#15](https://github.com/rjwrld/tramitico/pull/15), [#16](https://github.com/rjwrld/tramitico/pull/16).
 > Build work is tracked as GitHub issues (label `build`); deviations discovered during the build
 > are recorded as ADRs in [docs/adr/](docs/adr/), and this spec links them where they amend it.
+> Every build issue opens with a **Spec:** line deep-linking its governing sections here; shared
+> contracts (function signatures, API shapes) are owned by one issue and linked by consumers.
 
 ## 1. What ships
 
@@ -120,7 +122,9 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
 | `GET /api/history` | required        | user's saved Q&A (RLS)                                      |
 | `POST /api/ingest` | CI/admin secret | re-run ingestion for a doc or all                           |
 
-## 7. Auth & rate limiting _(pinned here per #10)_
+## 7. Auth & rate limiting
+
+_(pinned here per #10)_
 
 - Supabase Auth (email + GitHub OAuth). History table under RLS.
 - **Anonymous: 10 questions/day** per subject = hash(IP + coarse UA). **Authed: 50/day** per user.
