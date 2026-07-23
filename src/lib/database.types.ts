@@ -167,7 +167,16 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      rate_limit_increment: {
+        Args: {
+          p_cutoff: string;
+          p_subject: string;
+          p_window_start: string;
+        };
+        Returns: {
+          count: number;
+        }[];
+      };
     };
     Enums: {
       [_ in never]: never;
