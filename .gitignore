@@ -45,3 +45,7 @@ __pycache__/
 .playwright-mcp/
 !.env.example
 corpus/cache/
+
+# vendored public cert (ADR 0001) — narrow carve-out from *.pem above, not a
+# blanket un-ignore: this is a CA intermediate, never a private key.
+!corpus/certs/globalsign-rsa-ov-ssl-ca-2018.pem
