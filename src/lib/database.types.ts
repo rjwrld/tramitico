@@ -167,6 +167,16 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      rate_limit_increment: {
+        Args: {
+          p_cutoff: string;
+          p_subject: string;
+          p_window_start: string;
+        };
+        Returns: {
+          count: number;
+        }[];
+      };
       search_chunks: {
         Args: {
           match_count?: number;
