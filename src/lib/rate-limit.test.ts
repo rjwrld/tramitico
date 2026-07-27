@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
   checkRateLimit,
   coarseUserAgent,
@@ -196,12 +196,19 @@ const hasLocalDb =
   !!process.env.SUPABASE_URL && !!process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 describe.skipIf(!hasLocalDb)("checkRateLimit — integration (Postgres)", () => {
-  const client = createClient<Database>(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } },
-  );
-  const rpcClient = supabaseRpcClient(client);
+  // Built in beforeAll, not at describe-body scope: skipIf still evaluates the
+  // body during collection, and createClient throws without SUPABASE_URL (CI).
+  let client: ReturnType<typeof createClient<Database>>;
+  let rpcClient: RpcClient;
+
+  beforeAll(() => {
+    client = createClient<Database>(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } },
+    );
+    rpcClient = supabaseRpcClient(client);
+  });
 
   async function cleanup(subject: string) {
     await client.from("rate_limits").delete().eq("subject", subject);
