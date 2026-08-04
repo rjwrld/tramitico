@@ -21,6 +21,63 @@ const ART_RE =
   /^(ART[ÍI]CULO\s+\d+(?:\s*(?:BIS|TER))?|Art[íi]culo\s+\d+(?:\s*(?:bis|ter))?|TRANSITORIO\s+[IVXLCDM\d]+|Transitorio\s+[IVXLCDM\d]+)\b[ .°\-–—]*/;
 const HDR_RE = /^(T[ÍI]TULO|CAP[ÍI]TULO|SECCI[ÓO]N)\b/i;
 
+// Some consolidated texts (Ley IVA) glue the capítulo heading and the first
+// artículo into one extracted paragraph, so ART_RE's ^ anchor never fires and
+// whole capítulos become unlabeled blobs (ADR 0002 amendment, found during
+// ADR 0003). Pre-split at inline headings; unlike ART_RE, a delimiter after
+// the number is REQUIRED so mid-sentence references ("el Artículo 8 de esta
+// ley") don't split — real inline headings always carry one ("Artículo 8-").
+const INLINE_ART_RE =
+  /(?<!^)(?=(?:ART[ÍI]CULO|Art[íi]culo)\s+\d+(?:\s*(?:bis|ter|BIS|TER))?\s*[.\-–—°]|(?:TRANSITORIO|Transitorio)\s+[IVXLCDM\d]+\s*[.\-–—°])/;
+
+function splitInlineHeadings(paragraph: string): string[] {
+  return paragraph
+    .split(INLINE_ART_RE)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
+
+// Ley IVA's markup also fragments headings across paragraphs — "Artículo" /
+// "8- Exenciones…" and "CAPÍTULO" / "III" / "EXENCIONES" / "Y TASA DEL
+// IMPUESTO" each arrive as separate extracted paragraphs, so neither ART_RE
+// nor HDR_RE ever sees a whole heading. Rejoin those fragments first.
+const FRAG_ART_WORD_RE = /^(ART[ÍI]CULO|Art[íi]culo|TRANSITORIO|Transitorio)$/;
+const FRAG_HDR_WORD_RE = /^(T[ÍI]TULO|CAP[ÍI]TULO|SECCI[ÓO]N)$/i;
+const FRAG_NUM_START_RE = /^(\d|[IVXLCDM]+\b)/;
+/** Short all-caps caption line continuing a fragmented header. */
+const FRAG_CAPTION_RE = /^[^a-záéíóúñ]{1,60}$/;
+
+export function normalizeFragments(paragraphs: string[]): string[] {
+  const out: string[] = [];
+  for (let i = 0; i < paragraphs.length; i++) {
+    let p = paragraphs[i];
+    const next = paragraphs[i + 1];
+    if (FRAG_ART_WORD_RE.test(p) && next && FRAG_NUM_START_RE.test(next)) {
+      p = `${p} ${paragraphs[++i]}`;
+    } else if (
+      FRAG_HDR_WORD_RE.test(p) &&
+      next &&
+      FRAG_NUM_START_RE.test(next)
+    ) {
+      p = `${p} ${paragraphs[++i]}`;
+      for (
+        let absorbed = 0;
+        absorbed < 3 &&
+        i + 1 < paragraphs.length &&
+        FRAG_CAPTION_RE.test(paragraphs[i + 1]) &&
+        !/DECRETA/.test(paragraphs[i + 1]) &&
+        !FRAG_ART_WORD_RE.test(paragraphs[i + 1]) &&
+        !FRAG_HDR_WORD_RE.test(paragraphs[i + 1]);
+        absorbed++
+      ) {
+        p = `${p} ${paragraphs[++i]}`;
+      }
+    }
+    out.push(p);
+  }
+  return out;
+}
+
 const MAX_WORDS = 1000;
 const OVERLAP_WORDS = 100;
 
@@ -71,7 +128,7 @@ export function chunkDocument(
     current = [];
   };
 
-  for (const p of paragraphs) {
+  for (const p of normalizeFragments(paragraphs).flatMap(splitInlineHeadings)) {
     if (label === null && !sawArticulo && /DECRETA/.test(p.toUpperCase())) {
       flush();
       label = "Preámbulo";
