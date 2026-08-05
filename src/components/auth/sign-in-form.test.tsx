@@ -19,13 +19,8 @@ beforeEach(() => {
 afterEach(cleanup);
 
 async function submitEmail(email: string) {
-  await userEvent.type(
-    screen.getByLabelText("Correo electrónico"),
-    email,
-  );
-  await userEvent.click(
-    screen.getByRole("button", { name: "Enviar enlace" }),
-  );
+  await userEvent.type(screen.getByLabelText("Correo electrónico"), email);
+  await userEvent.click(screen.getByRole("button", { name: "Enviar enlace" }));
 }
 
 describe("SignInForm", () => {

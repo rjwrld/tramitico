@@ -35,7 +35,10 @@ describe("HistoryShell", () => {
   });
 
   it("collapse toggle unmounts and remounts the sidebar", async () => {
-    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ questions: [] }) });
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ questions: [] }),
+    });
     render(
       <HistoryShell signedIn>
         <p>contenido principal</p>
