@@ -7,6 +7,7 @@ export default defineConfig({
   test: {
     include: ["src/**/*.test.{ts,tsx}", "scripts/**/*.test.ts"],
     // Component tests opt into jsdom with a `@vitest-environment jsdom` docblock.
+
     environment: "node",
   },
   resolve: {

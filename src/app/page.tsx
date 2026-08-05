@@ -1,18 +1,43 @@
-import { Chat } from "@/components/chat/chat";
-import { ThemeToggle } from "@/components/theme-toggle";
+import Link from "next/link";
 
-export default function Home() {
+import { UserMenu } from "@/components/auth/user-menu";
+import { Chat } from "@/components/chat/chat";
+import { HistoryShell } from "@/components/history/history-shell";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { buttonVariants } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/server";
+
+export default async function Home() {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims as { sub?: string; email?: string } | undefined;
+  const signedIn = Boolean(claims?.sub);
+
   return (
     <div className="flex h-dvh flex-col">
-      <header className="flex items-center justify-between px-4 py-3">
-        <span className="font-serif text-xl font-semibold tracking-tight">
+      <header className="flex h-12 items-center justify-between border-b px-4">
+        <Link href="/" className="font-serif text-lg font-semibold">
           trami<span className="text-primary">tico</span>
-        </span>
-        <ThemeToggle />
+        </Link>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          {signedIn ? (
+            <UserMenu email={claims?.email ?? ""} />
+          ) : (
+            <Link
+              href="/login"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              Iniciar sesión
+            </Link>
+          )}
+        </div>
       </header>
-      <main className="flex min-h-0 flex-1 flex-col">
-        <Chat />
-      </main>
+      <HistoryShell signedIn={signedIn}>
+        <main className="flex min-h-0 flex-1 flex-col">
+          <Chat />
+        </main>
+      </HistoryShell>
     </div>
   );
 }
