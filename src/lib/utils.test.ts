@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cn } from "./utils";
+import { cn, safeNextPath } from "./utils";
 
 describe("cn", () => {
   it("merges conflicting tailwind classes, last wins", () => {
@@ -8,5 +8,17 @@ describe("cn", () => {
 
   it("drops falsy values", () => {
     expect(cn("a", false && "b", undefined, "c")).toBe("a c");
+  });
+});
+
+describe("safeNextPath", () => {
+  it("keeps same-origin relative paths", () => {
+    expect(safeNextPath("/historial")).toBe("/historial");
+  });
+
+  it("falls back to / for absolute or protocol-relative URLs", () => {
+    expect(safeNextPath("https://evil.example")).toBe("/");
+    expect(safeNextPath("//evil.example")).toBe("/");
+    expect(safeNextPath(null)).toBe("/");
   });
 });

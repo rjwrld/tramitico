@@ -5,6 +5,16 @@ Hacienda/CCSS documents. [SPEC.md](SPEC.md) is the build contract; [DESIGN.md](D
 visual contract; [PRODUCT.md](PRODUCT.md) the strategic context; [BRIEF.md](BRIEF.md) the
 original scope (its §5 OUT-list is binding).
 
+## Testing
+
+Every interactive component (anything with a click/submit/toggle path) ships with a jsdom
+interaction test that exercises the interaction — not just the states an issue's Tests section
+happens to enumerate. Rationale: our UI primitives are Base UI, whose composition constraints
+(e.g. `GroupLabel` needs a `Group` ancestor) only fail at runtime, and server-side smoke tests
+can't click. Pattern: `// @vitest-environment jsdom` + Testing Library + `afterEach(cleanup)`;
+mock `@/lib/supabase/client` and `next/navigation` at the module boundary
+(see `src/components/auth/user-menu.test.tsx`).
+
 ## Agent skills
 
 ### Issue tracker
