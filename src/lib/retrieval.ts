@@ -170,6 +170,19 @@ export function citationUrl(
   return /^https?:\/\//i.test(address) ? address : null;
 }
 
+/**
+ * Dedupe identity for citations: one per doc + artículo (parts collapse).
+ * Shared with the answer layer's citation tracker so both dedupe the same
+ * way. NUL as separator because it cannot appear in either field — written
+ * as an escape so the source file stays text to git (see 797a2fc).
+ */
+export function citationIdentity(entry: {
+  docKey: string;
+  articulo: string | null;
+}): string {
+  return `${entry.docKey}\u0000${entry.articulo ?? ""}`;
+}
+
 export function toCitation(chunk: RetrievedChunk): Citation {
   return {
     docKey: chunk.docKey,
@@ -262,7 +275,7 @@ export async function retrieve(
   const seen = new Set<string>();
   const citations: Citation[] = [];
   for (const chunk of chunks) {
-    const key = `${chunk.docKey} ${chunk.articulo ?? ""}`;
+    const key = citationIdentity(chunk);
     if (seen.has(key)) continue;
     seen.add(key);
     citations.push(toCitation(chunk));
