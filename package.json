@@ -16,10 +16,13 @@
     "ingest": "tsx scripts/ingest.ts"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^4.0.28",
+    "@ai-sdk/react": "^4.0.53",
     "@base-ui/react": "^1.6.0",
     "@shadcn/react": "^0.2.1",
     "@supabase/ssr": "0.12.4",
     "@supabase/supabase-js": "^2.112.0",
+    "ai": "^7.0.50",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "entities": "^8.0.0",
@@ -35,6 +38,7 @@
     "undici": "^8.8.0"
   },
   "devDependencies": {
+    "@ai-sdk/provider": "^4.0.5",
     "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "10.4.1",
@@ -43,9 +47,10 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.5",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
-    "jsdom": "28.1.0",
+    "jsdom": "^30.0.1",
     "prettier": "^3.9.5",
     "tailwindcss": "^4",
     "tsx": "^4.23.1",
