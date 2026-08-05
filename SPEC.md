@@ -138,7 +138,8 @@ _(pinned here per #10)_
 - **Components: shadcn/ui; chat scaffolding from Vercel AI Elements** (shadcn-based registry —
   streaming message list + sources primitives that become the citation chips). Owned code, themeable.
 - **Visual identity comes from DESIGN.md** (authored pre-build); the Week-2 UI prototype session
-  explores _layout_ variants within that identity, and citation rendering is decided there (ADR).
+  explores _layout_ variants within that identity, and citation rendering is decided there —
+  **decided: sello chips + streamed data-part snapshots, [ADR 0004](docs/adr/0004-citation-rendering.md)**.
 - Answers in Spanish; chrome/nav/README/demo in English. Citation chips + disclaimer per answer.
 - Signed-in: history sidebar. No other surfaces in MVP.
 
@@ -175,7 +176,7 @@ MCP server **not** required to feature — it gates only the "builds MCP servers
 ## 12. ADRs to write during build
 
 1. Embedding model (Voyage vs OpenAI) — benchmark on eval set (Week 2).
-2. Citation rendering format (chips vs footnotes) — decide at chat-UI time.
+2. Citation rendering format (chips vs footnotes) — **[ADR 0004](docs/adr/0004-citation-rendering.md)**: sello chips, cumulative `data-citations` snapshots.
 3. Anything that overturns a spec default — record, don't silently drift.
 
 ## 13. Out of scope (binding — BRIEF §5)
