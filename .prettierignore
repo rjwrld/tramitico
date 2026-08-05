@@ -4,3 +4,4 @@ pnpm-lock.yaml
 docs/corpus-samples
 prototype
 .playwright-mcp
+test-results/
