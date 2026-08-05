@@ -98,6 +98,51 @@ describe("chunkDocument — Reglamento IVA (71 artículos, 1.5MB)", () => {
   });
 });
 
+describe("chunkDocument — inline artículo headings (Ley IVA shape, ADR 0002 amendment)", () => {
+  // Ley IVA's consolidated text glues the capítulo heading and the first
+  // artículo into one extracted paragraph; before the inline pre-split this
+  // produced whole-capítulo blobs with articulo=null (found during ADR 0003).
+  const paras = [
+    "N° 6826 LA ASAMBLEA LEGISLATIVA DECRETA: LEY DEL IMPUESTO AL VALOR AGREGADO",
+    "CAPÍTULO III EXENCIONES Y TASA DEL IMPUESTO Artículo 8- Exenciones. Están exentos del pago de este impuesto: 1. Las exportaciones de bienes y la exportación de servicios.",
+    "Artículo 9- Tasa. La tarifa del impuesto es del trece por ciento (13%).",
+  ];
+  const chunks = chunkDocument("ley-iva", "Ley del IVA", paras);
+
+  it("splits the glued capítulo paragraph at the artículo heading", () => {
+    const art8 = chunks.find((c) => c.articulo === "Artículo 8");
+    expect(art8).toBeDefined();
+    expect(art8!.content).toMatch(/exportación de servicios/);
+    expect(art8!.path).toEqual(["CAPÍTULO III EXENCIONES Y TASA DEL IMPUESTO"]);
+  });
+
+  it("keeps plain paragraph-start headings working", () => {
+    expect(chunks.some((c) => c.articulo === "Artículo 9")).toBe(true);
+  });
+
+  it("rejoins headings fragmented across paragraphs (real Ley IVA markup)", () => {
+    const fragmented = chunkDocument("ley-iva", "Ley del IVA", [
+      "CAPÍTULO",
+      "III",
+      "EXENCIONES",
+      "Y TASA DEL IMPUESTO",
+      "Artículo",
+      "8- Exenciones. Están exentos del pago de este impuesto la exportación de servicios.",
+    ]);
+    const art8 = fragmented.find((c) => c.articulo === "Artículo 8");
+    expect(art8).toBeDefined();
+    expect(art8!.path).toEqual(["CAPÍTULO III EXENCIONES Y TASA DEL IMPUESTO"]);
+  });
+
+  it("does not split on mid-sentence references without a delimiter", () => {
+    const withRef = chunkDocument("x", "X", [
+      "Artículo 3- Remite a lo dispuesto en el Artículo 8 de esta ley para las exenciones.",
+    ]);
+    expect(withRef).toHaveLength(1);
+    expect(withRef[0].articulo).toBe("Artículo 3");
+  });
+});
+
 describe("chunkDocument — unstructured document (whole-doc fallback)", () => {
   it("emits a single chunk when no artículo structure exists", () => {
     const paras = textToParagraphs(

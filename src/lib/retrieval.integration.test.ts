@@ -9,7 +9,12 @@
  *   SUPABASE_SERVICE_ROLE_KEY=<service role key> pnpm test
  */
 import { createClient } from "@supabase/supabase-js";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+// Real-provider query embeds pace themselves against Voyage's 3-requests/min
+// keyless tier (ADR 0003) — repeats hit the embedder's query cache, but each
+// distinct question can legitimately wait out a rate-limit window.
+vi.setConfig({ testTimeout: 120_000 });
 import type { Database } from "./database.types";
 import { createEmbedder } from "./ingestion/embedder";
 import {
@@ -159,25 +164,30 @@ describe.skipIf(!hasDb)("search_chunks against the ingested corpus", () => {
     },
   );
 
-  it("survives whatever a user types into the ask box", async () => {
-    // #21 hands raw user text to query_text, so tsquery syntax must never
-    // escape into the query the lexical leg builds.
-    const hostile = [
-      "it's a test",
-      "O'Reilly & sons | !x",
-      '"quoted phrase" -excluded',
-      "\\ backslash \\\\ double",
-      "<>&|!():*",
-      "🙂 emoji prescripción",
-      "''''",
-      "   ",
-    ];
-    for (const query of hostile) {
-      await expect(
-        searchChunks(query, await embed(query || "x"), 3),
-      ).resolves.toBeInstanceOf(Array);
-    }
-  });
+  // 8 distinct queries = 8 real embeds, each pacing against the 3/min tier.
+  it(
+    "survives whatever a user types into the ask box",
+    { timeout: 420_000 },
+    async () => {
+      // #21 hands raw user text to query_text, so tsquery syntax must never
+      // escape into the query the lexical leg builds.
+      const hostile = [
+        "it's a test",
+        "O'Reilly & sons | !x",
+        '"quoted phrase" -excluded',
+        "\\ backslash \\\\ double",
+        "<>&|!():*",
+        "🙂 emoji prescripción",
+        "''''",
+        "   ",
+      ];
+      for (const query of hostile) {
+        await expect(
+          searchChunks(query, await embed(query || "x"), 3),
+        ).resolves.toBeInstanceOf(Array);
+      }
+    },
+  );
 
   it("finds nothing for a question the corpus does not cover", async () => {
     const rows = await searchChunks(
