@@ -109,6 +109,30 @@ describe("subjectForAnon", () => {
   });
 });
 
+describe("register (DESIGN §9: Spanish, usted)", () => {
+  // Blacklist the second-person forms these messages could plausibly slip
+  // into — voseo, tuteo imperatives, tuteo possessives — rather than a general
+  // "verb ends in an accented vowel" heuristic, which fires on `de las …`.
+  const NOT_USTED =
+    /\b(alcanzaste|alcanzás|iniciá|inicias?|volvé|vuelve|intentá|intenta|escribí|escribe|revisá|revisa|esperá|espera|tenés|tienes|podés|puedes|querés|quieres|debés|debes|tu|tus|te|ti|tuyo)\b/i;
+  const resetAt = new Date("2026-01-02T00:00:00Z");
+
+  it.each([
+    ["unavailable", RATE_LIMIT_UNAVAILABLE_MESSAGE],
+    ["anon limit", rateLimitReachedMessage("anon", resetAt)],
+    ["authed limit", rateLimitReachedMessage("authed", resetAt)],
+  ])("%s message addresses the reader as usted", (_name, message) => {
+    expect(message).not.toMatch(NOT_USTED);
+  });
+
+  it("does not double the period after a p. m. reset time", () => {
+    // 6 p.m. CR — Intl renders "6:00 p. m.", already sentence-final.
+    const message = rateLimitReachedMessage("anon", resetAt);
+    expect(message).toContain("p. m.");
+    expect(message).not.toContain("..");
+  });
+});
+
 describe("checkRateLimit — fake client", () => {
   it("allows when the incremented count is within the limit", async () => {
     const client = fakeClient({ count: 1 });

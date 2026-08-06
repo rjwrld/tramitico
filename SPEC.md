@@ -102,6 +102,8 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   (Postgres FTS, `spanish` config) via reciprocal rank fusion. The prototype proved lexical-only
   misses vocabulary gaps ("clientes fuera de Costa Rica" vs "exportación de servicios"), while
   exact-term queries (tramos, CCSS, CABYS codes) reward the lexical leg. Top-k ≈ 8 fused → answer.
+  The lexical leg's tsquery semantics (strict AND with a conditional OR fallback) —
+  **[ADR 0005](docs/adr/0005-lexical-and-or-fallback.md)**.
 - **Embedding model:** Voyage vs OpenAI `text-embedding-3-small` — **ADR during Week 2**,
   benchmarked on the eval set; the exportación vocabulary-gap question is the canary.
 - **Answer assembly:** Claude **Sonnet by default, model as env var** — Week 3 runs Haiku 4.5
@@ -177,7 +179,9 @@ MCP server **not** required to feature — it gates only the "builds MCP servers
 
 1. Embedding model (Voyage vs OpenAI) — benchmark on eval set (Week 2).
 2. Citation rendering format (chips vs footnotes) — **[ADR 0004](docs/adr/0004-citation-rendering.md)**: sello chips, cumulative `data-citations` snapshots.
-3. Anything that overturns a spec default — record, don't silently drift.
+3. Anything that overturns a spec default — record, don't silently drift. First instance:
+   **[ADR 0005](docs/adr/0005-lexical-and-or-fallback.md)**, the lexical leg's AND→OR tsquery
+   fallback in `search_chunks`.
 
 ## 13. Out of scope (binding — BRIEF §5)
 

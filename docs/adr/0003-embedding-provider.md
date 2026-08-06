@@ -87,5 +87,6 @@ volume many times over, and 1024d keeps the HNSW index a third smaller than 1536
   in-repo for re-runs when the corpus or provider changes; embeddings cache under the OS temp
   dir so re-scoring is free.
 - Issue [#37](https://github.com/rjwrld/tramitico/issues/37) reserved the name "ADR 0003" for
-  the tsquery AND→OR fallback write-up; that one becomes ADR 0004 — this document takes the
-  number per #19's earlier contract.
+  the tsquery AND→OR fallback write-up; this document takes the number per #19's earlier
+  contract, and that write-up landed as [ADR 0005](0005-lexical-and-or-fallback.md) (0004 was
+  meanwhile taken by citation rendering).
