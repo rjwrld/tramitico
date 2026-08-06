@@ -117,8 +117,10 @@ export interface RetrieveOptions {
  * leg found scores at most 1/(k + 1), which is strictly less. So this threshold
  * says exactly one thing: *no chunk was corroborated by both the vector and the
  * lexical leg*. #21 turns that into the honest fallback — say so and link the
- * agency — instead of answering from a single-leg hit. #25 owns retuning it
- * against the eval set.
+ * agency — instead of answering from a single-leg hit. Retuned against the
+ * #25 eval set (2026-08-06): every legitimate question scored 0.0296–0.0328,
+ * ≥18% above this threshold, so the value stands; the eval asserts no
+ * dataset question ever trips it (retrieval-hitrate.integration.test.ts).
  */
 export const WEAK_SCORE_THRESHOLD = 2 / (RRF_K + LEG_LIMIT);
 

@@ -33,11 +33,29 @@ describe("rerankChunks", () => {
     expect(ANSWER_TOP_K).toBe(8);
   });
 
-  it("returns fused-order top-8 when RERANK is off (default)", async () => {
+  it("returns fused-order top-8 when RERANK=off", async () => {
+    vi.stubEnv("RERANK", "off");
+    vi.stubEnv("VOYAGE_API_KEY", "vk-test");
     const fetchImpl = vi.fn();
     const result = await rerankChunks("pregunta", POOL, { fetchImpl });
     expect(result).toEqual(POOL.slice(0, 8));
     expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("reranks by default — no RERANK env var needed (#25 validated the lift)", async () => {
+    vi.stubEnv("RERANK", "");
+    vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify({ data: [{ index: 1, relevance_score: 1 }] }),
+          { status: 200 },
+        ),
+      );
+    const result = await rerankChunks("pregunta", POOL, { fetchImpl });
+    expect(fetchImpl).toHaveBeenCalledOnce();
+    expect(result.map((c) => c.chunkId)).toEqual(["c2"]);
   });
 
   it("reorders via Voyage and returns top-8 when RERANK=voyage", async () => {

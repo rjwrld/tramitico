@@ -2,7 +2,7 @@
  * POST /api/ask — the core endpoint (SPEC §5–§7, issue #21).
  *
  * Flow: rate-limit check (fail-closed, #24) → hybrid retrieval over a rerank
- * pool (#20) → optional Voyage rerank to top-8 → streamed answer via the
+ * pool (#20) → Voyage rerank to top-8 (default on since #25) → streamed answer via the
  * Vercel AI SDK with `data-citations` parts as sellos apply. Weak retrieval
  * short-circuits to a deterministic honest fallback — no model call, no
  * citations, no guessing. Signed-in callers get the exchange persisted to
