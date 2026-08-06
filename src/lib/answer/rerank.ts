@@ -32,6 +32,8 @@ export async function rerankChunks(
   options: RerankOptions = {},
 ): Promise<RetrievedChunk[]> {
   const fused = chunks.slice(0, ANSWER_TOP_K);
+  // `||`, not `??`: CI interpolates an unset `vars.RERANK` as "", which must
+  // mean "default on" — only an explicit RERANK=off opts out.
   if ((process.env.RERANK || "voyage") !== "voyage") return fused;
 
   const key = process.env.VOYAGE_API_KEY;
