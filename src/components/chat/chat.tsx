@@ -66,10 +66,10 @@ export function Chat() {
 
   return (
     <MessageScrollerProvider>
-      <div className="mx-auto flex w-full max-w-[44rem] min-h-0 flex-1 flex-col px-4">
+      <div className="flex min-h-0 flex-1 flex-col">
         <MessageScroller className="flex-1">
           <MessageScrollerViewport>
-            <MessageScrollerContent className="gap-0 py-6">
+            <MessageScrollerContent className="mx-auto w-full max-w-[44rem] gap-0 px-4 py-6">
               {messages.map((message, index) => (
                 <MessageScrollerItem
                   key={message.id}
@@ -106,7 +106,9 @@ export function Chat() {
           <MessageScrollerButton />
         </MessageScroller>
         <div className="crossfade-ground sticky bottom-0 bg-background pt-2 pb-4">
-          <ChatInput onSubmit={ask} busy={busy} />
+          <div className="mx-auto w-full max-w-[44rem] px-4">
+            <ChatInput onSubmit={ask} busy={busy} />
+          </div>
         </div>
       </div>
     </MessageScrollerProvider>
