@@ -19,7 +19,13 @@ export interface Chunk {
 // ingestion run showed those create false boundaries if matched.
 const ART_RE =
   /^(ART[ÍI]CULO\s+\d+(?:\s*(?:BIS|TER))?|Art[íi]culo\s+\d+(?:\s*(?:bis|ter))?|TRANSITORIO\s+[IVXLCDM\d]+|Transitorio\s+[IVXLCDM\d]+)\b[ .°\-–—]*/;
-const HDR_RE = /^(T[ÍI]TULO|CAP[ÍI]TULO|SECCI[ÓO]N)\b/i;
+// Same first-letter case rule as ART_RE: real headings are capitalized
+// ("SECCIÓN II" / "Capítulo IV"), while in-sentence references that extraction
+// breaks onto their own line ('sección "Propuestas en consulta pública"…',
+// "título gratuito y con fines de interés social…") are not — the RES-0027-2024
+// ingestion showed those mislabel every following chunk's citation path.
+const HDR_RE =
+  /^(T[ÍI]TULO|T[íi]tulo|CAP[ÍI]TULO|Cap[íi]tulo|SECCI[ÓO]N|Secci[óo]n)\b/;
 
 // Some consolidated texts (Ley IVA) glue the capítulo heading and the first
 // artículo into one extracted paragraph, so ART_RE's ^ anchor never fires and
@@ -42,7 +48,8 @@ function splitInlineHeadings(paragraph: string): string[] {
 // IMPUESTO" each arrive as separate extracted paragraphs, so neither ART_RE
 // nor HDR_RE ever sees a whole heading. Rejoin those fragments first.
 const FRAG_ART_WORD_RE = /^(ART[ÍI]CULO|Art[íi]culo|TRANSITORIO|Transitorio)$/;
-const FRAG_HDR_WORD_RE = /^(T[ÍI]TULO|CAP[ÍI]TULO|SECCI[ÓO]N)$/i;
+const FRAG_HDR_WORD_RE =
+  /^(T[ÍI]TULO|T[íi]tulo|CAP[ÍI]TULO|Cap[íi]tulo|SECCI[ÓO]N|Secci[óo]n)$/;
 const FRAG_NUM_START_RE = /^(\d|[IVXLCDM]+\b)/;
 /** Short all-caps caption line continuing a fragmented header. */
 const FRAG_CAPTION_RE = /^[^a-záéíóúñ]{1,60}$/;
