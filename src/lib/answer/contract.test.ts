@@ -67,10 +67,10 @@ describe("askErrorMessage", () => {
   it("surfaces the friendly ES message from a JSON error body", () => {
     const body = JSON.stringify({
       error: "rate_limited",
-      message: "Alcanzaste el límite de 10 preguntas gratis por hoy.",
+      message: "Alcanzó el límite de 10 preguntas gratis por hoy.",
     });
     expect(askErrorMessage(new Error(body))).toBe(
-      "Alcanzaste el límite de 10 preguntas gratis por hoy.",
+      "Alcanzó el límite de 10 preguntas gratis por hoy.",
     );
   });
 

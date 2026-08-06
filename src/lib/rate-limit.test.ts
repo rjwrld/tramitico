@@ -127,14 +127,14 @@ describe("checkRateLimit — fake client", () => {
     expect(result.remaining).toBe(0);
     expect(result.message).toMatch(/límite/);
     expect(result.message).toMatch(/las \d/); // names the reset time
-    expect(result.message).toMatch(/Iniciá sesión/);
+    expect(result.message).toMatch(/Inicie sesión/);
   });
 
   it("does not nudge sign-in for the authed tier", async () => {
     const client = fakeClient({ count: 51 });
     const result = await checkRateLimit("user:1", "authed", client);
     expect(result.allowed).toBe(false);
-    expect(result.message).not.toMatch(/Iniciá sesión/);
+    expect(result.message).not.toMatch(/Inicie sesión/);
   });
 
   it("fails closed with the generic message when the RPC returns an error", async () => {

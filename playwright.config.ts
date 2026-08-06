@@ -24,6 +24,11 @@ export default defineConfig({
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
         process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
         "sb_publishable_placeholder",
+      // Server-side Supabase is pinned empty so the rate limiter fails closed
+      // deterministically — chat-flow.spec.ts drives the real /api/ask through
+      // that path everywhere, never a real database or model.
+      SUPABASE_URL: "",
+      SUPABASE_SERVICE_ROLE_KEY: "",
     },
   },
 });
