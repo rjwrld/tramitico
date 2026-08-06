@@ -104,7 +104,7 @@ test("a 429 renders the friendly rate-limit message inline", async ({
     JSON.stringify({
       error: "rate_limited",
       message:
-        "Alcanzaste el límite de 10 preguntas gratis por hoy. Iniciá sesión para tener 50 preguntas diarias.",
+        "Alcanzó el límite de 10 preguntas gratis por hoy. Inicie sesión para tener 50 preguntas diarias.",
     }),
     429,
   );
@@ -116,7 +116,7 @@ test("a 429 renders the friendly rate-limit message inline", async ({
   // Next.js's route announcer is also role=alert — filter to ours.
   const alert = page.getByRole("alert").filter({ hasText: "límite" });
   await expect(alert).toContainText(
-    "Alcanzaste el límite de 10 preguntas gratis por hoy",
+    "Alcanzó el límite de 10 preguntas gratis por hoy",
   );
-  await expect(alert).toContainText("Iniciá sesión");
+  await expect(alert).toContainText("Inicie sesión");
 });

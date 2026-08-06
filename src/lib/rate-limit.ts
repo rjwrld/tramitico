@@ -110,32 +110,38 @@ export function subjectForAnon(ip: string, userAgent: string): string {
 }
 
 export const RATE_LIMIT_UNAVAILABLE_MESSAGE =
-  "No pudimos verificar tu límite de preguntas en este momento. Intentá de nuevo en unos minutos.";
+  "No pudimos verificar su límite de preguntas en este momento. Intente de nuevo en unos minutos.";
 
-function formatResetTime(resetAt: Date): string {
-  return new Intl.DateTimeFormat("es-CR", {
+/**
+ * The reset time as it appears at the end of a sentence, punctuation included:
+ * es-CR renders afternoons as "6:00 p. m.", whose own period closes the
+ * sentence, so callers must not append a second one.
+ */
+function resetTimeSentenceEnd(resetAt: Date): string {
+  const time = new Intl.DateTimeFormat("es-CR", {
     timeZone: CR_TIME_ZONE,
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
   }).format(resetAt);
+  return time.endsWith(".") ? time : `${time}.`;
 }
 
 export function rateLimitReachedMessage(
   tier: RateLimitTier,
   resetAt: Date,
 ): string {
-  const time = formatResetTime(resetAt);
+  const time = resetTimeSentenceEnd(resetAt);
   if (tier === "anon") {
     return (
-      `Alcanzaste el límite de ${limitFor("anon")} preguntas gratis por hoy. ` +
-      `Iniciá sesión para tener ${limitFor("authed")} preguntas diarias, ` +
-      `o volvé a intentarlo después de las ${time}.`
+      `Alcanzó el límite de ${limitFor("anon")} preguntas gratis por hoy. ` +
+      `Inicie sesión para tener ${limitFor("authed")} preguntas diarias, ` +
+      `o vuelva a intentarlo después de las ${time}`
     );
   }
   return (
-    `Alcanzaste el límite de ${limitFor("authed")} preguntas por hoy. ` +
-    `Volvé a intentarlo después de las ${time}.`
+    `Alcanzó el límite de ${limitFor("authed")} preguntas por hoy. ` +
+    `Vuelva a intentarlo después de las ${time}`
   );
 }
 

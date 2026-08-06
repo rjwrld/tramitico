@@ -177,7 +177,7 @@ describe("POST /api/ask", () => {
       remaining: 0,
       resetAt: new Date(),
       reason: "rate_limited",
-      message: "Alcanzaste el límite de 10 preguntas gratis por hoy.",
+      message: "Alcanzó el límite de 10 preguntas gratis por hoy.",
     });
 
     const response = await POST(askRequest({ question: "¿Cuánto es el IVA?" }));
@@ -193,7 +193,7 @@ describe("POST /api/ask", () => {
       remaining: 0,
       resetAt: new Date(),
       reason: "unavailable",
-      message: "No pudimos verificar tu límite de preguntas en este momento.",
+      message: "No pudimos verificar su límite de preguntas en este momento.",
     });
 
     const response = await POST(askRequest({ question: "¿Cuánto es el IVA?" }));
