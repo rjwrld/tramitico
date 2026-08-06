@@ -68,30 +68,21 @@
       "doc_key": "reglamento-comprobantes",
       "title": "Reglamento de Comprobantes Electrónicos",
       "norma": "Decreto Ejecutivo 44739-H",
-      "source": {
-        "kind": "unresolved",
-        "hint": "SINALEVI — locate idFichaNorma for Decreto 44739-H"
-      }
+      "source": { "kind": "sinalevi", "idFichaNorma": 103206 }
     },
     {
       "doc_key": "disposiciones-v44",
       "title": "Disposiciones técnicas de comprobantes electrónicos v4.4",
       "norma": "MH-DGT-RES-0027-2024",
-      "source": {
-        "kind": "unresolved",
-        "hint": "hacienda.go.cr PDF/spec — locate direct URL (Playwright fetch)"
-      },
-      "notes": "Mandatory since 2025-09-01."
+      "source": { "kind": "sinalevi", "idFichaNorma": 103276 },
+      "notes": "Mandatory since 2025-09-01. SINALEVI vigente text is consolidated with reforms MH-DGT-RES-0001-2025 and MH-DGT-RES-0043-2025 — preferred over the original hacienda.go.cr PDF (Resolucion_General_sobre_disposiciones_tecnicas_comprobantes_electronicos_para.pdf), whose transition dates are superseded."
     },
     {
       "doc_key": "dgt-export-servicios",
-      "title": "Resolución DGT — servicios exentos de IVA por exportación",
-      "norma": null,
-      "source": {
-        "kind": "unresolved",
-        "hint": "Locate the primary DGT resolution (EY/observador summaries are NOT ingestable)"
-      },
-      "notes": "Exemption requires consumption entirely outside CR, not merely billing abroad."
+      "title": "Operaciones exentas relacionadas con las exportaciones (artículo 11 del Reglamento del IVA)",
+      "norma": "MH-DGT-RES-0017-2023",
+      "source": { "kind": "sinalevi", "idFichaNorma": 99994 },
+      "notes": "Primary DGT resolution behind the EY/observador summaries; consolidates and derogates DGT-R-035-2019, DGT-R-038-2019, DGT-R-036-2021. Quotes LIVA art. 8.1: services are exempt only when used outside the territorial scope — consumption entirely outside CR, not merely billing abroad."
     },
     {
       "doc_key": "tribu-cr-guia",
