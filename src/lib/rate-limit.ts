@@ -112,8 +112,12 @@ export function subjectForAnon(ip: string, userAgent: string): string {
 export const RATE_LIMIT_UNAVAILABLE_MESSAGE =
   "No pudimos verificar su límite de preguntas en este momento. Intente de nuevo en unos minutos.";
 
-/** Ends with "p. m." in es-CR — that abbreviation's period closes the sentence. */
-function formatResetTime(resetAt: Date): string {
+/**
+ * The reset time as it appears at the end of a sentence, punctuation included:
+ * es-CR renders afternoons as "6:00 p. m.", whose own period closes the
+ * sentence, so callers must not append a second one.
+ */
+function resetTimeSentenceEnd(resetAt: Date): string {
   const time = new Intl.DateTimeFormat("es-CR", {
     timeZone: CR_TIME_ZONE,
     hour: "numeric",
@@ -127,7 +131,7 @@ export function rateLimitReachedMessage(
   tier: RateLimitTier,
   resetAt: Date,
 ): string {
-  const time = formatResetTime(resetAt);
+  const time = resetTimeSentenceEnd(resetAt);
   if (tier === "anon") {
     return (
       `Alcanzó el límite de ${limitFor("anon")} preguntas gratis por hoy. ` +

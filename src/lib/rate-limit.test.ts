@@ -110,10 +110,11 @@ describe("subjectForAnon", () => {
 });
 
 describe("register (DESIGN §9: Spanish, usted)", () => {
-  // Blacklist the forms that actually showed up, not a general "verb ends in
-  // an accented vowel" heuristic — that fires on `después de las …`.
+  // Blacklist the second-person forms these messages could plausibly slip
+  // into — voseo, tuteo imperatives, tuteo possessives — rather than a general
+  // "verb ends in an accented vowel" heuristic, which fires on `de las …`.
   const NOT_USTED =
-    /\b(alcanzaste|iniciá|volvé|intentá|tenés|podés|tu|tus|te)\b/i;
+    /\b(alcanzaste|alcanzás|iniciá|inicias?|volvé|vuelve|intentá|intenta|escribí|escribe|revisá|revisa|esperá|espera|tenés|tienes|podés|puedes|querés|quieres|debés|debes|tu|tus|te|ti|tuyo)\b/i;
   const resetAt = new Date("2026-01-02T00:00:00Z");
 
   it.each([
