@@ -2,6 +2,9 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./e2e",
+  // *.local.spec.ts need a live local Supabase — playwright.local.config.ts
+  // owns those (pnpm test:e2e:local, issue #47).
+  testIgnore: "**/*.local.spec.ts",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
