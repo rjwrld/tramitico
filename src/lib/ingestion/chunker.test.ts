@@ -143,6 +143,45 @@ describe("chunkDocument — inline artículo headings (Ley IVA shape, ADR 0002 a
   });
 });
 
+describe("chunkDocument — lowercase in-sentence heading words (RES-0027-2024 shape)", () => {
+  // The disposiciones-v44 text fragments considerando X so that a line starting
+  // with lowercase 'sección "Propuestas en consulta pública", antes de su
+  // dictado' arrives as its own paragraph; matching it as a SECCIÓN heading
+  // mislabeled 25 vigente chunks as draft-stage in their citation path. Same
+  // rule as ART_RE: real headings are capitalized, in-sentence references are
+  // not.
+  it("does not treat a lowercase sección fragment as a heading", () => {
+    const chunks = chunkDocument("x", "X", [
+      "Artículo 1- El proyecto se publicó en el sitio Web, en la",
+      'sección "Propuestas en consulta pública", antes de su dictado',
+      "definitivo. Artículo 2- Vigencia. Rige a partir de su publicación.",
+    ]);
+    for (const c of chunks) {
+      expect(c.path).toEqual([]);
+    }
+    expect(chunks.some((c) => c.articulo === "Artículo 2")).toBe(true);
+  });
+
+  it("still treats capitalized SECCIÓN headings as path context", () => {
+    const chunks = chunkDocument("x", "X", [
+      "SECCIÓN II DE LOS COMPROBANTES",
+      "Artículo 4- Los comprobantes electrónicos deberán emitirse.",
+    ]);
+    const art4 = chunks.find((c) => c.articulo === "Artículo 4");
+    expect(art4!.path).toEqual(["SECCIÓN II DE LOS COMPROBANTES"]);
+  });
+
+  it("does not rejoin a lowercase fragmented heading word", () => {
+    const chunks = chunkDocument("x", "X", [
+      "Artículo 1- Los campos de la",
+      "sección",
+      "5.6 del anexo aplican a la factura electrónica.",
+    ]);
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0].path).toEqual([]);
+  });
+});
+
 describe("chunkDocument — unstructured document (whole-doc fallback)", () => {
   it("emits a single chunk when no artículo structure exists", () => {
     const paras = textToParagraphs(
