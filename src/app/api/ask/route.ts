@@ -45,8 +45,22 @@ const INVALID_QUESTION_MESSAGE =
 const RETRIEVAL_FAILED_MESSAGE =
   "No se pudo buscar en los documentos oficiales. Intente de nuevo en unos minutos.";
 
-function jsonError(message: string, status: number): Response {
-  return Response.json({ error: message }, { status });
+type AskErrorCode =
+  | "invalid_question"
+  | "rate_limited"
+  | "rate_limit_unavailable"
+  | "retrieval_failed";
+
+/**
+ * Non-OK body per the client contract (contract.ts): `error` is a stable
+ * machine code, `message` the user-facing Spanish the UI renders inline.
+ */
+function jsonError(
+  code: AskErrorCode,
+  message: string,
+  status: number,
+): Response {
+  return Response.json({ error: code, message }, { status });
 }
 
 function clientIp(request: Request): string {
@@ -97,14 +111,14 @@ export async function POST(request: Request): Promise<Response> {
   try {
     ({ question } = (await request.json()) as { question?: unknown });
   } catch {
-    return jsonError(INVALID_QUESTION_MESSAGE, 400);
+    return jsonError("invalid_question", INVALID_QUESTION_MESSAGE, 400);
   }
   if (
     typeof question !== "string" ||
     question.trim() === "" ||
     question.length > MAX_QUESTION_LENGTH
   ) {
-    return jsonError(INVALID_QUESTION_MESSAGE, 400);
+    return jsonError("invalid_question", INVALID_QUESTION_MESSAGE, 400);
   }
   const asked = question.trim();
 
@@ -121,8 +135,12 @@ export async function POST(request: Request): Promise<Response> {
   if (!limit.allowed) {
     // Fail-closed: an unavailable limiter denies too, but as a 503 so the
     // client can tell "try later" from "you hit the limit".
-    const status = limit.reason === "unavailable" ? 503 : 429;
-    return jsonError(limit.message ?? RATE_LIMIT_UNAVAILABLE_MESSAGE, status);
+    const unavailable = limit.reason === "unavailable";
+    return jsonError(
+      unavailable ? "rate_limit_unavailable" : "rate_limited",
+      limit.message ?? RATE_LIMIT_UNAVAILABLE_MESSAGE,
+      unavailable ? 503 : 429,
+    );
   }
 
   let retrieval;
@@ -130,7 +148,7 @@ export async function POST(request: Request): Promise<Response> {
     retrieval = await retrieve(asked, { matchCount: RERANK_POOL });
   } catch (error) {
     console.error(`ask: retrieval failed: ${String(error)}`);
-    return jsonError(RETRIEVAL_FAILED_MESSAGE, 502);
+    return jsonError("retrieval_failed", RETRIEVAL_FAILED_MESSAGE, 502);
   }
 
   if (retrieval.isWeak) {

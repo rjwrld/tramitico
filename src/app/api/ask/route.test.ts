@@ -182,8 +182,11 @@ describe("POST /api/ask", () => {
 
     const response = await POST(askRequest({ question: "¿Cuánto es el IVA?" }));
     expect(response.status).toBe(429);
-    const body = (await response.json()) as { error: string };
-    expect(body.error).toContain("límite de 10 preguntas");
+    // The client contract (contract.ts) reads `message` for the user-facing
+    // copy; `error` is a stable machine code.
+    const body = (await response.json()) as { error: string; message: string };
+    expect(body.error).toBe("rate_limited");
+    expect(body.message).toContain("límite de 10 preguntas");
     expect(vi.mocked(retrieve)).not.toHaveBeenCalled();
   });
 
@@ -198,6 +201,9 @@ describe("POST /api/ask", () => {
 
     const response = await POST(askRequest({ question: "¿Cuánto es el IVA?" }));
     expect(response.status).toBe(503);
+    const body = (await response.json()) as { error: string; message: string };
+    expect(body.error).toBe("rate_limit_unavailable");
+    expect(body.message).toContain("verificar su límite");
     expect(vi.mocked(retrieve)).not.toHaveBeenCalled();
   });
 
@@ -205,8 +211,12 @@ describe("POST /api/ask", () => {
     for (const body of [{}, { question: "  " }, { question: 42 }]) {
       const response = await POST(askRequest(body));
       expect(response.status).toBe(400);
-      const parsed = (await response.json()) as { error: string };
-      expect(parsed.error).toMatch(/pregunta/i);
+      const parsed = (await response.json()) as {
+        error: string;
+        message: string;
+      };
+      expect(parsed.error).toBe("invalid_question");
+      expect(parsed.message).toMatch(/pregunta/i);
     }
     expect(vi.mocked(checkRateLimit)).not.toHaveBeenCalled();
   });
@@ -249,8 +259,9 @@ describe("POST /api/ask", () => {
 
     const response = await POST(askRequest({ question: "¿Cuánto es el IVA?" }));
     expect(response.status).toBe(502);
-    const body = (await response.json()) as { error: string };
-    expect(body.error).toMatch(/documentos oficiales/);
+    const body = (await response.json()) as { error: string; message: string };
+    expect(body.error).toBe("retrieval_failed");
+    expect(body.message).toMatch(/documentos oficiales/);
     spy.mockRestore();
   });
 });
