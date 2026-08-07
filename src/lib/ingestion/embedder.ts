@@ -47,11 +47,17 @@ function stubVector(text: string): number[] {
   return v.map((x) => x / norm);
 }
 
+export interface EmbedderOptions {
+  fetchImpl?: typeof fetch;
+}
+
 export function createEmbedder(
   // `||`, not `??`: CI interpolates an unset `vars.EMBEDDINGS_PROVIDER` as
   // "", which must mean the keyless stub default, not an unknown provider.
   provider = process.env.EMBEDDINGS_PROVIDER || "stub",
+  options: EmbedderOptions = {},
 ): Embedder {
+  const fetchImpl = options.fetchImpl ?? fetch;
   if (provider === "stub") {
     return {
       provider,
@@ -88,7 +94,7 @@ export function createEmbedder(
           if (gap > 0) await new Promise((r) => setTimeout(r, gap));
         }
         lastRequestAt = Date.now();
-        const res = await fetch("https://api.voyageai.com/v1/embeddings", {
+        const res = await fetchImpl("https://api.voyageai.com/v1/embeddings", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${key}`,
@@ -155,7 +161,7 @@ export function createEmbedder(
       provider,
       dimensions: 1536,
       embed: async (texts) => {
-        const res = await fetch("https://api.openai.com/v1/embeddings", {
+        const res = await fetchImpl("https://api.openai.com/v1/embeddings", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${key}`,
