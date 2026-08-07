@@ -181,9 +181,9 @@ describe("createEmbedder", () => {
       expect(fetchImpl).toHaveBeenCalledTimes(1);
       const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
       expect(url).toContain("openai.com");
-      expect(
-        (JSON.parse(init.body as string) as { model: string }).model,
-      ).toBe("text-embedding-3-small");
+      expect((JSON.parse(init.body as string) as { model: string }).model).toBe(
+        "text-embedding-3-small",
+      );
     });
 
     it("throws on a non-OK response", async () => {
