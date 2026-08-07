@@ -48,7 +48,9 @@ function stubVector(text: string): number[] {
 }
 
 export function createEmbedder(
-  provider = process.env.EMBEDDINGS_PROVIDER ?? "stub",
+  // `||`, not `??`: CI interpolates an unset `vars.EMBEDDINGS_PROVIDER` as
+  // "", which must mean the keyless stub default, not an unknown provider.
+  provider = process.env.EMBEDDINGS_PROVIDER || "stub",
 ): Embedder {
   if (provider === "stub") {
     return {
