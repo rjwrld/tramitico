@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_MATCH_COUNT,
   RRF_K,
-  WEAK_SCORE_THRESHOLD,
   citationUrl,
   fuseRrf,
+  isCorroborated,
   retrieve,
   rrfScore,
   toCitation,
@@ -63,6 +63,23 @@ describe("fuseRrf", () => {
 
   it("honours a custom k", () => {
     expect(fuseRrf([["a"]], 0)[0].score).toBeCloseTo(1, 12);
+  });
+
+  it("scales a weighted entry's contribution, mirroring coverage scaling", () => {
+    // A fully-covered chunk at rank 2 beats a 1/8-covered chunk at rank 1 —
+    // the property that collapses the OR-fallback flood (#51).
+    const fused = fuseRrf([
+      [
+        { id: "flood", weight: 1 / 8 },
+        { id: "covered", weight: 1 },
+      ],
+    ]);
+    expect(fused[0]).toEqual({ id: "covered", score: rrfScore(2) });
+    expect(fused[1]).toEqual({ id: "flood", score: rrfScore(1) / 8 });
+  });
+
+  it("treats a bare id and weight 1 identically", () => {
+    expect(fuseRrf([[{ id: "a", weight: 1 }]])).toEqual(fuseRrf([["a"]]));
   });
 
   it("returns nothing for empty legs", () => {
@@ -124,6 +141,8 @@ const ROW: SearchChunksRow = {
   content: "[Ley del Trabajador Independiente > ARTÍCULO 2] La prescripción…",
   source: { kind: "sinalevi", idFichaNorma: 99349, idVersionNorma: 135825 },
   score: rrfScore(1) + rrfScore(1),
+  vector_rank: 1,
+  lexical_rank: 1,
 };
 
 const CHUNK: RetrievedChunk = {
@@ -137,6 +156,8 @@ const CHUNK: RetrievedChunk = {
   content: ROW.content,
   source: ROW.source,
   score: ROW.score,
+  vectorRank: ROW.vector_rank,
+  lexicalRank: ROW.lexical_rank,
 };
 
 describe("toCitation", () => {
@@ -252,12 +273,27 @@ describe("retrieve", () => {
     expect(strong.topScore).toBeCloseTo(rrfScore(1) + rrfScore(1), 12);
     expect(strong.isWeak).toBe(false);
 
+    // Single-leg hits only — nothing corroborated, however well they score.
     const weak = await retrieve("iva", {
-      client: fakeClient([{ ...ROW, score: rrfScore(40) }]),
+      client: fakeClient([
+        { ...ROW, score: rrfScore(1), lexical_rank: null },
+        {
+          ...ROW,
+          chunk_id: "22222222-2222-2222-2222-222222222222",
+          score: rrfScore(1),
+          vector_rank: null,
+          lexical_rank: 1,
+        },
+      ]),
       embedder: fakeEmbedder(),
     });
-    expect(weak.topScore).toBeLessThan(WEAK_SCORE_THRESHOLD);
     expect(weak.isWeak).toBe(true);
+  });
+
+  it("judges corroboration by leg membership, not score", () => {
+    expect(isCorroborated({ vectorRank: 50, lexicalRank: 50 })).toBe(true);
+    expect(isCorroborated({ vectorRank: 1, lexicalRank: null })).toBe(false);
+    expect(isCorroborated({ vectorRank: null, lexicalRank: 1 })).toBe(false);
   });
 
   it("treats an empty result as weak with a zero top score", async () => {

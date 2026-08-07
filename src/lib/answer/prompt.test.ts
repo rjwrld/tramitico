@@ -19,6 +19,8 @@ function chunk(overrides: Partial<RetrievedChunk> = {}): RetrievedChunk {
     content: "La tarifa general del impuesto es del trece por ciento (13%).",
     source: {},
     score: 0.03,
+    vectorRank: 1,
+    lexicalRank: 1,
     ...overrides,
   };
 }

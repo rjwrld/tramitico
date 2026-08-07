@@ -38,6 +38,8 @@ function chunk(
     content: `contenido ${id}`,
     source: { url: `https://example.go.cr/${id}` },
     score: 1 / (60 + id),
+    vectorRank: id,
+    lexicalRank: id,
     ...overrides,
   };
 }
@@ -155,7 +157,7 @@ describe("POST /api/ask", () => {
     expect(final.map((c) => c.docKey)).toEqual(["doc-2", "doc-1"]);
     // Retrieval fetched the rerank pool, not just top-8.
     expect(vi.mocked(retrieve)).toHaveBeenCalledWith("¿Cuánto es el IVA?", {
-      matchCount: 30,
+      matchCount: 40,
     });
   });
 

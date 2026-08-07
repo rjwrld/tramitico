@@ -14,6 +14,8 @@ function chunk(overrides: Partial<RetrievedChunk> = {}): RetrievedChunk {
     content: "contenido",
     source: { kind: "sinalevi", idFichaNorma: 12345 },
     score: 0.03,
+    vectorRank: 1,
+    lexicalRank: 1,
     ...overrides,
   };
 }

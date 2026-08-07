@@ -109,8 +109,9 @@ describe.runIf(hasDb && hasRealEmbeddings)(
     });
 
     it("never trips the weak-retrieval fallback on a legitimate question", () => {
-      // WEAK_SCORE_THRESHOLD referee (#25 charter in retrieval.ts): every
-      // eval question is answerable from the corpus, so none may be "weak".
+      // Corroboration referee (#25 charter, isCorroborated in retrieval.ts):
+      // every eval question is answerable from the corpus, so none may be
+      // "weak".
       const weak = results.filter((r) => r.isWeak).map((r) => r.evalCase.id);
       expect(
         weak,

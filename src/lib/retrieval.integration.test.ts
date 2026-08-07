@@ -20,11 +20,12 @@ import { createEmbedder } from "./ingestion/embedder";
 import {
   DEFAULT_MATCH_COUNT,
   LEG_LIMIT,
-  WEAK_SCORE_THRESHOLD,
   asRetrievalClient,
   citationUrl,
   fuseRrf,
+  isCorroborated,
   retrieve,
+  rrfScore,
   type DocumentSource,
   type RetrievalRpcClient,
   type SearchChunksRow,
@@ -35,8 +36,6 @@ const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const anonKey = process.env.SUPABASE_ANON_KEY;
 const hasDb = Boolean(url && serviceRoleKey);
 const embedder = createEmbedder();
-/** Stub vectors carry no meaning, so vector-leg claims wait for #19. */
-const hasRealEmbeddings = embedder.provider !== "stub";
 
 function serviceClient(): RetrievalRpcClient {
   return asRetrievalClient(
@@ -96,11 +95,13 @@ describe.skipIf(!hasDb)("search_chunks against the ingested corpus", () => {
       "content",
       "doc_key",
       "doc_title",
+      "lexical_rank",
       "norma",
       "part",
       "path",
       "score",
       "source",
+      "vector_rank",
     ]);
     expect(Array.isArray(row.path)).toBe(true);
     expect(typeof row.part).toBe("number");
@@ -116,10 +117,15 @@ describe.skipIf(!hasDb)("search_chunks against the ingested corpus", () => {
     const embedding = await embed(PRESCRIPCION);
     const vectorLeg = await searchChunks("", embedding, LEG_LIMIT);
     const lexicalLeg = await searchChunks(PRESCRIPCION, null, LEG_LIMIT);
+    // A lexical-only row's score is coverage * rrfScore(rank), so dividing
+    // recovers the coverage weight the SQL applied (1 on the strict branch).
     const expected = new Map(
       fuseRrf([
         vectorLeg.map((r) => r.chunk_id),
-        lexicalLeg.map((r) => r.chunk_id),
+        lexicalLeg.map((r) => ({
+          id: r.chunk_id,
+          weight: r.score / rrfScore(r.lexical_rank!),
+        })),
       ]).map((f) => [f.id, f.score]),
     );
 
@@ -137,32 +143,14 @@ describe.skipIf(!hasDb)("search_chunks against the ingested corpus", () => {
     expect(rows[0].doc_key).toBe("ley-10363");
   });
 
-  // Stub embeddings make the vector leg noise, so this claim only becomes
-  // testable once #19 lands a real provider. The fusion arithmetic itself is
-  // proved by the RRF unit tests and by the reference cross-check above.
-  it.skipIf(!hasRealEmbeddings)(
-    "beats either leg alone at ranking the expected chunk",
-    async () => {
-      const embedding = await embed(PRESCRIPCION);
-      const rankOf = (rows: SearchChunksRow[]) => {
-        const index = rows.findIndex(
-          (r) =>
-            r.doc_key === "ley-10363" &&
-            /ART[ÍI]CULO 2\b/i.test(r.articulo ?? ""),
-        );
-        return index === -1 ? Number.POSITIVE_INFINITY : index + 1;
-      };
-      const fused = rankOf(
-        await searchChunks(PRESCRIPCION, embedding, LEG_LIMIT),
-      );
-      const vectorOnly = rankOf(await searchChunks("", embedding, LEG_LIMIT));
-      const lexicalOnly = rankOf(
-        await searchChunks(PRESCRIPCION, null, LEG_LIMIT),
-      );
-      expect(fused).toBeLessThan(Math.max(vectorOnly, lexicalOnly));
-      expect(fused).toBeLessThanOrEqual(Math.min(vectorOnly, lexicalOnly));
-    },
-  );
+  // A "fusion ranks the target no worse than either leg alone" test lived
+  // here until #51. It was only ever a heuristic of unscaled RRF — fusion
+  // deliberately lets a corroborated rival outscore a single-leg leader, and
+  // coverage scaling made the cleaned lexical leg competitive with the fusion
+  // — and comparing separate searchChunks calls made it flake on Voyage
+  // embedding jitter (identical code passed and failed on consecutive runs).
+  // The user-facing guarantee (target in the fused top 3) is the first test
+  // above; the fusion arithmetic is the reference cross-check.
 
   // 8 distinct queries = 8 real embeds, each pacing against the 3/min tier.
   it(
@@ -196,7 +184,9 @@ describe.skipIf(!hasDb)("search_chunks against the ingested corpus", () => {
       LEG_LIMIT,
     );
     // Only the vector leg can answer, so nothing is corroborated.
-    expect(rows.every((r) => r.score < WEAK_SCORE_THRESHOLD)).toBe(true);
+    expect(
+      rows.some((r) => r.vector_rank !== null && r.lexical_rank !== null),
+    ).toBe(false);
   });
 });
 
@@ -238,7 +228,7 @@ describe.skipIf(!hasDb)("retrieve", () => {
   it("reports the top score and the weak-retrieval flag", async () => {
     const result = await retrieve(PRESCRIPCION);
     expect(result.topScore).toBe(result.chunks[0].score);
-    expect(result.isWeak).toBe(result.topScore < WEAK_SCORE_THRESHOLD);
+    expect(result.isWeak).toBe(!result.chunks.some(isCorroborated));
 
     const nonsense = await retrieve("zzzq wqxrt");
     expect(nonsense.isWeak).toBe(true);
