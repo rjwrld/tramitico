@@ -25,6 +25,25 @@ function response429(retryAfter?: string) {
   });
 }
 
+/** Fetch that 429s once, then behaves like the fake embeddings endpoint. */
+function fetchFailingOnceWith(first: Response) {
+  return vi
+    .fn()
+    .mockResolvedValueOnce(first)
+    .mockImplementation(fakeEmbeddingsFetch()) as unknown as typeof fetch;
+}
+
+function batchSizesFromCalls(fetchImpl: ReturnType<typeof vi.fn>) {
+  return fetchImpl.mock.calls.map(
+    (call) =>
+      (
+        JSON.parse((call[1] as RequestInit).body as string) as {
+          input: string[];
+        }
+      ).input.length,
+  );
+}
+
 describe("createEmbedder", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
@@ -56,11 +75,7 @@ describe("createEmbedder", () => {
 
     it("retries a 429 and succeeds, waiting the 30s floor when Retry-After is absent", async () => {
       vi.useFakeTimers();
-      const ok = fakeEmbeddingsFetch();
-      const fetchImpl = vi
-        .fn()
-        .mockResolvedValueOnce(response429())
-        .mockImplementation(ok) as unknown as typeof fetch;
+      const fetchImpl = fetchFailingOnceWith(response429());
       const embedder = voyageEmbedder(fetchImpl);
 
       const pending = embedder.embed(["Retry once"]);
@@ -73,11 +88,7 @@ describe("createEmbedder", () => {
 
     it("waits the full Retry-After when the header exceeds the 30s floor", async () => {
       vi.useFakeTimers();
-      const ok = fakeEmbeddingsFetch();
-      const fetchImpl = vi
-        .fn()
-        .mockResolvedValueOnce(response429("45"))
-        .mockImplementation(ok) as unknown as typeof fetch;
+      const fetchImpl = fetchFailingOnceWith(response429("45"));
       const embedder = voyageEmbedder(fetchImpl);
 
       const pending = embedder.embed(["Slow retry"]);
@@ -90,11 +101,7 @@ describe("createEmbedder", () => {
 
     it("flips to adaptive pacing after the first 429: next request waits the 21s gap", async () => {
       vi.useFakeTimers();
-      const ok = fakeEmbeddingsFetch();
-      const fetchImpl = vi
-        .fn()
-        .mockResolvedValueOnce(response429())
-        .mockImplementation(ok) as unknown as typeof fetch;
+      const fetchImpl = fetchFailingOnceWith(response429());
       const embedder = voyageEmbedder(fetchImpl);
 
       const first = embedder.embed(["pace primer"]);
@@ -135,14 +142,7 @@ describe("createEmbedder", () => {
       );
       const vectors = await embedder.embed(texts);
       expect(fetchImpl).toHaveBeenCalledTimes(3);
-      const batchSizes = fetchImpl.mock.calls.map(
-        (call) =>
-          (
-            JSON.parse((call[1] as RequestInit).body as string) as {
-              input: string[];
-            }
-          ).input.length,
-      );
+      const batchSizes = batchSizesFromCalls(fetchImpl);
       expect(batchSizes).toEqual([12, 12, 6]);
       expect(vectors).toEqual(texts.map((t) => [t.charCodeAt(0)]));
     });
@@ -155,14 +155,7 @@ describe("createEmbedder", () => {
       const texts = ["X", "Y", "Z"].map((c) => c + "x".repeat(10_499));
       const vectors = await embedder.embed(texts);
       expect(fetchImpl).toHaveBeenCalledTimes(2);
-      const batchSizes = fetchImpl.mock.calls.map(
-        (call) =>
-          (
-            JSON.parse((call[1] as RequestInit).body as string) as {
-              input: string[];
-            }
-          ).input.length,
-      );
+      const batchSizes = batchSizesFromCalls(fetchImpl);
       expect(batchSizes).toEqual([2, 1]);
       expect(vectors).toEqual(texts.map((t) => [t.charCodeAt(0)]));
     });
