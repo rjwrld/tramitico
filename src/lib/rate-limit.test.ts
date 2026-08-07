@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   checkRateLimit,
@@ -15,6 +15,7 @@ import {
   type RpcClient,
 } from "./rate-limit";
 import type { Database } from "./database.types";
+import { serviceClient } from "./supabase/service";
 
 function loadDotEnvLocal() {
   const file = path.resolve(__dirname, "../../.env.local");
@@ -221,16 +222,12 @@ const hasLocalDb =
 
 describe.skipIf(!hasLocalDb)("checkRateLimit — integration (Postgres)", () => {
   // Built in beforeAll, not at describe-body scope: skipIf still evaluates the
-  // body during collection, and createClient throws without SUPABASE_URL (CI).
-  let client: ReturnType<typeof createClient<Database>>;
+  // body during collection, and serviceClient throws without SUPABASE_URL (CI).
+  let client: SupabaseClient<Database>;
   let rpcClient: RpcClient;
 
   beforeAll(() => {
-    client = createClient<Database>(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { persistSession: false } },
-    );
+    client = serviceClient();
     rpcClient = supabaseRpcClient(client);
   });
 
