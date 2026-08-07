@@ -168,11 +168,7 @@ export type Database = {
     };
     Functions: {
       rate_limit_increment: {
-        Args: {
-          p_cutoff: string;
-          p_subject: string;
-          p_window_start: string;
-        };
+        Args: { p_cutoff: string; p_subject: string; p_window_start: string };
         Returns: {
           count: number;
         }[];
@@ -189,11 +185,13 @@ export type Database = {
           content: string;
           doc_key: string;
           doc_title: string;
+          lexical_rank: number;
           norma: string;
           part: number;
           path: string[];
           score: number;
           source: Json;
+          vector_rank: number;
         }[];
       };
     };

@@ -15,8 +15,12 @@ import { createEmbedder, type Embedder } from "./ingestion/embedder";
 /** RRF constant, mirrored by the SQL function. */
 export const RRF_K = 60;
 
-/** Rows each leg contributes to the fusion, mirrored by the SQL function. */
-export const LEG_LIMIT = 20;
+/**
+ * Rows each leg contributes to the fusion, mirrored by the SQL function.
+ * Widened from 20 in #51 so vector-deep chunks (ley-iva Art. 10 sits at
+ * vector #34 for the tarifa-general question) can reach the rerank pool.
+ */
+export const LEG_LIMIT = 50;
 
 /** Fused rows returned when the caller does not ask for a specific count. */
 export const DEFAULT_MATCH_COUNT = 8;
@@ -44,6 +48,10 @@ export interface SearchChunksRow {
   content: string;
   source: DocumentSource;
   score: number;
+  /** 1-based rank in the vector leg; null when that leg missed the chunk. */
+  vector_rank: number | null;
+  /** 1-based rank in the lexical leg; null when that leg missed the chunk. */
+  lexical_rank: number | null;
 }
 
 export interface SearchChunksArgs {
@@ -84,6 +92,10 @@ export interface RetrievedChunk {
   source: DocumentSource;
   /** RRF score; comparable across chunks of one query, not across queries. */
   score: number;
+  /** 1-based rank in the vector leg; null when that leg missed the chunk. */
+  vectorRank: number | null;
+  /** 1-based rank in the lexical leg; null when that leg missed the chunk. */
+  lexicalRank: number | null;
 }
 
 /** What an answer renders as a `Documento · Artículo` chip (SPEC §5). */
@@ -102,7 +114,7 @@ export interface RetrievalResult {
   citations: Citation[];
   /** Score of the best chunk, 0 when nothing matched. */
   topScore: number;
-  /** `topScore < WEAK_SCORE_THRESHOLD` — trigger for the honest fallback. */
+  /** No returned chunk was corroborated — trigger for the honest fallback. */
   isWeak: boolean;
 }
 
@@ -113,16 +125,21 @@ export interface RetrieveOptions {
 }
 
 /**
- * A chunk both legs found scores at least 2/(k + LEG_LIMIT); a chunk only one
- * leg found scores at most 1/(k + 1), which is strictly less. So this threshold
- * says exactly one thing: *no chunk was corroborated by both the vector and the
- * lexical leg*. #21 turns that into the honest fallback — say so and link the
- * agency — instead of answering from a single-leg hit. Retuned against the
- * #25 eval set (2026-08-06): every legitimate question scored 0.0296–0.0328,
- * ≥18% above this threshold, so the value stands; the eval asserts no
- * dataset question ever trips it (retrieval-hitrate.integration.test.ts).
+ * A chunk is corroborated when both the vector and the lexical leg surfaced
+ * it. `isWeak` — no returned chunk corroborated — is what #21 turns into the
+ * honest fallback (say so and link the agency) instead of answering from
+ * single-leg hits. Until #51 this was inferred from a score threshold
+ * (2/(k + LEG_LIMIT)); coverage-scaled fallback contributions broke that
+ * arithmetic, so the SQL now returns each leg's rank and the signal is
+ * structural. The eval asserts no dataset question ever trips it
+ * (retrieval-hitrate.integration.test.ts).
  */
-export const WEAK_SCORE_THRESHOLD = 2 / (RRF_K + LEG_LIMIT);
+export function isCorroborated(chunk: {
+  vectorRank: number | null;
+  lexicalRank: number | null;
+}): boolean {
+  return chunk.vectorRank !== null && chunk.lexicalRank !== null;
+}
 
 /** Score one leg contributes to an id ranked `rank` (1-based). */
 export function rrfScore(rank: number, k = RRF_K): number {
@@ -133,18 +150,28 @@ export function rrfScore(rank: number, k = RRF_K): number {
 }
 
 /**
+ * One leg entry for `fuseRrf`: a bare id contributes its full RRF score, an
+ * `{ id, weight }` entry contributes `weight * rrfScore(rank)`. Weights model
+ * the SQL's coverage scaling on the OR-fallback lexical leg (#51): the weight
+ * is the fraction of query lexemes the chunk matches, 1 everywhere else.
+ */
+export type LegEntry = string | { id: string; weight: number };
+
+/**
  * Reference implementation of the fusion the SQL performs: sum each id's
  * per-leg contribution, best first. The integration test cross-checks the RPC's
  * scores against it, which is what keeps the two in step.
  */
 export function fuseRrf(
-  legs: readonly (readonly string[])[],
+  legs: readonly (readonly LegEntry[])[],
   k = RRF_K,
 ): { id: string; score: number }[] {
   const scores = new Map<string, number>();
   for (const leg of legs) {
-    leg.forEach((id, index) => {
-      scores.set(id, (scores.get(id) ?? 0) + rrfScore(index + 1, k));
+    leg.forEach((entry, index) => {
+      const { id, weight } =
+        typeof entry === "string" ? { id: entry, weight: 1 } : entry;
+      scores.set(id, (scores.get(id) ?? 0) + weight * rrfScore(index + 1, k));
     });
   }
   return [...scores]
@@ -207,6 +234,8 @@ function toChunk(row: SearchChunksRow): RetrievedChunk {
     content: row.content,
     source: row.source ?? {},
     score: row.score,
+    vectorRank: row.vector_rank ?? null,
+    lexicalRank: row.lexical_rank ?? null,
   };
 }
 
@@ -289,6 +318,6 @@ export async function retrieve(
     chunks,
     citations,
     topScore,
-    isWeak: topScore < WEAK_SCORE_THRESHOLD,
+    isWeak: !chunks.some(isCorroborated),
   };
 }

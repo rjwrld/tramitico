@@ -14,6 +14,8 @@ function chunk(id: number): RetrievedChunk {
     content: `contenido ${id}`,
     source: {},
     score: 1 / (60 + id),
+    vectorRank: id,
+    lexicalRank: id,
   };
 }
 
@@ -29,7 +31,7 @@ describe("rerankChunks", () => {
   });
 
   it("exposes the pool and top-k constants from the #21 design note", () => {
-    expect(RERANK_POOL).toBe(30);
+    expect(RERANK_POOL).toBe(40);
     expect(ANSWER_TOP_K).toBe(8);
   });
 
