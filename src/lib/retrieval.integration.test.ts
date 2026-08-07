@@ -150,7 +150,47 @@ describe.skipIf(!hasDb)("search_chunks against the ingested corpus", () => {
   // — and comparing separate searchChunks calls made it flake on Voyage
   // embedding jitter (identical code passed and failed on consecutive runs).
   // The user-facing guarantee (target in the fused top 3) is the first test
-  // above; the fusion arithmetic is the reference cross-check.
+  // above; the test below asserts what RRF does promise, from one call so no
+  // jitter can split the legs.
+  it("never fuses a corroborated chunk below a vector-only chunk with a worse vector rank", async () => {
+    const rows = await searchChunks(
+      PRESCRIPCION,
+      await embed(PRESCRIPCION),
+      LEG_LIMIT * 2,
+    );
+    const corroborated = rows.filter(
+      (r) => r.vector_rank !== null && r.lexical_rank !== null,
+    );
+    const vectorOnly = rows.filter(
+      (r) => r.vector_rank !== null && r.lexical_rank === null,
+    );
+    // Non-vacuous: the prescripción pool contains both kinds.
+    expect(corroborated.length).toBeGreaterThan(0);
+    expect(vectorOnly.length).toBeGreaterThan(0);
+
+    // Both-legs agreement always beats one leg's weaker opinion: the
+    // corroborated chunk's vector contribution alone already exceeds the
+    // vector-only chunk's whole score, and coverage is strictly positive.
+    // (Nothing comparable holds against lexical-only chunks or between two
+    // corroborated ones — coverage scaling makes lexical contributions
+    // non-monotone in lexical rank; that is by design, not asserted.)
+    for (const a of corroborated) {
+      for (const b of vectorOnly) {
+        if (b.vector_rank! > a.vector_rank!) {
+          expect(a.score).toBeGreaterThan(b.score);
+        }
+      }
+    }
+
+    // The returned per-leg ranks decompose the score: the vector part is a
+    // floor, and with coverage ≤ 1 the unscaled sum is a ceiling.
+    for (const r of rows) {
+      const vec = r.vector_rank === null ? 0 : rrfScore(r.vector_rank);
+      const lex = r.lexical_rank === null ? 0 : rrfScore(r.lexical_rank);
+      expect(r.score).toBeGreaterThanOrEqual(vec - 1e-12);
+      expect(r.score).toBeLessThanOrEqual(vec + lex + 1e-12);
+    }
+  });
 
   // 8 distinct queries = 8 real embeds, each pacing against the 3/min tier.
   it(
