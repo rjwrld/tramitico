@@ -1,8 +1,8 @@
 /**
- * The /api/ask wire contract, client side (issues #21/#22).
+ * The /api/ask wire contract (issues #21/#22/#57).
  *
- * Issue #21 owns the endpoint; this module pins what the chat UI (#22)
- * consumes so both sides build against one shape:
+ * The single module both sides build against: the route (#21) streams this
+ * shape, the chat UI (#22) consumes it.
  *
  * - Request body: `{ question: string }` — the newest user message's text.
  * - Response: an AI SDK UI message stream. Citations arrive as
@@ -26,7 +26,10 @@ export type AskDataParts = {
   citations: Citation[];
 };
 
-export type AskUIMessage = UIMessage<unknown, AskDataParts>;
+export type AskUIMessage = UIMessage<never, AskDataParts>;
+
+/** Stable `data-citations` part id — every write updates the same part. */
+export const CITATIONS_PART_ID = "citations";
 
 /** Concatenated text of a message's text parts. */
 export function messageText(message: AskUIMessage): string {

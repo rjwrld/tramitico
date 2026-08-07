@@ -18,8 +18,8 @@ linking the spec section or ADR that owns the definition. Created lazily per
   [ADR 0007](docs/adr/0007-groundedness-judge-model.md), [SPEC §9](SPEC.md#9-eval--quality-gates).
 - **Ask contract** — the `/api/ask` wire shape both the route and the chat UI build against:
   `{ question }` in, AI SDK UI message stream out, errors as `{ error, message }` with
-  user-facing Spanish. `src/lib/answer/contract.ts`,
-  [SPEC §6](SPEC.md#6-api-surface-route-handlers).
+  user-facing Spanish. Declared once in `src/lib/answer/contract.ts` (types, part id, helpers);
+  both sides import it. [SPEC §6](SPEC.md#6-api-surface-route-handlers), issue #57.
 - **Sello snapshot** — a cumulative `data-citations` stream part carrying the deduped citations
   in order of use; the UI renders the latest snapshot as sello chips.
   [ADR 0004](docs/adr/0004-citation-rendering.md).
