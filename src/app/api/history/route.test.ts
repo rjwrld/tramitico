@@ -21,9 +21,6 @@ function fakeClient(
           : { data: null, error: null },
     },
     from: () => ({
-      insert: () => ({
-        select: () => ({ single: async () => ({ data: null, error: null }) }),
-      }),
       select: () => ({
         order: async () => ({
           data: rows as never,
