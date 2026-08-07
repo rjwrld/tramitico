@@ -6,9 +6,10 @@
  * that user_id. Persistence failures are logged, never surfaced — the user
  * already has their answer.
  */
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "../database.types";
 import type { Citation } from "../retrieval";
+import { tryServiceClient } from "../supabase/service";
 
 type QuestionInsert = Database["public"]["Tables"]["questions"]["Insert"];
 
@@ -28,12 +29,8 @@ export function asQuestionsClient(
 }
 
 function defaultClient(): QuestionsClient | null {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return null;
-  return asQuestionsClient(
-    createClient<Database>(url, key, { auth: { persistSession: false } }),
-  );
+  const client = tryServiceClient();
+  return client && asQuestionsClient(client);
 }
 
 export interface SaveQuestionInput {
