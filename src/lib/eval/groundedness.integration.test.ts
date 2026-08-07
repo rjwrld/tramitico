@@ -33,18 +33,12 @@ import {
 } from "../answer/prompt";
 import { rerankChunks, RERANK_POOL } from "../answer/rerank";
 import { createEmbedder } from "../ingestion/embedder";
-import { retrieve, type RetrievedChunk } from "../retrieval";
+import { retrieve } from "../retrieval";
 import { DATASET_PATH, parseDataset, type EvalCase } from "./dataset";
 import {
-  buildJudgePrompt,
-  getJudgeModel,
   GROUNDEDNESS_GATE,
+  judgeAnswer,
   JUDGE_MODEL,
-  JUDGE_SYSTEM_PROMPT,
-  JUDGE_TEMPERATURE,
-  majorityVerdict,
-  parseJudgeVerdict,
-  REJUDGE_COUNT,
   type Verdict,
 } from "./groundedness";
 
@@ -64,20 +58,6 @@ interface CaseResult {
   verdicts: Verdict[];
   reason: string;
   answer: string;
-}
-
-async function judgeOnce(
-  question: string,
-  chunks: readonly RetrievedChunk[],
-  answer: string,
-): Promise<{ verdict: Verdict; reason: string }> {
-  const { text } = await generateText({
-    model: getJudgeModel(),
-    system: JUDGE_SYSTEM_PROMPT,
-    prompt: buildJudgePrompt(question, chunks, answer),
-    temperature: JUDGE_TEMPERATURE,
-  });
-  return parseJudgeVerdict(text);
 }
 
 describe.runIf(hasDb && hasRealEmbeddings && hasAnthropicKey)(
@@ -115,24 +95,8 @@ describe.runIf(hasDb && hasRealEmbeddings && hasAnthropicKey)(
           prompt: buildUserPrompt(evalCase.question, chunks),
         });
 
-        const first = await judgeOnce(evalCase.question, chunks, answer);
-        const verdicts: Verdict[] = [first.verdict];
-        let reason = first.reason;
-        if (first.verdict === "fail") {
-          // SPEC §9: re-judge failures twice more; majority verdict stands.
-          for (let i = 0; i < REJUDGE_COUNT; i++) {
-            const again = await judgeOnce(evalCase.question, chunks, answer);
-            verdicts.push(again.verdict);
-            if (again.verdict === "fail") reason = again.reason;
-          }
-        }
-        results.push({
-          evalCase,
-          verdict: majorityVerdict(verdicts),
-          verdicts,
-          reason,
-          answer,
-        });
+        const judged = await judgeAnswer(evalCase.question, chunks, answer);
+        results.push({ evalCase, ...judged, answer });
       }
 
       const passes = results.filter((r) => r.verdict === "pass").length;

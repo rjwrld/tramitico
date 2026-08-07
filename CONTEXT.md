@@ -14,7 +14,8 @@ linking the spec section or ADR that owns the definition. Created lazily per
   and reinserts all its chunks rather than upserting by label.
   [ADR 0002](docs/adr/0002-chunk-identity.md).
 - **Judge / majority verdict** — the temperature-0 groundedness judge in CI; a flagged answer
-  is re-judged and the majority of verdicts decides.
+  is re-judged and the majority of verdicts decides. Owned by `judgeAnswer()` in
+  `src/lib/eval/groundedness.ts`.
   [ADR 0007](docs/adr/0007-groundedness-judge-model.md), [SPEC §9](SPEC.md#9-eval--quality-gates).
 - **Ask contract** — the `/api/ask` wire shape both the route and the chat UI build against:
   `{ question }` in, AI SDK UI message stream out, errors as `{ error, message }` with

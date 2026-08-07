@@ -1,14 +1,15 @@
 /**
- * Groundedness judge (SPEC §9, issue #26) — the pure parts: judge model
- * config, prompt assembly, verdict parsing, and the majority rule for
- * re-judged failures. The model-calling eval lives in
- * groundedness.integration.test.ts; this module stays unit-testable.
+ * Groundedness judge (SPEC §9, issue #26): judge model config, prompt
+ * assembly, verdict parsing, and judgeAnswer() — the judge → re-judge →
+ * majority orchestration the eval uses. The orchestration takes an
+ * injectable judgeOnce so the branching stays unit-testable; only the
+ * default judgeOnce touches the model.
  *
  * The question the judge answers: "is this answer supported by the retrieved
  * chunks?" — the same chunks the production route handed the answer model.
  */
 import { createAnthropic } from "@ai-sdk/anthropic";
-import type { LanguageModel } from "ai";
+import { generateText, type LanguageModel } from "ai";
 import type { RetrievedChunk } from "../retrieval";
 import { formatChunks } from "../answer/prompt";
 
@@ -108,4 +109,47 @@ export function majorityVerdict(verdicts: readonly Verdict[]): Verdict {
   }
   const passes = verdicts.filter((v) => v === "pass").length;
   return passes * 2 > verdicts.length ? "pass" : "fail";
+}
+
+/** One judge call. Injectable so judgeAnswer's branching is unit-testable. */
+export type JudgeOnce = (
+  question: string,
+  chunks: readonly RetrievedChunk[],
+  answer: string,
+) => Promise<JudgeVerdict>;
+
+const realJudgeOnce: JudgeOnce = async (question, chunks, answer) => {
+  const { text } = await generateText({
+    model: getJudgeModel(),
+    system: JUDGE_SYSTEM_PROMPT,
+    prompt: buildJudgePrompt(question, chunks, answer),
+    temperature: JUDGE_TEMPERATURE,
+  });
+  return parseJudgeVerdict(text);
+};
+
+/**
+ * SPEC §9 judge orchestration: judge once; on a fail, re-judge REJUDGE_COUNT
+ * more times and let the majority stand (absorbs judge flakiness without
+ * loosening the gate). The reason is the last failing one, so a fail verdict
+ * always carries a fail explanation. Judge errors propagate — a misbehaving
+ * judge fails loudly instead of counting as a pass or fail.
+ */
+export async function judgeAnswer(
+  question: string,
+  chunks: readonly RetrievedChunk[],
+  answer: string,
+  judgeOnce: JudgeOnce = realJudgeOnce,
+): Promise<{ verdict: Verdict; verdicts: Verdict[]; reason: string }> {
+  const first = await judgeOnce(question, chunks, answer);
+  const verdicts: Verdict[] = [first.verdict];
+  let reason = first.reason;
+  if (first.verdict === "fail") {
+    for (let i = 0; i < REJUDGE_COUNT; i++) {
+      const again = await judgeOnce(question, chunks, answer);
+      verdicts.push(again.verdict);
+      if (again.verdict === "fail") reason = again.reason;
+    }
+  }
+  return { verdict: majorityVerdict(verdicts), verdicts, reason };
 }
