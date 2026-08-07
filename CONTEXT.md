@@ -11,8 +11,9 @@ linking the spec section or ADR that owns the definition. Created lazily per
   limiting), `tryServiceClient()` returns null for callers documented to degrade (persistence,
   identity). [SPEC §7](SPEC.md#7-auth--rate-limiting), issue #56.
 - **Wholesale replacement** — ingestion idempotency strategy: re-ingesting a document deletes
-  and reinserts all its chunks rather than upserting by label.
-  [ADR 0002](docs/adr/0002-chunk-identity.md).
+  and reinserts all its chunks rather than upserting by label, atomically via the
+  `replace_chunks` RPC (`replaceDocumentChunks` in `src/lib/ingestion/replace.ts`).
+  [ADR 0002](docs/adr/0002-chunk-identity.md), issue #59.
 - **Judge / majority verdict** — the temperature-0 groundedness judge in CI; a flagged answer
   is re-judged and the majority of verdicts decides. Owned by `judgeAnswer()` in
   `src/lib/eval/groundedness.ts`.
