@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import {
   deleteQuestion,
   listQuestions,
-  saveQuestion,
   sessionUserId,
   type HistoryClient,
   type QuestionRow,
@@ -25,7 +24,6 @@ const row = (over: Partial<Row> = {}): Row => ({
 function fakeClient(opts: {
   userId?: string | null;
   rows?: Row[];
-  insertError?: { message: string } | null;
   selectError?: { message: string } | null;
   deleteError?: { message: string } | null;
   calls?: Record<string, unknown>[];
@@ -39,17 +37,6 @@ function fakeClient(opts: {
           : { data: null, error: null },
     },
     from: () => ({
-      insert: (values) => {
-        calls.push({ op: "insert", values });
-        return {
-          select: () => ({
-            single: async () =>
-              opts.insertError
-                ? { data: null, error: opts.insertError }
-                : { data: row({ user_id: opts.userId ?? "" }), error: null },
-          }),
-        };
-      },
       select: () => ({
         order: (column, orderOpts) => {
           calls.push({ op: "order", column, ...orderOpts });
@@ -79,44 +66,6 @@ describe("sessionUserId", () => {
 
   it("returns null when there is no session", async () => {
     expect(await sessionUserId(fakeClient({ userId: null }))).toBeNull();
-  });
-});
-
-describe("saveQuestion", () => {
-  const entry = {
-    question: "¿Debo facturar electrónicamente?",
-    answer: "Sí, según…",
-    citations: [],
-  };
-
-  it("no-ops for anonymous sessions without touching the table", async () => {
-    const calls: Record<string, unknown>[] = [];
-    const result = await saveQuestion(
-      fakeClient({ userId: null, calls }),
-      entry,
-    );
-    expect(result).toEqual({ saved: false, reason: "anonymous" });
-    expect(calls).toEqual([]);
-  });
-
-  it("inserts with the session's user id — never a caller-supplied one", async () => {
-    const calls: Record<string, unknown>[] = [];
-    const result = await saveQuestion(
-      fakeClient({ userId: "user-a", calls }),
-      entry,
-    );
-    expect(result.saved).toBe(true);
-    expect(calls).toEqual([
-      { op: "insert", values: { ...entry, user_id: "user-a" } },
-    ]);
-  });
-
-  it("reports a failed insert without throwing", async () => {
-    const result = await saveQuestion(
-      fakeClient({ userId: "user-a", insertError: { message: "boom" } }),
-      entry,
-    );
-    expect(result).toEqual({ saved: false, reason: "error" });
   });
 });
 

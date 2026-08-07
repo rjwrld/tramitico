@@ -1,23 +1,14 @@
-// Per-user Q&A history (issue #23, SPEC §6/§7).
+// Per-user Q&A history, read/delete side (issue #23, SPEC §6/§7).
 //
 // Every function takes a cookie-scoped Supabase client (src/lib/supabase/server
 // or client) so RLS does the row filtering, and the user id always comes from
-// the session — callers cannot supply one. /api/ask's persistence path (#21)
-// calls saveQuestion after streaming completes.
+// the session — callers cannot supply one. Writing history is not this
+// module's job: /api/ask persists via src/lib/answer/persist.ts after the
+// stream completes.
 
-import type { Database, Json } from "./database.types";
+import type { Database } from "./database.types";
 
 export type QuestionRow = Database["public"]["Tables"]["questions"]["Row"];
-type QuestionInsert = Database["public"]["Tables"]["questions"]["Insert"];
-
-export interface QuestionEntry {
-  question: string;
-  answer: string;
-  citations: Json;
-}
-
-export type SaveResult =
-  { saved: true; id: string } | { saved: false; reason: "anonymous" | "error" };
 
 // The narrow slice of SupabaseClient<Database> this module needs; unit tests
 // substitute a structural fake (same pattern as rate-limit's RpcClient).
@@ -29,14 +20,6 @@ export interface HistoryClient {
     }>;
   };
   from(table: "questions"): {
-    insert(values: QuestionInsert): {
-      select(columns: "id"): {
-        single(): PromiseLike<{
-          data: { id: string } | null;
-          error: { message: string } | null;
-        }>;
-      };
-    };
     select(columns: "*"): {
       order(
         column: "created_at",
@@ -62,22 +45,6 @@ export async function sessionUserId(
   const { data, error } = await client.auth.getClaims();
   if (error || !data?.claims.sub) return null;
   return data.claims.sub;
-}
-
-export async function saveQuestion(
-  client: HistoryClient,
-  entry: QuestionEntry,
-): Promise<SaveResult> {
-  const userId = await sessionUserId(client);
-  if (!userId) return { saved: false, reason: "anonymous" };
-
-  const { data, error } = await client
-    .from("questions")
-    .insert({ ...entry, user_id: userId })
-    .select("id")
-    .single();
-  if (error || !data) return { saved: false, reason: "error" };
-  return { saved: true, id: data.id };
 }
 
 // Newest first; RLS limits rows to the session's own.

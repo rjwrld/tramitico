@@ -13,12 +13,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { Database } from "./database.types";
-import {
-  deleteQuestion,
-  listQuestions,
-  saveQuestion,
-  sessionUserId,
-} from "./history";
+import { deleteQuestion, listQuestions, sessionUserId } from "./history";
 
 function loadDotEnvLocal() {
   const file = path.resolve(__dirname, "../../.env.local");
@@ -80,13 +75,22 @@ describe.skipIf(!hasDb)("questions RLS (issue #23)", () => {
     userA = await signedInUser(admin, `rls-a-${randomUUID()}@example.com`);
     userB = await signedInUser(admin, `rls-b-${randomUUID()}@example.com`);
 
-    const result = await saveQuestion(userA.client, {
-      question: "¿Debo facturar electrónicamente?",
-      answer: "Sí, según el artículo…",
-      citations: [{ label: "Ley 9635 art. 4" }],
-    });
-    if (!result.saved) throw new Error(`seed insert failed: ${result.reason}`);
-    savedId = result.id;
+    // Seed through the RLS "insert own rows" path directly — the production
+    // write path is service-role persist.ts, not this cookie-scoped client.
+    const { data, error } = await userA.client
+      .from("questions")
+      .insert({
+        user_id: userA.id,
+        question: "¿Debo facturar electrónicamente?",
+        answer: "Sí, según el artículo…",
+        citations: [{ label: "Ley 9635 art. 4" }],
+      })
+      .select("id")
+      .single();
+    if (error || !data) {
+      throw new Error(`seed insert failed: ${error?.message ?? "no row"}`);
+    }
+    savedId = data.id;
   });
 
   afterAll(async () => {
@@ -121,11 +125,14 @@ describe.skipIf(!hasDb)("questions RLS (issue #23)", () => {
     expect(error).not.toBeNull();
   });
 
-  it("anonymous sessions cannot save and read nothing", async () => {
+  it("anonymous sessions cannot insert and read nothing", async () => {
     const anon = anonClient();
-    await expect(
-      saveQuestion(anon, { question: "q", answer: "a", citations: [] }),
-    ).resolves.toEqual({ saved: false, reason: "anonymous" });
+    const { error } = await anon.from("questions").insert({
+      user_id: userA.id,
+      question: "q",
+      answer: "a",
+    });
+    expect(error).not.toBeNull();
     expect(await listQuestions(anon)).toEqual([]);
   });
 });
