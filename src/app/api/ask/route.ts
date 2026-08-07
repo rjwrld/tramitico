@@ -15,8 +15,10 @@ import {
   toUIMessageStream,
   type UIMessageStreamWriter,
 } from "ai";
-import type { AskUIMessage } from "@/lib/answer/ask-message";
-import { CITATIONS_PART_ID } from "@/lib/answer/ask-message";
+import {
+  CITATIONS_PART_ID,
+  type AskUIMessage,
+} from "@/lib/answer/contract";
 import { createCitationTracker } from "@/lib/answer/citations";
 import { getAnswerModel } from "@/lib/answer/model";
 import { saveQuestion } from "@/lib/answer/persist";
