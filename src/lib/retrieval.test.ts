@@ -4,10 +4,13 @@ import {
   RRF_K,
   citationUrl,
   fuseRrf,
+  isCitation,
   isCorroborated,
+  parseCitations,
   retrieve,
   rrfScore,
   toCitation,
+  type Citation,
   type RetrievalRpcClient,
   type RetrievedChunk,
   type SearchChunksRow,
@@ -169,6 +172,87 @@ describe("toCitation", () => {
       articulo: "ARTÍCULO 2",
       url: "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=99349&param2=&param3=1&param4=",
     });
+  });
+});
+
+function omit<T extends object, K extends keyof T>(obj: T, key: K): Omit<T, K> {
+  const copy = { ...obj };
+  delete copy[key];
+  return copy;
+}
+
+const CANONICAL_CITATION: Citation = {
+  docKey: "ley-10363",
+  docTitle: "Ley del Trabajador Independiente",
+  norma: "Ley 10363",
+  articulo: "ARTÍCULO 2",
+  url: "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=99349&param2=&param3=1&param4=",
+};
+
+describe("isCitation", () => {
+  it("accepts the canonical shape", () => {
+    expect(isCitation(CANONICAL_CITATION)).toBe(true);
+  });
+
+  it("accepts a null articulo", () => {
+    expect(isCitation({ ...CANONICAL_CITATION, articulo: null })).toBe(true);
+  });
+
+  it("accepts a null norma and url", () => {
+    expect(isCitation({ ...CANONICAL_CITATION, norma: null, url: null })).toBe(
+      true,
+    );
+  });
+
+  it("rejects a missing field", () => {
+    expect(isCitation(omit(CANONICAL_CITATION, "url"))).toBe(false);
+  });
+
+  it("rejects a renamed field", () => {
+    expect(
+      isCitation({
+        ...omit(CANONICAL_CITATION, "docKey"),
+        doc_key: "ley-10363",
+      }),
+    ).toBe(false);
+  });
+
+  it("rejects a wrong-typed field", () => {
+    expect(isCitation({ ...CANONICAL_CITATION, docKey: 42 })).toBe(false);
+  });
+
+  it("rejects non-objects", () => {
+    expect(isCitation(null)).toBe(false);
+    expect(isCitation("Ley 9635")).toBe(false);
+    expect(isCitation(undefined)).toBe(false);
+  });
+});
+
+describe("parseCitations", () => {
+  it("accepts an array of canonical citations", () => {
+    expect(parseCitations([CANONICAL_CITATION])).toEqual([CANONICAL_CITATION]);
+  });
+
+  it("accepts an empty array", () => {
+    expect(parseCitations([])).toEqual([]);
+  });
+
+  it("throws on a non-array", () => {
+    expect(() => parseCitations(CANONICAL_CITATION)).toThrow(/array/i);
+  });
+
+  it("throws when an element is missing a field", () => {
+    expect(() => parseCitations([omit(CANONICAL_CITATION, "norma")])).toThrow(
+      /not a Citation/i,
+    );
+  });
+
+  it("throws when an element has a renamed field", () => {
+    expect(() =>
+      parseCitations([
+        { ...omit(CANONICAL_CITATION, "articulo"), article: "ARTÍCULO 2" },
+      ]),
+    ).toThrow(/not a Citation/i);
   });
 });
 
