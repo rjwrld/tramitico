@@ -1,4 +1,4 @@
-# ADR 0006 — Groundedness judge pinned to Sonnet 4.5 for temperature 0
+# ADR 0007 — Groundedness judge pinned to Sonnet 4.5 for temperature 0
 
 Date: 2026-08-06 · Status: accepted ·
 Context: issue [#26](https://github.com/rjwrld/tramitico/issues/26)

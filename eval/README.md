@@ -66,7 +66,7 @@ verdict stands, absorbing judge flakiness at n≈25 without loosening the gate.
 never down.
 
 The judge is pinned (`JUDGE_MODEL`, Sonnet 4.5 — it accepts temperature 0,
-which Sonnet 5 rejects; [ADR 0006](../docs/adr/0006-groundedness-judge-model.md))
+which Sonnet 5 rejects; [ADR 0007](../docs/adr/0007-groundedness-judge-model.md))
 and does **not** follow `ANSWER_MODEL`, so answer models are always compared
 against the same judge. Pure parts (prompt,
 verdict parsing, majority rule) are unit-tested in

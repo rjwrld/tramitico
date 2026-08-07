@@ -25,6 +25,8 @@ const chunk = (over: Partial<RetrievedChunk> = {}): RetrievedChunk => ({
   content: "Los servicios exportados no están sujetos al impuesto.",
   source: { url: "https://example.test/ley-iva" },
   score: 0.9,
+  vectorRank: 1,
+  lexicalRank: null,
   ...over,
 });
 

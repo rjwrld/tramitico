@@ -154,7 +154,7 @@ _(pinned here per #10)_
   lower). Judge runs at temperature 0; any failed item is re-judged twice more and the majority
   verdict stands — absorbs judge flakiness at n≈25 without loosening the gate. The judge model
   is pinned independently of `ANSWER_MODEL` —
-  **[ADR 0006](docs/adr/0006-groundedness-judge-model.md)**.
+  **[ADR 0007](docs/adr/0007-groundedness-judge-model.md)**.
 - Also asserted: retrieval hit-rate (expected artículo in top-k) — catches chunking/retrieval
   regressions separately from generation.
 - Standard pipeline: Vitest unit, Playwright e2e, 7-step CI on GitHub Actions, deploy on Vercel.

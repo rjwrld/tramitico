@@ -22,7 +22,7 @@ export const GROUNDEDNESS_GATE = 0.9;
  * The judge is pinned, not ANSWER_MODEL: the Sonnet-vs-Haiku comparison only
  * means something if both face the same judge. Pinned to Sonnet 4.5 rather
  * than Sonnet 5 because SPEC §9 requires the judge to run at temperature 0
- * and Sonnet 5 rejects non-default sampling parameters (ADR 0006).
+ * and Sonnet 5 rejects non-default sampling parameters (ADR 0007).
  */
 export const JUDGE_MODEL = "claude-sonnet-4-5";
 export const JUDGE_TEMPERATURE = 0;
