@@ -7,7 +7,7 @@ Migration: `supabase/migrations/20260806140000_search_chunks_coverage_fusion.sql
 
 ## Context
 
-The #25 eval surfaced a pool-absence gap: for *¿Cuál es la tarifa general del IVA…?*, the
+The #25 eval surfaced a pool-absence gap: for _¿Cuál es la tarifa general del IVA…?_, the
 canonical source `ley-iva · Artículo 10` ("La tarifa del impuesto es del trece por ciento…")
 never entered the fused pool at all. Measured on the 793-chunk voyage-3 corpus (2026-08-06):
 
@@ -19,7 +19,7 @@ never entered the fused pool at all. Measured on the 793-chunk voyage-3 corpus (
   ADR 0005 consequences section predicted, measured.
 
 The reranker can only reorder what is in the pool, so pool absence is unfixable downstream.
-And no reweighting can rescue the lexical leg here — a 1-of-8-lexeme match *should* rank
+And no reweighting can rescue the lexical leg here — a 1-of-8-lexeme match _should_ rank
 low. The chunk has to arrive through the vector leg, which means the leg cut and the
 fusion's flood behavior are the real levers.
 
@@ -37,7 +37,7 @@ Three coupled changes to `search_chunks`, one consumer change:
 3. **Per-leg ranks are returned** (`vector_rank`, `lexical_rank`, null = leg missed it),
    and the weak-retrieval signal becomes structural: `isWeak` = no returned chunk in both
    legs (`isCorroborated` in `retrieval.ts`). The old `WEAK_SCORE_THRESHOLD =
-   2/(k + LEG_LIMIT)` arithmetic depended on every leg contribution being a full
+2/(k + LEG_LIMIT)` arithmetic depended on every leg contribution being a full
    `1/(k + rank)`; coverage scaling breaks that, so the threshold is gone.
 4. **`RERANK_POOL` 30 → 40.** With the changes above, Art. 10 fuses at **#38**: vector #34,
    minus the coverage-crushed flood, plus a handful of corroborated chunks above it. A pool
@@ -61,8 +61,8 @@ Three coupled changes to `search_chunks`, one consumer change:
 - **Fallback queries' fused order now favors the vector leg.** Under coverage scaling the
   pool becomes essentially "vector top-N plus genuinely corroborated chunks" — the ADR
   0003/0005 canary pathology (generic OR hits corroborating each other above single-leg
-  targets) shrinks with it. The known-risk partial-match case, *prescripción retroactivo
-  CCSS*, keeps 2/3 of its lexical weight and survives comfortably (#25 eval stays 25/25,
+  targets) shrinks with it. The known-risk partial-match case, _prescripción retroactivo
+  CCSS_, keeps 2/3 of its lexical weight and survives comfortably (#25 eval stays 25/25,
   re-measured after this change).
 - **Exact-term (strict AND) queries are unaffected in ordering**; they only gain leg
   members at ranks 21–50, which existing top ranks outscore.
