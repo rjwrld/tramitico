@@ -90,3 +90,17 @@ volume many times over, and 1024d keeps the HNSW index a third smaller than 1536
   the tsquery AND→OR fallback write-up; this document takes the number per #19's earlier
   contract, and that write-up landed as [ADR 0005](0005-lexical-and-or-fallback.md) (0004 was
   meanwhile taken by citation rendering).
+
+## Amendment (2026-08-06) — canary resolved by reranking (#25)
+
+The canary acceptance line that transferred to
+[#25](https://github.com/rjwrld/tramitico/issues/25) is settled. On the
+793-chunk corpus, the full eval set (`eval/dataset.jsonl`, 25 questions) scores
+**19/25 fused-only vs 25/25 with Voyage `rerank-2.5-lite`** over a fused pool
+of 30; the canary sits at fused #20 and reranks into the answer top-8.
+Reranking is therefore **on by default** (`RERANK=off` opts out;
+`src/lib/answer/rerank.ts`), and
+`src/lib/eval/retrieval-hitrate.integration.test.ts` gates hit-rate at ≥92%
+with the canary as a named blocking case — the referee for any future
+lexical-leg tuning (ADR 0005). `WEAK_SCORE_THRESHOLD` was re-checked against
+the same runs: every legitimate question scores ≥18% above it, value unchanged.

@@ -133,6 +133,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getUserId).mockResolvedValue(null);
   vi.unstubAllEnvs();
+  // Reranking defaults on since #25; keep these tests hermetic — a
+  // VOYAGE_API_KEY in the developer's shell must not trigger real calls.
+  vi.stubEnv("RERANK", "off");
 });
 
 describe("POST /api/ask", () => {

@@ -1,10 +1,11 @@
 /**
  * Pool → rerank → top-8 (issue #21 design note, ADR 0003 canary section).
  * /api/ask retrieves a pool of RERANK_POOL fused candidates; when
- * `RERANK=voyage` this narrows them to ANSWER_TOP_K with Voyage
- * rerank-2.5-lite. Default is off until #25 validates the lift, and any
- * rerank failure — missing key, HTTP error, timeout — falls back to the
- * fused order. Reranking must never fail the ask.
+ * Voyage rerank-2.5-lite narrows them to ANSWER_TOP_K. On by default since
+ * the #25 eval validated the lift (canary at fused #20 → reranked top-8;
+ * hit-rate 19→25 of 25); `RERANK=off` opts out. Any rerank failure —
+ * missing key, HTTP error, timeout — falls back to the fused order.
+ * Reranking must never fail the ask.
  */
 import type { RetrievedChunk } from "../retrieval";
 
@@ -31,7 +32,9 @@ export async function rerankChunks(
   options: RerankOptions = {},
 ): Promise<RetrievedChunk[]> {
   const fused = chunks.slice(0, ANSWER_TOP_K);
-  if ((process.env.RERANK ?? "off") !== "voyage") return fused;
+  // `||`, not `??`: CI interpolates an unset `vars.RERANK` as "", which must
+  // mean "default on" — only an explicit RERANK=off opts out.
+  if ((process.env.RERANK || "voyage") !== "voyage") return fused;
 
   const key = process.env.VOYAGE_API_KEY;
   if (!key) return fused;
