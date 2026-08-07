@@ -18,6 +18,7 @@ import {
   textToParagraphs,
 } from "../src/lib/ingestion/extract";
 import { fetchHaciendaPdf } from "../src/lib/ingestion/hacienda";
+import { replaceDocumentChunks } from "../src/lib/ingestion/replace";
 import { fetchNorma } from "../src/lib/ingestion/sinalevi";
 
 interface ManifestDoc {
@@ -117,28 +118,7 @@ async function main() {
     if (docErr)
       throw new Error(`${doc.doc_key}: upsert document — ${docErr.message}`);
 
-    const { error: delErr } = await supabase
-      .from("chunks")
-      .delete()
-      .eq("document_id", docRow.id);
-    if (delErr)
-      throw new Error(`${doc.doc_key}: clear chunks — ${delErr.message}`);
-
-    const rows = chunks.map((c, i) => ({
-      document_id: docRow.id,
-      articulo: c.articulo,
-      path: c.path,
-      part: c.part,
-      content: c.content,
-      embedding: embeddings[i],
-    }));
-    for (let i = 0; i < rows.length; i += 500) {
-      const { error: insErr } = await supabase
-        .from("chunks")
-        .insert(rows.slice(i, i + 500));
-      if (insErr)
-        throw new Error(`${doc.doc_key}: insert chunks — ${insErr.message}`);
-    }
+    await replaceDocumentChunks(supabase, docRow.id, chunks, embeddings);
 
     ingested++;
     console.log(`✓ ${doc.doc_key}: ${chunks.length} chunks`);
