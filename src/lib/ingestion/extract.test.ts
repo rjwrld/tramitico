@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  cleanParagraphs,
-  htmlToParagraphs,
-  textToParagraphs,
-} from "./extract";
+import { cleanParagraphs, htmlToParagraphs, textToParagraphs } from "./extract";
 
 describe("cleanParagraphs", () => {
   it("drops SINALEVI navigation chrome lines", () => {
@@ -19,9 +15,9 @@ describe("cleanParagraphs", () => {
   });
 
   it("strips inline Ficha Artículo markers but keeps the paragraph", () => {
-    expect(cleanParagraphs(["Ficha Artículo 5 Artículo 5.- Contenido."])).toEqual(
-      ["Artículo 5.- Contenido."],
-    );
+    expect(
+      cleanParagraphs(["Ficha Artículo 5 Artículo 5.- Contenido."]),
+    ).toEqual(["Artículo 5.- Contenido."]);
   });
 
   it("collapses whitespace and drops empty paragraphs", () => {

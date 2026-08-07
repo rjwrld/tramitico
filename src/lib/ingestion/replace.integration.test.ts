@@ -69,7 +69,11 @@ describe.runIf(hasDb)("replace_chunks (integration)", () => {
   });
 
   it("replacing twice leaves exactly the last set, no duplicates", async () => {
-    const first = [chunk("Artículo 1"), chunk("Artículo 2"), chunk("Artículo 3")];
+    const first = [
+      chunk("Artículo 1"),
+      chunk("Artículo 2"),
+      chunk("Artículo 3"),
+    ];
     await replaceDocumentChunks(
       db,
       documentId,
