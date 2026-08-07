@@ -1,4 +1,4 @@
-# Eval dataset (SPEC §9, issue #25)
+# Eval dataset (SPEC §9, issues #25/#26)
 
 `dataset.jsonl` holds the 25±5 hand-written eval questions — Appendix A's ten
 pain questions plus corpus-derived ones — each with the source docs/artículos a
@@ -52,3 +52,54 @@ pnpm vitest run src/lib/eval/retrieval-hitrate.integration.test.ts
 
 `RERANK=off` measures the fused-only baseline; the per-case table (pool rank,
 top score) prints with the run.
+
+## Groundedness gate (issue #26)
+
+`src/lib/eval/groundedness.integration.test.ts` runs every dataset question
+through the full production answer path — retrieval, rerank, then the answer
+model (`ANSWER_MODEL`, default Sonnet) with the production system prompt —
+and asks an LLM judge at temperature 0: _is this answer supported by the
+retrieved chunks?_ A failed item is re-judged twice more and the majority
+verdict stands, absorbing judge flakiness at n≈25 without loosening the gate.
+**Blocking gate: ≥90% pass** (`GROUNDEDNESS_GATE` in
+`src/lib/eval/groundedness.ts`), starting threshold per #14 — ratchet up,
+never down.
+
+The judge is pinned (`JUDGE_MODEL`, Sonnet 4.5 — it accepts temperature 0,
+which Sonnet 5 rejects; [ADR 0007](../docs/adr/0007-groundedness-judge-model.md))
+and does **not** follow `ANSWER_MODEL`, so answer models are always compared
+against the same judge. Pure parts (prompt,
+verdict parsing, majority rule) are unit-tested in
+`src/lib/eval/groundedness.test.ts`.
+
+Env-gated like the hit-rate eval, plus `ANTHROPIC_API_KEY`:
+
+```sh
+supabase start && pnpm ingest   # once
+SUPABASE_URL=http://127.0.0.1:54321 \
+SUPABASE_SERVICE_ROLE_KEY=<service role key> \
+EMBEDDINGS_PROVIDER=voyage VOYAGE_API_KEY=<key> \
+ANTHROPIC_API_KEY=<key> \
+pnpm vitest run src/lib/eval/groundedness.integration.test.ts
+```
+
+### Haiku comparison (SPEC §5)
+
+The Week 3 cost/quality comparison is the same command with
+`ANSWER_MODEL=claude-haiku-4-5` — same dataset, same judge, same gate. The
+per-case table and pass rate print with each run.
+
+Measured 2026-08-06, judge `claude-sonnet-4-5`, 793-chunk voyage-3 corpus:
+
+| Answer model                | Groundedness | Eval wall-clock | Notes                        |
+| --------------------------- | ------------ | --------------- | ---------------------------- |
+| `claude-sonnet-5` (default) | 25/25        | ~275s           |                              |
+| `claude-haiku-4-5`          | 25/25        | ~186s           | ~5× cheaper per output token |
+
+Both clear the 90% gate; at n=25 the judge separates neither model, so the
+cost case for Haiku rests on price and latency, not a quality gap the gate can
+see. Caveat on the 2026-08-06 run: the shared local DB carried another
+branch's in-progress `search_chunks` changes, which flagged 7 questions weak —
+those short-circuited to the deterministic fallback (auto-pass, no model
+call), so 18/25 cases were model-judged per run. Re-measure on a clean corpus
+(or in CI once #29 lands) before quoting these numbers anywhere durable.

@@ -20,9 +20,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
-      # Integration tests (retrieval + the #25 hit-rate eval) are env-gated:
-      # they skip while these secrets are unset and become blocking assertions
-      # the moment the production Supabase + Voyage secrets land (#29).
+      # Integration tests (retrieval, the #25 hit-rate eval, and the #26
+      # groundedness gate) are env-gated: they skip while these secrets are
+      # unset and become blocking assertions the moment the production
+      # Supabase + Voyage + Anthropic secrets land (#29).
       - run: pnpm test
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -30,6 +31,8 @@ jobs:
           EMBEDDINGS_PROVIDER: ${{ vars.EMBEDDINGS_PROVIDER }}
           VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
           RERANK: ${{ vars.RERANK }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANSWER_MODEL: ${{ vars.ANSWER_MODEL }}
       - run: pnpm format:check
       - run: pnpm build
 
