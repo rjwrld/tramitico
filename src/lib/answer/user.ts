@@ -6,8 +6,9 @@
  * rather than failing the ask — the rate-limit tier and history persistence
  * are the only things at stake.
  */
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../database.types";
+import { tryServiceClient } from "../supabase/service";
 
 /** The slice of the Supabase client this needs — easy to fake in tests. */
 export interface AuthClient {
@@ -24,12 +25,8 @@ export function asAuthClient(client: SupabaseClient<Database>): AuthClient {
 }
 
 function defaultClient(): AuthClient | null {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return null;
-  return asAuthClient(
-    createClient<Database>(url, key, { auth: { persistSession: false } }),
-  );
+  const client = tryServiceClient();
+  return client && asAuthClient(client);
 }
 
 export async function getUserId(

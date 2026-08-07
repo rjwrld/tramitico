@@ -8,9 +8,10 @@
  * was embedded with, calls that RPC, and maps rows to typed chunks, citations,
  * and the weak-retrieval signal the honest-fallback path keys off.
  */
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 import { createEmbedder, type Embedder } from "./ingestion/embedder";
+import { serviceClient } from "./supabase/service";
 
 /** RRF constant, mirrored by the SQL function. */
 export const RRF_K = 60;
@@ -262,16 +263,7 @@ export function asRetrievalClient(
 
 /** Service-role client — `search_chunks` is granted to that role only. */
 export function createRetrievalClient(): RetrievalRpcClient {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) {
-    throw new Error(
-      "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required for retrieval",
-    );
-  }
-  return asRetrievalClient(
-    createClient<Database>(url, key, { auth: { persistSession: false } }),
-  );
+  return asRetrievalClient(serviceClient());
 }
 
 export async function retrieve(

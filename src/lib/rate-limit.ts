@@ -9,9 +9,10 @@
  * rows past the retention window are swept opportunistically in the same
  * statement.
  */
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 import type { Database } from "./database.types";
+import { serviceClient } from "./supabase/service";
 
 export type RateLimitTier = "anon" | "authed";
 
@@ -72,17 +73,7 @@ let cachedClient: RpcClient | null = null;
 
 function defaultClient(): RpcClient {
   if (cachedClient) return cachedClient;
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) {
-    throw new Error(
-      "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required for rate limiting",
-    );
-  }
-  const supabase = createClient<Database>(url, key, {
-    auth: { persistSession: false },
-  });
-  cachedClient = supabaseRpcClient(supabase);
+  cachedClient = supabaseRpcClient(serviceClient());
   return cachedClient;
 }
 
