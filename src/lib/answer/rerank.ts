@@ -9,8 +9,13 @@
  */
 import type { RetrievedChunk } from "../retrieval";
 
-/** Fused candidates fetched per question (~#22 fused rank for the canary). */
-export const RERANK_POOL = 30;
+/**
+ * Fused candidates fetched per question. 40, not 30, since #51: ley-iva
+ * Art. 10 fuses at #38 for the tarifa-general question (vector #34, nothing
+ * from the lexical leg), and the pool must reach the canonical source for the
+ * reranker to promote it. Still one Voyage call either way.
+ */
+export const RERANK_POOL = 40;
 
 /** Chunks handed to the answer model (SPEC §5: top-k ≈ 8). */
 export const ANSWER_TOP_K = 8;

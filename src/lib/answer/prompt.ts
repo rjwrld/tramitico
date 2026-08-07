@@ -12,7 +12,7 @@ export const HACIENDA_URL = "https://www.hacienda.go.cr";
 export const CCSS_URL = "https://www.ccss.sa.cr";
 
 /**
- * Streamed verbatim when `retrieval.isWeak` (see WEAK_SCORE_THRESHOLD):
+ * Streamed verbatim when `retrieval.isWeak` (see isCorroborated):
  * what happened + what to do, no apologies (DESIGN §9).
  */
 export const WEAK_RETRIEVAL_ANSWER =
