@@ -51,6 +51,47 @@ export interface EmbedderOptions {
   fetchImpl?: typeof fetch;
 }
 
+/** Thrown by {@link requestEmbeddings} on a non-OK response; carries the
+ * status and Retry-After (seconds, 0 if absent) so callers that need to
+ * retry (Voyage) can decide without re-parsing the response themselves. */
+class EmbeddingRequestError extends Error {
+  constructor(
+    prefix: string,
+    readonly status: number,
+    readonly retryAfterSeconds: number,
+  ) {
+    super(`${prefix}: HTTP ${status}`);
+    this.name = "EmbeddingRequestError";
+  }
+}
+
+// Shared shape of a Voyage/OpenAI embeddings call: POST { model, input },
+// Bearer auth, JSON body; on success parse `data[].embedding` in request
+// order. Retry/pacing is provider-specific and lives outside this helper.
+async function requestEmbeddings(
+  fetchImpl: typeof fetch,
+  url: string,
+  key: string,
+  model: string,
+  texts: string[],
+  errorPrefix: string,
+): Promise<number[][]> {
+  const res = await fetchImpl(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${key}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ model, input: texts }),
+  });
+  if (!res.ok) {
+    const retryAfterSeconds = Number(res.headers.get("retry-after")) || 0;
+    throw new EmbeddingRequestError(errorPrefix, res.status, retryAfterSeconds);
+  }
+  const json = (await res.json()) as { data: { embedding: number[] }[] };
+  return json.data.map((d) => d.embedding);
+}
+
 export function createEmbedder(
   // `||`, not `??`: CI interpolates an unset `vars.EMBEDDINGS_PROVIDER` as
   // "", which must mean the keyless stub default, not an unknown provider.
@@ -94,31 +135,26 @@ export function createEmbedder(
           if (gap > 0) await new Promise((r) => setTimeout(r, gap));
         }
         lastRequestAt = Date.now();
-        const res = await fetchImpl("https://api.voyageai.com/v1/embeddings", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${key}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ model: "voyage-3", input: texts }),
-        });
-        if (res.ok) {
-          const json = (await res.json()) as {
-            data: { embedding: number[] }[];
-          };
-          return json.data.map((d) => d.embedding);
+        try {
+          return await requestEmbeddings(
+            fetchImpl,
+            "https://api.voyageai.com/v1/embeddings",
+            key,
+            "voyage-3",
+            texts,
+            "Voyage embeddings",
+          );
+        } catch (err) {
+          if (!(err instanceof EmbeddingRequestError)) throw err;
+          const retryable = err.status === 429 || err.status >= 500;
+          if (!retryable || attempt >= MAX_RETRIES) throw err;
+          if (err.status === 429) paced = true;
+          // Rejected requests count against the rate limit too — waiting
+          // longer than Retry-After (min 30s) beats polling it away.
+          await new Promise((r) =>
+            setTimeout(r, Math.max(RETRY_MS, err.retryAfterSeconds * 1000)),
+          );
         }
-        const retryable = res.status === 429 || res.status >= 500;
-        if (!retryable || attempt >= MAX_RETRIES) {
-          throw new Error(`Voyage embeddings: HTTP ${res.status}`);
-        }
-        if (res.status === 429) paced = true;
-        // Rejected requests count against the rate limit too — waiting
-        // longer than Retry-After (min 30s) beats polling it away.
-        const retryAfter = Number(res.headers.get("retry-after")) || 0;
-        await new Promise((r) =>
-          setTimeout(r, Math.max(RETRY_MS, retryAfter * 1000)),
-        );
       }
     };
     return {
@@ -160,24 +196,15 @@ export function createEmbedder(
     return {
       provider,
       dimensions: 1536,
-      embed: async (texts) => {
-        const res = await fetchImpl("https://api.openai.com/v1/embeddings", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${key}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "text-embedding-3-small",
-            input: texts,
-          }),
-        });
-        if (!res.ok) throw new Error(`OpenAI embeddings: HTTP ${res.status}`);
-        const json = (await res.json()) as {
-          data: { embedding: number[] }[];
-        };
-        return json.data.map((d) => d.embedding);
-      },
+      embed: (texts) =>
+        requestEmbeddings(
+          fetchImpl,
+          "https://api.openai.com/v1/embeddings",
+          key,
+          "text-embedding-3-small",
+          texts,
+          "OpenAI embeddings",
+        ),
     };
   }
   throw new Error(`Unknown EMBEDDINGS_PROVIDER: ${provider}`);
