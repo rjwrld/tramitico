@@ -133,7 +133,9 @@ async function readEvents(response: Response): Promise<SseEvent[]> {
 }
 
 function textDeltas(events: SseEvent[]): string[] {
-  return events.filter((e) => e.type === "text-delta").map((e) => e.delta ?? "");
+  return events
+    .filter((e) => e.type === "text-delta")
+    .map((e) => e.delta ?? "");
 }
 
 function streamedText(events: SseEvent[]): string {
@@ -153,7 +155,8 @@ describe("POST /api/ask", () => {
   it("streams the answer with citations delivered as data parts in order of use", async () => {
     allowRateLimit();
     vi.mocked(retrieve).mockResolvedValue(retrievalResult());
-    const answer = "La tarifa es 13% [2]. Aplica a servicios [1] y también [2].";
+    const answer =
+      "La tarifa es 13% [2]. Aplica a servicios [1] y también [2].";
     mockModel(answer);
 
     const response = await POST(askRequest({ question: "¿Cuánto es el IVA?" }));
