@@ -31,6 +31,23 @@ export interface CitationTracker {
 const MARKER = /\[(\d+)\]/g;
 /** A bracket run at the end of the buffer that a later delta could complete. */
 const PARTIAL_MARKER_TAIL = /\[\d*$/;
+/**
+ * The same markers as `MARKER`, matched as a run with the horizontal space
+ * that precedes them — the shape needed to delete them from prose ("…exentos
+ * [6][8]." → "…exentos."). Only bare integers, so legal-text brackets
+ * ("[nota]", "[12x]") survive.
+ */
+const MARKER_RUN = /[ \t]*(?:\[\d+\])+/g;
+
+/**
+ * Prose without the [n] markers (issue #75). The markers are wire plumbing
+ * between the prompt and `createCitationTracker`; nothing outside that loop
+ * should see them, so both the rendered answer and the persisted one run
+ * through here. The tracker itself keeps consuming the raw stream.
+ */
+export function stripCitationMarkers(text: string): string {
+  return text.replace(MARKER_RUN, "");
+}
 
 export function createCitationTracker(
   chunks: readonly RetrievedChunk[],
