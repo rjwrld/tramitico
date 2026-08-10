@@ -1,6 +1,6 @@
 # ADR 0008 — Answer prose: an owned block renderer, not markdown (Streamdown / AI Elements `Response`)
 
-Date: 2026-08-10 · Status: accepted ·
+Date: 2026-08-10 · Status: **under revision — do not act on the Decision below** ·
 Context: issue [#76](https://github.com/rjwrld/tramitico/issues/76), sibling of
 [ADR 0004](0004-citation-rendering.md) · Streamdown version probed: **2.5.0**
 
@@ -12,6 +12,14 @@ lines — readable but typographically dead, and the list semantics are lost to 
 #76 posed it as A (keep plain text, improve typography with CSS only) vs B (adopt AI Elements'
 `Response`, i.e. Streamdown). The audit had counted plain-text rendering as a security strength:
 nothing the model echoes can become markup.
+
+> **Revision in progress (2026-08-10).** The screenshots and the verdict below were taken
+> against _reconstructed_ answers. Real answers captured from the production path afterwards
+> emit `##` headings, `**bold**` and a full pipe **table** (the 2026 tramos), none of which the
+> reconstruction contained. Consequences: today's plain-text render shows that markup literally
+> to users — a live defect, not a typography preference — and option C as written renders the
+> table _worse_ than today. A revised decision follows once a full-dataset markdown census is
+> in. Nothing below should be treated as settled.
 
 ## Decision
 
