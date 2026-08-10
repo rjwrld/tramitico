@@ -68,7 +68,15 @@ function allowRateLimit(): void {
   });
 }
 
-function mockModel(text: string): void {
+/**
+ * Mock the model's stream. `deltas` defaults to one word each; pass it
+ * explicitly to simulate the provider's real bursts (several words per delta,
+ * markers split mid-token) — that is what #73's smoothStream re-chunks.
+ */
+function mockModel(
+  text: string,
+  deltas: readonly string[] = text.split(" ").map((word) => `${word} `),
+): void {
   vi.mocked(getAnswerModel).mockReturnValue(
     new MockLanguageModelV4({
       doStream: {
@@ -76,10 +84,10 @@ function mockModel(text: string): void {
           chunks: [
             { type: "stream-start", warnings: [] },
             { type: "text-start", id: "t1" },
-            ...text.split(" ").map((word): LanguageModelV4StreamPart => ({
+            ...deltas.map((delta): LanguageModelV4StreamPart => ({
               type: "text-delta",
               id: "t1",
-              delta: `${word} `,
+              delta,
             })),
             { type: "text-end", id: "t1" },
             {
@@ -124,11 +132,12 @@ async function readEvents(response: Response): Promise<SseEvent[]> {
     .map((line) => JSON.parse(line.slice("data: ".length)) as SseEvent);
 }
 
+function textDeltas(events: SseEvent[]): string[] {
+  return events.filter((e) => e.type === "text-delta").map((e) => e.delta ?? "");
+}
+
 function streamedText(events: SseEvent[]): string {
-  return events
-    .filter((e) => e.type === "text-delta")
-    .map((e) => e.delta)
-    .join("");
+  return textDeltas(events).join("");
 }
 
 beforeEach(() => {
@@ -144,13 +153,17 @@ describe("POST /api/ask", () => {
   it("streams the answer with citations delivered as data parts in order of use", async () => {
     allowRateLimit();
     vi.mocked(retrieve).mockResolvedValue(retrievalResult());
-    mockModel("La tarifa es 13% [2]. Aplica a servicios [1] y también [2].");
+    const answer = "La tarifa es 13% [2]. Aplica a servicios [1] y también [2].";
+    mockModel(answer);
 
     const response = await POST(askRequest({ question: "¿Cuánto es el IVA?" }));
     expect(response.status).toBe(200);
     const events = await readEvents(response);
 
-    expect(streamedText(events)).toContain("La tarifa es 13%");
+    // Full equality, not `toContain`: smoothStream (#73) re-chunks the deltas,
+    // so this is the guard that nothing is dropped or reordered on the way out
+    // (mockModel appends a trailing space to every word).
+    expect(streamedText(events)).toBe(`${answer} `);
     const citationEvents = events.filter((e) => e.type === "data-citations");
     expect(citationEvents.length).toBeGreaterThan(0);
     const final = citationEvents.at(-1)!.data as { docKey: string }[];
@@ -159,6 +172,38 @@ describe("POST /api/ask", () => {
     expect(vi.mocked(retrieve)).toHaveBeenCalledWith("¿Cuánto es el IVA?", {
       matchCount: 40,
     });
+  });
+
+  it("re-chunks the model's bursty deltas into one word per event (#73)", async () => {
+    allowRateLimit();
+    vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+    // How the provider actually delivers: multi-word bursts, and a marker
+    // split across three deltas.
+    const bursts = [
+      "La tarifa es 13% [",
+      "2",
+      "]. Aplica a servicios [1]",
+      " y también [2].",
+    ];
+    mockModel(bursts.join(""), bursts);
+
+    const response = await POST(askRequest({ question: "¿Cuánto es el IVA?" }));
+    const events = await readEvents(response);
+    const deltas = textDeltas(events);
+
+    // Nothing added, dropped, or reordered — only the boundaries moved.
+    expect(deltas.join("")).toBe(bursts.join(""));
+    expect(deltas.length).toBeGreaterThan(bursts.length);
+    // Each event carries at most one word, so the client paints word by word.
+    for (const delta of deltas) {
+      expect(delta.trim().split(/\s+/).filter(Boolean)).toHaveLength(1);
+    }
+    // Word boundaries re-aggregate the split marker rather than splitting it
+    // further — the citation tracker sees "[2]" whole.
+    expect(deltas).toContain("[2]. ");
+    const final = events.filter((e) => e.type === "data-citations").at(-1)!
+      .data as { docKey: string }[];
+    expect(final.map((c) => c.docKey)).toEqual(["doc-2", "doc-1"]);
   });
 
   it("streams the honest fallback with zero citations on weak retrieval, without calling the model", async () => {

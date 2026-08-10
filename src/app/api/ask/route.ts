@@ -11,6 +11,7 @@
 import {
   createUIMessageStream,
   createUIMessageStreamResponse,
+  smoothStream,
   streamText,
   toUIMessageStream,
   type UIMessageStreamWriter,
@@ -163,6 +164,19 @@ export async function POST(request: Request): Promise<Response> {
         model: getAnswerModel(),
         system: ANSWER_SYSTEM_PROMPT,
         prompt: buildUserPrompt(asked, chunks),
+        // #73: provider deltas arrive in bursts, which reads as multi-word
+        // jumps. Re-chunk them word by word server-side so the text flows —
+        // DESIGN §8 keeps streaming as native token flow, no CSS animation.
+        // The transform runs before `onChunk` and before `result.stream`, so
+        // the tracker below sees the same word-sized deltas the client does
+        // (word boundaries keep "[3]" intact; citations.test.ts asserts the
+        // tracker is indifferent either way). 10 ms is smoothStream's default
+        // and the conservative floor: pacing bounds total stream time at
+        // words × delayInMs against `maxDuration = 60`.
+        experimental_transform: smoothStream({
+          chunking: "word",
+          delayInMs: 10,
+        }),
         onChunk: ({ chunk }) => {
           if (chunk.type !== "text-delta") return;
           if (tracker.append(chunk.text).length > 0) {
