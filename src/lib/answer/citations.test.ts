@@ -78,6 +78,44 @@ describe("createCitationTracker", () => {
     expect(second.map((c) => c.docKey)).toEqual(["ccss-reglamento"]);
   });
 
+  // #73 paces the answer stream with `smoothStream({ chunking: "word" })`, so
+  // the tracker is fed one word per delta instead of the provider's bursts.
+  // Word boundaries keep "[3]" whole (verified against smoothStream), but the
+  // tracker must be indifferent to delivery shape either way.
+  describe("delivery shape", () => {
+    const TEXT =
+      "La tarifa es 13% [3]. Aplica a servicios [1] y también [2] en el mismo [3].";
+
+    function trackedDocKeys(deltas: readonly string[]): string[] {
+      const tracker = createCitationTracker(CHUNKS);
+      const streamed = deltas.flatMap((delta) => tracker.append(delta));
+      // Every citation is announced exactly once, as it is first used.
+      expect(streamed).toEqual(tracker.used());
+      return tracker.used().map((c) => c.docKey);
+    }
+
+    const asBlob = () => trackedDocKeys([TEXT]);
+
+    it("emits the same citations for word-chunked deltas as for one blob", () => {
+      const words = TEXT.split(" ").map((word, i, all) =>
+        i === all.length - 1 ? word : `${word} `,
+      );
+      expect(words.join("")).toBe(TEXT);
+      expect(trackedDocKeys(words)).toEqual(asBlob());
+    });
+
+    it("emits the same citations when a marker splits across three deltas", () => {
+      const [before, after] = TEXT.split("[3]. Aplica");
+      expect(trackedDocKeys([`${before}[`, "3", `]. Aplica${after}`])).toEqual(
+        asBlob(),
+      );
+    });
+
+    it("emits the same citations one character at a time", () => {
+      expect(trackedDocKeys([...TEXT])).toEqual(asBlob());
+    });
+  });
+
   it("ignores out-of-range and non-citation brackets", () => {
     const tracker = createCitationTracker(CHUNKS);
     tracker.append("Ver [9] o [0] o [nota] o [12x].");

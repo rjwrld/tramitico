@@ -11,6 +11,7 @@
 import {
   createUIMessageStream,
   createUIMessageStreamResponse,
+  smoothStream,
   streamText,
   toUIMessageStream,
   type UIMessageStreamWriter,
@@ -163,6 +164,27 @@ export async function POST(request: Request): Promise<Response> {
         model: getAnswerModel(),
         system: ANSWER_SYSTEM_PROMPT,
         prompt: buildUserPrompt(asked, chunks),
+        // #73: provider deltas arrive in bursts, which reads as multi-word
+        // jumps. Re-chunk them word by word server-side so the text flows —
+        // DESIGN §8 keeps streaming as native token flow, no CSS animation.
+        // The transform runs before `onChunk` and before `result.stream`, so
+        // the tracker below sees the same word-sized deltas the client does
+        // (word boundaries keep "[3]" intact; citations.test.ts asserts the
+        // tracker is indifferent either way).
+        //
+        // 20 ms measured against the local dev server, not guessed. Sonnet
+        // feeds this route at ~30–40 ms/word, so 20 ms drains slower than the
+        // model fills and the delay never becomes the bottleneck — it only
+        // spends the bursts. Versus 10 ms on the same long answer, stalls over
+        // 250 ms (the buffer running dry, which reads as the flow stopping)
+        // fell from 3.8 to 0.6 per 100 words. **Keep delayInMs well under the
+        // model's ms/word**: point ANSWER_MODEL at something faster and this
+        // needs re-measuring, or pacing starts adding latency instead of
+        // hiding it. Bounded either way by `maxDuration = 60`.
+        experimental_transform: smoothStream({
+          chunking: "word",
+          delayInMs: 20,
+        }),
         onChunk: ({ chunk }) => {
           if (chunk.type !== "text-delta") return;
           if (tracker.append(chunk.text).length > 0) {
