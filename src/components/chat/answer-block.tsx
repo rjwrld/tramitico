@@ -8,13 +8,16 @@ import {
   messageText,
   type AskUIMessage,
 } from "@/lib/answer/contract";
+import { stripCitationMarkers } from "@/lib/answer/citations";
 import { SelloRow } from "@/components/sello";
 
 export const DISCLAIMER =
   "No es asesoría legal ni contable — verifique con Hacienda.";
 
 export function AnswerBlock({ message }: { message: AskUIMessage }) {
-  const text = messageText(message);
+  // The [n] markers are the tracker's wire format — sellos are how a citation
+  // shows up here, so the prose renders without them (issue #75).
+  const text = stripCitationMarkers(messageText(message));
   const citations = citationsFrom(message);
   return (
     <div data-slot="answer" className="flex flex-col gap-4">

@@ -56,6 +56,12 @@ describe("buildUserPrompt", () => {
     expect(prompt).toContain("[1]");
     expect(prompt).toContain("13%");
   });
+
+  it("labels the provided material as documentos oficiales (#75)", () => {
+    const prompt = buildUserPrompt("¿Cuánto es el IVA?", [chunk()]);
+    expect(prompt).toContain("Documentos oficiales");
+    expect(prompt).not.toMatch(/fragmento|chunk/i);
+  });
 });
 
 describe("ANSWER_SYSTEM_PROMPT", () => {
@@ -72,6 +78,14 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     // Honest fallback instruction with agency links.
     expect(ANSWER_SYSTEM_PROMPT).toContain("hacienda.go.cr");
     expect(ANSWER_SYSTEM_PROMPT).toContain("ccss.sa.cr");
+  });
+
+  it("speaks of documentos oficiales, never of RAG-internal material (#75)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/documentos oficiales/i);
+    expect(ANSWER_SYSTEM_PROMPT).not.toMatch(/fragmento|chunk/i);
+    // Rule 2's wire contract survives the register change: the tracker still
+    // needs the model to emit [n].
+    expect(ANSWER_SYSTEM_PROMPT).toContain("[n]");
   });
 });
 
