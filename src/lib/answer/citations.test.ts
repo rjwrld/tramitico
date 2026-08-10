@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
-import { chunkCitations, createCitationTracker } from "./citations";
+import {
+  chunkCitations,
+  createCitationTracker,
+  stripCitationMarkers,
+} from "./citations";
 
 function chunk(overrides: Partial<RetrievedChunk> = {}): RetrievedChunk {
   return {
@@ -116,5 +120,46 @@ describe("createCitationTracker", () => {
     const tracker = createCitationTracker(CHUNKS);
     tracker.append("Ver [9] o [0] o [nota] o [12x].");
     expect(tracker.used()).toHaveLength(0);
+  });
+});
+
+describe("stripCitationMarkers", () => {
+  it("removes a single marker with the space before it", () => {
+    expect(stripCitationMarkers("La tarifa es del 13% [1].")).toBe(
+      "La tarifa es del 13%.",
+    );
+  });
+
+  it("removes a run of markers", () => {
+    expect(stripCitationMarkers("están exentos del pago [6][8].")).toBe(
+      "están exentos del pago.",
+    );
+  });
+
+  it("leaves one space when the marker sits mid-sentence", () => {
+    expect(
+      stripCitationMarkers("Aplica el IVA [1] y también la renta [2]."),
+    ).toBe("Aplica el IVA y también la renta.");
+  });
+
+  it("leaves brackets that are not bare integers intact", () => {
+    const text = "Ver [nota] y [12x] y [Artículo 4] y [].";
+    expect(stripCitationMarkers(text)).toBe(text);
+  });
+
+  it("is idempotent", () => {
+    const once = stripCitationMarkers("Uno [1] y dos [2][3].");
+    expect(stripCitationMarkers(once)).toBe(once);
+  });
+
+  it("leaves marker-free prose untouched", () => {
+    const text = "No encuentro base oficial en los documentos que manejo.";
+    expect(stripCitationMarkers(text)).toBe(text);
+  });
+
+  it("does not swallow newlines around a marker", () => {
+    expect(stripCitationMarkers("- Punto uno [1]\n- Punto dos [2]")).toBe(
+      "- Punto uno\n- Punto dos",
+    );
   });
 });

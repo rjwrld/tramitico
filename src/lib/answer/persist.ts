@@ -10,6 +10,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "../database.types";
 import type { Citation } from "../retrieval";
 import { tryServiceClient } from "../supabase/service";
+import { stripCitationMarkers } from "./citations";
 
 type QuestionInsert = Database["public"]["Tables"]["questions"]["Insert"];
 
@@ -52,7 +53,9 @@ export async function saveQuestion(
   const { error } = await questions.from("questions").insert({
     user_id: input.userId,
     question: input.question,
-    answer: input.answer,
+    // History stores what the reader saw, not the wire form: the [n] markers
+    // are stripped here so no caller can persist them (issue #75).
+    answer: stripCitationMarkers(input.answer),
     // Citation is a plain {docKey, docTitle, norma, articulo, url} record;
     // the generated Json type just can't see through the interface.
     citations: input.citations as unknown as Json,

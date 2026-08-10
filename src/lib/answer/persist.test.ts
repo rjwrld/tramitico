@@ -30,7 +30,8 @@ describe("saveQuestion", () => {
     expect(insert).toHaveBeenCalledWith({
       user_id: "user-1",
       question: "¿Cuánto es el IVA?",
-      answer: "13% [1].",
+      // Marker-free prose; the citations still carry the tracker's output.
+      answer: "13%.",
       citations: INPUT.citations,
     });
   });
