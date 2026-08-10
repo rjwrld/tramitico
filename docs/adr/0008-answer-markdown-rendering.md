@@ -236,4 +236,9 @@ Geist Mono + `tabular-nums` on the body.
   makes tabular answers routine, the owned `Table` grows — or the question genuinely reopens, with
   harden's props locked from the first commit.
 - **A construct the model insists on** despite the prompt rule, showing up in the census at a rate
-  like today's 72% bold. Re-run the census; it is one script and one command.
+  like today's 72% bold. The census script was throwaway and is not committed — reproducing it is
+  ~40 lines: read `eval/dataset.jsonl`, and for each case run `retrieve` → `rerankChunks` →
+  `streamText` with `ANSWER_SYSTEM_PROMPT` (i.e. `src/app/api/ask/route.ts` minus rate limiting,
+  persistence and the stream transport), then count `^#{1,6} `, `\*\*`, `^\s*\|.*\|$` and `^- ` per
+  answer. If prompt-format regressions become a recurring question, that script is worth owning
+  under `scripts/` rather than rewriting each time.
