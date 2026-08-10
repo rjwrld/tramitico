@@ -142,10 +142,10 @@ _(pinned here per #10)_
 - **Visual identity comes from DESIGN.md** (authored pre-build); the Week-2 UI prototype session
   explores _layout_ variants within that identity, and citation rendering is decided there —
   **decided: sello chips + streamed data-part snapshots, [ADR 0004](docs/adr/0004-citation-rendering.md)**.
-- **Answer prose renders through owned code, not AI Elements' `Response`/Streamdown** —
-  [ADR 0008](docs/adr/0008-answer-markdown-rendering.md): a small block renderer gives `- ` runs
-  real list semantics with no HTML/URL path in the render. AI Elements still supplies the chat
-  scaffolding.
+- **Answer prose: the prompt permits three markdown constructs — `- ` bullets, `**bold**`,
+  simple tables — and owned code renders exactly those**, not AI Elements' `Response`/Streamdown
+  ([ADR 0008](docs/adr/0008-answer-markdown-rendering.md)). No HTML, link or URL path exists in
+  the render. AI Elements still supplies the chat scaffolding.
 - Answers in Spanish; chrome/nav/README/demo in English. Citation chips + disclaimer per answer.
 - Signed-in: history sidebar. No other surfaces in MVP.
 
@@ -188,8 +188,8 @@ MCP server **not** required to feature — it gates only the "builds MCP servers
 3. Anything that overturns a spec default — record, don't silently drift. First instance:
    **[ADR 0005](docs/adr/0005-lexical-and-or-fallback.md)**, the lexical leg's AND→OR tsquery
    fallback in `search_chunks`; also
-   **[ADR 0008](docs/adr/0008-answer-markdown-rendering.md)**, answer prose rendered by owned code
-   instead of AI Elements' `Response`.
+   **[ADR 0008](docs/adr/0008-answer-markdown-rendering.md)**, the answer-prose markdown subset
+   rendered by owned code instead of AI Elements' `Response`.
 
 ## 13. Out of scope (binding — BRIEF §5)
 

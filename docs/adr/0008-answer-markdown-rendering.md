@@ -1,97 +1,95 @@
-# ADR 0008 — Answer prose: an owned block renderer, not markdown (Streamdown / AI Elements `Response`)
+# ADR 0008 — Answer prose: constrain the model to a three-construct subset, render it with owned code
 
-Date: 2026-08-10 · Status: **under revision — do not act on the Decision below** ·
+Date: 2026-08-10 · Status: accepted ·
 Context: issue [#76](https://github.com/rjwrld/tramitico/issues/76), sibling of
 [ADR 0004](0004-citation-rendering.md) · Streamdown version probed: **2.5.0**
+
+> This ADR was first written against _reconstructed_ answers and reached a different verdict. Real
+> answers captured from the production path overturned it — see [§1](#1-what-the-model-actually-emits).
+> The record of the reversal is kept deliberately: the first pass is why the census exists.
 
 ## Context
 
 Answers render as plain text with `whitespace-pre-wrap`
-(`src/components/chat/answer-block.tsx`). The model emits hyphen-bullet runs that display as flat
-lines — readable but typographically dead, and the list semantics are lost to assistive tech.
-#76 posed it as A (keep plain text, improve typography with CSS only) vs B (adopt AI Elements'
-`Response`, i.e. Streamdown). The audit had counted plain-text rendering as a security strength:
-nothing the model echoes can become markup.
+(`src/components/chat/answer-block.tsx`). #76 framed the choice as A (keep plain text, improve
+typography with CSS only) vs B (adopt AI Elements' `Response`, i.e. Streamdown), and described
+today's output as "readable but typographically dead." The readiness audit had counted plain-text
+rendering as a security strength: nothing the model echoes can become markup.
 
-> **Revision in progress (2026-08-10).** The screenshots and the verdict below were taken
-> against _reconstructed_ answers. Real answers captured from the production path afterwards
-> emit `##` headings, `**bold**` and a full pipe **table** (the 2026 tramos), none of which the
-> reconstruction contained. Consequences: today's plain-text render shows that markup literally
-> to users — a live defect, not a typography preference — and option C as written renders the
-> table _worse_ than today. A revised decision follows once a full-dataset markdown census is
-> in. Nothing below should be treated as settled.
+Both framings turned out to rest on an assumption nobody had checked — what the model actually
+writes.
 
 ## Decision
 
-**Reject option B (Streamdown/`Response`). Ship option C — a ~25-line owned block renderer that
-turns `- ` runs into real `<ul>/<li>` and leaves every leaf a React text node.**
+**Constrain the model to three constructs — `- ` bullets, `**bold**`, and simple pipe tables — and
+render exactly those with owned code.** No markdown library, no HTML parsing, no URL handling: the
+renderer walks blocks and emits React text nodes, `<ul>/<li>`, `<strong>`, and `<table>`.
 
-C buys the whole reason B was on the table (list semantics for assistive tech, proper hanging
-indents, breathing room between blocks) at zero cost to the guarantee the audit banked: there is
-no HTML, link, image, or URL path in the render at all, so "nothing the model echoes can become
-markup" stays literally true rather than becoming "true modulo a sanitizer's defaults."
+Rejected:
 
-Option A (CSS-only) is rejected too. Beyond leaving list semantics flat — the part that actually
-matters for screen readers — CSS alone cannot deliver the typography it promises: with the whole
-answer in one `whitespace-pre-wrap` text node there is no per-item element to hang an indent from
-or to space apart. The moment you emit one element per item to fix that, you have built C.
-
-Build work: separate issue. The rest of this ADR is the evidence.
+- **B (Streamdown/`Response`)** — its defaults open an image-beacon surface, it autolinks the bare
+  Hacienda URLs that appear in 64% of answers (colliding with ADR 0004's "links stay the sellos'
+  job"), it mangles literal prose mid-stream, and it costs 220 packages. §3–§5.
+- **A (CSS only)** — cannot deliver the typography it promises, and does nothing about the literal
+  `**` that 72% of answers now show users. §2.
 
 ## Evidence
 
-### 1. What the three options look like
+### 1. What the model actually emits
 
-Prototype: a throwaway `/dev/answer-preview` route rendering the same answer text three ways
-against production tokens and fonts, screenshotted with Playwright at 2× (light). The route,
-the fixtures, and the `streamdown` dependency were removed after capture — nothing from the
-prototype is committed except the option-C renderer, reproduced below.
+25 dataset questions run through the production answer path — retrieval → Voyage rerank → Sonnet
+with `ANSWER_SYSTEM_PROMPT` — against the local Supabase with the corpus ingested, plus one earlier
+capture of the renta question (26 generations total):
 
-Questions: the two the issue names as producing the longest answers — the eval canary
-`iva-clientes-fuera-cr` (ADR 0003's blocking case) and `renta-persona-fisica-deduccion`.
+| Construct     | Answers containing it                       | What a user sees today        |
+| ------------- | ------------------------------------------- | ----------------------------- |
+| `**bold**`    | **18/25 (72%)**                             | literal `**` asterisks        |
+| `- ` bullets  | 17/25 (68%)                                 | flat lines, no list semantics |
+| bare URLs     | 16/25 (64%)                                 | inert text — correct today    |
+| `##` headings | 2/25 (8%)                                   | literal `##`                  |
+| pipe tables   | 0/25 — **1/1** in the earlier renta capture | raw `\| … \| … \|` rows       |
 
-|                        | Canary (IVA export)                                             | Renta calculation                                                        |
-| ---------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| A — plain text (today) | [A](0008-answer-markdown-rendering/iva-clientes-fuera-cr-A.png) | [A](0008-answer-markdown-rendering/renta-persona-fisica-deduccion-A.png) |
-| B — Streamdown         | [B](0008-answer-markdown-rendering/iva-clientes-fuera-cr-B.png) | [B](0008-answer-markdown-rendering/renta-persona-fisica-deduccion-B.png) |
-| C — owned lists        | [C](0008-answer-markdown-rendering/iva-clientes-fuera-cr-C.png) | [C](0008-answer-markdown-rendering/renta-persona-fisica-deduccion-C.png) |
+Two findings the issue did not know about:
 
-Side-by-side, all six: [`all.png`](0008-answer-markdown-rendering/all.png).
+1. **This is a live defect, not a typography preference.** Nearly three quarters of answers render
+   literal asterisks to users right now. #76's premise ("readable but typographically dead")
+   understated it.
+2. **Tables are rare and non-deterministic.** The same renta question produced a 7-row tramos table
+   on one generation and none on the next. That is what makes constraining the prompt viable: we
+   are not suppressing a construct the model needs, we are pinning a coin-flip.
 
-**Caveat on the answer text — read this before trusting the screenshots.** No API keys or
-Supabase instance were available in this working copy (`.env.local` absent), so the two answers
-are _reconstructed_, not generated: written to the production prompt's observed shape (Spanish
-usted, hyphen bullets, per-claim `[n]` markers, one lead paragraph then labelled bullet runs),
-with markers already stripped per [#75](https://github.com/rjwrld/tramitico/issues/75). They
-exercise the typography faithfully; they are not a groundedness sample. What the pictures settle
-is layout mechanics — marker position, wrap alignment, block rhythm — which any long bulleted
-answer would show identically. The two disqualifying findings for B (§2, §3) come from executed
-code and do not depend on the pictures at all.
+### 2. What the three options look like on real answers
 
-What the pictures show:
+Prototype: a throwaway `/dev/answer-preview` route rendering captured answers three ways against
+production tokens and fonts, screenshotted with Playwright. The route, the fixtures, the capture
+script and the `streamdown` dependency were all removed after capture; only the renderer below is
+carried forward.
 
-- **A** is today's state, not the CSS-improved variant the issue proposed — and that is the
-  point. Inside one `whitespace-pre-wrap` text node there is no element per item, so CSS has
-  nothing to hang an indent off and nothing to put margin between: hyphen runs read as a wall,
-  wrapped lines start at the bullet's column, items sit flush against each other. Recovering
-  either property means emitting one element per item, which _is_ option C. So the column is
-  labelled honestly as the baseline, and option A is rejected on the argument rather than on the
-  screenshot: the best version of A is C minus the semantics.
-- **B** fixes the wall but ships Streamdown's own list typography: `list-inside`, so a wrapped
-  line runs back underneath the marker instead of hanging off it, plus `py-1` per item and a
-  full-weight `●`. It reads like a chat product, not like DESIGN §5's "quiet ink prose."
-- **C** gets the hanging indent right (`list-disc pl-5`, wrapped lines align under the text) and
-  the marker muted to `--border`. Structure without a change of voice.
+Questions: the eval canary `iva-clientes-fuera-cr`; `renta-persona-fisica-deduccion` in the
+generation that produced the tramos **table** (the hard case); and `factura-electronica-v44`, the
+longest answer in the dataset (21 bullets).
 
-DESIGN §5's "answers are quiet ink prose" survives _structure_ fine — the sellos are still the
-only saturated thing on the page in C. It does not survive B's defaults without a per-element
-`components` override table, which is the "per-component fork" DESIGN §6 forbids.
+| Question               | A — plain text (today)                                                   | B — Streamdown                                                           | C — owned subset                                                         |
+| ---------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| canary (IVA export)    | [A](0008-answer-markdown-rendering/iva-clientes-fuera-cr-A.png)          | [B](0008-answer-markdown-rendering/iva-clientes-fuera-cr-B.png)          | [C](0008-answer-markdown-rendering/iva-clientes-fuera-cr-C.png)          |
+| renta (with the table) | [A](0008-answer-markdown-rendering/renta-persona-fisica-deduccion-A.png) | [B](0008-answer-markdown-rendering/renta-persona-fisica-deduccion-B.png) | [C](0008-answer-markdown-rendering/renta-persona-fisica-deduccion-C.png) |
+| factura (longest)      | [A](0008-answer-markdown-rendering/factura-electronica-v44-A.png)        | [B](0008-answer-markdown-rendering/factura-electronica-v44-B.png)        | [C](0008-answer-markdown-rendering/factura-electronica-v44-C.png)        |
 
-### 2. Streamdown's escaping model — read, then executed
+- **A** shows the defect plainly: `## 2. Tramos aplicables`, `**renta neta**`, and the tramos table
+  as raw pipe rows. Whatever else is decided, this cannot stay.
+- **B** renders everything correctly and reads like a chat product: large bold headings competing
+  with the sellos for the eye, and the Hacienda URL autolinked into an `<a>` — a link in answer
+  prose, which ADR 0004 assigned to the sellos. Quieting it means a per-element `components`
+  override table, the "per-component fork" DESIGN §6 forbids.
+- **C** keeps DESIGN §5's "quiet ink prose": bold as weight rather than asterisks, bullets with a
+  proper hanging indent and a marker muted to `--border`, the tramos table in Geist Mono with
+  `tabular-nums` per DESIGN §3, and the URL left as inert text for the sello row to carry.
 
-The pipeline is `rehype-raw` → `rehype-sanitize` (GitHub `defaultSchema`, plus `tel` on `href`
-and `metastring` on `code`) → `rehype-harden`. Raw HTML in the model's output _is_ parsed; it is
-the sanitizer, not the absence of a raw-HTML path, that keeps it safe. The harden defaults, read
+### 3. Streamdown's escaping model — read, then executed
+
+The pipeline is `rehype-raw` → `rehype-sanitize` (GitHub `defaultSchema`, plus `tel` on `href` and
+`metastring` on `code`) → `rehype-harden`. Raw HTML in the model's output _is_ parsed; it is the
+sanitizer, not the absence of a raw-HTML path, that keeps it safe. The harden defaults, read
 straight out of `dist/chunk-*.js` at 2.5.0:
 
 ```js
@@ -108,11 +106,8 @@ harden: [
 ```
 
 `allowDataImages: true` does not get a vote in practice: `rehype-sanitize` runs first and
-`defaultSchema` restricts `img` `src` to http/https, so a `data:` image is already gone before
-harden sees it — which is why the table below shows data images blocked despite that default.
-
-Executed a hostile-echo probe (jsdom + Testing Library, default `<Streamdown>`, no props).
-Results:
+`defaultSchema` restricts `img` `src` to http/https, so a `data:` image is gone before harden sees
+it. Hostile-echo probe (jsdom + Testing Library, default `<Streamdown>`, no props):
 
 | Input                                  | Rendered                                                     |     |
 | -------------------------------------- | ------------------------------------------------------------ | --- |
@@ -124,75 +119,90 @@ Results:
 | `![data](data:image/svg+xml;base64,…)` | `[Image blocked: data]`                                      | ✅  |
 | `![px](https://evil.example/px.png)`   | **`<img src="https://evil.example/px.png">` — live request** | ❌  |
 
-So: no script execution, no `javascript:` navigation — the classic XSS surface is closed. But
-`allowedImagePrefixes: ["*"]` means **any markdown image URL the model emits is fetched by the
-user's browser**. Our corpus is ingested official HTML/PDF; a chunk that contains an image URL,
-or a prompt-injection line inside a chunk, becomes a beacon carrying the user's IP and
-`Referer` to a third party — from a page where the _question itself_ is the sensitive data. That
-is precisely the guarantee the audit counted as a strength, traded away by default.
+The classic XSS surface is closed. But `allowedImagePrefixes: ["*"]` means any markdown image URL
+the model echoes is fetched by the user's browser — a beacon carrying IP and `Referer`, from a page
+where the _question_ is the sensitive data. The readiness audit's F-13 (no CSP headers) means there
+is no second line of defence; `img-src 'self'` would contain it. Fixable with explicit props, but
+it reframes the cost: B is not "adopt a safe renderer," it is "adopt a renderer whose defaults are
+wrong for us, and keep them right across every future minor version."
 
-This is fixable (`allowedImagePrefixes: []`, `allowedLinkPrefixes: []`, `allowedProtocols: []`)
-and if B were adopted those props would be mandatory and test-locked. It is recorded here
-because it reframes the cost: B is not "adopt a safe renderer," it is "adopt a renderer whose
-defaults are wrong for us and stay right across every future minor version."
+### 4. Composition with the `[n]` markers (#75)
 
-### 3. Composition with the `[n]` markers (#75) — one hard failure
+Completed markers survive markdown fine: `[6][8]`, `[12]`, `[text][1]`, and a `[3]: nota` line all
+render as literal text (no definitions exist, so no reference-link resolution fires).
 
-Markers survive completed markdown fine: `[6][8]`, `[12]`, `[text][1]`, and a `[3]: nota` line
-all render as literal text (no definitions exist, so no reference-link resolution fires).
-
-The failure is mid-stream. #75 strips markers from the _rendered_ text, and `messageText()`
-hands the renderer the full accumulated text on every delta — but "accumulated" still ends
-wherever the stream currently is, so a marker in flight arrives as a bare `[6` with no closing
-bracket to strip. Streamdown's `parseIncompleteMarkdown` then completes the dangling syntax:
+The failure is mid-stream. `messageText()` hands the renderer the accumulated text on every delta,
+and "accumulated" ends wherever the stream currently is — so a marker in flight arrives as a bare
+`[6` with no closing bracket for #75 to strip. Streamdown's `parseIncompleteMarkdown` completes it:
 
 ```
 IN : "Está exento del pago [6"
 OUT: <p>Está exento del pago <span title="Blocked URL: undefined">6 [blocked]</span></p>
 ```
 
-Every citation marker would flash a grey "[blocked]" chip during streaming, once per marker, on
-every answer. The same heuristic mutates ordinary prose: `"… 2 ** 3 (subrayado y asteriscos)."`
-came back with a trailing `**` appended, and `_neto_` became `<em>neto</em>` — our answers quote
-legal text with underscores, asterisks and percent signs and are not authored as markdown.
+Every citation marker would flash a grey "[blocked]" chip mid-stream, once per marker, on every
+answer. The same heuristic mutates prose: `"… 2 ** 3 (subrayado y asteriscos)."` came back with a
+trailing `**` appended, and `_neto_` became `<em>neto</em>`. Under C, partial text is just partial
+text — there are no completion heuristics to fire.
 
-One more incompatibility with DESIGN §6: a block indented four spaces (the model does this when
-transcribing a tariff table) renders as a full Shiki code block with Copy and Download buttons.
+### 5. Cost
 
-### 4. Cost
+`pnpm add streamdown` pulls **220 packages** — mermaid, d3, shiki, katex — for output that is
+bullets, bold, and an occasional five-row table. ADR 0004 set the precedent in this exact area: the
+AI Elements sources primitive was rejected in favour of owned `sello.tsx` built against our own
+types.
 
-`pnpm add streamdown` pulls **220 packages** — mermaid, d3, shiki, katex — for a renderer that
-would be locked down to paragraphs and unordered lists. ADR 0004 already set the precedent in
-this exact area: the AI Elements sources primitive was rejected in favour of owned
-`sello.tsx` built against our own types. Same reasoning, same conclusion.
+## The renderer
 
-## Option C, in full
-
-The renderer the build issue should start from (validated in the prototype; the screenshots in
-column C are its output):
+Validated in the prototype; column C in the screenshots is its output.
 
 ```tsx
+/** `**bold**` → `<strong>`; everything else stays a text node. */
+function inline(text: string, key: string): React.ReactNode[] {
+  return text.split(/\*\*/).map((part, i) =>
+    i % 2 === 1 ? (
+      <strong key={`${key}-${i}`} className="font-medium">
+        {part}
+      </strong>
+    ) : (
+      part
+    ),
+  );
+}
+
 export function AnswerProse({ text }: { text: string }) {
   const blocks = text.split(/\n{2,}/).filter((block) => block.trim() !== "");
   return (
     <div className="max-w-[68ch] text-base leading-[1.7] text-pretty">
       {blocks.map((block, i) => {
         const lines = block.split("\n");
-        const isList = lines.every((l) => l.startsWith("- "));
-        if (isList) {
+        if (lines.filter((l) => TABLE_LINE.test(l)).length >= 2) {
+          return (
+            <Table key={i} lines={lines.filter((l) => TABLE_LINE.test(l))} />
+          );
+        }
+        if (lines.every((l) => l.startsWith("- "))) {
           return (
             <ul key={i} className="my-4 list-disc pl-5 marker:text-border">
-              {lines.map((line, j) => (
+              {lines.map((l, j) => (
                 <li key={j} className="py-0.5 pl-1">
-                  {line.slice(2)}
+                  {inline(l.slice(2), `${i}-${j}`)}
                 </li>
               ))}
             </ul>
           );
         }
+        // A heading is a prompt violation; degrade it quietly rather than show literal hashes.
+        if (/^#{1,6} /.test(block)) {
+          return (
+            <p key={i} className="mt-6 mb-2 font-medium first:mt-0">
+              {inline(block.replace(/^#{1,6} /, ""), `${i}`)}
+            </p>
+          );
+        }
         return (
           <p key={i} className="my-4 first:mt-0 last:mb-0">
-            {block}
+            {inline(block, `${i}`)}
           </p>
         );
       })}
@@ -201,31 +211,29 @@ export function AnswerProse({ text }: { text: string }) {
 }
 ```
 
-Notes for the build issue:
-
-- Everything is a text node — React escapes it. No `dangerouslySetInnerHTML`, no URL handling,
-  no sanitizer to keep configured. The audit's strength is preserved by construction.
-- Streaming is inert: partial text just renders as partial text. A trailing `- ` with no content
-  yet is an empty `<li>`, which disappears on the next delta. No completion heuristics.
-- The prompt does **not** need to change. The model already emits `- ` runs; C reads what it
-  already writes. That means no groundedness re-run is required for the render change itself —
-  worth confirming in the build issue, but the prompt edit that would have forced a re-run under
-  B is not on the table.
-- Ordered lists (`1. `) are deliberately out of scope until an answer needs them.
-- Unit-testable as a pure component: blank-line splitting, mixed list/paragraph blocks, a
-  hyphen mid-sentence not becoming a list, `<script>` in the answer text rendering as visible
-  text.
+`Table` splits `|`-delimited rows, drops the `|---|` rule row, and renders `<thead>/<tbody>` with
+Geist Mono + `tabular-nums` on the body.
 
 ## Consequences
 
-- The render path stays owned code with no sanitizer to keep configured, and the audit's
-  no-injection-surface property is preserved by construction rather than by configuration.
-- The answer prompt is unchanged, so no groundedness re-run is forced by this decision.
-- Ordered lists, tables, headings and links in answer prose remain unsupported. Links stay the
-  sellos' job (ADR 0004).
+- **The prompt gains a formatting rule** — bullets, bold and tables permitted; headings, links and
+  every other markdown construct forbidden. Per #75 requirement 4 this forces a **groundedness
+  re-run** (≥90% gate) before it lands. That is the price of this decision and it is deliberate:
+  constraining the model is what keeps the renderer small enough to own.
+- **Headings degrade, they don't break.** The prompt forbids them; the renderer still strips a
+  stray `#` run to a quiet lead-in, so an 8%-of-the-time slip never shows a user raw hashes.
+- **No HTML, link, image or URL path exists in the render.** The audit's no-injection-surface
+  property is preserved by construction, not by sanitizer configuration — no props to keep right,
+  no dependency to track.
+- **Links stay the sellos' job** (ADR 0004). Bare URLs in prose render as inert text, as they do
+  today.
+- The screenshot set (~4.7 MB) is the first ADR asset directory in this repo. If this becomes a
+  habit, a `.gitattributes`/LFS policy is worth having.
 
 ## What would reopen this
 
-Tables. If the corpus work ever makes the model emit tariff tables as markdown, C's block
-renderer does not stretch to that and the question is worth reopening — with the harden props
-locked from the first commit.
+- **Tables becoming common.** One in 26 generations is a coin-flip, not a pattern. If corpus work
+  makes tabular answers routine, the owned `Table` grows — or the question genuinely reopens, with
+  harden's props locked from the first commit.
+- **A construct the model insists on** despite the prompt rule, showing up in the census at a rate
+  like today's 72% bold. Re-run the census; it is one script and one command.
