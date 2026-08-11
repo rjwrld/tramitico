@@ -23,7 +23,7 @@ const HEADING_LINE = /^#{1,6} /;
 const BULLET_LINE = /^- /;
 
 type Kind = "table" | "bullet" | "heading" | "text";
-type Group = { kind: Kind; lines: string[] };
+type Run = { kind: Kind; lines: string[] };
 
 /** `**bold**` → `<strong>`; everything else stays a text node. */
 function inline(text: string, key: string): React.ReactNode[] {
@@ -45,7 +45,7 @@ function inline(text: string, key: string): React.ReactNode[] {
  * sentence that shares a block with the list or table below it still renders
  * correctly instead of dragging the whole block into one paragraph.
  */
-function groupLines(lines: string[]): Group[] {
+function runsOf(lines: string[]): Run[] {
   const isRow = lines.map((line) => TABLE_LINE.test(line));
   const kinds = lines.map((line, i): Kind => {
     if (isRow[i] && (isRow[i - 1] || isRow[i + 1])) return "table";
@@ -54,15 +54,15 @@ function groupLines(lines: string[]): Group[] {
     return "text";
   });
 
-  return lines.reduce<Group[]>((groups, line, i) => {
-    const last = groups[groups.length - 1];
+  return lines.reduce<Run[]>((runs, line, i) => {
+    const last = runs[runs.length - 1];
     // Headings are one line each: consecutive ones must not merge.
     if (last && last.kind === kinds[i] && kinds[i] !== "heading") {
       last.lines.push(line);
     } else {
-      groups.push({ kind: kinds[i], lines: [line] });
+      runs.push({ kind: kinds[i], lines: [line] });
     }
-    return groups;
+    return runs;
   }, []);
 }
 
@@ -75,7 +75,7 @@ function cells(line: string): string[] {
     .map((cell) => cell.trim());
 }
 
-function Table({ lines, id }: { lines: string[]; id: string }) {
+function Table({ lines, keyPrefix }: { lines: string[]; keyPrefix: string }) {
   const rows = lines
     .map(cells)
     .filter((row) => !row.every((cell) => RULE_CELL.test(cell)));
@@ -93,7 +93,7 @@ function Table({ lines, id }: { lines: string[]; id: string }) {
                 scope="col"
                 className="py-2 pr-4 text-left font-normal text-muted-foreground last:pr-0"
               >
-                {inline(cell, `${id}-h-${i}`)}
+                {inline(cell, `${keyPrefix}-h-${i}`)}
               </th>
             ))}
           </tr>
@@ -103,7 +103,7 @@ function Table({ lines, id }: { lines: string[]; id: string }) {
             <tr key={r} className="border-b border-border last:border-b-0">
               {row.map((cell, c) => (
                 <td key={c} className="py-2 pr-4 align-top last:pr-0">
-                  {inline(cell, `${id}-${r}-${c}`)}
+                  {inline(cell, `${keyPrefix}-${r}-${c}`)}
                 </td>
               ))}
             </tr>
@@ -114,17 +114,17 @@ function Table({ lines, id }: { lines: string[]; id: string }) {
   );
 }
 
-function Group({ group, id }: { group: Group; id: string }) {
-  const { kind, lines } = group;
+function Segment({ run, keyPrefix }: { run: Run; keyPrefix: string }) {
+  const { kind, lines } = run;
 
-  if (kind === "table") return <Table lines={lines} id={id} />;
+  if (kind === "table") return <Table lines={lines} keyPrefix={keyPrefix} />;
 
   if (kind === "bullet") {
     return (
       <ul className="my-4 list-disc pl-5 marker:text-border">
         {lines.map((line, i) => (
           <li key={i} className="py-0.5 pl-1">
-            {inline(line.slice(2), `${id}-${i}`)}
+            {inline(line.slice(2), `${keyPrefix}-${i}`)}
           </li>
         ))}
       </ul>
@@ -136,31 +136,31 @@ function Group({ group, id }: { group: Group; id: string }) {
   if (kind === "heading") {
     return (
       <p className="mt-6 mb-2 font-medium first:mt-0">
-        {inline(lines[0].replace(HEADING_LINE, ""), id)}
+        {inline(lines[0].replace(HEADING_LINE, ""), keyPrefix)}
       </p>
     );
   }
 
   // Soft line breaks inside a paragraph flow, as they would in markdown.
   return (
-    <p className="my-4 first:mt-0 last:mb-0">{inline(lines.join(" "), id)}</p>
+    <p className="my-4 first:mt-0 last:mb-0">
+      {inline(lines.join(" "), keyPrefix)}
+    </p>
   );
 }
 
 export function AnswerProse({ text }: { text: string }) {
-  const groups = text
+  const runs = text
     .split(/\n{2,}/)
     .filter((block) => block.trim() !== "")
     .flatMap((block, i) =>
-      groupLines(block.split("\n")).map(
-        (group, j) => [`${i}-${j}`, group] as const,
-      ),
+      runsOf(block.split("\n")).map((run, j) => [`${i}-${j}`, run] as const),
     );
 
   return (
     <div className="max-w-[68ch] text-base leading-[1.7] text-pretty">
-      {groups.map(([id, group]) => (
-        <Group key={id} group={group} id={id} />
+      {runs.map(([key, run]) => (
+        <Segment key={key} run={run} keyPrefix={key} />
       ))}
     </div>
   );
