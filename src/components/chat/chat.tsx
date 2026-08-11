@@ -24,7 +24,9 @@ import {
 } from "@/components/chat/ask-status";
 import { ChatInput } from "@/components/chat/chat-input";
 import { SeedPrompts } from "@/components/chat/seed-prompts";
+import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { Button } from "@/components/ui/button";
+import { Message, MessageContent } from "@/components/ui/message";
 import {
   MessageScroller,
   MessageScrollerButton,
@@ -166,19 +168,27 @@ export function Chat() {
                   }
                 >
                   {message.role === "user" ? (
-                    <div className="ml-auto w-fit max-w-[85%] rounded-lg bg-foreground px-3 py-2 text-sm text-background dark:bg-secondary dark:text-secondary-foreground">
-                      {messageText(message)}
-                    </div>
+                    <Message align="end">
+                      <MessageContent>
+                        <Bubble align="end" variant="ink">
+                          <BubbleContent>{messageText(message)}</BubbleContent>
+                        </Bubble>
+                      </MessageContent>
+                    </Message>
                   ) : (
-                    <AnswerBlock
-                      message={message}
-                      busy={busy && index === messages.length - 1}
-                      completionText={
-                        completion?.messageId === message.id
-                          ? completion.text
-                          : null
-                      }
-                    />
+                    <Message align="start">
+                      <MessageContent>
+                        <AnswerBlock
+                          message={message}
+                          busy={busy && index === messages.length - 1}
+                          completionText={
+                            completion?.messageId === message.id
+                              ? completion.text
+                              : null
+                          }
+                        />
+                      </MessageContent>
+                    </Message>
                   )}
                 </MessageScrollerItem>
               ))}

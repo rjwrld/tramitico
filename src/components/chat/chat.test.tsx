@@ -747,3 +747,65 @@ describe("Chat stop and retry controls (#74)", () => {
     expect(sendMessageMock).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("Chat message row composition (#105)", () => {
+  it("renders each user turn as an end-aligned Message with an ink Bubble", () => {
+    chat.messages = conversation;
+    render(<Chat />);
+
+    const userRows = document.querySelectorAll<HTMLElement>(
+      '[data-slot="message"][data-align="end"]',
+    );
+    expect(userRows).toHaveLength(2);
+    const bubbles = document.querySelectorAll<HTMLElement>(
+      '[data-slot="bubble"][data-variant="ink"]',
+    );
+    expect(bubbles).toHaveLength(2);
+    const [first, second] = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        '[data-slot="message"][data-align="end"] [data-slot="bubble-content"]',
+      ),
+    );
+    expect(first?.textContent).toBe("¿Cómo me inscribo en Hacienda?");
+    expect(second?.textContent).toBe("¿Y en la CCSS?");
+  });
+
+  it("renders assistant turns start-aligned with the answer block inside", () => {
+    chat.messages = conversation;
+    render(<Chat />);
+
+    const assistantRows = document.querySelectorAll<HTMLElement>(
+      '[data-slot="message"][data-align="start"]',
+    );
+    expect(assistantRows).toHaveLength(2);
+    for (const row of Array.from(assistantRows)) {
+      expect(row.querySelector('[data-slot="answer"]')).not.toBeNull();
+      // Answer prose stays card- and bubble-free (DESIGN §6): the Bubble
+      // primitive belongs to user turns only.
+      expect(row.querySelector('[data-slot="bubble"]')).toBeNull();
+    }
+  });
+
+  it("lands a submitted question in an end-aligned bubble once the SDK echoes it", () => {
+    const { rerender } = render(<Chat />);
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Su pregunta" }), {
+      target: { value: "¿Debo facturar electrónicamente?" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Enviar" }));
+    expect(sendMessageMock).toHaveBeenCalledWith({
+      text: "¿Debo facturar electrónicamente?",
+    });
+
+    // The mocked useChat has no transport; reflect the SDK's optimistic echo
+    // of the user message, then confirm where the thread puts it.
+    chat.messages = [question("q1", "¿Debo facturar electrónicamente?")];
+    chat.status = "submitted";
+    rerender(<Chat />);
+
+    const bubbleContent = document.querySelector<HTMLElement>(
+      '[data-slot="message"][data-align="end"] [data-slot="bubble-content"]',
+    );
+    expect(bubbleContent?.textContent).toBe("¿Debo facturar electrónicamente?");
+  });
+});
