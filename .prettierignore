@@ -5,3 +5,6 @@ docs/corpus-samples
 prototype
 .playwright-mcp
 test-results/
+
+# Vendored agent skills (third-party content, managed by `npx skills`)
+.agents/
