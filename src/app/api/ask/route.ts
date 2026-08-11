@@ -7,6 +7,14 @@
  * short-circuits to a deterministic honest fallback — no model call, no
  * citations, no guessing. Signed-in callers get the exchange persisted to
  * `questions` after the stream completes.
+ *
+ * Stream-first since #71: everything the caller cannot see the result of —
+ * validation and the rate limit — stays a pre-stream HTTP error, and the
+ * response opens the moment those pass. Retrieval and rerank then run *inside*
+ * `execute`, reporting themselves through `data-status` parts, so the first
+ * byte costs the auth+limit budget instead of the whole pipeline. The price is
+ * that every failure past that point is a 200 with an `error` part in it —
+ * hence `askStreamErrorText` on the two paths below.
  */
 import {
   createUIMessageStream,
@@ -16,7 +24,16 @@ import {
   toUIMessageStream,
   type UIMessageStreamWriter,
 } from "ai";
-import { CITATIONS_PART_ID, type AskUIMessage } from "@/lib/answer/contract";
+import {
+  ASK_FALLBACK_ERROR_MESSAGE,
+  askStreamErrorText,
+  CITATIONS_PART_ID,
+  RETRIEVAL_FAILED_MESSAGE,
+  STATUS_PART_ID,
+  type AskErrorCode,
+  type AskStatusStage,
+  type AskUIMessage,
+} from "@/lib/answer/contract";
 import { createCitationTracker } from "@/lib/answer/citations";
 import { getAnswerModel } from "@/lib/answer/model";
 import { saveQuestion } from "@/lib/answer/persist";
@@ -41,15 +58,6 @@ const MAX_QUESTION_LENGTH = 1_000;
 
 const INVALID_QUESTION_MESSAGE =
   "Falta la pregunta o es demasiado larga. Escriba su pregunta en el cuadro de texto e intente de nuevo.";
-
-const RETRIEVAL_FAILED_MESSAGE =
-  "No se pudo buscar en los documentos oficiales. Intente de nuevo en unos minutos.";
-
-type AskErrorCode =
-  | "invalid_question"
-  | "rate_limited"
-  | "rate_limit_unavailable"
-  | "retrieval_failed";
 
 /**
  * Non-OK body per the client contract (contract.ts): `error` is a stable
@@ -78,32 +86,52 @@ function writeCitations(writer: Writer, citations: Citation[]): void {
   });
 }
 
+function writeStatus(writer: Writer, stage: AskStatusStage): void {
+  writer.write({
+    type: "data-status",
+    id: STATUS_PART_ID,
+    data: { stage },
+  });
+}
+
+function writeStreamError(
+  writer: Writer,
+  code: AskErrorCode,
+  message: string,
+): void {
+  writer.write({ type: "error", errorText: askStreamErrorText(code, message) });
+}
+
+/**
+ * Anything thrown past the 200 — a provider outage, a network drop mid-answer,
+ * a bug in `execute`. The raw reason is for our logs; the client gets the
+ * contract's Spanish (audit F-22: without this, the SDK's default
+ * "An error occurred." reached the UI in English).
+ */
+function answerFailedText(error: unknown): string {
+  console.error(`ask: answer stream failed: ${String(error)}`);
+  return askStreamErrorText("answer_failed", ASK_FALLBACK_ERROR_MESSAGE);
+}
+
 /** Weak retrieval: stream the canned honest fallback without a model call. */
-function weakRetrievalResponse(
+async function streamWeakRetrieval(
+  writer: Writer,
   question: string,
   userId: string | null,
-): Response {
-  const stream = createUIMessageStream<AskUIMessage>({
-    execute: ({ writer }) => {
-      const id = "fallback";
-      writer.write({ type: "start" });
-      writer.write({ type: "text-start", id });
-      writer.write({ type: "text-delta", id, delta: WEAK_RETRIEVAL_ANSWER });
-      writer.write({ type: "text-end", id });
-      writer.write({ type: "finish" });
-    },
-    onFinish: async () => {
-      if (userId) {
-        await saveQuestion({
-          userId,
-          question,
-          answer: WEAK_RETRIEVAL_ANSWER,
-          citations: [],
-        });
-      }
-    },
-  });
-  return createUIMessageStreamResponse({ stream });
+): Promise<void> {
+  const id = "fallback";
+  writer.write({ type: "text-start", id });
+  writer.write({ type: "text-delta", id, delta: WEAK_RETRIEVAL_ANSWER });
+  writer.write({ type: "text-end", id });
+  writer.write({ type: "finish" });
+  if (userId) {
+    await saveQuestion({
+      userId,
+      question,
+      answer: WEAK_RETRIEVAL_ANSWER,
+      citations: [],
+    });
+  }
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -143,23 +171,32 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  let retrieval;
-  try {
-    retrieval = await retrieve(asked, { matchCount: RERANK_POOL });
-  } catch (error) {
-    console.error(`ask: retrieval failed: ${String(error)}`);
-    return jsonError("retrieval_failed", RETRIEVAL_FAILED_MESSAGE, 502);
-  }
-
-  if (retrieval.isWeak) {
-    return weakRetrievalResponse(asked, userId);
-  }
-
-  const chunks = await rerankChunks(asked, retrieval.chunks);
-  const tracker = createCitationTracker(chunks);
-
   const stream = createUIMessageStream<AskUIMessage>({
-    execute: ({ writer }) => {
+    execute: async ({ writer }) => {
+      // Our own `start` (the merge below runs with `sendStart: false`) so the
+      // status parts have a message to attach to before retrieval begins.
+      writer.write({ type: "start" });
+      writeStatus(writer, "buscando");
+
+      let retrieval;
+      try {
+        retrieval = await retrieve(asked, { matchCount: RERANK_POOL });
+      } catch (error) {
+        console.error(`ask: retrieval failed: ${String(error)}`);
+        writeStreamError(writer, "retrieval_failed", RETRIEVAL_FAILED_MESSAGE);
+        return;
+      }
+
+      if (retrieval.isWeak) {
+        await streamWeakRetrieval(writer, asked, userId);
+        return;
+      }
+
+      // Rerank is still "buscando" — the stage flips only when the model does.
+      const chunks = await rerankChunks(asked, retrieval.chunks);
+      const tracker = createCitationTracker(chunks);
+      writeStatus(writer, "redactando");
+
       const result = streamText({
         model: getAnswerModel(),
         system: ANSWER_SYSTEM_PROMPT,
@@ -202,8 +239,19 @@ export async function POST(request: Request): Promise<Response> {
           }
         },
       });
-      writer.merge(toUIMessageStream({ stream: result.stream }));
+      // Two doors for a model failure: `stream` carries recoverable ones as
+      // error parts (mapped here), while a stream-stopping one rejects the
+      // merge and lands on `createUIMessageStream`'s `onError` below. Both
+      // point at the same mapper so neither can leak English.
+      writer.merge(
+        toUIMessageStream({
+          stream: result.stream,
+          sendStart: false,
+          onError: answerFailedText,
+        }),
+      );
     },
+    onError: answerFailedText,
   });
   return createUIMessageStreamResponse({ stream });
 }
