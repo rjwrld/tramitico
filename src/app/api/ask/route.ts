@@ -18,10 +18,13 @@
  *
  * Stop/retry (#74, audit F-11): `request.signal` is threaded into `streamText`
  * as `abortSignal`, so a client-side `stop()` (chat.tsx) cancels the paid
- * Anthropic call, not just the client's own rendering. Persistence-on-abort is
- * a deliberate no-op, not a separate branch: `streamText`'s `onFinish` below
- * — the only place that calls `saveQuestion` for the model path — simply
- * never fires on abort (the SDK routes an aborted stream through `onAbort`
+ * Anthropic call once generation has started — the issue's named target for
+ * F-11. Retrieval and rerank are out of scope here and still run to
+ * completion after an abort; they are comparatively cheap next to the model
+ * call and #74 doesn't ask for their cancellation. Persistence-on-abort is a
+ * deliberate no-op, not a separate branch: `streamText`'s `onFinish` below —
+ * the only place that calls `saveQuestion` for the model path — simply never
+ * fires on abort (the SDK routes an aborted stream through `onAbort`
  * instead), so an aborted exchange is never saved. No user was ever shown
  * "listo" for it, so there is nothing worth remembering.
  */
@@ -219,9 +222,11 @@ export async function POST(request: Request): Promise<Response> {
         model: getAnswerModel(),
         system: ANSWER_SYSTEM_PROMPT,
         prompt: buildUserPrompt(asked, chunks),
-        // #74/F-11: cancels the in-flight provider call the moment the
-        // client aborts (stop() or a dropped connection), instead of paying
-        // for tokens nobody reads through to `maxDuration`.
+        // #74/F-11: cancels this model call the moment the client aborts
+        // (stop() or a dropped connection), instead of paying for tokens
+        // nobody reads through to `maxDuration`. Scoped to the model call
+        // only, per the issue — retrieval/rerank above are not wired to this
+        // signal and keep running if the client aborts during "buscando".
         abortSignal: request.signal,
         // #73: provider deltas arrive in bursts, which reads as multi-word
         // jumps. Re-chunk them word by word server-side so the text flows —

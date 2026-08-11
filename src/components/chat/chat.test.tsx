@@ -678,4 +678,72 @@ describe("Chat stop and retry controls (#74)", () => {
     fireEvent.click(seedButton);
     expect(sendMessageMock).toHaveBeenCalledTimes(2);
   });
+
+  // req 5's literal scenario: "stop → immediate re-enable of the composer
+  // must not allow a second in-flight ask." Models the ordering the
+  // requirement is defending against directly — `status` has already
+  // flipped to "ready" (Enviar is back) but the aborted exchange's actual
+  // settle point, `onFinish`, has not fired yet. `status`-derived `busy`
+  // alone would let this click through; only `inFlightRef` can catch it.
+  // The first ask has to go through the component's real `ask()` (a seed
+  // prompt click) — that is what arms the ref in the first place; setting
+  // `chat.messages`/`chat.status` directly, as the other tests in this file
+  // do, would never touch it and the test would prove nothing.
+  it("does not start a second in-flight ask when Enviar is clicked the instant the composer re-enables after Detener (req 5)", () => {
+    chat.messages = [];
+    chat.status = "ready";
+    const { rerender } = render(<Chat />);
+
+    fireEvent.click(screen.getByRole("button", { name: SEED_PROMPTS[0] }));
+    expect(sendMessageMock).toHaveBeenCalledTimes(1);
+
+    // The exchange is now in flight — model the state a real streaming
+    // response puts the SDK in.
+    chat.messages = [
+      question("q1", SEED_PROMPTS[0]),
+      statusMessage("a1", "buscando"),
+    ];
+    chat.status = "streaming";
+    rerender(<Chat />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Detener" }));
+    expect(stopMock).toHaveBeenCalledTimes(1);
+
+    // The composer re-enables the moment `status` reports "ready" — before
+    // (deliberately, in this test) the aborted exchange's own `onFinish`
+    // has run.
+    chat.status = "ready";
+    rerender(<Chat />);
+    expect(screen.queryByRole("button", { name: "Detener" })).toBeNull();
+    const enviar = screen.getByRole("button", { name: "Enviar" });
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Su pregunta" }), {
+      target: { value: "¿Y en la CCSS?" },
+    });
+    fireEvent.click(enviar);
+
+    // The composer looked ready, but the first exchange's guard was still
+    // held (`onFinish` had not fired) — the click must not start a second
+    // in-flight ask. `sendMessage` stays at its one call from the seed
+    // prompt above.
+    expect(sendMessageMock).toHaveBeenCalledTimes(1);
+
+    // Once the aborted exchange actually settles, the guard releases and a
+    // fresh ask goes through — req 5 guards the in-flight window, it does
+    // not permanently lock the composer.
+    act(() =>
+      latestOnFinish?.({
+        message: { id: "a1", role: "assistant", parts: [] },
+        isError: false,
+        isAbort: true,
+        isDisconnect: false,
+      }),
+    );
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Su pregunta" }), {
+      target: { value: "¿Y en la CCSS?" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Enviar" }));
+    expect(sendMessageMock).toHaveBeenCalledTimes(2);
+  });
 });
