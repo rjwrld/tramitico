@@ -63,4 +63,30 @@ describe("SignInForm", () => {
       options: { redirectTo: `${location.origin}/auth/callback` },
     });
   });
+
+  it("Google button starts OAuth with a query-free callback redirect", async () => {
+    signInWithOAuth.mockResolvedValue({ error: null });
+    render(<SignInForm />);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Continuar con Google" }),
+    );
+
+    expect(signInWithOAuth).toHaveBeenCalledWith({
+      provider: "google",
+      options: { redirectTo: `${location.origin}/auth/callback` },
+    });
+  });
+
+  it("renders Google above GitHub (decision 1, issue #84)", () => {
+    render(<SignInForm />);
+
+    const labels = screen
+      .getAllByRole("button")
+      .map((button) => button.textContent);
+    const google = labels.indexOf("Continuar con Google");
+    const github = labels.indexOf("Continuar con GitHub");
+    expect(google).toBeGreaterThanOrEqual(0);
+    expect(github).toBeGreaterThan(google);
+  });
 });

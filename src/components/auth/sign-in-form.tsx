@@ -22,10 +22,10 @@ export function SignInForm() {
     setStatus(error ? "error" : "sent");
   }
 
-  async function signInWithGitHub() {
+  async function signInWithProvider(provider: "google" | "github") {
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: "github",
+      provider,
       // Must match config.toml's additional_redirect_urls EXACTLY — no query
       // params, or the auth server falls back to the bare site_url and the
       // code never gets exchanged.
@@ -78,7 +78,21 @@ export function SignInForm() {
         <span className="text-xs text-muted-foreground">o</span>
         <Separator className="flex-1" />
       </div>
-      <Button type="button" variant="outline" onClick={signInWithGitHub}>
+      {/* Google above GitHub — decision 1, issue #84: the wider audience finds
+          theirs first; devs reliably scan one row down. Outline + text satisfies
+          Google's branding guidelines without a coloured button. */}
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => signInWithProvider("google")}
+      >
+        Continuar con Google
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => signInWithProvider("github")}
+      >
         Continuar con GitHub
       </Button>
       {status === "error" && (
