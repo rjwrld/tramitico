@@ -8,11 +8,15 @@
  * - Response: an AI SDK UI message stream. Citations arrive as
  *   `data-citations` parts, each a cumulative snapshot of the deduped
  *   citations in order of use — the UI renders the latest snapshot, so
- *   sellos stamp in as the answer applies them.
+ *   sellos stamp in as the answer applies them. `data-status` parts report
+ *   which pipeline stage is running, under the same snapshot rule (#71).
  * - Non-OK responses carry a JSON body `{ error, message }` where `message`
  *   is user-facing Spanish (the 429 carries the rate-limit nudge from #24).
  *   The AI SDK transport throws the raw body text; `askErrorMessage`
  *   recovers the friendly message from it.
+ * - The stream opens before retrieval runs (#71), so a failure after the 200
+ *   can no longer be an HTTP status. It arrives as a stream `error` part whose
+ *   text is that same `{ error, message }` JSON — one envelope, one parser.
  */
 import type { UIMessage } from "ai";
 import type { Citation } from "@/lib/retrieval";
@@ -21,15 +25,30 @@ export interface AskRequestBody {
   question: string;
 }
 
+/**
+ * Stages the route reports while the answer is still on its way. `buscando`
+ * covers retrieval + rerank, `redactando` starts when the model does. The
+ * stream carries no stage once text flows — the text is the status.
+ */
+export type AskStatusStage = "buscando" | "redactando";
+
 /** Data parts the ask stream may carry alongside text. */
 export type AskDataParts = {
   citations: Citation[];
+  status: { stage: AskStatusStage };
 };
 
 export type AskUIMessage = UIMessage<never, AskDataParts>;
 
 /** Stable `data-citations` part id — every write updates the same part. */
 export const CITATIONS_PART_ID = "citations";
+
+/**
+ * Stable `data-status` part id. Same idempotency bargain ADR 0004 struck for
+ * citations: every write is a full snapshot superseding the last, so a
+ * re-emitted or reordered part can never stack two stages in the UI.
+ */
+export const STATUS_PART_ID = "status";
 
 /** Concatenated text of a message's text parts. */
 export function messageText(message: AskUIMessage): string {
@@ -47,9 +66,52 @@ export function citationsFrom(message: AskUIMessage): Citation[] {
   return latest;
 }
 
+/** Latest stage snapshot streamed with the message; null before any. */
+export function statusFrom(message: AskUIMessage): AskStatusStage | null {
+  let latest: AskStatusStage | null = null;
+  for (const part of message.parts) {
+    if (part.type === "data-status") latest = part.data.stage;
+  }
+  return latest;
+}
+
+/** Stable machine codes on the non-OK / stream-error envelope. */
+export type AskErrorCode =
+  | "invalid_question"
+  | "rate_limited"
+  | "rate_limit_unavailable"
+  | "retrieval_failed"
+  | "answer_failed";
+
 /** DESIGN §9: what happened + what to do, no apology theater. */
 export const ASK_FALLBACK_ERROR_MESSAGE =
   "No se pudo obtener la respuesta. Intente de nuevo.";
+
+export const RETRIEVAL_FAILED_MESSAGE =
+  "No se pudo buscar en los documentos oficiales. Intente de nuevo en unos minutos.";
+
+/**
+ * Body of a failure the client renders inline: `error` is the machine code,
+ * `message` the user-facing Spanish.
+ */
+export interface AskErrorBody {
+  error: AskErrorCode;
+  message: string;
+}
+
+/**
+ * Text for a mid-stream `error` part. Encoded as the non-OK JSON body so the
+ * one path that already recovers our Spanish copy — `askErrorMessage`, which
+ * the client feeds from the transport's thrown Error — also covers failures
+ * that happen after the 200. Raw prose here would be indistinguishable from a
+ * leaked provider message and would fall through to the generic line.
+ */
+export function askStreamErrorText(
+  code: AskErrorCode,
+  message: string,
+): string {
+  return JSON.stringify({ error: code, message } satisfies AskErrorBody);
+}
 
 /**
  * User-facing Spanish for a failed ask. The transport surfaces the response
