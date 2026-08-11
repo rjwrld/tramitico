@@ -76,42 +76,51 @@ function allowRateLimit(): void {
  * Mock the model's stream. `deltas` defaults to one word each; pass it
  * explicitly to simulate the provider's real bursts (several words per delta,
  * markers split mid-token) — that is what #73's smoothStream re-chunks.
+ * `chunkDelayInMs` (#74) spaces the deltas out in real time so a test can
+ * abort deterministically after the first one has already reached the wire,
+ * instead of the whole answer landing in a single microtask.
+ *
+ * Returns the model so a test can inspect `doStreamCalls` — the SDK forwards
+ * whatever `abortSignal` `streamText` was given straight through to the
+ * provider call, which is exactly the wiring #74/F-11 adds.
  */
 function mockModel(
   text: string,
   deltas: readonly string[] = text.split(" ").map((word) => `${word} `),
-): void {
-  vi.mocked(getAnswerModel).mockReturnValue(
-    new MockLanguageModelV4({
-      doStream: {
-        stream: simulateReadableStream<LanguageModelV4StreamPart>({
-          chunks: [
-            { type: "stream-start", warnings: [] },
-            { type: "text-start", id: "t1" },
-            ...deltas.map((delta): LanguageModelV4StreamPart => ({
-              type: "text-delta",
-              id: "t1",
-              delta,
-            })),
-            { type: "text-end", id: "t1" },
-            {
-              type: "finish",
-              finishReason: { unified: "stop" as const, raw: "end_turn" },
-              usage: {
-                inputTokens: {
-                  total: 1,
-                  noCache: 1,
-                  cacheRead: 0,
-                  cacheWrite: 0,
-                },
-                outputTokens: { total: 1, text: 1, reasoning: 0 },
+  chunkDelayInMs = 0,
+): MockLanguageModelV4 {
+  const model = new MockLanguageModelV4({
+    doStream: {
+      stream: simulateReadableStream<LanguageModelV4StreamPart>({
+        chunkDelayInMs,
+        chunks: [
+          { type: "stream-start", warnings: [] },
+          { type: "text-start", id: "t1" },
+          ...deltas.map((delta): LanguageModelV4StreamPart => ({
+            type: "text-delta",
+            id: "t1",
+            delta,
+          })),
+          { type: "text-end", id: "t1" },
+          {
+            type: "finish",
+            finishReason: { unified: "stop" as const, raw: "end_turn" },
+            usage: {
+              inputTokens: {
+                total: 1,
+                noCache: 1,
+                cacheRead: 0,
+                cacheWrite: 0,
               },
+              outputTokens: { total: 1, text: 1, reasoning: 0 },
             },
-          ],
-        }),
-      },
-    }),
-  );
+          },
+        ],
+      }),
+    },
+  });
+  vi.mocked(getAnswerModel).mockReturnValue(model);
+  return model;
 }
 
 /**
@@ -136,11 +145,12 @@ function mockFailingModel(text: string): void {
   );
 }
 
-function askRequest(body: unknown): Request {
+function askRequest(body: unknown, signal?: AbortSignal): Request {
   return new Request("http://localhost/api/ask", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
+    signal,
   });
 }
 
@@ -151,12 +161,46 @@ interface SseEvent {
   errorText?: string;
 }
 
-async function readEvents(response: Response): Promise<SseEvent[]> {
-  const text = await new Response(response.body).text();
+function parseSseEvents(text: string): SseEvent[] {
   return text
     .split("\n")
     .filter((line) => line.startsWith("data: ") && !line.includes("[DONE]"))
     .map((line) => JSON.parse(line.slice("data: ".length)) as SseEvent);
+}
+
+async function readEvents(response: Response): Promise<SseEvent[]> {
+  const text = await new Response(response.body).text();
+  return parseSseEvents(text);
+}
+
+/**
+ * Reads the response manually up through the first `text-delta` — proof the
+ * mocked provider call actually started — then aborts `controller` and
+ * drains the rest so the route's `execute` (and its `onFinish`/persistence)
+ * gets to run to completion. `chunkDelayInMs` on the mocked model (#74) is
+ * what makes "abort after the first delta, mid-stream" land deterministically
+ * rather than racing the whole answer landing in one microtask.
+ */
+async function readUntilTextDeltaThenAbort(
+  response: Response,
+  controller: AbortController,
+): Promise<SseEvent[]> {
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  while (!buffer.includes('"type":"text-delta"')) {
+    const { done, value } = await reader.read();
+    if (done) throw new Error("stream ended before any text arrived");
+    buffer += decoder.decode(value, { stream: true });
+  }
+  controller.abort();
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+  }
+  buffer += decoder.decode();
+  return parseSseEvents(buffer);
 }
 
 function textDeltas(events: SseEvent[]): string[] {
@@ -513,5 +557,48 @@ describe("POST /api/ask", () => {
     expect(errorMessages(events)).toEqual([ASK_FALLBACK_ERROR_MESSAGE]);
     expect(events.some((e) => e.errorText?.includes("ANTHROPIC"))).toBe(false);
     spy.mockRestore();
+  });
+
+  // #74/F-11: the client's abort must reach the paid provider call, not just
+  // stop the client from reading further.
+  it("propagates the client's abort into streamText so the provider call is cancelled (#74, F-11)", async () => {
+    allowRateLimit();
+    vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+    const model = mockModel("La tarifa es 13% para servicios.", undefined, 25);
+
+    const controller = new AbortController();
+    const response = await POST(
+      askRequest({ question: "¿Cuánto es el IVA?" }, controller.signal),
+    );
+
+    await readUntilTextDeltaThenAbort(response, controller);
+
+    // `streamText` forwards whatever `abortSignal` it was given straight
+    // through to the model's `doStream` call — this is the actual cost-saving
+    // wiring the issue is about, not just "the response body ends".
+    expect(model.doStreamCalls[0]?.abortSignal?.aborted).toBe(true);
+  });
+
+  it("does not persist the exchange when the client aborts mid-stream (#74, F-11)", async () => {
+    vi.mocked(getUserId).mockResolvedValue("user-123");
+    allowRateLimit();
+    vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+    mockModel("Aplica el 13% al servicio prestado.", undefined, 25);
+
+    const controller = new AbortController();
+    const response = await POST(
+      askRequest({ question: "¿Cuánto es el IVA?" }, controller.signal),
+    );
+
+    const events = await readUntilTextDeltaThenAbort(response, controller);
+
+    // A user-initiated stop is not a failure — it must not surface the
+    // Spanish "algo salió mal" copy over an answer the user chose to cut off.
+    expect(errorMessages(events)).toEqual([]);
+    // `streamText`'s own `onFinish` — the only thing that calls
+    // `saveQuestion` for the model path — never fires on abort (the SDK
+    // routes it through `onAbort` instead), so this is the natural
+    // consequence of the abortSignal wiring above, not a separate branch.
+    expect(vi.mocked(saveQuestion)).not.toHaveBeenCalled();
   });
 });

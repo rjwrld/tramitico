@@ -15,6 +15,18 @@
  * byte costs the auth+limit budget instead of the whole pipeline. The price is
  * that every failure past that point is a 200 with an `error` part in it —
  * hence `askStreamErrorText` on the two paths below.
+ *
+ * Stop/retry (#74, audit F-11): `request.signal` is threaded into `streamText`
+ * as `abortSignal`, so a client-side `stop()` (chat.tsx) cancels the paid
+ * Anthropic call once generation has started — the issue's named target for
+ * F-11. Retrieval and rerank are out of scope here and still run to
+ * completion after an abort; they are comparatively cheap next to the model
+ * call and #74 doesn't ask for their cancellation. Persistence-on-abort is a
+ * deliberate no-op, not a separate branch: `streamText`'s `onFinish` below —
+ * the only place that calls `saveQuestion` for the model path — simply never
+ * fires on abort (the SDK routes an aborted stream through `onAbort`
+ * instead), so an aborted exchange is never saved. No user was ever shown
+ * "listo" for it, so there is nothing worth remembering.
  */
 import {
   createUIMessageStream,
@@ -210,6 +222,12 @@ export async function POST(request: Request): Promise<Response> {
         model: getAnswerModel(),
         system: ANSWER_SYSTEM_PROMPT,
         prompt: buildUserPrompt(asked, chunks),
+        // #74/F-11: cancels this model call the moment the client aborts
+        // (stop() or a dropped connection), instead of paying for tokens
+        // nobody reads through to `maxDuration`. Scoped to the model call
+        // only, per the issue — retrieval/rerank above are not wired to this
+        // signal and keep running if the client aborts during "buscando".
+        abortSignal: request.signal,
         // #73: provider deltas arrive in bursts, which reads as multi-word
         // jumps. Re-chunk them word by word server-side so the text flows —
         // DESIGN §8 keeps streaming as native token flow, no CSS animation.

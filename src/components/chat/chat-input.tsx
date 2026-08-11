@@ -1,6 +1,11 @@
 /**
  * The ask box. "Enviar" is the view's single filled primary action
  * (DESIGN §6 / red discipline). Enter submits; Shift+Enter breaks a line.
+ *
+ * While a stream is in flight, "Enviar" has nothing left to do — this issue
+ * (#74, req 1) swaps it for "Detener" in the same slot rather than showing
+ * both: outline variant (never the filled primary), verb-first, wired
+ * straight to `useChat`'s `stop()`. One action lives in this slot at a time.
  */
 import * as React from "react";
 import { Button } from "@/components/ui/button";
@@ -8,9 +13,12 @@ import { Textarea } from "@/components/ui/textarea";
 
 export function ChatInput({
   onSubmit,
+  onStop,
   busy = false,
 }: {
   onSubmit: (question: string) => void;
+  /** Stops the in-flight stream (#74). Only ever invoked while `busy`. */
+  onStop: () => void;
   busy?: boolean;
 }) {
   const [question, setQuestion] = React.useState("");
@@ -45,9 +53,15 @@ export function ChatInput({
         rows={1}
         className="min-h-10 resize-none"
       />
-      <Button type="submit" disabled={busy || question.trim() === ""}>
-        Enviar
-      </Button>
+      {busy ? (
+        <Button type="button" variant="outline" onClick={onStop}>
+          Detener
+        </Button>
+      ) : (
+        <Button type="submit" disabled={question.trim() === ""}>
+          Enviar
+        </Button>
+      )}
     </form>
   );
 }
