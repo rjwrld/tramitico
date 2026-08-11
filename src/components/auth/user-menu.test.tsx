@@ -91,7 +91,9 @@ describe("UserMenu", () => {
       await screen.findByRole("menuitem", { name: "Eliminar cuenta" }),
     );
     await userEvent.click(
-      screen.getByRole("button", { name: "Eliminar cuenta y todo el historial" }),
+      screen.getByRole("button", {
+        name: "Eliminar cuenta y todo el historial",
+      }),
     );
 
     expect(fetchMock).toHaveBeenCalledWith("/api/account/delete", {
@@ -111,7 +113,9 @@ describe("UserMenu", () => {
       await screen.findByRole("menuitem", { name: "Eliminar cuenta" }),
     );
     await userEvent.click(
-      screen.getByRole("button", { name: "Eliminar cuenta y todo el historial" }),
+      screen.getByRole("button", {
+        name: "Eliminar cuenta y todo el historial",
+      }),
     );
 
     await vi.waitFor(() => expect(fetchMock).toHaveBeenCalled());
