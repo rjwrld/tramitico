@@ -376,6 +376,26 @@ describe("POST /api/ask", () => {
     expect(saved.citations).toEqual([]);
   });
 
+  it("keeps a persistence failure out of the weak-retrieval answer", async () => {
+    vi.mocked(getUserId).mockResolvedValue("user-123");
+    allowRateLimit();
+    vi.mocked(retrieve).mockResolvedValue(
+      retrievalResult({ chunks: [], topScore: 0, isWeak: true }),
+    );
+    vi.mocked(saveQuestion).mockRejectedValue(new Error("db down"));
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const response = await POST(askRequest({ question: "asdf qwerty zzz" }));
+    const events = await readEvents(response);
+
+    // persist.ts: failures are "logged, never surfaced — the user already has
+    // their answer". Moving the save inside `execute` (#71) must not change
+    // that into an error part stamped under a delivered answer.
+    expect(errorMessages(events)).toEqual([]);
+    expect(streamedText(events)).toContain("No encuentro base oficial");
+    spy.mockRestore();
+  });
+
   it("does not persist anything for anonymous users", async () => {
     allowRateLimit();
     vi.mocked(retrieve).mockResolvedValue(retrievalResult());
@@ -472,6 +492,26 @@ describe("POST /api/ask", () => {
     );
     // The text that did arrive is kept — a partial answer beats a blank.
     expect(streamedText(events)).toContain("La tarifa es");
+    spy.mockRestore();
+  });
+
+  it("maps a throw inside execute to the contract's ES copy (F-22)", async () => {
+    allowRateLimit();
+    vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+    // The other door into a mid-stream failure: not an error part on the
+    // model's stream but a throw in `execute` itself (a missing key here),
+    // which only `createUIMessageStream`'s own `onError` catches.
+    vi.mocked(getAnswerModel).mockImplementation(() => {
+      throw new Error("ANTHROPIC_API_KEY is not set");
+    });
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const response = await POST(askRequest({ question: "¿Cuánto es el IVA?" }));
+    expect(response.status).toBe(200);
+    const events = await readEvents(response);
+
+    expect(errorMessages(events)).toEqual([ASK_FALLBACK_ERROR_MESSAGE]);
+    expect(events.some((e) => e.errorText?.includes("ANTHROPIC"))).toBe(false);
     spy.mockRestore();
   });
 });

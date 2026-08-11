@@ -125,12 +125,21 @@ async function streamWeakRetrieval(
   writer.write({ type: "text-end", id });
   writer.write({ type: "finish" });
   if (userId) {
-    await saveQuestion({
-      userId,
-      question,
-      answer: WEAK_RETRIEVAL_ANSWER,
-      citations: [],
-    });
+    // persist.ts promises failures are "logged, never surfaced — the user
+    // already has their answer". That used to be free: this ran in the
+    // stream's `onFinish`, past the last byte. Inside `execute` a rejection
+    // would reach `onError` and stamp a Spanish failure under a delivered
+    // answer, so the promise is kept explicitly here.
+    try {
+      await saveQuestion({
+        userId,
+        question,
+        answer: WEAK_RETRIEVAL_ANSWER,
+        citations: [],
+      });
+    } catch (error) {
+      console.error(`ask: saving the weak-retrieval answer failed: ${error}`);
+    }
   }
 }
 
