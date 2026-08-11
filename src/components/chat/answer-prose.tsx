@@ -12,6 +12,11 @@
  * Typography per DESIGN §3/§6: 68ch measure, 1.7 leading, hanging-indent
  * bullets with a marker muted to `--border`, table body in Geist Mono with
  * tabular numerals, bold as weight rather than asterisks.
+ *
+ * Bullets are merged into one list even across a blank line (issue #95):
+ * the model routinely separates bullets with blank lines, and blocks are
+ * split on blank lines before classification, so `mergeAdjacentBulletRuns`
+ * re-joins adjacent all-bullet runs after the per-block pass.
  */
 import * as React from "react";
 
@@ -56,6 +61,11 @@ function inline(text: string, key: string): React.ReactNode[] {
  * prose. Grouping per line rather than per block means a heading or a lead-in
  * sentence that shares a block with the list or table below it still renders
  * correctly instead of dragging the whole block into one paragraph.
+ *
+ * This only merges within one block's lines. Bullet runs that end a block
+ * still need to merge with a bullet run starting the next block — that is
+ * `mergeAdjacentBulletRuns`'s job, applied after every block has been run
+ * through here.
  */
 function runsOf(lines: string[]): Run[] {
   const isRow = lines.map((line) => TABLE_LINE.test(line));
@@ -75,6 +85,33 @@ function runsOf(lines: string[]): Run[] {
       runs.push({ kind: kinds[i], lines: [line] });
     }
     return runs;
+  }, []);
+}
+
+/**
+ * The model routinely puts a blank line between bullets (issue #95): each
+ * bullet becomes its own block, so `runsOf` — which only sees one block at a
+ * time — hands back N single-item bullet runs instead of one N-item run.
+ * That reads as N separate `<ul>`s (an extra `my-4` gap between items that
+ * should sit in one list's rhythm) and a screen reader announcing "list, 1
+ * item" N times instead of "list, N items" once.
+ *
+ * Fix: after every block has been classified into runs, collapse consecutive
+ * bullet runs in the flattened sequence into one, regardless of which block
+ * each came from or whether a blank line separated them. Only a non-bullet
+ * run — text, heading or table — breaks a run of bullets; that keeps bullets
+ * either side of an intervening paragraph in separate lists, and heals
+ * persisted history answers exactly as it heals a fresh stream.
+ */
+function mergeAdjacentBulletRuns(runs: Run[]): Run[] {
+  return runs.reduce<Run[]>((merged, run) => {
+    const last = merged[merged.length - 1];
+    if (last && last.kind === "bullet" && run.kind === "bullet") {
+      last.lines.push(...run.lines);
+    } else {
+      merged.push({ kind: run.kind, lines: [...run.lines] });
+    }
+    return merged;
   }, []);
 }
 
@@ -162,17 +199,16 @@ function Segment({ run, keyPrefix }: { run: Run; keyPrefix: string }) {
 }
 
 export function AnswerProse({ text }: { text: string }) {
-  const runs = text
+  const blockRuns = text
     .split(/\n{2,}/)
     .filter((block) => block.trim() !== "")
-    .flatMap((block, i) =>
-      runsOf(block.split("\n")).map((run, j) => [`${i}-${j}`, run] as const),
-    );
+    .flatMap((block) => runsOf(block.split("\n")));
+  const runs = mergeAdjacentBulletRuns(blockRuns);
 
   return (
     <div className="max-w-[68ch] text-base leading-[1.7] text-pretty">
-      {runs.map(([key, run]) => (
-        <Segment key={key} run={run} keyPrefix={key} />
+      {runs.map((run, i) => (
+        <Segment key={i} run={run} keyPrefix={String(i)} />
       ))}
     </div>
   );
