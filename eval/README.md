@@ -89,17 +89,23 @@ The Week 3 cost/quality comparison is the same command with
 `ANSWER_MODEL=claude-haiku-4-5` — same dataset, same judge, same gate. The
 per-case table and pass rate print with each run.
 
-Measured 2026-08-06, judge `claude-sonnet-4-5`, 793-chunk voyage-3 corpus:
+Measured on a verified-clean corpus (793 chunks / 14 documents / 0 missing
+embeddings, all migrations applied), judge `claude-sonnet-4-5`, all 25 cases
+model-judged — no weak-retrieval short-circuits in any run below:
 
-| Answer model                | Groundedness | Eval wall-clock | Notes                        |
-| --------------------------- | ------------ | --------------- | ---------------------------- |
-| `claude-sonnet-5` (default) | 25/25        | ~275s           |                              |
-| `claude-haiku-4-5`          | 25/25        | ~186s           | ~5× cheaper per output token |
+| Answer model                | Date       | Groundedness                                    | Eval wall-clock | Notes                                               |
+| --------------------------- | ---------- | ----------------------------------------------- | --------------- | --------------------------------------------------- |
+| `claude-sonnet-5` (default) | 2026-08-10 | 25/25                                           | ~371s           | gate re-held 2026-08-11 on the amended prompt (#95) |
+| `claude-haiku-4-5`          | 2026-08-11 | run 1: pass · run 2: **22/25 (88%, gate FAIL)** | ~255s / ~273s   | ~5× cheaper per output token                        |
 
-Both clear the 90% gate; at n=25 the judge separates neither model, so the
-cost case for Haiku rests on price and latency, not a quality gap the gate can
-see. Caveat on the 2026-08-06 run: the shared local DB carried another
-branch's in-progress `search_chunks` changes, which flagged 7 questions weak —
-those short-circuited to the deterministic fallback (auto-pass, no model
-call), so 18/25 cases were model-judged per run. Re-measure on a clean corpus
-(or in CI once #29 lands) before quoting these numbers anywhere durable.
+**Haiku is borderline at the gate.** Two back-to-back runs on the identical
+corpus and prompt straddled it: the first cleared ≥90% (per-case table not
+captured), the immediate re-run scored 22/25 with three unanimous
+`[fail/fail/fail]` verdicts (`inscripcion-hacienda-clientes-extranjero`,
+`iva-servicios-extranjero-comprados`, `exportacion-servicios-comprobante`) —
+each a real over-claim beyond the cited fragments, not judge noise. This
+replaces the 2026-08-06 conclusion ("the judge separates neither model"): on
+a clean corpus the gate _does_ see a quality gap, and Sonnet 5 stays the
+default on quality grounds, not just inertia. The 2026-08-06 numbers (7
+questions short-circuited to the deterministic fallback by a polluted corpus)
+should not be quoted.
