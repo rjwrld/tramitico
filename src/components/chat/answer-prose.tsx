@@ -91,7 +91,7 @@ function Table({ lines, id }: { lines: string[]; id: string }) {
               <th
                 key={i}
                 scope="col"
-                className="px-2 py-1.5 text-left font-medium"
+                className="py-2 pr-4 text-left font-normal text-muted-foreground last:pr-0"
               >
                 {inline(cell, `${id}-h-${i}`)}
               </th>
@@ -100,9 +100,9 @@ function Table({ lines, id }: { lines: string[]; id: string }) {
         </thead>
         <tbody className="font-mono tabular-nums">
           {body.map((row, r) => (
-            <tr key={r} className="border-b border-border/60 last:border-b-0">
+            <tr key={r} className="border-b border-border last:border-b-0">
               {row.map((cell, c) => (
-                <td key={c} className="px-2 py-1.5 align-top">
+                <td key={c} className="py-2 pr-4 align-top last:pr-0">
                   {inline(cell, `${id}-${r}-${c}`)}
                 </td>
               ))}
