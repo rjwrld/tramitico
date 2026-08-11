@@ -93,10 +93,10 @@ Measured on a verified-clean corpus (793 chunks / 14 documents / 0 missing
 embeddings, all migrations applied), judge `claude-sonnet-4-5`, all 25 cases
 model-judged — no weak-retrieval short-circuits in any run below:
 
-| Answer model                | Date       | Groundedness                                    | Eval wall-clock | Notes                                               |
-| --------------------------- | ---------- | ----------------------------------------------- | --------------- | --------------------------------------------------- |
-| `claude-sonnet-5` (default) | 2026-08-10 | 25/25                                           | ~371s           | gate re-held 2026-08-11 on the amended prompt (#95) |
-| `claude-haiku-4-5`          | 2026-08-11 | run 1: pass · run 2: **22/25 (88%, gate FAIL)** | ~255s / ~273s   | ~5× cheaper per output token                        |
+| Answer model                | Date       | Groundedness                                    | Eval wall-clock | Notes                                                                                        |
+| --------------------------- | ---------- | ----------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------- |
+| `claude-sonnet-5` (default) | 2026-08-10 | 25/25                                           | ~371s           | gate re-held (≥90%) 2026-08-11 on the amended prompt (#95/#98), ~379s, per-case not captured |
+| `claude-haiku-4-5`          | 2026-08-11 | run 1: pass · run 2: **22/25 (88%, gate FAIL)** | ~255s / ~273s   | ~5× cheaper per output token                                                                 |
 
 **Haiku is borderline at the gate.** Two back-to-back runs on the identical
 corpus and prompt straddled it: the first cleared ≥90% (per-case table not
