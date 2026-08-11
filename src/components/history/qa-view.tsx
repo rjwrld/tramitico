@@ -9,7 +9,7 @@ import { ArrowLeft } from "lucide-react";
 import { AnswerProse } from "@/components/chat/answer-prose";
 import { SelloRow } from "@/components/sello";
 import { Button } from "@/components/ui/button";
-import { isCitation } from "@/lib/retrieval";
+import { isCitation } from "@/lib/citations";
 
 import type { HistoryItem } from "./history-sidebar";
 
