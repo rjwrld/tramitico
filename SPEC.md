@@ -128,7 +128,10 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
 
 _(pinned here per #10)_
 
-- Supabase Auth (email + GitHub OAuth). History table under RLS.
+- Supabase Auth (email + Google/GitHub OAuth — Google added per #84, hedging magic-link
+  email delivery). History table under RLS.
+- Same verified email across providers resolves to one `user_id` (Supabase automatic
+  linking); unverified-email collisions stay separate accounts by design (#84).
 - **Anonymous: 10 questions/day** per subject = hash(IP + coarse UA). **Authed: 50/day** per user.
 - Mechanism: fixed-window counter in the `rate_limits` Postgres table, checked in `/api/ask` —
   no extra vendor. On limit: friendly ES message + sign-in nudge. **Fail-closed** (LLM cost is
