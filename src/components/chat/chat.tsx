@@ -11,11 +11,17 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import {
   askErrorMessage,
+  citationsFrom,
   messageText,
+  statusFrom,
   type AskRequestBody,
   type AskUIMessage,
 } from "@/lib/answer/contract";
 import { AnswerBlock } from "@/components/chat/answer-block";
+import {
+  AskStatus,
+  completionAnnouncement,
+} from "@/components/chat/ask-status";
 import { ChatInput } from "@/components/chat/chat-input";
 import { SeedPrompts } from "@/components/chat/seed-prompts";
 import {
@@ -38,18 +44,64 @@ const transport = new DefaultChatTransport<AskUIMessage>({
   },
 });
 
+/**
+ * How long the completion summary sits in the status region (req 3: it
+ * announces, "then clears visually") before it unmounts. Long enough for a
+ * screen reader to have started reading a one-sentence announcement; short
+ * enough that it reads as a moment, not a lingering banner.
+ */
+const COMPLETION_ANNOUNCEMENT_MS = 3000;
+
+/** The status region's completion state: which message it belongs to, and for how long. */
+interface Completion {
+  messageId: string;
+  text: string;
+}
+
 export function Chat() {
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const [completion, setCompletion] = React.useState<Completion | null>(null);
   const { messages, sendMessage, status } = useChat<AskUIMessage>({
     transport,
     onError: (error) => setErrorMessage(askErrorMessage(error)),
+    // #72: the one accessible completion signal (audit U-3) — never fired for
+    // an aborted request or a stream that ended in an `error` part (ADR
+    // 0009), since neither delivered an answer worth announcing as ready.
+    onFinish: ({ message, isError, isAbort }) => {
+      if (isError || isAbort) return;
+      setCompletion({
+        messageId: message.id,
+        text: completionAnnouncement(citationsFrom(message).length),
+      });
+    },
   });
+
+  React.useEffect(() => {
+    if (!completion) return;
+    const timer = setTimeout(
+      () => setCompletion(null),
+      COMPLETION_ANNOUNCEMENT_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [completion]);
 
   const busy = status === "submitted" || status === "streaming";
   const ask = (question: string) => {
     setErrorMessage(null);
+    setCompletion(null);
     void sendMessage({ text: question });
   };
+
+  // The gap this issue closes: between `sendMessage` and the assistant
+  // message's first byte (its `start` + "buscando" `data-status` land in the
+  // same flush — ADR 0009 — but the round trip still takes a moment), there
+  // is no message to read a stage off yet. Rather than sit blank, show the
+  // same "buscando" copy the real snapshot is about to report — the handoff
+  // is invisible since the copy is identical either way.
+  const lastMessage = messages.at(-1);
+  const hasLiveStatus =
+    lastMessage?.role === "assistant" && statusFrom(lastMessage) !== null;
+  const showPreStartStatus = status === "submitted" && !hasLiveStatus;
 
   if (messages.length === 0) {
     return (
@@ -86,22 +138,32 @@ export function Chat() {
                       {messageText(message)}
                     </div>
                   ) : (
-                    <AnswerBlock message={message} />
+                    <AnswerBlock
+                      message={message}
+                      busy={busy && index === messages.length - 1}
+                      completionText={
+                        completion?.messageId === message.id
+                          ? completion.text
+                          : null
+                      }
+                    />
                   )}
                 </MessageScrollerItem>
               ))}
               {/*
-                The two transient items below carry no `messageId` on purpose
-                (#79): they are not messages, so registering them would put ids
-                in `visibleMessageIds` that resolve to nothing. They still
-                scroll into view — the primitive finds anchors through
-                `data-scroll-anchor`, without consulting the id.
+                Both items below carry no `messageId` on purpose (#79): they
+                are not messages, so registering them would put ids in
+                `visibleMessageIds` that resolve to nothing. They still scroll
+                into view — the primitive finds anchors through
+                `data-scroll-anchor`, without consulting the id. Once the real
+                assistant message exists, its own `AnswerBlock` reports the
+                (now real, server-sent) stage instead — this is only the
+                narrow window before that message exists at all (#72, ADR
+                0009).
               */}
-              {status === "submitted" && (
+              {showPreStartStatus && (
                 <MessageScrollerItem scrollAnchor className="mt-6">
-                  <p className="text-sm text-muted-foreground">
-                    Consultando los documentos oficiales…
-                  </p>
+                  <AskStatus state={{ kind: "stage", stage: "buscando" }} />
                 </MessageScrollerItem>
               )}
               {errorMessage && (
