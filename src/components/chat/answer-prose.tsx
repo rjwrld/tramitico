@@ -25,10 +25,22 @@ const BULLET_LINE = /^- /;
 type Kind = "table" | "bullet" | "heading" | "text";
 type Run = { kind: Kind; lines: string[] };
 
-/** `**bold**` → `<strong>`; everything else stays a text node. */
+/**
+ * `**bold**` → `<strong>`; everything else stays a text node.
+ *
+ * Only *closed* pairs bold. An odd number of `**` — a run still in flight
+ * mid-stream, or a stray pair in prose — would otherwise carry weight to the
+ * end of the segment, which #77's test list rules out ("an odd number of `**`
+ * in a block does not swallow the rest of the paragraph"). The delimiter is
+ * dropped either way, so a half-open run reads as plain prose and turns bold
+ * the moment it closes.
+ */
 function inline(text: string, key: string): React.ReactNode[] {
-  return text.split(/\*\*/).map((part, i) =>
-    i % 2 === 1 ? (
+  const parts = text.split(/\*\*/);
+  // Even part count ⇒ odd delimiter count ⇒ the last part is never closed.
+  const closed = parts.length % 2 === 0 ? parts.length - 1 : parts.length;
+  return parts.map((part, i) =>
+    i % 2 === 1 && i < closed ? (
       <strong key={`${key}-${i}`} className="font-medium">
         {part}
       </strong>

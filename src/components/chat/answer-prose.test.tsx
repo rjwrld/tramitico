@@ -68,6 +68,36 @@ describe("AnswerProse", () => {
     expect(container.textContent).toBe(
       "Debe pagar el impuesto sobre la renta antes del 15 de diciembre.",
     );
+    // Asserting the text alone is vacuous here — a text-node renderer cannot
+    // lose it. What must not happen is the unclosed run carrying weight to
+    // the end of the block.
+    expect(container.querySelectorAll("strong")).toHaveLength(0);
+  });
+
+  it("bolds the closed pairs and leaves a trailing unclosed run plain", () => {
+    const { container } = render(
+      <AnswerProse text="La **renta neta** menos los **gastos deducibles" />,
+    );
+
+    expect(
+      Array.from(container.querySelectorAll("strong")).map(
+        (el) => el.textContent,
+      ),
+    ).toEqual(["renta neta"]);
+    expect(container.textContent).toBe(
+      "La renta neta menos los gastos deducibles",
+    );
+  });
+
+  it("bolds a run as soon as its closing ** streams in", () => {
+    const open = render(<AnswerProse text="La **renta neta" />);
+    expect(open.container.querySelectorAll("strong")).toHaveLength(0);
+    open.unmount();
+
+    const closed = render(<AnswerProse text="La **renta neta**" />);
+    expect(closed.container.querySelector("strong")?.textContent).toBe(
+      "renta neta",
+    );
   });
 
   it("renders a pipe table with a head, a body and no rule row", () => {
