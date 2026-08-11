@@ -10,13 +10,13 @@ import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { createClient } from "@/lib/supabase/client";
 
-type Status = "idle" | "sending" | "sent" | "error";
+type LinkStatus = "idle" | "sending" | "sent" | "error";
 type CodeStatus = "idle" | "verifying" | "error";
 
 export function SignInForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<Status>("idle");
+  const [status, setStatus] = useState<LinkStatus>("idle");
   const [code, setCode] = useState("");
   const [codeStatus, setCodeStatus] = useState<CodeStatus>("idle");
 
@@ -40,6 +40,7 @@ export function SignInForm() {
   }
 
   async function verifyCode() {
+    if (code.length !== 6) return;
     setCodeStatus("verifying");
     const supabase = createClient();
     const { error } = await supabase.auth.verifyOtp({
@@ -87,17 +88,21 @@ export function SignInForm() {
               id="signin-code"
               type="text"
               inputMode="numeric"
+              pattern="[0-9]{6}"
+              maxLength={6}
               autoComplete="one-time-code"
               required
               placeholder="123456"
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={(e) =>
+                setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
             />
           </Field>
           <Button
             type="submit"
             variant="secondary"
-            disabled={codeStatus === "verifying"}
+            disabled={codeStatus === "verifying" || code.length !== 6}
           >
             {codeStatus === "verifying" && (
               <Spinner data-icon="inline-start" />
