@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
@@ -9,11 +10,15 @@ import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { createClient } from "@/lib/supabase/client";
 
-type Status = "idle" | "sending" | "sent" | "error";
+type LinkStatus = "idle" | "sending" | "sent" | "error";
+type CodeStatus = "idle" | "verifying" | "error";
 
 export function SignInForm() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<Status>("idle");
+  const [status, setStatus] = useState<LinkStatus>("idle");
+  const [code, setCode] = useState("");
+  const [codeStatus, setCodeStatus] = useState<CodeStatus>("idle");
 
   async function sendMagicLink() {
     setStatus("sending");
@@ -34,12 +39,90 @@ export function SignInForm() {
     if (error) setStatus("error");
   }
 
+  async function verifyCode() {
+    if (code.length !== 6) return;
+    setCodeStatus("verifying");
+    const supabase = createClient();
+    const { error } = await supabase.auth.verifyOtp({
+      type: "email",
+      email,
+      token: code,
+    });
+    if (error) {
+      setCodeStatus("error");
+      return;
+    }
+    router.push("/");
+    router.refresh();
+  }
+
+  function resetToForm() {
+    setStatus("idle");
+    setCode("");
+    setCodeStatus("idle");
+  }
+
+  // Confirmation state: the mail leg went out. The link is the primary path
+  // (see /auth/confirm), but a user who opened it in an in-app browser (Gmail
+  // / Outlook's embedded webview) lands in a different browser context than
+  // the tab they're already in — the emailed code sidesteps that (issue #85).
   if (status === "sent") {
     return (
-      <p className="text-sm text-muted-foreground" role="status">
-        Revise su correo: le enviamos un enlace para entrar. Puede cerrar esta
-        página.
-      </p>
+      <div className="flex w-full flex-col gap-4">
+        <p className="text-sm text-muted-foreground" role="status">
+          Revise su correo: le enviamos un enlace para entrar. Puede cerrar esta
+          página.
+        </p>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            void verifyCode();
+          }}
+          className="flex flex-col gap-3"
+        >
+          <Field>
+            <FieldLabel htmlFor="signin-code">
+              ¿Abrió el correo en otro navegador? Ingrese el código.
+            </FieldLabel>
+            <Input
+              id="signin-code"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]{6}"
+              maxLength={6}
+              autoComplete="one-time-code"
+              required
+              placeholder="123456"
+              value={code}
+              onChange={(e) =>
+                setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
+            />
+          </Field>
+          <Button
+            type="submit"
+            variant="secondary"
+            disabled={codeStatus === "verifying" || code.length !== 6}
+          >
+            {codeStatus === "verifying" && <Spinner data-icon="inline-start" />}
+            Confirmar código
+          </Button>
+          {codeStatus === "error" && (
+            <p className="text-sm text-destructive" role="alert">
+              El código no es válido o venció. Solicite un enlace nuevo e
+              intente de nuevo.
+            </p>
+          )}
+        </form>
+        <Button
+          type="button"
+          variant="link"
+          className="self-start px-0"
+          onClick={resetToForm}
+        >
+          Solicitar un enlace nuevo
+        </Button>
+      </div>
     );
   }
 

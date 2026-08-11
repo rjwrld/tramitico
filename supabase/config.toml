@@ -237,15 +237,21 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-# Use a production-ready SMTP server
+# Production SMTP (issue #85) — Supabase's built-in sender is dev-grade
+# (single-digit emails/hour) and not meant for production traffic. Left
+# commented so local dev keeps using Inbucket/Mailpit unchanged; production
+# values are set directly in the hosted project's Auth settings (dashboard or
+# `supabase config push`), executed alongside the #29 deploy. Resend or
+# Postmark free tier is ample at this scale — either needs a verified sending
+# domain with SPF + DKIM DNS records (see the #29 deploy checklist comment).
 # [auth.email.smtp]
 # enabled = true
-# host = "smtp.sendgrid.net"
+# host = "smtp.resend.com"
 # port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+# user = "resend"
+# pass = "env(SMTP_PASS)"
+# admin_email = "env(SMTP_ADMIN_EMAIL)"
+# sender_name = "Tramitico"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]
