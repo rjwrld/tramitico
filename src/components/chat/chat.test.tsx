@@ -1,13 +1,22 @@
 // @vitest-environment jsdom
 import * as React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import {
   CITATIONS_PART_ID,
   STATUS_PART_ID,
   type AskStatusStage,
   type AskUIMessage,
 } from "@/lib/answer/contract";
+import type { Citation } from "@/lib/retrieval";
+import { SEED_PROMPTS } from "@/components/chat/seed-prompts";
 
 const chat: { messages: AskUIMessage[]; status: string } = {
   messages: [],
@@ -27,13 +36,31 @@ type OnFinish = (event: {
 }) => void;
 let latestOnFinish: OnFinish | undefined;
 
+/**
+ * `onError` (#74) — the mock captures it the same way, so tests can trigger
+ * the inline error surface (and its "Reintentar" control) without a real
+ * failing fetch.
+ */
+type OnError = (error: unknown) => void;
+let latestOnError: OnError | undefined;
+
+// #74: `sendMessage`/`stop`/`regenerate` are plain spies so tests can assert
+// on calls without a real transport; the double-submit guard under test
+// lives in `Chat` itself (`inFlightRef`), not in this mock.
+const sendMessageMock = vi.fn();
+const stopMock = vi.fn();
+const regenerateMock = vi.fn();
+
 vi.mock("@ai-sdk/react", () => ({
-  useChat: (options?: { onFinish?: OnFinish }) => {
+  useChat: (options?: { onFinish?: OnFinish; onError?: OnError }) => {
     latestOnFinish = options?.onFinish;
+    latestOnError = options?.onError;
     return {
       messages: chat.messages,
-      sendMessage: vi.fn(),
+      sendMessage: sendMessageMock,
       status: chat.status,
+      stop: stopMock,
+      regenerate: regenerateMock,
     };
   },
 }));
@@ -175,6 +202,10 @@ beforeEach(() => {
   chat.messages = [];
   chat.status = "ready";
   latestOnFinish = undefined;
+  latestOnError = undefined;
+  sendMessageMock.mockReset();
+  stopMock.mockReset();
+  regenerateMock.mockReset();
 });
 
 afterEach(() => {
@@ -511,5 +542,140 @@ describe("Chat staged ask status (#72)", () => {
     expect(regions[0].textContent).toBe(
       "Consultando los documentos oficiales…",
     );
+  });
+});
+
+const citation: Citation = {
+  docKey: "reglamento-iva",
+  docTitle: "Reglamento de la Ley del IVA",
+  norma: "Decreto Ejecutivo 41779",
+  articulo: "Artículo 11",
+  url: "https://sinalevi.go.cr/x",
+};
+
+describe("Chat stop and retry controls (#74)", () => {
+  it("shows Detener, not Enviar, while a stream is submitted or streaming", () => {
+    chat.messages = [
+      question("q1", "¿Cómo me inscribo en Hacienda?"),
+      statusMessage("a1", "buscando"),
+    ];
+    chat.status = "streaming";
+    render(<Chat />);
+
+    expect(screen.queryByRole("button", { name: "Enviar" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Detener" }));
+    expect(stopMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows Detener during the pre-start submitted window too", () => {
+    chat.messages = [question("q1", "¿Cómo me inscribo en Hacienda?")];
+    chat.status = "submitted";
+    render(<Chat />);
+
+    expect(screen.getByRole("button", { name: "Detener" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Enviar" })).toBeNull();
+  });
+
+  it("shows Enviar, not Detener, once the exchange is ready", () => {
+    chat.messages = [
+      question("q1", "¿Cómo me inscribo en Hacienda?"),
+      answer("a1", "Con el formulario D-140."),
+    ];
+    chat.status = "ready";
+    render(<Chat />);
+
+    expect(screen.queryByRole("button", { name: "Detener" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Enviar" })).toBeTruthy();
+  });
+
+  // req 2 + the #102 guard the parent flagged: stopping must not read as a
+  // successful finish, and whatever already streamed in — text, sellos, the
+  // disclaimer — must survive the stop untouched.
+  it("stopping mid-stream keeps the partial answer, sellos, and disclaimer, and never announces completion", () => {
+    const partial: AskUIMessage = {
+      id: "a1",
+      role: "assistant",
+      parts: [
+        { type: "text", text: "Con el formul" },
+        { type: "data-citations", id: CITATIONS_PART_ID, data: [citation] },
+      ],
+    };
+    chat.messages = [question("q1", "¿Cómo me inscribo en Hacienda?"), partial];
+    chat.status = "streaming";
+    const { rerender } = render(<Chat />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Detener" }));
+    expect(stopMock).toHaveBeenCalledTimes(1);
+
+    // The SDK routes an abort through `onFinish` with `isAbort: true` — the
+    // same event chat.tsx's onFinish guard already special-cases for #72.
+    act(() =>
+      latestOnFinish?.({
+        message: partial,
+        isError: false,
+        isAbort: true,
+        isDisconnect: false,
+      }),
+    );
+
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.queryByText(/Respuesta lista/)).toBeNull();
+    expect(screen.getByText(/Con el formul/)).toBeTruthy();
+    expect(screen.getByText("Reglamento IVA · Art. 11")).toBeTruthy();
+    expect(screen.getByText(/No es asesoría legal ni contable/)).toBeTruthy();
+
+    // Composer re-enables (issue's own scenario: "click Detener → stream
+    // stops → composer re-enables"). `status` is the SDK's real signal for
+    // this — once it settles to "ready" the slot swaps back from Detener.
+    chat.status = "ready";
+    rerender(<Chat />);
+    expect(screen.queryByRole("button", { name: "Detener" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Enviar" })).toBeTruthy();
+  });
+
+  it("Reintentar resends the last question via regenerate() and clears the error", () => {
+    chat.messages = [question("q1", "¿Cómo me inscribo en Hacienda?")];
+    chat.status = "error";
+    render(<Chat />);
+
+    expect(latestOnError).toBeDefined();
+    act(() => latestOnError?.(new Error("network fell over")));
+
+    const retryButton = screen.getByRole("button", { name: "Reintentar" });
+    fireEvent.click(retryButton);
+
+    expect(regenerateMock).toHaveBeenCalledTimes(1);
+    // `retry()` clears the error synchronously, same as `ask()` does.
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  // Audit F-49: a rapid double-click must not start two exchanges. Both
+  // clicks land before `chat.status` (test-controlled, static here) or
+  // `messages` ever change, so only `Chat`'s own synchronous `inFlightRef`
+  // guard can be what stops the second one.
+  it("guards a rapid double-click so only one ask fires, and recovers once the exchange settles", () => {
+    chat.messages = [];
+    chat.status = "ready";
+    render(<Chat />);
+
+    const seedButton = screen.getByRole("button", { name: SEED_PROMPTS[0] });
+    fireEvent.click(seedButton);
+    fireEvent.click(seedButton);
+
+    expect(sendMessageMock).toHaveBeenCalledTimes(1);
+
+    // The guard resets in `onFinish`, which fires for every outcome — a
+    // further click after the exchange settles must be allowed through.
+    act(() =>
+      latestOnFinish?.({
+        message: { id: "a1", role: "assistant", parts: [] },
+        isError: false,
+        isAbort: false,
+        isDisconnect: false,
+      }),
+    );
+
+    fireEvent.click(seedButton);
+    expect(sendMessageMock).toHaveBeenCalledTimes(2);
   });
 });

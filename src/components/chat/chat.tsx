@@ -24,6 +24,7 @@ import {
 } from "@/components/chat/ask-status";
 import { ChatInput } from "@/components/chat/chat-input";
 import { SeedPrompts } from "@/components/chat/seed-prompts";
+import { Button } from "@/components/ui/button";
 import {
   MessageScroller,
   MessageScrollerButton,
@@ -61,23 +62,35 @@ interface Completion {
 export function Chat() {
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [completion, setCompletion] = React.useState<Completion | null>(null);
-  const { messages, sendMessage, status } = useChat<AskUIMessage>({
-    transport,
-    onError: (error) => setErrorMessage(askErrorMessage(error)),
-    // #72: the one accessible completion signal (audit U-3) — never fired for
-    // an aborted request, a stream that ended in an `error` part (ADR 0009),
-    // or a dropped connection: none of the three delivered an answer worth
-    // announcing as ready, and `isDisconnect` in particular is easy to miss
-    // since a network drop still reaches `onFinish` (it's the `finally` in
-    // the SDK's request loop) rather than surfacing as `isError`.
-    onFinish: ({ message, isError, isAbort, isDisconnect }) => {
-      if (isError || isAbort || isDisconnect) return;
-      setCompletion({
-        messageId: message.id,
-        text: completionAnnouncement(citationsFrom(message).length),
-      });
-    },
-  });
+  // #74 (audit F-49): `status` catches up with a click a render or two
+  // later — it rides the same async chain as the network request, so a
+  // second click landing in that gap could otherwise start a second
+  // exchange (the composer's own `busy` prop, derived from `status`, would
+  // not yet have caught up either). `ask`/`retry` below are the only two
+  // doors that start an exchange; both gate on this ref *before* touching
+  // React state. Reset lives in `onFinish`, which — per the SDK's
+  // `makeRequest` — runs in a `finally` for every outcome (success, error,
+  // abort, disconnect), so the guard never outlives the exchange it guards.
+  const inFlightRef = React.useRef(false);
+  const { messages, sendMessage, regenerate, stop, status } =
+    useChat<AskUIMessage>({
+      transport,
+      onError: (error) => setErrorMessage(askErrorMessage(error)),
+      // #72: the one accessible completion signal (audit U-3) — never fired for
+      // an aborted request, a stream that ended in an `error` part (ADR 0009),
+      // or a dropped connection: none of the three delivered an answer worth
+      // announcing as ready, and `isDisconnect` in particular is easy to miss
+      // since a network drop still reaches `onFinish` (it's the `finally` in
+      // the SDK's request loop) rather than surfacing as `isError`.
+      onFinish: ({ message, isError, isAbort, isDisconnect }) => {
+        inFlightRef.current = false;
+        if (isError || isAbort || isDisconnect) return;
+        setCompletion({
+          messageId: message.id,
+          text: completionAnnouncement(citationsFrom(message).length),
+        });
+      },
+    });
 
   React.useEffect(() => {
     if (!completion) return;
@@ -90,9 +103,25 @@ export function Chat() {
 
   const busy = status === "submitted" || status === "streaming";
   const ask = (question: string) => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     setErrorMessage(null);
     setCompletion(null);
     void sendMessage({ text: question });
+  };
+  // #74 (req 3): the inline error's "Reintentar" — resends the last question
+  // without retyping. `regenerate()` targets whichever message is last: the
+  // errored assistant message if the stream got far enough to start one, or
+  // the user's own question if the request never got a byte back (a
+  // pre-stream 429/503 never pushes an assistant message at all). Either way
+  // it lands back on the same last user message `prepareSendMessagesRequest`
+  // already keys off — no separate "last question" state to track here.
+  const retry = () => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
+    setErrorMessage(null);
+    setCompletion(null);
+    void regenerate();
   };
 
   // The gap this issue closes: between `sendMessage` and the assistant
@@ -113,8 +142,8 @@ export function Chat() {
           ¿Qué trámite le quita el sueño?
         </h1>
         <SeedPrompts onSelect={ask} disabled={busy} />
-        {errorMessage && <InlineError message={errorMessage} />}
-        <ChatInput onSubmit={ask} busy={busy} />
+        {errorMessage && <InlineError message={errorMessage} onRetry={retry} />}
+        <ChatInput onSubmit={ask} onStop={() => void stop()} busy={busy} />
       </div>
     );
   }
@@ -179,7 +208,7 @@ export function Chat() {
               )}
               {errorMessage && (
                 <MessageScrollerItem scrollAnchor className="mt-6">
-                  <InlineError message={errorMessage} />
+                  <InlineError message={errorMessage} onRetry={retry} />
                 </MessageScrollerItem>
               )}
             </MessageScrollerContent>
@@ -188,7 +217,7 @@ export function Chat() {
         </MessageScroller>
         <div className="crossfade-ground sticky bottom-0 bg-background pt-2 pb-4">
           <div className="mx-auto w-full max-w-[44rem] px-4">
-            <ChatInput onSubmit={ask} busy={busy} />
+            <ChatInput onSubmit={ask} onStop={() => void stop()} busy={busy} />
           </div>
         </div>
       </div>
@@ -196,10 +225,25 @@ export function Chat() {
   );
 }
 
-function InlineError({ message }: { message: string }) {
+/**
+ * #74 (req 3): "Reintentar" is the one recovery control on any error —
+ * outline, verb-first (DESIGN §6), never the filled primary. `role="alert"`
+ * on the wrapper (not just the copy) so the button's own accessible name
+ * arrives as part of the same announcement.
+ */
+function InlineError({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry: () => void;
+}) {
   return (
-    <p role="alert" className="max-w-[68ch] text-sm text-muted-foreground">
-      {message}
-    </p>
+    <div role="alert" className="flex max-w-[68ch] flex-col items-start gap-2">
+      <p className="text-sm text-muted-foreground">{message}</p>
+      <Button type="button" variant="outline" size="sm" onClick={onRetry}>
+        Reintentar
+      </Button>
+    </div>
   );
 }
