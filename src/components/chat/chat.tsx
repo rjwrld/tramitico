@@ -73,6 +73,7 @@ export function Chat() {
               {messages.map((message, index) => (
                 <MessageScrollerItem
                   key={message.id}
+                  messageId={message.id}
                   scrollAnchor={index === messages.length - 1}
                   className={
                     message.role === "user"
@@ -89,6 +90,13 @@ export function Chat() {
                   )}
                 </MessageScrollerItem>
               ))}
+              {/*
+                The two transient items below carry no `messageId` on purpose
+                (#79): they are not messages, so registering them would put ids
+                in `visibleMessageIds` that resolve to nothing. They still
+                scroll into view — the primitive finds anchors through
+                `data-scroll-anchor`, without consulting the id.
+              */}
               {status === "submitted" && (
                 <MessageScrollerItem scrollAnchor className="mt-6">
                   <p className="text-sm text-muted-foreground">
