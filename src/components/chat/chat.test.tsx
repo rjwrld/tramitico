@@ -23,6 +23,7 @@ type OnFinish = (event: {
   message: AskUIMessage;
   isError: boolean;
   isAbort: boolean;
+  isDisconnect: boolean;
 }) => void;
 let latestOnFinish: OnFinish | undefined;
 
@@ -391,7 +392,12 @@ describe("Chat staged ask status (#72)", () => {
 
     expect(latestOnFinish).toBeDefined();
     act(() =>
-      latestOnFinish?.({ message: finished, isError: false, isAbort: false }),
+      latestOnFinish?.({
+        message: finished,
+        isError: false,
+        isAbort: false,
+        isDisconnect: false,
+      }),
     );
 
     expect(screen.getByRole("status").textContent).toBe(
@@ -409,7 +415,35 @@ describe("Chat staged ask status (#72)", () => {
     render(<Chat />);
 
     act(() =>
-      latestOnFinish?.({ message: finished, isError: true, isAbort: false }),
+      latestOnFinish?.({
+        message: finished,
+        isError: true,
+        isAbort: false,
+        isDisconnect: false,
+      }),
+    );
+
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+
+  // The reviewed bug: `isDisconnect` is a distinct branch from `isError` in
+  // the SDK's `ChatOnFinishCallback` — a mid-stream network drop reaches
+  // `onFinish` with `isDisconnect: true` and `isError: false`, so a guard
+  // that only checks `isError`/`isAbort` would still announce "Respuesta
+  // lista" over an incomplete answer.
+  it("does not announce completion when the connection dropped mid-stream", () => {
+    const partial = answer("a1", "Con el formul");
+    chat.messages = [question("q1", "¿Cómo me inscribo en Hacienda?"), partial];
+    chat.status = "error";
+    render(<Chat />);
+
+    act(() =>
+      latestOnFinish?.({
+        message: partial,
+        isError: false,
+        isAbort: false,
+        isDisconnect: true,
+      }),
     );
 
     expect(screen.queryByRole("status")).toBeNull();
@@ -431,6 +465,7 @@ describe("Chat staged ask status (#72)", () => {
           message: finished,
           isError: false,
           isAbort: false,
+          isDisconnect: false,
         }),
       );
       expect(screen.getByRole("status").textContent).toContain(
@@ -442,5 +477,39 @@ describe("Chat staged ask status (#72)", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  // The reviewed a11y risk: since ADR 0009 the real assistant message's
+  // `start` and first "buscando" `data-status` land in the same flush, so
+  // the pre-start placeholder unmounts in the same tick the real message's
+  // own region mounts with the identical label. If both were announcing
+  // live regions, that's two mount-with-content announcements for one
+  // submission. `announce={false}` on the placeholder (ask-status.tsx)
+  // means only the real message's region is ever counted as `role="status"`.
+  it("does not double-announce at the pre-start → real-message handoff", () => {
+    chat.messages = [question("q1", "¿Cómo me inscribo en Hacienda?")];
+    chat.status = "submitted";
+    const { rerender } = render(<Chat />);
+
+    // The placeholder is visible to sighted users but must not be a second
+    // announcer — no accessible "status" region exists for it.
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(
+      screen.getByText("Consultando los documentos oficiales…"),
+    ).toBeTruthy();
+
+    // The real message lands (start + buscando in the same flush, ADR 0009).
+    chat.messages = [
+      question("q1", "¿Cómo me inscribo en Hacienda?"),
+      statusMessage("a1", "buscando"),
+    ];
+    chat.status = "streaming";
+    rerender(<Chat />);
+
+    const regions = screen.getAllByRole("status");
+    expect(regions).toHaveLength(1);
+    expect(regions[0].textContent).toBe(
+      "Consultando los documentos oficiales…",
+    );
   });
 });

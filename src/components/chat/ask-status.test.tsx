@@ -56,9 +56,25 @@ describe("AskStatus", () => {
     expect(screen.getByRole("status").getAttribute("aria-live")).toBe("polite");
   });
 
-  // DESIGN §8 permits "at most" a ≤150ms crossfade on label change; a
-  // mount/unmount text swap is instant instead, which is within that budget
-  // and needs no CSS transition — so there is nothing for
+  // #72 review: chat.tsx's pre-start placeholder sets announce={false} so it
+  // never fires its own mount-with-content announcement — only the real
+  // per-message region (mounted moments later with the identical label)
+  // should be heard, once, per submission.
+  it("stays visible but drops out of the accessibility tree when announce is false", () => {
+    const state: AskStatusState = { kind: "stage", stage: "buscando" };
+    render(<AskStatus state={state} announce={false} />);
+
+    expect(screen.queryByRole("status")).toBeNull();
+    const node = screen.getByText("Consultando los documentos oficiales…");
+    expect(node.getAttribute("role")).toBeNull();
+    expect(node.getAttribute("aria-live")).toBeNull();
+    expect(node.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  // DESIGN §8 names exactly three sanctioned motion moments, none of which
+  // is this indicator; its own crossfade allowance is only ≤150ms and only
+  // "at most". A mount/unmount text swap is instant instead, which stays
+  // inside that budget and needs no CSS transition — so there is nothing for
   // `prefers-reduced-motion` to disable, and no transition classes to assert.
 });
 
