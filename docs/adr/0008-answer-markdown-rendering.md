@@ -154,7 +154,12 @@ types.
 
 ## The renderer
 
-Validated in the prototype; column C in the screenshots is its output.
+Validated in the prototype; column C in the screenshots is its output. It is a **sketch, not the
+shipped code** — it references a `TABLE_LINE` it never defines and describes `Table` in prose. The
+implementation landed in `src/components/chat/answer-prose.tsx` (issue
+[#77](https://github.com/rjwrld/tramitico/issues/77)); read that for what actually runs, and
+[§ What shipped differs](#what-shipped-differs) for the two places it deliberately departs from
+the sketch below.
 
 ```tsx
 /** `**bold**` → `<strong>`; everything else stays a text node. */
@@ -213,6 +218,27 @@ export function AnswerProse({ text }: { text: string }) {
 
 `Table` splits `|`-delimited rows, drops the `|---|` rule row, and renders `<thead>/<tbody>` with
 Geist Mono + `tabular-nums` on the body.
+
+### What shipped differs
+
+Two departures, both made in #77 and both narrowing what the sketch does rather than adding to it.
+Column C's output is unchanged: the captured answers put every construct in its own block with
+balanced delimiters, so neither case fires on them.
+
+1. **Blocks are classified per line, not as a whole.** The sketch asks `lines.every(startsWith("- "))`
+   and counts table lines across the whole block, so a block that mixes kinds falls through to the
+   paragraph branch. On `"Los tramos:\n| Tramo | Tarifa |\n| --- | --- |\n| ¢0 | 0% |"` that drops
+   the lead-in sentence (the table branch keeps only the `|` lines), and on
+   `"## Requisitos\n- Uno\n- Dos"` it renders literal `- ` markers. The shipped renderer classifies
+   each line, merges neighbouring runs of the same kind, and renders each run — so a lead-in or a
+   heading sharing a block with the list or table below it still comes out right. A lone `| … |`
+   line still needs a neighbour to count as a table.
+2. **Only closed `**` pairs bold.** The sketch's `inline()` wraps every odd-indexed part, so a
+   single unmatched delimiter carries `font-medium` to the end of the segment — including a run
+   still in flight mid-stream. #77's test list rules that out ("an odd number of `**` in a block
+   does not swallow the rest of the paragraph"), so the shipped `inline()` leaves an unclosed
+   trailing run as plain text. The delimiter is dropped either way; a half-open run reads as prose
+   until it closes, rather than weight that spreads and then retracts.
 
 ## Consequences
 
