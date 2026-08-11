@@ -9,6 +9,7 @@ import {
   type AskUIMessage,
 } from "@/lib/answer/contract";
 import { stripCitationMarkers } from "@/lib/answer/citations";
+import { AnswerProse } from "@/components/chat/answer-prose";
 import { SelloRow } from "@/components/sello";
 
 export const DISCLAIMER =
@@ -21,9 +22,7 @@ export function AnswerBlock({ message }: { message: AskUIMessage }) {
   const citations = citationsFrom(message);
   return (
     <div data-slot="answer" className="flex flex-col gap-4">
-      <div className="max-w-[68ch] text-base leading-[1.7] text-pretty whitespace-pre-wrap">
-        {text}
-      </div>
+      <AnswerProse text={text} />
       <SelloRow citations={citations} />
       {text !== "" && (
         <p className="text-xs text-muted-foreground italic">{DISCLAIMER}</p>

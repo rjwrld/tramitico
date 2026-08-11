@@ -87,6 +87,24 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     // needs the model to emit [n].
     expect(ANSWER_SYSTEM_PROMPT).toContain("[n]");
   });
+
+  it("permits only the three constructs AnswerProse renders (#77)", () => {
+    // The subset: `- ` bullets, **bold**, simple pipe tables.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/viñetas/i);
+    expect(ANSWER_SYSTEM_PROMPT).toContain("**");
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/tablas simples/i);
+    // Headings and markdown links are out; every other construct with them.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/No use títulos/);
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/enlaces/i);
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/Markdown/);
+    // Rule 5 makes the model print bare agency URLs — the formatting rule
+    // must forbid link *syntax*, not URLs.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /direcciones web escríbalas tal cual/i,
+    );
+    // And it must not be readable as overriding rule 2's [n] contract.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/no altera la regla 2/i);
+  });
 });
 
 describe("WEAK_RETRIEVAL_ANSWER", () => {

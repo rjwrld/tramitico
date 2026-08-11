@@ -5,6 +5,7 @@
 
 import { ArrowLeft } from "lucide-react";
 
+import { AnswerProse } from "@/components/chat/answer-prose";
 import { Button } from "@/components/ui/button";
 
 import type { HistoryItem } from "./history-sidebar";
@@ -42,7 +43,9 @@ export function QAView({
       <h1 className="font-serif text-2xl font-semibold tracking-tight">
         {item.question}
       </h1>
-      <p className="text-sm whitespace-pre-wrap">{item.answer}</p>
+      {/* Same prose treatment as the live answer (#77): the snapshot carries
+          the same bullets, bold and tables the model wrote. */}
+      <AnswerProse text={item.answer} />
       {citations.length > 0 && (
         <ul className="flex flex-wrap gap-2">
           {citations.map((label, i) => (
