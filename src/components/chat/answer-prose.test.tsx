@@ -39,6 +39,74 @@ describe("AnswerProse", () => {
     expect(container.textContent).not.toContain("- ");
   });
 
+  it("merges bullets separated by a blank line into one list (#95)", () => {
+    const { container } = render(
+      <AnswerProse
+        text={[
+          "Debe hacer lo siguiente:",
+          "",
+          "- Inscribirse con el D-140",
+          "",
+          "- Emitir factura electrónica",
+          "",
+          "- Presentar el D-104",
+        ].join("\n")}
+      />,
+    );
+
+    expect(container.querySelectorAll("ul")).toHaveLength(1);
+    const list = screen.getByRole("list");
+    const items = within(list).getAllByRole("listitem");
+    expect(items).toHaveLength(3);
+    expect(items.map((li) => li.textContent)).toEqual([
+      "Inscribirse con el D-140",
+      "Emitir factura electrónica",
+      "Presentar el D-104",
+    ]);
+  });
+
+  it("keeps bullets separated by a paragraph in two lists (#95)", () => {
+    const { container } = render(
+      <AnswerProse
+        text={[
+          "- Uno",
+          "",
+          "Algo de contexto entre las dos listas.",
+          "",
+          "- Dos",
+        ].join("\n")}
+      />,
+    );
+
+    const lists = container.querySelectorAll("ul");
+    expect(lists).toHaveLength(2);
+    expect(lists[0].textContent).toBe("Uno");
+    expect(lists[1].textContent).toBe("Dos");
+    // Document order preserved: list, paragraph, list.
+    expect(
+      Array.from(container.querySelectorAll("p, ul")).map((n) => n.tagName),
+    ).toEqual(["UL", "P", "UL"]);
+  });
+
+  it("renders every prefix of a blank-line-separated bullet stream without throwing (#95)", () => {
+    const full = [
+      "Intro:",
+      "",
+      "- Uno",
+      "",
+      "- Dos",
+      "",
+      "- Tres",
+      "",
+      "Cierre.",
+    ].join("\n");
+
+    for (let i = 1; i <= full.length; i++) {
+      const { unmount } = render(<AnswerProse text={full.slice(0, i)} />);
+      unmount();
+    }
+  });
+
   it("gives the list a hanging indent and a muted marker (DESIGN §3)", () => {
     const { container } = render(<AnswerProse text={"- Uno\n- Dos"} />);
 

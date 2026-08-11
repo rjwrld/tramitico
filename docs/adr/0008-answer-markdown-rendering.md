@@ -221,9 +221,10 @@ Geist Mono + `tabular-nums` on the body.
 
 ### What shipped differs
 
-Two departures, both made in #77 and both narrowing what the sketch does rather than adding to it.
-Column C's output is unchanged: the captured answers put every construct in its own block with
-balanced delimiters, so neither case fires on them.
+Three departures. The first two were made in #77 and both narrow what the sketch does rather than
+adding to it — column C's output is unchanged, since the captured answers put every construct in
+its own block with balanced delimiters, so neither case fires on them. The third, made in #95,
+widens what the sketch does: a live run surfaced a case none of the captured answers exercised.
 
 1. **Blocks are classified per line, not as a whole.** The sketch asks `lines.every(startsWith("- "))`
    and counts table lines across the whole block, so a block that mixes kinds falls through to the
@@ -239,6 +240,24 @@ balanced delimiters, so neither case fires on them.
    does not swallow the rest of the paragraph"), so the shipped `inline()` leaves an unclosed
    trailing run as plain text. The delimiter is dropped either way; a half-open run reads as prose
    until it closes, rather than weight that spreads and then retracts.
+3. **Adjacent bullet runs merge across a blank line, and across a block boundary generally.** The
+   model frequently separates bullets with a blank line (issue #95); since blocks split on
+   `\n{2,}` before classification, each blank-line-separated bullet became its own block → its own
+   run → its own single-item `<ul>` — an extra `my-4` gap between items that should sit in one
+   list's rhythm, and "list, 1 item" announced once per bullet instead of "list, N items" once.
+   `mergeAdjacentBulletRuns` runs after the per-block pass and collapses any two
+   consecutive bullet runs in the flattened sequence into one, regardless of which block either
+   came from. This is deliberately more permissive than "a bullet _block_ joins a neighbouring
+   bullet block": on `"Intro:\n- Uno\n\n- Dos"`, block 1 is not all-bullets (it has a lead-in
+   line), but its trailing bullet run still merges with block 2's — the merge operates on runs,
+   not blocks. Only a non-bullet run (text, heading or table) breaks a run of bullets, so bullets
+   on either side of an intervening paragraph still render as two lists. This also heals answers
+   already persisted with blank-line bullets, not just newly streamed ones. Rule 9 of
+   `ANSWER_SYSTEM_PROMPT` also gained a line asking the model not to separate consecutive bullets
+   with a blank line in the first place — formatting-only, but per this ADR's Consequences a
+   prompt rule-9 change nominally calls for a groundedness re-run; that re-run was not run from
+   this change (no local corpus/API access in the fix's environment) and is left to the reviewer's
+   judgment.
 
 ## Consequences
 

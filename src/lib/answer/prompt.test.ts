@@ -105,6 +105,16 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     // And it must not be readable as overriding rule 2's [n] contract.
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/no altera la regla 2/i);
   });
+
+  it("tells the model to keep consecutive bullets on consecutive lines (#95)", () => {
+    // Renderer-side merges blank-line-separated bullets back into one list
+    // (issue #95); this prompt-side rule asks the model not to introduce
+    // the blank line in the first place.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /viñetas consecutivas van en líneas consecutivas/i,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/sin línea en blanco entre ellas/i);
+  });
 });
 
 describe("WEAK_RETRIEVAL_ANSWER", () => {
