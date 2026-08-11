@@ -70,8 +70,8 @@ export function SignInForm() {
     return (
       <div className="flex w-full flex-col gap-4">
         <p className="text-sm text-muted-foreground" role="status">
-          Revise su correo: le enviamos un enlace para entrar. Puede cerrar
-          esta página.
+          Revise su correo: le enviamos un enlace para entrar. Puede cerrar esta
+          página.
         </p>
         <form
           onSubmit={(event) => {
@@ -104,9 +104,7 @@ export function SignInForm() {
             variant="secondary"
             disabled={codeStatus === "verifying" || code.length !== 6}
           >
-            {codeStatus === "verifying" && (
-              <Spinner data-icon="inline-start" />
-            )}
+            {codeStatus === "verifying" && <Spinner data-icon="inline-start" />}
             Confirmar código
           </Button>
           {codeStatus === "error" && (
