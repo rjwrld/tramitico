@@ -53,6 +53,29 @@ pnpm vitest run src/lib/eval/retrieval-hitrate.integration.test.ts
 `RERANK=off` measures the fused-only baseline; the per-case table (pool rank,
 top score) prints with the run.
 
+## Satisfiability guard (issue #111)
+
+`src/lib/eval/dataset-satisfiability.integration.test.ts` asserts every
+expected target is satisfiable by at least one chunk in `public.chunks`, and
+prints the full per-target census. The hit-rate eval cannot catch this: a case
+hits when _any one_ of its targets matches, so a multi-target case can carry a
+permanently unsatisfiable target and stay green forever — measuring the corpus
+gap instead of answer quality. Re-run it after any corpus change.
+
+It needs no embeddings and no retrieval, only the database, so it is far
+cheaper than the hit-rate eval:
+
+```sh
+SUPABASE_URL=http://127.0.0.1:54321 \
+SUPABASE_SERVICE_ROLE_KEY=<service role key> \
+pnpm vitest run src/lib/eval/dataset-satisfiability.integration.test.ts
+```
+
+Its limit is deliberate: an `articulo`-less target passes by construction,
+since it matches any chunk of its document. Whether the document's _text_
+supports the case's claim is the judgement half of #111's sweep, not a
+predicate — that is what the `notes` field records.
+
 ## Groundedness gate (issue #26)
 
 `src/lib/eval/groundedness.integration.test.ts` runs every dataset question

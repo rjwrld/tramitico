@@ -67,7 +67,7 @@ describe.runIf(hasDb)(
         .limit(CHUNK_FETCH_LIMIT);
       if (error) throw new Error(`chunk census query failed: ${error.message}`);
       const chunks: MatchableChunk[] = (data ?? []).map((row) => ({
-        docKey: (row.documents as unknown as { doc_key: string }).doc_key,
+        docKey: row.documents.doc_key,
         articulo: row.articulo,
         path: row.path,
       }));
