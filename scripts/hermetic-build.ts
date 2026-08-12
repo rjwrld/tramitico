@@ -1,9 +1,9 @@
 /**
- * Hermetic-build gate (issue #88). Runs `pnpm build` inside a network
- * namespace with no route off the machine, so a build-time fetch — a font
- * loader, an asset pipeline reaching a CDN, a plugin phoning home — fails on
- * the PR that introduces it rather than on a random future day when the remote
- * host blips.
+ * Hermetic-build gate (issue #88). Runs package.json's build script inside a
+ * network namespace with no route off the machine, so a build-time fetch — a
+ * font loader, an asset pipeline reaching a CDN, a plugin phoning home — fails
+ * on the PR that introduces it rather than on a random future day when the
+ * remote host blips.
  *
  * Loopback stays up on purpose: Turbopack spawns a local PostCSS worker over a
  * socket, and a profile that denies loopback too fails the build for an
