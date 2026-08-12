@@ -75,7 +75,7 @@ export function UserMenu({ email }: { email: string }) {
           <DropdownMenuItem onClick={signOut}>Cerrar sesión</DropdownMenuItem>
           {confirmingDelete ? (
             // Shared inline confirm, same component as the history-item
-            // delete (issue #110): explicit-verb filled destructive confirm
+            // delete (issue #110): explicit-verb tinted destructive confirm
             // per DESIGN §2 red discipline, never a browser confirm(). Copy
             // states plainly what happens; no apology theater (DESIGN §9).
             <ConfirmInline

@@ -1,8 +1,9 @@
 // Inline destructive confirm (issue #110): the one confirm shape shared by
 // the history-item delete and the account delete. DESIGN §2 red discipline —
-// an explicit-verb filled destructive button inside a tinted block, never a
-// browser confirm(). The element is polymorphic via `render` because one call
-// site is a list item and the other sits inside a menu.
+// an explicit-verb button in the tinted `destructive` variant (bg-destructive/10,
+// not the brand red fill), never a browser confirm(). The element is polymorphic
+// via `render` because one call site is a list item and the other sits inside a
+// menu.
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 
