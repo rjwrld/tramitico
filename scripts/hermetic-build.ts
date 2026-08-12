@@ -13,7 +13,9 @@
  * level and runs everywhere in milliseconds; this one is slower, Linux-only,
  * and truthful about vectors nobody has thought of yet. Both are worth having.
  */
-import { execFileSync, spawn } from "node:child_process";
+import { spawn } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 /**
  * What a denied-egress failure looks like from inside the namespace. The first
@@ -92,15 +94,29 @@ function banner(message: string): string {
 }
 
 /**
- * Env the build needs regardless of how it got into the namespace.
- *
- * `verify-deps-before-run` is the load-bearing one: pnpm otherwise compares
- * node_modules against the lockfile before running a script and re-runs
- * `pnpm install` if it doesn't like what it sees. That install is itself a
- * network operation, so it fails inside the namespace and buries the thing we
- * actually wanted to test under a registry error.
+ * The build, without pnpm in the namespace. pnpm compares node_modules against
+ * the lockfile before running any script and re-runs `pnpm install` when it
+ * doesn't like what it sees — an install is a network operation, so it dies
+ * inside the namespace and buries the build we came to test under a registry
+ * error. Running the script's own command with node_modules/.bin on PATH skips
+ * that entirely, and keeps package.json the single source of truth for what
+ * "build" means.
  */
-const BUILD_ENV = { npm_config_verify_deps_before_run: "false" };
+export function buildCommand(): string[] {
+  const packageJson = JSON.parse(
+    readFileSync(join(process.cwd(), "package.json"), "utf8"),
+  ) as { scripts: Record<string, string> };
+  return ["sh", "-c", packageJson.scripts.build];
+}
+
+/** Env every route into the namespace has to restate; see each strategy. */
+export function envArgs(): string[] {
+  const bin = join(process.cwd(), "node_modules", ".bin");
+  return [
+    `HOME=${process.env.HOME ?? ""}`,
+    `PATH=${bin}:${process.env.PATH ?? ""}`,
+  ];
+}
 
 function quote(word: string): string {
   return `'${word.replaceAll("'", `'\\''`)}'`;
@@ -122,17 +138,16 @@ export const STRATEGIES = [
       "-c",
       'ip link set lo up && exec "$0" "$@"',
       "env",
-      ...Object.entries(BUILD_ENV).map(([key, value]) => `${key}=${value}`),
+      ...envArgs(),
       ...command,
     ],
   },
   {
     name: "sudo unshare -n (privileged, build dropped back to the caller)",
     argv: (command: string[]) => {
-      // The outer sudo resets HOME to root's, and `-E` then carries *that*
-      // inward — so pnpm reads /root/.npmrc, gets EACCES, and concludes the
-      // dependency tree is stale. Restate the caller's HOME (and PATH, which
-      // sudoers' secure_path would otherwise win) on the way back down.
+      // The outer sudo resets HOME to root's and `-E` carries *that* inward,
+      // while sudoers' secure_path wins over PATH — so both get restated on
+      // the way back down.
       const inner = [
         "sudo",
         "-n",
@@ -140,9 +155,7 @@ export const STRATEGIES = [
         "-u",
         process.env.USER ?? "runner",
         "env",
-        `HOME=${process.env.HOME ?? ""}`,
-        `PATH=${process.env.PATH ?? ""}`,
-        ...Object.entries(BUILD_ENV).map(([key, value]) => `${key}=${value}`),
+        ...envArgs(),
         ...command,
       ]
         .map(quote)
@@ -208,24 +221,6 @@ async function usableStrategy(): Promise<
   return { refusals };
 }
 
-/**
- * `pnpm` by absolute path. The sudo strategy re-enters through sudo, whose
- * `secure_path` overrides PATH even with `-E` — and on a runner pnpm lives in
- * a setup-action directory injected via GITHUB_PATH. A bare `pnpm` would die
- * with "command not found" inside the namespace, which the classifier would
- * then report as a failure that isn't visibly about the network: exactly the
- * misdirection this gate exists to remove.
- */
-function pnpmPath(): string {
-  try {
-    return execFileSync("sh", ["-c", "command -v pnpm"], {
-      encoding: "utf8",
-    }).trim();
-  } catch {
-    return "pnpm";
-  }
-}
-
 async function main() {
   const chosen = await usableStrategy();
   if ("refusals" in chosen) {
@@ -252,7 +247,7 @@ async function main() {
 
   const { strategy } = chosen;
   process.stderr.write(`hermetic build: egress denied via ${strategy.name}\n`);
-  const build = await run(strategy.argv([pnpmPath(), "build"]), { echo: true });
+  const build = await run(strategy.argv(buildCommand()), { echo: true });
   if (build.code !== 0) {
     process.stderr.write(banner(describeFailure(build.log)));
   }

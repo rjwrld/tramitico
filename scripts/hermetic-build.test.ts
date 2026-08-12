@@ -1,19 +1,21 @@
 import { describe, expect, it } from "vitest";
 import {
   STRATEGIES,
+  buildCommand,
   describeFailure,
+  envArgs,
   networkSignatures,
 } from "./hermetic-build";
 
 /**
- * Both regressions the first CI run caught, pinned so they can't come back.
- * The runner denies unprivileged user namespaces, so the sudo strategy is the
- * one that actually runs — and it is the one whose environment is easy to get
- * wrong, because two nested sudos each reset it.
+ * The regressions CI caught, pinned so they can't come back. The runner denies
+ * unprivileged user namespaces, so the sudo strategy is the one that actually
+ * runs — and it is the one whose environment is easy to get wrong, because two
+ * nested sudos each reset it.
  */
-describe("sandbox strategies", () => {
+describe("the sandboxed command", () => {
   const [userns, privileged] = STRATEGIES.map((strategy) =>
-    strategy.argv(["pnpm", "build"]).join(" "),
+    strategy.argv(buildCommand()).join(" "),
   );
 
   it("brings loopback up on every route in — Turbopack's worker needs it", () => {
@@ -22,15 +24,25 @@ describe("sandbox strategies", () => {
     }
   });
 
-  it("stops pnpm re-installing inside the namespace before it builds", () => {
-    // Left on, the deps check re-runs `pnpm install` — a network operation —
-    // and buries the build we came to test under a registry error.
-    for (const command of [userns, privileged]) {
-      expect(command).toContain("npm_config_verify_deps_before_run=false");
-    }
+  it("runs package.json's own build script, not a second copy of it", () => {
+    expect(buildCommand()).toEqual(["sh", "-c", "next build"]);
   });
 
-  it("restates HOME on the sudo route, which resets it to root's", () => {
+  it("keeps pnpm out of the namespace", () => {
+    // pnpm re-runs `pnpm install` when it thinks node_modules is stale — a
+    // network operation, which dies inside the namespace and buries the build
+    // we came to test under a registry error. (Asserted on the command rather
+    // than the whole argv: an inherited PATH may well name a pnpm directory.)
+    expect(buildCommand().join(" ")).not.toContain("pnpm");
+  });
+
+  it("puts node_modules/.bin on PATH, since that is what replaces pnpm", () => {
+    expect(envArgs()).toContainEqual(
+      expect.stringMatching(/^PATH=.*node_modules\/\.bin:/),
+    );
+  });
+
+  it("restates HOME, which the sudo route otherwise resets to root's", () => {
     expect(privileged).toContain(`HOME=${process.env.HOME}`);
   });
 });
