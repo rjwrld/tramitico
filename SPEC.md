@@ -37,8 +37,15 @@ ask with rate limits, sign-in for history, groundedness eval in CI, deployed on 
 
 The 14-doc list from [corpus-viability research §1](docs/research/corpus-viability.md) — renta +
 IVA laws/reglamentos, Tramos 2026, export-services resolution, comprobantes electrónicos +
-v4.4 spec, CABYS, CCSS BMC decree, Ley 10.363, TRIBU-CR guides. URLs live in that table; the
-ingestion manifest (`corpus/manifest.json`) is the build-time source of truth, seeded from it.
+v4.4 spec, CABYS, CCSS BMC decree, Ley 10.363, TRIBU-CR guides, RTS reglamento. URLs live in
+that table; the ingestion manifest (`corpus/manifest.json`) is the build-time source of truth,
+seeded from it.
+
+Amended by [#108](https://github.com/rjwrld/tramitico/issues/108): the RTS entry is the
+**Reglamento del Régimen de Tributación Simplificada** (Decreto Ejecutivo 43881-H, SINALEVI),
+replacing the Hacienda «requisitos» flyer one-for-one — the count stays 14. The flyer carried
+only thresholds the decree states itself, and its PDF extracted as column-interleaved layout
+noise; the decree is the only source that carries the closed eligible-activity list.
 
 Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3)):
 
