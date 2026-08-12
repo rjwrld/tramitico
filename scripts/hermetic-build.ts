@@ -125,35 +125,52 @@ const STRATEGIES = [
   },
 ];
 
+/**
+ * Always captures; `echo` decides whether it also streams through, so the
+ * build stays watchable in real time while the probes stay quiet — without
+ * throwing away what a failed probe said.
+ */
 function run(
   argv: string[],
-  options: { capture: boolean },
+  options: { echo: boolean },
 ): Promise<{ code: number; log: string }> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const child = spawn(argv[0], argv.slice(1), {
-      stdio: options.capture ? ["inherit", "pipe", "pipe"] : "ignore",
+      stdio: ["inherit", "pipe", "pipe"],
     });
     let log = "";
     for (const stream of [child.stdout, child.stderr]) {
       stream?.on("data", (chunk: Buffer) => {
         log += chunk.toString();
-        process.stderr.write(chunk);
+        if (options.echo) process.stderr.write(chunk);
       });
     }
-    child.on("error", reject);
+    // A missing binary (no `unshare` on macOS) is a probe result, not a crash.
+    child.on("error", (error) => resolve({ code: 1, log: String(error) }));
     child.on("close", (code) => resolve({ code: code ?? 1, log }));
   });
 }
 
-/** A strategy is usable only if it can actually bring loopback up. */
-async function usableStrategy() {
+type Strategy = (typeof STRATEGIES)[number];
+
+/**
+ * The first strategy that can actually bring loopback up, or — when none can —
+ * what each one said when it couldn't. A broken sandbox is the failure mode
+ * most likely to hit first, so its diagnosis has to name a cause too, not just
+ * report that both attempts came back unhappy.
+ */
+async function usableStrategy(): Promise<
+  { strategy: Strategy } | { refusals: string[] }
+> {
+  const refusals: string[] = [];
   for (const strategy of STRATEGIES) {
-    const probe = await run(strategy.argv(["true"]), { capture: false }).catch(
-      () => ({ code: 1, log: "" }),
+    const probe = await run(strategy.argv(["true"]), { echo: false });
+    if (probe.code === 0) return { strategy };
+    refusals.push(
+      `${strategy.name} — exit ${probe.code}: ${probe.log.trim() || "(no output)"}`,
     );
-    if (probe.code === 0) return strategy;
   }
-  return null;
+  return { refusals };
 }
 
 /**
@@ -175,16 +192,20 @@ function pnpmPath(): string {
 }
 
 async function main() {
-  const strategy = await usableStrategy();
-  if (!strategy) {
+  const chosen = await usableStrategy();
+  if ("refusals" in chosen) {
     process.stderr.write(
       banner(
         [
           "cannot sandbox the build — no working network namespace",
           "",
-          "Neither `unshare -rn` nor `sudo unshare -n` could bring up an",
-          "isolated namespace here. This gate is Linux-only by construction;",
-          "on macOS run `pnpm build` and rely on src/app/fonts.test.ts.",
+          "Neither route into an isolated namespace worked. What each said:",
+          ...chosen.refusals.map((refusal) => `  · ${refusal}`),
+          "",
+          "This gate is Linux-only by construction; on macOS run `pnpm build`",
+          "and rely on src/app/fonts.test.ts. On a runner, a refusal here is",
+          "usually an AppArmor policy on unprivileged user namespaces or a",
+          "sudoers entry that isn't passwordless.",
           "",
           "Failing rather than falling back: a gate that silently degrades to",
           "an ordinary build is a gate nobody notices has stopped working.",
@@ -194,10 +215,9 @@ async function main() {
     process.exit(1);
   }
 
+  const { strategy } = chosen;
   process.stderr.write(`hermetic build: egress denied via ${strategy.name}\n`);
-  const build = await run(strategy.argv([pnpmPath(), "build"]), {
-    capture: true,
-  });
+  const build = await run(strategy.argv([pnpmPath(), "build"]), { echo: true });
   if (build.code !== 0) {
     process.stderr.write(banner(describeFailure(build.log)));
   }
