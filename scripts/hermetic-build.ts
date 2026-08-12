@@ -92,12 +92,27 @@ function banner(message: string): string {
 }
 
 /**
+ * Env the build needs regardless of how it got into the namespace.
+ *
+ * `verify-deps-before-run` is the load-bearing one: pnpm otherwise compares
+ * node_modules against the lockfile before running a script and re-runs
+ * `pnpm install` if it doesn't like what it sees. That install is itself a
+ * network operation, so it fails inside the namespace and buries the thing we
+ * actually wanted to test under a registry error.
+ */
+const BUILD_ENV = { npm_config_verify_deps_before_run: "false" };
+
+function quote(word: string): string {
+  return `'${word.replaceAll("'", `'\\''`)}'`;
+}
+
+/**
  * Two ways onto an isolated namespace, tried in order. `unshare -rn` needs
- * unprivileged user namespaces, which a runner's AppArmor policy may deny; the
- * sudo route works where that one doesn't, and hands the build back to the
+ * unprivileged user namespaces, which ubuntu-latest's AppArmor policy denies;
+ * the sudo route works where that one doesn't, and hands the build back to the
  * invoking user so `.next` doesn't end up root-owned.
  */
-const STRATEGIES = [
+export const STRATEGIES = [
   {
     name: "unshare -rn (unprivileged user namespace)",
     argv: (command: string[]) => [
@@ -106,22 +121,42 @@ const STRATEGIES = [
       "sh",
       "-c",
       'ip link set lo up && exec "$0" "$@"',
+      "env",
+      ...Object.entries(BUILD_ENV).map(([key, value]) => `${key}=${value}`),
       ...command,
     ],
   },
   {
     name: "sudo unshare -n (privileged, build dropped back to the caller)",
-    argv: (command: string[]) => [
-      "sudo",
-      "-n",
-      "unshare",
-      "-n",
-      "sh",
-      "-c",
-      'ip link set lo up && exec sudo -n -E -u "$0" "$@"',
-      process.env.USER ?? "runner",
-      ...command,
-    ],
+    argv: (command: string[]) => {
+      // The outer sudo resets HOME to root's, and `-E` then carries *that*
+      // inward — so pnpm reads /root/.npmrc, gets EACCES, and concludes the
+      // dependency tree is stale. Restate the caller's HOME (and PATH, which
+      // sudoers' secure_path would otherwise win) on the way back down.
+      const inner = [
+        "sudo",
+        "-n",
+        "-E",
+        "-u",
+        process.env.USER ?? "runner",
+        "env",
+        `HOME=${process.env.HOME ?? ""}`,
+        `PATH=${process.env.PATH ?? ""}`,
+        ...Object.entries(BUILD_ENV).map(([key, value]) => `${key}=${value}`),
+        ...command,
+      ]
+        .map(quote)
+        .join(" ");
+      return [
+        "sudo",
+        "-n",
+        "unshare",
+        "-n",
+        "sh",
+        "-c",
+        `ip link set lo up && exec ${inner}`,
+      ];
+    },
   },
 ];
 

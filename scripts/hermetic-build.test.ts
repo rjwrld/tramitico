@@ -1,5 +1,39 @@
 import { describe, expect, it } from "vitest";
-import { describeFailure, networkSignatures } from "./hermetic-build";
+import {
+  STRATEGIES,
+  describeFailure,
+  networkSignatures,
+} from "./hermetic-build";
+
+/**
+ * Both regressions the first CI run caught, pinned so they can't come back.
+ * The runner denies unprivileged user namespaces, so the sudo strategy is the
+ * one that actually runs — and it is the one whose environment is easy to get
+ * wrong, because two nested sudos each reset it.
+ */
+describe("sandbox strategies", () => {
+  const [userns, privileged] = STRATEGIES.map((strategy) =>
+    strategy.argv(["pnpm", "build"]).join(" "),
+  );
+
+  it("brings loopback up on every route in — Turbopack's worker needs it", () => {
+    for (const command of [userns, privileged]) {
+      expect(command).toContain("ip link set lo up");
+    }
+  });
+
+  it("stops pnpm re-installing inside the namespace before it builds", () => {
+    // Left on, the deps check re-runs `pnpm install` — a network operation —
+    // and buries the build we came to test under a registry error.
+    for (const command of [userns, privileged]) {
+      expect(command).toContain("npm_config_verify_deps_before_run=false");
+    }
+  });
+
+  it("restates HOME on the sudo route, which resets it to root's", () => {
+    expect(privileged).toContain(`HOME=${process.env.HOME}`);
+  });
+});
 
 /**
  * The gate's whole point is requirement 2 of #88: when a sandboxed build
