@@ -55,8 +55,9 @@ const REPRO = "Reproduce on Linux with: pnpm build:hermetic";
 export function describeFailure(log: string): string {
   const hits = networkSignatures(log);
   const preamble =
-    "This step ran `pnpm build` inside a network namespace with no route off " +
-    "the machine (loopback stays up for Turbopack's PostCSS worker).";
+    "This step ran package.json's build script inside a network namespace " +
+    "with no route off the machine (loopback stays up for Turbopack's " +
+    "PostCSS worker).";
 
   if (hits.length === 0) {
     return [
