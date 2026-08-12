@@ -59,7 +59,7 @@
       "title": "Reglamento del Régimen de Tributación Simplificada",
       "norma": "Decreto Ejecutivo 43881-H",
       "source": { "kind": "sinalevi", "idFichaNorma": 98767 },
-      "notes": "Normative source of the RTS (issue #108). Derogates Decreto 25514-H (1996); SINALEVI vigente text is consolidated with reform 45209-H (vigente 2025-10-13), which widened the activity list from 14 to 22. Key facts: artículo 1 is a CLOSED list of 22 eligible activities — software development and professional services are not among them — and artículo 2 bars entry to anyone carrying on activities outside it; artículo 3 carries the entry thresholds (≤186 salarios base annual purchases, ≤6 people (≤5 for SIEC/Pympa-registered MIPYMES per Ley 10512), a single establishment, ≤350 salarios base fixed assets). Replaces the former `rts-requisitos` Hacienda flyer, whose PDF extraction was column-interleaved layout noise and whose ≤5-employee figure this decree supersedes. idFichaNorma provenance: SINALEVI/SCIJ search → nValor2 98767 (SPEC §3 bridge), content-verified against the 43881-H text before ingestion."
+      "notes": "Key fact: artículo 1 is a closed list of eligible activities (software and professional services absent) and artículo 2 bars entry to anyone with activities outside it — artículo 3 carries the thresholds. Vigente text consolidates reform 45209-H; re-verify the activity list each re-crawl. Rationale, provenance and the replaced `rts-requisitos` flyer: docs/research/corpus-viability.md §1 and issue #108."
     },
     {
       "doc_key": "reglamento-comprobantes",
