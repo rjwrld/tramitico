@@ -8,6 +8,7 @@ import { Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmInline } from "@/components/ui/confirm-inline";
 import {
   Empty,
   EmptyDescription,
@@ -72,33 +73,17 @@ export function HistorySidebar({
         <ul className="flex flex-col gap-1 overflow-y-auto">
           {items.map((item) =>
             confirmingId === item.id ? (
-              <li
+              <ConfirmInline
                 key={item.id}
-                className="flex flex-col gap-2 rounded-lg border border-destructive/30 p-2"
-              >
-                <p className="text-xs text-destructive">
-                  ¿Eliminar esta pregunta del historial?
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="destructive"
-                    size="xs"
-                    onClick={() => {
-                      setConfirmingId(null);
-                      onDelete(item.id);
-                    }}
-                  >
-                    Eliminar
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="xs"
-                    onClick={() => setConfirmingId(null)}
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              </li>
+                render={<li />}
+                prompt="¿Eliminar esta pregunta del historial?"
+                confirmLabel="Eliminar"
+                onConfirm={() => {
+                  setConfirmingId(null);
+                  onDelete(item.id);
+                }}
+                onCancel={() => setConfirmingId(null)}
+              />
             ) : (
               <li key={item.id} className="group/item flex items-center gap-1">
                 <button

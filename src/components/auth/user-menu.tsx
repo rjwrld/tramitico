@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ConfirmInline } from "@/components/ui/confirm-inline";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,35 +74,18 @@ export function UserMenu({ email }: { email: string }) {
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={signOut}>Cerrar sesión</DropdownMenuItem>
           {confirmingDelete ? (
-            // Inline confirm, same pattern as the history-item delete
-            // (history-sidebar.tsx): explicit-verb filled destructive
-            // confirm per DESIGN §2 red discipline, never a browser
-            // confirm(). Copy states plainly what happens; no apology
-            // theater (DESIGN §9).
-            <div className="flex flex-col gap-2 rounded-md border border-destructive/30 p-2">
-              <p className="text-xs text-destructive">
-                Esto elimina su cuenta y todo su historial. No se puede
-                deshacer.
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="destructive"
-                  size="xs"
-                  disabled={deleting}
-                  onClick={() => void deleteAccount()}
-                >
-                  Eliminar cuenta y todo el historial
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  disabled={deleting}
-                  onClick={() => setConfirmingDelete(false)}
-                >
-                  Cancelar
-                </Button>
-              </div>
-            </div>
+            // Shared inline confirm, same component as the history-item
+            // delete (issue #110): explicit-verb tinted destructive confirm
+            // per DESIGN §2 red discipline, never a browser confirm(). Copy
+            // states plainly what happens; no apology theater (DESIGN §9).
+            <ConfirmInline
+              className="rounded-md"
+              prompt="Esto elimina su cuenta y todo su historial. No se puede deshacer."
+              confirmLabel="Eliminar cuenta y todo el historial"
+              disabled={deleting}
+              onConfirm={() => void deleteAccount()}
+              onCancel={() => setConfirmingDelete(false)}
+            />
           ) : (
             <DropdownMenuItem
               variant="destructive"
