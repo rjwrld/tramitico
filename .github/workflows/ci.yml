@@ -34,7 +34,11 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ANSWER_MODEL: ${{ vars.ANSWER_MODEL }}
       - run: pnpm format:check
-      - run: pnpm build
+      # The build runs with egress denied (#88): a build-time fetch — a font
+      # loader, an asset pipeline reaching a CDN, a plugin phoning home — fails
+      # here, on the PR that introduces it, rather than on a random future day.
+      # Same install, same build, so it costs no extra wall-clock.
+      - run: pnpm build:hermetic
 
   e2e:
     runs-on: ubuntu-latest
