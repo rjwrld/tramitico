@@ -9,6 +9,11 @@ import { join } from "node:path";
  * an internal Turbopack module, which points diagnosis in entirely the wrong
  * direction. Fonts now come from the `geist` package and a vendored woff2 under
  * src/app/fonts/; this keeps them there.
+ *
+ * This guard knows only about Google's hosts, which is why #88 added
+ * scripts/hermetic-build.ts: CI builds with egress denied, catching the fetch
+ * vectors nobody has thought of yet. Kept both — this one is fast and runs
+ * locally on any OS, that one is slow, Linux-only, and truthful.
  */
 const REPO_ROOT = join(import.meta.dirname, "..", "..");
 

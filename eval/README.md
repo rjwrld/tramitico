@@ -116,6 +116,13 @@ Measured on a verified-clean corpus (793 chunks / 14 documents / 0 missing
 embeddings, all migrations applied), judge `claude-sonnet-4-5`, all 25 cases
 model-judged — no weak-retrieval short-circuits in any run below:
 
+> **Corpus changed since these runs.** [#108](https://github.com/rjwrld/tramitico/issues/108)
+> swapped the `rts-requisitos` flyer (1 chunk) for `reglamento-rts` (20 chunks) —
+> now **812 chunks / 14 documents / 0 missing embeddings**. The gate was re-run
+> and re-held (≥90%, `claude-sonnet-5`, ~387s) on that corpus; the per-case table
+> was not captured. Treat the rows below as answer-model comparison, not as
+> current-corpus measurements.
+
 | Answer model                | Date       | Groundedness                                    | Eval wall-clock | Notes                                                                                        |
 | --------------------------- | ---------- | ----------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------- |
 | `claude-sonnet-5` (default) | 2026-08-10 | 25/25                                           | ~371s           | gate re-held (≥90%) 2026-08-11 on the amended prompt (#95/#98), ~379s, per-case not captured |

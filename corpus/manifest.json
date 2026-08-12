@@ -55,14 +55,11 @@
       "notes": "Annual churn — verify vigente version each re-crawl; figures only from primary decree."
     },
     {
-      "doc_key": "rts-requisitos",
-      "title": "Requisitos para optar por el Régimen de Tributación Simplificada",
-      "norma": null,
-      "source": {
-        "kind": "hacienda-pdf",
-        "url": "https://www.hacienda.go.cr/docs/RequisitosParaOptarPorElRegimenTributacionSimplificada.pdf"
-      },
-      "notes": "Key fact: liberal professionals are excluded from RTS (common misconception)."
+      "doc_key": "reglamento-rts",
+      "title": "Reglamento del Régimen de Tributación Simplificada",
+      "norma": "Decreto Ejecutivo 43881-H",
+      "source": { "kind": "sinalevi", "idFichaNorma": 98767 },
+      "notes": "Key fact: artículo 1 is a closed list of eligible activities (software and professional services absent) and artículo 2 bars entry to anyone with activities outside it — artículo 3 carries the thresholds. Vigente text consolidates reform 45209-H; re-verify the activity list each re-crawl. Rationale, provenance and the replaced `rts-requisitos` flyer: docs/research/corpus-viability.md §1 and issue #108."
     },
     {
       "doc_key": "reglamento-comprobantes",
