@@ -13,7 +13,7 @@
  * level and runs everywhere in milliseconds; this one is slower, Linux-only,
  * and truthful about vectors nobody has thought of yet. Both are worth having.
  */
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 
 /**
  * What a denied-egress failure looks like from inside the namespace. The first
@@ -156,6 +156,24 @@ async function usableStrategy() {
   return null;
 }
 
+/**
+ * `pnpm` by absolute path. The sudo strategy re-enters through sudo, whose
+ * `secure_path` overrides PATH even with `-E` — and on a runner pnpm lives in
+ * a setup-action directory injected via GITHUB_PATH. A bare `pnpm` would die
+ * with "command not found" inside the namespace, which the classifier would
+ * then report as a failure that isn't visibly about the network: exactly the
+ * misdirection this gate exists to remove.
+ */
+function pnpmPath(): string {
+  try {
+    return execFileSync("sh", ["-c", "command -v pnpm"], {
+      encoding: "utf8",
+    }).trim();
+  } catch {
+    return "pnpm";
+  }
+}
+
 async function main() {
   const strategy = await usableStrategy();
   if (!strategy) {
@@ -177,7 +195,9 @@ async function main() {
   }
 
   process.stderr.write(`hermetic build: egress denied via ${strategy.name}\n`);
-  const build = await run(strategy.argv(["pnpm", "build"]), { capture: true });
+  const build = await run(strategy.argv([pnpmPath(), "build"]), {
+    capture: true,
+  });
   if (build.code !== 0) {
     process.stderr.write(banner(describeFailure(build.log)));
   }
