@@ -81,9 +81,11 @@ on paper. If red appears anywhere else, it's a bug.
 ```
 
 **Red discipline.** Brand red and destructive red share a family by necessity. Disambiguation is
-structural, not chromatic: destructive actions are always a filled button with an explicit verb
-("Eliminar historial") inside a confirm step; the sello/brand red never fills a button except the
-single primary action ("Enviar"). Success/warning use their own hues and never lean on red.
+structural, not chromatic: destructive actions are always a tinted destructive surface
+(`Button variant="destructive"`: `bg-destructive/10` ground, destructive text) with an explicit
+verb ("Eliminar historial") inside a confirm step; red never fills a button except the single
+primary action ("Enviar"), which is the sello/brand red's exclusive fill. Success/warning use
+their own hues and never lean on red.
 
 **Contrast floors (AA):** body text ≥4.5:1 in both themes (ink on white 14.9:1; foreground on dark
 ground ≈11:1). Sello red on white ≈6.3:1 — valid for text. Muted foreground stays ≥4.6:1. Never
