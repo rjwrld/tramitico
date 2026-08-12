@@ -142,7 +142,7 @@ const QUESTIONS: { q: string; targets: Target[]; canary?: boolean }[] = [
   {
     q: "¿Régimen simplificado o tradicional siendo programador?",
     targets: [
-      { docKey: "rts-requisitos" },
+      { docKey: "reglamento-rts" },
       { docKey: "reglamento-renta" },
       { docKey: "ley-iva" },
     ],

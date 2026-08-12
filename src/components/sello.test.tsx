@@ -32,6 +32,18 @@ describe("selloLabel", () => {
     ).toBe("CCSS BMC");
   });
 
+  // ADR 0004 consequence: every manifest doc_key needs a correct stamp label.
+  // `reglamento-rts` arrived with the RTS normative source (issue #108).
+  it("labels the RTS reglamento doc key", () => {
+    expect(
+      selloLabel({
+        ...reglamentoIva,
+        docKey: "reglamento-rts",
+        articulo: "Artículo 1",
+      }),
+    ).toBe("Reglamento RTS · Art. 1");
+  });
+
   it("keeps transitorios and preámbulo unabbreviated", () => {
     expect(selloLabel({ ...reglamentoIva, articulo: "Transitorio II" })).toBe(
       "Reglamento IVA · Transitorio II",
