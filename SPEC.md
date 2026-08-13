@@ -170,8 +170,10 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   **decided: sello chips + streamed data-part snapshots, [ADR 0004](docs/adr/0004-citation-rendering.md)**.
 - **Answer prose: the prompt permits three markdown constructs — `- ` bullets, `**bold**`,
   simple tables — and owned code renders exactly those**, not AI Elements' `Response`/Streamdown
-  ([ADR 0008](docs/adr/0008-answer-markdown-rendering.md)). No HTML, link or URL path exists in
-  the render. AI Elements still supplies the chat scaffolding.
+  ([ADR 0008](docs/adr/0008-answer-markdown-rendering.md)). No HTML or image path exists in the
+  render and no URL is ever derived from model text — the one `href` it emits is the inline
+  citation reference (#133), a same-page fragment to the answer's own sello. AI Elements still
+  supplies the chat scaffolding.
 - Answers in Spanish; chrome/nav/README/demo in English. Citation chips + disclaimer per answer.
 - Signed-in: history sidebar. No other surfaces in MVP.
 

@@ -30,10 +30,19 @@ describe("saveQuestion", () => {
     expect(insert).toHaveBeenCalledWith({
       user_id: "user-1",
       question: "¿Cuánto es el IVA?",
-      // Marker-free prose; the citations still carry the tracker's output.
-      answer: "13%.",
+      // The seal numbering the reader saw, kept so history can render the
+      // same superscripts (#133).
+      answer: "13%[1].",
       citations: INPUT.citations,
     });
+  });
+
+  it("drops a marker with no seal behind it", async () => {
+    const { client: fake, insert } = client();
+    await saveQuestion({ ...INPUT, answer: "13% [1] y algo más [4]." }, fake);
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({ answer: "13%[1] y algo más." }),
+    );
   });
 
   it("logs and swallows insert failures", async () => {

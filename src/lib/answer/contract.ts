@@ -8,7 +8,9 @@
  * - Response: an AI SDK UI message stream. Citations arrive as
  *   `data-citations` parts, each a cumulative snapshot of the deduped
  *   citations in order of use — the UI renders the latest snapshot, so
- *   sellos stamp in as the answer applies them. `data-status` parts report
+ *   sellos stamp in as the answer applies them. `data-markers` carries the
+ *   chunk-index → seal-ordinal map the inline superscripts resolve against
+ *   (#133), written with every citations snapshot. `data-status` parts report
  *   which pipeline stage is running, under the same snapshot rule (#71).
  * - Non-OK responses carry a JSON body `{ error, message }` where `message`
  *   is user-facing Spanish (the 429 carries the rate-limit nudge from #24).
@@ -35,6 +37,14 @@ export type AskStatusStage = "buscando" | "redactando";
 /** Data parts the ask stream may carry alongside text. */
 export type AskDataParts = {
   citations: Citation[];
+  /**
+   * Chunk index → seal ordinal (`MarkerOrdinals`, citations.ts), under the
+   * same cumulative-snapshot rule as `citations`. Without it the client
+   * cannot tell which seal a [n] marker belongs to — several chunks of one
+   * artículo collapse into one seal — so the inline superscripts (#133) would
+   * have nothing to resolve against.
+   */
+  markers: number[];
   status: { stage: AskStatusStage };
 };
 
@@ -42,6 +52,9 @@ export type AskUIMessage = UIMessage<never, AskDataParts>;
 
 /** Stable `data-citations` part id — every write updates the same part. */
 export const CITATIONS_PART_ID = "citations";
+
+/** Stable `data-markers` part id — one part, superseded on every write. */
+export const MARKERS_PART_ID = "markers";
 
 /**
  * Stable `data-status` part id. Same idempotency bargain ADR 0004 struck for
@@ -62,6 +75,15 @@ export function citationsFrom(message: AskUIMessage): Citation[] {
   let latest: Citation[] = [];
   for (const part of message.parts) {
     if (part.type === "data-citations") latest = part.data;
+  }
+  return latest;
+}
+
+/** Latest marker→seal map streamed with the message; [] before any. */
+export function markerOrdinalsFrom(message: AskUIMessage): number[] {
+  let latest: number[] = [];
+  for (const part of message.parts) {
+    if (part.type === "data-markers") latest = part.data;
   }
   return latest;
 }

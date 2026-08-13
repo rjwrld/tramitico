@@ -40,13 +40,18 @@ import {
   ASK_FALLBACK_ERROR_MESSAGE,
   askStreamErrorText,
   CITATIONS_PART_ID,
+  MARKERS_PART_ID,
   RETRIEVAL_FAILED_MESSAGE,
   STATUS_PART_ID,
   type AskErrorCode,
   type AskStatusStage,
   type AskUIMessage,
 } from "@/lib/answer/contract";
-import { createCitationTracker } from "@/lib/answer/citations";
+import {
+  createCitationTracker,
+  renumberCitationMarkers,
+  type CitationTracker,
+} from "@/lib/answer/citations";
 import { getAnswerModel } from "@/lib/answer/model";
 import { saveQuestion } from "@/lib/answer/persist";
 import {
@@ -63,7 +68,7 @@ import {
   subjectForUser,
   type RateLimitResult,
 } from "@/lib/rate-limit";
-import { retrieve, type Citation } from "@/lib/retrieval";
+import { retrieve } from "@/lib/retrieval";
 
 export const maxDuration = 60;
 
@@ -119,11 +124,21 @@ async function anonRateLimit(request: Request): Promise<RateLimitResult> {
 
 type Writer = UIMessageStreamWriter<AskUIMessage>;
 
-function writeCitations(writer: Writer, citations: Citation[]): void {
+/**
+ * One snapshot write: the seals themselves plus the map from the model's [n]
+ * numbering onto them. They move together — a citations snapshot the client
+ * cannot resolve markers against would render seals with no superscripts.
+ */
+function writeCitations(writer: Writer, tracker: CitationTracker): void {
   writer.write({
     type: "data-citations",
     id: CITATIONS_PART_ID,
-    data: citations,
+    data: tracker.used(),
+  });
+  writer.write({
+    type: "data-markers",
+    id: MARKERS_PART_ID,
+    data: tracker.ordinals(),
   });
 }
 
@@ -275,7 +290,7 @@ export async function POST(request: Request): Promise<Response> {
         onChunk: ({ chunk }) => {
           if (chunk.type !== "text-delta") return;
           if (tracker.append(chunk.text).length > 0) {
-            writeCitations(writer, tracker.used());
+            writeCitations(writer, tracker);
           }
         },
         onFinish: async ({ text }) => {
@@ -283,7 +298,11 @@ export async function POST(request: Request): Promise<Response> {
             await saveQuestion({
               userId,
               question: asked,
-              answer: text,
+              // History stores the reader's numbering, not the wire's: the
+              // markers are rewritten to seal ordinals here (#133) so a
+              // restored answer carries its superscripts without needing the
+              // chunk map, which is not persisted.
+              answer: renumberCitationMarkers(text, tracker.ordinals()),
               citations: tracker.used(),
             });
           }

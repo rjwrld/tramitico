@@ -9,6 +9,7 @@ import { ArrowLeft } from "lucide-react";
 import { AnswerProse } from "@/components/chat/answer-prose";
 import { SelloRow } from "@/components/sello";
 import { Button } from "@/components/ui/button";
+import { dropUnbackedMarkers } from "@/lib/answer/citations";
 import { isCitation } from "@/lib/citations";
 
 import type { HistoryItem } from "./history-sidebar";
@@ -39,9 +40,15 @@ export function QAView({
         {item.question}
       </h1>
       {/* Same prose treatment as the live answer (#77): the snapshot carries
-          the same bullets, bold and tables the model wrote. */}
-      <AnswerProse text={item.answer} />
-      <SelloRow citations={citations} />
+          the same bullets, bold and tables the model wrote — and, since #133,
+          its markers already number the sellos, so there is nothing to
+          resolve, only orphans to drop. Rows saved before #133 have no
+          markers at all and simply render without superscripts. */}
+      <AnswerProse
+        text={dropUnbackedMarkers(item.answer, citations.length)}
+        references={{ count: citations.length, anchorPrefix: item.id }}
+      />
+      <SelloRow citations={citations} anchorPrefix={item.id} />
     </article>
   );
 }
