@@ -42,6 +42,76 @@ describe("QAView", () => {
     );
   });
 
+  it("renders the persisted markers as superscripts anchored to the sellos (#133)", () => {
+    render(
+      <QAView
+        item={{
+          ...baseItem,
+          // Persisted answers already carry the sello numbering — the route
+          // renumbers before `saveQuestion` writes.
+          answer: "Sí, debe facturar[1]. Y declarar[2].",
+          citations: [
+            {
+              docKey: "reglamento-iva",
+              docTitle: "Reglamento IVA",
+              norma: null,
+              articulo: "Artículo 11",
+              url: "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=88953",
+            },
+            {
+              docKey: "ley-9635",
+              docTitle: "Ley 9635",
+              norma: null,
+              articulo: "Artículo 4",
+              url: null,
+            },
+          ],
+        }}
+        onBack={vi.fn()}
+      />,
+    );
+
+    const sellos = screen.getAllByRole("listitem");
+    expect(sellos.map((li) => li.id)).toEqual(["q-1-fuente-1", "q-1-fuente-2"]);
+    for (const [i, name] of ["fuente 1", "fuente 2"].entries()) {
+      const href = screen.getByRole("link", { name }).getAttribute("href")!;
+      expect(document.getElementById(href.slice(1))).toBe(sellos[i]);
+    }
+  });
+
+  it("drops a persisted marker no sello backs", () => {
+    render(
+      <QAView
+        item={{
+          ...baseItem,
+          answer: "Sí, debe facturar[1]. Y algo más[2].",
+          citations: [
+            {
+              docKey: "reglamento-iva",
+              docTitle: "Reglamento IVA",
+              norma: null,
+              articulo: "Artículo 11",
+              url: null,
+            },
+          ],
+        }}
+        onBack={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByRole("link", { name: "fuente 2" })).toBeNull();
+    expect(document.body.textContent).toContain("Y algo más.");
+  });
+
+  it("renders a pre-#133 answer with no markers unchanged", () => {
+    render(<QAView item={baseItem} onBack={vi.fn()} />);
+
+    expect(screen.queryByRole("link", { name: /^fuente/ })).toBeNull();
+    expect(
+      screen.getByText("Sí, debe emitir factura electrónica."),
+    ).toBeTruthy();
+  });
+
   it("drops malformed or legacy-shaped citation entries instead of throwing", () => {
     expect(() =>
       render(

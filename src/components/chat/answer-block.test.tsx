@@ -4,6 +4,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { AnswerBlock, DISCLAIMER } from "@/components/chat/answer-block";
 import {
   CITATIONS_PART_ID,
+  MARKERS_PART_ID,
   STATUS_PART_ID,
   type AskUIMessage,
 } from "@/lib/answer/contract";
@@ -19,9 +20,18 @@ const citation: Citation = {
   url: "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=88953",
 };
 
+const otherCitation: Citation = {
+  docKey: "ley-9635",
+  docTitle: "Ley 9635",
+  norma: "Ley 9635",
+  articulo: "Artículo 4",
+  url: "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=1",
+};
+
 function answer(
   text: string,
   citations: Citation[] = [citation],
+  ordinals?: number[],
 ): AskUIMessage {
   return {
     id: "a1",
@@ -29,12 +39,17 @@ function answer(
     parts: [
       { type: "text", text },
       { type: "data-citations", id: CITATIONS_PART_ID, data: citations },
+      ...(ordinals
+        ? ([
+            { type: "data-markers", id: MARKERS_PART_ID, data: ordinals },
+          ] as const)
+        : []),
     ],
   };
 }
 
 describe("AnswerBlock", () => {
-  it("renders the prose without [n] markers, sellos unchanged (#75)", () => {
+  it("drops [n] markers the streamed map cannot resolve (#75)", () => {
     render(
       <AnswerBlock
         message={answer(
@@ -50,6 +65,75 @@ describe("AnswerBlock", () => {
       "href",
       "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=88953",
     );
+  });
+
+  describe("inline references (#133)", () => {
+    // Chunks 6 and 8 are two slices of the same artículo — one sello, so one
+    // superscript number; chunk 1 is the second sello.
+    const ORDINALS = [2, 0, 0, 0, 0, 1, 0, 1];
+    const message = answer(
+      "Están exentos del pago del impuesto [6][8]. La tarifa es 13% [1].",
+      [citation, otherCitation],
+      ORDINALS,
+    );
+
+    it("numbers each claim by the sello it rests on", () => {
+      render(<AnswerBlock message={message} />);
+
+      const prose = document.querySelector('[data-slot="answer"] > div');
+      expect(prose?.textContent).toBe(
+        "Están exentos del pago del impuesto1. La tarifa es 13%2.",
+      );
+      expect(
+        screen
+          .getAllByRole("link", { name: /^fuente/ })
+          .map((l) => l.textContent),
+      ).toEqual(["1", "2"]);
+    });
+
+    it("anchors each superscript to its sello", () => {
+      render(<AnswerBlock message={message} />);
+
+      const sellos = screen.getAllByRole("listitem");
+      expect(sellos.map((li) => li.id)).toEqual(["a1-fuente-1", "a1-fuente-2"]);
+
+      for (const [i, name] of ["fuente 1", "fuente 2"].entries()) {
+        const link = screen.getByRole("link", { name });
+        const href = link.getAttribute("href")!;
+        expect(href).toBe(`#${sellos[i].id}`);
+        // The fragment resolves to the sello, not merely to some element.
+        const target = document.getElementById(href.slice(1));
+        expect(target).toBe(sellos[i]);
+        expect(target!.querySelector('[data-slot="sello"]')).toBeTruthy();
+      }
+    });
+
+    it("leaves the sello itself untouched", () => {
+      render(<AnswerBlock message={message} />);
+
+      expect(
+        screen.getByRole("link", { name: "Reglamento IVA · Art. 11" }),
+      ).toHaveProperty(
+        "href",
+        "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=88953",
+      );
+    });
+
+    it("hides a marker still being typed while the answer streams", () => {
+      render(
+        <AnswerBlock
+          message={answer(
+            "La tarifa es 13% [1",
+            [citation, otherCitation],
+            ORDINALS,
+          )}
+          busy
+        />,
+      );
+
+      const prose = document.querySelector('[data-slot="answer"] > div');
+      expect(prose?.textContent).toBe("La tarifa es 13%");
+    });
   });
 
   it("shows the disclaimer once there is prose", () => {

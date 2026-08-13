@@ -13,11 +13,12 @@
  */
 import {
   citationsFrom,
+  markerOrdinalsFrom,
   messageText,
   statusFrom,
   type AskUIMessage,
 } from "@/lib/answer/contract";
-import { stripCitationMarkers } from "@/lib/answer/citations";
+import { renumberCitationMarkers } from "@/lib/answer/citations";
 import { AnswerProse } from "@/components/chat/answer-prose";
 import { AskStatus, type AskStatusState } from "@/components/chat/ask-status";
 import { SelloRow } from "@/components/sello";
@@ -36,10 +37,19 @@ export function AnswerBlock({
   /** Set once, right after this message's exchange finishes successfully. */
   completionText?: string | null;
 }) {
-  // The [n] markers are the tracker's wire format — sellos are how a citation
-  // shows up here, so the prose renders without them (issue #75).
-  const text = stripCitationMarkers(messageText(message));
+  // The [n] markers are the tracker's wire format, counted over chunks. The
+  // streamed map rewrites them into the sello row's own numbering (#133), so
+  // the prose can carry a superscript per claim and every one of them has a
+  // stamp below to land on; a marker whose source is not (yet) in the
+  // snapshot resolves to nothing and disappears, as it did under #75.
   const citations = citationsFrom(message);
+  const text = renumberCitationMarkers(
+    messageText(message),
+    markerOrdinalsFrom(message),
+    // Mid-stream the tail is whatever the last delta ended on — hide a
+    // bracket run still being typed rather than flash "[1" as prose.
+    { streaming: busy },
+  );
   // The stage label is only ever this message's business while it is both
   // the active one and has no prose yet — the first text delta retires it
   // (req 4), and a historical message never reports a stage at all.
@@ -51,8 +61,11 @@ export function AnswerBlock({
       : null;
   return (
     <div data-slot="answer" className="flex flex-col gap-4" aria-busy={busy}>
-      <AnswerProse text={text} />
-      <SelloRow citations={citations} />
+      <AnswerProse
+        text={text}
+        references={{ count: citations.length, anchorPrefix: message.id }}
+      />
+      <SelloRow citations={citations} anchorPrefix={message.id} />
       {text !== "" && (
         <p className="text-xs text-muted-foreground italic">{DISCLAIMER}</p>
       )}

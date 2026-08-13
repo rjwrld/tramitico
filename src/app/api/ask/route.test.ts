@@ -278,6 +278,11 @@ describe("POST /api/ask", () => {
     expect(citationEvents.length).toBeGreaterThan(0);
     const final = citationEvents.at(-1)!.data as { docKey: string }[];
     expect(final.map((c) => c.docKey)).toEqual(["doc-2", "doc-1"]);
+    // #133: every citations snapshot ships the map the client resolves the
+    // inline superscripts with — [2] is the first sello, [1] the second.
+    const markerEvents = events.filter((e) => e.type === "data-markers");
+    expect(markerEvents).toHaveLength(citationEvents.length);
+    expect(markerEvents.at(-1)!.data).toEqual([2, 1]);
     // Retrieval fetched the rerank pool, not just top-8.
     expect(vi.mocked(retrieve)).toHaveBeenCalledWith("¿Cuánto es el IVA?", {
       matchCount: 40,
@@ -400,7 +405,10 @@ describe("POST /api/ask", () => {
     const saved = vi.mocked(saveQuestion).mock.calls[0][0];
     expect(saved.userId).toBe("user-123");
     expect(saved.question).toBe("¿Cuánto es el IVA?");
-    expect(saved.answer).toContain("13%");
+    // Renumbered to the sello ordering before it is stored, so history can
+    // render the same superscripts (#133).
+    // (mockModel appends a trailing space to every word.)
+    expect(saved.answer).toBe("Aplica el 13%[1]. ");
     expect(saved.citations.map((c) => c.docKey)).toEqual(["doc-1"]);
   });
 

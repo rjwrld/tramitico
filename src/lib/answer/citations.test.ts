@@ -3,7 +3,8 @@ import type { RetrievedChunk } from "../retrieval";
 import {
   chunkCitations,
   createCitationTracker,
-  stripCitationMarkers,
+  identityOrdinals,
+  renumberCitationMarkers,
 } from "./citations";
 
 function chunk(overrides: Partial<RetrievedChunk> = {}): RetrievedChunk {
@@ -123,43 +124,89 @@ describe("createCitationTracker", () => {
   });
 });
 
-describe("stripCitationMarkers", () => {
-  it("removes a single marker with the space before it", () => {
-    expect(stripCitationMarkers("La tarifa es del 13% [1].")).toBe(
+describe("createCitationTracker ordinals", () => {
+  it("maps each chunk index to its seal's 1-based position", () => {
+    const tracker = createCitationTracker(CHUNKS);
+    tracker.append("Primero [3]. Después [1].");
+    // Seals are [ccss-reglamento, ley-9635]; chunks 1 and 2 share an
+    // artículo, so both resolve to the same seal.
+    expect(tracker.ordinals()).toEqual([2, 2, 1]);
+  });
+
+  it("reports 0 for chunks no marker has cited yet", () => {
+    const tracker = createCitationTracker(CHUNKS);
+    expect(tracker.ordinals()).toEqual([0, 0, 0]);
+    tracker.append("Solo esto [1].");
+    expect(tracker.ordinals()).toEqual([1, 1, 0]);
+  });
+});
+
+describe("identityOrdinals", () => {
+  it("maps [n] onto seal n for a persisted answer", () => {
+    expect(identityOrdinals(3)).toEqual([1, 2, 3]);
+    expect(identityOrdinals(0)).toEqual([]);
+  });
+});
+
+describe("renumberCitationMarkers", () => {
+  const ORDINALS = [2, 2, 1];
+
+  it("rewrites a marker to its seal ordinal, eating the space before it", () => {
+    expect(renumberCitationMarkers("La tarifa es del 13% [3].", ORDINALS)).toBe(
+      "La tarifa es del 13%[1].",
+    );
+  });
+
+  it("collapses a run that resolves to one seal", () => {
+    expect(renumberCitationMarkers("están exentos [1][2].", ORDINALS)).toBe(
+      "están exentos[2].",
+    );
+  });
+
+  it("keeps a run of distinct seals in order", () => {
+    expect(renumberCitationMarkers("Ambas cosas [3][1].", ORDINALS)).toBe(
+      "Ambas cosas[1][2].",
+    );
+  });
+
+  it("drops markers with no seal, along with the space before them", () => {
+    expect(
+      renumberCitationMarkers("Aplica el IVA [9] y la renta [3].", ORDINALS),
+    ).toBe("Aplica el IVA y la renta[1].");
+    expect(renumberCitationMarkers("La tarifa es del 13% [1].", [])).toBe(
       "La tarifa es del 13%.",
     );
   });
 
-  it("removes a run of markers", () => {
-    expect(stripCitationMarkers("están exentos del pago [6][8].")).toBe(
-      "están exentos del pago.",
-    );
-  });
-
-  it("leaves one space when the marker sits mid-sentence", () => {
-    expect(
-      stripCitationMarkers("Aplica el IVA [1] y también la renta [2]."),
-    ).toBe("Aplica el IVA y también la renta.");
-  });
-
   it("leaves brackets that are not bare integers intact", () => {
     const text = "Ver [nota] y [12x] y [Artículo 4] y [].";
-    expect(stripCitationMarkers(text)).toBe(text);
+    expect(renumberCitationMarkers(text, ORDINALS)).toBe(text);
   });
 
-  it("is idempotent", () => {
-    const once = stripCitationMarkers("Uno [1] y dos [2][3].");
-    expect(stripCitationMarkers(once)).toBe(once);
+  it("is idempotent under the identity map", () => {
+    const once = renumberCitationMarkers("Uno [3] y dos [1].", ORDINALS);
+    expect(renumberCitationMarkers(once, identityOrdinals(2))).toBe(once);
   });
 
   it("leaves marker-free prose untouched", () => {
     const text = "No encuentro base oficial en los documentos que manejo.";
-    expect(stripCitationMarkers(text)).toBe(text);
+    expect(renumberCitationMarkers(text, ORDINALS)).toBe(text);
   });
 
   it("does not swallow newlines around a marker", () => {
-    expect(stripCitationMarkers("- Punto uno [1]\n- Punto dos [2]")).toBe(
-      "- Punto uno\n- Punto dos",
+    expect(
+      renumberCitationMarkers("- Punto uno [3]\n- Punto dos [1]", ORDINALS),
+    ).toBe("- Punto uno[1]\n- Punto dos[2]");
+  });
+
+  it("hides a half-typed marker while the answer is still streaming", () => {
+    expect(
+      renumberCitationMarkers("La tarifa es del 13% [1", ORDINALS, {
+        streaming: true,
+      }),
+    ).toBe("La tarifa es del 13%");
+    expect(renumberCitationMarkers("La tarifa es del 13% [1", ORDINALS)).toBe(
+      "La tarifa es del 13% [1",
     );
   });
 });
