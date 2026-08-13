@@ -62,6 +62,48 @@ text, so the acta is the ingestible primary source and SINALEVI's copy is not. C
 
 SCIJ document URLs use stable numeric IDs (`nValor2=XXXXX`); domain itself mid-transition pgrweb → sinalevi.
 
+## 4.1 Deep-link audit (issue #134, checked August 2026)
+
+Can a source chip land on the _cited artículo_ instead of the document root?
+Answer per source family, verified against the live sites:
+
+| Family                   | Anchor                                                                            | Verdict                                                                                                                                                              |
+| ------------------------ | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SINALEVI ficha           | `Informacion?param1=<ficha>&param2=<idVersionNorma>&param3=3&param4=<idArticulo>` | **Yes.** `param3=3` is the viewer's artículo mode; the shell writes `param4` into its hidden `idArticulo` input and `MenuNormativa.js` loads that artículo on ready. |
+| PDF with a `pages` range | `#page=<first page>`                                                              | **Yes**, to the section (first page of the range we ingest), not the artículo.                                                                                       |
+| Whole-file PDF           | —                                                                                 | **No** — no artículo→page map, so a `#page=` would be a guess.                                                                                                       |
+| PDF inside a zip         | —                                                                                 | **No** — the browser downloads the zip; no fragment reaches the PDF.                                                                                                 |
+| BCCR CABYS catalog       | —                                                                                 | **No** — search UI, no per-code URL.                                                                                                                                 |
+
+The SINALEVI `idArticulo` is opaque (not the artículo number) and `_BuscarArticulo`
+answers `param4=-1` for our fichas, so the only mapping is the «Ficha Artículo» rail
+appended to the full-text payload: `handleArticuloClick(<numero>, <ficha>, <version>,
+<idArticulo>)`. Ingestion harvests it into `documents.source.articulos`
+(`articuloAnchors`, `src/lib/ingestion/sinalevi.ts`).
+
+Trap: transitorios reuse the artículo numbering and the rail does not distinguish them
+(ficha 99349 labels both «Artículo 2» and its transitorio as «artículo número 2»), so a
+number claimed twice is dropped and that artículo keeps the document root. Coverage
+measured on the vigente versions in August 2026:
+
+| doc_key                   | anchors / rail entries |
+| ------------------------- | ---------------------- |
+| ley-iva                   | 44 / 46                |
+| reglamento-iva            | 51 / 92                |
+| ley-9635                  | 14 / 94                |
+| reglamento-titulo-iv-9635 | 30 / 46                |
+| reglamento-renta          | 96 / 122               |
+| ley-10363                 | 0 / 4                  |
+| ccss-bmc                  | 1 / 1                  |
+| reglamento-rts            | 18 / 18                |
+| reglamento-comprobantes   | 26 / 28                |
+| disposiciones-v44         | 10 / 19                |
+| dgt-export-servicios      | 3 / 3                  |
+
+`ley-10363` is the degenerate case — every one of its four numbers is claimed by both an
+artículo and a transitorio — so it is marked `deepLink: none` in the manifest rather than
+promising an anchor that can never resolve.
+
 ## 5. Pain validation
 
 - **43% of CCSS-registered independent workers are morosos.** [Primera Línea](https://primeralinea.cr/el-espejismo-de-la-independencia-43-de-morosidad-en-la-ccss/)

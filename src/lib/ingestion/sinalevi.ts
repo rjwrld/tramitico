@@ -149,3 +149,31 @@ export async function fetchNorma(
 
   return { idFichaNorma, idVersionNorma, cantidadVersiones, html };
 }
+
+/**
+ * `{ "11": 12 }` — artículo number → the viewer's internal `idArticulo`,
+ * harvested from the "Ficha Artículo" rail SINALEVI appends to the full text
+ * (issue #134). That id is what `Informacion?…&param3=3&param4=<idArticulo>`
+ * opens, and it is the only way to deep-link an artículo: the ids are opaque
+ * (they are not the artículo numbers) and `_BuscarArticulo` answers -1 for our
+ * fichas, so the rail we already fetch is the source of truth.
+ *
+ * A number claimed by more than one anchor is dropped: transitorios reuse the
+ * artículo numbering ("Artículo 2" and "Artículo 2 Transitorio" both label
+ * themselves «artículo número 2» in ficha 99349), and nothing in the rail
+ * distinguishes them — an anchor built from an ambiguous number would silently
+ * land on the wrong text, so those artículos keep the document-root link.
+ */
+export function articuloAnchors(html: string): Record<string, number> {
+  const seen = new Map<string, number | null>();
+  for (const [, numero, , , idArticulo] of html.matchAll(
+    /handleArticuloClick\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/g,
+  )) {
+    // 0 is the "abrir la ficha" sentinel, not an artículo.
+    if (numero === "0" || idArticulo === "0") continue;
+    seen.set(numero, seen.has(numero) ? null : Number(idArticulo));
+  }
+  return Object.fromEntries(
+    [...seen].filter((entry): entry is [string, number] => entry[1] !== null),
+  );
+}
