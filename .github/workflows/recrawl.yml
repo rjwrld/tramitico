@@ -59,10 +59,14 @@ jobs:
           RUN_ID: ${{ github.run_id }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          printf '%s\n\n%s\n' \
+          printf '%s\n\n%s\n\n%s\n' \
             'The scheduled corpus re-crawl (`pnpm ingest`) failed. The corpus keeps its previous version of whatever did not ingest, so answers keep citing stale text until this is fixed.' \
+            'Contract: [SPEC §3](../blob/main/SPEC.md) (quarterly re-crawl) · [ADR 0010](../blob/main/docs/adr/0010-cli-ingestion-authoritative.md).' \
             "Run log: $RUN_URL" > body.md
+          # needs-triage, not build: this is an operational failure a human
+          # classifies, not planned build work (docs/agents/issue-tracker.md
+          # reserves `build` for milestone-carrying spec work).
           gh issue create \
             --title "Recrawl failed — run $RUN_ID" \
-            --label build \
+            --label needs-triage \
             --body-file body.md
