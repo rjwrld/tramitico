@@ -15,6 +15,13 @@ Context: issue [#76](https://github.com/rjwrld/tramitico/issues/76), sibling of
 > renderer still parses no HTML and still derives no URL from model text. What narrowed is the
 > literal claim "no link path exists", which was the _implementation_ of that property, not the
 > property. DESIGN §5 carries the visual contract for the reference.
+>
+> The same issue reverses the other half of [#75](https://github.com/rjwrld/tramitico/issues/75):
+> `questions.answer` stored marker-free text, and now stores the seal-ordinal `[k]` form. History
+> renders from that column alone — no chunk map is persisted — so a stripped answer could never
+> grow the superscripts a live one has. The guarantee #75 was protecting is unchanged and now
+> stated as such: no stored marker resolves to nothing, enforced by `dropUnbackedMarkers` on the
+> write path. Rows written before this carry no markers and render as they always did.
 
 ## Context
 
