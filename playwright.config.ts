@@ -32,6 +32,9 @@ export default defineConfig({
       // that path everywhere, never a real database or model.
       SUPABASE_URL: "",
       SUPABASE_SERVICE_ROLE_KEY: "",
+      // Set (#125) so the fail-closed path under test stays the Supabase one —
+      // a missing subject secret would deny earlier, for a different reason.
+      RATE_LIMIT_SUBJECT_SECRET: "e2e-subject-secret",
     },
   },
 });

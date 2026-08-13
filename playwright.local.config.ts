@@ -51,6 +51,9 @@ export default defineConfig({
       SUPABASE_SERVICE_ROLE_KEY: serviceRoleKey,
       // One anonymous question per day: the second ask is the real 429.
       RATE_LIMIT_ANON: "1",
+      // Required to derive the anonymous subject at all (#125) — without it
+      // both asks would fail closed with a 503 and never reach the counter.
+      RATE_LIMIT_SUBJECT_SECRET: "e2e-local-subject-secret",
       // The first (allowed) ask must terminate keyless and cost-free: stub
       // embeddings keep the embedder local, and an empty Anthropic key makes
       // any model call fail fast instead of spending tokens.
