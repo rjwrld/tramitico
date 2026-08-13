@@ -106,6 +106,18 @@ ANTHROPIC_API_KEY=<key> \
 pnpm vitest run src/lib/eval/groundedness.integration.test.ts
 ```
 
+> **Gate run 2026-08-13 (#135 prompt amendment): 22/25 (88%) — FAIL.** Failing
+> cases: `iva-clientes-fuera-cr`, `ccss-cuanto-pago-base`,
+> `tribu-cr-declarar-pagar`, each a judged over-claim beyond the cited
+> fragments, none conflict-related. **Not caused by the #135 rule.** A/B on the
+> three failing cases, same retrieved chunks, same judge: the amended prompt
+> scored 3/3, `main`'s pre-#135 prompt 2/3 (`ccss-cuanto-pago-base` failed on
+> the baseline and passed on the amendment). The gate has not been re-measured
+> since the CCSS escalas landed (#114) — the corpus these cases read changed
+> under them, and `ccss-cuanto-pago-base` reads exactly the new documents.
+> Needs its own investigation before launch; it is a live gate failure, not
+> noise to wave through.
+
 ### Haiku comparison (SPEC §5)
 
 The Week 3 cost/quality comparison is the same command with
