@@ -83,6 +83,22 @@ describe("ConfirmInline", () => {
     expect(onCancel).not.toHaveBeenCalled();
   });
 
+  it("carries the shared radius token alongside a call-site className (#116)", () => {
+    render(
+      <ConfirmInline
+        className="mt-1"
+        prompt="Esto no se puede deshacer."
+        confirmLabel="Eliminar"
+        onConfirm={noop}
+        onCancel={noop}
+      />,
+    );
+
+    const root = screen.getByText("Esto no se puede deshacer.").parentElement;
+    expect(root?.className).toContain("rounded-lg");
+    expect(root?.className).toContain("mt-1");
+  });
+
   it("renders as the element the call site asks for", () => {
     render(
       <ul>
