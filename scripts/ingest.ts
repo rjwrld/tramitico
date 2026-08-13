@@ -20,6 +20,7 @@ import {
 import { fetchHaciendaPdf } from "../src/lib/ingestion/hacienda";
 import { fetchPdfSource } from "../src/lib/ingestion/pdf";
 import { replaceDocumentChunks } from "../src/lib/ingestion/replace";
+import type { DeepLinkKind } from "../src/lib/retrieval";
 import { articuloAnchors, fetchNorma } from "../src/lib/ingestion/sinalevi";
 
 interface ManifestDoc {
@@ -46,7 +47,7 @@ interface ManifestDoc {
      * (issue #134): `articulo` (SINALEVI artículo view), `page` (`#page=` into
      * a page-ranged PDF) or `none` (document root is the deepest honest link).
      */
-    deepLink: "articulo" | "page" | "none";
+    deepLink: DeepLinkKind;
     /** `sinalevi` only: artículo number → viewer id, harvested at ingestion. */
     articulos?: Record<string, number>;
   };
