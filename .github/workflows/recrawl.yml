@@ -1,0 +1,72 @@
+name: Recrawl
+
+# The quarterly re-crawl of SPEC §3, made real: annual decree churn (tramos,
+# BMC) reaches the corpus only by re-running ingestion. CLI/CI ingestion is the
+# authoritative mechanism — there is no HTTP route (ADR 0010).
+on:
+  schedule:
+    # 06:00 UTC on the 1st of Jan/Apr/Jul/Oct — quarterly, matching the review
+    # cycle #121 asks its accepted risks to be re-examined on.
+    - cron: "0 6 1 1,4,7,10 *"
+  workflow_dispatch:
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # The failure step files an issue: a scheduled workflow's own failure
+      # email reaches one person and is easy to miss.
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # hacienda-pdf sources are extracted by shelling out to pdftotext;
+      # ubuntu-latest does not ship poppler.
+      - run: sudo apt-get update && sudo apt-get install -y poppler-utils
+      # createEmbedder() falls back to the stub provider when
+      # EMBEDDINGS_PROVIDER is unset. Here that is not a skip — it would upsert
+      # meaningless vectors over a working corpus — so refuse before writing.
+      # (Missing Supabase credentials already throw inside the script.)
+      - name: Require a real embedding provider
+        env:
+          EMBEDDINGS_PROVIDER: ${{ vars.EMBEDDINGS_PROVIDER }}
+        run: |
+          if [ -z "$EMBEDDINGS_PROVIDER" ] || [ "$EMBEDDINGS_PROVIDER" = "stub" ]; then
+            echo "EMBEDDINGS_PROVIDER is unset or 'stub' — refusing to write stub embeddings." >&2
+            exit 1
+          fi
+      - name: pnpm ingest
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          EMBEDDINGS_PROVIDER: ${{ vars.EMBEDDINGS_PROVIDER }}
+          VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: pnpm ingest
+      - name: Report failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          printf '%s\n\n%s\n\n%s\n' \
+            'The scheduled corpus re-crawl (`pnpm ingest`) failed. The corpus keeps its previous version of whatever did not ingest, so answers keep citing stale text until this is fixed.' \
+            'Contract: [SPEC §3](../blob/main/SPEC.md) (quarterly re-crawl) · [ADR 0010](../blob/main/docs/adr/0010-cli-ingestion-authoritative.md).' \
+            "Run log: $RUN_URL" > body.md
+          # needs-triage, not build: this is an operational failure a human
+          # classifies, not planned build work (docs/agents/issue-tracker.md
+          # reserves `build` for milestone-carrying spec work).
+          gh issue create \
+            --title "Recrawl failed — run $RUN_ID" \
+            --label needs-triage \
+            --body-file body.md

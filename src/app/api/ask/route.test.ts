@@ -256,6 +256,9 @@ beforeEach(() => {
   // Reranking defaults on since #25; keep these tests hermetic — a
   // VOYAGE_API_KEY in the developer's shell must not trigger real calls.
   vi.stubEnv("RERANK", "off");
+  // Anonymous asks derive their subject with this key (#125); the default
+  // caller here is anonymous, so without it every test would fail closed.
+  vi.stubEnv("RATE_LIMIT_SUBJECT_SECRET", "test-subject-secret");
 });
 
 describe("POST /api/ask", () => {
@@ -371,6 +374,19 @@ describe("POST /api/ask", () => {
     const body = (await response.json()) as { error: string; message: string };
     expect(body.error).toBe("rate_limit_unavailable");
     expect(body.message).toContain("verificar su límite");
+    expect(vi.mocked(retrieve)).not.toHaveBeenCalled();
+  });
+
+  it("fails closed with 503 when RATE_LIMIT_SUBJECT_SECRET is unset (#125)", async () => {
+    vi.stubEnv("RATE_LIMIT_SUBJECT_SECRET", "");
+    allowRateLimit();
+
+    const response = await POST(askRequest({ question: "¿Cuánto es el IVA?" }));
+    expect(response.status).toBe(503);
+    const body = (await response.json()) as { error: string; message: string };
+    expect(body.error).toBe("rate_limit_unavailable");
+    // The subject is never derived, so the counter is never touched either.
+    expect(vi.mocked(checkRateLimit)).not.toHaveBeenCalled();
     expect(vi.mocked(retrieve)).not.toHaveBeenCalled();
   });
 
