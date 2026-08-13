@@ -13,6 +13,13 @@ export interface Citation {
   norma: string | null;
   articulo: string | null;
   url: string | null;
+  /**
+   * ISO timestamp the corpus last fetched the document (#135), printed under
+   * the stamp as "consultado el …". Optional, not nullable-required: rows
+   * persisted before #135 carry no such key, and `isCitation` filters the
+   * history view — a required field would blank every saved answer.
+   */
+  fetchedAt?: string | null;
 }
 
 /**
@@ -21,7 +28,10 @@ export interface Citation {
  * nothing statically checks that a row read back from `questions.citations`
  * still has this shape. `docKey`/`docTitle` are always strings; `norma`,
  * `articulo`, `url` are nullable per `Citation` — a chunk can lack a norma
- * label, an artículo, or a resolvable citation URL.
+ * label, an artículo, or a resolvable citation URL. `fetchedAt` (#135) is
+ * checked only when present: it postdates the rows already in `questions`,
+ * and a row saved without it is still a valid citation — it simply has no
+ * date to print under its stamp.
  */
 export function isCitation(value: unknown): value is Citation {
   if (typeof value !== "object" || value === null) return false;
@@ -31,7 +41,10 @@ export function isCitation(value: unknown): value is Citation {
     typeof v.docTitle === "string" &&
     (typeof v.norma === "string" || v.norma === null) &&
     (typeof v.articulo === "string" || v.articulo === null) &&
-    (typeof v.url === "string" || v.url === null)
+    (typeof v.url === "string" || v.url === null) &&
+    (typeof v.fetchedAt === "string" ||
+      v.fetchedAt === null ||
+      v.fetchedAt === undefined)
   );
 }
 

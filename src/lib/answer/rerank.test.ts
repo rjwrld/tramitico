@@ -13,6 +13,7 @@ function chunk(id: number): RetrievedChunk {
     part: 0,
     content: `contenido ${id}`,
     source: {},
+    fetchedAt: "2026-08-06T15:04:05Z",
     score: 1 / (60 + id),
     vectorRank: id,
     lexicalRank: id,

@@ -185,6 +185,7 @@ export type Database = {
           content: string;
           doc_key: string;
           doc_title: string;
+          fetched_at: string;
           lexical_rank: number;
           norma: string;
           part: number;

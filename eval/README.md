@@ -139,3 +139,36 @@ a clean corpus the gate _does_ see a quality gap, and Sonnet 5 stays the
 default on quality grounds, not just inertia. The 2026-08-06 numbers (7
 questions short-circuited to the deterministic fallback by a polluted corpus)
 should not be quoted.
+
+## Adversarial conflicting-sources case (issue #135)
+
+`src/lib/eval/conflicting-sources.integration.test.ts` is the one case that
+cannot live in `dataset.jsonl`. Its fragments are hand-written
+(`src/lib/eval/conflicting-sources.ts`) and deliberately contradict each other
+on a single figure — two tramos decrees of consecutive years quoting different
+exempt amounts. The corpus does not contradict itself, and dataset targets must
+be verified against the ingested corpus, so no real question can exercise the
+path.
+
+It runs the production answer path from the prompt down (`ANSWER_MODEL` +
+`ANSWER_SYSTEM_PROMPT` + `buildUserPrompt`) and asks a **second** judge — not
+the groundedness one — the adversarial question: does the answer say the
+sources disagree, give both figures, and cite both? The groundedness judge
+cannot catch this, since an answer that quietly picked one figure is still
+fully supported by its fragments. Rule 4 of the answer prompt is what the case
+holds in place; the decision that conflicts are surfaced in answer text rather
+than resolved by structured vigencia extraction is #121's.
+
+Blocking, single case, no rate. It needs no database and no embeddings, so it
+is gated on `ANTHROPIC_API_KEY` alone and runs at the judge cadence alongside
+the groundedness gate:
+
+```sh
+ANTHROPIC_API_KEY=<key> \
+pnpm vitest run src/lib/eval/conflicting-sources.integration.test.ts
+```
+
+Verified 2026-08-13 (answer `claude-sonnet-5`, judge `claude-sonnet-4-5`):
+pass — the answer opens with «Las fuentes discrepan…», names each decree with
+its own figure and marker, and refers the reader to Hacienda for which one
+rules.
