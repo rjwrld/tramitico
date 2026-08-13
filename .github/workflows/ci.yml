@@ -59,6 +59,12 @@ jobs:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      # retrieval.integration.test.ts's `grants` suite reads the legacy
+      # SUPABASE_ANON_KEY rather than the publishable key its siblings use.
+      # Listed here so the lane is satisfiable once #29 lands secrets — under
+      # the old skip-gate it would simply never have run. Collapsing the two
+      # variable names is #29's call, not this issue's.
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
       EMBEDDINGS_PROVIDER: ${{ vars.EMBEDDINGS_PROVIDER }}
       VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
       RERANK: ${{ vars.RERANK }}
