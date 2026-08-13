@@ -1,11 +1,12 @@
 import { existsSync, readFileSync } from "node:fs";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import path from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   checkRateLimit,
   coarseUserAgent,
+  crDate,
   rateLimitReachedMessage,
   RATE_LIMIT_UNAVAILABLE_MESSAGE,
   subjectForAnon,
@@ -26,6 +27,10 @@ function loadDotEnvLocal() {
   }
 }
 loadDotEnvLocal();
+
+// Required in production (#125); the value is irrelevant to every assertion
+// here except the ones that vary it on purpose.
+process.env.RATE_LIMIT_SUBJECT_SECRET ??= "test-subject-secret";
 
 function fakeClient(
   data: { count: number } | null,
@@ -87,23 +92,78 @@ describe("subjectForUser", () => {
   });
 });
 
+describe("crDate", () => {
+  it("rolls to the next date at 06:00 UTC, not at 00:00 UTC", () => {
+    expect(crDate(new Date("2026-08-12T05:59:59Z"))).toBe("2026-08-11");
+    expect(crDate(new Date("2026-08-12T06:00:00Z"))).toBe("2026-08-12");
+  });
+
+  it("keeps a UTC-midnight crossing inside the same CR day", () => {
+    expect(crDate(new Date("2026-08-11T23:59:59Z"))).toBe("2026-08-11");
+    expect(crDate(new Date("2026-08-12T00:00:01Z"))).toBe("2026-08-11");
+  });
+});
+
 describe("subjectForAnon", () => {
   const ua = "Mozilla/5.0 AppleWebKit/537.36 Chrome/120.0 Safari/537.36";
+  const noon = new Date("2026-08-12T18:00:00Z"); // noon in Costa Rica
 
-  it("is stable for the same ip + UA family", () => {
-    expect(subjectForAnon("203.0.113.5", ua)).toBe(
-      subjectForAnon("203.0.113.5", ua),
+  it("is stable for the same ip + UA family within a CR day", () => {
+    expect(subjectForAnon("203.0.113.5", ua, noon)).toBe(
+      subjectForAnon("203.0.113.5", ua, noon),
     );
   });
 
   it("differs across IPs", () => {
-    expect(subjectForAnon("203.0.113.5", ua)).not.toBe(
-      subjectForAnon("203.0.113.6", ua),
+    expect(subjectForAnon("203.0.113.5", ua, noon)).not.toBe(
+      subjectForAnon("203.0.113.6", ua, noon),
     );
   });
 
+  it("differs across CR dates for the same ip + UA", () => {
+    expect(subjectForAnon("203.0.113.5", ua, noon)).not.toBe(
+      subjectForAnon("203.0.113.5", ua, new Date("2026-08-13T18:00:00Z")),
+    );
+  });
+
+  it("holds across UTC midnight — the same CR day is the same subject", () => {
+    expect(
+      subjectForAnon("203.0.113.5", ua, new Date("2026-08-11T23:59:00Z")),
+    ).toBe(subjectForAnon("203.0.113.5", ua, new Date("2026-08-12T00:01:00Z")));
+  });
+
+  it("is not reproducible without the secret — a different secret, a different subject", () => {
+    const saved = process.env.RATE_LIMIT_SUBJECT_SECRET;
+    try {
+      process.env.RATE_LIMIT_SUBJECT_SECRET = "secret-a";
+      const a = subjectForAnon("203.0.113.5", ua, noon);
+      process.env.RATE_LIMIT_SUBJECT_SECRET = "secret-b";
+      const b = subjectForAnon("203.0.113.5", ua, noon);
+      expect(a).not.toBe(b);
+      // Nor is it the unsalted digest anyone could recompute from ip + family.
+      const unsalted = createHash("sha256")
+        .update("203.0.113.5|Chrome")
+        .digest("hex");
+      expect(a).not.toContain(unsalted);
+    } finally {
+      process.env.RATE_LIMIT_SUBJECT_SECRET = saved;
+    }
+  });
+
+  it("throws when the secret is unset — the caller must fail closed", () => {
+    const saved = process.env.RATE_LIMIT_SUBJECT_SECRET;
+    delete process.env.RATE_LIMIT_SUBJECT_SECRET;
+    try {
+      expect(() => subjectForAnon("203.0.113.5", ua, noon)).toThrow(
+        /RATE_LIMIT_SUBJECT_SECRET/,
+      );
+    } finally {
+      process.env.RATE_LIMIT_SUBJECT_SECRET = saved;
+    }
+  });
+
   it("never leaks the raw ip or full UA into the subject", () => {
-    const subject = subjectForAnon("203.0.113.5", ua);
+    const subject = subjectForAnon("203.0.113.5", ua, noon);
     expect(subject).not.toContain("203.0.113.5");
     expect(subject).not.toContain("Chrome");
     expect(subject).toMatch(/^anon:[0-9a-f]{64}$/);
@@ -199,13 +259,75 @@ describe("checkRateLimit — fake client", () => {
     }
   });
 
-  it("resetAt is the next UTC midnight", async () => {
+  it("resetAt is the next Costa Rica midnight — 06:00 UTC", async () => {
     const client = fakeClient({ count: 1 });
     const result = await checkRateLimit("user:1", "authed", client);
-    expect(result.resetAt.getUTCHours()).toBe(0);
+    expect(result.resetAt.getUTCHours()).toBe(6);
     expect(result.resetAt.getUTCMinutes()).toBe(0);
     expect(result.resetAt.getUTCSeconds()).toBe(0);
     expect(result.resetAt.getTime()).toBeGreaterThan(Date.now());
+  });
+});
+
+describe("checkRateLimit — the window is a Costa Rica calendar day", () => {
+  /** Captures the window the RPC was actually asked to increment. */
+  function capturingClient(): {
+    client: RpcClient;
+    windowStarts: string[];
+    cutoffs: string[];
+  } {
+    const windowStarts: string[] = [];
+    const cutoffs: string[] = [];
+    return {
+      windowStarts,
+      cutoffs,
+      client: {
+        rpc: async (_fn, args) => {
+          windowStarts.push(args.p_window_start);
+          cutoffs.push(args.p_cutoff);
+          return { data: { count: 1 }, error: null };
+        },
+      },
+    };
+  }
+
+  it("holds one window across UTC midnight and flips at CR midnight", async () => {
+    const { client, windowStarts } = capturingClient();
+    // 23:59 UTC and 00:01 UTC are the same CR day; 06:01 UTC is the next one.
+    await checkRateLimit(
+      "user:1",
+      "authed",
+      client,
+      new Date("2026-08-11T23:59:00Z"),
+    );
+    await checkRateLimit(
+      "user:1",
+      "authed",
+      client,
+      new Date("2026-08-12T00:01:00Z"),
+    );
+    await checkRateLimit(
+      "user:1",
+      "authed",
+      client,
+      new Date("2026-08-12T06:01:00Z"),
+    );
+    expect(windowStarts[0]).toBe("2026-08-11T06:00:00.000Z");
+    expect(windowStarts[1]).toBe("2026-08-11T06:00:00.000Z");
+    expect(windowStarts[2]).toBe("2026-08-12T06:00:00.000Z");
+  });
+
+  it("applies to the anon tier too, and keeps the cutoff a whole retention window behind", async () => {
+    const { client, windowStarts, cutoffs } = capturingClient();
+    const result = await checkRateLimit(
+      "anon:x",
+      "anon",
+      client,
+      new Date("2026-08-12T05:59:00Z"),
+    );
+    expect(windowStarts[0]).toBe("2026-08-11T06:00:00.000Z");
+    expect(cutoffs[0]).toBe("2026-08-09T06:00:00.000Z");
+    expect(result.resetAt.toISOString()).toBe("2026-08-12T06:00:00.000Z");
   });
 });
 
