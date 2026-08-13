@@ -73,6 +73,12 @@ describe("fetchedLabel", () => {
     );
   });
 
+  it("spells September the way Costa Rica does", () => {
+    expect(fetchedLabel("2026-09-15T12:00:00Z")).toBe(
+      "consultado el 15 set 2026",
+    );
+  });
+
   it("has nothing to say about a document with no fetch date", () => {
     expect(fetchedLabel(null)).toBeNull();
     expect(fetchedLabel(undefined)).toBeNull();

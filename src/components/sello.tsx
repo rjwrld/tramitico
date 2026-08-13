@@ -7,6 +7,7 @@
  * with fade, 180ms ease-out-quart — declared in globals.css and disabled
  * under `prefers-reduced-motion` via `motion-reduce:animate-none`.
  */
+import { CR_UTC_OFFSET_MS } from "@/lib/cr-time";
 import type { Citation } from "@/lib/retrieval";
 import { cn } from "@/lib/utils";
 
@@ -121,22 +122,16 @@ const MONTHS_ES = [
 ];
 
 /**
- * Costa Rica is UTC-6 year-round (no DST since 1992), so the CR calendar is a
- * fixed shift and this needs no timezone database — the same reasoning, and
- * the same offset, `rate-limit.ts` uses for the daily quota (#125). Fixing the
- * zone also makes the caption identical on the server and in the browser,
- * which a locale/TZ-dependent format would not be.
- */
-const CR_UTC_OFFSET_MS = 6 * 60 * 60 * 1000;
-
-/**
  * `consultado el 6 ago 2026` — how current the corpus's copy of a document is
  * (#135). This is the only freshness fact we actually have: `effective_date`
  * is unpopulated and structured vigencia extraction is post-launch (#121), so
  * a source with no `fetched_at` gets no caption rather than an invented one.
  * The month table is spelled out instead of delegated to `Intl` because
  * abbreviated Spanish months drift between ICU versions («ago» vs «ago.»),
- * and this string sits in the trust surface.
+ * and this string sits in the trust surface. The date itself is read on the
+ * Costa Rica calendar — the same fixed shift the daily quota uses (#125) —
+ * so the caption is identical on the server and in the browser, which a
+ * locale/TZ-dependent format would not be.
  */
 export function fetchedLabel(
   fetchedAt: string | null | undefined,
