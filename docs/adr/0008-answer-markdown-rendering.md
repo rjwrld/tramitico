@@ -8,6 +8,14 @@ Context: issue [#76](https://github.com/rjwrld/tramitico/issues/76), sibling of
 > answers captured from the production path overturned it — see [§1](#1-what-the-model-actually-emits).
 > The record of the reversal is kept deliberately: the first pass is why the census exists.
 
+> **Amended 2026-08-12 (issue [#133](https://github.com/rjwrld/tramitico/issues/133)).** The
+> renderer now emits one `<a>`: the inline superscript reference, whose `href` is a same-page
+> `#fragment` built from an id the component itself minted (`selloAnchorId`). The decision below
+> is unchanged and so is the property it bought — see the amended Consequences bullet: the
+> renderer still parses no HTML and still derives no URL from model text. What narrowed is the
+> literal claim "no link path exists", which was the _implementation_ of that property, not the
+> property. DESIGN §5 carries the visual contract for the reference.
+
 ## Context
 
 Answers render as plain text with `whitespace-pre-wrap`
@@ -267,11 +275,13 @@ widens what the sketch does: a live run surfaced a case none of the captured ans
   constraining the model is what keeps the renderer small enough to own.
 - **Headings degrade, they don't break.** The prompt forbids them; the renderer still strips a
   stray `#` run to a quiet lead-in, so an 8%-of-the-time slip never shows a user raw hashes.
-- **No HTML, link, image or URL path exists in the render.** The audit's no-injection-surface
-  property is preserved by construction, not by sanitizer configuration — no props to keep right,
-  no dependency to track.
-- **Links stay the sellos' job** (ADR 0004). Bare URLs in prose render as inert text, as they do
-  today.
+- **No HTML or image path exists in the render, and no URL is ever derived from model text.** The
+  audit's no-injection-surface property is preserved by construction, not by sanitizer
+  configuration — no props to keep right, no dependency to track. Since #133 the renderer emits
+  one `href`, and it is a same-page fragment it built itself from a marker's digits
+  (`selloAnchorId`); marker text cannot reach it, because only the ordinal does.
+- **Links out stay the sellos' job** (ADR 0004). Bare URLs in prose render as inert text, as they
+  do today; the #133 superscript links _to_ a sello, never past it.
 - The screenshot set (~4.7 MB) is the first ADR asset directory in this repo. If this becomes a
   habit, a `.gitattributes`/LFS policy is worth having.
 

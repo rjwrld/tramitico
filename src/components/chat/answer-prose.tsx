@@ -6,8 +6,14 @@
  * No markdown library, no HTML parsing, no URL/link/image handling: every leaf
  * is a React text node, so nothing the model echoes can become markup. The
  * readiness audit's no-injection-surface property holds by construction, not
- * by sanitizer configuration. Links stay the sellos' job (ADR 0004) — bare
- * URLs in prose render as inert text.
+ * by sanitizer configuration. Links *out* stay the sellos' job (ADR 0004) —
+ * bare URLs in prose render as inert text.
+ *
+ * The one exception, and it is not one in substance: the inline citation
+ * reference (#133) renders an `<a>`, but its `href` is a same-page fragment
+ * this file mints from a marker's digits (`selloAnchorId`), never from marker
+ * text. No model output reaches an attribute. ADR 0008's amendment note
+ * records the narrowing.
  *
  * Typography per DESIGN §3/§6: 68ch measure, 1.7 leading, hanging-indent
  * bullets with a marker muted to `--border`, table body in Geist Mono with

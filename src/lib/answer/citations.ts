@@ -5,6 +5,11 @@
  * yields the corresponding citations deduped, in order of first use — that is
  * what the route publishes as the `data-citations` part so the UI can render
  * sellos as they apply.
+ *
+ * It also owns the translation between the two numberings that exist here —
+ * the model's chunk-counting [n] and the sello row's source-counting [k]
+ * (issue #133). Nothing else can do it: only the tracker knows which chunks
+ * collapsed into which seal.
  */
 import {
   citationIdentity,
@@ -61,12 +66,24 @@ export type MarkerOrdinals = readonly number[];
 
 /**
  * The map for an answer whose markers already *are* seal ordinals — a
- * persisted one (`saveQuestion` renumbers before writing). `[k]` resolves to
- * seal k for k ≤ count; anything above has no seal and drops out, which is
- * what keeps a legacy or malformed row from rendering an orphan superscript.
+ * persisted one (`saveQuestion` renumbers before writing).
  */
-export function identityOrdinals(count: number): number[] {
+function identityOrdinals(count: number): number[] {
   return Array.from({ length: count }, (_, i) => i + 1);
+}
+
+/**
+ * An already-numbered answer with the markers no seal backs taken out —
+ * `[k]` survives for k ≤ `sealCount`, anything above is deleted.
+ *
+ * This is not a second numbering scheme: it is `renumberCitationMarkers`
+ * under the identity map, which is all a persisted answer needs, since its
+ * markers were rewritten before it was stored. It is what both stops a
+ * malformed row from rendering an orphan superscript and stops a caller from
+ * persisting raw wire markers as if they were seal ordinals.
+ */
+export function dropUnbackedMarkers(text: string, sealCount: number): string {
+  return renumberCitationMarkers(text, identityOrdinals(sealCount));
 }
 
 /**

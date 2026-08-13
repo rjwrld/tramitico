@@ -3,7 +3,7 @@ import type { RetrievedChunk } from "../retrieval";
 import {
   chunkCitations,
   createCitationTracker,
-  identityOrdinals,
+  dropUnbackedMarkers,
   renumberCitationMarkers,
 } from "./citations";
 
@@ -141,10 +141,17 @@ describe("createCitationTracker ordinals", () => {
   });
 });
 
-describe("identityOrdinals", () => {
-  it("maps [n] onto seal n for a persisted answer", () => {
-    expect(identityOrdinals(3)).toEqual([1, 2, 3]);
-    expect(identityOrdinals(0)).toEqual([]);
+describe("dropUnbackedMarkers", () => {
+  it("keeps the markers a seal backs and deletes the rest", () => {
+    expect(dropUnbackedMarkers("Uno[1], dos[2] y tres[3].", 2)).toBe(
+      "Uno[1], dos[2] y tres.",
+    );
+    expect(dropUnbackedMarkers("Uno[1].", 0)).toBe("Uno.");
+  });
+
+  it("leaves an already-clean answer exactly as it is", () => {
+    const text = "- Punto uno[1]\n- Punto dos[2]";
+    expect(dropUnbackedMarkers(text, 2)).toBe(text);
   });
 });
 
@@ -185,7 +192,7 @@ describe("renumberCitationMarkers", () => {
 
   it("is idempotent under the identity map", () => {
     const once = renumberCitationMarkers("Uno [3] y dos [1].", ORDINALS);
-    expect(renumberCitationMarkers(once, identityOrdinals(2))).toBe(once);
+    expect(dropUnbackedMarkers(once, 2)).toBe(once);
   });
 
   it("leaves marker-free prose untouched", () => {

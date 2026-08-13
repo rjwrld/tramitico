@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it, afterEach } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { AnswerBlock, DISCLAIMER } from "@/components/chat/answer-block";
 import {
   CITATIONS_PART_ID,
@@ -106,6 +106,28 @@ describe("AnswerBlock", () => {
         expect(target).toBe(sellos[i]);
         expect(target!.querySelector('[data-slot="sello"]')).toBeTruthy();
       }
+    });
+
+    it("takes the reader to the sello when a superscript is clicked", () => {
+      render(<AnswerBlock message={message} />);
+
+      const link = screen.getByRole("link", { name: "fuente 2" });
+      const clicked = new MouseEvent("click", {
+        bubbles: true,
+        cancelable: true,
+      });
+      fireEvent(link, clicked);
+
+      // jsdom does not run the fragment navigation itself, so the assertion
+      // is on the two halves that make it happen in a browser: nothing in
+      // our tree cancels the click, and the fragment it would follow
+      // resolves to the sello — which is what the browser scrolls to.
+      expect(clicked.defaultPrevented).toBe(false);
+      const landed = document.getElementById(
+        link.getAttribute("href")!.slice(1),
+      )!;
+      expect(landed).toBe(screen.getAllByRole("listitem")[1]);
+      expect(landed.textContent).toBe("Ley 9635 · Art. 4");
     });
 
     it("leaves the sello itself untouched", () => {

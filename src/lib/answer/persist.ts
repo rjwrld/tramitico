@@ -10,7 +10,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "../database.types";
 import type { Citation } from "../retrieval";
 import { tryServiceClient } from "../supabase/service";
-import { identityOrdinals, renumberCitationMarkers } from "./citations";
+import { dropUnbackedMarkers } from "./citations";
 
 type QuestionInsert = Database["public"]["Tables"]["questions"]["Insert"];
 
@@ -54,15 +54,12 @@ export async function saveQuestion(
     user_id: input.userId,
     question: input.question,
     // History stores what the reader saw, not the wire form. Since #133 that
-    // means seal ordinals: the route has already renumbered, so this is the
-    // identity map — kept as a guard, not a no-op, because it still deletes
-    // any marker with no seal behind it (a caller passing raw [n] text, an
-    // answer citing a chunk that never made the snapshot). No row can carry a
-    // superscript that resolves to nothing.
-    answer: renumberCitationMarkers(
-      input.answer,
-      identityOrdinals(input.citations.length),
-    ),
+    // means seal ordinals — the route renumbers before calling this — so all
+    // that is left here is the guard: any marker with no seal behind it (a
+    // caller passing raw [n] text, an answer citing a chunk that never made
+    // the snapshot) is deleted, and no row can carry a superscript that
+    // resolves to nothing.
+    answer: dropUnbackedMarkers(input.answer, input.citations.length),
     // Citation is a plain {docKey, docTitle, norma, articulo, url} record;
     // the generated Json type just can't see through the interface.
     citations: input.citations as unknown as Json,
