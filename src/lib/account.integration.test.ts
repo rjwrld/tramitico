@@ -17,7 +17,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { Database } from "./database.types";
-import { listQuestions } from "./history";
+import { asHistoryClient, listQuestions } from "./history";
 
 function loadDotEnvLocal() {
   const file = path.resolve(__dirname, "../../.env.local");
@@ -78,12 +78,13 @@ describe.skipIf(!hasDb)("account deletion cascade (issue #86)", () => {
     userA = await signedInUser(admin, `del-a-${randomUUID()}@example.com`);
     userB = await signedInUser(admin, `del-b-${randomUUID()}@example.com`);
 
-    // Seed both users with history through the RLS "insert own rows" path.
+    // Seed both users with history through the service role — since the
+    // least-privilege lockdown (issue #123) it is the only write path.
     for (const [user, label] of [
       [userA, "A"],
       [userB, "B"],
     ] as const) {
-      const { error } = await user.client.from("questions").insert({
+      const { error } = await admin.from("questions").insert({
         user_id: user.id,
         question: `¿Pregunta de ${label}?`,
         answer: `Respuesta de ${label}.`,
@@ -99,8 +100,12 @@ describe.skipIf(!hasDb)("account deletion cascade (issue #86)", () => {
   });
 
   it("deletes the auth user and cascades their questions, leaving user B untouched", async () => {
-    expect(await listQuestions(userA.client)).toHaveLength(1);
-    expect(await listQuestions(userB.client)).toHaveLength(1);
+    expect(await listQuestions(asHistoryClient(admin), userA.id)).toHaveLength(
+      1,
+    );
+    expect(await listQuestions(asHistoryClient(admin), userB.id)).toHaveLength(
+      1,
+    );
 
     // Same call POST /api/account/delete makes.
     const { error } = await admin.auth.admin.deleteUser(userA.id);
@@ -123,7 +128,9 @@ describe.skipIf(!hasDb)("account deletion cascade (issue #86)", () => {
     expect(remainingForA).toEqual([]);
 
     // User B's account and history are untouched.
-    expect(await listQuestions(userB.client)).toHaveLength(1);
+    expect(await listQuestions(asHistoryClient(admin), userB.id)).toHaveLength(
+      1,
+    );
   });
 });
 

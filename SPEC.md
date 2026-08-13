@@ -126,10 +126,15 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
 
 ## 6. API surface (route handlers)
 
-| Route              | Auth     | Purpose                                                     |
-| ------------------ | -------- | ----------------------------------------------------------- |
-| `POST /api/ask`    | optional | question → streamed answer + citations; enforces rate limit |
-| `GET /api/history` | required | user's saved Q&A (RLS)                                      |
+| Route                     | Auth     | Purpose                                                     |
+| ------------------------- | -------- | ----------------------------------------------------------- |
+| `POST /api/ask`           | optional | question → streamed answer + citations; enforces rate limit |
+| `GET /api/history`        | required | user's saved Q&A, scoped to the session's own `user_id`     |
+| `DELETE /api/history/:id` | required | delete one of the session's own saved questions             |
+
+Every route reads and writes the database with `service_role`, server-side only: `anon` and
+`authenticated` hold no privileges on `public` (#123), so no browser or cookie-scoped client
+touches the Data API. Each route takes the user id from the verified session and filters on it.
 
 Ingestion has **no HTTP route**. It runs as `pnpm ingest [doc_key…]` from a developer shell or
 from the scheduled re-crawl workflow (`.github/workflows/recrawl.yml`) — see
@@ -142,7 +147,8 @@ holding the service-role key.
 _(pinned here per #10)_
 
 - Supabase Auth (email + Google/GitHub OAuth — Google added per #84, hedging magic-link
-  email delivery). History table under RLS.
+  email delivery). The history table keeps its per-user RLS policies as defense in depth behind
+  the grant lockdown (#123); the enforced boundary is the routes' `user_id` filter.
 - Same verified email across providers resolves to one `user_id` (Supabase automatic
   linking); unverified-email collisions stay separate accounts by design (#84).
 - **Anonymous: 10 questions/day** per subject = `HMAC-SHA256(RATE_LIMIT_SUBJECT_SECRET,

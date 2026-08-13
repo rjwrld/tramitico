@@ -29,10 +29,22 @@ jobs:
       # groundedness gate) are env-gated: they skip while these secrets are
       # unset and become blocking assertions the moment the production
       # Supabase + Voyage + Anthropic secrets land (#29).
+      #
+      # NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY gates the suites that need a Data
+      # API *client* role, including the #123 lockdown assertions that prove
+      # `anon`/`authenticated` cannot reach `public`. Without it those never
+      # run anywhere but a developer's laptop.
+      #
+      # WARNING, to settle in #29: those suites create and delete auth users
+      # and insert rows in whatever database SUPABASE_URL points at. They need
+      # a dedicated test project — pointing them at production would seed it
+      # with junk users on every PR. #147 replaces this env-gated lane with a
+      # local `supabase start` stack, which removes the question entirely.
       - run: pnpm test
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
           EMBEDDINGS_PROVIDER: ${{ vars.EMBEDDINGS_PROVIDER }}
           VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
           RERANK: ${{ vars.RERANK }}

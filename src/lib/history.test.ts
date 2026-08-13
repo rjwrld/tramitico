@@ -6,6 +6,7 @@ import {
   sessionUserId,
   type HistoryClient,
   type QuestionRow,
+  type SessionClient,
 } from "./history";
 
 type Row = QuestionRow;
@@ -20,9 +21,21 @@ const row = (over: Partial<Row> = {}): Row => ({
   ...over,
 });
 
+function fakeSession(userId: string | null): SessionClient {
+  return {
+    auth: {
+      getClaims: async () =>
+        userId
+          ? { data: { claims: { sub: userId } }, error: null }
+          : { data: null, error: null },
+    },
+  };
+}
+
 // Structural fake for the narrow slice of SupabaseClient that history.ts uses.
+// It records every filter, because under the service role those filters are
+// the whole of the per-user isolation (issue #123).
 function fakeClient(opts: {
-  userId?: string | null;
   rows?: Row[];
   selectError?: { message: string } | null;
   deleteError?: { message: string } | null;
@@ -30,27 +43,35 @@ function fakeClient(opts: {
 }): HistoryClient {
   const calls = opts.calls ?? [];
   return {
-    auth: {
-      getClaims: async () =>
-        opts.userId
-          ? { data: { claims: { sub: opts.userId } }, error: null }
-          : { data: null, error: null },
-    },
     from: () => ({
       select: () => ({
-        order: (column, orderOpts) => {
-          calls.push({ op: "order", column, ...orderOpts });
-          return Promise.resolve(
-            opts.selectError
-              ? { data: null, error: opts.selectError }
-              : { data: opts.rows ?? [], error: null },
-          );
+        eq: (column, value) => {
+          calls.push({ op: "select", column, value });
+          return {
+            order: (orderColumn, orderOpts) => {
+              calls.push({ op: "order", column: orderColumn, ...orderOpts });
+              return Promise.resolve(
+                opts.selectError
+                  ? { data: null, error: opts.selectError }
+                  : { data: opts.rows ?? [], error: null },
+              );
+            },
+          };
         },
       }),
       delete: () => ({
         eq: (column, value) => {
           calls.push({ op: "delete", column, value });
-          return Promise.resolve({ error: opts.deleteError ?? null });
+          return {
+            eq: (ownerColumn, ownerValue) => {
+              calls.push({
+                op: "delete",
+                column: ownerColumn,
+                value: ownerValue,
+              });
+              return Promise.resolve({ error: opts.deleteError ?? null });
+            },
+          };
         },
       }),
     }),
@@ -59,45 +80,51 @@ function fakeClient(opts: {
 
 describe("sessionUserId", () => {
   it("returns the subject claim for a signed-in session", async () => {
-    expect(await sessionUserId(fakeClient({ userId: "user-a" }))).toBe(
-      "user-a",
-    );
+    expect(await sessionUserId(fakeSession("user-a"))).toBe("user-a");
   });
 
   it("returns null when there is no session", async () => {
-    expect(await sessionUserId(fakeClient({ userId: null }))).toBeNull();
+    expect(await sessionUserId(fakeSession(null))).toBeNull();
   });
 });
 
 describe("listQuestions", () => {
-  it("returns rows newest first", async () => {
+  it("returns the owner's rows newest first", async () => {
     const calls: Record<string, unknown>[] = [];
     const rows = [row({ id: "q-2" }), row({ id: "q-1" })];
     await expect(
-      listQuestions(fakeClient({ userId: "user-a", rows, calls })),
+      listQuestions(fakeClient({ rows, calls }), "user-a"),
     ).resolves.toEqual(rows);
     expect(calls).toEqual([
+      { op: "select", column: "user_id", value: "user-a" },
       { op: "order", column: "created_at", ascending: false },
     ]);
   });
 
   it("throws on a database error", async () => {
     await expect(
-      listQuestions(fakeClient({ selectError: { message: "boom" } })),
+      listQuestions(fakeClient({ selectError: { message: "boom" } }), "user-a"),
     ).rejects.toThrow(/boom/);
   });
 });
 
 describe("deleteQuestion", () => {
-  it("deletes by id and relies on RLS for ownership", async () => {
+  it("filters on both the row id and its owner", async () => {
     const calls: Record<string, unknown>[] = [];
-    await deleteQuestion(fakeClient({ userId: "user-a", calls }), "q-9");
-    expect(calls).toEqual([{ op: "delete", column: "id", value: "q-9" }]);
+    await deleteQuestion(fakeClient({ calls }), "q-9", "user-a");
+    expect(calls).toEqual([
+      { op: "delete", column: "id", value: "q-9" },
+      { op: "delete", column: "user_id", value: "user-a" },
+    ]);
   });
 
   it("throws on a database error", async () => {
     await expect(
-      deleteQuestion(fakeClient({ deleteError: { message: "boom" } }), "q-9"),
+      deleteQuestion(
+        fakeClient({ deleteError: { message: "boom" } }),
+        "q-9",
+        "user-a",
+      ),
     ).rejects.toThrow(/boom/);
   });
 });

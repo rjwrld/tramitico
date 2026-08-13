@@ -6,5 +6,8 @@ prototype
 .playwright-mcp
 test-results/
 
+# Local Supabase scratch state (`supabase start` writes generated bundles here)
+supabase/.temp/
+
 # Vendored agent skills (third-party content, managed by `npx skills`)
 .agents/
