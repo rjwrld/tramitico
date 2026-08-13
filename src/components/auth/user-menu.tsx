@@ -79,7 +79,6 @@ export function UserMenu({ email }: { email: string }) {
             // per DESIGN §2 red discipline, never a browser confirm(). Copy
             // states plainly what happens; no apology theater (DESIGN §9).
             <ConfirmInline
-              className="rounded-md"
               prompt="Esto elimina su cuenta y todo su historial. No se puede deshacer."
               confirmLabel="Eliminar cuenta y todo el historial"
               disabled={deleting}

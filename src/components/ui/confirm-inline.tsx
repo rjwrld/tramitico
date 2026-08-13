@@ -4,6 +4,11 @@
 // not the brand red fill), never a browser confirm(). The element is polymorphic
 // via `render` because one call site is a list item and the other sits inside a
 // menu.
+//
+// Radius is the shared `rounded-lg` token (`--radius: 0.25rem`, DESIGN §1's
+// "sharp, document-like") for both call sites — issue #116 retired the
+// menu-side `rounded-md` override. `className` merges for spacing/layout at a
+// call site; it is not a radius escape hatch.
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 

@@ -82,6 +82,21 @@ describe("UserMenu", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("arms the confirm with the shared radius, not a menu-local one (#116)", async () => {
+    render(<UserMenu email="dev@example.com" />);
+    await openMenu();
+
+    await userEvent.click(
+      await screen.findByRole("menuitem", { name: "Eliminar cuenta" }),
+    );
+
+    const confirm = screen.getByText(
+      /Esto elimina su cuenta y todo su historial/,
+    ).parentElement;
+    expect(confirm?.className).toContain("rounded-lg");
+    expect(confirm?.className).not.toContain("rounded-md");
+  });
+
   it("confirm click calls the delete endpoint, signs out, and redirects", async () => {
     fetchMock.mockResolvedValue({ ok: true });
     render(<UserMenu email="dev@example.com" />);
