@@ -176,14 +176,28 @@ const REFUNDS_ASK: Record<AskErrorCode, boolean> = {
   answer_failed: true,
 };
 
+/**
+ * Records that this ask should be given back, without doing it yet. The
+ * failure paths below reach it from places that cannot await — the SDK's
+ * error mappers are synchronous — and a fire-and-forget RPC is not safe here:
+ * a serverless function can freeze the moment the response completes, and an
+ * unawaited refund would silently never land. So the paths only mark the
+ * debt; `POST` settles it in the stream's `onFinish`, which the SDK awaits
+ * inside the response's own flush, while the platform still considers the
+ * request in flight.
+ */
+interface QuotaDebt {
+  owe: () => void;
+}
+
 function writeStreamError(
   writer: Writer,
   code: AskErrorCode,
   message: string,
-  limit: RateLimitResult,
+  quota: QuotaDebt,
 ): void {
   writer.write({ type: "error", errorText: askStreamErrorText(code, message) });
-  if (REFUNDS_ASK[code]) void limit.refund();
+  if (REFUNDS_ASK[code]) quota.owe();
 }
 
 /**
@@ -192,16 +206,15 @@ function writeStreamError(
  * contract's Spanish (audit F-22: without this, the SDK's default
  * "An error occurred." reached the UI in English).
  *
- * `answer_failed` is a system failure, so this refunds too (#126). It is the
- * second door onto the same outcome — `writeStreamError` covers the one
- * failure the route raises itself — and both are safe to reach because
- * `refund()` is once-only. Fire-and-forget by necessity: the SDK's error
- * mappers are synchronous, and the handle never rejects.
+ * `answer_failed` is a system failure, so this owes a refund too (#126). It
+ * is the second door onto the same outcome — `writeStreamError` covers the
+ * one failure the route raises itself — and both are safe to reach: the debt
+ * is a flag, and the handle that settles it is once-only.
  */
-function answerFailed(error: unknown, limit: RateLimitResult): string {
+function answerFailed(error: unknown, quota: QuotaDebt): string {
   console.error(`ask: answer stream failed: ${String(error)}`);
   const code: AskErrorCode = "answer_failed";
-  if (REFUNDS_ASK[code]) void limit.refund();
+  if (REFUNDS_ASK[code]) quota.owe();
   return askStreamErrorText(code, ASK_FALLBACK_ERROR_MESSAGE);
 }
 
@@ -266,6 +279,13 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  let refundOwed = false;
+  const quota: QuotaDebt = {
+    owe: () => {
+      refundOwed = true;
+    },
+  };
+
   const stream = createUIMessageStream<AskUIMessage>({
     execute: async ({ writer }) => {
       // Our own `start` (the merge below runs with `sendStart: false`) so the
@@ -282,7 +302,7 @@ export async function POST(request: Request): Promise<Response> {
           writer,
           "retrieval_failed",
           RETRIEVAL_FAILED_MESSAGE,
-          limit,
+          quota,
         );
         return;
       }
@@ -370,11 +390,19 @@ export async function POST(request: Request): Promise<Response> {
         toUIMessageStream({
           stream: result.stream,
           sendStart: false,
-          onError: (error) => answerFailed(error, limit),
+          onError: (error) => answerFailed(error, quota),
         }),
       );
     },
-    onError: (error) => answerFailed(error, limit),
+    onError: (error) => answerFailed(error, quota),
+    // Where a system failure actually gives the ask back (#126). The SDK
+    // awaits this in the stream's flush, so the RPC completes before the
+    // response does — the one place on this route that is still guaranteed
+    // to run, and still guaranteed to be waited for. `refund()` swallows its
+    // own failures, so a dead limiter cannot truncate a delivered answer.
+    onFinish: async () => {
+      if (refundOwed) await limit.refund();
+    },
   });
   return createUIMessageStreamResponse({ stream });
 }

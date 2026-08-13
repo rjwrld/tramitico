@@ -687,6 +687,39 @@ describe("POST /api/ask", () => {
       spy.mockRestore();
     });
 
+    it("finishes the refund before the response does — not fire-and-forget", async () => {
+      // The refund is an RPC. If the route only kicked it off, a serverless
+      // function could freeze the moment the body ends and the round trip
+      // would never land, silently costing the user the ask this is meant to
+      // return. So the response must not complete until the call has settled.
+      let settled = false;
+      const refund = vi.fn(
+        () =>
+          new Promise<void>((resolve) =>
+            setTimeout(() => {
+              settled = true;
+              resolve();
+            }, 20),
+          ),
+      );
+      vi.mocked(checkRateLimit).mockResolvedValue({
+        allowed: true,
+        remaining: 9,
+        resetAt: new Date(),
+        reason: "ok",
+        message: null,
+        refund,
+      });
+      vi.mocked(retrieve).mockRejectedValue(new Error("pgvector down"));
+      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+      await readEvents(await POST(askRequest({ question: "¿IVA?" })));
+
+      expect(refund).toHaveBeenCalledTimes(1);
+      expect(settled).toBe(true);
+      spy.mockRestore();
+    });
+
     it("does not refund an honest decline — a delivered answer costs quota", async () => {
       const refund = allowRateLimit();
       vi.mocked(retrieve).mockResolvedValue(
