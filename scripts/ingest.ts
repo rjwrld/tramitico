@@ -11,13 +11,14 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
-import { chunkDocument } from "../src/lib/ingestion/chunker";
+import { chunkDocument, type ChunkOptions } from "../src/lib/ingestion/chunker";
 import { createEmbedder } from "../src/lib/ingestion/embedder";
 import {
   htmlToParagraphs,
   textToParagraphs,
 } from "../src/lib/ingestion/extract";
 import { fetchHaciendaPdf } from "../src/lib/ingestion/hacienda";
+import { fetchPdfSource } from "../src/lib/ingestion/pdf";
 import { replaceDocumentChunks } from "../src/lib/ingestion/replace";
 import { fetchNorma } from "../src/lib/ingestion/sinalevi";
 
@@ -26,12 +27,25 @@ interface ManifestDoc {
   title: string;
   norma: string | null;
   source: {
-    kind: "sinalevi" | "hacienda-pdf" | "cabys" | "unresolved";
+    kind: "sinalevi" | "hacienda-pdf" | "pdf" | "cabys" | "unresolved";
     idFichaNorma?: number;
     url?: string;
+    /** `pdf` only: file inside the zip at `url`, when the PDF is zipped. */
+    member?: string;
+    /**
+     * `pdf` only: 1-based inclusive page range, e.g. "165-171". Required for
+     * sources where the primary text is a few pages inside a much larger
+     * compilation (a CCSS acta, a Gaceta alcance) — ingesting the whole file
+     * would bury the norma under hundreds of unrelated chunks.
+     */
+    pages?: string;
     catalog?: string;
     hint?: string;
   };
+  /** ISO date the document's text takes effect (SPEC §3 provenance). */
+  effective_date?: string;
+  /** Chunking overrides for documents with no artículo structure of their own. */
+  chunking?: ChunkOptions;
   notes?: string;
 }
 
@@ -85,7 +99,12 @@ async function main() {
       skipped.push(doc.doc_key);
       continue;
     }
-    const chunks = chunkDocument(doc.doc_key, doc.title, paragraphs);
+    const chunks = chunkDocument(
+      doc.doc_key,
+      doc.title,
+      paragraphs,
+      doc.chunking ?? {},
+    );
     if (chunks.length === 0) {
       throw new Error(`${doc.doc_key}: extraction produced zero chunks`);
     }
@@ -107,6 +126,7 @@ async function main() {
           title: doc.title,
           norma: doc.norma,
           source: doc.source,
+          effective_date: doc.effective_date ?? null,
           fetched_at: new Date().toISOString(),
           embedding_provider: embedder.provider,
           embedding_dim: embedder.dimensions,
@@ -130,6 +150,29 @@ async function main() {
   console.log(`done — ${ingested} ingested, ${skipped.length} skipped`);
 }
 
+/**
+ * Cache the PDF and shell out to pdftotext, honouring `source.pages` so a
+ * multi-hundred-page compilation contributes only the norma we cite.
+ */
+function pdfToText(doc: ManifestDoc, pdf: Buffer): string {
+  const pdfPath = path.join(CACHE, `${doc.doc_key}.pdf`);
+  writeFileSync(pdfPath, pdf);
+  const range: string[] = [];
+  if (doc.source.pages) {
+    const m = doc.source.pages.match(/^(\d+)-(\d+)$/);
+    if (!m) {
+      throw new Error(
+        `${doc.doc_key}: source.pages must be "<first>-<last>", got "${doc.source.pages}"`,
+      );
+    }
+    range.push("-f", m[1], "-l", m[2]);
+  }
+  return execFileSync("pdftotext", ["-layout", ...range, pdfPath, "-"], {
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+  });
+}
+
 async function extract(doc: ManifestDoc): Promise<string[] | null> {
   switch (doc.source.kind) {
     case "sinalevi": {
@@ -146,13 +189,17 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
     }
     case "hacienda-pdf": {
       const pdf = await fetchHaciendaPdf(doc.source.url!);
-      const pdfPath = path.join(CACHE, `${doc.doc_key}.pdf`);
-      writeFileSync(pdfPath, pdf);
-      const text = execFileSync("pdftotext", ["-layout", pdfPath, "-"], {
-        encoding: "utf8",
-        maxBuffer: 64 * 1024 * 1024,
-      });
-      return textToParagraphs(text);
+      return textToParagraphs(pdfToText(doc, pdf));
+    }
+    case "pdf": {
+      const pdf = await fetchPdfSource(
+        { url: doc.source.url!, member: doc.source.member },
+        CACHE,
+      );
+      if (doc.source.pages) {
+        console.log(`  ${doc.doc_key}: pages ${doc.source.pages}`);
+      }
+      return textToParagraphs(pdfToText(doc, pdf));
     }
     case "cabys": {
       const file = path.join(ROOT, "corpus", "cabys-dev.json");

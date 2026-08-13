@@ -47,6 +47,15 @@ replacing the Hacienda «requisitos» flyer one-for-one — the count stays 14. 
 only thresholds the decree states itself, and its PDF extracted as column-interleaved layout
 noise; the decree is the only source that carries the closed eligible-activity list.
 
+Amended by [#114](https://github.com/rjwrld/tramitico/issues/114): **three docs added, count 14 →
+17** — `ccss-escala-salud`, `ccss-escala-ivm` and `salarios-minimos`. The CCSS BMC decree
+(`ccss-bmc`) carries no contribution rates at all: SINALEVI publishes CCSS escala acuerdos as
+raster images, so the escala table never survived into text. The rates exist as text only in the
+CCSS **actas de Junta Directiva** — the Salud escala in acta 8999 and the vigente 2026 IVM escala
+in the ficha técnica annexed to acta 9570 — and the escalas are denominated in _salarios mínimos_,
+so the MTSS wage decree is what turns them into the colón BMC figures. `ccss-bmc` is retained for
+the adjustment mechanism (Acuerdos Segundo–Cuarto), never for a figure.
+
 Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3)):
 
 - **SINALEVI (laws/reglamentos):** 3 calls, all `_BuscarVersionNorma`/`_CargarTextoCompleto` —
@@ -56,6 +65,12 @@ Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3))
   GlobalSign intermediate — verification stays on. **Amended by [ADR 0001](docs/adr/0001-sinalevi-fetch-recipe.md).**
 - **hacienda.go.cr PDFs:** WAF fingerprints the TLS stack — fetch via **Playwright** (or
   curl-impersonate). Plain fetch/curl will never pass.
+- **Public PDFs (CCSS actas, Imprenta Nacional alcances):** no WAF — a browser User-Agent over
+  plain fetch suffices (`kind: "pdf"`). Two shapes the manifest declares: `member` pulls the PDF
+  out of a sesión's anexos zip, and `pages` limits extraction to the norma's own pages so a
+  170-page acta or a 420-page alcance doesn't bury it. Neither has artículo structure of its own —
+  every article-shaped string is a quotation — so they set `chunking.articulo` to the acta artículo
+  the acuerdo was adopted under, which is the honest citable unit ([#114](https://github.com/rjwrld/tramitico/issues/114)).
 - **CABYS:** reference data, not prose — ingest a **curated subset of developer-relevant codes**
   as a structured mini-doc (curated during Week 1 ingestion); full-catalog search is out of scope.
 - Numeric figures (brackets, BMC) come **only from primary decrees** — aggregators disagreed.

@@ -193,3 +193,53 @@ describe("chunkDocument — unstructured document (whole-doc fallback)", () => {
     expect(chunks[0].part).toBe(0);
   });
 });
+
+describe("chunkDocument — manifest-declared label (actas, fichas técnicas)", () => {
+  const acta = [
+    "Artículo 11°. De los ingresos mínimos de referencia y los porcentajes de contribución",
+    "Los ingresos mínimos de referencia serán establecidos por la Junta Directiva…",
+    "1 De 0.9295 SM 2.89% 9.11% 12.00%",
+    "Acuerdo Primero: Establecer la siguiente escala contributiva.",
+  ];
+
+  it("labels every chunk with the declared artículo instead of quoted headings", () => {
+    const chunks = chunkDocument(
+      "ccss-escala-salud",
+      "CCSS — Escala Salud",
+      acta,
+      {
+        articulo: "Artículo 30°, sesión 8999",
+      },
+    );
+
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0].articulo).toBe("Artículo 30°, sesión 8999");
+    expect(chunks[0].path).toEqual([]);
+    expect(chunks[0].content).toContain("2.89%");
+  });
+
+  it("does not segment on the quoted articles it would otherwise split at", () => {
+    const withOverride = chunkDocument("d", "T", acta, {
+      articulo: "Artículo 30°, sesión 8999",
+    });
+    const without = chunkDocument("d", "T", acta);
+
+    expect(without.map((c) => c.articulo)).toContain("Artículo 11");
+    expect(
+      withOverride.every((c) => c.articulo === "Artículo 30°, sesión 8999"),
+    ).toBe(true);
+  });
+
+  it("still sub-splits a long body, keeping the label on every part", () => {
+    const long = ["palabra ".repeat(2500).trim()];
+    const chunks = chunkDocument("d", "T", long, {
+      articulo: "Artículo 4°, sesión 9570",
+    });
+
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(chunks.map((c) => c.part)).toEqual(chunks.map((_, i) => i));
+    expect(new Set(chunks.map((c) => c.articulo))).toEqual(
+      new Set(["Artículo 4°, sesión 9570"]),
+    );
+  });
+});
