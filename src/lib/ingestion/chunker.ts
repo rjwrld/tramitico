@@ -107,11 +107,40 @@ function headerLevel(header: string): number {
   return 2;
 }
 
+export interface ChunkOptions {
+  /**
+   * Stamp every chunk with this label and skip heading segmentation entirely.
+   *
+   * For documents that have no artículo structure of their own — a CCSS acta
+   * de Junta Directiva, a ficha técnica (issue #114) — every article-shaped
+   * string is a *quotation* of some other norma, structurally identical to a
+   * real heading. Segmenting on those invents labels that are wrong as
+   * citations: the vigente Salud escala would be cited as "Artículo 11" (an
+   * article of the Reglamento del Asegurado Voluntario the acta happens to
+   * quote just above the table). The honest citable unit for these documents
+   * is the acta artículo under which the acuerdo was adopted, which only the
+   * manifest knows.
+   */
+  articulo?: string;
+}
+
 export function chunkDocument(
   docKey: string,
   title: string,
   paragraphs: string[],
+  options: ChunkOptions = {},
 ): Chunk[] {
+  if (options.articulo !== undefined) {
+    const header = `[${title} — ${options.articulo}]`;
+    return subsplit(paragraphs.join(" ")).map((part, i) => ({
+      docKey,
+      articulo: options.articulo!,
+      path: [],
+      part: i,
+      content: `${header} ${part}`,
+    }));
+  }
+
   const chunks: Chunk[] = [];
   let current: string[] = [];
   let label: string | null = null;

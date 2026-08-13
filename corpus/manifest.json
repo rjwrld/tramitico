@@ -52,7 +52,45 @@
       "title": "CCSS — Base Mínima Contributiva (decreto)",
       "norma": "Decreto (ver ficha)",
       "source": { "kind": "sinalevi", "idFichaNorma": 87782 },
-      "notes": "Annual churn — verify vigente version each re-crawl; figures only from primary decree."
+      "notes": "Annual churn — verify vigente version each re-crawl; figures only from primary decree. CARRIES NO RATES (#114): the escala contributiva table is a raster image in the SINALEVI payload (image005.png), not markup, so HTML→text extraction cannot recover it — the ingested text jumps from «Establecer la siguiente escala contributiva» to «Notas:». Same for the sibling ficha 82804. The doc is kept for Acuerdos Segundo–Cuarto (how the BMC is adjusted when the minimum wage moves); never cite it for a percentage or a BMC amount — those live in ccss-escala-salud, ccss-escala-ivm and salarios-minimos, ingested from the CCSS actas that transcribe the same tables as text."
+    },
+    {
+      "doc_key": "ccss-escala-ivm",
+      "title": "CCSS — Escala contributiva de trabajadores independientes y asegurados voluntarios, Seguro de IVM",
+      "norma": "Ficha técnica PE-DAE-1179-2025 (acuerdo Junta Directiva, artículo 4°, sesión 9570)",
+      "source": {
+        "kind": "pdf",
+        "url": "https://www.ccss.sa.cr/arc/actas/2025/files/9570-b1201.zip",
+        "member": "DocEnviados6215477---PE-DAE-1179-2025 Ficha Tecnica.pdf"
+      },
+      "effective_date": "2026-01-01",
+      "chunking": { "articulo": "Artículo 4°, sesión 9570" },
+      "notes": "Carries the IVM rates by income bracket (afiliado 4.16–8.42%, conjunta 9.91% + 1.75% Estado como tal = 11.66% global). Brackets are in SM multiples, so they stay correct across wage decrees — resolve colón amounts via salarios-minimos. Adopted verbatim by the Junta Directiva on 2025-12-18 (9 votos en firme) per artículo 33 and Transitorio XI del Reglamento del Seguro de IVM; rige hasta 2028-12-31, next escalón 2029 — re-crawl then. Ingested from the sesión's anexos zip because SINALEVI publishes CCSS escala acuerdos as raster images (#114)."
+    },
+    {
+      "doc_key": "ccss-escala-salud",
+      "title": "CCSS — Escala contributiva de trabajadores independientes y asegurados voluntarios, Seguro de Salud",
+      "norma": "Acuerdo Junta Directiva, artículo 30°, sesión 8999",
+      "source": {
+        "kind": "pdf",
+        "url": "https://www.ccss.sa.cr/arc/actas/2018/11/8999.pdf",
+        "pages": "104-108"
+      },
+      "effective_date": "2018-10-01",
+      "chunking": { "articulo": "Artículo 30°, sesión 8999" },
+      "notes": "Salud rates by income bracket (afiliado 2.89–10.69%, conjunta 12.00% + 0.25% Estado como tal), still vigente — the 2026 adjustment touched IVM only (see ccss-escala-ivm). Same acuerdo SINALEVI carries as an image in ccss-bmc; the acta transcribes the table as text. Page-ranged because the full acta is 170 pages of unrelated Junta Directiva business — re-verify the range if CCSS re-publishes the acta."
+    },
+    {
+      "doc_key": "salarios-minimos",
+      "title": "Fijación de salarios mínimos para el sector privado (vigente 2026)",
+      "norma": "Decreto Ejecutivo 45303-MTSS",
+      "source": {
+        "kind": "pdf",
+        "url": "https://www.imprentanacional.go.cr/pub/2025/12/05/ALCA156_05_12_2025.pdf",
+        "pages": "165-171"
+      },
+      "effective_date": "2026-01-01",
+      "notes": "La Gaceta 229, Alcance 156. Supplies the SM the CCSS escalas are denominated in — Trabajadores en Ocupación No Calificada ¢373.092,30/mes, from which the vigente base mínima contributiva follows: 0.87 SM = ¢324.590 (IVM) and 0.9295 SM = ¢346.789 (SEM), both matching CCSS's published BMC. Annual churn — re-fetch each wage decree; the alcance number and page range change every year."
     },
     {
       "doc_key": "reglamento-rts",
