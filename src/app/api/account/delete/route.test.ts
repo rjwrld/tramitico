@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { HistoryClient } from "@/lib/history";
+import type { SessionClient } from "@/lib/history";
 
-const mockCreateClient = vi.fn<() => Promise<HistoryClient>>();
+const mockCreateClient = vi.fn<() => Promise<SessionClient>>();
 vi.mock("@/lib/supabase/server", () => ({
   createClient: () => mockCreateClient(),
 }));
@@ -14,10 +14,9 @@ vi.mock("@/lib/supabase/service", () => ({
 
 import { POST } from "./route";
 
-// Same structural fake as src/app/api/history/route.test.ts — `from` is
-// unused here (deletion never queries `questions` directly, the CASCADE
-// does), but the type requires it.
-function fakeClient(userId: string | null): HistoryClient {
+// The route only ever asks this client who is signed in — deletion never
+// queries `questions` directly, the CASCADE does.
+function fakeClient(userId: string | null): SessionClient {
   return {
     auth: {
       getClaims: async () =>
@@ -25,10 +24,6 @@ function fakeClient(userId: string | null): HistoryClient {
           ? { data: { claims: { sub: userId } }, error: null }
           : { data: null, error: null },
     },
-    from: () => ({
-      select: () => ({ order: async () => ({ data: [], error: null }) }),
-      delete: () => ({ eq: async () => ({ error: null }) }),
-    }),
   };
 }
 

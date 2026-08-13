@@ -2,15 +2,15 @@
 
 // Signed-in layout: history sidebar + main column. Signed-out renders only the
 // children — the sidebar never mounts and /api/history is never called.
-// Deletes go straight from the browser client to Postgres; RLS scopes them.
+// Deletes go through DELETE /api/history/:id: since the least-privilege
+// lockdown (issue #123) the browser client has no privileges on the table, so
+// the server does the delete under the service role, scoped to the session.
 
 import { PanelLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { deleteQuestion } from "@/lib/history";
-import { createClient } from "@/lib/supabase/client";
 
 import { HistorySidebar, type HistoryItem } from "./history-sidebar";
 import { QAView } from "./qa-view";
@@ -57,7 +57,8 @@ export function HistoryShell({
     setItems(items.filter((item) => item.id !== id));
     if (selected?.id === id) setSelected(null);
     try {
-      await deleteQuestion(createClient(), id);
+      const response = await fetch(`/api/history/${id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error(String(response.status));
     } catch {
       setItems(previous);
       toast.error("No se pudo eliminar la pregunta. Intente de nuevo.");

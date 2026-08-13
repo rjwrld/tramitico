@@ -86,4 +86,60 @@ describe("HistoryShell", () => {
       await screen.findByText("¿Debo facturar electrónicamente?"),
     ).toBeTruthy();
   });
+
+  // Deletes go through the API route since issue #123 — the browser client has
+  // no privileges on `questions`, and the module mock above would throw if
+  // this path still reached for one.
+  async function renderWithOneItem() {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        questions: [
+          {
+            id: "q-1",
+            question: "¿Debo facturar electrónicamente?",
+            answer: "Sí…",
+            citations: [],
+            created_at: "2026-08-01T10:00:00Z",
+          },
+        ],
+      }),
+    });
+    render(
+      <HistoryShell signedIn>
+        <p>contenido principal</p>
+      </HistoryShell>,
+    );
+    await screen.findByText("¿Debo facturar electrónicamente?");
+    const { default: userEvent } = await import("@testing-library/user-event");
+    await userEvent.click(
+      screen.getByRole("button", {
+        name: "Eliminar: ¿Debo facturar electrónicamente?",
+      }),
+    );
+    return userEvent;
+  }
+
+  it("deleting calls DELETE /api/history/:id and drops the row", async () => {
+    const userEvent = await renderWithOneItem();
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ ok: true }) });
+
+    await userEvent.click(screen.getByRole("button", { name: "Eliminar" }));
+
+    expect(fetchMock).toHaveBeenLastCalledWith("/api/history/q-1", {
+      method: "DELETE",
+    });
+    expect(screen.queryByText("¿Debo facturar electrónicamente?")).toBe(null);
+  });
+
+  it("restores the row when the delete request fails", async () => {
+    const userEvent = await renderWithOneItem();
+    fetchMock.mockResolvedValue({ ok: false, status: 500 });
+
+    await userEvent.click(screen.getByRole("button", { name: "Eliminar" }));
+
+    expect(
+      await screen.findByText("¿Debo facturar electrónicamente?"),
+    ).toBeTruthy();
+  });
 });

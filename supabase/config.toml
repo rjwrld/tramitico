@@ -21,7 +21,15 @@ max_rows = 1000
 # without explicit GRANTs. Leave unset today to preserve local behaviour. The implicit default
 # flips to `false` on 2026-05-30 to match the new cloud default, and the field is removed in
 # 2026-10-30 once the always-revoked behaviour is permanent. Set to `false` to opt in early.
-# auto_expose_new_tables = false
+#
+# Issue #123: opted in early. All data access goes through API routes using
+# `service_role`, so a new table must never become reachable by `anon` or
+# `authenticated` just by existing. This is the config-side half of
+# 20260812120000_least_privilege.sql, which revokes that reachability from the
+# objects that already exist. `[api].schemas` still lists `public`: PostgREST
+# serves the service-role calls through it, and the grants — not the schema
+# list — are what close the door on the Data API roles.
+auto_expose_new_tables = false
 
 [api.tls]
 # Enable HTTPS endpoints locally using a self-signed certificate.

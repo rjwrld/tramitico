@@ -1,6 +1,14 @@
 /**
- * RLS proof for per-user history (issue #23): user A cannot read or delete
- * user B's questions, and inserts always land under the session's own id.
+ * Least-privilege proof for per-user history (issues #23, #123).
+ *
+ * Two claims, in order of which lock fails first:
+ *  1. Grants: `anon` and `authenticated` hold no privileges on `public`, so a
+ *     browser client cannot read, insert or delete `questions` — or read
+ *     `chunks` — at all. This is the outer lock; the RLS policies on
+ *     `questions` survive underneath as defense in depth but are unreachable.
+ *  2. Scoping: the service-role path the API routes actually use bypasses RLS,
+ *     so `listQuestions`/`deleteQuestion`'s `user_id` filter is what isolates
+ *     one user's history from another's.
  *
  * Env-gated: skipped wholesale unless SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  * and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY are set (all three come from
@@ -14,7 +22,12 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { Database } from "./database.types";
 import { asQuestionsClient, saveQuestion } from "./answer/persist";
-import { deleteQuestion, listQuestions, sessionUserId } from "./history";
+import {
+  asHistoryClient,
+  deleteQuestion,
+  listQuestions,
+  sessionUserId,
+} from "./history";
 import { parseCitations, type Citation } from "./retrieval";
 
 function loadDotEnvLocal() {
@@ -35,6 +48,11 @@ const hasDb = Boolean(url && serviceRoleKey && publishableKey);
 vi.setConfig({ testTimeout: 30_000 });
 
 type Client = SupabaseClient<Database>;
+
+// Postgres's insufficient_privilege. Asserting the code, not just "some
+// error", is the point: an RLS refusal returns an empty set or 42501-free
+// policy violation, a missing grant returns exactly this.
+const INSUFFICIENT_PRIVILEGE = "42501";
 
 const PASSWORD = `pw-${randomUUID()}`;
 
@@ -64,7 +82,7 @@ async function signedInUser(
   return { client, id: created.user.id };
 }
 
-describe.skipIf(!hasDb)("questions RLS (issue #23)", () => {
+describe.skipIf(!hasDb)("questions least privilege (issues #23, #123)", () => {
   let admin: Client;
   let userA: { client: Client; id: string };
   let userB: { client: Client; id: string };
@@ -77,9 +95,9 @@ describe.skipIf(!hasDb)("questions RLS (issue #23)", () => {
     userA = await signedInUser(admin, `rls-a-${randomUUID()}@example.com`);
     userB = await signedInUser(admin, `rls-b-${randomUUID()}@example.com`);
 
-    // Seed through the RLS "insert own rows" path directly — the production
-    // write path is service-role persist.ts, not this cookie-scoped client.
-    const { data, error } = await userA.client
+    // Seed through the service role — the only write path there is now, and
+    // the same one persist.ts uses in production.
+    const { data, error } = await admin
       .from("questions")
       .insert({
         user_id: userA.id,
@@ -101,41 +119,74 @@ describe.skipIf(!hasDb)("questions RLS (issue #23)", () => {
     if (userB) await admin.auth.admin.deleteUser(userB.id);
   });
 
-  it("saves under the session's own user id", async () => {
+  it("still reads the session's id from the cookie-scoped client", async () => {
     expect(await sessionUserId(userA.client)).toBe(userA.id);
-    const rows = await listQuestions(userA.client);
+  });
+
+  it("lists only the requested owner's rows under the service role", async () => {
+    const rows = await listQuestions(asHistoryClient(admin), userA.id);
     expect(rows.map((r) => r.id)).toContain(savedId);
     expect(rows.every((r) => r.user_id === userA.id)).toBe(true);
+    expect(await listQuestions(asHistoryClient(admin), userB.id)).toEqual([]);
   });
 
-  it("user B cannot read user A's questions", async () => {
-    expect(await listQuestions(userB.client)).toEqual([]);
-  });
-
-  it("user B cannot delete user A's question", async () => {
-    await deleteQuestion(userB.client, savedId);
-    const stillThere = await listQuestions(userA.client);
+  it("does not delete a row whose owner does not match", async () => {
+    await deleteQuestion(asHistoryClient(admin), savedId, userB.id);
+    const stillThere = await listQuestions(asHistoryClient(admin), userA.id);
     expect(stillThere.map((r) => r.id)).toContain(savedId);
   });
 
-  it("user B cannot forge a row under user A's id", async () => {
-    const { error } = await userB.client.from("questions").insert({
-      user_id: userA.id,
-      question: "forjada",
-      answer: "forjada",
-    });
-    expect(error).not.toBeNull();
+  it("denies a signed-in browser client every operation on questions", async () => {
+    const { error: selectError } = await userA.client
+      .from("questions")
+      .select("*");
+    expect(selectError?.code).toBe(INSUFFICIENT_PRIVILEGE);
+
+    const { error: insertError } = await userA.client
+      .from("questions")
+      .insert({ user_id: userA.id, question: "q", answer: "a" });
+    expect(insertError?.code).toBe(INSUFFICIENT_PRIVILEGE);
+
+    const { error: deleteError } = await userA.client
+      .from("questions")
+      .delete()
+      .eq("id", savedId);
+    expect(deleteError?.code).toBe(INSUFFICIENT_PRIVILEGE);
   });
 
-  it("anonymous sessions cannot insert and read nothing", async () => {
+  it("denies an anonymous client every operation on questions", async () => {
     const anon = anonClient();
-    const { error } = await anon.from("questions").insert({
-      user_id: userA.id,
-      question: "q",
-      answer: "a",
-    });
-    expect(error).not.toBeNull();
-    expect(await listQuestions(anon)).toEqual([]);
+
+    const { error: selectError } = await anon.from("questions").select("*");
+    expect(selectError?.code).toBe(INSUFFICIENT_PRIVILEGE);
+
+    const { error: insertError } = await anon
+      .from("questions")
+      .insert({ user_id: userA.id, question: "q", answer: "a" });
+    expect(insertError?.code).toBe(INSUFFICIENT_PRIVILEGE);
+  });
+
+  it("denies both roles any read of the corpus tables", async () => {
+    for (const client of [anonClient(), userA.client]) {
+      const { error: chunksError } = await client.from("chunks").select("id");
+      expect(chunksError?.code).toBe(INSUFFICIENT_PRIVILEGE);
+
+      const { error: documentsError } = await client
+        .from("documents")
+        .select("id");
+      expect(documentsError?.code).toBe(INSUFFICIENT_PRIVILEGE);
+    }
+  });
+
+  it("denies both roles the service-role RPCs", async () => {
+    for (const client of [anonClient(), userA.client]) {
+      const { error } = await client.rpc("rate_limit_increment", {
+        p_subject: "probe",
+        p_window_start: new Date(0).toISOString(),
+        p_cutoff: new Date(0).toISOString(),
+      });
+      expect(error).not.toBeNull();
+    }
   });
 });
 
@@ -184,7 +235,7 @@ describe.skipIf(!hasDb)("questions.citations round-trip (issue #61)", () => {
       asQuestionsClient(admin),
     );
 
-    const rows = await listQuestions(user.client);
+    const rows = await listQuestions(asHistoryClient(admin), user.id);
     expect(rows).toHaveLength(1);
     expect(parseCitations(rows[0].citations)).toEqual(CITATIONS);
   });
