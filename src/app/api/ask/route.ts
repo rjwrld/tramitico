@@ -61,6 +61,7 @@ import {
   RATE_LIMIT_UNAVAILABLE_MESSAGE,
   subjectForAnon,
   subjectForUser,
+  type RateLimitResult,
 } from "@/lib/rate-limit";
 import { retrieve, type Citation } from "@/lib/retrieval";
 
@@ -86,6 +87,34 @@ function jsonError(
 function clientIp(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for");
   return forwarded?.split(",")[0]?.trim() || "unknown";
+}
+
+/**
+ * Deriving the anonymous subject needs RATE_LIMIT_SUBJECT_SECRET (#125) and
+ * throws without it. That is the same class of misconfiguration as missing
+ * Supabase credentials, which `checkRateLimit` already reports as
+ * `unavailable` — so catch it here and fail closed the same way, rather than
+ * letting an unhandled throw turn into a 500 the client contract doesn't
+ * describe.
+ */
+async function anonRateLimit(request: Request): Promise<RateLimitResult> {
+  let subject: string;
+  try {
+    subject = subjectForAnon(
+      clientIp(request),
+      request.headers.get("user-agent") ?? "",
+    );
+  } catch (error) {
+    console.error(`ask: anonymous rate-limit subject unavailable: ${error}`);
+    return {
+      allowed: false,
+      remaining: 0,
+      resetAt: new Date(),
+      reason: "unavailable",
+      message: RATE_LIMIT_UNAVAILABLE_MESSAGE,
+    };
+  }
+  return checkRateLimit(subject, "anon");
 }
 
 type Writer = UIMessageStreamWriter<AskUIMessage>;
@@ -174,13 +203,7 @@ export async function POST(request: Request): Promise<Response> {
   const userId = await getUserId(request);
   const limit = userId
     ? await checkRateLimit(subjectForUser(userId), "authed")
-    : await checkRateLimit(
-        subjectForAnon(
-          clientIp(request),
-          request.headers.get("user-agent") ?? "",
-        ),
-        "anon",
-      );
+    : await anonRateLimit(request);
   if (!limit.allowed) {
     // Fail-closed: an unavailable limiter denies too, but as a 503 so the
     // client can tell "try later" from "you hit the limit".

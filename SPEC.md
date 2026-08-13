@@ -60,7 +60,8 @@ Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3))
   as a structured mini-doc (curated during Week 1 ingestion); full-catalog search is out of scope.
 - Numeric figures (brackets, BMC) come **only from primary decrees** — aggregators disagreed.
 - Every doc records `effective_date` + `fetched_at`; annual decree churn (tramos, BMC) is covered
-  by re-running ingestion — **quarterly re-crawl** is the maintenance contract.
+  by re-running ingestion — **quarterly re-crawl** is the maintenance contract, automated as
+  `.github/workflows/recrawl.yml` ([ADR 0010](docs/adr/0010-cli-ingestion-authoritative.md)).
 
 ## 4. Ingestion & chunking
 
@@ -125,11 +126,16 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
 
 ## 6. API surface (route handlers)
 
-| Route              | Auth            | Purpose                                                     |
-| ------------------ | --------------- | ----------------------------------------------------------- |
-| `POST /api/ask`    | optional        | question → streamed answer + citations; enforces rate limit |
-| `GET /api/history` | required        | user's saved Q&A (RLS)                                      |
-| `POST /api/ingest` | CI/admin secret | re-run ingestion for a doc or all                           |
+| Route              | Auth     | Purpose                                                     |
+| ------------------ | -------- | ----------------------------------------------------------- |
+| `POST /api/ask`    | optional | question → streamed answer + citations; enforces rate limit |
+| `GET /api/history` | required | user's saved Q&A (RLS)                                      |
+
+Ingestion has **no HTTP route**. It runs as `pnpm ingest [doc_key…]` from a developer shell or
+from the scheduled re-crawl workflow (`.github/workflows/recrawl.yml`) — see
+[ADR 0010](docs/adr/0010-cli-ingestion-authoritative.md), which drops the `POST /api/ingest` this
+section used to promise and records why: the route would be an internet-reachable write path
+holding the service-role key.
 
 ## 7. Auth & rate limiting
 
@@ -139,7 +145,11 @@ _(pinned here per #10)_
   email delivery). History table under RLS.
 - Same verified email across providers resolves to one `user_id` (Supabase automatic
   linking); unverified-email collisions stay separate accounts by design (#84).
-- **Anonymous: 10 questions/day** per subject = hash(IP + coarse UA). **Authed: 50/day** per user.
+- **Anonymous: 10 questions/day** per subject = `HMAC-SHA256(RATE_LIMIT_SUBJECT_SECRET,
+crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed from an IP,
+  date-scoped so it doesn't link across days). **Authed: 50/day** per user.
+- "Day" = the **Costa Rica calendar day** (UTC-6, no DST), both tiers — quotas reset at local
+  midnight, not at 18:00 local (#125).
 - Mechanism: fixed-window counter in the `rate_limits` Postgres table, checked in `/api/ask` —
   no extra vendor. On limit: friendly ES message + sign-in nudge. **Fail-closed** (LLM cost is
   the thing being protected).

@@ -3,3 +3,9 @@ allowBuilds:
   unrs-resolver: true
   "@tailwindcss/oxide": true
   esbuild: true
+
+# The `@ai-sdk/*` chain pins undici ^7, which is stuck below the 7.29.0 patch
+# line for the advisories tracked on #122. Hoisting the whole tree onto the
+# direct 8.x pin resolves every path at once instead of chasing each transitive.
+overrides:
+  undici: "^8.10.0"

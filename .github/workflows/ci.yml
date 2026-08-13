@@ -18,6 +18,11 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # The production tree carries no high/critical advisories (#122). Only
+      # --prod is gated: build-time tooling is not attacker-reachable at
+      # runtime, and moderate/low findings are accepted risk recorded on #121 —
+      # an acceptance that expires 2026-11-12, when this level gets revisited.
+      - run: pnpm audit --prod --audit-level=high
       - run: pnpm lint
       - run: pnpm typecheck
       # Integration tests (retrieval, the #25 hit-rate eval, and the #26

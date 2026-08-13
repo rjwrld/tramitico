@@ -126,3 +126,75 @@ describe.skipIf(!hasDb)("account deletion cascade (issue #86)", () => {
     expect(await listQuestions(userB.client)).toHaveLength(1);
   });
 });
+
+/**
+ * Session-revocation proof for the delete route (issue #124), against the same
+ * GoTrue the route talks to. Pins the two facts the route's ordering and its
+ * `getUser()` choice rest on, plus the accepted risk recorded on #121.
+ */
+describe.skipIf(!hasDb)("deleted-account sessions (issue #124)", () => {
+  let admin: Client;
+
+  beforeAll(() => {
+    admin = createClient<Database>(url!, serviceRoleKey!, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+  });
+
+  async function freshSession() {
+    const user = await signedInUser(admin, `so-${randomUUID()}@example.com`);
+    const { data } = await user.client.auth.getSession();
+    if (!data.session) throw new Error("expected a session after sign-in");
+    return { id: user.id, session: data.session };
+  }
+
+  it("kills every refresh token: after global sign-out + delete, no new session can be minted", async () => {
+    const { id, session } = await freshSession();
+
+    // The route's sequence, in the route's order.
+    const signOut = await admin.auth.admin.signOut(
+      session.access_token,
+      "global",
+    );
+    expect(signOut.error).toBeNull();
+    expect((await admin.auth.admin.deleteUser(id)).error).toBeNull();
+
+    const refreshed = await anonClient().auth.refreshSession({
+      refresh_token: session.refresh_token,
+    });
+    expect(refreshed.error).not.toBeNull();
+    expect(refreshed.data.session).toBeNull();
+  });
+
+  it("rejects the sign-out if it runs after the delete — why the route signs out first", async () => {
+    const { id, session } = await freshSession();
+
+    expect((await admin.auth.admin.deleteUser(id)).error).toBeNull();
+
+    const signOut = await admin.auth.admin.signOut(
+      session.access_token,
+      "global",
+    );
+    expect(signOut.error?.message).toMatch(/does not exist/);
+  });
+
+  it("getUser rejects a deleted user's access token while getClaims still accepts it", async () => {
+    const { id, session } = await freshSession();
+    expect((await admin.auth.admin.deleteUser(id)).error).toBeNull();
+
+    // Why the delete route uses getUser(): it is the only one of the two that
+    // refuses a token whose user is gone, so a request bearing an
+    // already-deleted user's token cannot reach the admin delete again.
+    const verified = await anonClient().auth.getUser(session.access_token);
+    expect(verified.error).not.toBeNull();
+    expect(verified.data.user).toBeNull();
+
+    // The accepted risk on #121, asserted rather than assumed: under
+    // asymmetric signing keys getClaims verifies locally, so read paths keep
+    // honouring the token until it expires (≤1h).
+    const local = await anonClient().auth.getClaims(session.access_token);
+    expect(local.error).toBeNull();
+    expect(local.data?.claims.sub).toBe(id);
+    expect(local.data?.header.alg).toMatch(/^(ES|RS)/);
+  });
+});

@@ -8,9 +8,13 @@
  * statement, so concurrent calls for the same subject can't race, and stale
  * rows past the retention window are swept opportunistically in the same
  * statement.
+ *
+ * "Daily" means a Costa Rica calendar day (#125): the window opens at 00:00
+ * America/Costa_Rica, so a quota resets overnight for the people using this,
+ * not at 18:00 local.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createHash } from "node:crypto";
+import { createHmac } from "node:crypto";
 import type { Database } from "./database.types";
 import { serviceClient } from "./supabase/service";
 
@@ -63,9 +67,32 @@ function limitFor(tier: RateLimitTier): number {
   return Number.isFinite(n) && n > 0 ? n : DEFAULT_LIMITS[tier];
 }
 
-function utcDayStart(now = new Date()): Date {
+/**
+ * Costa Rica is UTC-6 year-round — no DST since 1992 — so the whole CR
+ * calendar is a fixed shift, and neither of the two functions below needs a
+ * timezone database. That decision is #121's; `CR_TIME_ZONE` above stays for
+ * `Intl` formatting, which does want the real zone name.
+ */
+const CR_UTC_OFFSET_MS = 6 * 60 * 60 * 1000;
+
+/** The current date in Costa Rica as `YYYY-MM-DD` (#125). */
+export function crDate(now = new Date()): string {
+  return new Date(now.getTime() - CR_UTC_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+/**
+ * The instant 00:00 Costa Rica began — 06:00 UTC on the same CR date. This is
+ * the quota window's start, so "daily" means a CR calendar day for every
+ * subject, not just the anonymous ones whose subject already carries the date.
+ */
+function crDayStart(now = new Date()): Date {
+  const shifted = new Date(now.getTime() - CR_UTC_OFFSET_MS);
   return new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+    Date.UTC(
+      shifted.getUTCFullYear(),
+      shifted.getUTCMonth(),
+      shifted.getUTCDate(),
+    ) + CR_UTC_OFFSET_MS,
   );
 }
 
@@ -93,11 +120,34 @@ export function subjectForUser(uid: string): string {
   return `user:${uid}`;
 }
 
-/** Hashes IP + coarse UA family — the raw IP is never persisted. */
-export function subjectForAnon(ip: string, userAgent: string): string {
+/**
+ * Keys the anonymous quota to IP + coarse UA family — the raw IP is never
+ * persisted — under a *keyed* digest scoped to the CR date (#125).
+ *
+ * Both halves matter. The HMAC secret is what makes the subject
+ * unreproducible: a plain `sha256(ip|family)` is a value anyone holding an IP
+ * and a browser name can recompute and look up, which turns the table into a
+ * queryable record of who asked. The date scope caps how long any one subject
+ * is linkable to the next — a new CR day is a new key space.
+ *
+ * Throws when the secret is unset; callers fail closed (see `route.ts`).
+ */
+export function subjectForAnon(
+  ip: string,
+  userAgent: string,
+  now = new Date(),
+): string {
+  const secret = process.env.RATE_LIMIT_SUBJECT_SECRET;
+  if (!secret) {
+    throw new Error(
+      "RATE_LIMIT_SUBJECT_SECRET is required to derive anonymous rate-limit subjects",
+    );
+  }
   const family = coarseUserAgent(userAgent);
-  const hash = createHash("sha256").update(`${ip}|${family}`).digest("hex");
-  return `anon:${hash}`;
+  const mac = createHmac("sha256", secret)
+    .update(`${crDate(now)}|${ip}|${family}`)
+    .digest("hex");
+  return `anon:${mac}`;
 }
 
 export const RATE_LIMIT_UNAVAILABLE_MESSAGE =
@@ -140,8 +190,9 @@ export async function checkRateLimit(
   subject: string,
   tier: RateLimitTier,
   client?: RpcClient,
+  now = new Date(),
 ): Promise<RateLimitResult> {
-  const windowStart = utcDayStart();
+  const windowStart = crDayStart(now);
   const resetAt = new Date(windowStart.getTime() + DAY_MS);
   const cutoff = new Date(windowStart.getTime() - RETENTION_DAYS * DAY_MS);
   const limit = limitFor(tier);
