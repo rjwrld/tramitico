@@ -139,7 +139,11 @@ _(pinned here per #10)_
   email delivery). History table under RLS.
 - Same verified email across providers resolves to one `user_id` (Supabase automatic
   linking); unverified-email collisions stay separate accounts by design (#84).
-- **Anonymous: 10 questions/day** per subject = hash(IP + coarse UA). **Authed: 50/day** per user.
+- **Anonymous: 10 questions/day** per subject = `HMAC-SHA256(RATE_LIMIT_SUBJECT_SECRET,
+crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed from an IP,
+  date-scoped so it doesn't link across days). **Authed: 50/day** per user.
+- "Day" = the **Costa Rica calendar day** (UTC-6, no DST), both tiers — quotas reset at local
+  midnight, not at 18:00 local (#125).
 - Mechanism: fixed-window counter in the `rate_limits` Postgres table, checked in `/api/ask` —
   no extra vendor. On limit: friendly ES message + sign-in nudge. **Fail-closed** (LLM cost is
   the thing being protected).
