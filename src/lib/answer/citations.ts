@@ -5,6 +5,11 @@
  * yields the corresponding citations deduped, in order of first use — that is
  * what the route publishes as the `data-citations` part so the UI can render
  * sellos as they apply.
+ *
+ * It also owns the translation between the two numberings that exist here —
+ * the model's chunk-counting [n] and the sello row's source-counting [k]
+ * (issue #133). Nothing else can do it: only the tracker knows which chunks
+ * collapsed into which seal.
  */
 import {
   citationIdentity,
@@ -26,6 +31,13 @@ export interface CitationTracker {
   append(delta: string): Citation[];
   /** All citations used so far, deduped, in order of first use. */
   used(): Citation[];
+  /**
+   * Chunk index → seal ordinal for the citations used so far, in the shape
+   * `renumberCitationMarkers` consumes. Every chunk that shares an artículo
+   * with a used one resolves too, so a later [n] pointing at the sibling
+   * chunk still lands on the seal already on screen.
+   */
+  ordinals(): number[];
 }
 
 const MARKER = /\[(\d+)\]/g;
@@ -38,15 +50,72 @@ const PARTIAL_MARKER_TAIL = /\[\d*$/;
  * ("[nota]", "[12x]") survive.
  */
 const MARKER_RUN = /[ \t]*(?:\[\d+\])+/g;
+/** `PARTIAL_MARKER_TAIL` plus the space before it — the render-side form. */
+const PARTIAL_MARKER_RUN_TAIL = /[ \t]*\[\d*$/;
 
 /**
- * Prose without the [n] markers (issue #75). The markers are wire plumbing
- * between the prompt and `createCitationTracker`; nothing outside that loop
- * should see them, so both the rendered answer and the persisted one run
- * through here. The tracker itself keeps consuming the raw stream.
+ * Chunk-index → seal ordinal, indexed by `n - 1`; `0` where no seal applies.
+ *
+ * The [n] the model writes counts *chunks*; a seal counts *sources*, and the
+ * two never line up — the rerank pool routinely hands back several chunks of
+ * one artículo, which collapse into a single seal. This map is the only place
+ * that knows which is which, so it travels with the answer (contract.ts) and
+ * is stamped into the text before persistence.
  */
-export function stripCitationMarkers(text: string): string {
-  return text.replace(MARKER_RUN, "");
+export type MarkerOrdinals = readonly number[];
+
+/**
+ * The map for an answer whose markers already *are* seal ordinals — a
+ * persisted one (`saveQuestion` renumbers before writing).
+ */
+function identityOrdinals(count: number): number[] {
+  return Array.from({ length: count }, (_, i) => i + 1);
+}
+
+/**
+ * An already-numbered answer with the markers no seal backs taken out —
+ * `[k]` survives for k ≤ `sealCount`, anything above is deleted.
+ *
+ * This is not a second numbering scheme: it is `renumberCitationMarkers`
+ * under the identity map, which is all a persisted answer needs, since its
+ * markers were rewritten before it was stored. It is what both stops a
+ * malformed row from rendering an orphan superscript and stops a caller from
+ * persisting raw wire markers as if they were seal ordinals.
+ */
+export function dropUnbackedMarkers(text: string, sealCount: number): string {
+  return renumberCitationMarkers(text, identityOrdinals(sealCount));
+}
+
+/**
+ * The [n] markers rewritten as `[k]` seal ordinals (issues #75, #133).
+ *
+ * The wire numbering never reaches a reader: it is either rewritten here into
+ * the numbering the sello row uses — which is what the superscript references
+ * render from — or, where no seal backs it, deleted along with the space
+ * before it, exactly as #75's strip did. So an answer coming out of here has
+ * markers only for claims a reader can actually follow to a source.
+ *
+ * `streaming` additionally hides a bracket run still being typed (`… 13% [1`),
+ * which would otherwise flash as literal text between two deltas.
+ */
+export function renumberCitationMarkers(
+  text: string,
+  ordinals: MarkerOrdinals,
+  { streaming = false }: { streaming?: boolean } = {},
+): string {
+  const renumbered = text.replace(MARKER_RUN, (run) => {
+    const kept: number[] = [];
+    for (const match of run.matchAll(MARKER)) {
+      const ordinal = ordinals[Number(match[1]) - 1] ?? 0;
+      // Two chunks of one artículo share a seal: cite both in one run and the
+      // reader would see the same superscript twice.
+      if (ordinal > 0 && !kept.includes(ordinal)) kept.push(ordinal);
+    }
+    return kept.map((ordinal) => `[${ordinal}]`).join("");
+  });
+  return streaming
+    ? renumbered.replace(PARTIAL_MARKER_RUN_TAIL, "")
+    : renumbered;
 }
 
 export function createCitationTracker(
@@ -54,6 +123,7 @@ export function createCitationTracker(
 ): CitationTracker {
   const byIndex = chunkCitations(chunks);
   const seen = new Set<string>();
+  const ordinalByIdentity = new Map<string, number>();
   const usedList: Citation[] = [];
   let buffer = "";
 
@@ -70,6 +140,7 @@ export function createCitationTracker(
         if (seen.has(key)) continue;
         seen.add(key);
         usedList.push(citation);
+        ordinalByIdentity.set(key, usedList.length);
         added.push(citation);
       }
       // Keep only what could still become a marker: text after the last full
@@ -81,6 +152,11 @@ export function createCitationTracker(
     },
     used(): Citation[] {
       return [...usedList];
+    },
+    ordinals(): number[] {
+      return byIndex.map(
+        (citation) => ordinalByIdentity.get(citationIdentity(citation)) ?? 0,
+      );
     },
   };
 }

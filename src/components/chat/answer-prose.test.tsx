@@ -331,6 +331,110 @@ describe("AnswerProse", () => {
     expect(container.textContent).toContain("https://evil.example/px.png");
   });
 
+  describe("inline references (#133)", () => {
+    const REFERENCES = { count: 2, anchorPrefix: "a1" };
+
+    it("renders each marker as a superscript named for its source", () => {
+      render(
+        <AnswerProse
+          text="La tarifa general es del 13%[1] y hay exenciones[2]."
+          references={REFERENCES}
+        />,
+      );
+
+      const links = screen.getAllByRole("link");
+      expect(links.map((link) => link.textContent)).toEqual(["1", "2"]);
+      expect(screen.getByRole("link", { name: "fuente 1" })).toHaveProperty(
+        "hash",
+        "#a1-fuente-1",
+      );
+      expect(screen.getByRole("link", { name: "fuente 2" })).toHaveProperty(
+        "hash",
+        "#a1-fuente-2",
+      );
+      // The digits are references, not prose.
+      expect(links.every((link) => link.closest("sup") !== null)).toBe(true);
+    });
+
+    it("keeps the reference in the claim it belongs to", () => {
+      render(
+        <AnswerProse
+          text={["- Inscribirse[1]", "- Facturar[2]"].join("\n")}
+          references={REFERENCES}
+        />,
+      );
+
+      const items = screen.getAllByRole("listitem");
+      expect(items[0].textContent).toBe("Inscribirse1");
+      expect(
+        within(items[0]).getByRole("link", { name: "fuente 1" }),
+      ).toBeTruthy();
+      expect(
+        within(items[1]).getByRole("link", { name: "fuente 2" }),
+      ).toBeTruthy();
+    });
+
+    it("cites the same source twice with the same number", () => {
+      render(
+        <AnswerProse
+          text="Primero[1]. Y otra vez[1]."
+          references={REFERENCES}
+        />,
+      );
+
+      const links = screen.getAllByRole("link", { name: "fuente 1" });
+      expect(links).toHaveLength(2);
+      expect(new Set(links.map((link) => link.getAttribute("href")))).toEqual(
+        new Set(["#a1-fuente-1"]),
+      );
+    });
+
+    it("renders inside bold and table cells too", () => {
+      render(
+        <AnswerProse
+          text={[
+            "Lo **importante[1]** es esto.",
+            "",
+            "| Tramo | Tarifa |",
+            "| --- | --- |",
+            "| Primero[2] | 10% |",
+          ].join("\n")}
+          references={REFERENCES}
+        />,
+      );
+
+      expect(screen.getAllByRole("link", { name: "fuente 1" })).toHaveLength(1);
+      const cell = screen.getByRole("cell", { name: /Primero/ });
+      expect(within(cell).getByRole("link", { name: "fuente 2" })).toBeTruthy();
+    });
+
+    it("drops a marker with no source and never invents a link", () => {
+      const { container } = render(
+        <AnswerProse
+          text="Sin respaldo[7] y con enlace [click](https://evil.example)."
+          references={REFERENCES}
+        />,
+      );
+
+      expect(screen.queryByRole("link", { name: "fuente 7" })).toBeNull();
+      expect(container.textContent).not.toContain("[7]");
+      // The only anchors this renders are same-page fragments it built.
+      expect(
+        Array.from(container.querySelectorAll("a")).every((a) =>
+          a.getAttribute("href")?.startsWith("#a1-fuente-"),
+        ),
+      ).toBe(true);
+      expect(container.textContent).toContain("https://evil.example");
+    });
+
+    it("renders markers as inert text when the answer has no sources", () => {
+      const { container } = render(<AnswerProse text="Una cosa[1]." />);
+
+      expect(container.querySelectorAll("a")).toHaveLength(0);
+      expect(container.textContent).toBe("Una cosa.");
+    });
+  });
+
   it("caps the measure and sets the answer-prose rhythm (DESIGN §3)", () => {
     const { container } = render(<AnswerProse text="Una respuesta." />);
 

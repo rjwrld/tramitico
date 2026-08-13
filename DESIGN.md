@@ -129,6 +129,14 @@ The most crafted object in the product. Anatomy:
 Everything else on screen defers to it: answers are quiet ink prose; the sellos are where the eye
 lands.
 
+**Inline reference.** A claim carries its source as a superscript numeral at the end of the
+clause — Geist Mono, tabular numerals, `--sello`, no underline, hover ground `--sello-bg`.
+The numeral is the sello's position in the row below; following it targets that sello, which
+takes a `--ring` outline while it is the fragment target. The chip itself never changes: it grows
+no number, keeps its own link to the official source, and stays the object the eye lands on. A
+reference with no sello behind it is not rendered — there is no such thing as a superscript that
+leads nowhere.
+
 ## 6. Components (shadcn + AI Elements)
 
 - **Base**: shadcn/ui defaults restyled only through the tokens above — no per-component forks.
