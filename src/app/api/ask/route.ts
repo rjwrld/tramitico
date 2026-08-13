@@ -161,12 +161,20 @@ function writeStatus(writer: Writer, stage: AskStatusStage): void {
  *
  * The degraded case never reaches here. `rerankChunks` swallows a Voyage
  * outage and falls back to the fused order (rerank.ts), so a degraded answer
- * is delivered as an answer and consumes like one.
+ * is delivered as an answer and consumes like one. Nor does an honest decline
+ * or a client abort — neither is an error, so neither has a code at all.
+ *
+ * Exhaustive over `AskErrorCode` on purpose: a new failure mode cannot be
+ * added to the contract without someone deciding, here, whether it costs the
+ * user an ask.
  */
-const REFUNDED_ERROR_CODES: ReadonlySet<AskErrorCode> = new Set([
-  "retrieval_failed",
-  "answer_failed",
-]);
+const REFUNDS_ASK: Record<AskErrorCode, boolean> = {
+  invalid_question: false, // pre-stream, and nothing was consumed yet
+  rate_limited: false, // pre-stream; the counter is the point
+  rate_limit_unavailable: false, // pre-stream; no increment landed
+  retrieval_failed: true,
+  answer_failed: true,
+};
 
 function writeStreamError(
   writer: Writer,
@@ -175,7 +183,7 @@ function writeStreamError(
   limit: RateLimitResult,
 ): void {
   writer.write({ type: "error", errorText: askStreamErrorText(code, message) });
-  if (REFUNDED_ERROR_CODES.has(code)) void limit.refund();
+  if (REFUNDS_ASK[code]) void limit.refund();
 }
 
 /**
@@ -192,8 +200,9 @@ function writeStreamError(
  */
 function answerFailed(error: unknown, limit: RateLimitResult): string {
   console.error(`ask: answer stream failed: ${String(error)}`);
-  void limit.refund();
-  return askStreamErrorText("answer_failed", ASK_FALLBACK_ERROR_MESSAGE);
+  const code: AskErrorCode = "answer_failed";
+  if (REFUNDS_ASK[code]) void limit.refund();
+  return askStreamErrorText(code, ASK_FALLBACK_ERROR_MESSAGE);
 }
 
 /** Weak retrieval: stream the canned honest fallback without a model call. */
