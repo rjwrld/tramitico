@@ -83,7 +83,7 @@ describe("ConfirmInline", () => {
     expect(onCancel).not.toHaveBeenCalled();
   });
 
-  it("carries the shared radius token, and className does not override it (#116)", () => {
+  it("carries the shared radius token alongside a call-site className (#116)", () => {
     render(
       <ConfirmInline
         className="mt-1"
