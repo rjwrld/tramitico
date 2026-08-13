@@ -9,7 +9,8 @@
  * gate). Blocking gate: ≥90% pass, ratchet-only.
  *
  * Env-gated like retrieval-hitrate.integration.test.ts, plus it needs an
- * Anthropic key for the answer + judge calls. Run locally with:
+ * Anthropic key for the answer + judge calls: skipped locally when any is
+ * absent, failed loudly on CI (#129). Run locally with:
  *
  *   supabase start && pnpm ingest
  *   SUPABASE_URL=http://127.0.0.1:54321 \
@@ -24,7 +25,7 @@
  */
 import { readFileSync } from "node:fs";
 import { generateText } from "ai";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, expect, it } from "vitest";
 import { getAnswerModel, DEFAULT_ANSWER_MODEL } from "../answer/model";
 import {
   ANSWER_SYSTEM_PROMPT,
@@ -32,7 +33,8 @@ import {
   WEAK_RETRIEVAL_ANSWER,
 } from "../answer/prompt";
 import { rerankChunks, RERANK_POOL } from "../answer/rerank";
-import { createEmbedder } from "../ingestion/embedder";
+import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
+import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import { retrieve } from "../retrieval";
 import { DATASET_PATH, parseDataset, type EvalCase } from "./dataset";
 import {
@@ -42,12 +44,16 @@ import {
   type Verdict,
 } from "./groundedness";
 
-const hasDb = Boolean(
-  process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY,
-);
-const hasAnthropicKey = Boolean(process.env.ANTHROPIC_API_KEY);
-const embedder = createEmbedder();
-const hasRealEmbeddings = embedder.provider !== "stub";
+const REAL_EMBEDDINGS =
+  "a real embeddings provider (EMBEDDINGS_PROVIDER + its API key)";
+const describeEval = integrationSuite({
+  ...envPrereqs(
+    "SUPABASE_URL",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "ANTHROPIC_API_KEY",
+  ),
+  [REAL_EMBEDDINGS]: realEmbedderConfigured(),
+});
 
 const answerModelId = process.env.ANSWER_MODEL ?? DEFAULT_ANSWER_MODEL;
 
@@ -60,70 +66,68 @@ interface CaseResult {
   answer: string;
 }
 
-describe.runIf(hasDb && hasRealEmbeddings && hasAnthropicKey)(
-  "groundedness (eval/dataset.jsonl)",
-  () => {
-    const cases = parseDataset(readFileSync(DATASET_PATH, "utf8"));
-    const results: CaseResult[] = [];
+describeEval("groundedness (eval/dataset.jsonl)", () => {
+  const embedder = createEmbedder();
+  const cases = parseDataset(readFileSync(DATASET_PATH, "utf8"));
+  const results: CaseResult[] = [];
 
-    beforeAll(async () => {
-      for (const evalCase of cases) {
-        const retrieval = await retrieve(evalCase.question, {
-          matchCount: RERANK_POOL,
-          embedder,
+  beforeAll(async () => {
+    for (const evalCase of cases) {
+      const retrieval = await retrieve(evalCase.question, {
+        matchCount: RERANK_POOL,
+        embedder,
+      });
+
+      // The production route streams the deterministic honest fallback on
+      // weak retrieval without a model call — no claims, grounded by
+      // construction. (The hit-rate eval separately asserts no legitimate
+      // question is weak.)
+      if (retrieval.isWeak) {
+        results.push({
+          evalCase,
+          verdict: "pass",
+          verdicts: [],
+          reason: "weak-retrieval fallback (no model call)",
+          answer: WEAK_RETRIEVAL_ANSWER,
         });
-
-        // The production route streams the deterministic honest fallback on
-        // weak retrieval without a model call — no claims, grounded by
-        // construction. (The hit-rate eval separately asserts no legitimate
-        // question is weak.)
-        if (retrieval.isWeak) {
-          results.push({
-            evalCase,
-            verdict: "pass",
-            verdicts: [],
-            reason: "weak-retrieval fallback (no model call)",
-            answer: WEAK_RETRIEVAL_ANSWER,
-          });
-          continue;
-        }
-
-        const chunks = await rerankChunks(evalCase.question, retrieval.chunks);
-        const { text: answer } = await generateText({
-          model: getAnswerModel(),
-          system: ANSWER_SYSTEM_PROMPT,
-          prompt: buildUserPrompt(evalCase.question, chunks),
-        });
-
-        const judged = await judgeAnswer(evalCase.question, chunks, answer);
-        results.push({ evalCase, ...judged, answer });
+        continue;
       }
 
-      const passes = results.filter((r) => r.verdict === "pass").length;
+      const chunks = await rerankChunks(evalCase.question, retrieval.chunks);
+      const { text: answer } = await generateText({
+        model: getAnswerModel(),
+        system: ANSWER_SYSTEM_PROMPT,
+        prompt: buildUserPrompt(evalCase.question, chunks),
+      });
+
+      const judged = await judgeAnswer(evalCase.question, chunks, answer);
+      results.push({ evalCase, ...judged, answer });
+    }
+
+    const passes = results.filter((r) => r.verdict === "pass").length;
+    console.log(
+      `\ngroundedness (answer=${answerModelId}, judge=${JUDGE_MODEL}): ` +
+        `${passes}/${results.length}`,
+    );
+    for (const r of results) {
+      const votes = r.verdicts.length > 1 ? ` [${r.verdicts.join("/")}]` : "";
       console.log(
-        `\ngroundedness (answer=${answerModelId}, judge=${JUDGE_MODEL}): ` +
-          `${passes}/${results.length}`,
+        `  ${r.verdict === "pass" ? "pass" : "FAIL"}${votes}  ${r.evalCase.id}` +
+          (r.verdict === "fail" ? `  — ${r.reason}` : ""),
       );
-      for (const r of results) {
-        const votes = r.verdicts.length > 1 ? ` [${r.verdicts.join("/")}]` : "";
-        console.log(
-          `  ${r.verdict === "pass" ? "pass" : "FAIL"}${votes}  ${r.evalCase.id}` +
-            (r.verdict === "fail" ? `  — ${r.reason}` : ""),
-        );
-      }
-      // Serial on purpose: shares the Voyage keyless-tier budget with the
-      // hit-rate eval (3 requests/min) and keeps Anthropic usage tame.
-    }, 5_400_000);
+    }
+    // Serial on purpose: shares the Voyage keyless-tier budget with the
+    // hit-rate eval (3 requests/min) and keeps Anthropic usage tame.
+  }, 5_400_000);
 
-    it(`at least ${GROUNDEDNESS_GATE * 100}% of answers are supported by their retrieved chunks`, () => {
-      const failed = results
-        .filter((r) => r.verdict === "fail")
-        .map((r) => `${r.evalCase.id} (${r.reason})`);
-      const passes = results.length - failed.length;
-      expect(
-        passes / results.length,
-        `ungrounded answers: ${failed.join("; ")}`,
-      ).toBeGreaterThanOrEqual(GROUNDEDNESS_GATE);
-    });
-  },
-);
+  it(`at least ${GROUNDEDNESS_GATE * 100}% of answers are supported by their retrieved chunks`, () => {
+    const failed = results
+      .filter((r) => r.verdict === "fail")
+      .map((r) => `${r.evalCase.id} (${r.reason})`);
+    const passes = results.length - failed.length;
+    expect(
+      passes / results.length,
+      `ungrounded answers: ${failed.join("; ")}`,
+    ).toBeGreaterThanOrEqual(GROUNDEDNESS_GATE);
+  });
+});

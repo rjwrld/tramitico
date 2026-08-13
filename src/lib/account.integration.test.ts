@@ -4,35 +4,30 @@
  * `POST /api/account/delete` makes — removes every trace of that user's
  * history, and never touches another user's rows.
  *
- * Env-gated like history.integration.test.ts: skipped wholesale unless
+ * Env-gated like history.integration.test.ts: skipped locally unless
  * SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY and
  * NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY are set (all three come from
- * `supabase status -o env` / .env.local), so CI stays green without a
- * database.
+ * `supabase status -o env` / .env.local); on CI a missing one fails the
+ * integration job rather than skipping (#129).
  */
-import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
-import path from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, expect, it, vi } from "vitest";
 
 import type { Database } from "./database.types";
+import { envPrereqs, integrationSuite } from "./test-support/suite-gate";
 import { asHistoryClient, listQuestions } from "./history";
-
-function loadDotEnvLocal() {
-  const file = path.resolve(__dirname, "../../.env.local");
-  if (!existsSync(file)) return;
-  for (const line of readFileSync(file, "utf8").split("\n")) {
-    const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
-    if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2];
-  }
-}
-loadDotEnvLocal();
 
 const url = process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-const hasDb = Boolean(url && serviceRoleKey && publishableKey);
+const describeDb = integrationSuite(
+  envPrereqs(
+    "SUPABASE_URL",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+  ),
+);
 
 vi.setConfig({ testTimeout: 30_000 });
 
@@ -66,7 +61,7 @@ async function signedInUser(
   return { client, id: created.user.id, email };
 }
 
-describe.skipIf(!hasDb)("account deletion cascade (issue #86)", () => {
+describeDb("account deletion cascade (issue #86)", () => {
   let admin: Client;
   let userA: { client: Client; id: string; email: string };
   let userB: { client: Client; id: string; email: string };
@@ -139,7 +134,7 @@ describe.skipIf(!hasDb)("account deletion cascade (issue #86)", () => {
  * GoTrue the route talks to. Pins the two facts the route's ordering and its
  * `getUser()` choice rest on, plus the accepted risk recorded on #121.
  */
-describe.skipIf(!hasDb)("deleted-account sessions (issue #124)", () => {
+describeDb("deleted-account sessions (issue #124)", () => {
   let admin: Client;
 
   beforeAll(() => {
