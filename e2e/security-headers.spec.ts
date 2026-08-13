@@ -21,6 +21,9 @@ for (const [path, label] of [
   ["/", "the landing page"],
   // 401 signed out — the status is irrelevant, the headers are the subject.
   ["/api/history", "an API route"],
+  // The not-found page renders through a different path than a matched route,
+  // and a header set that only survives 200s is not a baseline.
+  ["/no-such-page", "the not-found page"],
 ] as const) {
   test(`baseline security headers are on ${label}`, async ({ request }) => {
     const response = await request.get(path);

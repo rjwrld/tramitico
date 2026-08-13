@@ -56,8 +56,11 @@ const securityHeaders = [
     value: "camera=(), microphone=(), geolocation=(), payment=()",
   },
   {
-    // Vercel sets HSTS on custom domains, but stating it here makes the header
-    // ours to verify. Browsers ignore it over plain http, so local is unaffected.
+    // Set explicitly because there is no production deployment yet (#29) to
+    // observe Vercel's own HSTS on, and an unverified platform default is not
+    // a control. Ours wins if both are present; the production acceptance pass
+    // confirms the emitted max-age matches. Browsers ignore HSTS over plain
+    // http, so local and preview are unaffected.
     key: "Strict-Transport-Security",
     value: "max-age=63072000; includeSubDomains",
   },
