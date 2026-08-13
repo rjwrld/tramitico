@@ -24,6 +24,7 @@ import {
 } from "@/components/chat/ask-status";
 import { ChatInput } from "@/components/chat/chat-input";
 import { SeedPrompts } from "@/components/chat/seed-prompts";
+import { useHistoryRefresh } from "@/components/history/history-refresh";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { Button } from "@/components/ui/button";
 import { Message, MessageContent } from "@/components/ui/message";
@@ -74,6 +75,10 @@ export function Chat() {
   // `makeRequest` — runs in a `finally` for every outcome (success, error,
   // abort, disconnect), so the guard never outlives the exchange it guards.
   const inFlightRef = React.useRef(false);
+  // #138: the history list is a sibling surface (it wraps this one), so a
+  // finished exchange tells it to refetch. No-op when signed out — nothing was
+  // persisted and no list is mounted.
+  const refreshHistory = useHistoryRefresh();
   const { messages, sendMessage, regenerate, stop, status } =
     useChat<AskUIMessage>({
       transport,
@@ -87,6 +92,9 @@ export function Chat() {
       onFinish: ({ message, isError, isAbort, isDisconnect }) => {
         inFlightRef.current = false;
         if (isError || isAbort || isDisconnect) return;
+        // Same guard the announcement uses, for the same reason: none of those
+        // three outcomes wrote a row to refetch.
+        refreshHistory();
         setCompletion({
           messageId: message.id,
           text: completionAnnouncement(citationsFrom(message).length),
@@ -153,6 +161,11 @@ export function Chat() {
   return (
     <MessageScrollerProvider>
       <div className="flex min-h-0 flex-1 flex-col">
+        {/* The empty state's invitation is this view's h1; once the
+            conversation starts it is gone, and a page whose only headings are
+            the sidebar's h2 starts at the wrong level (#138). Silent for
+            sighted readers — the messages already say what this is. */}
+        <h1 className="sr-only">Conversación</h1>
         <MessageScroller className="flex-1">
           <MessageScrollerViewport>
             <MessageScrollerContent className="mx-auto w-full max-w-[44rem] gap-0 px-4 py-6">
@@ -225,9 +238,17 @@ export function Chat() {
           </MessageScrollerViewport>
           <MessageScrollerButton />
         </MessageScroller>
-        <div className="crossfade-ground sticky bottom-0 bg-background pt-2 pb-4">
-          <div className="mx-auto w-full max-w-[44rem] px-4">
-            <ChatInput onSubmit={ask} onStop={() => void stop()} busy={busy} />
+        {/* The composer sits on the bottom edge, so it clears the home
+            indicator itself (#138) — 16px or the device's inset, whichever is
+            larger. */}
+        <div className="crossfade-ground sticky bottom-0 bg-background pt-2 pb-safe">
+          <div className="mx-auto w-full max-w-[44rem] px-safe">
+            <ChatInput
+              onSubmit={ask}
+              onStop={() => void stop()}
+              busy={busy}
+              focusOnMount
+            />
           </div>
         </div>
       </div>
