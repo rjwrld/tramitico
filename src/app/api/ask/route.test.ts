@@ -24,7 +24,7 @@ import {
 import { saveQuestion } from "@/lib/answer/persist";
 import { getAnswerModel } from "@/lib/answer/model";
 import { getUserId } from "@/lib/answer/user";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, NO_REFUND } from "@/lib/rate-limit";
 import { retrieve } from "@/lib/retrieval";
 
 function chunk(
@@ -62,14 +62,21 @@ function retrievalResult(
   };
 }
 
-function allowRateLimit(): void {
+/**
+ * Allows the ask and hands back the refund spy bound to it (#126) — the
+ * route calls this handle, and only this handle, to give a quota slot back.
+ */
+function allowRateLimit(): ReturnType<typeof vi.fn> {
+  const refund = vi.fn(async () => {});
   vi.mocked(checkRateLimit).mockResolvedValue({
     allowed: true,
     remaining: 9,
     resetAt: new Date(),
     reason: "ok",
     message: null,
+    refund,
   });
+  return refund;
 }
 
 /**
@@ -348,6 +355,7 @@ describe("POST /api/ask", () => {
       resetAt: new Date(),
       reason: "rate_limited",
       message: "Alcanzó el límite de 10 preguntas gratis por hoy.",
+      refund: NO_REFUND,
     });
 
     const response = await POST(askRequest({ question: "¿Cuánto es el IVA?" }));
@@ -367,6 +375,7 @@ describe("POST /api/ask", () => {
       resetAt: new Date(),
       reason: "unavailable",
       message: "No pudimos verificar su límite de preguntas en este momento.",
+      refund: NO_REFUND,
     });
 
     const response = await POST(askRequest({ question: "¿Cuánto es el IVA?" }));
@@ -624,5 +633,120 @@ describe("POST /api/ask", () => {
     // routes it through `onAbort` instead), so this is the natural
     // consequence of the abortSignal wiring above, not a separate branch.
     expect(vi.mocked(saveQuestion)).not.toHaveBeenCalled();
+  });
+
+  /**
+   * #126: a system failure gives the ask back, a completed answer keeps it.
+   * The boundary is the whole point — if the honest decline were refundable,
+   * the cheapest way to ask for free would be to ask something that declines.
+   */
+  describe("quota (#126)", () => {
+    it("refunds the ask when retrieval fails", async () => {
+      const refund = allowRateLimit();
+      vi.mocked(retrieve).mockRejectedValue(new Error("pgvector down"));
+      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(errorMessages(events)).toHaveLength(1);
+      expect(refund).toHaveBeenCalledTimes(1);
+      spy.mockRestore();
+    });
+
+    it("refunds the ask when the model dies mid-stream — once, not once per door", async () => {
+      const refund = allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockFailingModel("La tarifa es ");
+      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      // Both error doors point at the same mapper; the handle's once-only
+      // guard is what keeps a single failure from refunding twice.
+      expect(refund).toHaveBeenCalledTimes(1);
+      spy.mockRestore();
+    });
+
+    it("refunds the ask when execute itself throws", async () => {
+      const refund = allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      vi.mocked(getAnswerModel).mockImplementation(() => {
+        throw new Error("ANTHROPIC_API_KEY is not set");
+      });
+      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(refund).toHaveBeenCalledTimes(1);
+      spy.mockRestore();
+    });
+
+    it("does not refund an honest decline — a delivered answer costs quota", async () => {
+      const refund = allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(
+        retrievalResult({ chunks: [], topScore: 0, isWeak: true }),
+      );
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "asdf qwerty zzz" })),
+      );
+
+      expect(streamedText(events)).toContain("No encuentro base oficial");
+      expect(refund).not.toHaveBeenCalled();
+    });
+
+    it("does not refund a successful answer", async () => {
+      const refund = allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModel("La tarifa es 13% [1].");
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(refund).not.toHaveBeenCalled();
+    });
+
+    it("does not refund a delivered answer whose history write failed", async () => {
+      vi.mocked(getUserId).mockResolvedValue("user-123");
+      const refund = allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModel("La tarifa es 13% [1].");
+      vi.mocked(saveQuestion).mockRejectedValue(new Error("insert failed"));
+      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      // The user got their answer; persistence is best-effort (persist.ts).
+      // It must neither surface an error nor hand the quota slot back.
+      expect(streamedText(events)).toContain("La tarifa es 13%");
+      expect(errorMessages(events)).toEqual([]);
+      expect(refund).not.toHaveBeenCalled();
+      spy.mockRestore();
+    });
+
+    it("does not refund a client-initiated abort", async () => {
+      const refund = allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModel("La tarifa es 13% para servicios.", undefined, 25);
+
+      const controller = new AbortController();
+      const response = await POST(
+        askRequest({ question: "¿Cuánto es el IVA?" }, controller.signal),
+      );
+      await readUntilTextDeltaThenAbort(response, controller);
+
+      // Nothing on our side failed, and a refundable stop would be the same
+      // free-ask hole the decline rule closes.
+      expect(refund).not.toHaveBeenCalled();
+    });
   });
 });

@@ -63,6 +63,7 @@ import { RERANK_POOL, rerankChunks } from "@/lib/answer/rerank";
 import { getUserId } from "@/lib/answer/user";
 import {
   checkRateLimit,
+  NO_REFUND,
   RATE_LIMIT_UNAVAILABLE_MESSAGE,
   subjectForAnon,
   subjectForUser,
@@ -117,6 +118,7 @@ async function anonRateLimit(request: Request): Promise<RateLimitResult> {
       resetAt: new Date(),
       reason: "unavailable",
       message: RATE_LIMIT_UNAVAILABLE_MESSAGE,
+      refund: NO_REFUND,
     };
   }
   return checkRateLimit(subject, "anon");
@@ -150,12 +152,30 @@ function writeStatus(writer: Writer, stage: AskStatusStage): void {
   });
 }
 
+/**
+ * Which failures give the ask back (#126, decision on #121). System failures
+ * do: the user asked, our side broke, they should not pay a quota slot for
+ * our outage. Everything else consumes — most importantly the honest decline
+ * on weak retrieval, which is a *completed* answer. If declines were free the
+ * boundary becomes a fishing hole: phrase asks so they decline, spend nothing.
+ *
+ * The degraded case never reaches here. `rerankChunks` swallows a Voyage
+ * outage and falls back to the fused order (rerank.ts), so a degraded answer
+ * is delivered as an answer and consumes like one.
+ */
+const REFUNDED_ERROR_CODES: ReadonlySet<AskErrorCode> = new Set([
+  "retrieval_failed",
+  "answer_failed",
+]);
+
 function writeStreamError(
   writer: Writer,
   code: AskErrorCode,
   message: string,
+  limit: RateLimitResult,
 ): void {
   writer.write({ type: "error", errorText: askStreamErrorText(code, message) });
+  if (REFUNDED_ERROR_CODES.has(code)) void limit.refund();
 }
 
 /**
@@ -163,9 +183,16 @@ function writeStreamError(
  * a bug in `execute`. The raw reason is for our logs; the client gets the
  * contract's Spanish (audit F-22: without this, the SDK's default
  * "An error occurred." reached the UI in English).
+ *
+ * `answer_failed` is a system failure, so this refunds too (#126). It is the
+ * second door onto the same outcome — `writeStreamError` covers the one
+ * failure the route raises itself — and both are safe to reach because
+ * `refund()` is once-only. Fire-and-forget by necessity: the SDK's error
+ * mappers are synchronous, and the handle never rejects.
  */
-function answerFailedText(error: unknown): string {
+function answerFailed(error: unknown, limit: RateLimitResult): string {
   console.error(`ask: answer stream failed: ${String(error)}`);
+  void limit.refund();
   return askStreamErrorText("answer_failed", ASK_FALLBACK_ERROR_MESSAGE);
 }
 
@@ -242,7 +269,12 @@ export async function POST(request: Request): Promise<Response> {
         retrieval = await retrieve(asked, { matchCount: RERANK_POOL });
       } catch (error) {
         console.error(`ask: retrieval failed: ${String(error)}`);
-        writeStreamError(writer, "retrieval_failed", RETRIEVAL_FAILED_MESSAGE);
+        writeStreamError(
+          writer,
+          "retrieval_failed",
+          RETRIEVAL_FAILED_MESSAGE,
+          limit,
+        );
         return;
       }
 
@@ -265,6 +297,10 @@ export async function POST(request: Request): Promise<Response> {
         // nobody reads through to `maxDuration`. Scoped to the model call
         // only, per the issue — retrieval/rerank above are not wired to this
         // signal and keep running if the client aborts during "buscando".
+        //
+        // An abort consumes the ask (#126). Nothing on our side failed, and a
+        // refundable abort would be the same free-ask fishing hole the issue
+        // closes for declines — ask, stop, repeat.
         abortSignal: request.signal,
         // #73: provider deltas arrive in bursts, which reads as multi-word
         // jumps. Re-chunk them word by word server-side so the text flows —
@@ -294,7 +330,8 @@ export async function POST(request: Request): Promise<Response> {
           }
         },
         onFinish: async ({ text }) => {
-          if (userId) {
+          if (!userId) return;
+          try {
             await saveQuestion({
               userId,
               question: asked,
@@ -305,6 +342,14 @@ export async function POST(request: Request): Promise<Response> {
               answer: renumberCitationMarkers(text, tracker.ordinals()),
               citations: tracker.used(),
             });
+          } catch (error) {
+            // persist.ts's bargain, same as the weak-retrieval path: a
+            // failed save is logged, never surfaced — the user already has
+            // their answer. Kept explicitly rather than relying on the SDK to
+            // swallow the rejection: an escaped one would stamp a Spanish
+            // failure under a delivered answer and, since #126, refund an ask
+            // the user actually got.
+            console.error(`ask: saving the answer failed: ${error}`);
           }
         },
       });
@@ -316,11 +361,11 @@ export async function POST(request: Request): Promise<Response> {
         toUIMessageStream({
           stream: result.stream,
           sendStart: false,
-          onError: answerFailedText,
+          onError: (error) => answerFailed(error, limit),
         }),
       );
     },
-    onError: answerFailedText,
+    onError: (error) => answerFailed(error, limit),
   });
   return createUIMessageStreamResponse({ stream });
 }
