@@ -3,10 +3,10 @@ import type { NextConfig } from "next";
 /**
  * Baseline security headers (#137).
  *
- * These live in `next.config.ts` rather than the middleware on purpose: #140
- * rewrites the middleware surface onto the proxy convention, and the matcher
- * there deliberately skips static assets. `headers()` covers every response —
- * pages, route handlers, and `/_next/static` — and stays out of #140's way.
+ * These live in `next.config.ts` rather than the proxy on purpose: the proxy
+ * matcher (#140) deliberately skips static assets. `headers()` covers every
+ * response — pages, route handlers, and `/_next/static` — and stays out of the
+ * proxy's way.
  */
 
 /** The Supabase origin the browser talks to (auth + PostgREST), if configured. */
@@ -24,8 +24,8 @@ function supabaseOrigin(): string | null {
  * Report-only for now. `script-src` cannot drop `'unsafe-inline'` while the
  * policy is static: the App Router streams its RSC payload through inline
  * `<script>` tags and next-themes injects one more, and neither is hashable.
- * Promotion to enforced runs through a per-request nonce set in the proxy
- * layer once #140 lands — criteria recorded on #121.
+ * Promotion to enforced runs through a per-request nonce set in `src/proxy.ts`
+ * — criteria recorded on #121.
  */
 function contentSecurityPolicy(): string {
   const supabase = supabaseOrigin();
