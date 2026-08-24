@@ -15,13 +15,26 @@ export function ChatInput({
   onSubmit,
   onStop,
   busy = false,
+  focusOnMount = false,
 }: {
   onSubmit: (question: string) => void;
   /** Stops the in-flight stream (#74). Only ever invoked while `busy`. */
   onStop: () => void;
   busy?: boolean;
+  /**
+   * #138: the empty state's composer is a different element from the
+   * conversation's, so submitting the first question unmounts the one the
+   * keyboard user was standing on and drops focus to `<body>`. The composer
+   * that replaces it takes focus, which is where they already were.
+   */
+  focusOnMount?: boolean;
 }) {
   const [question, setQuestion] = React.useState("");
+  const field = React.useRef<HTMLTextAreaElement>(null);
+
+  React.useEffect(() => {
+    if (focusOnMount) field.current?.focus();
+  }, [focusOnMount]);
 
   const submit = () => {
     const trimmed = question.trim();
@@ -39,6 +52,7 @@ export function ChatInput({
       }}
     >
       <Textarea
+        ref={field}
         name="question"
         value={question}
         onChange={(event) => setQuestion(event.target.value)}

@@ -72,4 +72,17 @@ describe("ChatInput", () => {
     // The question is not lost — busy is a moment, not a teardown.
     expect(textbox().value).toBe("¿Cuál código CABYS uso?");
   });
+
+  // #138: the empty state's composer and the conversation's are two different
+  // elements, so the first submit unmounts the one the keyboard user was on.
+  // The replacement takes focus rather than dropping it to <body>.
+  it("takes focus on mount when asked to", () => {
+    render(<ChatInput onSubmit={vi.fn()} onStop={vi.fn()} focusOnMount />);
+    expect(document.activeElement).toBe(textbox());
+  });
+
+  it("leaves focus alone otherwise", () => {
+    render(<ChatInput onSubmit={vi.fn()} onStop={vi.fn()} />);
+    expect(document.activeElement).not.toBe(textbox());
+  });
 });
