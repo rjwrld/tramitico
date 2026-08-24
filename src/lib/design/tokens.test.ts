@@ -9,6 +9,7 @@
 // coming back.
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
@@ -16,8 +17,14 @@ import { contrastOf, readThemeTokens } from "./contrast";
 
 const AA_TEXT = 4.5;
 
+// Resolved relative to this file, not `process.cwd()`: the unit project is the
+// required CI gate and CLAUDE.md says it needs no environment — including no
+// assumption about which directory the runner was invoked from.
 const css = readFileSync(
-  path.join(process.cwd(), "src/app/globals.css"),
+  path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../app/globals.css",
+  ),
   "utf8",
 );
 const themes = {
@@ -56,10 +63,15 @@ describe.each(["light", "dark"] as const)("%s theme tokens", (theme) => {
   it("does not derive the destructive ground from the destructive text", () => {
     // The #160 regression, stated as code: a ground that is an alpha of the
     // text colour would be an `oklch` sharing the text's chroma and hue.
-    const [, textChroma, textHue] = t["--destructive"].match(
-      /oklch\(([\d.]+) ([\d.]+) ([\d.]+)\)/,
-    )!;
-    const ground = t["--destructive-bg"];
-    expect(ground).not.toContain(`${textChroma} ${textHue}`);
+    const text = /oklch\(([\d.]+)\s+([\d.]+)\s+([\d.]+)\)/.exec(
+      t["--destructive"],
+    );
+    if (!text)
+      throw new Error(`--destructive is not oklch(): ${t["--destructive"]}`);
+
+    const [, , chroma, hue] = text;
+    expect(t["--destructive-bg"]).not.toMatch(
+      new RegExp(`${chroma}\\s+${hue}\\)`),
+    );
   });
 });
