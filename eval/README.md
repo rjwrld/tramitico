@@ -33,7 +33,7 @@ correct retrieval must surface. One JSON object per line:
   The canary from ADR 0003 is the one blocking case.
 - `seed` — provenance: `appendix-a:<n>` (SPEC Appendix A) or `corpus`.
 
-The assertion lives in `src/lib/eval/retrieval-hitrate.integration.test.ts`
+The assertion lives in `src/lib/eval/retrieval-hitrate.eval.test.ts`
 (loader/matcher in `src/lib/eval/dataset.ts`). It runs each question through
 the production retrieval path — fused pool of 30, Voyage rerank, top-8 — and
 gates on hit-rate, the blocking canary, and the weak-retrieval threshold. It is
@@ -47,7 +47,7 @@ supabase start && pnpm ingest   # once
 SUPABASE_URL=http://127.0.0.1:54321 \
 SUPABASE_SERVICE_ROLE_KEY=<service role key> \
 EMBEDDINGS_PROVIDER=voyage VOYAGE_API_KEY=<key> \
-pnpm vitest run src/lib/eval/retrieval-hitrate.integration.test.ts
+pnpm vitest run src/lib/eval/retrieval-hitrate.eval.test.ts
 ```
 
 `RERANK=off` measures the fused-only baseline; the per-case table (pool rank,
@@ -55,7 +55,7 @@ top score) prints with the run.
 
 ## Satisfiability guard (issue #111)
 
-`src/lib/eval/dataset-satisfiability.integration.test.ts` asserts every
+`src/lib/eval/dataset-satisfiability.eval.test.ts` asserts every
 expected target is satisfiable by at least one chunk in `public.chunks`, and
 prints the full per-target census. The hit-rate eval cannot catch this: a case
 hits when _any one_ of its targets matches, so a multi-target case can carry a
@@ -68,7 +68,7 @@ cheaper than the hit-rate eval:
 ```sh
 SUPABASE_URL=http://127.0.0.1:54321 \
 SUPABASE_SERVICE_ROLE_KEY=<service role key> \
-pnpm vitest run src/lib/eval/dataset-satisfiability.integration.test.ts
+pnpm vitest run src/lib/eval/dataset-satisfiability.eval.test.ts
 ```
 
 Its limit is deliberate: an `articulo`-less target passes by construction,
@@ -78,7 +78,7 @@ predicate — that is what the `notes` field records.
 
 ## Groundedness gate (issue #26)
 
-`src/lib/eval/groundedness.integration.test.ts` runs every dataset question
+`src/lib/eval/groundedness.eval.test.ts` runs every dataset question
 through the full production answer path — retrieval, rerank, then the answer
 model (`ANSWER_MODEL`, default Sonnet) with the production system prompt —
 and asks an LLM judge at temperature 0: _is this answer supported by the
@@ -103,7 +103,7 @@ SUPABASE_URL=http://127.0.0.1:54321 \
 SUPABASE_SERVICE_ROLE_KEY=<service role key> \
 EMBEDDINGS_PROVIDER=voyage VOYAGE_API_KEY=<key> \
 ANTHROPIC_API_KEY=<key> \
-pnpm vitest run src/lib/eval/groundedness.integration.test.ts
+pnpm vitest run src/lib/eval/groundedness.eval.test.ts
 ```
 
 > **Gate run 2026-08-13 (#135 prompt amendment): 22/25 (88%) — FAIL.** Failing
@@ -154,7 +154,7 @@ should not be quoted.
 
 ## Adversarial conflicting-sources case (issue #135)
 
-`src/lib/eval/conflicting-sources.integration.test.ts` is the one case that
+`src/lib/eval/conflicting-sources.eval.test.ts` is the one case that
 cannot live in `dataset.jsonl`. Its fragments are hand-written
 (`src/lib/eval/conflicting-sources.ts`) and deliberately contradict each other
 on a single figure — two tramos decrees of consecutive years quoting different
@@ -177,7 +177,7 @@ the groundedness gate:
 
 ```sh
 ANTHROPIC_API_KEY=<key> \
-pnpm vitest run src/lib/eval/conflicting-sources.integration.test.ts
+pnpm vitest run src/lib/eval/conflicting-sources.eval.test.ts
 ```
 
 Verified 2026-08-13 (answer `claude-sonnet-5`, judge `claude-sonnet-4-5`):
