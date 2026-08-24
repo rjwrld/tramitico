@@ -23,6 +23,14 @@ import path from "node:path";
  * The dividing question when adding a suite: would it pass against a database
  * that has just been migrated and holds no rows? Yes → integration. No → eval.
  *
+ * That question is why dataset-satisfiability stays in the eval lane (#163).
+ * Credential-wise it is database-only — no embeddings, no Anthropic key — but
+ * it asserts that every target in eval/dataset.jsonl is matched by at least
+ * one row in `public.chunks`, so on the per-PR lane's empty stack every target
+ * would MISS and it would fail on every PR. Moving it needs a corpus in that
+ * lane, which needs a real embeddings provider to build: #163's premise is
+ * right and its remedy is not available here.
+ *
  * `pnpm test` still runs all three, for local convenience.
  */
 const EVAL_SUITES = "src/**/*.eval.test.ts";
