@@ -99,6 +99,8 @@ vi.mock("@/components/ui/message-scroller", async (importOriginal) => {
   };
 });
 
+import { HistoryRefreshProvider } from "@/components/history/history-refresh";
+
 import { Chat } from "./chat";
 
 type IntersectionCallback = ConstructorParameters<
@@ -807,5 +809,61 @@ describe("Chat message row composition (#105)", () => {
       '[data-slot="message"][data-align="end"] [data-slot="bubble-content"]',
     );
     expect(bubbleContent?.textContent).toBe("¿Debo facturar electrónicamente?");
+  });
+
+  // #138: a persisted answer is what makes the history list stale, so the
+  // chat pokes it — through the same context the shell provides — and only
+  // for outcomes that actually wrote a row.
+  describe("history refresh", () => {
+    function renderWithRefresh(refresh: () => void) {
+      return render(
+        <HistoryRefreshProvider value={refresh}>
+          <Chat />
+        </HistoryRefreshProvider>,
+      );
+    }
+
+    it("refreshes the history when an exchange finishes", () => {
+      const refresh = vi.fn();
+      const finished = answer("a1", "Con el formulario D-140.");
+      chat.messages = [
+        question("q1", "¿Cómo me inscribo en Hacienda?"),
+        finished,
+      ];
+      chat.status = "ready";
+      renderWithRefresh(refresh);
+
+      act(() =>
+        latestOnFinish?.({
+          message: finished,
+          isError: false,
+          isAbort: false,
+          isDisconnect: false,
+        }),
+      );
+
+      expect(refresh).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not refresh when the exchange failed, aborted or dropped", () => {
+      const refresh = vi.fn();
+      const partial = answer("a1", "Con el formul");
+      chat.messages = [
+        question("q1", "¿Cómo me inscribo en Hacienda?"),
+        partial,
+      ];
+      chat.status = "error";
+      renderWithRefresh(refresh);
+
+      for (const outcome of [
+        { isError: true, isAbort: false, isDisconnect: false },
+        { isError: false, isAbort: true, isDisconnect: false },
+        { isError: false, isAbort: false, isDisconnect: true },
+      ]) {
+        act(() => latestOnFinish?.({ message: partial, ...outcome }));
+      }
+
+      expect(refresh).not.toHaveBeenCalled();
+    });
   });
 });

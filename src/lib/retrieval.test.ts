@@ -133,6 +133,110 @@ describe("citationUrl", () => {
   });
 });
 
+describe("citationUrl deep links (#134)", () => {
+  const sinalevi = {
+    kind: "sinalevi",
+    idFichaNorma: 98767,
+    idVersionNorma: 147960,
+    deepLink: "articulo" as const,
+    articulos: { "1": 2, "3": 4, "11": 12 },
+  };
+
+  it("lands on the cited artículo of an anchored SINALEVI ficha", () => {
+    expect(citationUrl(sinalevi, "Artículo 11")).toBe(
+      "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=98767&param2=147960&param3=3&param4=12&param5=",
+    );
+    // The chunker also emits all-caps headings.
+    expect(citationUrl(sinalevi, "ARTÍCULO 3")).toBe(
+      "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=98767&param2=147960&param3=3&param4=4&param5=",
+    );
+  });
+
+  it("falls back to the vigente-text root when no anchor resolves", () => {
+    const root =
+      "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=98767&param2=&param3=1&param4=";
+    // Artículo the harvest could not place, sub-numbered artículo,
+    // transitorio, preámbulo (null) — all root.
+    expect(citationUrl(sinalevi, "Artículo 99")).toBe(root);
+    expect(citationUrl(sinalevi, "Artículo 3 bis")).toBe(root);
+    expect(citationUrl(sinalevi, "Transitorio II")).toBe(root);
+    expect(citationUrl(sinalevi, null)).toBe(root);
+    // No harvested map (ingested before #134) and explicit opt-out.
+    expect(
+      citationUrl({ ...sinalevi, articulos: undefined }, "Artículo 11"),
+    ).toBe(root);
+    expect(
+      citationUrl({ ...sinalevi, deepLink: "none" as const }, "Artículo 11"),
+    ).toBe(root);
+  });
+
+  it("rejects anchor ids that are not positive integers", () => {
+    for (const articulos of [
+      { "11": -1 },
+      { "11": 0 },
+      { "11": 1.5 },
+      { "11": "12&param9=x" as unknown as number },
+    ]) {
+      expect(citationUrl({ ...sinalevi, articulos }, "Artículo 11")).toBe(
+        "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=98767&param2=&param3=1&param4=",
+      );
+    }
+    expect(
+      citationUrl({ ...sinalevi, idVersionNorma: undefined }, "Artículo 11"),
+    ).toBe(
+      "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=98767&param2=&param3=1&param4=",
+    );
+  });
+
+  it("lands on the first page of a page-ranged PDF source", () => {
+    expect(
+      citationUrl(
+        {
+          kind: "pdf",
+          url: "https://www.ccss.sa.cr/arc/actas/2018/11/8999.pdf",
+          pages: "104-108",
+          deepLink: "page",
+        },
+        "Artículo 30°, sesión 8999",
+      ),
+    ).toBe("https://www.ccss.sa.cr/arc/actas/2018/11/8999.pdf#page=104");
+  });
+
+  it("keeps the document root for sources marked deepLink none", () => {
+    expect(
+      citationUrl(
+        {
+          kind: "hacienda-pdf",
+          url: "https://www.hacienda.go.cr/docs/TramosRenta2026.pdf",
+          deepLink: "none",
+        },
+        "Artículo 1",
+      ),
+    ).toBe("https://www.hacienda.go.cr/docs/TramosRenta2026.pdf");
+    // A page anchor needs a page range, and never rides on an unsafe scheme.
+    expect(
+      citationUrl({ kind: "pdf", url: "https://x.cr/a.pdf", deepLink: "page" }),
+    ).toBe("https://x.cr/a.pdf");
+    expect(
+      citationUrl({
+        kind: "pdf",
+        url: "javascript:alert(1)",
+        pages: "1-2",
+        deepLink: "page",
+      }),
+    ).toBeNull();
+    // A malformed range is not an anchor.
+    expect(
+      citationUrl({
+        kind: "pdf",
+        url: "https://x.cr/a.pdf",
+        pages: "0-2",
+        deepLink: "page",
+      }),
+    ).toBe("https://x.cr/a.pdf");
+  });
+});
+
 const ROW: SearchChunksRow = {
   chunk_id: "11111111-1111-1111-1111-111111111111",
   doc_key: "ley-10363",
@@ -177,6 +281,22 @@ describe("toCitation", () => {
       // document row, so live answers carry it without a second query.
       fetchedAt: "2026-08-06T15:04:05+00:00",
     });
+  });
+
+  it("carries the artículo's deep link when the source is anchored (#134)", () => {
+    expect(
+      toCitation({
+        ...CHUNK,
+        source: {
+          ...CHUNK.source,
+          idVersionNorma: 135825,
+          deepLink: "articulo",
+          articulos: { "2": 3 },
+        },
+      }).url,
+    ).toBe(
+      "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=99349&param2=135825&param3=3&param4=3&param5=",
+    );
   });
 });
 

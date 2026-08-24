@@ -15,7 +15,10 @@ export default async function Home() {
 
   return (
     <div className="flex h-dvh flex-col">
-      <header className="flex h-12 items-center justify-between border-b px-4">
+      {/* `px-safe` (#138): landscape on a notched phone puts the cutout
+          beside the header, so its inline padding takes whichever is larger —
+          the design's 16px or the device's inset. */}
+      <header className="flex h-12 items-center justify-between border-b px-safe">
         <Link href="/" className="font-serif text-lg font-semibold">
           trami<span className="text-primary">tico</span>
         </Link>

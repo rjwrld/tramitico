@@ -109,6 +109,19 @@
   }
 }
 
+/* Safe-area padding (issue #138) — the design's own inline/bottom padding,
+   floored by whatever the device's notch or home indicator needs. Override the
+   design value per surface with `[--safe-pad:1.5rem]`; the inset only resolves
+   to anything under the `viewport-fit=cover` declared in layout.tsx. */
+@utility px-safe {
+  padding-inline-start: max(var(--safe-pad, 1rem), env(safe-area-inset-left));
+  padding-inline-end: max(var(--safe-pad, 1rem), env(safe-area-inset-right));
+}
+
+@utility pb-safe {
+  padding-bottom: max(var(--safe-pad, 1rem), env(safe-area-inset-bottom));
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

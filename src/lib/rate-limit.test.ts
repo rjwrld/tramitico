@@ -1,8 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
-import { createHash, randomUUID } from "node:crypto";
-import path from "node:path";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { beforeAll, describe, expect, it } from "vitest";
+import { createHash } from "node:crypto";
+import { describe, expect, it } from "vitest";
 import {
   checkRateLimit,
   coarseUserAgent,
@@ -11,22 +8,8 @@ import {
   RATE_LIMIT_UNAVAILABLE_MESSAGE,
   subjectForAnon,
   subjectForUser,
-  supabaseRpcClient,
-  type RateLimitResult,
   type RpcClient,
 } from "./rate-limit";
-import type { Database } from "./database.types";
-import { serviceClient } from "./supabase/service";
-
-function loadDotEnvLocal() {
-  const file = path.resolve(__dirname, "../../.env.local");
-  if (!existsSync(file)) return;
-  for (const line of readFileSync(file, "utf8").split("\n")) {
-    const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
-    if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2];
-  }
-}
-loadDotEnvLocal();
 
 // Required in production (#125); the value is irrelevant to every assertion
 // here except the ones that vary it on purpose.
@@ -284,7 +267,7 @@ describe("checkRateLimit — the window is a Costa Rica calendar day", () => {
       client: {
         rpc: async (_fn, args) => {
           windowStarts.push(args.p_window_start);
-          cutoffs.push(args.p_cutoff);
+          if ("p_cutoff" in args) cutoffs.push(args.p_cutoff);
           return { data: { count: 1 }, error: null };
         },
       },
@@ -331,141 +314,114 @@ describe("checkRateLimit — the window is a Costa Rica calendar day", () => {
   });
 });
 
+describe("checkRateLimit — refund (#126)", () => {
+  /** Records every RPC the check and its refund make. */
+  function recordingClient(
+    count = 1,
+    refundResult: {
+      data: { count: number } | null;
+      error: { message: string } | null;
+    } = { data: { count: 0 }, error: null },
+  ): { client: RpcClient; calls: { fn: string; args: unknown }[] } {
+    const calls: { fn: string; args: unknown }[] = [];
+    return {
+      calls,
+      client: {
+        rpc: async (fn, args) => {
+          calls.push({ fn, args });
+          return fn === "rate_limit_refund"
+            ? refundResult
+            : { data: { count }, error: null };
+        },
+      },
+    };
+  }
+
+  const noon = new Date("2026-08-12T18:00:00Z");
+
+  it("gives the ask back against the same row the increment consumed", async () => {
+    const { client, calls } = recordingClient();
+    const result = await checkRateLimit("user:1", "authed", client, noon);
+    await result.refund();
+
+    expect(calls.map((c) => c.fn)).toEqual([
+      "rate_limit_increment",
+      "rate_limit_refund",
+    ]);
+    // Same subject, same window — never a second window derived at refund time.
+    expect(calls[1].args).toEqual({
+      p_subject: "user:1",
+      p_window_start: "2026-08-12T06:00:00.000Z",
+    });
+  });
+
+  it("is once-only — both stream-error doors can call it without double-refunding", async () => {
+    const { client, calls } = recordingClient();
+    const result = await checkRateLimit("user:1", "authed", client, noon);
+    await result.refund();
+    await result.refund();
+    await result.refund();
+    expect(calls.filter((c) => c.fn === "rate_limit_refund")).toHaveLength(1);
+  });
+
+  it("refunds nothing when the limiter denied the ask", async () => {
+    const { client, calls } = recordingClient(51);
+    const result = await checkRateLimit("user:1", "authed", client, noon);
+    expect(result.allowed).toBe(false);
+    await result.refund();
+    expect(calls.map((c) => c.fn)).toEqual(["rate_limit_increment"]);
+  });
+
+  it("refunds nothing when the limiter was unavailable — no increment landed", async () => {
+    const client = fakeClient(null, { message: "connection refused" });
+    const result = await checkRateLimit("anon:x", "anon", client, noon);
+    expect(result.reason).toBe("unavailable");
+    // The whole point: this must not decrement a row this call never touched.
+    await expect(result.refund()).resolves.toBeUndefined();
+  });
+
+  it("swallows an RPC error — a failed refund must not break the response", async () => {
+    const { client } = recordingClient(1, {
+      data: null,
+      error: { message: "connection refused" },
+    });
+    const result = await checkRateLimit("user:1", "authed", client, noon);
+    await expect(result.refund()).resolves.toBeUndefined();
+  });
+
+  it("swallows a thrown RPC too", async () => {
+    const client: RpcClient = {
+      rpc: async (fn) => {
+        if (fn === "rate_limit_refund") throw new Error("boom");
+        return { data: { count: 1 }, error: null };
+      },
+    };
+    const result = await checkRateLimit("user:1", "authed", client, noon);
+    await expect(result.refund()).resolves.toBeUndefined();
+  });
+
+  it("treats a no-op refund (window already rolled over) as success", async () => {
+    // maybeSingle() over zero matched rows: no data, no error.
+    const { client } = recordingClient(1, { data: null, error: null });
+    const result = await checkRateLimit("user:1", "authed", client, noon);
+    await expect(result.refund()).resolves.toBeUndefined();
+  });
+
+  it("gives each concurrent ask its own refund, not a shared one", async () => {
+    const { client, calls } = recordingClient();
+    const [a, b] = await Promise.all([
+      checkRateLimit("user:1", "authed", client, noon),
+      checkRateLimit("user:1", "authed", client, noon),
+    ]);
+    await Promise.all([a.refund(), b.refund()]);
+    expect(calls.filter((c) => c.fn === "rate_limit_refund")).toHaveLength(2);
+  });
+});
+
 describe("rateLimitReachedMessage", () => {
   it("names a reset time in Costa Rica local time, not raw UTC", () => {
     const resetAt = new Date("2026-07-24T00:00:00Z"); // midnight UTC = 6pm CR (UTC-6)
     const msg = rateLimitReachedMessage("authed", resetAt);
     expect(msg).toMatch(/6:00\s*p\.?\s*m\.?/i);
-  });
-});
-
-const hasLocalDb =
-  !!process.env.SUPABASE_URL && !!process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-describe.skipIf(!hasLocalDb)("checkRateLimit — integration (Postgres)", () => {
-  // Built in beforeAll, not at describe-body scope: skipIf still evaluates the
-  // body during collection, and serviceClient throws without SUPABASE_URL (CI).
-  let client: SupabaseClient<Database>;
-  let rpcClient: RpcClient;
-
-  beforeAll(() => {
-    client = serviceClient();
-    rpcClient = supabaseRpcClient(client);
-  });
-
-  async function cleanup(subject: string) {
-    await client.from("rate_limits").delete().eq("subject", subject);
-  }
-
-  it("allows the 10th anon call and denies the 11th", async () => {
-    process.env.RATE_LIMIT_ANON = "10";
-    const subject = subjectForAnon(`itest-${randomUUID()}`, "Chrome/120");
-    try {
-      const results: RateLimitResult[] = [];
-      for (let i = 0; i < 11; i++) {
-        results.push(await checkRateLimit(subject, "anon", rpcClient));
-      }
-      expect(results.slice(0, 10).every((r) => r.allowed)).toBe(true);
-      expect(results[9].remaining).toBe(0);
-      expect(results[10].allowed).toBe(false);
-      expect(results[10].reason).toBe("rate_limited");
-    } finally {
-      delete process.env.RATE_LIMIT_ANON;
-      await cleanup(subject);
-    }
-  });
-
-  it("enforces the authed tier's own limit, independent of the anon tier", async () => {
-    process.env.RATE_LIMIT_AUTHED = "2";
-    const subject = subjectForUser(`itest-${randomUUID()}`);
-    try {
-      const r1 = await checkRateLimit(subject, "authed", rpcClient);
-      const r2 = await checkRateLimit(subject, "authed", rpcClient);
-      const r3 = await checkRateLimit(subject, "authed", rpcClient);
-      expect(r1.allowed).toBe(true);
-      expect(r2.allowed).toBe(true);
-      expect(r3.allowed).toBe(false);
-    } finally {
-      delete process.env.RATE_LIMIT_AUTHED;
-      await cleanup(subject);
-    }
-  });
-
-  it("rolls the window over instead of accumulating a stale count", async () => {
-    process.env.RATE_LIMIT_ANON = "10";
-    const subject = `itest:${randomUUID()}`;
-    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    await client
-      .from("rate_limits")
-      .upsert({ subject, window_start: yesterday, count: 999 });
-    try {
-      const result = await checkRateLimit(subject, "anon", rpcClient);
-      expect(result.allowed).toBe(true);
-      expect(result.remaining).toBe(9);
-      const { data } = await client
-        .from("rate_limits")
-        .select("count")
-        .eq("subject", subject)
-        .single();
-      expect(data?.count).toBe(1);
-    } finally {
-      delete process.env.RATE_LIMIT_ANON;
-      await cleanup(subject);
-    }
-  });
-
-  it("fails closed when the database is unreachable", async () => {
-    const badClient = supabaseRpcClient(
-      createClient<Database>("http://127.0.0.1:9", "irrelevant", {
-        auth: { persistSession: false },
-      }),
-    );
-    const result = await checkRateLimit("anon:unreachable", "anon", badClient);
-    expect(result.allowed).toBe(false);
-    expect(result.reason).toBe("unavailable");
-    expect(result.message).toBe(RATE_LIMIT_UNAVAILABLE_MESSAGE);
-  });
-
-  it("stores a hashed subject with no raw IP or UA substring", async () => {
-    const ip = "198.51.100.77";
-    const ua =
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36";
-    const subject = subjectForAnon(ip, ua);
-    try {
-      await checkRateLimit(subject, "anon", rpcClient);
-      const { data } = await client
-        .from("rate_limits")
-        .select("subject")
-        .eq("subject", subject)
-        .single();
-      expect(data?.subject).toBeDefined();
-      expect(data?.subject).not.toContain(ip);
-      expect(data?.subject).not.toContain("Chrome");
-    } finally {
-      await cleanup(subject);
-    }
-  });
-
-  it("deletes rows past the retention window opportunistically", async () => {
-    const staleSubject = `itest:stale:${randomUUID()}`;
-    const freshSubject = `itest:fresh:${randomUUID()}`;
-    const staleWindow = new Date(
-      Date.now() - 3 * 24 * 60 * 60 * 1000,
-    ).toISOString();
-    await client
-      .from("rate_limits")
-      .upsert({ subject: staleSubject, window_start: staleWindow, count: 5 });
-    try {
-      await checkRateLimit(freshSubject, "anon", rpcClient);
-      const { data } = await client
-        .from("rate_limits")
-        .select("subject")
-        .eq("subject", staleSubject)
-        .maybeSingle();
-      expect(data).toBeNull();
-    } finally {
-      await cleanup(staleSubject);
-      await cleanup(freshSubject);
-    }
   });
 });

@@ -7,6 +7,21 @@ original scope (its §5 OUT-list is binding).
 
 ## Testing
 
+Three suites, three commands (`pnpm test` runs all three, for local convenience):
+
+| Command                 | Suites                                       | Needs                                         |
+| ----------------------- | -------------------------------------------- | --------------------------------------------- |
+| `pnpm test:unit`        | everything not named `*.integration.test.ts` | nothing — this is the required CI gate        |
+| `pnpm test:integration` | `src/**/*.integration.test.ts`               | a database (`supabase start`)                 |
+| `pnpm test:eval`        | `src/lib/eval/**/*.integration.test.ts`      | a database, real embeddings, an Anthropic key |
+
+Env-dependent suites are gated with `integrationSuite()` from
+`src/lib/test-support/suite-gate.ts` — never `describe.skipIf` directly. It skips locally
+when prerequisites are missing and **fails** under `CI=true`, naming what is absent: a
+required check that silently asserts nothing is the failure mode it exists to prevent
+(#129). Keep anything that throws without the environment (client and embedder
+constructors) inside the suite body, not at module scope.
+
 Every interactive component (anything with a click/submit/toggle path) ships with a jsdom
 interaction test that exercises the interaction — not just the states an issue's Tests section
 happens to enumerate. Rationale: our UI primitives are Base UI, whose composition constraints

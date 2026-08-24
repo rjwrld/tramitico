@@ -20,6 +20,20 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Testing
+
+```bash
+pnpm test:unit         # no database, no API keys — the required CI gate
+pnpm test:integration  # needs a database: supabase start
+pnpm test:eval         # needs a database, real embeddings and an Anthropic key
+pnpm test              # all three, for local convenience
+pnpm test:e2e          # Playwright
+```
+
+Integration and eval suites skip locally when their prerequisites are absent, and fail —
+naming the missing variable — under `CI=true`, so no required check can pass while
+asserting nothing.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

@@ -295,7 +295,7 @@ export function AnswerProse({
   const runs = mergeAdjacentBulletRuns(blockRuns);
 
   return (
-    <div className="max-w-[68ch] text-base leading-[1.7] text-pretty">
+    <div className="max-w-[68ch] text-base leading-[1.7] wrap-break-word text-pretty">
       {runs.map((run, i) => (
         <Segment
           key={i}

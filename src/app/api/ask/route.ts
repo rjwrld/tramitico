@@ -63,6 +63,7 @@ import { RERANK_POOL, rerankChunks } from "@/lib/answer/rerank";
 import { getUserId } from "@/lib/answer/user";
 import {
   checkRateLimit,
+  NO_REFUND,
   RATE_LIMIT_UNAVAILABLE_MESSAGE,
   subjectForAnon,
   subjectForUser,
@@ -117,6 +118,7 @@ async function anonRateLimit(request: Request): Promise<RateLimitResult> {
       resetAt: new Date(),
       reason: "unavailable",
       message: RATE_LIMIT_UNAVAILABLE_MESSAGE,
+      refund: NO_REFUND,
     };
   }
   return checkRateLimit(subject, "anon");
@@ -150,12 +152,52 @@ function writeStatus(writer: Writer, stage: AskStatusStage): void {
   });
 }
 
+/**
+ * Which failures give the ask back (#126, decision on #121). System failures
+ * do: the user asked, our side broke, they should not pay a quota slot for
+ * our outage. Everything else consumes — most importantly the honest decline
+ * on weak retrieval, which is a *completed* answer. If declines were free the
+ * boundary becomes a fishing hole: phrase asks so they decline, spend nothing.
+ *
+ * The degraded case never reaches here. `rerankChunks` swallows a Voyage
+ * outage and falls back to the fused order (rerank.ts), so a degraded answer
+ * is delivered as an answer and consumes like one. Nor does an honest decline
+ * or a client abort — neither is an error, so neither has a code at all.
+ *
+ * Exhaustive over `AskErrorCode` on purpose: a new failure mode cannot be
+ * added to the contract without someone deciding, here, whether it costs the
+ * user an ask.
+ */
+const REFUNDS_ASK: Record<AskErrorCode, boolean> = {
+  invalid_question: false, // pre-stream, and nothing was consumed yet
+  rate_limited: false, // pre-stream; the counter is the point
+  rate_limit_unavailable: false, // pre-stream; no increment landed
+  retrieval_failed: true,
+  answer_failed: true,
+};
+
+/**
+ * Records that this ask should be given back, without doing it yet. The
+ * failure paths below reach it from places that cannot await — the SDK's
+ * error mappers are synchronous — and a fire-and-forget RPC is not safe here:
+ * a serverless function can freeze the moment the response completes, and an
+ * unawaited refund would silently never land. So the paths only mark the
+ * debt; `POST` settles it in the stream's `onFinish`, which the SDK awaits
+ * inside the response's own flush, while the platform still considers the
+ * request in flight.
+ */
+interface QuotaDebt {
+  owe: () => void;
+}
+
 function writeStreamError(
   writer: Writer,
   code: AskErrorCode,
   message: string,
+  quota: QuotaDebt,
 ): void {
   writer.write({ type: "error", errorText: askStreamErrorText(code, message) });
+  if (REFUNDS_ASK[code]) quota.owe();
 }
 
 /**
@@ -163,10 +205,17 @@ function writeStreamError(
  * a bug in `execute`. The raw reason is for our logs; the client gets the
  * contract's Spanish (audit F-22: without this, the SDK's default
  * "An error occurred." reached the UI in English).
+ *
+ * `answer_failed` is a system failure, so this owes a refund too (#126). It
+ * is the second door onto the same outcome — `writeStreamError` covers the
+ * one failure the route raises itself — and both are safe to reach: the debt
+ * is a flag, and the handle that settles it is once-only.
  */
-function answerFailedText(error: unknown): string {
+function answerFailed(error: unknown, quota: QuotaDebt): string {
   console.error(`ask: answer stream failed: ${String(error)}`);
-  return askStreamErrorText("answer_failed", ASK_FALLBACK_ERROR_MESSAGE);
+  const code: AskErrorCode = "answer_failed";
+  if (REFUNDS_ASK[code]) quota.owe();
+  return askStreamErrorText(code, ASK_FALLBACK_ERROR_MESSAGE);
 }
 
 /** Weak retrieval: stream the canned honest fallback without a model call. */
@@ -230,6 +279,13 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  let refundOwed = false;
+  const quota: QuotaDebt = {
+    owe: () => {
+      refundOwed = true;
+    },
+  };
+
   const stream = createUIMessageStream<AskUIMessage>({
     execute: async ({ writer }) => {
       // Our own `start` (the merge below runs with `sendStart: false`) so the
@@ -242,7 +298,12 @@ export async function POST(request: Request): Promise<Response> {
         retrieval = await retrieve(asked, { matchCount: RERANK_POOL });
       } catch (error) {
         console.error(`ask: retrieval failed: ${String(error)}`);
-        writeStreamError(writer, "retrieval_failed", RETRIEVAL_FAILED_MESSAGE);
+        writeStreamError(
+          writer,
+          "retrieval_failed",
+          RETRIEVAL_FAILED_MESSAGE,
+          quota,
+        );
         return;
       }
 
@@ -265,6 +326,10 @@ export async function POST(request: Request): Promise<Response> {
         // nobody reads through to `maxDuration`. Scoped to the model call
         // only, per the issue — retrieval/rerank above are not wired to this
         // signal and keep running if the client aborts during "buscando".
+        //
+        // An abort consumes the ask (#126). Nothing on our side failed, and a
+        // refundable abort would be the same free-ask fishing hole the issue
+        // closes for declines — ask, stop, repeat.
         abortSignal: request.signal,
         // #73: provider deltas arrive in bursts, which reads as multi-word
         // jumps. Re-chunk them word by word server-side so the text flows —
@@ -294,7 +359,8 @@ export async function POST(request: Request): Promise<Response> {
           }
         },
         onFinish: async ({ text }) => {
-          if (userId) {
+          if (!userId) return;
+          try {
             await saveQuestion({
               userId,
               question: asked,
@@ -305,6 +371,14 @@ export async function POST(request: Request): Promise<Response> {
               answer: renumberCitationMarkers(text, tracker.ordinals()),
               citations: tracker.used(),
             });
+          } catch (error) {
+            // persist.ts's bargain, same as the weak-retrieval path: a
+            // failed save is logged, never surfaced — the user already has
+            // their answer. Kept explicitly rather than relying on the SDK to
+            // swallow the rejection: an escaped one would stamp a Spanish
+            // failure under a delivered answer and, since #126, refund an ask
+            // the user actually got.
+            console.error(`ask: saving the answer failed: ${error}`);
           }
         },
       });
@@ -316,11 +390,19 @@ export async function POST(request: Request): Promise<Response> {
         toUIMessageStream({
           stream: result.stream,
           sendStart: false,
-          onError: answerFailedText,
+          onError: (error) => answerFailed(error, quota),
         }),
       );
     },
-    onError: answerFailedText,
+    onError: (error) => answerFailed(error, quota),
+    // Where a system failure actually gives the ask back (#126). The SDK
+    // awaits this in the stream's flush, so the RPC completes before the
+    // response does — the one place on this route that is still guaranteed
+    // to run, and still guaranteed to be waited for. `refund()` swallows its
+    // own failures, so a dead limiter cannot truncate a delivered answer.
+    onFinish: async () => {
+      if (refundOwed) await limit.refund();
+    },
   });
   return createUIMessageStreamResponse({ stream });
 }

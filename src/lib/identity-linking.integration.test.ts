@@ -17,38 +17,33 @@
  * auth.admin surface). Fabricating identity rows over SQL would only assert
  * state we wrote ourselves. Recorded in #84 alongside the decision.
  *
- * Env-gated like history.integration.test.ts: skipped wholesale unless
+ * Env-gated like history.integration.test.ts: skipped locally without
  * SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY and
- * NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY are set.
+ * NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, failed loudly on CI (#129).
  */
-import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
-import path from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, expect, it, vi } from "vitest";
 
 import type { Database } from "./database.types";
-
-function loadDotEnvLocal() {
-  const file = path.resolve(__dirname, "../../.env.local");
-  if (!existsSync(file)) return;
-  for (const line of readFileSync(file, "utf8").split("\n")) {
-    const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
-    if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2];
-  }
-}
-loadDotEnvLocal();
+import { envPrereqs, integrationSuite } from "./test-support/suite-gate";
 
 const url = process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-const hasDb = Boolean(url && serviceRoleKey && publishableKey);
+const describeDb = integrationSuite(
+  envPrereqs(
+    "SUPABASE_URL",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+  ),
+);
 
 vi.setConfig({ testTimeout: 30_000 });
 
 type Client = SupabaseClient<Database>;
 
-describe.skipIf(!hasDb)("identity linking preconditions (issue #84)", () => {
+describeDb("identity linking preconditions (issue #84)", () => {
   let admin: Client;
   const email = `link-${randomUUID()}@example.com`;
   let userId: string;

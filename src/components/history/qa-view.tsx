@@ -29,14 +29,16 @@ export function QAView({
   ).filter(isCitation);
 
   return (
-    <article className="mx-auto flex w-full max-w-[44rem] flex-col gap-4 px-6 py-8">
+    <article className="mx-auto flex w-full max-w-[44rem] flex-col gap-4 px-safe pt-8 pb-8 [--safe-pad:1.5rem]">
       <div>
         <Button variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft data-icon="inline-start" />
           Volver
         </Button>
       </div>
-      <h1 className="font-serif text-2xl font-semibold tracking-tight">
+      {/* A pasted question can be one unbroken string (#138) — it wraps
+          rather than pushing the column wider than the phone. */}
+      <h1 className="font-serif text-2xl font-semibold tracking-tight wrap-break-word">
         {item.question}
       </h1>
       {/* Same prose treatment as the live answer (#77): the snapshot carries

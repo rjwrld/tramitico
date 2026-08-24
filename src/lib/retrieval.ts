@@ -33,6 +33,20 @@ export const LEG_LIMIT = 50;
 /** Fused rows returned when the caller does not ask for a specific count. */
 export const DEFAULT_MATCH_COUNT = 8;
 
+/**
+ * How deeply a source's official URL can be linked (issue #134), audited per
+ * manifest entry and recorded in `corpus/manifest.json`:
+ *
+ * - `articulo` — SINALEVI fichas: the viewer opens one artículo directly, keyed
+ *   by the opaque `idArticulo` harvested into `articulos` at ingestion.
+ * - `page` — page-ranged PDFs: the PDF viewer honours a `#page=` fragment, so
+ *   the chip lands on the first page of the range we actually ingested.
+ * - `none` — no anchor the official URL supports (whole-file PDFs with no
+ *   article→page map, a PDF inside a zip, the CABYS catalog page): the chip
+ *   keeps the document root, which #121 accepted as long as it is documented.
+ */
+export type DeepLinkKind = "articulo" | "page" | "none";
+
 /** `documents.source` jsonb (SPEC §4). */
 export interface DocumentSource {
   kind?: string;
@@ -42,6 +56,12 @@ export interface DocumentSource {
   catalog?: string;
   idFichaNorma?: number;
   idVersionNorma?: number;
+  /** Deep-link capability audited for this source (#134). */
+  deepLink?: DeepLinkKind;
+  /** `deepLink: "articulo"`: artículo number → SINALEVI `idArticulo`. */
+  articulos?: Record<string, number>;
+  /** `deepLink: "page"`: 1-based inclusive page range, e.g. "165-171". */
+  pages?: string;
 }
 
 /** One row of `public.search_chunks`, wire shape. */
@@ -188,24 +208,68 @@ export function fuseRrf(
     .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
 }
 
+const SINALEVI_VIEWER =
+  "https://sinalevi.go.cr/ResultadosNormativa/Informacion";
+
 /**
- * Official address for a document's citation chip.
+ * `documents.source` is untrusted jsonb: every value interpolated into a URL
+ * has to be a positive integer before it goes anywhere near a query string.
+ */
+function positiveInt(value: unknown): number | null {
+  return typeof value === "number" && Number.isInteger(value) && value > 0
+    ? value
+    : null;
+}
+
+/**
+ * The chunk's artículo heading → the key `source.articulos` is harvested under
+ * (issue #134). Only a plain, whole-numbered artículo can be anchored: the
+ * SINALEVI rail numbers its anchors, so `Artículo 8 bis`, transitorios and the
+ * preámbulo have no key and keep the document root.
+ */
+function articuloAnchorKey(articulo: string | null | undefined): string | null {
+  const m = articulo?.trim().match(/^ART[ÍI]CULO\s+(\d+)$/i);
+  return m ? m[1] : null;
+}
+
+/**
+ * Official address for a document's citation chip, deep-linked to `articulo`
+ * where the source's own URL structure supports it (issue #134; capability
+ * audited per source and recorded as `source.deepLink` in the manifest).
  *
  * SINALEVI fichas get the viewer link the site itself redirects legacy SCIJ
- * URLs to; `param2` is left empty on purpose — that is what makes the viewer
- * resolve and render the vigente version (a pinned version id renders the
- * ficha's default tab instead of the text).
+ * URLs to. On the document root `param2` is left empty on purpose — that is
+ * what makes the viewer resolve and render the vigente version (a pinned
+ * version id renders the ficha's default tab instead of the text). The
+ * artículo view (`param3=3`) is the deliberate exception: it *requires* a
+ * version id, and pinning the one we ingested is the honest link — it opens
+ * the exact text the answer was grounded in, not a later reform we never read.
  */
 export function citationUrl(
   source: DocumentSource | null | undefined,
+  articulo?: string | null,
 ): string | null {
   if (!source) return null;
   if (source.kind === "sinalevi" && source.idFichaNorma) {
-    return `https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=${source.idFichaNorma}&param2=&param3=1&param4=`;
+    const ficha = positiveInt(source.idFichaNorma);
+    if (!ficha) return null;
+    const root = `${SINALEVI_VIEWER}?param1=${ficha}&param2=&param3=1&param4=`;
+    if (source.deepLink !== "articulo") return root;
+    const version = positiveInt(source.idVersionNorma);
+    const key = articuloAnchorKey(articulo);
+    const idArticulo = key ? positiveInt(source.articulos?.[key]) : null;
+    if (!version || !idArticulo) return root;
+    return `${SINALEVI_VIEWER}?param1=${ficha}&param2=${version}&param3=3&param4=${idArticulo}&param5=`;
   }
   const address = source.url ?? source.catalog;
   if (!address) return null;
-  return /^https?:\/\//i.test(address) ? address : null;
+  if (!/^https?:\/\//i.test(address)) return null;
+  if (source.deepLink === "page") {
+    const first = positiveInt(Number(source.pages?.match(/^(\d+)-\d+$/)?.[1]));
+    // Never append a second fragment — the address is the root otherwise.
+    if (first && !address.includes("#")) return `${address}#page=${first}`;
+  }
+  return address;
 }
 
 /**
@@ -227,7 +291,7 @@ export function toCitation(chunk: RetrievedChunk): Citation {
     docTitle: chunk.docTitle,
     norma: chunk.norma,
     articulo: chunk.articulo,
-    url: citationUrl(chunk.source),
+    url: citationUrl(chunk.source, chunk.articulo),
     fetchedAt: chunk.fetchedAt,
   };
 }

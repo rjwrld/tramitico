@@ -20,7 +20,8 @@ import {
 import { fetchHaciendaPdf } from "../src/lib/ingestion/hacienda";
 import { fetchPdfSource } from "../src/lib/ingestion/pdf";
 import { replaceDocumentChunks } from "../src/lib/ingestion/replace";
-import { fetchNorma } from "../src/lib/ingestion/sinalevi";
+import type { DeepLinkKind } from "../src/lib/retrieval";
+import { articuloAnchors, fetchNorma } from "../src/lib/ingestion/sinalevi";
 
 interface ManifestDoc {
   doc_key: string;
@@ -41,6 +42,14 @@ interface ManifestDoc {
     pages?: string;
     catalog?: string;
     hint?: string;
+    /**
+     * Deep-link capability of this source's official URL, audited per entry
+     * (issue #134): `articulo` (SINALEVI artículo view), `page` (`#page=` into
+     * a page-ranged PDF) or `none` (document root is the deepest honest link).
+     */
+    deepLink: DeepLinkKind;
+    /** `sinalevi` only: artículo number → viewer id, harvested at ingestion. */
+    articulos?: Record<string, number>;
   };
   /** ISO date the document's text takes effect (SPEC §3 provenance). */
   effective_date?: string;
@@ -181,9 +190,15 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
       console.log(
         `  ${doc.doc_key}: vigente version ${norma.cantidadVersiones} (idVersionNorma ${norma.idVersionNorma})`,
       );
+      // The anchor map is harvested from the same payload the chunks come
+      // from, so a chip can only ever deep-link the version it cites (#134).
+      const articulos = articuloAnchors(norma.html);
+      console.log(
+        `  ${doc.doc_key}: ${Object.keys(articulos).length} artículo anchors`,
+      );
       doc.source = {
         ...doc.source,
-        ...{ idVersionNorma: norma.idVersionNorma },
+        ...{ idVersionNorma: norma.idVersionNorma, articulos },
       };
       return htmlToParagraphs(norma.html);
     }

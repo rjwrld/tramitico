@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
@@ -25,6 +25,18 @@ const sourceSerif = localFont({
   // Default fallback metrics are Arial's — wrong shape for a serif face.
   adjustFontFallback: "Times New Roman",
 });
+
+/**
+ * `viewport-fit=cover` lets the layout reach under a notch and the home
+ * indicator; the surfaces that touch those edges pay their own
+ * `env(safe-area-inset-*)` (issue #138). No `maximumScale`/`userScalable`:
+ * pinch-zoom stays available, which is the point of the 200% reflow bar.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   title: "Tramitico",
