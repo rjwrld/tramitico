@@ -7,6 +7,7 @@
  * with fade, 180ms ease-out-quart — declared in globals.css and disabled
  * under `prefers-reduced-motion` via `motion-reduce:animate-none`.
  */
+import { CR_UTC_OFFSET_MS } from "@/lib/cr-time";
 import type { Citation } from "@/lib/retrieval";
 import { cn } from "@/lib/utils";
 
@@ -104,6 +105,45 @@ export function Sello({
   );
 }
 
+/** Month abbreviations as Costa Rica writes them — «set», not «sept». */
+const MONTHS_ES = [
+  "ene",
+  "feb",
+  "mar",
+  "abr",
+  "may",
+  "jun",
+  "jul",
+  "ago",
+  "set",
+  "oct",
+  "nov",
+  "dic",
+];
+
+/**
+ * `consultado el 6 ago 2026` — how current the corpus's copy of a document is
+ * (#135). This is the only freshness fact we actually have: `effective_date`
+ * is unpopulated and structured vigencia extraction is post-launch (#121), so
+ * a source with no `fetched_at` gets no caption rather than an invented one.
+ * The month table is spelled out instead of delegated to `Intl` because
+ * abbreviated Spanish months drift between ICU versions («ago» vs «ago.»),
+ * and this string sits in the trust surface. The date itself is read on the
+ * Costa Rica calendar — the same fixed shift the daily quota uses (#125) —
+ * so the caption is identical on the server and in the browser, which a
+ * locale/TZ-dependent format would not be.
+ */
+export function fetchedLabel(
+  fetchedAt: string | null | undefined,
+): string | null {
+  if (!fetchedAt) return null;
+  const parsed = new Date(fetchedAt);
+  if (Number.isNaN(parsed.getTime())) return null;
+  const cr = new Date(parsed.getTime() - CR_UTC_OFFSET_MS);
+  const month = MONTHS_ES[cr.getUTCMonth()];
+  return `consultado el ${cr.getUTCDate()} ${month} ${cr.getUTCFullYear()}`;
+}
+
 /**
  * Anchor id for the nth seal of one answer (#133). `prefix` scopes it to that
  * answer — several are on screen at once in a chat — and is scrubbed to the
@@ -137,17 +177,31 @@ export function SelloRow({
   return (
     <ul
       aria-label="Fuentes"
-      className={cn("flex list-none flex-wrap gap-2 p-0", className)}
+      className={cn(
+        "flex list-none flex-wrap items-start gap-x-2 gap-y-3 p-0",
+        className,
+      )}
     >
-      {citations.map((citation, i) => (
-        <li
-          key={`${citation.docKey} ${citation.articulo ?? ""}`}
-          id={anchorPrefix ? selloAnchorId(anchorPrefix, i + 1) : undefined}
-          className="scroll-mt-24 rounded-[3px] target:outline-2 target:outline-offset-2 target:outline-ring"
-        >
-          <Sello citation={citation} />
-        </li>
-      ))}
+      {citations.map((citation, i) => {
+        const consultado = fetchedLabel(citation.fetchedAt);
+        return (
+          <li
+            key={`${citation.docKey} ${citation.articulo ?? ""}`}
+            id={anchorPrefix ? selloAnchorId(anchorPrefix, i + 1) : undefined}
+            className="flex scroll-mt-24 flex-col items-start gap-1 rounded-[3px] target:outline-2 target:outline-offset-2 target:outline-ring"
+          >
+            <Sello citation={citation} />
+            {consultado && (
+              // The stamp's anatomy is fixed (DESIGN §5) — the date is a
+              // caption under it, in the 11px mono meta slot, never inside
+              // the chip.
+              <span className="px-[1px] font-mono text-[0.6875rem] text-muted-foreground">
+                {consultado}
+              </span>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }

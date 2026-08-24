@@ -16,6 +16,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createHmac } from "node:crypto";
 import type { Database } from "./database.types";
+import { CR_TIME_ZONE, CR_UTC_OFFSET_MS } from "./cr-time";
 import { serviceClient } from "./supabase/service";
 
 export type RateLimitTier = "anon" | "authed";
@@ -96,7 +97,6 @@ export function supabaseRpcClient(
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const RETENTION_DAYS = 2;
-const CR_TIME_ZONE = "America/Costa_Rica";
 
 const DEFAULT_LIMITS: Record<RateLimitTier, number> = { anon: 10, authed: 50 };
 
@@ -107,14 +107,6 @@ function limitFor(tier: RateLimitTier): number {
   const n = Number(raw);
   return Number.isFinite(n) && n > 0 ? n : DEFAULT_LIMITS[tier];
 }
-
-/**
- * Costa Rica is UTC-6 year-round — no DST since 1992 — so the whole CR
- * calendar is a fixed shift, and neither of the two functions below needs a
- * timezone database. That decision is #121's; `CR_TIME_ZONE` above stays for
- * `Intl` formatting, which does want the real zone name.
- */
-const CR_UTC_OFFSET_MS = 6 * 60 * 60 * 1000;
 
 /** The current date in Costa Rica as `YYYY-MM-DD` (#125). */
 export function crDate(now = new Date()): string {

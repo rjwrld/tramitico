@@ -18,6 +18,7 @@ function chunk(overrides: Partial<RetrievedChunk> = {}): RetrievedChunk {
     part: 0,
     content: "La tarifa general del impuesto es del trece por ciento (13%).",
     source: {},
+    fetchedAt: "2026-08-06T15:04:05Z",
     score: 0.03,
     vectorRank: 1,
     lexicalRank: 1,
@@ -97,13 +98,22 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/No use títulos/);
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/enlaces/i);
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/Markdown/);
-    // Rule 5 makes the model print bare agency URLs — the formatting rule
+    // The honest-fallback rule makes the model print bare agency URLs — the formatting rule
     // must forbid link *syntax*, not URLs.
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
       /direcciones web escríbalas tal cual/i,
     );
     // And it must not be readable as overriding rule 2's [n] contract.
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/no altera la regla 2/i);
+  });
+
+  it("makes conflicting sources a stated discrepancy, not a silent pick (#135)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/se contradicen/i);
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/las fuentes discrepan/i);
+    // Both sides must survive into the answer: the figure of each source and
+    // a citation for each — never one chosen, never an average.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/no escoja uno ni promedie/i);
+    expect(ANSWER_SYSTEM_PROMPT).toContain("[m]");
   });
 
   it("tells the model to keep consecutive bullets on consecutive lines (#95)", () => {

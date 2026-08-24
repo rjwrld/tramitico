@@ -6,7 +6,7 @@ import {
   type Citation,
   type RetrievedChunk,
 } from "@/lib/retrieval";
-import { Sello, SelloRow, selloLabel } from "@/components/sello";
+import { Sello, SelloRow, fetchedLabel, selloLabel } from "@/components/sello";
 
 afterEach(cleanup);
 
@@ -24,6 +24,7 @@ const CHUNK: RetrievedChunk = {
   score: 0.1,
   vectorRank: 1,
   lexicalRank: 1,
+  fetchedAt: "2026-08-06T15:04:05Z",
 };
 
 const reglamentoIva: Citation = {
@@ -32,6 +33,7 @@ const reglamentoIva: Citation = {
   norma: "Decreto Ejecutivo 41779",
   articulo: "Artículo 11",
   url: "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=88953&param2=&param3=1&param4=",
+  fetchedAt: "2026-08-06T15:04:05Z",
 };
 
 describe("selloLabel", () => {
@@ -71,6 +73,37 @@ describe("selloLabel", () => {
     expect(selloLabel({ ...reglamentoIva, articulo: "Preámbulo" })).toBe(
       "Reglamento IVA · Preámbulo",
     );
+  });
+});
+
+describe("fetchedLabel", () => {
+  it("prints the fetch date as a quiet Spanish caption", () => {
+    expect(fetchedLabel("2026-08-06T15:04:05Z")).toBe(
+      "consultado el 6 ago 2026",
+    );
+  });
+
+  it("reads the timestamp on the Costa Rica calendar, not the runner's", () => {
+    // 03:30 UTC on the 7th is still 21:30 on the 6th in Costa Rica (UTC-6,
+    // no DST — the same fixed shift #125 uses for the daily quota).
+    expect(fetchedLabel("2026-08-07T03:30:00Z")).toBe(
+      "consultado el 6 ago 2026",
+    );
+    expect(fetchedLabel("2026-08-07T06:00:00Z")).toBe(
+      "consultado el 7 ago 2026",
+    );
+  });
+
+  it("spells September the way Costa Rica does", () => {
+    expect(fetchedLabel("2026-09-15T12:00:00Z")).toBe(
+      "consultado el 15 set 2026",
+    );
+  });
+
+  it("has nothing to say about a document with no fetch date", () => {
+    expect(fetchedLabel(null)).toBeNull();
+    expect(fetchedLabel(undefined)).toBeNull();
+    expect(fetchedLabel("no es una fecha")).toBeNull();
   });
 });
 
@@ -171,6 +204,39 @@ describe("SelloRow", () => {
   it("leaves the sellos unanchored when no answer owns them", () => {
     render(<SelloRow citations={[reglamentoIva]} />);
     expect(screen.getByRole("listitem").id).toBe("");
+  });
+
+  it("captions every stamp with the date its source was consulted (#135)", () => {
+    render(
+      <SelloRow
+        citations={[
+          reglamentoIva,
+          {
+            ...reglamentoIva,
+            docKey: "ley-iva",
+            articulo: "Artículo 8",
+            fetchedAt: "2026-08-04T09:00:00Z",
+          },
+        ]}
+      />,
+    );
+    expect(screen.getAllByRole("listitem").map((li) => li.textContent)).toEqual(
+      [
+        "Reglamento IVA · Art. 11consultado el 6 ago 2026",
+        "Ley IVA · Art. 8consultado el 4 ago 2026",
+      ],
+    );
+  });
+
+  it("leaves a source with no fetch date uncaptioned rather than guessing", () => {
+    // Rows persisted before #135 carry no fetchedAt at all; a chip with no
+    // date prints no date — nothing is invented to fill the slot.
+    const legacy: Citation = { ...reglamentoIva };
+    delete legacy.fetchedAt;
+    render(<SelloRow citations={[legacy]} />);
+    expect(screen.getByRole("listitem").textContent).toBe(
+      "Reglamento IVA · Art. 11",
+    );
   });
 
   it("renders nothing when there are no citations", () => {

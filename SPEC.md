@@ -136,7 +136,11 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   agency instead of guessing. MTSS questions get the encoded fact: the Labor Code mostly does
   not apply to independents.
 - **Citations:** every answer renders the chunks used as `Documento · Artículo` chips linking to
-  the official source URL. Groundedness is visible, not claimed.
+  the official source URL, each captioned with the date the corpus fetched that document
+  (_consultado el …_, #135). Groundedness is visible, not claimed — and so is how current it is.
+  When two retrieved sources disagree on a figure or date, the answer states the discrepancy and
+  cites both (#135); deciding which one is vigente needs structured `effective_date` extraction,
+  which is post-launch (#121).
 - **Disclaimer** on every answer: not legal/accounting advice — verify with Hacienda/CCSS.
 
 ## 6. API surface (route handlers)

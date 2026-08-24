@@ -42,6 +42,40 @@ describe("QAView", () => {
     );
   });
 
+  it("captions a saved source with the date it was consulted, and leaves pre-#135 rows uncaptioned", () => {
+    render(
+      <QAView
+        item={{
+          ...baseItem,
+          citations: [
+            {
+              docKey: "reglamento-iva",
+              docTitle: "Reglamento IVA",
+              norma: null,
+              articulo: "Artículo 11",
+              url: null,
+              fetchedAt: "2026-08-06T15:04:05Z",
+            },
+            // Saved before #135: no fetchedAt key at all. It must survive the
+            // isCitation filter and simply render without a caption.
+            {
+              docKey: "ley-9635",
+              docTitle: "Ley 9635",
+              norma: null,
+              articulo: "Artículo 4",
+              url: null,
+            },
+          ],
+        }}
+        onBack={vi.fn()}
+      />,
+    );
+
+    expect(screen.getAllByRole("listitem").map((li) => li.textContent)).toEqual(
+      ["Reglamento IVA · Art. 11consultado el 6 ago 2026", "Ley 9635 · Art. 4"],
+    );
+  });
+
   it("renders the persisted markers as superscripts anchored to the sellos (#133)", () => {
     render(
       <QAView

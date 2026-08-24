@@ -49,6 +49,19 @@ function answer(
 }
 
 describe("AnswerBlock", () => {
+  it("captions each streamed source with the date it was consulted (#135)", () => {
+    render(
+      <AnswerBlock
+        message={answer("La tarifa es 13% [1].", [
+          { ...citation, fetchedAt: "2026-08-06T15:04:05Z" },
+        ])}
+      />,
+    );
+    expect(screen.getByRole("listitem").textContent).toBe(
+      "Reglamento IVA · Art. 11consultado el 6 ago 2026",
+    );
+  });
+
   it("drops [n] markers the streamed map cannot resolve (#75)", () => {
     render(
       <AnswerBlock

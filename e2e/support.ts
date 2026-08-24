@@ -11,6 +11,8 @@ export const CITATION = {
   norma: "Decreto Ejecutivo 41779",
   articulo: "Artículo 11",
   url: "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=88953&param2=&param3=1&param4=",
+  // Read on the Costa Rica calendar by the chip's caption (#135).
+  fetchedAt: "2026-08-06T15:04:05Z",
 };
 
 /** Next.js's route announcer is also role=alert — filter to ours. */

@@ -41,6 +41,7 @@ function chunk(
     part: 0,
     content: `contenido ${id}`,
     source: { url: `https://example.go.cr/${id}` },
+    fetchedAt: "2026-08-06T15:04:05Z",
     score: 1 / (60 + id),
     vectorRank: id,
     lexicalRank: id,

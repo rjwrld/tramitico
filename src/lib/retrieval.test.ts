@@ -247,6 +247,7 @@ const ROW: SearchChunksRow = {
   part: 0,
   content: "[Ley del Trabajador Independiente > ARTÍCULO 2] La prescripción…",
   source: { kind: "sinalevi", idFichaNorma: 99349, idVersionNorma: 135825 },
+  fetched_at: "2026-08-06T15:04:05+00:00",
   score: rrfScore(1) + rrfScore(1),
   vector_rank: 1,
   lexical_rank: 1,
@@ -262,6 +263,7 @@ const CHUNK: RetrievedChunk = {
   part: ROW.part,
   content: ROW.content,
   source: ROW.source,
+  fetchedAt: ROW.fetched_at,
   score: ROW.score,
   vectorRank: ROW.vector_rank,
   lexicalRank: ROW.lexical_rank,
@@ -275,6 +277,9 @@ describe("toCitation", () => {
       norma: "Ley 10363",
       articulo: "ARTÍCULO 2",
       url: "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=99349&param2=&param3=1&param4=",
+      // The chip's "consultado el …" caption (#135) rides along from the
+      // document row, so live answers carry it without a second query.
+      fetchedAt: "2026-08-06T15:04:05+00:00",
     });
   });
 
@@ -307,6 +312,7 @@ const CANONICAL_CITATION: Citation = {
   norma: "Ley 10363",
   articulo: "ARTÍCULO 2",
   url: "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=99349&param2=&param3=1&param4=",
+  fetchedAt: "2026-08-06T15:04:05+00:00",
 };
 
 describe("isCitation", () => {
@@ -326,6 +332,22 @@ describe("isCitation", () => {
 
   it("rejects a missing field", () => {
     expect(isCitation(omit(CANONICAL_CITATION, "url"))).toBe(false);
+  });
+
+  it("accepts a citation with a fetch date, and one saved before #135 without", () => {
+    expect(
+      isCitation({ ...CANONICAL_CITATION, fetchedAt: "2026-08-06T15:04:05Z" }),
+    ).toBe(true);
+    expect(isCitation({ ...CANONICAL_CITATION, fetchedAt: null })).toBe(true);
+    // Rows already in `questions` carry no such key — the history view filters
+    // with this guard, so a stricter check would blank every saved answer.
+    expect(isCitation(omit(CANONICAL_CITATION, "fetchedAt"))).toBe(true);
+  });
+
+  it("rejects a wrong-typed fetch date", () => {
+    expect(isCitation({ ...CANONICAL_CITATION, fetchedAt: 1754492645 })).toBe(
+      false,
+    );
   });
 
   it("rejects a renamed field", () => {

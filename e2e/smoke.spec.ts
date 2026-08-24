@@ -47,6 +47,8 @@ test("seeded prompt click streams an answer with sello and disclaimer", async ({
   const sello = page.getByRole("link", { name: "Reglamento IVA · Art. 11" });
   await expect(sello).toBeVisible();
   await expect(sello).toHaveAttribute("href", CITATION.url);
+  // How current the cited source is, under its stamp (#135).
+  await expect(page.getByText("consultado el 6 ago 2026")).toBeVisible();
   await expect(
     page.getByText(
       "No es asesoría legal ni contable — verifique con Hacienda.",

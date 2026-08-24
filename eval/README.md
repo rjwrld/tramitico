@@ -106,6 +106,18 @@ ANTHROPIC_API_KEY=<key> \
 pnpm vitest run src/lib/eval/groundedness.integration.test.ts
 ```
 
+> **Gate run 2026-08-13 (#135 prompt amendment): 22/25 (88%) — FAIL.** Failing
+> cases: `iva-clientes-fuera-cr`, `ccss-cuanto-pago-base`,
+> `tribu-cr-declarar-pagar`, each a judged over-claim beyond the cited
+> fragments, none conflict-related. **Not caused by the #135 rule.** A/B on the
+> three failing cases, same retrieved chunks, same judge: the amended prompt
+> scored 3/3, `main`'s pre-#135 prompt 2/3 (`ccss-cuanto-pago-base` failed on
+> the baseline and passed on the amendment). The gate has not been re-measured
+> since the CCSS escalas landed (#114) — the corpus these cases read changed
+> under them, and `ccss-cuanto-pago-base` reads exactly the new documents.
+> Needs its own investigation before launch; it is a live gate failure, not
+> noise to wave through.
+
 ### Haiku comparison (SPEC §5)
 
 The Week 3 cost/quality comparison is the same command with
@@ -139,3 +151,36 @@ a clean corpus the gate _does_ see a quality gap, and Sonnet 5 stays the
 default on quality grounds, not just inertia. The 2026-08-06 numbers (7
 questions short-circuited to the deterministic fallback by a polluted corpus)
 should not be quoted.
+
+## Adversarial conflicting-sources case (issue #135)
+
+`src/lib/eval/conflicting-sources.integration.test.ts` is the one case that
+cannot live in `dataset.jsonl`. Its fragments are hand-written
+(`src/lib/eval/conflicting-sources.ts`) and deliberately contradict each other
+on a single figure — two tramos decrees of consecutive years quoting different
+exempt amounts. The corpus does not contradict itself, and dataset targets must
+be verified against the ingested corpus, so no real question can exercise the
+path.
+
+It runs the production answer path from the prompt down (`ANSWER_MODEL` +
+`ANSWER_SYSTEM_PROMPT` + `buildUserPrompt`) and asks a **second** judge — not
+the groundedness one — the adversarial question: does the answer say the
+sources disagree, give both figures, and cite both? The groundedness judge
+cannot catch this, since an answer that quietly picked one figure is still
+fully supported by its fragments. Rule 4 of the answer prompt is what the case
+holds in place; the decision that conflicts are surfaced in answer text rather
+than resolved by structured vigencia extraction is #121's.
+
+Blocking, single case, no rate. It needs no database and no embeddings, so it
+is gated on `ANTHROPIC_API_KEY` alone and runs at the judge cadence alongside
+the groundedness gate:
+
+```sh
+ANTHROPIC_API_KEY=<key> \
+pnpm vitest run src/lib/eval/conflicting-sources.integration.test.ts
+```
+
+Verified 2026-08-13 (answer `claude-sonnet-5`, judge `claude-sonnet-4-5`):
+pass — the answer opens with «Las fuentes discrepan…», names each decree with
+its own figure and marker, and refers the reader to Hacienda for which one
+rules.

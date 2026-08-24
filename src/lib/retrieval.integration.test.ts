@@ -106,6 +106,7 @@ describeDb("search_chunks against the ingested corpus", () => {
       "content",
       "doc_key",
       "doc_title",
+      "fetched_at",
       "lexical_rank",
       "norma",
       "part",
@@ -117,6 +118,9 @@ describeDb("search_chunks against the ingested corpus", () => {
     expect(Array.isArray(row.path)).toBe(true);
     expect(typeof row.part).toBe("number");
     expect(typeof row.score).toBe("number");
+    // The chip's "consultado el …" caption (#135): every ingested document is
+    // stamped, so the column comes back as a timestamp, not null.
+    expect(new Date(row.fetched_at!).getTime()).not.toBeNaN();
   });
 
   it("honours match_count", async () => {
@@ -254,6 +258,8 @@ describeDb("retrieve", () => {
     expect(cited!.url).toMatch(
       /^https:\/\/sinalevi\.go\.cr\/ResultadosNormativa\/Informacion\?param1=99349/,
     );
+    // Freshness reaches the chip through the citation itself (#135).
+    expect(new Date(cited!.fetchedAt!).getTime()).not.toBeNaN();
     // One citation per artículo — parts of the same artículo collapse.
     expect(
       new Set(result.citations.map((c) => `${c.docKey} ${c.articulo}`)).size,
