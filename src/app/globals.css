@@ -4,7 +4,13 @@
 @custom-variant dark (&:is(.dark *));
 
 /* Tramitico tokens — DESIGN.md §2 (notaría moderna). Red appears only as: wordmark
-   syllable, sello (citations), the single primary action, and focus/active states. */
+   syllable, sello (citations), the single primary action, and focus/active states.
+
+   Destructive grounds are real tokens, not an alpha of `--destructive` (issue
+   #160): in dark mode the polarity inverts — the text is lighter than the page —
+   so a self-tint pulls the ground toward the text and AA is unreachable at any
+   token value. Same shape as `--sello` / `--sello-bg`. Values are checked by
+   `src/lib/design/tokens.test.ts`; do not hand-edit one without rerunning it. */
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.24 0.015 285);
@@ -21,6 +27,8 @@
   --accent: oklch(0.965 0.004 40);
   --accent-foreground: oklch(0.3 0.015 285);
   --destructive: oklch(0.42 0.16 12);
+  --destructive-bg: oklch(0.94 0.015 5);
+  --destructive-bg-hover: oklch(0.88 0.03 5);
   --border: oklch(0.895 0.005 285);
   --input: oklch(0.895 0.005 285);
   --ring: oklch(0.5 0.155 27);
@@ -48,7 +56,9 @@
   --muted-foreground: oklch(0.66 0.012 285);
   --accent: oklch(0.27 0.013 285);
   --accent-foreground: oklch(0.85 0.01 285);
-  --destructive: oklch(0.6 0.17 15);
+  --destructive: oklch(0.68 0.17 15);
+  --destructive-bg: oklch(0.24 0.04 15);
+  --destructive-bg-hover: oklch(0.28 0.05 15);
   --border: oklch(0.32 0.012 285);
   --input: oklch(0.32 0.012 285);
   --ring: oklch(0.66 0.14 25);
@@ -76,6 +86,8 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-bg: var(--destructive-bg);
+  --color-destructive-bg-hover: var(--destructive-bg-hover);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

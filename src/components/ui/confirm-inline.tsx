@@ -1,7 +1,12 @@
 // Inline destructive confirm (issue #110): the one confirm shape shared by
 // the history-item delete and the account delete. DESIGN §2 red discipline —
-// an explicit-verb button in the tinted `destructive` variant (bg-destructive/10,
-// not the brand red fill), never a browser confirm(). The element is polymorphic
+// an explicit-verb button in the tinted `destructive` variant (ground
+// `--destructive-bg`, not the brand red fill), never a browser confirm(). The
+// container itself stays transparent: the prompt copy reads on whichever
+// surface it lands on — the page in the sidebar, the popover in the account
+// menu — and issue #160 raised dark `--destructive` until both clear AA
+// (5.68:1 and 5.13:1). See `src/lib/design/tokens.test.ts`.
+// The element is polymorphic
 // via `render` because one call site is a list item and the other sits inside a
 // menu.
 //
