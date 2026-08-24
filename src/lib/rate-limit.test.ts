@@ -284,7 +284,7 @@ describe("checkRateLimit — the window is a Costa Rica calendar day", () => {
       client: {
         rpc: async (_fn, args) => {
           windowStarts.push(args.p_window_start);
-          cutoffs.push(args.p_cutoff);
+          if ("p_cutoff" in args) cutoffs.push(args.p_cutoff);
           return { data: { count: 1 }, error: null };
         },
       },
@@ -328,6 +328,110 @@ describe("checkRateLimit — the window is a Costa Rica calendar day", () => {
     expect(windowStarts[0]).toBe("2026-08-11T06:00:00.000Z");
     expect(cutoffs[0]).toBe("2026-08-09T06:00:00.000Z");
     expect(result.resetAt.toISOString()).toBe("2026-08-12T06:00:00.000Z");
+  });
+});
+
+describe("checkRateLimit — refund (#126)", () => {
+  /** Records every RPC the check and its refund make. */
+  function recordingClient(
+    count = 1,
+    refundResult: {
+      data: { count: number } | null;
+      error: { message: string } | null;
+    } = { data: { count: 0 }, error: null },
+  ): { client: RpcClient; calls: { fn: string; args: unknown }[] } {
+    const calls: { fn: string; args: unknown }[] = [];
+    return {
+      calls,
+      client: {
+        rpc: async (fn, args) => {
+          calls.push({ fn, args });
+          return fn === "rate_limit_refund"
+            ? refundResult
+            : { data: { count }, error: null };
+        },
+      },
+    };
+  }
+
+  const noon = new Date("2026-08-12T18:00:00Z");
+
+  it("gives the ask back against the same row the increment consumed", async () => {
+    const { client, calls } = recordingClient();
+    const result = await checkRateLimit("user:1", "authed", client, noon);
+    await result.refund();
+
+    expect(calls.map((c) => c.fn)).toEqual([
+      "rate_limit_increment",
+      "rate_limit_refund",
+    ]);
+    // Same subject, same window — never a second window derived at refund time.
+    expect(calls[1].args).toEqual({
+      p_subject: "user:1",
+      p_window_start: "2026-08-12T06:00:00.000Z",
+    });
+  });
+
+  it("is once-only — both stream-error doors can call it without double-refunding", async () => {
+    const { client, calls } = recordingClient();
+    const result = await checkRateLimit("user:1", "authed", client, noon);
+    await result.refund();
+    await result.refund();
+    await result.refund();
+    expect(calls.filter((c) => c.fn === "rate_limit_refund")).toHaveLength(1);
+  });
+
+  it("refunds nothing when the limiter denied the ask", async () => {
+    const { client, calls } = recordingClient(51);
+    const result = await checkRateLimit("user:1", "authed", client, noon);
+    expect(result.allowed).toBe(false);
+    await result.refund();
+    expect(calls.map((c) => c.fn)).toEqual(["rate_limit_increment"]);
+  });
+
+  it("refunds nothing when the limiter was unavailable — no increment landed", async () => {
+    const client = fakeClient(null, { message: "connection refused" });
+    const result = await checkRateLimit("anon:x", "anon", client, noon);
+    expect(result.reason).toBe("unavailable");
+    // The whole point: this must not decrement a row this call never touched.
+    await expect(result.refund()).resolves.toBeUndefined();
+  });
+
+  it("swallows an RPC error — a failed refund must not break the response", async () => {
+    const { client } = recordingClient(1, {
+      data: null,
+      error: { message: "connection refused" },
+    });
+    const result = await checkRateLimit("user:1", "authed", client, noon);
+    await expect(result.refund()).resolves.toBeUndefined();
+  });
+
+  it("swallows a thrown RPC too", async () => {
+    const client: RpcClient = {
+      rpc: async (fn) => {
+        if (fn === "rate_limit_refund") throw new Error("boom");
+        return { data: { count: 1 }, error: null };
+      },
+    };
+    const result = await checkRateLimit("user:1", "authed", client, noon);
+    await expect(result.refund()).resolves.toBeUndefined();
+  });
+
+  it("treats a no-op refund (window already rolled over) as success", async () => {
+    // maybeSingle() over zero matched rows: no data, no error.
+    const { client } = recordingClient(1, { data: null, error: null });
+    const result = await checkRateLimit("user:1", "authed", client, noon);
+    await expect(result.refund()).resolves.toBeUndefined();
+  });
+
+  it("gives each concurrent ask its own refund, not a shared one", async () => {
+    const { client, calls } = recordingClient();
+    const [a, b] = await Promise.all([
+      checkRateLimit("user:1", "authed", client, noon),
+      checkRateLimit("user:1", "authed", client, noon),
+    ]);
+    await Promise.all([a.refund(), b.refund()]);
+    expect(calls.filter((c) => c.fn === "rate_limit_refund")).toHaveLength(2);
   });
 });
 
@@ -412,6 +516,91 @@ describe.skipIf(!hasLocalDb)("checkRateLimit — integration (Postgres)", () => 
       delete process.env.RATE_LIMIT_ANON;
       await cleanup(subject);
     }
+  });
+
+  /** The subject's current counter, or null when it has no row. */
+  async function countOf(subject: string): Promise<number | null> {
+    const { data } = await client
+      .from("rate_limits")
+      .select("count")
+      .eq("subject", subject)
+      .maybeSingle();
+    return data?.count ?? null;
+  }
+
+  describe("refund (#126)", () => {
+    it("gives the ask back — the counter returns to where it was", async () => {
+      const subject = `itest:${randomUUID()}`;
+      try {
+        await checkRateLimit(subject, "authed", rpcClient);
+        const second = await checkRateLimit(subject, "authed", rpcClient);
+        expect(await countOf(subject)).toBe(2);
+        await second.refund();
+        expect(await countOf(subject)).toBe(1);
+      } finally {
+        await cleanup(subject);
+      }
+    });
+
+    it("never drives the counter negative", async () => {
+      const subject = `itest:${randomUUID()}`;
+      try {
+        const first = await checkRateLimit(subject, "authed", rpcClient);
+        await first.refund();
+        expect(await countOf(subject)).toBe(0);
+        // A second, independent refund of an already-empty window: the clamp
+        // in the RPC is what stops a refund path from minting free asks.
+        const stale = await checkRateLimit(subject, "authed", rpcClient);
+        await stale.refund();
+        await stale.refund();
+        const extra = await checkRateLimit(subject, "authed", rpcClient);
+        await extra.refund();
+        expect(await countOf(subject)).toBeGreaterThanOrEqual(0);
+      } finally {
+        await cleanup(subject);
+      }
+    });
+
+    it("keeps the counter consistent under concurrent asks and refunds", async () => {
+      const subject = `itest:${randomUUID()}`;
+      try {
+        // 6 asks in flight, 2 of them refunded concurrently with the rest.
+        const checks = await Promise.all(
+          Array.from({ length: 6 }, () =>
+            checkRateLimit(subject, "authed", rpcClient),
+          ),
+        );
+        await Promise.all([
+          checks[0].refund(),
+          checks[1].refund(),
+          checkRateLimit(subject, "authed", rpcClient),
+        ]);
+        // 7 increments, 2 refunds — no lost update in either direction.
+        expect(await countOf(subject)).toBe(5);
+      } finally {
+        await cleanup(subject);
+      }
+    });
+
+    it("does not touch the new day's quota once the window has rolled over", async () => {
+      const subject = `itest:${randomUUID()}`;
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      try {
+        // A check taken yesterday, refunded after today's window opened.
+        const stale = await checkRateLimit(
+          subject,
+          "authed",
+          rpcClient,
+          yesterday,
+        );
+        await checkRateLimit(subject, "authed", rpcClient);
+        expect(await countOf(subject)).toBe(1); // today's window, reset to 1
+        await stale.refund();
+        expect(await countOf(subject)).toBe(1); // untouched
+      } finally {
+        await cleanup(subject);
+      }
+    });
   });
 
   it("fails closed when the database is unreachable", async () => {
