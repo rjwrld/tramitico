@@ -35,41 +35,38 @@ jobs:
       # Same install, same build, so it costs no extra wall-clock.
       - run: pnpm build:hermetic
 
-  # Integration + eval suites (issue #129). Both lanes FAIL — loudly, naming
-  # the missing variable — while the secrets below are unset: a check that
-  # skips its own assertions is a check that proves nothing, which is what this
-  # job replaces. Expect it red on every PR until the production Supabase +
-  # Voyage + Anthropic secrets land (#29).
+  # Database suites against a throwaway local stack (issue #147).
   #
-  # Not a required check yet; the flip is a branch-protection setting on the
-  # `suites` job name, not a change to this file, and it happens with #29.
+  # `supabase start` applies supabase/migrations/ to a fresh Postgres and hands
+  # back its own credentials, so this lane needs no secrets and cannot reach a
+  # real project. That is what makes it safe to run on every PR: the suites
+  # here create and delete auth users and insert rows, which is exactly why the
+  # previous secrets-fed version of this job — pointed at whatever
+  # `secrets.SUPABASE_URL` named — was never turned on.
   #
-  # NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY gates the suites that need a Data API
-  # *client* role, including the #123 lockdown assertions that prove
-  # `anon`/`authenticated` cannot reach `public`.
+  # It also closes the #129 gap that #147 was filed for: the #123 lockdown
+  # assertions used to gate on a credential that was never set, so the guard
+  # for a regenerated schema dump re-adding `GRANT ALL ... TO authenticated`
+  # was wired to nothing. Here the prerequisites always hold, so
+  # `integrationSuite` runs the suites rather than failing or skipping them,
+  # and a re-added grant fails this job with zero secrets configured.
   #
-  # WARNING, to settle in #29: these suites create and delete auth users and
-  # insert rows in whatever database SUPABASE_URL points at. They need a
-  # dedicated test project — pointing them at production would seed it with
-  # junk users on every PR. #147 replaces this secrets-fed lane with a local
-  # `supabase start` stack, which removes the question entirely.
+  # The corpus-dependent suites (retrieval, groundedness, hit-rate, dataset
+  # satisfiability) are NOT here — they need an ingested corpus and paid
+  # providers, which a throwaway stack has neither of. They run on a schedule
+  # in eval.yml.
   suites:
     runs-on: ubuntu-latest
     env:
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
-      # retrieval.integration.test.ts's `grants` suite reads the legacy
-      # SUPABASE_ANON_KEY rather than the publishable key its siblings use.
-      # Listed here so the lane is satisfiable once #29 lands secrets — under
-      # the old skip-gate it would simply never have run. Collapsing the two
-      # variable names is #29's call, not this issue's.
-      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-      EMBEDDINGS_PROVIDER: ${{ vars.EMBEDDINGS_PROVIDER }}
-      VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
-      RERANK: ${{ vars.RERANK }}
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      ANSWER_MODEL: ${{ vars.ANSWER_MODEL }}
+      # supabase/config.toml enables the GitHub and Google auth providers with
+      # `env(...)` client ids, and GoTrue refuses to boot without them.
+      # Placeholders, matching what .env.local carries locally: no suite in
+      # this lane exercises an OAuth provider flow, and no real credential
+      # belongs in a lane defined by having none.
+      SUPABASE_AUTH_EXTERNAL_GITHUB_CLIENT_ID: ci-placeholder
+      SUPABASE_AUTH_EXTERNAL_GITHUB_SECRET: ci-placeholder
+      SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: ci-placeholder
+      SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: ci-placeholder
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -80,11 +77,48 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # Separate steps so a red job says which lane broke: the database
-      # suites, or the retrieval/groundedness evals on top of them.
+      - uses: supabase/setup-cli@v1
+        with:
+          # Pinned: the stack this lane asserts against is part of the test
+          # fixture, and a CLI auto-update is not a reason for a PR to go red.
+          version: 2.105.0
+      # Only the containers the suites actually dial. Studio, storage, edge
+      # functions, analytics and mail are wall-clock this lane never uses; if
+      # the stack ever misbehaves here, shortening this list is the first thing
+      # to try.
+      - name: Start a local Supabase stack on this PR's migrations
+        run: >
+          supabase start
+          -x studio,imgproxy,storage,edge-runtime,functions,analytics,vector,realtime,inbucket,meta
+      # The stack prints its own keys — fixed local development values, not
+      # secrets. Mapped onto the names the suites read. No SUPABASE_ANON_KEY:
+      # its only reader was retrieval's `grants` suite, which now runs in
+      # eval.yml, and the pgTAP lane checks the same ACLs far more thoroughly.
+      - name: Export the stack's credentials
+        run: |
+          eval "$(supabase status -o env)"
+          if [ -z "$API_URL" ] || [ -z "$SERVICE_ROLE_KEY" ] || \
+             [ -z "$PUBLISHABLE_KEY" ]; then
+            echo "supabase status did not report a full credential set." >&2
+            exit 1
+          fi
+          {
+            echo "SUPABASE_URL=$API_URL"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+            echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$PUBLISHABLE_KEY"
+          } >> "$GITHUB_ENV"
+      # The SQL half of the lockdown proof (#147 req. 3, 4): every public
+      # object's ACL, the default privileges a future table inherits, and the
+      # three RLS policies on `questions`. Cheapest and most specific check
+      # here, so it runs first.
+      - run: pnpm test:db
+      # The PostgREST half: a signed-in and an anonymous client both get 42501
+      # on `questions`, `chunks` and `documents` (#123).
       - run: pnpm test:integration
-      - run: pnpm test:eval
         if: ${{ !cancelled() }}
+      - name: Stack logs
+        if: failure()
+        run: supabase status || true
 
   e2e:
     runs-on: ubuntu-latest

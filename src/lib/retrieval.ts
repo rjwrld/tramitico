@@ -161,7 +161,7 @@ export interface RetrieveOptions {
  * (2/(k + LEG_LIMIT)); coverage-scaled fallback contributions broke that
  * arithmetic, so the SQL now returns each leg's rank and the signal is
  * structural. The eval asserts no dataset question ever trips it
- * (retrieval-hitrate.integration.test.ts).
+ * (retrieval-hitrate.eval.test.ts).
  */
 export function isCorroborated(chunk: {
   vectorRank: number | null;
