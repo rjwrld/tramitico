@@ -276,6 +276,32 @@ describeDb("retrieve", () => {
     }
   });
 
+  // #134: every source's deep-link capability is declared in the manifest,
+  // and the ones declared anchorable carry what the anchor is built from.
+  it("declares a deep-link capability for every ingested document", async () => {
+    const admin = createClient<Database>(url!, serviceRoleKey!, {
+      auth: { persistSession: false },
+    });
+    const { data, error } = await admin
+      .from("documents")
+      .select("doc_key, source");
+    if (error) throw new Error(error.message);
+    for (const doc of data ?? []) {
+      const source = doc.source as DocumentSource;
+      expect(source.deepLink, doc.doc_key).toMatch(/^(articulo|page|none)$/);
+      if (source.deepLink === "articulo") {
+        expect(
+          Object.keys(source.articulos ?? {}).length,
+          doc.doc_key,
+        ).toBeGreaterThan(0);
+        expect(source.idVersionNorma, doc.doc_key).toBeGreaterThan(0);
+      }
+      if (source.deepLink === "page") {
+        expect(source.pages, doc.doc_key).toMatch(/^\d+-\d+$/);
+      }
+    }
+  });
+
   it("reports the top score and the weak-retrieval flag", async () => {
     const result = await retrieve(PRESCRIPCION);
     expect(result.topScore).toBe(result.chunks[0].score);

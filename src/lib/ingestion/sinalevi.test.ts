@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { fetchNorma, type FetchLike } from "./sinalevi";
+import { articuloAnchors, fetchNorma, type FetchLike } from "./sinalevi";
 
 function res(body: object, status = 200): Response {
   return new Response(JSON.stringify(body), { status });
@@ -11,6 +11,37 @@ function ficha(n: number, of: number, id: number) {
     idVersionNorma: id,
   };
 }
+
+/**
+ * The "Ficha Artículo" rail SINALEVI appends to the full text: one anchor per
+ * artículo, carrying `(numeroArticulo, idFichaNorma, idVersionNorma,
+ * idArticulo)`. Ficha 99349 shows the trap encoded below — a norma's
+ * transitorios reuse the artículo numbers, so number 2 resolves to two ids.
+ */
+const FICHA_LINKS = `
+<p>texto</p>
+<div class="pb-5 pt-2"><a class="enlaceFicha" href="javascript:void(0);" aria-label="Abrir artículo número 1 " onclick="handleArticuloClick(1, 98767, 147960, 2)">Ficha Artículo 1</a></div>
+<div class="pb-5 pt-2"><a class="enlaceFicha" href="javascript:void(0);" aria-label="Abrir artículo número 2 " onclick="handleArticuloClick(2, 98767, 147960, 3)">Ficha Artículo 2</a></div>
+<div class="pb-5 pt-2"><a class="enlaceFicha" href="javascript:void(0);" aria-label="Abrir artículo número 3 " onclick="handleArticuloClick(3, 98767, 147960, 4)">Ficha Artículo 3</a></div>
+<div class="pb-5 pt-2"><a class="enlaceFicha" href="javascript:void(0);" aria-label="Abrir artículo número 2 " onclick="handleArticuloClick(2, 98767, 147960, 5)">Ficha Artículo 2</a></div>
+`;
+
+describe("articuloAnchors", () => {
+  it("maps each artículo number to its viewer id", () => {
+    expect(articuloAnchors(FICHA_LINKS)).toEqual({ "1": 2, "3": 4 });
+  });
+
+  it("drops numbers claimed by more than one artículo", () => {
+    // Number 2 is both Artículo 2 and its transitorio — an anchor built from
+    // it would land on whichever the harvest saw last, so it gets none.
+    expect(articuloAnchors(FICHA_LINKS)["2"]).toBeUndefined();
+  });
+
+  it("is empty for a text with no artículo rail", () => {
+    expect(articuloAnchors("<p>documento sin artículos</p>")).toEqual({});
+    expect(articuloAnchors("handleArticuloClick(0, 1, 2, 3)")).toEqual({});
+  });
+});
 
 describe("fetchNorma", () => {
   it("resolves the vigente version, never the redirect default", async () => {
@@ -63,6 +94,17 @@ describe("fetchNorma", () => {
       const headers = call[1]?.headers as Record<string, string>;
       expect(headers["User-Agent"]).toMatch(/Mozilla/);
     }
+  });
+
+  it("harvests the per-artículo anchor ids the viewer deep-links by (#134)", async () => {
+    const fake: FetchLike = async (url) => {
+      if (url.includes("_BuscarVersionNorma")) return res(ficha(1, 1, 147960));
+      return res({ html: FICHA_LINKS });
+    };
+
+    const norma = await fetchNorma(98767, fake);
+
+    expect(articuloAnchors(norma.html)).toEqual({ "1": 2, "3": 4 });
   });
 
   it("fails loudly on an unknown idFichaNorma", async () => {

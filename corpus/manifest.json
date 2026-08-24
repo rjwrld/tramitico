@@ -1,35 +1,55 @@
 {
-  "$comment": "Ingestion source of truth (SPEC §3). Seeded from docs/research/corpus-viability.md §1. kinds: sinalevi (3-call API, idFichaNorma; vigente version resolved at fetch), hacienda-pdf (Playwright fetch — WAF blocks plain HTTP), cabys (curated dev-relevant subset, task #8), unresolved (official source to locate during ingestion; never ingest secondary commentary).",
+  "$comment": "Ingestion source of truth (SPEC §3). Seeded from docs/research/corpus-viability.md §1. kinds: sinalevi (3-call API, idFichaNorma; vigente version resolved at fetch), hacienda-pdf (Playwright fetch — WAF blocks plain HTTP), cabys (curated dev-relevant subset, task #8), unresolved (official source to locate during ingestion; never ingest secondary commentary). deepLink (#134): audited per source — how deep the official URL can be linked. `articulo` = SINALEVI ficha; the viewer opens one artículo at Informacion?param1=<ficha>&param2=<idVersionNorma>&param3=3&param4=<idArticulo>, and `source.articulos` (artículo number → idArticulo) is harvested at ingestion from the «Ficha Artículo» rail in the full-text payload — _BuscarArticulo answers -1 for our fichas, so the rail is the only mapping. `page` = PDF whose primary text is a page range; the chip appends #page=<first page>. `none` = the document root is the deepest honest link, with the reason in that entry's notes.",
   "documents": [
     {
       "doc_key": "ley-iva",
       "title": "Ley del Impuesto sobre el Valor Agregado (texto consolidado)",
       "norma": "Ley 6826",
-      "source": { "kind": "sinalevi", "idFichaNorma": 32526 }
+      "source": {
+        "kind": "sinalevi",
+        "idFichaNorma": 32526,
+        "deepLink": "articulo"
+      }
     },
     {
       "doc_key": "reglamento-iva",
       "title": "Reglamento de la Ley del Impuesto sobre el Valor Agregado",
       "norma": "Decreto Ejecutivo 41779",
-      "source": { "kind": "sinalevi", "idFichaNorma": 88953 }
+      "source": {
+        "kind": "sinalevi",
+        "idFichaNorma": 88953,
+        "deepLink": "articulo"
+      }
     },
     {
       "doc_key": "ley-9635",
       "title": "Ley de Fortalecimiento de las Finanzas Públicas",
       "norma": "Ley 9635",
-      "source": { "kind": "sinalevi", "idFichaNorma": 87720 }
+      "source": {
+        "kind": "sinalevi",
+        "idFichaNorma": 87720,
+        "deepLink": "articulo"
+      }
     },
     {
       "doc_key": "reglamento-titulo-iv-9635",
       "title": "Reglamento al Título IV de la Ley 9635 (renta)",
       "norma": "Decreto Ejecutivo (ver ficha)",
-      "source": { "kind": "sinalevi", "idFichaNorma": 88641 }
+      "source": {
+        "kind": "sinalevi",
+        "idFichaNorma": 88641,
+        "deepLink": "articulo"
+      }
     },
     {
       "doc_key": "reglamento-renta",
       "title": "Reglamento de la Ley del Impuesto sobre la Renta",
       "norma": "Decreto Ejecutivo (ver ficha)",
-      "source": { "kind": "sinalevi", "idFichaNorma": 95992 }
+      "source": {
+        "kind": "sinalevi",
+        "idFichaNorma": 95992,
+        "deepLink": "articulo"
+      }
     },
     {
       "doc_key": "tramos-renta-2026",
@@ -37,22 +57,32 @@
       "norma": "Decreto Ejecutivo 45333-H",
       "source": {
         "kind": "hacienda-pdf",
-        "url": "https://www.hacienda.go.cr/docs/TramosRenta2026.pdf"
+        "url": "https://www.hacienda.go.cr/docs/TramosRenta2026.pdf",
+        "deepLink": "none"
       },
-      "notes": "Annual churn — re-fetch each fiscal year; figures only from this primary decree."
+      "notes": "Annual churn — re-fetch each fiscal year; figures only from this primary decree. Deep link none (#134): a whole-file PDF with no artículo→page map — a #page= anchor would be a guess."
     },
     {
       "doc_key": "ley-10363",
       "title": "Ley del Trabajador Independiente",
       "norma": "Ley 10363",
-      "source": { "kind": "sinalevi", "idFichaNorma": 99349 }
+      "source": {
+        "kind": "sinalevi",
+        "idFichaNorma": 99349,
+        "deepLink": "none"
+      },
+      "notes": "Deep link none (#134): the ficha's artículo rail labels both «Artículo N» and its transitorio as «artículo número N», and all four of this norma's numbers are claimed twice — no anchor can resolve unambiguously, so chips keep the vigente-text root. Audit table: docs/research/corpus-viability.md §4.1."
     },
     {
       "doc_key": "ccss-bmc",
       "title": "CCSS — Base Mínima Contributiva (decreto)",
       "norma": "Decreto (ver ficha)",
-      "source": { "kind": "sinalevi", "idFichaNorma": 87782 },
-      "notes": "Annual churn — verify vigente version each re-crawl; figures only from primary decree. CARRIES NO RATES (#114): the escala contributiva table is a raster image in the SINALEVI payload (image005.png), not markup, so HTML→text extraction cannot recover it — the ingested text jumps from «Establecer la siguiente escala contributiva» to «Notas:». Same for the sibling ficha 82804. The doc is kept for Acuerdos Segundo–Cuarto (how the BMC is adjusted when the minimum wage moves); never cite it for a percentage or a BMC amount — those live in ccss-escala-salud, ccss-escala-ivm and salarios-minimos, ingested from the CCSS actas that transcribe the same tables as text."
+      "source": {
+        "kind": "sinalevi",
+        "idFichaNorma": 87782,
+        "deepLink": "articulo"
+      },
+      "notes": "Annual churn — verify vigente version each re-crawl; figures only from primary decree. CARRIES NO RATES (#114): the escala contributiva table is a raster image in the SINALEVI payload (image005.png), not markup, so HTML→text extraction cannot recover it — the ingested text jumps from «Establecer la siguiente escala contributiva» to «Notas:». Same for the sibling ficha 82804. The doc is kept for Acuerdos Segundo–Cuarto (how the BMC is adjusted when the minimum wage moves); never cite it for a percentage or a BMC amount — those live in ccss-escala-salud, ccss-escala-ivm and salarios-minimos, ingested from the CCSS actas that transcribe the same tables as text. Deep link articulo (#134) — the acuerdos are numbered artículos in the ficha rail."
     },
     {
       "doc_key": "ccss-escala-ivm",
@@ -61,11 +91,14 @@
       "source": {
         "kind": "pdf",
         "url": "https://www.ccss.sa.cr/arc/actas/2025/files/9570-b1201.zip",
-        "member": "DocEnviados6215477---PE-DAE-1179-2025 Ficha Tecnica.pdf"
+        "member": "DocEnviados6215477---PE-DAE-1179-2025 Ficha Tecnica.pdf",
+        "deepLink": "none"
       },
       "effective_date": "2026-01-01",
-      "chunking": { "articulo": "Artículo 4°, sesión 9570" },
-      "notes": "Carries the IVM rates by income bracket (afiliado 4.16–8.42%, conjunta 9.91% + 1.75% Estado como tal = 11.66% global). Brackets are in SM multiples, so they stay correct across wage decrees — resolve colón amounts via salarios-minimos. Adopted verbatim by the Junta Directiva on 2025-12-18 (9 votos en firme) per artículo 33 and Transitorio XI del Reglamento del Seguro de IVM; rige hasta 2028-12-31, next escalón 2029 — re-crawl then. Ingested from the sesión's anexos zip because SINALEVI publishes CCSS escala acuerdos as raster images (#114)."
+      "chunking": {
+        "articulo": "Artículo 4°, sesión 9570"
+      },
+      "notes": "Carries the IVM rates by income bracket (afiliado 4.16–8.42%, conjunta 9.91% + 1.75% Estado como tal = 11.66% global). Brackets are in SM multiples, so they stay correct across wage decrees — resolve colón amounts via salarios-minimos. Adopted verbatim by the Junta Directiva on 2025-12-18 (9 votos en firme) per artículo 33 and Transitorio XI del Reglamento del Seguro de IVM; rige hasta 2028-12-31, next escalón 2029 — re-crawl then. Ingested from the sesión's anexos zip because SINALEVI publishes CCSS escala acuerdos as raster images (#114). Deep link none (#134): the official URL is a zip, so the browser downloads it — no fragment reaches the PDF inside."
     },
     {
       "doc_key": "ccss-escala-salud",
@@ -74,11 +107,14 @@
       "source": {
         "kind": "pdf",
         "url": "https://www.ccss.sa.cr/arc/actas/2018/11/8999.pdf",
-        "pages": "104-108"
+        "pages": "104-108",
+        "deepLink": "page"
       },
       "effective_date": "2018-10-01",
-      "chunking": { "articulo": "Artículo 30°, sesión 8999" },
-      "notes": "Salud rates by income bracket (afiliado 2.89–10.69%, conjunta 12.00% + 0.25% Estado como tal), still vigente — the 2026 adjustment touched IVM only (see ccss-escala-ivm). Same acuerdo SINALEVI carries as an image in ccss-bmc; the acta transcribes the table as text. Page-ranged because the full acta is 170 pages of unrelated Junta Directiva business — re-verify the range if CCSS re-publishes the acta."
+      "chunking": {
+        "articulo": "Artículo 30°, sesión 8999"
+      },
+      "notes": "Salud rates by income bracket (afiliado 2.89–10.69%, conjunta 12.00% + 0.25% Estado como tal), still vigente — the 2026 adjustment touched IVM only (see ccss-escala-ivm). Same acuerdo SINALEVI carries as an image in ccss-bmc; the acta transcribes the table as text. Page-ranged because the full acta is 170 pages of unrelated Junta Directiva business — re-verify the range if CCSS re-publishes the acta. Deep link page (#134): chips land on page 104, the first page of the ingested range inside the 170-page acta."
     },
     {
       "doc_key": "salarios-minimos",
@@ -87,36 +123,53 @@
       "source": {
         "kind": "pdf",
         "url": "https://www.imprentanacional.go.cr/pub/2025/12/05/ALCA156_05_12_2025.pdf",
-        "pages": "165-171"
+        "pages": "165-171",
+        "deepLink": "page"
       },
       "effective_date": "2026-01-01",
-      "notes": "La Gaceta 229, Alcance 156. Supplies the SM the CCSS escalas are denominated in — Trabajadores en Ocupación No Calificada ¢373.092,30/mes, from which the vigente base mínima contributiva follows: 0.87 SM = ¢324.590 (IVM) and 0.9295 SM = ¢346.789 (SEM), both matching CCSS's published BMC. Annual churn — re-fetch each wage decree; the alcance number and page range change every year."
+      "notes": "La Gaceta 229, Alcance 156. Supplies the SM the CCSS escalas are denominated in — Trabajadores en Ocupación No Calificada ¢373.092,30/mes, from which the vigente base mínima contributiva follows: 0.87 SM = ¢324.590 (IVM) and 0.9295 SM = ¢346.789 (SEM), both matching CCSS's published BMC. Annual churn — re-fetch each wage decree; the alcance number and page range change every year. Deep link page (#134): chips land on page 165, where the decree starts inside the alcance."
     },
     {
       "doc_key": "reglamento-rts",
       "title": "Reglamento del Régimen de Tributación Simplificada",
       "norma": "Decreto Ejecutivo 43881-H",
-      "source": { "kind": "sinalevi", "idFichaNorma": 98767 },
+      "source": {
+        "kind": "sinalevi",
+        "idFichaNorma": 98767,
+        "deepLink": "articulo"
+      },
       "notes": "Key fact: artículo 1 is a closed list of eligible activities (software and professional services absent) and artículo 2 bars entry to anyone with activities outside it — artículo 3 carries the thresholds. Vigente text consolidates reform 45209-H; re-verify the activity list each re-crawl. Rationale, provenance and the replaced `rts-requisitos` flyer: docs/research/corpus-viability.md §1 and issue #108."
     },
     {
       "doc_key": "reglamento-comprobantes",
       "title": "Reglamento de Comprobantes Electrónicos",
       "norma": "Decreto Ejecutivo 44739-H",
-      "source": { "kind": "sinalevi", "idFichaNorma": 103206 }
+      "source": {
+        "kind": "sinalevi",
+        "idFichaNorma": 103206,
+        "deepLink": "articulo"
+      }
     },
     {
       "doc_key": "disposiciones-v44",
       "title": "Disposiciones técnicas de comprobantes electrónicos v4.4",
       "norma": "MH-DGT-RES-0027-2024",
-      "source": { "kind": "sinalevi", "idFichaNorma": 103276 },
+      "source": {
+        "kind": "sinalevi",
+        "idFichaNorma": 103276,
+        "deepLink": "articulo"
+      },
       "notes": "Mandatory since 2025-09-01. SINALEVI vigente text is consolidated with reforms MH-DGT-RES-0001-2025 and MH-DGT-RES-0043-2025 — preferred over the original hacienda.go.cr PDF (Resolucion_General_sobre_disposiciones_tecnicas_comprobantes_electronicos_para.pdf), whose transition dates are superseded."
     },
     {
       "doc_key": "dgt-export-servicios",
       "title": "Operaciones exentas relacionadas con las exportaciones (artículo 11 del Reglamento del IVA)",
       "norma": "MH-DGT-RES-0017-2023",
-      "source": { "kind": "sinalevi", "idFichaNorma": 99994 },
+      "source": {
+        "kind": "sinalevi",
+        "idFichaNorma": 99994,
+        "deepLink": "articulo"
+      },
       "notes": "Primary DGT resolution behind the EY/observador summaries; consolidates and derogates DGT-R-035-2019, DGT-R-038-2019, DGT-R-036-2021. Quotes LIVA art. 8.1: services are exempt only when used outside the territorial scope — consumption entirely outside CR, not merely billing abroad."
     },
     {
@@ -125,9 +178,10 @@
       "norma": "CP-39-2025",
       "source": {
         "kind": "hacienda-pdf",
-        "url": "https://www.hacienda.go.cr/docs/CP39-2025.pdf"
+        "url": "https://www.hacienda.go.cr/docs/CP39-2025.pdf",
+        "deepLink": "none"
       },
-      "notes": "All declarations exclusively via TRIBU-CR since 2025-10-06 (Res. MH-DGT-RES-0011-2025)."
+      "notes": "All declarations exclusively via TRIBU-CR since 2025-10-06 (Res. MH-DGT-RES-0011-2025). Deep link none (#134): a whole-file PDF (comunicado, no artículo structure) with no page metadata to anchor."
     },
     {
       "doc_key": "cabys-dev",
@@ -135,9 +189,10 @@
       "norma": null,
       "source": {
         "kind": "cabys",
-        "catalog": "https://www.bccr.fi.cr/indicadores-economicos/cat%C3%A1logo-de-bienes-y-servicios"
+        "catalog": "https://www.bccr.fi.cr/indicadores-economicos/cat%C3%A1logo-de-bienes-y-servicios",
+        "deepLink": "none"
       },
-      "notes": "Curated dev-relevant codes only (SPEC §3); full-catalog search out of scope."
+      "notes": "Curated dev-relevant codes only (SPEC §3); full-catalog search out of scope. Deep link none (#134): the BCCR catalog page is a search UI with no per-code URL."
     }
   ]
 }

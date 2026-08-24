@@ -1,10 +1,30 @@
 // @vitest-environment jsdom
 import { describe, expect, it, afterEach } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
-import type { Citation } from "@/lib/retrieval";
+import {
+  toCitation,
+  type Citation,
+  type RetrievedChunk,
+} from "@/lib/retrieval";
 import { Sello, SelloRow, selloLabel } from "@/components/sello";
 
 afterEach(cleanup);
+
+/** Retrieval's own chunk shape — the citation the UI renders comes from it. */
+const CHUNK: RetrievedChunk = {
+  chunkId: "11111111-1111-1111-1111-111111111111",
+  docKey: "reglamento-iva",
+  docTitle: "Reglamento de la Ley del Impuesto sobre el Valor Agregado",
+  norma: "Decreto Ejecutivo 41779",
+  articulo: "Artículo 11",
+  path: [],
+  part: 1,
+  content: "…",
+  source: {},
+  score: 0.1,
+  vectorRank: 1,
+  lexicalRank: 1,
+};
 
 const reglamentoIva: Citation = {
   docKey: "reglamento-iva",
@@ -63,6 +83,36 @@ describe("Sello", () => {
     expect(chip.getAttribute("href")).toBe(reglamentoIva.url);
     expect(chip.getAttribute("target")).toBe("_blank");
     expect(chip.getAttribute("rel")).toContain("noopener");
+  });
+
+  // #134: the chip must carry the artículo-level address the retrieval layer
+  // derives, not just the document root — built here the way the answer path
+  // builds it, from an anchored source.
+  it("opens the artículo view for a deep-linkable source (#134)", () => {
+    const citation = toCitation({
+      ...CHUNK,
+      docKey: "reglamento-iva",
+      docTitle: "Reglamento de la Ley del Impuesto sobre el Valor Agregado",
+      norma: "Decreto Ejecutivo 41779",
+      articulo: "Artículo 11",
+      source: {
+        kind: "sinalevi",
+        idFichaNorma: 88953,
+        idVersionNorma: 148633,
+        deepLink: "articulo",
+        articulos: { "11": 12 },
+      },
+    });
+
+    render(<Sello citation={citation} />);
+
+    expect(
+      screen
+        .getByRole("link", { name: "Reglamento IVA · Art. 11" })
+        .getAttribute("href"),
+    ).toBe(
+      "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=88953&param2=148633&param3=3&param4=12&param5=",
+    );
   });
 
   it("renders a plain stamp when the citation has no official URL", () => {
