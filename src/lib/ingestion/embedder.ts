@@ -209,3 +209,18 @@ export function createEmbedder(
   }
   throw new Error(`Unknown EMBEDDINGS_PROVIDER: ${provider}`);
 }
+
+/**
+ * Is a real (non-stub) embeddings provider configured and constructible?
+ *
+ * The prerequisite check for the eval suites (issue #129): a misconfigured
+ * provider — `EMBEDDINGS_PROVIDER=voyage` with no key — is an *absent*
+ * prerequisite, not a crash at module load, so the gate can report it.
+ */
+export function realEmbedderConfigured(): boolean {
+  try {
+    return createEmbedder().provider !== "stub";
+  } catch {
+    return false;
+  }
+}

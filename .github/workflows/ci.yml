@@ -25,37 +25,66 @@ jobs:
       - run: pnpm audit --prod --audit-level=high
       - run: pnpm lint
       - run: pnpm typecheck
-      # Integration tests (retrieval, the #25 hit-rate eval, and the #26
-      # groundedness gate) are env-gated: they skip while these secrets are
-      # unset and become blocking assertions the moment the production
-      # Supabase + Voyage + Anthropic secrets land (#29).
-      #
-      # NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY gates the suites that need a Data
-      # API *client* role, including the #123 lockdown assertions that prove
-      # `anon`/`authenticated` cannot reach `public`. Without it those never
-      # run anywhere but a developer's laptop.
-      #
-      # WARNING, to settle in #29: those suites create and delete auth users
-      # and insert rows in whatever database SUPABASE_URL points at. They need
-      # a dedicated test project — pointing them at production would seed it
-      # with junk users on every PR. #147 replaces this env-gated lane with a
-      # local `supabase start` stack, which removes the question entirely.
-      - run: pnpm test
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
-          EMBEDDINGS_PROVIDER: ${{ vars.EMBEDDINGS_PROVIDER }}
-          VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
-          RERANK: ${{ vars.RERANK }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          ANSWER_MODEL: ${{ vars.ANSWER_MODEL }}
+      # Unit tests only — no database, no API keys, nothing to skip (#129).
+      # The suites that need an environment run in the `suites` job below.
+      - run: pnpm test:unit
       - run: pnpm format:check
       # The build runs with egress denied (#88): a build-time fetch — a font
       # loader, an asset pipeline reaching a CDN, a plugin phoning home — fails
       # here, on the PR that introduces it, rather than on a random future day.
       # Same install, same build, so it costs no extra wall-clock.
       - run: pnpm build:hermetic
+
+  # Integration + eval suites (issue #129). Both lanes FAIL — loudly, naming
+  # the missing variable — while the secrets below are unset: a check that
+  # skips its own assertions is a check that proves nothing, which is what this
+  # job replaces. Expect it red on every PR until the production Supabase +
+  # Voyage + Anthropic secrets land (#29).
+  #
+  # Not a required check yet; the flip is a branch-protection setting on the
+  # `suites` job name, not a change to this file, and it happens with #29.
+  #
+  # NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY gates the suites that need a Data API
+  # *client* role, including the #123 lockdown assertions that prove
+  # `anon`/`authenticated` cannot reach `public`.
+  #
+  # WARNING, to settle in #29: these suites create and delete auth users and
+  # insert rows in whatever database SUPABASE_URL points at. They need a
+  # dedicated test project — pointing them at production would seed it with
+  # junk users on every PR. #147 replaces this secrets-fed lane with a local
+  # `supabase start` stack, which removes the question entirely.
+  suites:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      # retrieval.integration.test.ts's `grants` suite reads the legacy
+      # SUPABASE_ANON_KEY rather than the publishable key its siblings use.
+      # Listed here so the lane is satisfiable once #29 lands secrets — under
+      # the old skip-gate it would simply never have run. Collapsing the two
+      # variable names is #29's call, not this issue's.
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      EMBEDDINGS_PROVIDER: ${{ vars.EMBEDDINGS_PROVIDER }}
+      VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
+      RERANK: ${{ vars.RERANK }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      ANSWER_MODEL: ${{ vars.ANSWER_MODEL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Separate steps so a red job says which lane broke: the database
+      # suites, or the retrieval/groundedness evals on top of them.
+      - run: pnpm test:integration
+      - run: pnpm test:eval
+        if: ${{ !cancelled() }}
 
   e2e:
     runs-on: ubuntu-latest

@@ -2,20 +2,24 @@
  * `replace_chunks` against a real database (issue #59) — the atomicity claim
  * ADR 0002 hangs ingestion idempotency on, asserted.
  *
- * Env-gated: skipped wholesale unless SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
- * are set, which is why CI stays green without a database. To run it locally:
+ * Env-gated: skipped locally unless SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
+ * are set; on CI a missing one fails the integration job rather than
+ * skipping (#129). To run it locally:
  *
  *   supabase start
  *   SUPABASE_URL=http://127.0.0.1:54321 \
  *   SUPABASE_SERVICE_ROLE_KEY=<service role key> pnpm test
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, expect, it } from "vitest";
 import { replaceDocumentChunks } from "./replace";
+import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 
 const url = process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const hasDb = Boolean(url && serviceRoleKey);
+const describeDb = integrationSuite(
+  envPrereqs("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"),
+);
 
 const DOC_KEY = "__test-replace-chunks__";
 /** chunks.embedding is vector(1024) (migration 20260804190000). */
@@ -29,7 +33,7 @@ const chunk = (label: string, part = 0) => ({
   content: `Contenido ${label}.`,
 });
 
-describe.runIf(hasDb)("replace_chunks (integration)", () => {
+describeDb("replace_chunks (integration)", () => {
   let db: SupabaseClient;
   let documentId: string;
 

@@ -1,15 +1,16 @@
 /**
  * Hybrid retrieval against a real, ingested database (issue #20).
  *
- * Env-gated: skipped wholesale unless SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
- * are set, which is why CI stays green without a database. To run it locally:
+ * Env-gated: skipped locally unless SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
+ * are set; on CI a missing one fails the integration job rather than
+ * skipping (#129). To run it locally:
  *
  *   supabase start && pnpm ingest
  *   SUPABASE_URL=http://127.0.0.1:54321 \
  *   SUPABASE_SERVICE_ROLE_KEY=<service role key> pnpm test
  */
 import { createClient } from "@supabase/supabase-js";
-import { describe, expect, it, vi } from "vitest";
+import { expect, it, vi } from "vitest";
 
 // Real-provider query embeds pace themselves against Voyage's 3-requests/min
 // keyless tier (ADR 0003) — repeats hit the embedder's query cache, but each
@@ -17,6 +18,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.setConfig({ testTimeout: 120_000 });
 import type { Database } from "./database.types";
 import { createEmbedder } from "./ingestion/embedder";
+import { envPrereqs, integrationSuite } from "./test-support/suite-gate";
 import {
   DEFAULT_MATCH_COUNT,
   LEG_LIMIT,
@@ -34,8 +36,12 @@ import {
 const url = process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const anonKey = process.env.SUPABASE_ANON_KEY;
-const hasDb = Boolean(url && serviceRoleKey);
-const embedder = createEmbedder();
+const describeDb = integrationSuite(
+  envPrereqs("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"),
+);
+const describeGrants = integrationSuite(
+  envPrereqs("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_ANON_KEY"),
+);
 
 function serviceClient(): RetrievalRpcClient {
   return asRetrievalClient(
@@ -59,15 +65,20 @@ async function searchChunks(
   return data ?? [];
 }
 
+let memoizedEmbedder: ReturnType<typeof createEmbedder> | null = null;
+function embedder() {
+  return (memoizedEmbedder ??= createEmbedder());
+}
+
 async function embed(query: string): Promise<string> {
-  const [vector] = await embedder.embed([query]);
+  const [vector] = await embedder().embed([query]);
   return JSON.stringify(vector);
 }
 
 const PRESCRIPCION = "prescripción retroactivo CCSS";
 const TRAMOS = "tramos renta persona física";
 
-describe.skipIf(!hasDb)("search_chunks against the ingested corpus", () => {
+describeDb("search_chunks against the ingested corpus", () => {
   it("puts Ley 10.363 ARTÍCULO 2 in the top 3 for the prescripción question", async () => {
     const rows = await searchChunks(PRESCRIPCION, await embed(PRESCRIPCION));
     const top3 = rows.slice(0, 3);
@@ -230,7 +241,7 @@ describe.skipIf(!hasDb)("search_chunks against the ingested corpus", () => {
   });
 });
 
-describe.skipIf(!hasDb)("retrieve", () => {
+describeDb("retrieve", () => {
   it("returns typed chunks and citations that link to the official source", async () => {
     const result = await retrieve(PRESCRIPCION);
     expect(result.query).toBe(PRESCRIPCION);
@@ -275,7 +286,7 @@ describe.skipIf(!hasDb)("retrieve", () => {
   });
 });
 
-describe.skipIf(!hasDb || !anonKey)("grants", () => {
+describeGrants("grants", () => {
   it("refuses to run search_chunks for anon", async () => {
     const anon = asRetrievalClient(
       createClient<Database>(url!, anonKey!, {

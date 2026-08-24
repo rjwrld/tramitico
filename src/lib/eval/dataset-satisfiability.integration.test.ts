@@ -9,7 +9,8 @@
  * gap instead of answer quality. This sweep checks every target on its own.
  *
  * Env-gated on the database only — no embeddings, no retrieval, so it is far
- * cheaper than the hit-rate eval and CI stays green without secrets:
+ * cheaper than the hit-rate eval. Skipped locally without credentials,
+ * failed loudly on CI (#129):
  *
  *   supabase start && pnpm ingest
  *   SUPABASE_URL=http://127.0.0.1:54321 \
@@ -23,8 +24,9 @@
  * predicate (see the PR for issue #111).
  */
 import { readFileSync } from "node:fs";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, expect, it } from "vitest";
 import { serviceClient } from "../supabase/service";
+import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import {
   chunkMatchesTarget,
   DATASET_PATH,
@@ -33,8 +35,8 @@ import {
   type MatchableChunk,
 } from "./dataset";
 
-const hasDb = Boolean(
-  process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY,
+const describeEval = integrationSuite(
+  envPrereqs("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"),
 );
 
 /** Above any plausible corpus size — the default PostgREST cap is 1000 rows,
@@ -54,55 +56,52 @@ function describeTarget(target: ExpectedTarget): string {
   return parts.join(" · ");
 }
 
-describe.runIf(hasDb)(
-  "eval dataset targets are satisfiable by the corpus",
-  () => {
-    const cases = parseDataset(readFileSync(DATASET_PATH, "utf8"));
-    const census: TargetCensusRow[] = [];
+describeEval("eval dataset targets are satisfiable by the corpus", () => {
+  const cases = parseDataset(readFileSync(DATASET_PATH, "utf8"));
+  const census: TargetCensusRow[] = [];
 
-    beforeAll(async () => {
-      const { data, error } = await serviceClient()
-        .from("chunks")
-        .select("articulo, path, documents!inner(doc_key)")
-        .limit(CHUNK_FETCH_LIMIT);
-      if (error) throw new Error(`chunk census query failed: ${error.message}`);
-      const chunks: MatchableChunk[] = (data ?? []).map((row) => ({
-        docKey: row.documents.doc_key,
-        articulo: row.articulo,
-        path: row.path,
-      }));
+  beforeAll(async () => {
+    const { data, error } = await serviceClient()
+      .from("chunks")
+      .select("articulo, path, documents!inner(doc_key)")
+      .limit(CHUNK_FETCH_LIMIT);
+    if (error) throw new Error(`chunk census query failed: ${error.message}`);
+    const chunks: MatchableChunk[] = (data ?? []).map((row) => ({
+      docKey: row.documents.doc_key,
+      articulo: row.articulo,
+      path: row.path,
+    }));
 
-      for (const evalCase of cases) {
-        for (const target of evalCase.expected) {
-          census.push({
-            caseId: evalCase.id,
-            target,
-            matchCount: chunks.filter((chunk) =>
-              chunkMatchesTarget(chunk, target),
-            ).length,
-          });
-        }
+    for (const evalCase of cases) {
+      for (const target of evalCase.expected) {
+        census.push({
+          caseId: evalCase.id,
+          target,
+          matchCount: chunks.filter((chunk) =>
+            chunkMatchesTarget(chunk, target),
+          ).length,
+        });
       }
+    }
 
-      const satisfied = census.filter((row) => row.matchCount > 0).length;
+    const satisfied = census.filter((row) => row.matchCount > 0).length;
+    console.log(
+      `\ndataset target census (${chunks.length} chunks): ${satisfied}/${census.length} targets satisfiable`,
+    );
+    for (const row of census) {
       console.log(
-        `\ndataset target census (${chunks.length} chunks): ${satisfied}/${census.length} targets satisfiable`,
+        `  ${row.matchCount > 0 ? "ok  " : "MISS"}  ${String(row.matchCount).padStart(3)} chunk(s)  ${row.caseId}  →  ${describeTarget(row.target)}`,
       );
-      for (const row of census) {
-        console.log(
-          `  ${row.matchCount > 0 ? "ok  " : "MISS"}  ${String(row.matchCount).padStart(3)} chunk(s)  ${row.caseId}  →  ${describeTarget(row.target)}`,
-        );
-      }
-    }, 60_000);
+    }
+  }, 60_000);
 
-    it("has at least one ingested chunk for every expected target", () => {
-      const unsatisfiable = census
-        .filter((row) => row.matchCount === 0)
-        .map((row) => `${row.caseId} → ${describeTarget(row.target)}`);
-      expect(
-        unsatisfiable,
-        `expected targets no ingested chunk can satisfy:\n  ${unsatisfiable.join("\n  ")}`,
-      ).toEqual([]);
-    });
-  },
-);
+  it("has at least one ingested chunk for every expected target", () => {
+    const unsatisfiable = census
+      .filter((row) => row.matchCount === 0)
+      .map((row) => `${row.caseId} → ${describeTarget(row.target)}`);
+    expect(
+      unsatisfiable,
+      `expected targets no ingested chunk can satisfy:\n  ${unsatisfiable.join("\n  ")}`,
+    ).toEqual([]);
+  });
+});
