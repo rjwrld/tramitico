@@ -10,15 +10,18 @@ name: Eval
 #
 # The #129 contract holds in this lane too: the suites fail — naming the
 # missing variable — rather than skipping, and the preflight below says so
-# before spending an install on it. Expect this workflow red until #29 lands
-# the Supabase, Voyage and Anthropic secrets; a check that skips its own
-# assertions is a check that proves nothing.
+# before spending an install on it. A check that skips its own assertions is a
+# check that proves nothing.
+#
+# Dispatch-only until #29. The weekly schedule below is the cadence this lane
+# wants — the corpus changes quarterly (recrawl.yml) and the answer model does
+# not change on a schedule at all, so it is a regression tripwire, not a gate —
+# but with no corpus-carrying database and no secrets to reach one, it would
+# only produce a red run a week that nobody reads. #29 lands the database and
+# the secrets; uncomment it there, in the same change.
 on:
-  schedule:
-    # 05:00 UTC on Mondays. Weekly is the useful cadence: the corpus changes
-    # quarterly (recrawl.yml) and the answer model does not change on a
-    # schedule at all, so this is a regression tripwire, not a gate.
-    - cron: "0 5 * * 1"
+  # schedule:
+  #   - cron: "0 5 * * 1" # 05:00 UTC Mondays — enable with #29.
   workflow_dispatch:
 
 jobs:
