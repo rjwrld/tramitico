@@ -27,17 +27,41 @@ export interface RateLimitResult {
   reason: "ok" | "rate_limited" | "unavailable";
   /** Ready-to-render ES copy for the 429 body; null when allowed. */
   message: string | null;
+  /**
+   * Gives this ask back (#126). Bound to the subject and window the check
+   * consumed, so the caller never has to carry either — route.ts derives the
+   * anonymous subject inside a helper and does not see it otherwise — and a
+   * refund can only ever target the row that was incremented.
+   *
+   * Once-only and never throws: the second call is a no-op, and a failed
+   * refund is logged and swallowed. It runs on the failure path of a request
+   * that has already gone wrong, and a rejection there would replace the
+   * user's error message with a worse one. Losing an ask is the cheaper bug.
+   *
+   * A no-op when the check did not consume anything (denied or unavailable).
+   */
+  refund: () => Promise<void>;
 }
 
 interface RateLimitRow {
   count: number;
 }
 
-/** The minimal shape `checkRateLimit` needs — easy to fake in tests. */
+type RpcCall =
+  | {
+      fn: "rate_limit_increment";
+      args: { p_subject: string; p_window_start: string; p_cutoff: string };
+    }
+  | {
+      fn: "rate_limit_refund";
+      args: { p_subject: string; p_window_start: string };
+    };
+
+/** The minimal shape this module needs — easy to fake in tests. */
 export interface RpcClient {
   rpc(
-    fn: "rate_limit_increment",
-    args: { p_subject: string; p_window_start: string; p_cutoff: string },
+    fn: RpcCall["fn"],
+    args: RpcCall["args"],
   ): Promise<{
     data: RateLimitRow | null;
     error: { message: string } | null;
@@ -49,7 +73,24 @@ export function supabaseRpcClient(
   supabase: SupabaseClient<Database>,
 ): RpcClient {
   return {
-    rpc: async (fn, args) => supabase.rpc(fn, args).single(),
+    rpc: async (fn, args) =>
+      fn === "rate_limit_refund"
+        ? // A refund whose window has already rolled over matches no row, and
+          // that is a legitimate no-op — `.single()` would report it as an
+          // error instead. Increment always returns its row.
+          supabase
+            .rpc(fn, args as { p_subject: string; p_window_start: string })
+            .maybeSingle()
+        : supabase
+            .rpc(
+              fn,
+              args as {
+                p_subject: string;
+                p_window_start: string;
+                p_cutoff: string;
+              },
+            )
+            .single(),
   };
 }
 
@@ -186,6 +227,37 @@ export function rateLimitReachedMessage(
   );
 }
 
+/** No-op refund for a check that never consumed anything. */
+export const NO_REFUND = async (): Promise<void> => {};
+
+/**
+ * Builds the once-only refund bound to the row the increment just touched.
+ * The guard is per-call, not per-subject: two asks in flight for one subject
+ * each own their own refund, and each can give back exactly its own ask.
+ */
+function refundHandle(
+  client: RpcClient,
+  subject: string,
+  windowStart: Date,
+): () => Promise<void> {
+  let spent = false;
+  return async () => {
+    if (spent) return;
+    spent = true;
+    try {
+      const { error } = await client.rpc("rate_limit_refund", {
+        p_subject: subject,
+        p_window_start: windowStart.toISOString(),
+      });
+      if (error) throw new Error(error.message);
+    } catch (error) {
+      // The ask stays consumed. Worth a log — a persistently failing refund
+      // is a quota bug — but never worth failing the response over.
+      console.error(`rate limit: refunding the ask failed: ${String(error)}`);
+    }
+  };
+}
+
 export async function checkRateLimit(
   subject: string,
   tier: RateLimitTier,
@@ -198,15 +270,16 @@ export async function checkRateLimit(
   const limit = limitFor(tier);
 
   let count: number;
+  // Resolved inside the try: `defaultClient()` throws on missing Supabase
+  // credentials, which is one of the fail-closed cases below.
+  let rpcClient: RpcClient;
   try {
-    const { data, error } = await (client ?? defaultClient()).rpc(
-      "rate_limit_increment",
-      {
-        p_subject: subject,
-        p_window_start: windowStart.toISOString(),
-        p_cutoff: cutoff.toISOString(),
-      },
-    );
+    rpcClient = client ?? defaultClient();
+    const { data, error } = await rpcClient.rpc("rate_limit_increment", {
+      p_subject: subject,
+      p_window_start: windowStart.toISOString(),
+      p_cutoff: cutoff.toISOString(),
+    });
     if (error || !data)
       throw error ?? new Error("rate_limit_increment: no row returned");
     count = data.count;
@@ -217,9 +290,16 @@ export async function checkRateLimit(
       resetAt,
       reason: "unavailable",
       message: RATE_LIMIT_UNAVAILABLE_MESSAGE,
+      // Nothing was consumed — an increment that never landed has nothing to
+      // give back, and refunding here would decrement someone else's ask.
+      refund: NO_REFUND,
     };
   }
 
+  // A denial past the limit still incremented the row, by design: the counter
+  // is what makes the window fixed. But the caller got no answer out of it,
+  // and the count is already past the limit, so refunding it would be
+  // indistinguishable from not counting the attempt at all.
   if (count > limit) {
     return {
       allowed: false,
@@ -227,6 +307,7 @@ export async function checkRateLimit(
       resetAt,
       reason: "rate_limited",
       message: rateLimitReachedMessage(tier, resetAt),
+      refund: NO_REFUND,
     };
   }
 
@@ -236,5 +317,6 @@ export async function checkRateLimit(
     resetAt,
     reason: "ok",
     message: null,
+    refund: refundHandle(rpcClient, subject, windowStart),
   };
 }

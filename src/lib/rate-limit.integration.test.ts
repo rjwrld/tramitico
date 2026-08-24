@@ -8,7 +8,7 @@
  */
 import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { beforeAll, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
   checkRateLimit,
   RATE_LIMIT_UNAVAILABLE_MESSAGE,
@@ -132,6 +132,91 @@ describeDb("checkRateLimit — integration (Postgres)", () => {
     } finally {
       await cleanup(subject);
     }
+  });
+
+  /** The subject's current counter, or null when it has no row. */
+  async function countOf(subject: string): Promise<number | null> {
+    const { data } = await client
+      .from("rate_limits")
+      .select("count")
+      .eq("subject", subject)
+      .maybeSingle();
+    return data?.count ?? null;
+  }
+
+  describe("refund (#126)", () => {
+    it("gives the ask back — the counter returns to where it was", async () => {
+      const subject = `itest:${randomUUID()}`;
+      try {
+        await checkRateLimit(subject, "authed", rpcClient);
+        const second = await checkRateLimit(subject, "authed", rpcClient);
+        expect(await countOf(subject)).toBe(2);
+        await second.refund();
+        expect(await countOf(subject)).toBe(1);
+      } finally {
+        await cleanup(subject);
+      }
+    });
+
+    it("never drives the counter negative", async () => {
+      const subject = `itest:${randomUUID()}`;
+      try {
+        const first = await checkRateLimit(subject, "authed", rpcClient);
+        await first.refund();
+        expect(await countOf(subject)).toBe(0);
+        // A second, independent refund of an already-empty window: the clamp
+        // in the RPC is what stops a refund path from minting free asks.
+        const stale = await checkRateLimit(subject, "authed", rpcClient);
+        await stale.refund();
+        await stale.refund();
+        const extra = await checkRateLimit(subject, "authed", rpcClient);
+        await extra.refund();
+        expect(await countOf(subject)).toBeGreaterThanOrEqual(0);
+      } finally {
+        await cleanup(subject);
+      }
+    });
+
+    it("keeps the counter consistent under concurrent asks and refunds", async () => {
+      const subject = `itest:${randomUUID()}`;
+      try {
+        // 6 asks in flight, 2 of them refunded concurrently with the rest.
+        const checks = await Promise.all(
+          Array.from({ length: 6 }, () =>
+            checkRateLimit(subject, "authed", rpcClient),
+          ),
+        );
+        await Promise.all([
+          checks[0].refund(),
+          checks[1].refund(),
+          checkRateLimit(subject, "authed", rpcClient),
+        ]);
+        // 7 increments, 2 refunds — no lost update in either direction.
+        expect(await countOf(subject)).toBe(5);
+      } finally {
+        await cleanup(subject);
+      }
+    });
+
+    it("does not touch the new day's quota once the window has rolled over", async () => {
+      const subject = `itest:${randomUUID()}`;
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      try {
+        // A check taken yesterday, refunded after today's window opened.
+        const stale = await checkRateLimit(
+          subject,
+          "authed",
+          rpcClient,
+          yesterday,
+        );
+        await checkRateLimit(subject, "authed", rpcClient);
+        expect(await countOf(subject)).toBe(1); // today's window, reset to 1
+        await stale.refund();
+        expect(await countOf(subject)).toBe(1); // untouched
+      } finally {
+        await cleanup(subject);
+      }
+    });
   });
 
   it("deletes rows past the retention window opportunistically", async () => {

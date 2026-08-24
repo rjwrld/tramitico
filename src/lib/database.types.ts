@@ -173,6 +173,12 @@ export type Database = {
           count: number;
         }[];
       };
+      rate_limit_refund: {
+        Args: { p_subject: string; p_window_start: string };
+        Returns: {
+          count: number;
+        }[];
+      };
       search_chunks: {
         Args: {
           match_count?: number;
