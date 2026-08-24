@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Symlink the main checkout's untracked .env.local into the current worktree.
 #
-# Worktrees are keyless by default on purpose: unit tests mock the Supabase
-# client, e2e runs on placeholder env, and a keyless lane can't burn API spend
-# or touch the shared local database. Run this (pnpm env:link) only in lanes
-# that genuinely need secrets — corpus ingestion, eval re-runs, live app runs.
+# Orca's worktree setup (scripts/orca-setup.sh) runs this on create, so
+# worktrees are keyed by default. The spend guardrail moved to convention:
+# `pnpm test:eval` costs real API calls, so it runs on purpose, not habit
+# (CLAUDE.md, Worktrees). Safe to re-run by hand (pnpm env:link) any time.
 #
 # A symlink (not a copy) keeps one source of truth: key rotation in the main
 # checkout propagates everywhere, and removing the worktree removes only the
