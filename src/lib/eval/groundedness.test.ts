@@ -2,7 +2,7 @@
  * Unit tests for the groundedness judge (SPEC §9, issues #26/#58): verdict
  * parsing, the majority rule, judge prompt assembly, and judgeAnswer's
  * re-judge/majority orchestration via an injected judgeOnce. The
- * model-calling eval lives in groundedness.integration.test.ts.
+ * model-calling eval lives in groundedness.eval.test.ts.
  */
 import { describe, expect, it } from "vitest";
 import type { RetrievedChunk } from "../retrieval";

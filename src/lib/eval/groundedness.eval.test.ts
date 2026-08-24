@@ -8,7 +8,7 @@
  * verdict stands (absorbs judge flakiness at n≈25 without loosening the
  * gate). Blocking gate: ≥90% pass, ratchet-only.
  *
- * Env-gated like retrieval-hitrate.integration.test.ts, plus it needs an
+ * Env-gated like retrieval-hitrate.eval.test.ts, plus it needs an
  * Anthropic key for the answer + judge calls: skipped locally when any is
  * absent, failed loudly on CI (#129). Run locally with:
  *
@@ -17,7 +17,7 @@
  *   SUPABASE_SERVICE_ROLE_KEY=<service role key> \
  *   EMBEDDINGS_PROVIDER=voyage VOYAGE_API_KEY=<key> \
  *   ANTHROPIC_API_KEY=<key> \
- *   pnpm vitest run src/lib/eval/groundedness.integration.test.ts
+ *   pnpm vitest run src/lib/eval/groundedness.eval.test.ts
  *
  * Haiku comparison (SPEC §5, portfolio material): same command with
  * ANSWER_MODEL=claude-haiku-4-5 — the per-case table and pass rate print

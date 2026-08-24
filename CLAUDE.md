@@ -19,23 +19,42 @@ original scope (its §5 OUT-list is binding).
 | `src/components/`                          | `chat/`, `history/`, `auth/`, `ui/` (Base UI), `sello.tsx` (source seals)         |
 | `src/lib/supabase/` + `src/proxy.ts`       | browser/server/service clients; auth session proxy                                |
 | `supabase/migrations/`                     | schema, applied to the shared local stack                                         |
+| `supabase/tests/`                          | pgTAP: the SQL-level least-privilege guard (`pnpm test:db`)                       |
 | `e2e/`                                     | Playwright on placeholder env; `*.local.spec.ts` via `playwright.local.config.ts` |
 
 ## Testing
 
-Three suites, three commands (`pnpm test` runs all three, for local convenience):
+Four lanes, split by what they _need_ (`pnpm test` runs the three vitest ones, for
+local convenience):
 
-| Command                 | Suites                                       | Needs                                         |
-| ----------------------- | -------------------------------------------- | --------------------------------------------- |
-| `pnpm test:unit`        | everything not named `*.integration.test.ts` | nothing — this is the required CI gate        |
-| `pnpm test:integration` | `src/**/*.integration.test.ts`               | a database (`supabase start`)                 |
-| `pnpm test:eval`        | `src/lib/eval/**/*.integration.test.ts`      | a database, real embeddings, an Anthropic key |
+| Command                 | Suites                                   | Needs                                                                          |
+| ----------------------- | ---------------------------------------- | ------------------------------------------------------------------------------ |
+| `pnpm test:unit`        | everything else under `src/`, `scripts/` | nothing — the required CI gate                                                 |
+| `pnpm test:integration` | `src/**/*.integration.test.ts`           | a **migrated, empty** database                                                 |
+| `pnpm test:db`          | `supabase/tests/*.test.sql` (pgTAP)      | the same database, plus the Supabase CLI                                       |
+| `pnpm test:eval`        | `src/**/*.eval.test.ts`                  | a database **carrying the ingested corpus**, real embeddings, an Anthropic key |
+
+The dividing question when adding a suite: would it pass against a database that has
+just been migrated and holds no rows? Yes → `*.integration.test.ts`. No → `*.eval.test.ts`.
+Directory does not decide — `src/lib/retrieval.eval.test.ts` sits beside the module it
+covers.
+
+That line is a CI boundary, not a taxonomy (#147). `ci.yml`'s `suites` job runs the
+integration and pgTAP lanes on every PR against a throwaway `supabase start` stack, with
+**no secrets** — so a suite that needs corpus or a paid provider cannot live there.
+`eval.yml` runs the eval lane weekly and on demand, with secrets.
+
+`supabase/tests/least_privilege.test.sql` is the SQL-level guard for the #123 lockdown:
+it reads `pg_class`/`pg_proc`/`pg_default_acl` directly and fails if `anon`,
+`authenticated` or `PUBLIC` hold any privilege on any object in `public`, or if the three
+RLS policies on `questions` go missing. A regenerated schema dump re-adding grants is the
+regression it exists to catch.
 
 Env-dependent suites are gated with `integrationSuite()` from
-`src/lib/test-support/suite-gate.ts` — never `describe.skipIf` directly. It skips locally
-when prerequisites are missing and **fails** under `CI=true`, naming what is absent: a
-required check that silently asserts nothing is the failure mode it exists to prevent
-(#129). Keep anything that throws without the environment (client and embedder
+`src/lib/test-support/suite-gate.ts` — never `describe.skipIf`/`describe.runIf` directly.
+It skips locally when prerequisites are missing and **fails** under `CI=true`, naming what
+is absent: a required check that silently asserts nothing is the failure mode it exists to
+prevent (#129). Keep anything that throws without the environment (client and embedder
 constructors) inside the suite body, not at module scope.
 
 Every interactive component (anything with a click/submit/toggle path) ships with a jsdom

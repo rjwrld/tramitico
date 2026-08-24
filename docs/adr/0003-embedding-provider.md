@@ -100,7 +100,7 @@ The canary acceptance line that transferred to
 of 30; the canary sits at fused #20 and reranks into the answer top-8.
 Reranking is therefore **on by default** (`RERANK=off` opts out;
 `src/lib/answer/rerank.ts`), and
-`src/lib/eval/retrieval-hitrate.integration.test.ts` gates hit-rate at ≥92%
+`src/lib/eval/retrieval-hitrate.eval.test.ts` gates hit-rate at ≥92%
 with the canary as a named blocking case — the referee for any future
 lexical-leg tuning (ADR 0005). `WEAK_SCORE_THRESHOLD` was re-checked against
 the same runs: every legitimate question scores ≥18% above it, value unchanged.

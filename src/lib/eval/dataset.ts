@@ -3,7 +3,7 @@
  *
  * `eval/dataset.jsonl` holds 25±5 hand-written questions, each with the
  * expected source docs/artículos a correct retrieval must surface. The
- * integration eval (retrieval-hitrate.integration.test.ts) runs each question
+ * integration eval (retrieval-hitrate.eval.test.ts) runs each question
  * through the production retrieval path and asserts the expected artículo is
  * in the answer top-k; this module is the pure part — parsing and the "does
  * this chunk satisfy this expectation" predicate — so matching semantics are

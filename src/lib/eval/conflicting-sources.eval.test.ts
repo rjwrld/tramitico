@@ -13,10 +13,10 @@
  * cadence, in the same lane as the groundedness gate:
  *
  *   ANTHROPIC_API_KEY=<key> \
- *   pnpm vitest run src/lib/eval/conflicting-sources.integration.test.ts
+ *   pnpm vitest run src/lib/eval/conflicting-sources.eval.test.ts
  */
 import { generateText } from "ai";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, expect, it } from "vitest";
 import { DEFAULT_ANSWER_MODEL, getAnswerModel } from "../answer/model";
 import { ANSWER_SYSTEM_PROMPT, buildUserPrompt } from "../answer/prompt";
 import {
@@ -26,11 +26,16 @@ import {
   CONFLICT_QUESTION,
 } from "./conflicting-sources";
 import { judgeAnswer, JUDGE_MODEL, type Verdict } from "./groundedness";
+import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 
-const hasAnthropicKey = Boolean(process.env.ANTHROPIC_API_KEY);
+// `describe.runIf` was a silent skip: with no key this suite reported zero
+// tests and the eval lane went green having asserted nothing — the exact
+// failure mode #129 exists to prevent. The shared gate skips locally and
+// *fails*, naming ANTHROPIC_API_KEY, under CI.
+const describeEval = integrationSuite(envPrereqs("ANTHROPIC_API_KEY"));
 const answerModelId = process.env.ANSWER_MODEL ?? DEFAULT_ANSWER_MODEL;
 
-describe.runIf(hasAnthropicKey)("conflicting sources (#135)", () => {
+describeEval("conflicting sources (#135)", () => {
   let answer = "";
   let verdict: Verdict = "fail";
   let verdicts: Verdict[] = [];
