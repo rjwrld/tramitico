@@ -1,0 +1,75 @@
+name: Eval
+
+# The corpus lane, split out of CI by issue #147.
+#
+# These suites need what a per-PR lane cannot have: a database carrying the
+# *ingested corpus*, a paid embeddings provider and an Anthropic key. Running
+# them on every PR would spend real API money on docs-only changes (audit F-26)
+# and would still need a hosted project to point at. So they run here, on a
+# cadence, with secrets.
+#
+# The #129 contract holds in this lane too: the suites fail — naming the
+# missing variable — rather than skipping, and the preflight below says so
+# before spending an install on it. Expect this workflow red until #29 lands
+# the Supabase, Voyage and Anthropic secrets; a check that skips its own
+# assertions is a check that proves nothing.
+on:
+  schedule:
+    # 05:00 UTC on Mondays. Weekly is the useful cadence: the corpus changes
+    # quarterly (recrawl.yml) and the answer model does not change on a
+    # schedule at all, so this is a regression tripwire, not a gate.
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      # A dedicated, ingested test project — NOT production. These suites read
+      # the corpus rather than writing it, but they are pointed by a secret and
+      # #29 owns which project that names.
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      # retrieval.eval.test.ts's `grants` suite reads the legacy
+      # SUPABASE_ANON_KEY rather than the publishable key its siblings use.
+      # Collapsing the two names is #29's call, not this workflow's.
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      EMBEDDINGS_PROVIDER: ${{ vars.EMBEDDINGS_PROVIDER }}
+      VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
+      RERANK: ${{ vars.RERANK }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      ANSWER_MODEL: ${{ vars.ANSWER_MODEL }}
+    steps:
+      # Fail in seconds rather than after an install and a 90-minute
+      # groundedness timeout, and name every missing variable at once. Mirrors
+      # recrawl.yml's "refuse before doing the expensive thing" guard; the
+      # in-suite gate (#129) remains the real backstop.
+      - name: Require the eval environment
+        run: |
+          missing=""
+          for var in SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY SUPABASE_ANON_KEY \
+                     EMBEDDINGS_PROVIDER VOYAGE_API_KEY ANTHROPIC_API_KEY; do
+            if [ -z "${!var}" ]; then missing="$missing $var"; fi
+          done
+          # A stub embedder would score the eval against meaningless vectors
+          # and report a number nobody should trust.
+          if [ "$EMBEDDINGS_PROVIDER" = "stub" ]; then
+            missing="$missing EMBEDDINGS_PROVIDER(is 'stub')"
+          fi
+          if [ -n "$missing" ]; then
+            echo "The eval lane cannot run — missing:$missing" >&2
+            echo "These are repository secrets/variables; #29 provisions them." >&2
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:eval
