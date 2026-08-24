@@ -5,7 +5,7 @@
  * and assert the expected artículo lands in the answer top-k. Catches
  * chunking/retrieval regressions independently of generation.
  *
- * Env-gated like retrieval.integration.test.ts: skipped locally without a
+ * Env-gated like retrieval.eval.test.ts: skipped locally without a
  * database and real embeddings; on CI a missing prerequisite fails the eval
  * job rather than skipping (#129). Run locally with:
  *
