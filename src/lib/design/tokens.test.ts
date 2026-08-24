@@ -7,7 +7,7 @@
 // `--destructive-bg` / `--destructive-bg-hover`, mirroring `--sello` /
 // `--sello-bg`. These assertions are what keep the alpha pattern from
 // coming back.
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -74,4 +74,33 @@ describe.each(["light", "dark"] as const)("%s theme tokens", (theme) => {
       new RegExp(`${chroma}\\s+${hue}\\)`),
     );
   });
+});
+
+// The token pair only helps where it is actually used. `bg-destructive/<alpha>`
+// is the #160 defect written as a utility class: it computes the ground from
+// the text colour at paint time, so it would sail past every assertion above
+// and still ship a 3.35:1 control. Ban it in the tree instead.
+describe("destructive grounds in components", () => {
+  const componentsDir = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../components",
+  );
+
+  const walk = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) return walk(full);
+      return entry.name.endsWith(".tsx") && !entry.name.includes(".test.")
+        ? [full]
+        : [];
+    });
+
+  it.each(walk(componentsDir).map((f) => [path.relative(componentsDir, f), f]))(
+    "%s grounds destructive surfaces in --destructive-bg",
+    (_name, file) => {
+      const source = readFileSync(file, "utf8");
+      // Rings and borders may still be alphas — they are not text grounds.
+      expect(source).not.toMatch(/\bbg-destructive\/\d/);
+    },
+  );
 });
