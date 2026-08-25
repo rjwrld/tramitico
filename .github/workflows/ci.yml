@@ -35,7 +35,8 @@ jobs:
       # Same install, same build, so it costs no extra wall-clock.
       - run: pnpm build:hermetic
 
-  # Database suites against a throwaway local stack (issue #147).
+  # Database suites — and the local-Supabase e2e lane — against a throwaway
+  # local stack (issue #147, extended by #161).
   #
   # `supabase start` applies supabase/migrations/ to a fresh Postgres and hands
   # back its own credentials, so this lane needs no secrets and cannot reach a
@@ -83,13 +84,16 @@ jobs:
           # fixture, and a CLI auto-update is not a reason for a PR to go red.
           version: 2.105.0
       # Only the containers the suites actually dial. Studio, storage, edge
-      # functions, analytics and mail are wall-clock this lane never uses; if
-      # the stack ever misbehaves here, shortening this list is the first thing
-      # to try.
+      # functions and analytics are wall-clock this lane never uses; if the
+      # stack ever misbehaves here, shortening this list is the first thing to
+      # try. `inbucket` (mail) came back off the list with #161: that spec
+      # signs a browser in by minting a magic link through GoTrue's admin API,
+      # and a mail stack with nowhere to deliver is not a failure mode worth
+      # discovering on someone else's PR.
       - name: Start a local Supabase stack on this PR's migrations
         run: >
           supabase start
-          -x studio,imgproxy,storage,edge-runtime,functions,analytics,vector,realtime,inbucket,meta
+          -x studio,imgproxy,storage,edge-runtime,functions,analytics,vector,realtime,meta
       # The stack prints its own keys — fixed local development values, not
       # secrets. Mapped onto the names the suites read. No SUPABASE_ANON_KEY:
       # its only reader was retrieval's `grants` suite, which now runs in
@@ -116,6 +120,26 @@ jobs:
       # on `questions`, `chunks` and `documents` (#123).
       - run: pnpm test:integration
         if: ${{ !cancelled() }}
+      # The browser half (#161): `*.local.spec.ts` need a real Supabase in the
+      # loop, so this is the only lane that can run them — the default e2e job
+      # runs with the server-side Supabase env pinned empty. Both specs stay
+      # keyless here: the stack carries no corpus, so retrieval comes back
+      # empty and /api/ask takes its weak-retrieval path without a model call,
+      # and playwright.local.config.ts pins ANTHROPIC_API_KEY empty so an ask
+      # that somehow did retrieve would fail loudly rather than need a secret.
+      - run: pnpm exec playwright install --with-deps chromium
+        if: ${{ !cancelled() }}
+      - run: pnpm test:e2e:local
+        if: ${{ !cancelled() }}
+      # The list reporter writes nothing to disk; `test-results/` is where a
+      # failed spec leaves its error context and any trace.
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-local-results
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Stack logs
         if: failure()
         run: supabase status || true

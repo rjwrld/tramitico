@@ -21,6 +21,14 @@ import {
   ASK_FALLBACK_ERROR_MESSAGE,
   askErrorMessage,
 } from "@/lib/answer/contract";
+import {
+  citationFailures,
+  resetCitationFailures,
+} from "@/lib/answer/invariant";
+import {
+  CITATION_RETRY_NOTE,
+  WEAK_RETRIEVAL_ANSWER,
+} from "@/lib/answer/prompt";
 import { saveQuestion } from "@/lib/answer/persist";
 import { getAnswerModel } from "@/lib/answer/model";
 import { getUserId } from "@/lib/answer/user";
@@ -92,43 +100,73 @@ function allowRateLimit(): ReturnType<typeof vi.fn> {
  * whatever `abortSignal` `streamText` was given straight through to the
  * provider call, which is exactly the wiring #74/F-11 adds.
  */
+function providerStream(
+  deltas: readonly string[],
+  chunkDelayInMs = 0,
+): ReadableStream<LanguageModelV4StreamPart> {
+  return simulateReadableStream<LanguageModelV4StreamPart>({
+    chunkDelayInMs,
+    chunks: [
+      { type: "stream-start", warnings: [] },
+      { type: "text-start", id: "t1" },
+      ...deltas.map((delta): LanguageModelV4StreamPart => ({
+        type: "text-delta",
+        id: "t1",
+        delta,
+      })),
+      { type: "text-end", id: "t1" },
+      {
+        type: "finish",
+        finishReason: { unified: "stop" as const, raw: "end_turn" },
+        usage: {
+          inputTokens: {
+            total: 1,
+            noCache: 1,
+            cacheRead: 0,
+            cacheWrite: 0,
+          },
+          outputTokens: { total: 1, text: 1, reasoning: 0 },
+        },
+      },
+    ],
+  });
+}
+
 function mockModel(
   text: string,
   deltas: readonly string[] = text.split(" ").map((word) => `${word} `),
   chunkDelayInMs = 0,
 ): MockLanguageModelV4 {
   const model = new MockLanguageModelV4({
-    doStream: {
-      stream: simulateReadableStream<LanguageModelV4StreamPart>({
-        chunkDelayInMs,
-        chunks: [
-          { type: "stream-start", warnings: [] },
-          { type: "text-start", id: "t1" },
-          ...deltas.map((delta): LanguageModelV4StreamPart => ({
-            type: "text-delta",
-            id: "t1",
-            delta,
-          })),
-          { type: "text-end", id: "t1" },
-          {
-            type: "finish",
-            finishReason: { unified: "stop" as const, raw: "end_turn" },
-            usage: {
-              inputTokens: {
-                total: 1,
-                noCache: 1,
-                cacheRead: 0,
-                cacheWrite: 0,
-              },
-              outputTokens: { total: 1, text: 1, reasoning: 0 },
-            },
-          },
-        ],
-      }),
+    doStream: { stream: providerStream(deltas, chunkDelayInMs) },
+  });
+  vi.mocked(getAnswerModel).mockReturnValue(model);
+  return model;
+}
+
+/**
+ * A model that answers differently on each call — the shape #131's retry
+ * needs. The last text repeats if the route asks more times than there are
+ * entries, so "both attempts violate" is `mockModelSequence(bad, bad)` and a
+ * third call, were the route ever to make one, would be visible in
+ * `doStreamCalls.length` rather than hidden behind an exhausted array.
+ */
+function mockModelSequence(...texts: readonly string[]): MockLanguageModelV4 {
+  let call = 0;
+  const model = new MockLanguageModelV4({
+    doStream: async () => {
+      const text = texts[Math.min(call, texts.length - 1)];
+      call += 1;
+      return { stream: providerStream(splitWords(text)) };
     },
   });
   vi.mocked(getAnswerModel).mockReturnValue(model);
   return model;
+}
+
+/** Word-sized deltas that concatenate back to exactly `text`. */
+function splitWords(text: string): string[] {
+  return text.split(/(?<= )/);
 }
 
 /**
@@ -182,23 +220,27 @@ async function readEvents(response: Response): Promise<SseEvent[]> {
 }
 
 /**
- * Reads the response manually up through the first `text-delta` — proof the
- * mocked provider call actually started — then aborts `controller` and
- * drains the rest so the route's `execute` (and its `onFinish`/persistence)
- * gets to run to completion. `chunkDelayInMs` on the mocked model (#74) is
- * what makes "abort after the first delta, mid-stream" land deterministically
- * rather than racing the whole answer landing in one microtask.
+ * Reads the response manually up through the `redactando` status part — the
+ * route's own signal that it is about to call the model — then aborts
+ * `controller` and drains the rest so `execute` (and its persistence) gets to
+ * run to completion. `chunkDelayInMs` on the mocked model (#74) is what makes
+ * the abort land mid-generation rather than racing the whole answer through
+ * in one microtask.
+ *
+ * `redactando` rather than the first `text-delta` since #131: the answer is
+ * buffered and validated before any of it is written, so no text reaches the
+ * wire until generation is already over and there is nothing left to abort.
  */
-async function readUntilTextDeltaThenAbort(
+async function readUntilRedactandoThenAbort(
   response: Response,
   controller: AbortController,
 ): Promise<SseEvent[]> {
   const reader = response.body!.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
-  while (!buffer.includes('"type":"text-delta"')) {
+  while (!buffer.includes('"stage":"redactando"')) {
     const { done, value } = await reader.read();
-    if (done) throw new Error("stream ended before any text arrived");
+    if (done) throw new Error("stream ended before generation began");
     buffer += decoder.decode(value, { stream: true });
   }
   controller.abort();
@@ -267,6 +309,9 @@ beforeEach(() => {
   // Anonymous asks derive their subject with this key (#125); the default
   // caller here is anonymous, so without it every test would fail closed.
   vi.stubEnv("RATE_LIMIT_SUBJECT_SECRET", "test-subject-secret");
+  // The #131 tally is module state; a leftover count would make the next
+  // case's assertion depend on suite order.
+  resetCitationFailures();
 });
 
 describe("POST /api/ask", () => {
@@ -568,8 +613,12 @@ describe("POST /api/ask", () => {
     expect(events.some((e) => e.errorText?.includes("provider exploded"))).toBe(
       false,
     );
-    // The text that did arrive is kept — a partial answer beats a blank.
-    expect(streamedText(events)).toContain("La tarifa es");
+    // Nothing of the partial answer is kept — the reverse of what #71 did,
+    // and the point of #131: an answer cut off by a provider outage is by
+    // definition one whose citations were never checked, so it is exactly the
+    // text the invariant exists to keep off the wire. The error part is the
+    // whole response.
+    expect(streamedText(events)).toBe("");
     spy.mockRestore();
   });
 
@@ -605,7 +654,7 @@ describe("POST /api/ask", () => {
       askRequest({ question: "¿Cuánto es el IVA?" }, controller.signal),
     );
 
-    await readUntilTextDeltaThenAbort(response, controller);
+    await readUntilRedactandoThenAbort(response, controller);
 
     // `streamText` forwards whatever `abortSignal` it was given straight
     // through to the model's `doStream` call — this is the actual cost-saving
@@ -624,7 +673,7 @@ describe("POST /api/ask", () => {
       askRequest({ question: "¿Cuánto es el IVA?" }, controller.signal),
     );
 
-    const events = await readUntilTextDeltaThenAbort(response, controller);
+    const events = await readUntilRedactandoThenAbort(response, controller);
 
     // A user-initiated stop is not a failure — it must not surface the
     // Spanish "algo salió mal" copy over an answer the user chose to cut off.
@@ -776,10 +825,160 @@ describe("POST /api/ask", () => {
       const response = await POST(
         askRequest({ question: "¿Cuánto es el IVA?" }, controller.signal),
       );
-      await readUntilTextDeltaThenAbort(response, controller);
+      await readUntilRedactandoThenAbort(response, controller);
 
       // Nothing on our side failed, and a refundable stop would be the same
       // free-ask hole the decline rule closes.
+      expect(refund).not.toHaveBeenCalled();
+    });
+  });
+
+  /**
+   * #131: citations stopped being prompt-led. Before any of the answer is
+   * written to the wire it must carry at least one marker, and every marker
+   * must resolve to a document that was actually retrieved. One retry, then
+   * the honest decline — never the uncited text.
+   */
+  describe("citation invariant (#131)", () => {
+    const UNCITED = "La tarifa aplica a todo servicio prestado.";
+    const CITED = "La tarifa es 13% [1].";
+
+    it("keeps an uncited answer off the wire and streams the cited retry instead", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      const model = mockModelSequence(UNCITED, CITED);
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(streamedText(events)).toBe(CITED);
+      expect(streamedText(events)).not.toContain("todo servicio prestado");
+      expect(model.doStreamCalls).toHaveLength(2);
+      expect(citationFailures()).toEqual({
+        no_markers: 1,
+        unresolved_markers: 0,
+      });
+    });
+
+    it("keeps an answer citing a document nobody retrieved off the wire", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      // Two chunks were retrieved, so [9] resolves to nothing. The render path
+      // would silently delete that marker and leave the claim bare — which is
+      // exactly the failure this invariant exists to catch instead.
+      const model = mockModelSequence(
+        "Vence el 15 de cada mes [1], salvo excepciones [9].",
+        CITED,
+      );
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "¿Cuándo declaro?" })),
+      );
+
+      expect(streamedText(events)).toBe(CITED);
+      expect(streamedText(events)).not.toContain("15 de cada mes");
+      expect(model.doStreamCalls).toHaveLength(2);
+      expect(citationFailures()).toEqual({
+        no_markers: 0,
+        unresolved_markers: 1,
+      });
+    });
+
+    it("declines honestly when the retry violates too — and stops retrying there", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      const model = mockModelSequence(UNCITED, UNCITED);
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(streamedText(events)).toBe(WEAK_RETRIEVAL_ANSWER);
+      expect(streamedText(events)).not.toContain("todo servicio prestado");
+      // Once, not until it works: the retry budget is one.
+      expect(model.doStreamCalls).toHaveLength(2);
+      // A decline cites nothing, so no seal may be stamped under it.
+      expect(events.filter((e) => e.type === "data-citations")).toHaveLength(0);
+      expect(citationFailures()).toEqual({
+        no_markers: 2,
+        unresolved_markers: 0,
+      });
+    });
+
+    it("does not surface a failure over the decline — the user gets an answer", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModelSequence(UNCITED, UNCITED);
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(errorMessages(events)).toEqual([]);
+    });
+
+    it("generates once when the first answer already satisfies the invariant", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      const model = mockModelSequence(CITED);
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(model.doStreamCalls).toHaveLength(1);
+      expect(citationFailures()).toEqual({
+        no_markers: 0,
+        unresolved_markers: 0,
+      });
+    });
+
+    it("tells the model what it got wrong on the retry", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      const model = mockModelSequence(UNCITED, CITED);
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      // A bare re-roll of the same prompt mostly reproduces the same failure;
+      // the retry says what to fix.
+      const [first, second] = model.doStreamCalls.map((call) =>
+        JSON.stringify(call.prompt),
+      );
+      expect(first).not.toContain(CITATION_RETRY_NOTE);
+      expect(second).toContain(CITATION_RETRY_NOTE);
+    });
+
+    it("persists the decline, never the uncited answer, for signed-in users", async () => {
+      vi.mocked(getUserId).mockResolvedValue("user-123");
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModelSequence(UNCITED, UNCITED);
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(vi.mocked(saveQuestion)).toHaveBeenCalledWith({
+        userId: "user-123",
+        question: "¿Cuánto es el IVA?",
+        answer: WEAK_RETRIEVAL_ANSWER,
+        citations: [],
+      });
+    });
+
+    it("does not refund a fail-closed decline — it is a delivered answer (#126)", async () => {
+      const refund = allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModelSequence(UNCITED, UNCITED);
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
       expect(refund).not.toHaveBeenCalled();
     });
   });

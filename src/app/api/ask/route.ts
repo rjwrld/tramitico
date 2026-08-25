@@ -2,11 +2,12 @@
  * POST /api/ask — the core endpoint (SPEC §5–§7, issue #21).
  *
  * Flow: rate-limit check (fail-closed, #24) → hybrid retrieval over a rerank
- * pool (#20) → Voyage rerank to top-8 (default on since #25) → streamed answer via the
- * Vercel AI SDK with `data-citations` parts as sellos apply. Weak retrieval
- * short-circuits to a deterministic honest fallback — no model call, no
+ * pool (#20) → Voyage rerank to top-8 (default on since #25) → an answer from
+ * the Vercel AI SDK, checked against the citation invariant and only then
+ * written to the wire with its `data-citations` snapshot. Weak retrieval
+ * short-circuits to a deterministic honest decline — no model call, no
  * citations, no guessing. Signed-in callers get the exchange persisted to
- * `questions` after the stream completes.
+ * `questions`.
  *
  * Stream-first since #71: everything the caller cannot see the result of —
  * validation and the rate limit — stays a pre-stream HTTP error, and the
@@ -14,26 +15,35 @@
  * `execute`, reporting themselves through `data-status` parts, so the first
  * byte costs the auth+limit budget instead of the whole pipeline. The price is
  * that every failure past that point is a 200 with an `error` part in it —
- * hence `askStreamErrorText` on the two paths below.
+ * hence `askStreamErrorText` on the paths below.
+ *
+ * The answer itself is no longer streamed through as it is generated (#131,
+ * ADR 0011). Citations were prompt-led and unchecked, so an answer could ship
+ * citing nothing or citing a document nobody retrieved; that can only be
+ * checked once the answer is whole, and a check that runs after the text has
+ * gone out enforces nothing. So generation is buffered in `generateAnswer`,
+ * `validateCitations` judges it, one retry is allowed, and a second violation
+ * fails closed onto the same honest decline. What #71 bought is untouched —
+ * the 200, the `buscando`/`redactando` stages, the error envelope — and what
+ * #73 established survives on the wire, since `writeAnswer` still emits the
+ * validated text a word per event.
  *
  * Stop/retry (#74, audit F-11): `request.signal` is threaded into `streamText`
  * as `abortSignal`, so a client-side `stop()` (chat.tsx) cancels the paid
  * Anthropic call once generation has started — the issue's named target for
  * F-11. Retrieval and rerank are out of scope here and still run to
  * completion after an abort; they are comparatively cheap next to the model
- * call and #74 doesn't ask for their cancellation. Persistence-on-abort is a
- * deliberate no-op, not a separate branch: `streamText`'s `onFinish` below —
- * the only place that calls `saveQuestion` for the model path — simply never
- * fires on abort (the SDK routes an aborted stream through `onAbort`
- * instead), so an aborted exchange is never saved. No user was ever shown
- * "listo" for it, so there is nothing worth remembering.
+ * call and #74 doesn't ask for their cancellation. Persistence-on-abort is
+ * still a no-op, but buffering made it a branch that has to be named rather
+ * than a consequence of `onFinish` never firing: the loop below returns the
+ * moment it sees an aborted signal, whether the abort surfaced as a rejection
+ * or just ended the provider stream. No user was ever shown "listo" for it,
+ * so there is nothing worth remembering.
  */
 import {
   createUIMessageStream,
   createUIMessageStreamResponse,
-  smoothStream,
   streamText,
-  toUIMessageStream,
   type UIMessageStreamWriter,
 } from "ai";
 import {
@@ -52,6 +62,10 @@ import {
   renumberCitationMarkers,
   type CitationTracker,
 } from "@/lib/answer/citations";
+import {
+  recordCitationFailure,
+  validateCitations,
+} from "@/lib/answer/invariant";
 import { getAnswerModel } from "@/lib/answer/model";
 import { saveQuestion } from "@/lib/answer/persist";
 import {
@@ -69,11 +83,19 @@ import {
   subjectForUser,
   type RateLimitResult,
 } from "@/lib/rate-limit";
-import { retrieve } from "@/lib/retrieval";
+import { retrieve, type RetrievedChunk } from "@/lib/retrieval";
 
 export const maxDuration = 60;
 
 const MAX_QUESTION_LENGTH = 1_000;
+
+/**
+ * Generations allowed per ask: the first, plus the one retry #131 grants a
+ * citation-invariant violation. Two, not "until it works" — a model that
+ * cannot cite twice in a row is not going to on the third try, and each
+ * attempt is paid tokens against a 60 s budget.
+ */
+const MAX_ANSWER_ATTEMPTS = 2;
 
 const INVALID_QUESTION_MESSAGE =
   "Falta la pregunta o es demasiado larga. Escriba su pregunta en el cuadro de texto e intente de nuevo.";
@@ -218,8 +240,18 @@ function answerFailed(error: unknown, quota: QuotaDebt): string {
   return askStreamErrorText(code, ASK_FALLBACK_ERROR_MESSAGE);
 }
 
-/** Weak retrieval: stream the canned honest fallback without a model call. */
-async function streamWeakRetrieval(
+/**
+ * Streams the canned honest decline and persists it — the answer we give when
+ * we will not give an answer.
+ *
+ * Two callers reach it. Weak retrieval (#71), where no model was ever called,
+ * and the #131 fail-closed path, where one was called twice and both answers
+ * broke the citation invariant. Both are the same outcome for the reader: we
+ * have nothing we can stand behind, said plainly, with the official sources to
+ * go to instead. It carries no citations by design, which is exactly why the
+ * invariant does not run on it (#131 req. 4).
+ */
+async function streamHonestDecline(
   writer: Writer,
   question: string,
   userId: string | null,
@@ -243,9 +275,86 @@ async function streamWeakRetrieval(
         citations: [],
       });
     } catch (error) {
-      console.error(`ask: saving the weak-retrieval answer failed: ${error}`);
+      console.error(`ask: saving the honest decline failed: ${error}`);
     }
   }
+}
+
+/**
+ * One buffered generation. Returns the whole answer — nothing is written to
+ * the wire from in here.
+ *
+ * That buffering is what #131 costs, and it is not incidental: an answer can
+ * only be checked for "cites at least one retrieved source, and nothing else"
+ * once it is complete, and a check that runs after the text has been streamed
+ * enforces nothing. So the model's deltas are drained here into a string, the
+ * invariant runs on it, and only a passing answer is emitted (`writeAnswer`).
+ *
+ * Consequences, all deliberate:
+ * - `smoothStream` (#73) came off this call. Its job was to pace the provider's
+ *   bursts on the way to the client; there is no longer a client on the other
+ *   side of it, so all it could do is delay our own buffer. The word-sized
+ *   deltas it produced are still what the wire carries — `writeAnswer` emits
+ *   them from the validated text, so the client-side contract is unchanged.
+ * - A failure mid-generation now yields no text at all rather than the partial
+ *   answer #71 let through. A partial answer is precisely an unvalidated one.
+ * - `streamText`'s `onFinish` is gone with it; persistence moved to the caller,
+ *   which is the only place that knows *which* attempt was shown.
+ *
+ * `abortSignal` still goes straight through to the provider (#74/F-11) — the
+ * retry hands it the same signal, so a client stop cancels whichever attempt
+ * is in flight.
+ */
+async function generateAnswer(
+  question: string,
+  chunks: readonly RetrievedChunk[],
+  signal: AbortSignal,
+  attempt: number,
+): Promise<string> {
+  // Both doors a model failure can come through, closed onto one exit. A
+  // stream-stopping error rejects the iteration below; a recoverable one
+  // arrives as an error part, which `textStream` drops on the floor — so it is
+  // captured here and rethrown, rather than letting a truncated answer be
+  // mistaken for a complete one and judged on its citations.
+  let failure: unknown = null;
+  const result = streamText({
+    model: getAnswerModel(),
+    system: ANSWER_SYSTEM_PROMPT,
+    prompt: buildUserPrompt(question, chunks, { citationRetry: attempt > 1 }),
+    abortSignal: signal,
+    onError: ({ error }) => {
+      failure ??= error;
+    },
+  });
+  let text = "";
+  for await (const delta of result.textStream) text += delta;
+  if (failure !== null) throw failure;
+  return text;
+}
+
+/**
+ * Writes a validated answer out: the text word by word, then the citations
+ * snapshot it earned, then `finish`.
+ *
+ * Word-sized deltas keep the wire shape #73 established — one word per event,
+ * so the client paints word by word rather than in one block — even though the
+ * whole answer is already in hand. The citations follow the text rather than
+ * leading it, which is the order the streaming path produced and the order the
+ * client's part-ordering assertions pin.
+ */
+function writeAnswer(
+  writer: Writer,
+  text: string,
+  tracker: CitationTracker,
+): void {
+  const id = "answer";
+  writer.write({ type: "text-start", id });
+  for (const word of text.split(/(?<= )/)) {
+    writer.write({ type: "text-delta", id, delta: word });
+  }
+  writer.write({ type: "text-end", id });
+  writeCitations(writer, tracker);
+  writer.write({ type: "finish" });
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -308,91 +417,89 @@ export async function POST(request: Request): Promise<Response> {
       }
 
       if (retrieval.isWeak) {
-        await streamWeakRetrieval(writer, asked, userId);
+        await streamHonestDecline(writer, asked, userId);
         return;
       }
 
       // Rerank is still "buscando" — the stage flips only when the model does.
       const chunks = await rerankChunks(asked, retrieval.chunks);
-      const tracker = createCitationTracker(chunks);
       writeStatus(writer, "redactando");
 
-      const result = streamText({
-        model: getAnswerModel(),
-        system: ANSWER_SYSTEM_PROMPT,
-        prompt: buildUserPrompt(asked, chunks),
-        // #74/F-11: cancels this model call the moment the client aborts
-        // (stop() or a dropped connection), instead of paying for tokens
-        // nobody reads through to `maxDuration`. Scoped to the model call
-        // only, per the issue — retrieval/rerank above are not wired to this
-        // signal and keep running if the client aborts during "buscando".
-        //
-        // An abort consumes the ask (#126). Nothing on our side failed, and a
-        // refundable abort would be the same free-ask fishing hole the issue
-        // closes for declines — ask, stop, repeat.
-        abortSignal: request.signal,
-        // #73: provider deltas arrive in bursts, which reads as multi-word
-        // jumps. Re-chunk them word by word server-side so the text flows —
-        // DESIGN §8 keeps streaming as native token flow, no CSS animation.
-        // The transform runs before `onChunk` and before `result.stream`, so
-        // the tracker below sees the same word-sized deltas the client does
-        // (word boundaries keep "[3]" intact; citations.test.ts asserts the
-        // tracker is indifferent either way).
-        //
-        // 20 ms measured against the local dev server, not guessed. Sonnet
-        // feeds this route at ~30–40 ms/word, so 20 ms drains slower than the
-        // model fills and the delay never becomes the bottleneck — it only
-        // spends the bursts. Versus 10 ms on the same long answer, stalls over
-        // 250 ms (the buffer running dry, which reads as the flow stopping)
-        // fell from 3.8 to 0.6 per 100 words. **Keep delayInMs well under the
-        // model's ms/word**: point ANSWER_MODEL at something faster and this
-        // needs re-measuring, or pacing starts adding latency instead of
-        // hiding it. Bounded either way by `maxDuration = 60`.
-        experimental_transform: smoothStream({
-          chunking: "word",
-          delayInMs: 20,
-        }),
-        onChunk: ({ chunk }) => {
-          if (chunk.type !== "text-delta") return;
-          if (tracker.append(chunk.text).length > 0) {
-            writeCitations(writer, tracker);
-          }
-        },
-        onFinish: async ({ text }) => {
-          if (!userId) return;
-          try {
-            await saveQuestion({
-              userId,
-              question: asked,
-              // History stores the reader's numbering, not the wire's: the
-              // markers are rewritten to seal ordinals here (#133) so a
-              // restored answer carries its superscripts without needing the
-              // chunk map, which is not persisted.
-              answer: renumberCitationMarkers(text, tracker.ordinals()),
-              citations: tracker.used(),
-            });
-          } catch (error) {
-            // persist.ts's bargain, same as the weak-retrieval path: a
-            // failed save is logged, never surfaced — the user already has
-            // their answer. Kept explicitly rather than relying on the SDK to
-            // swallow the rejection: an escaped one would stamp a Spanish
-            // failure under a delivered answer and, since #126, refund an ask
-            // the user actually got.
-            console.error(`ask: saving the answer failed: ${error}`);
-          }
-        },
-      });
-      // Two doors for a model failure: `stream` carries recoverable ones as
-      // error parts (mapped here), while a stream-stopping one rejects the
-      // merge and lands on `createUIMessageStream`'s `onError` below. Both
-      // point at the same mapper so neither can leak English.
-      writer.merge(
-        toUIMessageStream({
-          stream: result.stream,
-          sendStart: false,
-          onError: (error) => answerFailed(error, quota),
-        }),
-      );
+      // #131: generate, check, and only then write. The loop is the whole
+      // enforcement — an answer leaves this block either having satisfied the
+      // invariant or not at all.
+      let answer: string | null = null;
+      for (let attempt = 1; attempt <= MAX_ANSWER_ATTEMPTS; attempt += 1) {
+        let text: string;
+        try {
+          text = await generateAnswer(asked, chunks, request.signal, attempt);
+        } catch (error) {
+          // A client stop is not a failure (#74/F-11, #126): no Spanish error
+          // over an answer the user chose to cut off, no refund, nothing
+          // persisted. Buffering is what makes this a branch to name — the
+          // abort used to fall out of the SDK's own `onAbort` and simply never
+          // reach `onFinish`, and now it arrives here as a rejection like any
+          // other.
+          if (request.signal.aborted) return;
+          writer.write({
+            type: "error",
+            errorText: answerFailed(error, quota),
+          });
+          return;
+        }
+        // The quieter half of the same stop: an abort mid-generation ends the
+        // provider stream without an error at all (the SDK routes it through
+        // its own `onAbort`), so the loop simply gets a truncated draft back.
+        // Validating, retrying or persisting it would all be work on behalf of
+        // a reader who has already left.
+        if (request.signal.aborted) return;
+
+        const verdict = validateCitations(text, chunks.length);
+        if (verdict.ok) {
+          answer = text;
+          break;
+        }
+        recordCitationFailure({
+          violation: verdict.violation,
+          attempt,
+          unresolved: verdict.unresolved,
+        });
+      }
+
+      // Fail closed. The retry is spent and we still have no answer we can
+      // stand behind, so the user gets the same honest decline weak retrieval
+      // gives rather than prose with nothing under it. It is a *delivered*
+      // answer, so it consumes the ask like any other decline (#126) and is
+      // persisted like one — refunding here would hand a free ask back every
+      // time a badly-behaved model misbehaves, which is a hole whose shape we
+      // do not control.
+      if (answer === null) {
+        await streamHonestDecline(writer, asked, userId);
+        return;
+      }
+
+      const tracker = createCitationTracker(chunks);
+      tracker.append(answer);
+      writeAnswer(writer, answer, tracker);
+
+      if (userId) {
+        try {
+          await saveQuestion({
+            userId,
+            question: asked,
+            // History stores the reader's numbering, not the wire's: the
+            // markers are rewritten to seal ordinals here (#133) so a restored
+            // answer carries its superscripts without needing the chunk map,
+            // which is not persisted.
+            answer: renumberCitationMarkers(answer, tracker.ordinals()),
+            citations: tracker.used(),
+          });
+        } catch (error) {
+          // persist.ts's bargain, same as the decline path: a failed save is
+          // logged, never surfaced — the user already has their answer.
+          console.error(`ask: saving the answer failed: ${error}`);
+        }
+      }
     },
     onError: (error) => answerFailed(error, quota),
     // Where a system failure actually gives the ask back (#126). The SDK

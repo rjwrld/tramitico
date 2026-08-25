@@ -8,10 +8,12 @@ import { CITATION, answerStream, stubAsk } from "./support";
  *
  * What is NOT here: the history sheet. History only mounts for a signed-in
  * session, and this config runs with `SUPABASE_URL` pinned empty (no database,
- * no sign-in), so the sheet's open/select/Escape behavior is covered by the
- * jsdom interaction tests in `src/components/history/history-shell.test.tsx`
- * instead. Requirement 3 — the owner's pass on a real mobile Safari — is not
- * something any automated suite here stands in for.
+ * no sign-in). Since #161 the sheet's open/select/dismiss behavior at this
+ * viewport lives in `e2e/history-mobile.local.spec.ts`, which runs against a
+ * real local Supabase and a real signed-in session; the jsdom interaction
+ * tests in `src/components/history/history-shell.test.tsx` still cover the
+ * same paths without a browser. Requirement 3 — the owner's pass on a real
+ * mobile Safari — is not something any automated suite here stands in for.
  */
 
 const PHONE = { width: 375, height: 667 };

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
 import {
   chunkCitations,
+  citationMarkers,
   createCitationTracker,
   dropUnbackedMarkers,
   renumberCitationMarkers,
@@ -36,6 +37,28 @@ const CHUNKS = [
     articulo: "Artículo 10",
   }),
 ];
+
+describe("citationMarkers", () => {
+  it("reads every marker in order, duplicates and all", () => {
+    expect(citationMarkers("La tarifa es 13% [2]. Aplica [1] y [2].")).toEqual([
+      2, 1, 2,
+    ]);
+  });
+
+  it("reads a run of adjacent markers as separate citations", () => {
+    expect(citationMarkers("…están exentos [6][8].")).toEqual([6, 8]);
+  });
+
+  it("leaves brackets that are not bare integers alone", () => {
+    // Legal prose carries brackets of its own; the same rule `MARKER_RUN`
+    // applies when stripping, so both sides agree on what a citation is.
+    expect(citationMarkers("Ver el [nota], el [12x] y el [ 3 ].")).toEqual([]);
+  });
+
+  it("finds nothing in text with no markers", () => {
+    expect(citationMarkers("La tarifa es del 13%.")).toEqual([]);
+  });
+});
 
 describe("chunkCitations", () => {
   it("maps each chunk index to a citation with a resolved url", () => {
