@@ -118,6 +118,21 @@ pnpm vitest run src/lib/eval/groundedness.eval.test.ts
 > Needs its own investigation before launch; it is a live gate failure, not
 > noise to wave through.
 
+> **Re-run attempt 2026-08-25 (#157): blocked, not measured.** The baseline
+> re-run on the post-#114 corpus (825 chunks / 17 documents) reached the answer
+> model and stopped there — the Anthropic account returned
+> `Your credit balance is too low to access the Anthropic API` on every call, so
+> no case was answered and no verdict was cast. The 22/25 above therefore still
+> stands as the last measurement, and the three dispositions #157 asks for stay
+> open. What the attempt did establish, from the corpus and from a
+> retrieval-only re-run (Voyage embeddings, no Anthropic calls), is recorded in
+> [#157](https://github.com/rjwrld/tramitico/issues/157): the reranked top-8 for
+> `ccss-cuanto-pago-base` no longer contains `salarios-minimos` Artículo 1, the
+> one ingested source for the colones figure the case's answer leans on, and the
+> `ccss-escala-ivm` fragment's contribution table survives PDF extraction with
+> its `Estado` / `Art. 78` / `Conjunta` columns collapsed into a single
+> `Estado Art. 78` header — the exact shape of the recorded over-claim.
+
 ### Haiku comparison (SPEC §5)
 
 The Week 3 cost/quality comparison is the same command with
@@ -128,11 +143,16 @@ Measured on a verified-clean corpus (793 chunks / 14 documents / 0 missing
 embeddings, all migrations applied), judge `claude-sonnet-4-5`, all 25 cases
 model-judged — no weak-retrieval short-circuits in any run below:
 
-> **Corpus changed since these runs.** [#108](https://github.com/rjwrld/tramitico/issues/108)
-> swapped the `rts-requisitos` flyer (1 chunk) for `reglamento-rts` (20 chunks) —
-> now **812 chunks / 14 documents / 0 missing embeddings**. The gate was re-run
-> and re-held (≥90%, `claude-sonnet-5`, ~387s) on that corpus; the per-case table
-> was not captured. Treat the rows below as answer-model comparison, not as
+> **Corpus changed since these runs — twice.** [#108](https://github.com/rjwrld/tramitico/issues/108)
+> swapped the `rts-requisitos` flyer (1 chunk) for `reglamento-rts` (20 chunks),
+> taking the corpus to 812 chunks / 14 documents; the gate was re-run and
+> re-held (≥90%, `claude-sonnet-5`, ~387s) on that corpus, per-case table not
+> captured. [#114](https://github.com/rjwrld/tramitico/issues/114) then ingested
+> the two CCSS escalas contributivas and the wage decree. The corpus measured
+> 2026-08-25 is **825 chunks / 17 documents / 0 missing embeddings**
+> (`ccss-escala-salud`, `ccss-escala-ivm`, `salarios-minimos` are the three docs
+> added since). The gate has **not** been re-measured on it — see the blocked
+> run recorded above — so the rows below remain an answer-model comparison, not
 > current-corpus measurements.
 
 | Answer model                | Date       | Groundedness                                    | Eval wall-clock | Notes                                                                                        |
