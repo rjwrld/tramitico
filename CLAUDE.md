@@ -11,7 +11,7 @@ original scope (its §5 OUT-list is binding).
 | -------------------------------------------------- | --------------------------------------------------------------------------------- |
 | `src/app/api/ask/route.ts`                         | the ask pipeline: rate-limit → retrieve → rerank → answer → persist               |
 | `src/lib/retrieval.ts`                             | hybrid search (vector + lexical, RRF); chunks → citations                         |
-| `src/lib/answer/`                                  | prompt, model call, rerank, citation contract, persistence                        |
+| `src/lib/answer/`                                  | prompt, model call, condensation (#132), rerank, citation contract, persistence   |
 | `src/lib/rate-limit.ts`                            | daily quota via RPC; refunds on system failure                                    |
 | `src/lib/ingestion/` + `scripts/ingest.ts`         | corpus fetch → extract → chunk → embed, CLI-driven                                |
 | `corpus/manifest.json`                             | which official docs are ingested, and from where                                  |

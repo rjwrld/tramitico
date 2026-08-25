@@ -48,14 +48,22 @@ default for an ask that delivered nothing at all.
 
 ### 1.2 The three detail lines
 
-The event says _that_ something happened; these say _what_. All three predate #141 and keep
-their prefixes.
+The event says _that_ something happened; these say _what_. The first three predate #141 and
+keep their prefixes; the fourth is #132's, added under the same rule — a detail line, not a
+new field on the event, whose shape is a privacy claim.
 
-| Prefix                                | From                                | Carries                                 |
-| ------------------------------------- | ----------------------------------- | --------------------------------------- |
-| `ask: citation invariant violated`    | `src/lib/answer/invariant.ts`       | `violation=`, `attempt=`, `unresolved=` |
-| `retrieval: degraded to lexical-only` | `src/lib/retrieval-degraded.ts`     | `reason=timeout\|error`, `error=`       |
-| `ask: history save failed`            | `src/lib/answer/persist-failure.ts` | `kind=answer\|decline`, `error=`        |
+A rising `ask: condensation failed` count is a **degradation, not an outage**: every one of
+those asks was answered, on the reader's literal question instead of a standalone rewrite, so
+follow-ups retrieve worse while first turns are untouched (they never condense at all).
+`reason=unusable` is the one to read closely — the provider answered and we rejected what it
+said, which points at the prompt or the model rather than at availability.
+
+| Prefix                                | From                                | Carries                                     |
+| ------------------------------------- | ----------------------------------- | ------------------------------------------- |
+| `ask: citation invariant violated`    | `src/lib/answer/invariant.ts`       | `violation=`, `attempt=`, `unresolved=`     |
+| `retrieval: degraded to lexical-only` | `src/lib/retrieval-degraded.ts`     | `reason=timeout\|error`, `error=`           |
+| `ask: history save failed`            | `src/lib/answer/persist-failure.ts` | `kind=answer\|decline`, `error=`            |
+| `ask: condensation failed`            | `src/lib/answer/condense.ts`        | `reason=timeout\|error\|unusable`, `error=` |
 
 ### 1.3 What is _not_ visible as an HTTP error
 

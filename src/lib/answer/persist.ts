@@ -43,6 +43,13 @@ export interface SaveQuestionInput {
   question: string;
   answer: string;
   citations: Citation[];
+  /**
+   * The standalone question the pipeline actually ran on (#132), when it was
+   * not the reader's own. Null on a first turn and on a condensation that
+   * fell back — in both cases the pipeline ran on `question` itself, and a
+   * column echoing it back would say nothing about whether condensation ran.
+   */
+  condensedQuestion?: string | null;
 }
 
 /**
@@ -64,6 +71,12 @@ export async function saveQuestion(
   const { error } = await questions.from("questions").insert({
     user_id: input.userId,
     question: input.question,
+    // The reader's own words in `question`, our rewrite beside it (#132 req.
+    // 3). History is a record of the exchange they had, so the row they read
+    // back is never the condensed form; this column exists so a bad answer to
+    // a follow-up can be traced to the question it was actually retrieved
+    // against.
+    condensed_question: input.condensedQuestion ?? null,
     // History stores what the reader saw, not the wire form. Since #133 that
     // means seal ordinals — the route renumbers before calling this — so all
     // that is left here is the guard: any marker with no seal behind it (a

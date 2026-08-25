@@ -816,6 +816,77 @@ describe("Chat stop and retry controls (#74)", () => {
   });
 });
 
+/**
+ * Multi-turn (#132): the composer inside a live thread is the surface that
+ * makes a follow-up possible at all, and the thread it sits under is what the
+ * request body's history window is built from (`askRequestBody`,
+ * contract.ts). The transport itself is not in this tree — `useChat` is
+ * mocked — so this suite pins the two halves it owns: the follow-up actually
+ * submits from inside a conversation, and the turns it will be condensed
+ * against stay on screen while it does.
+ */
+describe("Chat follow-up composer (#132)", () => {
+  const FOLLOW_UP = "¿y si también soy asalariado?";
+
+  it("submits a follow-up from inside an existing conversation", () => {
+    chat.messages = conversation;
+    render(<Chat />);
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Su pregunta" }), {
+      target: { value: FOLLOW_UP },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Enviar" }));
+
+    expect(sendMessageMock).toHaveBeenCalledWith({ text: FOLLOW_UP });
+  });
+
+  it("keeps the preceding turns on screen as the follow-up goes out", () => {
+    chat.messages = conversation;
+    const { rerender } = render(<Chat />);
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Su pregunta" }), {
+      target: { value: FOLLOW_UP },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Enviar" }));
+
+    chat.messages = [...conversation, question("q3", FOLLOW_UP)];
+    chat.status = "submitted";
+    rerender(<Chat />);
+
+    // The window `askRequestBody` builds is exactly this thread: both earlier
+    // exchanges still rendered, with the follow-up appended after them.
+    const asked = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        '[data-slot="message"][data-align="end"] [data-slot="bubble-content"]',
+      ),
+    ).map((el) => el.textContent);
+    expect(asked).toEqual([
+      "¿Cómo me inscribo en Hacienda?",
+      "¿Y en la CCSS?",
+      FOLLOW_UP,
+    ]);
+    expect(
+      document.querySelectorAll('[data-slot="message"][data-align="start"]'),
+    ).toHaveLength(2);
+  });
+
+  it("takes one follow-up at a time while an exchange is in flight", () => {
+    // #74's guard, read through #132's lens: a second submit landing before
+    // `status` catches up would ask a follow-up against a thread whose last
+    // turn has no answer in it yet.
+    chat.messages = conversation;
+    render(<Chat />);
+
+    const composer = screen.getByRole("textbox", { name: "Su pregunta" });
+    fireEvent.change(composer, { target: { value: FOLLOW_UP } });
+    fireEvent.click(screen.getByRole("button", { name: "Enviar" }));
+    fireEvent.change(composer, { target: { value: "¿y el IVA?" } });
+    fireEvent.click(screen.getByRole("button", { name: "Enviar" }));
+
+    expect(sendMessageMock).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("Chat message row composition (#105)", () => {
   it("renders each user turn as an end-aligned Message with an ink Bubble", () => {
     chat.messages = conversation;

@@ -115,7 +115,9 @@ chunks (
   embedding vector(...),                  -- dim per embedding ADR
   tsv tsvector generated always as (to_tsvector('spanish', content)) stored
 )
-profiles / questions (user_id, question, answer, citations jsonb, created_at)  -- history, RLS per user
+profiles / questions (user_id, question, answer, citations jsonb,
+                     condensed_question text,                                  -- #132: the standalone form, NULL if none
+                     created_at)                                               -- history, RLS per user
 rate_limits (subject text pk, window_start timestamptz, count int)             -- see §7
 ```
 
@@ -129,6 +131,15 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   **[ADR 0005](docs/adr/0005-lexical-and-or-fallback.md)**.
 - **Embedding model:** Voyage vs OpenAI `text-embedding-3-small` — **ADR during Week 2**,
   benchmarked on the eval set; the exportación vocabulary-gap question is the canary.
+- **Multi-turn via condensation (#132, amends this section):** the pipeline below assembles an
+  answer from **one standalone question**. When a request carries the bounded window of
+  preceding turns the chat client now sends, a small model call rewrites the follow-up and that
+  window into a single standalone Spanish question, and _that_ is what retrieval, rerank, the
+  answer prompt and the citation invariant see — all unchanged, all still reasoning about one
+  question. First turns skip the call entirely; a condensation that fails or times out falls
+  back to the literal question, so multi-turn can degrade an answer and can never fail an ask.
+  History stores what the reader typed, with the rewrite in `condensed_question` beside it —
+  **[ADR 0012](docs/adr/0012-multi-turn-question-condensation.md)**.
 - **Answer assembly:** Claude **Sonnet by default, model as env var** — Week 3 runs Haiku 4.5
   through the same groundedness gate as a cost/quality comparison (portfolio material either way).
   Via Vercel AI SDK, streaming. System prompt constrains
@@ -145,11 +156,11 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
 
 ## 6. API surface (route handlers)
 
-| Route                     | Auth     | Purpose                                                     |
-| ------------------------- | -------- | ----------------------------------------------------------- |
-| `POST /api/ask`           | optional | question → streamed answer + citations; enforces rate limit |
-| `GET /api/history`        | required | user's saved Q&A, scoped to the session's own `user_id`     |
-| `DELETE /api/history/:id` | required | delete one of the session's own saved questions             |
+| Route                     | Auth     | Purpose                                                                            |
+| ------------------------- | -------- | ---------------------------------------------------------------------------------- |
+| `POST /api/ask`           | optional | question (+ recent turns, #132) → streamed answer + citations; enforces rate limit |
+| `GET /api/history`        | required | user's saved Q&A, scoped to the session's own `user_id`                            |
+| `DELETE /api/history/:id` | required | delete one of the session's own saved questions                                    |
 
 Every route reads and writes the database with `service_role`, server-side only: `anon` and
 `authenticated` hold no privileges on `public` (#123), so no browser or cookie-scoped client
@@ -199,7 +210,9 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
 ## 9. Eval & quality gates
 
 - **Eval set:** 25±5 hand-written Q&As seeded from appendix A + corpus reading; stored in-repo
-  (`eval/dataset.jsonl`) with expected source docs/artículos per question.
+  (`eval/dataset.jsonl`) with expected source docs/artículos per question. A case may carry
+  `history` (#132): its question is a follow-up, and both eval suites condense it first, so the
+  expected targets are the retrieval the _standalone_ question must produce.
 - **Groundedness judge in CI:** LLM-as-judge — "is this answer supported by the retrieved
   chunks?" **Gate: ≥ 90% pass**, blocking (starting threshold per #14; ratchet later, never
   lower). Judge runs at temperature 0; any failed item is re-judged twice more and the majority
@@ -232,7 +245,9 @@ MCP server **not** required to feature — it gates only the "builds MCP servers
 
 1. Embedding model (Voyage vs OpenAI) — benchmark on eval set (Week 2).
 2. Citation rendering format (chips vs footnotes) — **[ADR 0004](docs/adr/0004-citation-rendering.md)**: sello chips, cumulative `data-citations` snapshots.
-3. Anything that overturns a spec default — record, don't silently drift. First instance:
+3. Anything that overturns a spec default — record, don't silently drift. Also
+   **[ADR 0012](docs/adr/0012-multi-turn-question-condensation.md)**, multi-turn by question
+   condensation, which amends §5's single-question framing and §6's request body. First instance:
    **[ADR 0005](docs/adr/0005-lexical-and-or-fallback.md)**, the lexical leg's AND→OR tsquery
    fallback in `search_chunks`; also
    **[ADR 0008](docs/adr/0008-answer-markdown-rendering.md)**, the answer-prose markdown subset

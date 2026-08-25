@@ -30,6 +30,9 @@ describe("saveQuestion", () => {
     expect(insert).toHaveBeenCalledWith({
       user_id: "user-1",
       question: "¿Cuánto es el IVA?",
+      // Null unless the pipeline ran on a rewrite (#132) — a first turn, and
+      // every exchange before multi-turn existed, stores nothing here.
+      condensed_question: null,
       // The seal numbering the reader saw, kept so history can render the
       // same superscripts (#133).
       answer: "13%[1].",
