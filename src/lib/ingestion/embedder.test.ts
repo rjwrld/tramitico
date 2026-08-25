@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createEmbedder } from "./embedder";
+import { createEmbedder, INTERACTIVE_EMBED_TIMEOUT_MS } from "./embedder";
 
 /**
  * Fake Voyage/OpenAI endpoint: embeds each input text as a one-dimensional
@@ -31,6 +31,22 @@ function fetchFailingOnceWith(first: Response) {
     .fn()
     .mockResolvedValueOnce(first)
     .mockImplementation(fakeEmbeddingsFetch()) as unknown as typeof fetch;
+}
+
+/**
+ * A provider that accepts the request and never answers — the outage the
+ * interactive budget exists for. It rejects only when the signal fires, so a
+ * test that gets a rejection out of it proves the abort did the work.
+ */
+function hangingFetch() {
+  return vi.fn(
+    (_url: string | URL | Request, init?: RequestInit) =>
+      new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () =>
+          reject(init.signal?.reason as Error),
+        );
+      }),
+  ) as unknown as typeof fetch & ReturnType<typeof vi.fn>;
 }
 
 function batchSizesFromCalls(fetchImpl: ReturnType<typeof vi.fn>) {
@@ -197,6 +213,86 @@ describe("createEmbedder", () => {
       await expect(embedder.embed(["Gamma"])).rejects.toThrow(
         "OpenAI embeddings: HTTP 500",
       );
+    });
+  });
+
+  /**
+   * The interactive policy (#127 req. 1). What is under test is the *shape* of
+   * the attempt — one request, aborted on a budget — not the wall-clock 5 s
+   * itself, so the budget is shortened per case; the default is pinned
+   * separately as a constant.
+   */
+  describe("embedQuery (interactive policy)", () => {
+    it("budgets an interactive embed at ~5s by default", () => {
+      expect(INTERACTIVE_EMBED_TIMEOUT_MS).toBe(5_000);
+    });
+
+    it("stub embeds a query exactly as it embeds a document", async () => {
+      const embedder = createEmbedder("stub");
+      const [viaEmbed] = await embedder.embed(["¿cuánto es el IVA?"]);
+      expect(await embedder.embedQuery("¿cuánto es el IVA?")).toEqual(viaEmbed);
+    });
+
+    it("aborts a hung provider inside the budget instead of hanging the ask", async () => {
+      vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+      const fetchImpl = hangingFetch();
+      const embedder = createEmbedder("voyage", {
+        fetchImpl,
+        queryTimeoutMs: 25,
+      });
+      const started = Date.now();
+      const rejection = await embedder
+        .embedQuery("consulta que nadie responde")
+        .then(
+          () => null,
+          (error: unknown) => error,
+        );
+      // The budget is what ended it, and it ended on the budget's own clock —
+      // the generous ceiling is there to catch "waited for something else"
+      // (an ingestion-style 30 s sleep), not to time the timer.
+      expect((rejection as Error).name).toMatch(/TimeoutError|AbortError/);
+      expect(Date.now() - started).toBeLessThan(2_000);
+      // Single attempt: no retry loop behind the abort.
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
+    });
+
+    it("passes an abort signal the provider call can see", async () => {
+      vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+      const fetchImpl = hangingFetch();
+      const embedder = createEmbedder("voyage", {
+        fetchImpl,
+        queryTimeoutMs: 25,
+      });
+      await expect(
+        embedder.embedQuery("otra consulta colgada"),
+      ).rejects.toThrow();
+      const [, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+      expect(init.signal).toBeInstanceOf(AbortSignal);
+      expect(init.signal?.aborted).toBe(true);
+    });
+
+    it("does not retry a 429 the way the ingestion path does", async () => {
+      vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+      const fetchImpl = vi
+        .fn()
+        .mockResolvedValue(response429("30")) as unknown as typeof fetch &
+        ReturnType<typeof vi.fn>;
+      const embedder = createEmbedder("voyage", { fetchImpl });
+      // Ingestion would sleep ≥30 s and try again (up to 60 times); the ask
+      // path gets the failure back immediately and degrades instead.
+      await expect(embedder.embedQuery("consulta con 429")).rejects.toThrow(
+        "Voyage embeddings: HTTP 429",
+      );
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
+    });
+
+    it("serves a repeat of the same question from the query cache", async () => {
+      vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+      const fetchImpl = fakeEmbeddingsFetch();
+      const embedder = createEmbedder("voyage", { fetchImpl });
+      const first = await embedder.embedQuery("Consulta memorizada");
+      expect(await embedder.embedQuery("Consulta memorizada")).toEqual(first);
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
     });
   });
 });

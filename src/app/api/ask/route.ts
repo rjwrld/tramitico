@@ -28,6 +28,13 @@
  * #73 established survives on the wire, since `writeAnswer` still emits the
  * validated text a word per event.
  *
+ * Degraded search (#127): the embedding provider is the one dependency here
+ * that is allowed to be down. `retrieve` drops the vector leg rather than
+ * throwing, so what used to be a `retrieval_failed` is now an answer off a
+ * thinner search — and because the reader cannot see that for themselves, the
+ * stream carries a `data-degraded` part that the answer block turns into a
+ * visible note.
+ *
  * Stop/retry (#74, audit F-11): `request.signal` is threaded into `streamText`
  * as `abortSignal`, so a client-side `stop()` (chat.tsx) cancels the paid
  * Anthropic call once generation has started — the issue's named target for
@@ -50,6 +57,7 @@ import {
   ASK_FALLBACK_ERROR_MESSAGE,
   askStreamErrorText,
   CITATIONS_PART_ID,
+  DEGRADED_PART_ID,
   MARKERS_PART_ID,
   RETRIEVAL_FAILED_MESSAGE,
   STATUS_PART_ID,
@@ -166,6 +174,17 @@ function writeCitations(writer: Writer, tracker: CitationTracker): void {
   });
 }
 
+/**
+ * Marks the whole answer as retrieved without its vector leg (#127). Written
+ * before any text, once, so the label is on the wire whatever comes next — an
+ * answer, or the honest decline a lexical-only miss can still produce. The
+ * telemetry counter is not written here: `retrieve` records it at the one
+ * place that knows the embed failed (`retrieval-degraded.ts`).
+ */
+function writeDegraded(writer: Writer): void {
+  writer.write({ type: "data-degraded", id: DEGRADED_PART_ID, data: true });
+}
+
 function writeStatus(writer: Writer, stage: AskStatusStage): void {
   writer.write({
     type: "data-status",
@@ -181,10 +200,11 @@ function writeStatus(writer: Writer, stage: AskStatusStage): void {
  * on weak retrieval, which is a *completed* answer. If declines were free the
  * boundary becomes a fishing hole: phrase asks so they decline, spend nothing.
  *
- * The degraded case never reaches here. `rerankChunks` swallows a Voyage
- * outage and falls back to the fused order (rerank.ts), so a degraded answer
- * is delivered as an answer and consumes like one. Nor does an honest decline
- * or a client abort — neither is an error, so neither has a code at all.
+ * The degraded cases never reach here. `rerankChunks` swallows a Voyage
+ * outage and falls back to the fused order (rerank.ts), and since #127 a dead
+ * embedding provider falls back to lexical-only retrieval — both deliver an
+ * answer, labeled, so both consume like one. Nor does an honest decline or a
+ * client abort — neither is an error, so neither has a code at all.
  *
  * Exhaustive over `AskErrorCode` on purpose: a new failure mode cannot be
  * added to the contract without someone deciding, here, whether it costs the
@@ -415,6 +435,11 @@ export async function POST(request: Request): Promise<Response> {
         );
         return;
       }
+
+      // #127: the vector leg was skipped, so the reader is told before they
+      // read anything — including on the decline path below, where a thin
+      // search is part of why we have nothing to say.
+      if (retrieval.isDegraded) writeDegraded(writer);
 
       if (retrieval.isWeak) {
         await streamHonestDecline(writer, asked, userId);
