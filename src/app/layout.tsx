@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 /**
@@ -58,6 +59,15 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
+          {/*
+            The one toast outlet for the whole app (#139). `sonner.tsx` has
+            been here since the UI kit landed and three surfaces already call
+            `toast(...)` — the failed history load and the two delete paths —
+            but nothing ever mounted the renderer, so every one of those was a
+            no-op. Mounted inside the theme provider because the Toaster reads
+            `useTheme` to pick its own palette.
+          */}
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

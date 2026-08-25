@@ -3,8 +3,11 @@
  * question/answer/citations saved to `questions` after the stream completes.
  * The table is under RLS keyed to auth.uid(); this writes with the service
  * role after the route has already validated the caller's token, stamping
- * that user_id. Persistence failures are logged, never surfaced — the user
- * already has their answer.
+ * that user_id. Persistence failures never interrupt the answer — the user
+ * already has it — but since #139 they are no longer silent either: the
+ * boolean this returns is what the route turns into the `data-unsaved` part
+ * behind the toast, so a reader is never left believing a lost exchange was
+ * saved. The logging here is unchanged; it is the detail behind that signal.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "../database.types";
@@ -41,14 +44,21 @@ export interface SaveQuestionInput {
   citations: Citation[];
 }
 
+/**
+ * Writes one exchange to `questions`. Returns whether the row landed — false
+ * for a misconfigured service client or a rejected insert, the two failures
+ * this can see and handle. Anything else (a dead socket, a client that throws
+ * rather than reporting an error) still rejects, and the caller treats that
+ * as the same "not saved" outcome.
+ */
 export async function saveQuestion(
   input: SaveQuestionInput,
   client?: QuestionsClient,
-): Promise<void> {
+): Promise<boolean> {
   const questions = client ?? defaultClient();
   if (!questions) {
     console.error("saveQuestion: missing SUPABASE_URL / SERVICE_ROLE_KEY");
-    return;
+    return false;
   }
   const { error } = await questions.from("questions").insert({
     user_id: input.userId,
@@ -66,5 +76,7 @@ export async function saveQuestion(
   });
   if (error) {
     console.error(`saveQuestion: insert failed: ${error.message}`);
+    return false;
   }
+  return true;
 }

@@ -13,6 +13,8 @@
  *   (#133), written with every citations snapshot. `data-status` parts report
  *   which pipeline stage is running, under the same snapshot rule (#71), and
  *   `data-degraded` marks an answer retrieved without its vector leg (#127).
+ *   `data-unsaved` marks a delivered answer that never reached the signed-in
+ *   caller's history (#139).
  * - Non-OK responses carry a JSON body `{ error, message }` where `message`
  *   is user-facing Spanish (the 429 carries the rate-limit nudge from #24).
  *   The AI SDK transport throws the raw body text; `askErrorMessage`
@@ -54,6 +56,15 @@ export type AskDataParts = {
    * it once, before any text, and the UI turns it into the visible note.
    */
   degraded: boolean;
+  /**
+   * True when this answer was delivered but its history row was not written
+   * (#139): the caller was signed in, the answer is on screen, and the save
+   * failed. One boolean under the same snapshot rule, written after the
+   * answer and before `finish` — the client reads it once the exchange
+   * finishes and raises the non-blocking toast. Anonymous asks and successful
+   * saves never carry the part at all.
+   */
+  unsaved: boolean;
 };
 
 export type AskUIMessage = UIMessage<never, AskDataParts>;
@@ -66,6 +77,9 @@ export const MARKERS_PART_ID = "markers";
 
 /** Stable `data-degraded` part id — written at most once per answer. */
 export const DEGRADED_PART_ID = "degraded";
+
+/** Stable `data-unsaved` part id — written at most once per answer (#139). */
+export const UNSAVED_PART_ID = "unsaved";
 
 /**
  * Stable `data-status` part id. Same idempotency bargain ADR 0004 struck for
@@ -108,6 +122,15 @@ export function degradedFrom(message: AskUIMessage): boolean {
   return latest;
 }
 
+/** Did this delivered answer fail to reach the caller's history? (#139) */
+export function unsavedFrom(message: AskUIMessage): boolean {
+  let latest = false;
+  for (const part of message.parts) {
+    if (part.type === "data-unsaved") latest = part.data;
+  }
+  return latest;
+}
+
 /** Latest stage snapshot streamed with the message; null before any. */
 export function statusFrom(message: AskUIMessage): AskStatusStage | null {
   let latest: AskStatusStage | null = null;
@@ -137,6 +160,20 @@ export const ASK_FALLBACK_ERROR_MESSAGE =
  */
 export const DEGRADED_SEARCH_NOTE =
   "Búsqueda parcial: solo se buscó por coincidencia de texto, no por significado. Vuelva a preguntar en unos minutos para una búsqueda completa.";
+
+/**
+ * The history-save toast (#139 req. 1), DESIGN §9 voice: what happened and
+ * what to do, in usted, with no apology theater. It names the one thing the
+ * reader can act on — the answer is in front of them and will not be there
+ * later — rather than offering a "Reintentar" we cannot honour, since the
+ * exchange is finished and re-asking would spend another quota slot.
+ *
+ * A toast rather than anything inline: nothing about the answer is wrong, so
+ * nothing about the answer should change. The issue's draft wording is tuteo;
+ * every other surface here says usted, so this does too.
+ */
+export const HISTORY_SAVE_FAILED_NOTE =
+  "No se pudo guardar en su historial. Copie la respuesta si la necesita después.";
 
 export const RETRIEVAL_FAILED_MESSAGE =
   "No se pudo buscar en los documentos oficiales. Intente de nuevo en unos minutos.";

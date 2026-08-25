@@ -26,6 +26,10 @@ import {
   resetCitationFailures,
 } from "@/lib/answer/invariant";
 import {
+  historySaveFailures,
+  resetHistorySaveFailures,
+} from "@/lib/answer/persist-failure";
+import {
   CITATION_RETRY_NOTE,
   WEAK_RETRIEVAL_ANSWER,
 } from "@/lib/answer/prompt";
@@ -264,6 +268,11 @@ function streamedText(events: SseEvent[]): string {
   return textDeltas(events).join("");
 }
 
+/** Payload of each `data-unsaved` part — [] when the row landed (#139). */
+function unsavedParts(events: SseEvent[]): unknown[] {
+  return events.filter((e) => e.type === "data-unsaved").map((e) => e.data);
+}
+
 /** Payload of each `data-degraded` part — [] on an undegraded ask (#127). */
 function degradedParts(events: SseEvent[]): unknown[] {
   return events.filter((e) => e.type === "data-degraded").map((e) => e.data);
@@ -308,6 +317,11 @@ function contractOrder(events: SseEvent[]): string[] {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getUserId).mockResolvedValue(null);
+  // The default is a save that lands. `saveQuestion` reports success as a
+  // boolean since #139, and a bare `vi.fn()` resolving `undefined` would read
+  // as "not saved" — every signed-in case would stream a `data-unsaved` part
+  // it never meant to exercise.
+  vi.mocked(saveQuestion).mockResolvedValue(true);
   vi.unstubAllEnvs();
   // Reranking defaults on since #25; keep these tests hermetic — a
   // VOYAGE_API_KEY in the developer's shell must not trigger real calls.
@@ -318,6 +332,8 @@ beforeEach(() => {
   // The #131 tally is module state; a leftover count would make the next
   // case's assertion depend on suite order.
   resetCitationFailures();
+  // Same for the #139 tally.
+  resetHistorySaveFailures();
 });
 
 describe("POST /api/ask", () => {
@@ -512,7 +528,7 @@ describe("POST /api/ask", () => {
       retrievalResult({ chunks: [], topScore: 0, isWeak: true }),
     );
     vi.mocked(saveQuestion).mockRejectedValue(new Error("db down"));
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     const response = await POST(askRequest({ question: "asdf qwerty zzz" }));
     const events = await readEvents(response);
@@ -808,7 +824,7 @@ describe("POST /api/ask", () => {
       vi.mocked(retrieve).mockResolvedValue(retrievalResult());
       mockModel("La tarifa es 13% [1].");
       vi.mocked(saveQuestion).mockRejectedValue(new Error("insert failed"));
-      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
       const events = await readEvents(
         await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
@@ -1064,6 +1080,137 @@ describe("POST /api/ask", () => {
       );
 
       expect(refund).not.toHaveBeenCalled();
+    });
+  });
+  describe("history-save failures (#139)", () => {
+    const ANSWER = "La tarifa general es 13% [1].";
+
+    /** A signed-in ask whose save resolves however `saved` says. */
+    async function askSignedIn(
+      saved: Promise<boolean> | boolean,
+    ): Promise<SseEvent[]> {
+      vi.mocked(getUserId).mockResolvedValue("user-123");
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModel(ANSWER);
+      vi.mocked(saveQuestion).mockImplementation(async () => saved);
+      return readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+    }
+
+    it("marks a delivered answer whose row never landed", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      const events = await askSignedIn(false);
+
+      expect(unsavedParts(events)).toEqual([true]);
+      // The whole point: the answer is untouched. No error part, no missing
+      // text — only the marker that says it is not in the history.
+      expect(streamedText(events).trim()).toBe(ANSWER);
+      expect(errorMessages(events)).toEqual([]);
+      warn.mockRestore();
+    });
+
+    it("marks it when the save rejects outright, not just when it reports", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      vi.mocked(getUserId).mockResolvedValue("user-123");
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModel(ANSWER);
+      vi.mocked(saveQuestion).mockRejectedValue(new Error("socket closed"));
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(unsavedParts(events)).toEqual([true]);
+      expect(streamedText(events).trim()).toBe(ANSWER);
+      warn.mockRestore();
+    });
+
+    it("lands the marker before finish, so it reaches the message", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      const events = await askSignedIn(false);
+
+      const types = events.map((e) => e.type);
+      // A part written past `finish` belongs to no message the client is
+      // still assembling — which is why persistence now precedes it.
+      expect(types.indexOf("data-unsaved")).toBeGreaterThan(
+        types.lastIndexOf("text-delta"),
+      );
+      expect(types.indexOf("data-unsaved")).toBeLessThan(
+        types.lastIndexOf("finish"),
+      );
+      warn.mockRestore();
+    });
+
+    it("says nothing when the row landed", async () => {
+      const events = await askSignedIn(true);
+
+      expect(unsavedParts(events)).toEqual([]);
+    });
+
+    it("says nothing for an anonymous ask — there is no history to lose", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModel(ANSWER);
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(vi.mocked(saveQuestion)).not.toHaveBeenCalled();
+      expect(unsavedParts(events)).toEqual([]);
+    });
+
+    it("marks a lost honest decline too — the reader was still given an answer", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      vi.mocked(getUserId).mockResolvedValue("user-123");
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(
+        retrievalResult({ chunks: [], topScore: 0, isWeak: true }),
+      );
+      vi.mocked(saveQuestion).mockResolvedValue(false);
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "asdf qwerty zzz" })),
+      );
+
+      expect(unsavedParts(events)).toEqual([true]);
+      expect(streamedText(events)).toBe(WEAK_RETRIEVAL_ANSWER);
+      expect(errorMessages(events)).toEqual([]);
+      warn.mockRestore();
+    });
+
+    it("counts the failure under the kind of answer it lost (req. 2)", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      await askSignedIn(false);
+
+      expect(historySaveFailures()).toEqual({ answer: 1, decline: 0 });
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining("ask: history save failed — kind=answer"),
+      );
+      warn.mockRestore();
+    });
+
+    it("does not refund a lost row — the answer was delivered (#126)", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      vi.mocked(getUserId).mockResolvedValue("user-123");
+      const refund = allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModel(ANSWER);
+      vi.mocked(saveQuestion).mockResolvedValue(false);
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(refund).not.toHaveBeenCalled();
+      warn.mockRestore();
     });
   });
 });

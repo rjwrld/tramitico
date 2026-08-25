@@ -5,6 +5,7 @@ import {
   ASK_FALLBACK_ERROR_MESSAGE,
   citationsFrom,
   messageText,
+  unsavedFrom,
   type AskUIMessage,
 } from "@/lib/answer/contract";
 
@@ -60,6 +61,29 @@ describe("citationsFrom", () => {
       parts: [{ type: "text", text: "No encuentro base oficial." }],
     };
     expect(citationsFrom(message)).toEqual([]);
+  });
+});
+
+describe("unsavedFrom (#139)", () => {
+  it("reports the answer as unsaved once the part arrives", () => {
+    const message: AskUIMessage = {
+      id: "m1",
+      role: "assistant",
+      parts: [
+        { type: "text", text: "Aplica el 13%." },
+        { type: "data-unsaved", data: true },
+      ],
+    };
+    expect(unsavedFrom(message)).toBe(true);
+  });
+
+  it("is false when no part streamed — a saved answer, or a restored one, says nothing", () => {
+    const message: AskUIMessage = {
+      id: "m1",
+      role: "assistant",
+      parts: [{ type: "text", text: "Aplica el 13%." }],
+    };
+    expect(unsavedFrom(message)).toBe(false);
   });
 });
 

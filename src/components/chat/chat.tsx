@@ -9,11 +9,14 @@
 import * as React from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import { toast } from "sonner";
 import {
   askErrorMessage,
   citationsFrom,
+  HISTORY_SAVE_FAILED_NOTE,
   messageText,
   statusFrom,
+  unsavedFrom,
   type AskRequestBody,
   type AskUIMessage,
 } from "@/lib/answer/contract";
@@ -92,9 +95,19 @@ export function Chat() {
       onFinish: ({ message, isError, isAbort, isDisconnect }) => {
         inFlightRef.current = false;
         if (isError || isAbort || isDisconnect) return;
-        // Same guard the announcement uses, for the same reason: none of those
-        // three outcomes wrote a row to refetch.
-        refreshHistory();
+        // #139: the answer is on screen and cited, but the server could not
+        // write its history row. A toast, not the inline error surface —
+        // nothing the reader asked for failed, so nothing about the answer
+        // changes. And no refetch: the retry loop behind `refreshHistory`
+        // exists to wait out the write-vs-read race, and there is no row
+        // coming, so it would poll three times for nothing.
+        if (unsavedFrom(message)) {
+          toast.error(HISTORY_SAVE_FAILED_NOTE);
+        } else {
+          // Same guard the announcement uses, for the same reason: none of
+          // those three outcomes wrote a row to refetch.
+          refreshHistory();
+        }
         setCompletion({
           messageId: message.id,
           text: completionAnnouncement(citationsFrom(message).length),

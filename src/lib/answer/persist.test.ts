@@ -25,7 +25,7 @@ const INPUT = {
 describe("saveQuestion", () => {
   it("inserts the exchange stamped with the user id", async () => {
     const { client: fake, from, insert } = client();
-    await saveQuestion(INPUT, fake);
+    await expect(saveQuestion(INPUT, fake)).resolves.toBe(true);
     expect(from).toHaveBeenCalledWith("questions");
     expect(insert).toHaveBeenCalledWith({
       user_id: "user-1",
@@ -45,10 +45,12 @@ describe("saveQuestion", () => {
     );
   });
 
-  it("logs and swallows insert failures", async () => {
+  it("logs an insert failure and reports it as unsaved (#139)", async () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     const { client: fake } = client({ message: "boom" });
-    await expect(saveQuestion(INPUT, fake)).resolves.toBeUndefined();
+    // Still swallowed — it never throws at the caller — but the false is what
+    // the route turns into the `data-unsaved` part behind the toast.
+    await expect(saveQuestion(INPUT, fake)).resolves.toBe(false);
     expect(spy).toHaveBeenCalledWith(
       expect.stringContaining("insert failed: boom"),
     );

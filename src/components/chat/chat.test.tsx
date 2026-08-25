@@ -11,7 +11,9 @@ import {
 } from "@testing-library/react";
 import {
   CITATIONS_PART_ID,
+  HISTORY_SAVE_FAILED_NOTE,
   STATUS_PART_ID,
+  UNSAVED_PART_ID,
   type AskStatusStage,
   type AskUIMessage,
 } from "@/lib/answer/contract";
@@ -50,6 +52,18 @@ let latestOnError: OnError | undefined;
 const sendMessageMock = vi.fn();
 const stopMock = vi.fn();
 const regenerateMock = vi.fn();
+
+/**
+ * #139: the toast is sonner's to render — there is one `<Toaster />` for the
+ * whole app, mounted in the root layout, and it is not part of this tree. So
+ * the module boundary is what this suite asserts on: that a lost history row
+ * reaches `toast.error` with the copy the contract defines, and that a saved
+ * one reaches nothing at all.
+ */
+const toastErrorMock = vi.fn();
+vi.mock("sonner", () => ({
+  toast: { error: (...args: unknown[]) => toastErrorMock(...args) },
+}));
 
 vi.mock("@ai-sdk/react", () => ({
   useChat: (options?: { onFinish?: OnFinish; onError?: OnError }) => {
@@ -208,6 +222,7 @@ beforeEach(() => {
   sendMessageMock.mockReset();
   stopMock.mockReset();
   regenerateMock.mockReset();
+  toastErrorMock.mockReset();
 });
 
 afterEach(() => {
@@ -865,5 +880,74 @@ describe("Chat message row composition (#105)", () => {
 
       expect(refresh).not.toHaveBeenCalled();
     });
+  });
+});
+/**
+ * #139: an answer can be delivered and still never reach the signed-in
+ * caller's history. The route says so with a `data-unsaved` part; this is the
+ * client half — a non-blocking toast, and an answer nothing about it disturbs.
+ */
+describe("Chat history-save toast (#139)", () => {
+  /** A finished answer carrying the route's "this was not saved" marker. */
+  function unsavedAnswer(id: string, text: string): AskUIMessage {
+    return {
+      id,
+      role: "assistant",
+      parts: [
+        { type: "text", text },
+        { type: "data-citations", id: CITATIONS_PART_ID, data: [] },
+        { type: "data-unsaved", id: UNSAVED_PART_ID, data: true },
+      ],
+    };
+  }
+
+  function finish(message: AskUIMessage, refresh = vi.fn()) {
+    chat.messages = [question("q1", "¿Cómo me inscribo en Hacienda?"), message];
+    chat.status = "ready";
+    render(
+      <HistoryRefreshProvider value={refresh}>
+        <Chat />
+      </HistoryRefreshProvider>,
+    );
+    act(() =>
+      latestOnFinish?.({
+        message,
+        isError: false,
+        isAbort: false,
+        isDisconnect: false,
+      }),
+    );
+    return refresh;
+  }
+
+  it("warns that the exchange was not saved, leaving the answer on screen", () => {
+    finish(unsavedAnswer("a1", "Con el formulario D-140."));
+
+    expect(toastErrorMock).toHaveBeenCalledTimes(1);
+    expect(toastErrorMock).toHaveBeenCalledWith(HISTORY_SAVE_FAILED_NOTE);
+    // The acceptance line: nothing about the answer is blocked or replaced.
+    expect(screen.getByText("Con el formulario D-140.")).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("says nothing when the exchange was saved", () => {
+    finish(answer("a1", "Con el formulario D-140."));
+
+    expect(toastErrorMock).not.toHaveBeenCalled();
+    expect(screen.getByText("Con el formulario D-140.")).toBeTruthy();
+  });
+
+  it("still announces completion — the answer itself is ready either way", () => {
+    finish(unsavedAnswer("a1", "Con el formulario D-140."));
+
+    expect(screen.getByRole("status").textContent).toBe(
+      "Respuesta lista, 0 fuentes citadas.",
+    );
+  });
+
+  it("does not refetch the history — there is no row coming", () => {
+    const refresh = finish(unsavedAnswer("a1", "Con el formulario D-140."));
+
+    expect(refresh).not.toHaveBeenCalled();
   });
 });
