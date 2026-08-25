@@ -54,10 +54,25 @@ export default defineConfig({
       // Required to derive the anonymous subject at all (#125) — without it
       // both asks would fail closed with a 503 and never reach the counter.
       RATE_LIMIT_SUBJECT_SECRET: "e2e-local-subject-secret",
-      // The first (allowed) ask must terminate keyless and cost-free: stub
-      // embeddings keep the embedder local, and an empty Anthropic key makes
-      // any model call fail fast instead of spending tokens.
-      EMBEDDINGS_PROVIDER: "stub",
+      // Asks in this lane must terminate keyless and cost-free: the stub
+      // embedder keeps the embedder local, and an empty Anthropic key makes
+      // any model call fail fast instead of spending tokens. That empty key
+      // is a cost guard, not a stub — history-mobile.local.spec.ts leans on
+      // it: its ask is deliberately unmatchable, so the route takes the
+      // weak-retrieval path and never calls the model; an ask that somehow
+      // *did* retrieve would fail loudly here rather than bill anyone.
+      //
+      // The stub is only a default. A developer database carrying the
+      // ingested corpus embeds at 1024 dimensions, which the 256-dim stub
+      // cannot be compared against — `search_chunks` errors — so running
+      // against one needs the provider the corpus was embedded with:
+      //
+      //   EMBEDDINGS_PROVIDER=voyage pnpm test:e2e:local
+      //
+      // CI's throwaway stack has no corpus, so the stub is right there and
+      // no secret is involved.
+      EMBEDDINGS_PROVIDER: process.env.EMBEDDINGS_PROVIDER || "stub",
+      VOYAGE_API_KEY: process.env.VOYAGE_API_KEY ?? "",
       ANTHROPIC_API_KEY: "",
       RERANK: "off",
     },
