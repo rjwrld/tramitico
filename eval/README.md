@@ -106,17 +106,38 @@ ANTHROPIC_API_KEY=<key> \
 pnpm vitest run src/lib/eval/groundedness.eval.test.ts
 ```
 
-> **Gate run 2026-08-13 (#135 prompt amendment): 22/25 (88%) — FAIL.** Failing
-> cases: `iva-clientes-fuera-cr`, `ccss-cuanto-pago-base`,
-> `tribu-cr-declarar-pagar`, each a judged over-claim beyond the cited
-> fragments, none conflict-related. **Not caused by the #135 rule.** A/B on the
-> three failing cases, same retrieved chunks, same judge: the amended prompt
-> scored 3/3, `main`'s pre-#135 prompt 2/3 (`ccss-cuanto-pago-base` failed on
-> the baseline and passed on the amendment). The gate has not been re-measured
-> since the CCSS escalas landed (#114) — the corpus these cases read changed
-> under them, and `ccss-cuanto-pago-base` reads exactly the new documents.
-> Needs its own investigation before launch; it is a live gate failure, not
-> noise to wave through.
+> **Gate run 2026-08-25 (#157) on the current corpus: 24/25 (96%) — PASS.**
+> Answer `claude-sonnet-5`, judge `claude-sonnet-4-5`, ~404s, 825 chunks / 17
+> documents / 0 missing embeddings, all 25 cases model-judged (no weak-retrieval
+> short-circuits). Capture the per-case table with
+> `--disableConsoleIntercept`: without it vitest swallows the `beforeAll`
+> console output and a run reports only pass/fail, which is why two earlier
+> entries here say "per-case not captured".
+>
+> The one failure is `iva-tarifas-reducidas` — **not** one of the three cases
+> that failed on 2026-08-13. It is a rule 4 false positive: fragment [1] is
+> `ley-iva` Artículo 11 (Ley 6826, consolidated text) and fragment [2] is
+> `ley-9635` Artículo 11 (Ley 9635, the reform that rewrote it) — the same norma
+> at two moments, not two sources in conflict. Rule 4 reads the differing
+> figures as a live discrepancy and the answer duly reports one, which the judge
+> correctly calls an unsupported claim. Ingesting a consolidated law _and_ its
+> amending law guarantees such pairs, so this is structural, not a one-off.
+> Left unfixed here on purpose: a rule 4 amendment has to be validated against
+> `conflicting-sources.eval.test.ts`, which rule 4 exists to hold in place, and
+> that is a different piece of work. Failed 3/3 attempts (gate run plus two
+> subset reps) — consistent, not judge noise.
+>
+> **The 2026-08-13 failures did not reproduce.** That run scored 22/25 (88%,
+> FAIL) on `iva-clientes-fuera-cr`, `ccss-cuanto-pago-base` and
+> `tribu-cr-declarar-pagar`, and concluded the #135 prompt amendment was not the
+> cause and corpus drift probably was. Re-measured on the post-#114 corpus, the
+> first two pass in the gate run and 2/2 in a pinned-chunk subset re-run; the
+> drift diagnosis holds. `tribu-cr-declarar-pagar` passes the gate but is
+> **unstable** — 1/2 in the same subset re-run, failing when the answer either
+> over-reads «la salida de TRIBU-CR, el próximo 4 de agosto» as an operational
+> date or invents a discrepancy, the latter being the same rule 4 pattern as
+> `iva-tarifas-reducidas`. Per-case stability at n≈25 is real: treat a single
+> case's verdict as a sample, not a fact.
 
 ### Haiku comparison (SPEC §5)
 
@@ -128,12 +149,15 @@ Measured on a verified-clean corpus (793 chunks / 14 documents / 0 missing
 embeddings, all migrations applied), judge `claude-sonnet-4-5`, all 25 cases
 model-judged — no weak-retrieval short-circuits in any run below:
 
-> **Corpus changed since these runs.** [#108](https://github.com/rjwrld/tramitico/issues/108)
-> swapped the `rts-requisitos` flyer (1 chunk) for `reglamento-rts` (20 chunks) —
-> now **812 chunks / 14 documents / 0 missing embeddings**. The gate was re-run
-> and re-held (≥90%, `claude-sonnet-5`, ~387s) on that corpus; the per-case table
-> was not captured. Treat the rows below as answer-model comparison, not as
-> current-corpus measurements.
+> **Corpus changed since these runs — twice.** [#108](https://github.com/rjwrld/tramitico/issues/108)
+> swapped the `rts-requisitos` flyer (1 chunk) for `reglamento-rts` (20 chunks),
+> and [#114](https://github.com/rjwrld/tramitico/issues/114) then ingested the
+> two CCSS escalas contributivas and the wage decree (`ccss-escala-salud`,
+> `ccss-escala-ivm`, `salarios-minimos`). The corpus is now **825 chunks / 17
+> documents / 0 missing embeddings**, and the gate's current-corpus number on it
+> is the 24/25 recorded above. The rows below are a _Sonnet-vs-Haiku
+> comparison_ measured on the older 793-chunk corpus — read them for the model
+> gap they show, not as current measurements.
 
 | Answer model                | Date       | Groundedness                                    | Eval wall-clock | Notes                                                                                        |
 | --------------------------- | ---------- | ----------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------- |
