@@ -209,6 +209,58 @@ describe("HistoryShell", () => {
       ).toBeTruthy();
     });
 
+    /**
+     * #172: the ground scrolls one level in, not as the document. jsdom lays
+     * nothing out, so the observable here is structural — the restored answer
+     * sits inside a scroll region, and the sheet trigger sits outside it. That
+     * is precisely what keeps the trigger reachable from a scrolled answer:
+     * when it scrolled away with the document, reaching it meant returning to
+     * the top, and the reader's place was gone. The offsets themselves are
+     * asserted in a real browser (e2e/history-mobile.local.spec.ts).
+     */
+    it("puts the restored answer in a scroll region the trigger is outside of", async () => {
+      fetchMock.mockResolvedValue(historyResponse([item]));
+      const { container } = render(
+        <HistoryShell signedIn>
+          <p>contenido principal</p>
+        </HistoryShell>,
+      );
+      await screen.findAllByText("¿Debo facturar electrónicamente?");
+
+      const { default: userEvent } =
+        await import("@testing-library/user-event");
+      await userEvent.click(
+        screen.getByRole("button", { name: "Abrir historial" }),
+      );
+      const dialog = await screen.findByRole("dialog", {
+        name: "Historial de preguntas",
+      });
+      await userEvent.click(
+        within(dialog).getByRole("button", {
+          name: /^¿Debo facturar electrónicamente\?/,
+        }),
+      );
+      const article = await waitFor(() => {
+        const found = container.querySelector("article");
+        expect(found).not.toBe(null);
+        return found!;
+      });
+
+      const scroller = article.closest(".overflow-y-auto");
+      expect(scroller, "the restored answer has no scroll region").not.toBe(
+        null,
+      );
+      // Every ancestor between the scroller and the `h-dvh` shell must refuse
+      // to grow past it, or the overflow escapes to the document again.
+      expect(scroller!.parentElement!.className).toContain("min-h-0");
+      expect(
+        scroller!.contains(
+          screen.getByRole("button", { name: "Abrir historial" }),
+        ),
+        "the sheet trigger scrolls with the ground",
+      ).toBe(false);
+    });
+
     it("closes on Escape", async () => {
       fetchMock.mockResolvedValue(historyResponse([]));
       render(

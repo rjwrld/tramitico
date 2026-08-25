@@ -275,23 +275,27 @@ test.describe("history sheet at a phone viewport", () => {
     const atRest = await groundY();
     await page.mouse.move(190, 400);
     await page.mouse.wheel(0, 400);
-    // Precondition: the ground genuinely scrolls, so the assertion below is
+    // Precondition: the ground genuinely scrolls, so the assertions below are
     // not vacuously true.
     await expect.poll(groundY).toBeLessThan(atRest);
+    const scrolled = await groundY();
 
     await trigger(page).click();
     await expect(sheet(page)).toBeVisible();
-    // Measured *after* opening on purpose. Opening the sheet over a scrolled
-    // ground currently snaps that ground back to the top and does not put it
-    // back on close — a separate defect from the containment this test is
-    // about, and one this spec deliberately does not paper over by asserting
-    // the pre-open offset. See REPORT-161.md.
-    const pinned = await groundY();
+    // The pre-open offset is the baseline (#172): opening the sheet over a
+    // scrolled ground must not move that ground. Until #172 this was measured
+    // *after* opening, because opening snapped the ground back to the top.
+    expect(await groundY()).toBeCloseTo(scrolled, 0);
 
     await page.mouse.move(360, 400);
     await page.mouse.wheel(0, 400);
     await page.waitForTimeout(200);
-    expect(await groundY()).toBeCloseTo(pinned, 0);
+    expect(await groundY()).toBeCloseTo(scrolled, 0);
+
+    // ...and dismissing puts the reader back exactly where they were (#172).
+    await page.keyboard.press("Escape");
+    await expect(sheet(page)).toBeHidden();
+    await expect.poll(groundY).toBeCloseTo(scrolled, 0);
   });
 
   test("a finished ask reaches the top of the sheet without a reload", async ({
