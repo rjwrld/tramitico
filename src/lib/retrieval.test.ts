@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_MATCH_COUNT,
   RRF_K,
@@ -16,6 +16,11 @@ import {
   type SearchChunksRow,
 } from "./retrieval";
 import type { Embedder } from "./ingestion/embedder";
+import {
+  degradedReason,
+  degradedRetrievals,
+  resetDegradedRetrievals,
+} from "./retrieval-degraded";
 
 describe("rrfScore", () => {
   it("is 1/(k + rank)", () => {
@@ -399,11 +404,26 @@ describe("parseCitations", () => {
 });
 
 function fakeEmbedder(dimensions = 3): Embedder {
+  const vector = () => new Array<number>(dimensions).fill(0.5);
   return {
     provider: "fake",
     dimensions,
-    embed: async (texts) =>
-      texts.map(() => new Array<number>(dimensions).fill(0.5)),
+    embed: async (texts) => texts.map(vector),
+    embedQuery: async () => vector(),
+  };
+}
+
+/** An embedder whose interactive path is down — the #127 fallback's trigger. */
+function failingEmbedder(error: Error): Embedder {
+  return {
+    provider: "fake",
+    dimensions: 3,
+    embed: async () => {
+      throw error;
+    },
+    embedQuery: async () => {
+      throw error;
+    },
   };
 }
 
@@ -544,6 +564,104 @@ describe("retrieve", () => {
     });
     expect(result.chunks).toEqual([]);
     expect(result.isWeak).toBe(true);
+  });
+
+  /**
+   * The #127 fallback: an embedding provider that cannot answer costs the ask
+   * its vector leg, not its life. The vector-leg-shaped detail — that
+   * `query_embedding` goes to the RPC as `null` — is the whole contract here,
+   * since that is what makes `search_chunks` run lexical-only.
+   */
+  describe("degraded (lexical-only) fallback", () => {
+    const embedFailure = new Error("Voyage embeddings: HTTP 503");
+
+    beforeEach(() => {
+      resetDegradedRetrievals();
+      vi.spyOn(console, "warn").mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+      resetDegradedRetrievals();
+    });
+
+    it("runs the query lexical-only when the interactive embed fails", async () => {
+      let seen: Record<string, unknown> | undefined;
+      const result = await retrieve("¿me cobran retroactivo?", {
+        client: fakeClient([{ ...ROW, vector_rank: null }], (args) => {
+          seen = args;
+        }),
+        embedder: failingEmbedder(embedFailure),
+      });
+      expect(seen).toEqual({
+        query_text: "¿me cobran retroactivo?",
+        query_embedding: null,
+        match_count: DEFAULT_MATCH_COUNT,
+      });
+      expect(result.isDegraded).toBe(true);
+      expect(result.chunks).toHaveLength(1);
+    });
+
+    it("does not decline a lexical hit for lacking the corroboration it cannot have", async () => {
+      // Every chunk has a null `vectorRank` here by construction, so the
+      // usual structural weakness test would decline every degraded ask.
+      const result = await retrieve("iva", {
+        client: fakeClient([{ ...ROW, vector_rank: null, lexical_rank: 1 }]),
+        embedder: failingEmbedder(embedFailure),
+      });
+      expect(result.isWeak).toBe(false);
+      expect(result.isDegraded).toBe(true);
+    });
+
+    it("still declines when lexical-only matches nothing at all", async () => {
+      const result = await retrieve("algo que no existe", {
+        client: fakeClient([]),
+        embedder: failingEmbedder(embedFailure),
+      });
+      expect(result.isWeak).toBe(true);
+      expect(result.isDegraded).toBe(true);
+    });
+
+    it("leaves a healthy retrieval undegraded", async () => {
+      const result = await retrieve("iva", {
+        client: fakeClient([ROW]),
+        embedder: fakeEmbedder(),
+      });
+      expect(result.isDegraded).toBe(false);
+      expect(degradedRetrievals()).toEqual({ timeout: 0, error: 0 });
+    });
+
+    it("counts the degradation and logs it on a stable prefix", async () => {
+      await retrieve("iva", {
+        client: fakeClient([ROW]),
+        embedder: failingEmbedder(embedFailure),
+      });
+      expect(degradedRetrievals()).toEqual({ timeout: 0, error: 1 });
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining("retrieval: degraded to lexical-only"),
+      );
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining("reason=error"),
+      );
+    });
+
+    it("counts a blown budget as a timeout, not a provider error", async () => {
+      const timeout = new Error("The operation was aborted due to timeout");
+      timeout.name = "TimeoutError";
+      await retrieve("iva", {
+        client: fakeClient([ROW]),
+        embedder: failingEmbedder(timeout),
+      });
+      expect(degradedRetrievals()).toEqual({ timeout: 1, error: 0 });
+    });
+
+    it("reads both abort flavours as a timeout", () => {
+      const abort = new Error("aborted");
+      abort.name = "AbortError";
+      expect(degradedReason(abort)).toBe("timeout");
+      expect(degradedReason(new Error("HTTP 500"))).toBe("error");
+      expect(degradedReason("not an error at all")).toBe("error");
+    });
   });
 
   it("surfaces RPC errors with the query in the message", async () => {

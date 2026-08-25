@@ -67,6 +67,7 @@ function retrievalResult(
     citations: [],
     topScore: chunks[0].score,
     isWeak: false,
+    isDegraded: false,
     ...overrides,
   };
 }
@@ -261,6 +262,11 @@ function textDeltas(events: SseEvent[]): string[] {
 
 function streamedText(events: SseEvent[]): string {
   return textDeltas(events).join("");
+}
+
+/** Payload of each `data-degraded` part — [] on an undegraded ask (#127). */
+function degradedParts(events: SseEvent[]): unknown[] {
+  return events.filter((e) => e.type === "data-degraded").map((e) => e.data);
 }
 
 /** Stage of each `data-status` part, in the order the stream carried them. */
@@ -974,6 +980,84 @@ describe("POST /api/ask", () => {
       const refund = allowRateLimit();
       vi.mocked(retrieve).mockResolvedValue(retrievalResult());
       mockModelSequence(UNCITED, UNCITED);
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(refund).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("degraded search (#127)", () => {
+    const ANSWER = "La tarifa general es 13% [1].";
+
+    it("labels an answer built on lexical-only retrieval", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(
+        retrievalResult({ isDegraded: true }),
+      );
+      mockModel(ANSWER);
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(degradedParts(events)).toEqual([true]);
+      // The label qualifies the answer; it does not replace it.
+      expect(streamedText(events).trim()).toBe(ANSWER);
+      expect(errorMessages(events)).toEqual([]);
+    });
+
+    it("lands the label before any of the answer, so nothing is read unlabeled", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(
+        retrievalResult({ isDegraded: true }),
+      );
+      mockModel(ANSWER);
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      const types = events.map((e) => e.type);
+      expect(types.indexOf("data-degraded")).toBeLessThan(
+        types.indexOf("text-delta"),
+      );
+    });
+
+    it("labels the honest decline too — a thin search is part of why", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(
+        retrievalResult({ isDegraded: true, isWeak: true, chunks: [] }),
+      );
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(degradedParts(events)).toEqual([true]);
+      expect(streamedText(events)).toBe(WEAK_RETRIEVAL_ANSWER);
+    });
+
+    it("says nothing at all on a healthy ask", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModel(ANSWER);
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(degradedParts(events)).toEqual([]);
+    });
+
+    it("does not refund a degraded ask — it is a delivered answer (#126)", async () => {
+      const refund = allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(
+        retrievalResult({ isDegraded: true }),
+      );
+      mockModel(ANSWER);
 
       await readEvents(
         await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
