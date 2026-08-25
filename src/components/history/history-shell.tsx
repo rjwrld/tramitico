@@ -144,7 +144,16 @@ export function HistoryShell({
           {sidebar()}
         </aside>
       )}
-      <div className="flex min-w-0 flex-1 flex-col">
+      {/* The ground owns its scroll (issue #172). Without `min-h-0` this
+          column grew to its content instead, spilling out of the `h-dvh`
+          shell and making the *document* the scroller — which took the
+          history trigger below the fold with it. Reaching the trigger then
+          meant scrolling back to the top, so opening the sheet over a
+          scrolled answer lost the reader's place and closing it never gave
+          that place back. With the scroll one level in, the toolbar stays
+          put, the trigger is always reachable, and the offset the reader is
+          at is simply never touched. */}
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <div className="px-2 pt-2">
           {/* Two controls, one at a time — `display: none` keeps the hidden
               one out of the accessibility tree too. They are named for what
@@ -184,13 +193,19 @@ export function HistoryShell({
             <PanelLeft />
           </Button>
         </div>
-        <HistoryRefreshProvider value={refresh}>
-          {selected ? (
-            <QAView item={selected} onBack={() => setSelected(null)} />
-          ) : (
-            children
-          )}
-        </HistoryRefreshProvider>
+        {/* One scroller for whatever the ground shows. A restored answer
+            overflows it and scrolls here; the chat view brings its own
+            `MessageScroller`, which resolves to exactly this height and so
+            leaves this one with nothing to scroll. */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
+          <HistoryRefreshProvider value={refresh}>
+            {selected ? (
+              <QAView item={selected} onBack={() => setSelected(null)} />
+            ) : (
+              children
+            )}
+          </HistoryRefreshProvider>
+        </div>
       </div>
     </div>
   );
