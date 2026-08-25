@@ -42,7 +42,10 @@ covers.
 That line is a CI boundary, not a taxonomy (#147). `ci.yml`'s `suites` job runs the
 integration and pgTAP lanes on every PR against a throwaway `supabase start` stack, with
 **no secrets** — so a suite that needs corpus or a paid provider cannot live there.
-`eval.yml` runs the eval lane weekly and on demand, with secrets.
+`eval.yml` runs the eval lane weekly and on demand, with secrets. Since #161 the `suites`
+job also runs `pnpm test:e2e:local`, the browser lane whose specs need a real Supabase in
+the loop: on a stack with no corpus every `/api/ask` takes its weak-retrieval path, so
+those specs stay keyless there too.
 
 `supabase/tests/least_privilege.test.sql` is the SQL-level guard for the #123 lockdown:
 it reads `pg_class`/`pg_proc`/`pg_default_acl` directly and fails if `anon`,
