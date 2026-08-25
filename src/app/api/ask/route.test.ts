@@ -1,7 +1,7 @@
 import { simulateReadableStream } from "ai";
 import type { LanguageModelV4StreamPart } from "@ai-sdk/provider";
 import { MockLanguageModelV4 } from "ai/test";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { RetrievalResult, RetrievedChunk } from "@/lib/retrieval";
 import { POST } from "./route";
 
@@ -37,6 +37,7 @@ import { saveQuestion } from "@/lib/answer/persist";
 import { getAnswerModel } from "@/lib/answer/model";
 import { getUserId } from "@/lib/answer/user";
 import { checkRateLimit, NO_REFUND } from "@/lib/rate-limit";
+import { TELEMETRY_PREFIX } from "@/lib/telemetry";
 import { retrieve } from "@/lib/retrieval";
 
 function chunk(
@@ -1211,6 +1212,273 @@ describe("POST /api/ask", () => {
 
       expect(refund).not.toHaveBeenCalled();
       warn.mockRestore();
+    });
+  });
+
+  /**
+   * #141: one structured, content-free line per ask. The assertions read the
+   * line off `console.log` and parse it, rather than reaching into the
+   * telemetry module — the prefix and the JSON are what the runbook's Vercel
+   * queries match on, so they are what the route owes.
+   */
+  describe("telemetry (#141)", () => {
+    const ANSWER = "La tarifa general es 13% [1].";
+
+    /** Silences the failure paths' own logging and captures the events. */
+    function captureTelemetry(): {
+      lines: string[];
+      events: () => Record<string, unknown>[];
+    } {
+      const lines: string[] = [];
+      vi.spyOn(console, "log").mockImplementation((...args: unknown[]) => {
+        lines.push(args.map(String).join(" "));
+      });
+      vi.spyOn(console, "warn").mockImplementation(() => {});
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      return {
+        lines,
+        events: () =>
+          lines
+            .filter((line) => line.startsWith(`${TELEMETRY_PREFIX} `))
+            .map(
+              (line) =>
+                JSON.parse(line.slice(TELEMETRY_PREFIX.length + 1)) as Record<
+                  string,
+                  unknown
+                >,
+            ),
+      };
+    }
+
+    /** The one event this ask produced. Asserts there was exactly one. */
+    function soleEvent(
+      capture: ReturnType<typeof captureTelemetry>,
+    ): Record<string, unknown> {
+      const events = capture.events();
+      expect(events).toHaveLength(1);
+      return events[0];
+    }
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("classes a delivered answer as ok, with no flags raised", async () => {
+      const capture = captureTelemetry();
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModel(ANSWER);
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(soleEvent(capture)).toEqual({
+        event: "ask",
+        outcome: "ok",
+        latency: "lt_1s",
+        providerError: null,
+        citationFailure: false,
+        quotaHit: false,
+      });
+    });
+
+    it("classes a lexical-only answer as degraded (#127)", async () => {
+      const capture = captureTelemetry();
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(
+        retrievalResult({ isDegraded: true }),
+      );
+      mockModel(ANSWER);
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(soleEvent(capture)).toMatchObject({ outcome: "degraded" });
+    });
+
+    it("classes the honest decline as declined — nothing broke", async () => {
+      const capture = captureTelemetry();
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(
+        retrievalResult({ chunks: [], topScore: 0, isWeak: true }),
+      );
+
+      await readEvents(await POST(askRequest({ question: "asdf qwerty zzz" })));
+
+      expect(soleEvent(capture)).toMatchObject({
+        outcome: "declined",
+        citationFailure: false,
+      });
+    });
+
+    it("raises the citation flag on the fail-closed decline (#131)", async () => {
+      const capture = captureTelemetry();
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      // Both attempts cite nothing, so the route declines rather than shipping
+      // uncited prose — a decline, and a citation failure.
+      mockModelSequence("La tarifa general es 13%.", "Sigue siendo 13%.");
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(soleEvent(capture)).toMatchObject({
+        outcome: "declined",
+        citationFailure: true,
+      });
+    });
+
+    it("does not raise the citation flag when the retry succeeded", async () => {
+      const capture = captureTelemetry();
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModelSequence("La tarifa general es 13%.", ANSWER);
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      // The answer landed, so this is an `ok` — but the invariant did fire, and
+      // a spike in the flag is what the rollback threshold watches.
+      expect(soleEvent(capture)).toMatchObject({
+        outcome: "ok",
+        citationFailure: true,
+      });
+    });
+
+    it("classes a dead model as refunded_error, naming its error class", async () => {
+      const capture = captureTelemetry();
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockFailingModel("La tarifa ");
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(soleEvent(capture)).toMatchObject({
+        outcome: "refunded_error",
+        providerError: "Error",
+      });
+    });
+
+    it("classes a failed retrieval as refunded_error", async () => {
+      const capture = captureTelemetry();
+      allowRateLimit();
+      vi.mocked(retrieve).mockRejectedValue(new TypeError("search_chunks"));
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(soleEvent(capture)).toMatchObject({
+        outcome: "refunded_error",
+        providerError: "TypeError",
+      });
+    });
+
+    it("raises the quota flag on a 429, and does not call it an error", async () => {
+      const capture = captureTelemetry();
+      vi.mocked(checkRateLimit).mockResolvedValue({
+        allowed: false,
+        remaining: 0,
+        resetAt: new Date(),
+        reason: "rate_limited",
+        message: "Alcanzó el límite de 10 preguntas gratis por hoy.",
+        refund: NO_REFUND,
+      });
+
+      await POST(askRequest({ question: "¿Cuánto es el IVA?" }));
+
+      // A spent quota is the product working, not the service failing: it must
+      // not land in the error rate the rollback threshold is written against.
+      expect(soleEvent(capture)).toMatchObject({
+        outcome: "declined",
+        quotaHit: true,
+      });
+    });
+
+    it("classes an unavailable limiter as refunded_error, not a quota hit", async () => {
+      const capture = captureTelemetry();
+      vi.mocked(checkRateLimit).mockResolvedValue({
+        allowed: false,
+        remaining: 0,
+        resetAt: new Date(),
+        reason: "unavailable",
+        message: "No pudimos verificar su límite de preguntas en este momento.",
+        refund: NO_REFUND,
+      });
+
+      await POST(askRequest({ question: "¿Cuánto es el IVA?" }));
+
+      expect(soleEvent(capture)).toMatchObject({
+        outcome: "refunded_error",
+        quotaHit: false,
+      });
+    });
+
+    it("still emits for a request that never became an ask", async () => {
+      const capture = captureTelemetry();
+
+      await POST(askRequest({ question: "" }));
+
+      // The 400 is the caller's bug, not ours — but it is a request this route
+      // served, and a denominator with holes in it is not a denominator.
+      expect(soleEvent(capture)).toMatchObject({ outcome: "declined" });
+    });
+
+    it("classes a reader who pressed stop as declined, not ok (#74)", async () => {
+      const capture = captureTelemetry();
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModel("La tarifa es 13% para servicios.", undefined, 25);
+
+      const controller = new AbortController();
+      const response = await POST(
+        askRequest({ question: "¿Cuánto es el IVA?" }, controller.signal),
+      );
+      await readUntilRedactandoThenAbort(response, controller);
+
+      expect(soleEvent(capture)).toMatchObject({
+        outcome: "declined",
+        providerError: null,
+      });
+    });
+
+    /**
+     * The acceptance check for the privacy half of #141, in the shape #136's
+     * uses (`log-redaction.test.ts`): a sentinel question, dependencies that
+     * quote it back, and a captured logger that must not have seen it.
+     */
+    it("carries no content, even when every dependency quotes the question", async () => {
+      const SENTINEL =
+        "¿cómo declaro el D-101 si no facturé nada este trimestre?";
+      const capture = captureTelemetry();
+      vi.mocked(getUserId).mockResolvedValue("user-123");
+      allowRateLimit();
+      vi.mocked(retrieve).mockRejectedValue(
+        new Error(`search on "${SENTINEL}" timed out`),
+      );
+
+      await readEvents(await POST(askRequest({ question: SENTINEL })));
+
+      const event = soleEvent(capture);
+      const line = capture.lines.find((l) => l.startsWith(TELEMETRY_PREFIX))!;
+      expect(line).not.toContain(SENTINEL);
+      expect(line).not.toContain("D-101");
+      expect(line).not.toContain("user-123");
+      // Exhaustive: no field exists that could hold content in the first place.
+      expect(Object.keys(event).sort()).toEqual([
+        "citationFailure",
+        "event",
+        "latency",
+        "outcome",
+        "providerError",
+        "quotaHit",
+      ]);
     });
   });
 });

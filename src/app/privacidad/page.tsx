@@ -96,9 +96,11 @@ export default function PrivacyPage() {
           <strong className="font-medium text-foreground">
             Registros operativos, sin contenido.
           </strong>{" "}
-          Para detectar fallas se registra qué salió mal —el tipo de error y su
-          código—, nunca el texto de la pregunta ni el de la respuesta. Los
-          conserva el proveedor de alojamiento alrededor de 30 días.
+          Para detectar fallas se registra, por cada consulta, cómo terminó: si
+          se respondió, cuánto tardó de forma aproximada y, cuando algo falla,
+          el tipo de error y su código. Nunca el texto de la pregunta ni el de
+          la respuesta, ni quién consultó. Los conserva el proveedor de
+          alojamiento alrededor de 30 días.
         </p>
         <p className="mt-4">
           <strong className="font-medium text-foreground">
