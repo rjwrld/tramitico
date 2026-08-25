@@ -21,12 +21,13 @@ import { HistorySidebar, type HistoryItem } from "./history-sidebar";
 import { QAView } from "./qa-view";
 
 /**
- * The refresh a finished answer triggers is a race: `/api/ask` writes its row
- * from the model stream's `onFinish`, which is not ordered against the last
- * byte the browser reads (the weak-retrieval path writes its `finish` part
- * before saving at all). So a refetch that comes back with the same newest row
- * is treated as "too early" and tried again, rather than leaving the answer
- * missing from the list until the next reload.
+ * The refresh a finished answer triggers used to be a race: `/api/ask` wrote
+ * its row without ordering it against the last byte the browser reads, so a
+ * refetch could arrive before the insert. Since #139 the route holds its
+ * `finish` part until the save has resolved — that part is what carries the
+ * "not saved" marker, so it has to — which puts the row ahead of the refetch
+ * on every path. The retry stays anyway: it is cheap, and it still covers a
+ * read that lands behind the write on the database's side.
  */
 const REFRESH_ATTEMPTS = 3;
 const REFRESH_RETRY_MS = 1000;

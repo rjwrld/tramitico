@@ -28,6 +28,13 @@
  * #73 established survives on the wire, since `writeAnswer` still emits the
  * validated text a word per event.
  *
+ * A history write that fails is no longer silent (#139). It still never
+ * touches the answer — persistence is best-effort and always has been — but
+ * the caller believed the exchange was saved, and only this side knows it was
+ * not. So the same data-part channel #127 opened carries a `data-unsaved`
+ * marker before `finish`, which the chat client turns into a non-blocking
+ * toast, and the failure is counted (`persist-failure.ts`) for #141.
+ *
  * Degraded search (#127): the embedding provider is the one dependency here
  * that is allowed to be down. `retrieve` drops the vector leg rather than
  * throwing, so what used to be a `retrieval_failed` is now an answer off a
@@ -61,6 +68,7 @@ import {
   MARKERS_PART_ID,
   RETRIEVAL_FAILED_MESSAGE,
   STATUS_PART_ID,
+  UNSAVED_PART_ID,
   type AskErrorCode,
   type AskStatusStage,
   type AskUIMessage,
@@ -75,7 +83,11 @@ import {
   validateCitations,
 } from "@/lib/answer/invariant";
 import { getAnswerModel } from "@/lib/answer/model";
-import { saveQuestion } from "@/lib/answer/persist";
+import { saveQuestion, type SaveQuestionInput } from "@/lib/answer/persist";
+import {
+  recordHistorySaveFailure,
+  type SavedAnswerKind,
+} from "@/lib/answer/persist-failure";
 import {
   ANSWER_SYSTEM_PROMPT,
   buildUserPrompt,
@@ -194,6 +206,51 @@ function writeStatus(writer: Writer, stage: AskStatusStage): void {
 }
 
 /**
+ * Marks a delivered answer as unsaved (#139). Written after the answer and
+ * before `finish`, which is the whole reason both callers below hold their
+ * `finish` back until the save has resolved: a part written past the finish
+ * part belongs to no message the client will still be assembling.
+ */
+function writeUnsaved(writer: Writer): void {
+  writer.write({ type: "data-unsaved", id: UNSAVED_PART_ID, data: true });
+}
+
+/**
+ * Saves one delivered exchange and says so on the wire when it could not be
+ * saved (#139).
+ *
+ * The bargain persist.ts struck is intact: a failure here never becomes an
+ * error part, never refunds, never touches the text the reader already has.
+ * What changes is that it is no longer *invisible* — silent history loss was
+ * the defect (#121), since the reader has no way to tell a saved exchange
+ * from a lost one until they go looking for it and it is gone.
+ *
+ * Both doors onto "not saved" land here: an insert that reported an error
+ * (`saveQuestion` returns false, having logged the message) and a call that
+ * rejected outright. The reader cannot tell them apart and neither can act on
+ * the difference, so they produce the same part and the same toast; only the
+ * counter's log line distinguishes them.
+ */
+async function persistExchange(
+  writer: Writer,
+  kind: SavedAnswerKind,
+  input: SaveQuestionInput,
+): Promise<void> {
+  let saved: boolean;
+  try {
+    saved = await saveQuestion(input);
+  } catch (error) {
+    recordHistorySaveFailure({ kind, error });
+    writeUnsaved(writer);
+    return;
+  }
+  if (!saved) {
+    recordHistorySaveFailure({ kind });
+    writeUnsaved(writer);
+  }
+}
+
+/**
  * Which failures give the ask back (#126, decision on #121). System failures
  * do: the user asked, our side broke, they should not pay a quota slot for
  * our outage. Everything else consumes — most importantly the honest decline
@@ -280,24 +337,20 @@ async function streamHonestDecline(
   writer.write({ type: "text-start", id });
   writer.write({ type: "text-delta", id, delta: WEAK_RETRIEVAL_ANSWER });
   writer.write({ type: "text-end", id });
-  writer.write({ type: "finish" });
   if (userId) {
-    // persist.ts promises failures are "logged, never surfaced — the user
-    // already has their answer". That used to be free: this ran in the
-    // stream's `onFinish`, past the last byte. Inside `execute` a rejection
-    // would reach `onError` and stamp a Spanish failure under a delivered
-    // answer, so the promise is kept explicitly here.
-    try {
-      await saveQuestion({
-        userId,
-        question,
-        answer: WEAK_RETRIEVAL_ANSWER,
-        citations: [],
-      });
-    } catch (error) {
-      console.error(`ask: saving the honest decline failed: ${error}`);
-    }
+    // The decline is a delivered answer, so it is saved and labeled like one
+    // — the reader who asked and got told "no official basis" expects to find
+    // that in their history as much as any other exchange. `finish` waits for
+    // the save (it used to precede it) so a `data-unsaved` part still has a
+    // message to attach to.
+    await persistExchange(writer, "decline", {
+      userId,
+      question,
+      answer: WEAK_RETRIEVAL_ANSWER,
+      citations: [],
+    });
   }
+  writer.write({ type: "finish" });
 }
 
 /**
@@ -354,7 +407,9 @@ async function generateAnswer(
 
 /**
  * Writes a validated answer out: the text word by word, then the citations
- * snapshot it earned, then `finish`.
+ * snapshot it earned. `finish` is the caller's, not this function's — since
+ * #139 it comes after persistence has resolved, so a `data-unsaved` part can
+ * still land on the message.
  *
  * Word-sized deltas keep the wire shape #73 established — one word per event,
  * so the client paints word by word rather than in one block — even though the
@@ -374,7 +429,6 @@ function writeAnswer(
   }
   writer.write({ type: "text-end", id });
   writeCitations(writer, tracker);
-  writer.write({ type: "finish" });
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -508,23 +562,18 @@ export async function POST(request: Request): Promise<Response> {
       writeAnswer(writer, answer, tracker);
 
       if (userId) {
-        try {
-          await saveQuestion({
-            userId,
-            question: asked,
-            // History stores the reader's numbering, not the wire's: the
-            // markers are rewritten to seal ordinals here (#133) so a restored
-            // answer carries its superscripts without needing the chunk map,
-            // which is not persisted.
-            answer: renumberCitationMarkers(answer, tracker.ordinals()),
-            citations: tracker.used(),
-          });
-        } catch (error) {
-          // persist.ts's bargain, same as the decline path: a failed save is
-          // logged, never surfaced — the user already has their answer.
-          console.error(`ask: saving the answer failed: ${error}`);
-        }
+        await persistExchange(writer, "answer", {
+          userId,
+          question: asked,
+          // History stores the reader's numbering, not the wire's: the
+          // markers are rewritten to seal ordinals here (#133) so a restored
+          // answer carries its superscripts without needing the chunk map,
+          // which is not persisted.
+          answer: renumberCitationMarkers(answer, tracker.ordinals()),
+          citations: tracker.used(),
+        });
       }
+      writer.write({ type: "finish" });
     },
     onError: (error) => answerFailed(error, quota),
     // Where a system failure actually gives the ask back (#126). The SDK
