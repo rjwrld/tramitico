@@ -19,7 +19,8 @@
         "kind": "sinalevi",
         "idFichaNorma": 88953,
         "deepLink": "articulo"
-      }
+      },
+      "notes": "IMAGE AUDIT (#150): 5 images, all rendered formulas; 2 lose substance no chunk carries. (a) Artículo 31 inciso 4) — the bien-de-capital adjustment (Ca₀ − Caᵢ)/4 is image-only, so the text reads «El ajuste en cada año deberá calcularse utilizando la siguiente fórmula:» straight into «Donde:». Never cite this artículo for how the adjustment is computed; the conditions, the 15-salarios-base threshold, the i = 1..4 range and the sign rule ARE in text. (b) The retención percentage %RT = FR × (TM/13%) × 1/(1+TM) is image-only; the prose names every input and says it is deflated to exclude the IVA, but not the composition. The other 3 restate adjacent prose verbatim and lose nothing. Text-carrying primary source located but NOT ingested: La Gaceta Alcance 129 del 2019-06-11 carries both as selectable text — safe for (b), whose vigente wording is unchanged, but NOT for (a), which decreto 43173 del 3 de agosto de 2021 reformed after that publication. See #150 for the evidence."
     },
     {
       "doc_key": "ley-9635",
@@ -29,7 +30,8 @@
         "kind": "sinalevi",
         "idFichaNorma": 87720,
         "deepLink": "articulo"
-      }
+      },
+      "notes": "IMAGE AUDIT (#150): 3 images, all rendered formulas, all 3 image-only — and they are the same three the reglamento-renta ficha carries, because this ficha quotes TRANSITORIO I of the Reglamento de la Ley del Impuesto sobre la Renta in full under TRANSITORIO XIX. Same verdict, same reason for not replacing them: the rule is spent (fiscal periods closing 2020-12-31, pagos parciales 2021–2023). See the reglamento-renta note and #150."
     },
     {
       "doc_key": "reglamento-titulo-iv-9635",
@@ -49,7 +51,8 @@
         "kind": "sinalevi",
         "idFichaNorma": 95992,
         "deepLink": "articulo"
-      }
+      },
+      "notes": "IMAGE AUDIT (#150): 3 images, all rendered formulas, all 3 image-only — the proration rules in TRANSITORIO I («Disposiciones sobre el Transitorio XIX de la Ley 9635»): tramo de renta and crédito fiscal prorated as (valor del periodo ordinario / 12) × meses del periodo, and impuesto determinado re-annualised as (impuesto 2020 / meses del periodo) × 12. Each chunk keeps «deberán utilizar la siguiente fórmula:» and loses the formula. Not replaced: the rule governs fiscal periods closing 2020-12-31 and pagos parciales for 2021–2023 — spent as of 2026, so ingesting a source for it would add dead law rather than an answerable fact. Never cite this Transitorio for a computation; the rest of the reglamento is unaffected."
     },
     {
       "doc_key": "tramos-renta-2026",
@@ -159,7 +162,7 @@
         "idFichaNorma": 103276,
         "deepLink": "articulo"
       },
-      "notes": "Mandatory since 2025-09-01. SINALEVI vigente text is consolidated with reforms MH-DGT-RES-0001-2025 and MH-DGT-RES-0043-2025 — preferred over the original hacienda.go.cr PDF (Resolucion_General_sobre_disposiciones_tecnicas_comprobantes_electronicos_para.pdf), whose transition dates are superseded."
+      "notes": "Mandatory since 2025-09-01. SINALEVI vigente text is consolidated with reforms MH-DGT-RES-0001-2025 and MH-DGT-RES-0043-2025 — preferred over the original hacienda.go.cr PDF (Resolucion_General_sobre_disposiciones_tecnicas_comprobantes_electronicos_para.pdf), whose transition dates are superseded. IMAGE AUDIT (#150): 10 images, none carrying substance — 8 are Word drawing-canvas strokes (arrows and 2px rules, 2×20 to 242×2) and 2 are diagrams of digit layouts (image007.jpg, the 20-digit numeración consecutiva; image009.png, the 50-digit clave numérica). Both diagrams are redundant: incisos a)–d) and a)–h) give every field range in text, down to «del cuadragésimo tercero al quincuagésimo dígito, corresponde al código de seguridad». Nothing to replace."
     },
     {
       "doc_key": "dgt-export-servicios",

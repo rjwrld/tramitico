@@ -11,3 +11,8 @@ supabase/.temp/
 
 # Vendored agent skills (third-party content, managed by `npx skills`)
 .agents/
+
+# Captured payload fixtures (#150): verbatim SINALEVI Word-export markup —
+# unquoted attributes, tags split across lines. Reformatting them would prove
+# the image detector against tidy HTML we never actually fetch.
+src/lib/ingestion/__fixtures__/
