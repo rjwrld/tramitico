@@ -32,6 +32,37 @@ workaround needs no OCR either: CCSS's own actas de Junta Directiva transcribe t
 text, so the acta is the ingestible primary source and SINALEVI's copy is not. Check for this shape
 (`<img>` where a table should be) whenever a fetched doc's key figures go missing.
 
+**Amendment (#150) — the census, completed.** All 21 images in the four unaudited SINALEVI docs
+were fetched and looked at (2026-08-25). The verdict holds for tables — #114 remains the only
+image-borne _table_ in the corpus — but it does not hold for **formulas**, which is a second shape
+of the same defect:
+
+| doc_key             | imgs | what they are                                                             | loses substance                      |
+| ------------------- | ---: | ------------------------------------------------------------------------- | ------------------------------------ |
+| `disposiciones-v44` |   10 | 8 Word drawing strokes + 2 diagrams of the clave/consecutivo digit layout | no — incisos a)–h) state every range |
+| `reglamento-iva`    |    5 | 5 rendered formulas                                                       | **2 of 5**                           |
+| `reglamento-renta`  |    3 | 3 rendered formulas (Transitorio I)                                       | **3 of 3** — but spent               |
+| `ley-9635`          |    3 | the same 3 formulas, quoted inside this ficha                             | **3 of 3** — but spent               |
+
+Two lessons worth carrying forward:
+
+1. **A rendered formula fails exactly like a rendered table.** The chunk keeps the announcing
+   sentence and the legend that follows, and loses only the expression between them — so
+   `reglamento-iva` art. 31(4) reads «El ajuste en cada año deberá calcularse utilizando la
+   siguiente fórmula: / Donde: "Ca₀" significa…», with no fórmula. That is the #114 signature with
+   a different noun.
+2. **"Images and no tables" is a weak discriminator.** It is the loudest signal available and it is
+   worth logging, but the worst finding here (`reglamento-iva`) sits in a payload with 2 tables and
+   would not have tripped it, while `disposiciones-v44`'s 43 tables accompany 10 harmless images.
+   Treat the warning as _go look_, never as a verdict.
+
+The recovery route is unchanged and still needs no OCR: **Imprenta Nacional's Gaceta PDFs carry
+these formulas as selectable text.** `pdftotext` on
+[Alcance 129 (2019-06-11)](https://www.imprentanacional.go.cr/pub/2019/06/11/ALCA129_11_06_2019.pdf)
+recovers both of `reglamento-iva`'s losses verbatim. The catch is version skew: an alcance carries
+the text _as published_, so it is a safe source only where the vigente wording has not since been
+reformed — which is why #150 ingested nothing (see that issue for the per-image evidence).
+
 ## 2. Source stability — is mid-2026 turbulent?
 
 **TRIBU-CR timeline:** ATV/TRAVI shutdown began 18 Jul 2025; data cutover 25 Sep 2025; TRIBU-CR launched **6 Oct 2025** at `ovitribucr.hacienda.go.cr`. All declarations now exclusively via TRIBU-CR (Res. MH-DGT-RES-0011-2025). E-invoicing v4.4 mandatory since 1 Sep 2025. Sources: [El Financiero guide](https://www.elfinancierocr.com/lab-de-ideas/educacion-financiera/tribu-cr-esta-es-la-guia-paso-a-paso-con-todo-lo/TAKOTX35QFG7TNLEPHIWJJM3HM/story/), [Hacienda CP-39-2025](https://www.hacienda.go.cr/docs/CP39-2025.pdf), [facturele.com](https://www.facturele.com/2025/10/29/transicion-de-atv-a-tribu-cr/)

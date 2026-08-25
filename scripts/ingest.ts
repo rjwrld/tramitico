@@ -15,6 +15,7 @@ import { chunkDocument, type ChunkOptions } from "../src/lib/ingestion/chunker";
 import { createEmbedder } from "../src/lib/ingestion/embedder";
 import {
   htmlToParagraphs,
+  imageMarkupWarning,
   textToParagraphs,
 } from "../src/lib/ingestion/extract";
 import { fetchHaciendaPdf } from "../src/lib/ingestion/hacienda";
@@ -190,6 +191,12 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
       console.log(
         `  ${doc.doc_key}: vigente version ${norma.cantidadVersiones} (idVersionNorma ${norma.idVersionNorma})`,
       );
+      // Images vanish in htmlToParagraphs without leaving a trace, and every
+      // downstream gate stays green when they do (#150) — so the payload is
+      // the last place the loss is still visible. Warn, never fail: most of
+      // these images are decorative.
+      const warning = imageMarkupWarning(doc.doc_key, norma.html);
+      if (warning) console.warn(`  ⚠ ${warning}`);
       // The anchor map is harvested from the same payload the chunks come
       // from, so a chip can only ever deep-link the version it cites (#134).
       const articulos = articuloAnchors(norma.html);
