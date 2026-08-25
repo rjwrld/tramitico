@@ -17,6 +17,7 @@ const row = (over: Partial<Row> = {}): Row => ({
   question: "¿Debo facturar electrónicamente?",
   answer: "Sí, según…",
   citations: [],
+  condensed_question: null,
   created_at: "2026-08-01T12:00:00Z",
   ...over,
 });

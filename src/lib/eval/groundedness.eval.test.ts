@@ -1,4 +1,7 @@
 /**
+ * (Since #132, a case carrying `history` is condensed first — the pipeline
+ * below runs on the standalone question, as the route does.)
+ *
  * Groundedness eval (SPEC §9, issue #26): for every case in
  * eval/dataset.jsonl, run the production answer path — fused pool of
  * RERANK_POOL, Voyage rerank to top-8, then the answer model with the
@@ -26,6 +29,7 @@
 import { readFileSync } from "node:fs";
 import { generateText } from "ai";
 import { beforeAll, expect, it } from "vitest";
+import { condenseQuestion } from "../answer/condense";
 import { getAnswerModel, DEFAULT_ANSWER_MODEL } from "../answer/model";
 import {
   ANSWER_SYSTEM_PROMPT,
@@ -73,7 +77,15 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
 
   beforeAll(async () => {
     for (const evalCase of cases) {
-      const retrieval = await retrieve(evalCase.question, {
+      // #132: a case carrying `history` is a follow-up, and the whole
+      // pipeline below — retrieval, rerank, the answer prompt and the judge —
+      // sees the condensed standalone question, exactly as /api/ask does. A
+      // case without history makes no condensation call at all.
+      const { query } = await condenseQuestion(
+        evalCase.question,
+        evalCase.history ?? [],
+      );
+      const retrieval = await retrieve(query, {
         matchCount: RERANK_POOL,
         embedder,
       });
@@ -93,14 +105,17 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
         continue;
       }
 
-      const chunks = await rerankChunks(evalCase.question, retrieval.chunks);
+      const chunks = await rerankChunks(query, retrieval.chunks);
       const { text: answer } = await generateText({
         model: getAnswerModel(),
         system: ANSWER_SYSTEM_PROMPT,
-        prompt: buildUserPrompt(evalCase.question, chunks),
+        prompt: buildUserPrompt(query, chunks),
       });
 
-      const judged = await judgeAnswer(evalCase.question, chunks, answer);
+      // Judged against the same question the answer was written for: asking
+      // "is this supported?" about a bare "¿Y si también soy asalariado?"
+      // would judge the condensation, not the groundedness.
+      const judged = await judgeAnswer(query, chunks, answer);
       results.push({ evalCase, ...judged, answer });
     }
 

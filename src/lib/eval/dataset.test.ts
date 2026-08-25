@@ -59,6 +59,31 @@ describe("parseDataset", () => {
   });
 });
 
+describe("parseDataset history (#132)", () => {
+  const HISTORY = [
+    { question: "¿Y en la CCSS?", answer: "Como independiente." },
+  ];
+
+  it("keeps the turns of a condensation case, and nothing on the others", () => {
+    const [followUp, plain] = parseDataset(
+      `${line({ ...CASE, history: HISTORY })}\n${line({ ...CASE, id: "q2" })}`,
+    );
+    expect(followUp.history).toEqual(HISTORY);
+    // Absent, not empty: `history === undefined` is what the eval reads as
+    // "this case makes no condensation call".
+    expect(plain.history).toBeUndefined();
+  });
+
+  it("rejects a history that cannot be condensed against", () => {
+    expect(() => parseDataset(line({ ...CASE, history: [] }))).toThrow(
+      /non-empty array/,
+    );
+    expect(() =>
+      parseDataset(line({ ...CASE, history: [{ question: "¿Y?" }] })),
+    ).toThrow(/needs a question and an answer/);
+  });
+});
+
 describe("chunkMatchesTarget", () => {
   const chunk = {
     docKey: "ley-9635",
@@ -146,6 +171,17 @@ describe("eval/dataset.jsonl", () => {
   it("holds 25±5 cases (SPEC §9)", () => {
     expect(cases.length).toBeGreaterThanOrEqual(20);
     expect(cases.length).toBeLessThanOrEqual(30);
+  });
+
+  it("carries the #132 condensation cases, each with its turns", () => {
+    const followUps = cases.filter((c) => c.history !== undefined);
+    // The acceptance example from the issue, and enough siblings that a
+    // single flaky rewrite cannot be mistaken for the mechanism failing.
+    expect(followUps.map((c) => c.id)).toContain("ccss-asalariado-followup");
+    expect(followUps.length).toBeGreaterThanOrEqual(3);
+    for (const c of followUps) {
+      expect(c.history!.length).toBeGreaterThan(0);
+    }
   });
 
   it("names the canary as a blocking case", () => {

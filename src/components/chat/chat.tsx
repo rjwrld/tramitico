@@ -2,8 +2,9 @@
 
 /**
  * Landing = chat (SPEC §8, issue #22). Single column, 44rem, centered.
- * Talks to POST /api/ask through the #21 contract (`{ question }` in, UI
- * message stream with `data-citations` parts out). Errors — including the
+ * Talks to POST /api/ask through the #21 contract (`{ question, history? }`
+ * in — the history window is #132's — UI message stream with `data-citations`
+ * parts out). Errors — including the
  * 429 rate-limit nudge — render inline in the flow, never as a modal.
  */
 import * as React from "react";
@@ -12,12 +13,12 @@ import { DefaultChatTransport } from "ai";
 import { toast } from "sonner";
 import {
   askErrorMessage,
+  askRequestBody,
   citationsFrom,
   HISTORY_SAVE_FAILED_NOTE,
   messageText,
   statusFrom,
   unsavedFrom,
-  type AskRequestBody,
   type AskUIMessage,
 } from "@/lib/answer/contract";
 import { AnswerBlock } from "@/components/chat/answer-block";
@@ -40,15 +41,22 @@ import {
   MessageScrollerViewport,
 } from "@/components/ui/message-scroller";
 
+/**
+ * Every send carries the newest question and, since #132, the bounded window
+ * of exchanges before it — that is the whole client half of multi-turn. The
+ * window is built by `askRequestBody` (contract.ts) rather than here so the
+ * unit lane can pin it without standing up a transport, and the server
+ * re-applies the same bound to whatever arrives.
+ *
+ * `regenerate()` (#74's "Reintentar") needs nothing special: it replays the
+ * same last user message, and the turns before it are unchanged, so the retry
+ * condenses against exactly the history the first attempt did.
+ */
 const transport = new DefaultChatTransport<AskUIMessage>({
   api: "/api/ask",
-  prepareSendMessagesRequest: ({ messages }) => {
-    const question = messages.findLast((m) => m.role === "user");
-    const body: AskRequestBody = {
-      question: question ? messageText(question) : "",
-    };
-    return { body };
-  },
+  prepareSendMessagesRequest: ({ messages }) => ({
+    body: askRequestBody(messages),
+  }),
 });
 
 /**

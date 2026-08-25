@@ -13,7 +13,10 @@ vi.mock("@/lib/rate-limit", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/rate-limit")>()),
   checkRateLimit: vi.fn(),
 }));
-vi.mock("@/lib/answer/model", () => ({ getAnswerModel: vi.fn() }));
+vi.mock("@/lib/answer/model", () => ({
+  getAnswerModel: vi.fn(),
+  getCondenseModel: vi.fn(),
+}));
 vi.mock("@/lib/answer/user", () => ({ getUserId: vi.fn() }));
 vi.mock("@/lib/answer/persist", () => ({ saveQuestion: vi.fn() }));
 
@@ -34,9 +37,11 @@ import {
   WEAK_RETRIEVAL_ANSWER,
 } from "@/lib/answer/prompt";
 import { saveQuestion } from "@/lib/answer/persist";
-import { getAnswerModel } from "@/lib/answer/model";
+import { condenseFailures, resetCondenseFailures } from "@/lib/answer/condense";
+import { getAnswerModel, getCondenseModel } from "@/lib/answer/model";
 import { getUserId } from "@/lib/answer/user";
 import { checkRateLimit, NO_REFUND } from "@/lib/rate-limit";
+import { RERANK_POOL } from "@/lib/answer/rerank";
 import { TELEMETRY_PREFIX } from "@/lib/telemetry";
 import { retrieve } from "@/lib/retrieval";
 
@@ -167,6 +172,38 @@ function mockModelSequence(...texts: readonly string[]): MockLanguageModelV4 {
     },
   });
   vi.mocked(getAnswerModel).mockReturnValue(model);
+  return model;
+}
+
+/**
+ * The condenser (#132), stubbed the same way `getAnswerModel` is: the route
+ * calls it only when history came with the question, so a test that passes no
+ * history never reaches this at all.
+ */
+function mockCondenser(standalone: string): MockLanguageModelV4 {
+  const model = new MockLanguageModelV4({
+    doGenerate: async () => ({
+      content: [{ type: "text" as const, text: standalone }],
+      finishReason: { unified: "stop" as const, raw: "end_turn" },
+      usage: {
+        inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 },
+        outputTokens: { total: 1, text: 1, reasoning: 0 },
+      },
+      warnings: [],
+    }),
+  });
+  vi.mocked(getCondenseModel).mockReturnValue(model);
+  return model;
+}
+
+/** A condenser that is simply down — the fallback path (#132 req. 4). */
+function mockDeadCondenser(): MockLanguageModelV4 {
+  const model = new MockLanguageModelV4({
+    doGenerate: async () => {
+      throw new Error("condenser exploded");
+    },
+  });
+  vi.mocked(getCondenseModel).mockReturnValue(model);
   return model;
 }
 
@@ -335,6 +372,8 @@ beforeEach(() => {
   resetCitationFailures();
   // Same for the #139 tally.
   resetHistorySaveFailures();
+  // And the #132 one.
+  resetCondenseFailures();
 });
 
 describe("POST /api/ask", () => {
@@ -988,6 +1027,7 @@ describe("POST /api/ask", () => {
       expect(vi.mocked(saveQuestion)).toHaveBeenCalledWith({
         userId: "user-123",
         question: "¿Cuánto es el IVA?",
+        condensedQuestion: null,
         answer: WEAK_RETRIEVAL_ANSWER,
         citations: [],
       });
@@ -1479,6 +1519,174 @@ describe("POST /api/ask", () => {
         "providerError",
         "quotaHit",
       ]);
+    });
+  });
+
+  describe("multi-turn condensation (#132)", () => {
+    const FOLLOW_UP = "¿y si también soy asalariado?";
+    const STANDALONE =
+      "¿Cómo cotizo a la CCSS si trabajo por cuenta propia y además soy asalariado?";
+    const HISTORY = [
+      {
+        question: "¿Cómo me inscribo como trabajador independiente en la CCSS?",
+        answer: "Debe inscribirse en la sucursal que le corresponde.",
+      },
+    ];
+
+    it("retrieves, reranks and answers against the condensed question", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockCondenser(STANDALONE);
+      const answer = mockModel("Cotiza sobre ambos ingresos [1].");
+
+      await readEvents(
+        await POST(askRequest({ question: FOLLOW_UP, history: HISTORY })),
+      );
+
+      expect(vi.mocked(retrieve)).toHaveBeenCalledWith(STANDALONE, {
+        matchCount: RERANK_POOL,
+      });
+      // And the answer prompt too: the pipeline reasons about exactly one
+      // question, and it is the standalone one.
+      const prompt = JSON.stringify(answer.doStreamCalls[0].prompt);
+      expect(prompt).toContain(STANDALONE);
+      expect(prompt).not.toContain(FOLLOW_UP);
+    });
+
+    it("stores the reader's own question, with the rewrite beside it", async () => {
+      vi.mocked(getUserId).mockResolvedValue("user-123");
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockCondenser(STANDALONE);
+      mockModel("Cotiza sobre ambos ingresos [1].");
+
+      await readEvents(
+        await POST(askRequest({ question: FOLLOW_UP, history: HISTORY })),
+      );
+
+      expect(vi.mocked(saveQuestion)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          // What they typed is what their history shows them (#132 req. 3)…
+          question: FOLLOW_UP,
+          // …and the rewrite rides along, for tracing a bad answer back to
+          // the question it was really retrieved against.
+          condensedQuestion: STANDALONE,
+        }),
+      );
+    });
+
+    it("skips condensation entirely on a first turn", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      const condenser = mockCondenser(STANDALONE);
+      mockModel("El IVA es 13% [1].");
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(condenser.doGenerateCalls).toHaveLength(0);
+      expect(vi.mocked(retrieve)).toHaveBeenCalledWith("¿Cuánto es el IVA?", {
+        matchCount: RERANK_POOL,
+      });
+    });
+
+    it("answers the raw question when the condenser is down", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockDeadCondenser();
+      mockModel("Cotiza sobre ambos ingresos [1].");
+
+      const events = await readEvents(
+        await POST(askRequest({ question: FOLLOW_UP, history: HISTORY })),
+      );
+
+      // Degraded, never failed: the ask completes on the literal question.
+      expect(errorMessages(events)).toEqual([]);
+      expect(streamedText(events)).toContain("Cotiza sobre ambos ingresos");
+      expect(vi.mocked(retrieve)).toHaveBeenCalledWith(FOLLOW_UP, {
+        matchCount: RERANK_POOL,
+      });
+      expect(condenseFailures().error).toBe(1);
+    });
+
+    it("stores no rewrite when condensation fell back", async () => {
+      vi.mocked(getUserId).mockResolvedValue("user-123");
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockDeadCondenser();
+      mockModel("Cotiza sobre ambos ingresos [1].");
+
+      await readEvents(
+        await POST(askRequest({ question: FOLLOW_UP, history: HISTORY })),
+      );
+
+      // Null, not a copy of the question: the column says whether the
+      // pipeline ran on a rewrite, and here it did not.
+      expect(vi.mocked(saveQuestion)).toHaveBeenCalledWith(
+        expect.objectContaining({ condensedQuestion: null }),
+      );
+    });
+
+    it("bounds the window it was sent rather than trusting it", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      const condenser = mockCondenser(STANDALONE);
+      mockModel("Cotiza sobre ambos ingresos [1].");
+      const flood = Array.from({ length: 50 }, (_, i) => ({
+        question: `¿Pregunta ${i}?`,
+        answer: `Respuesta ${i}.`,
+      }));
+
+      await readEvents(
+        await POST(askRequest({ question: FOLLOW_UP, history: flood })),
+      );
+
+      // A hand-rolled POST cannot buy itself a bigger condensation prompt.
+      const prompt = JSON.stringify(condenser.doGenerateCalls[0].prompt);
+      expect(prompt).toContain("¿Pregunta 49?");
+      expect(prompt).not.toContain("¿Pregunta 46?");
+    });
+
+    it("ignores a malformed history instead of refusing the ask", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      const condenser = mockCondenser(STANDALONE);
+      mockModel("El IVA es 13% [1].");
+
+      const response = await POST(
+        askRequest({ question: "¿Cuánto es el IVA?", history: "todo" }),
+      );
+
+      expect(response.status).toBe(200);
+      expect(condenser.doGenerateCalls).toHaveLength(0);
+      expect(errorMessages(await readEvents(response))).toEqual([]);
+    });
+
+    it("keeps the honest decline on the reader's own words", async () => {
+      vi.mocked(getUserId).mockResolvedValue("user-123");
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(
+        retrievalResult({
+          chunks: [],
+          citations: [],
+          topScore: 0,
+          isWeak: true,
+        }),
+      );
+      mockCondenser(STANDALONE);
+
+      await readEvents(
+        await POST(askRequest({ question: FOLLOW_UP, history: HISTORY })),
+      );
+
+      expect(vi.mocked(saveQuestion)).toHaveBeenCalledWith({
+        userId: "user-123",
+        question: FOLLOW_UP,
+        condensedQuestion: STANDALONE,
+        answer: WEAK_RETRIEVAL_ANSWER,
+        citations: [],
+      });
     });
   });
 });

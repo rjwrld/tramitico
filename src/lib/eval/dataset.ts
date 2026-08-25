@@ -8,8 +8,14 @@
  * in the answer top-k; this module is the pure part — parsing and the "does
  * this chunk satisfy this expectation" predicate — so matching semantics are
  * unit-testable without a database.
+ *
+ * Since #132 a case may also carry `history`: preceding turns that make its
+ * `question` a follow-up. Those cases exist to prove the condensation step
+ * earns its keep, so the eval condenses them the way the route does and then
+ * runs the standalone result through the same path as every other case.
  */
 import path from "node:path";
+import type { ConversationTurn } from "../answer/contract";
 
 export const DATASET_PATH = path.join(process.cwd(), "eval", "dataset.jsonl");
 
@@ -31,6 +37,14 @@ export interface EvalCase {
   /** Provenance: "appendix-a:<n>" (SPEC Appendix A) or "corpus". */
   seed: string;
   question: string;
+  /**
+   * Preceding turns, for a case whose `question` is a follow-up (#132). When
+   * present, the eval condenses the two into a standalone question and runs
+   * the pipeline on that — exactly as /api/ask does — so `expected` is the
+   * retrieval the *condensed* question must produce. Absent on every
+   * single-turn case, which is most of them.
+   */
+  history?: ConversationTurn[];
   expected: ExpectedTarget[];
   /** Blocking cases fail the eval on their own, regardless of hit-rate. */
   blocking: boolean;
@@ -74,10 +88,33 @@ export function parseDataset(jsonl: string): EvalCase[] {
       throw new Error(`eval dataset line ${i + 1}: duplicate id ${entry.id}`);
     }
     seen.add(entry.id);
+    const history = entry.history;
+    if (history !== undefined) {
+      if (!Array.isArray(history) || history.length === 0) {
+        throw new Error(
+          `eval dataset line ${i + 1} (${entry.id}): history must be a non-empty array`,
+        );
+      }
+      for (const turn of history as ConversationTurn[]) {
+        if (
+          typeof turn?.question !== "string" ||
+          turn.question === "" ||
+          typeof turn?.answer !== "string" ||
+          turn.answer === ""
+        ) {
+          throw new Error(
+            `eval dataset line ${i + 1} (${entry.id}): history turn needs a question and an answer`,
+          );
+        }
+      }
+    }
     cases.push({
       id: entry.id,
       seed: typeof entry.seed === "string" ? entry.seed : "corpus",
       question: entry.question,
+      ...(history === undefined
+        ? {}
+        : { history: history as ConversationTurn[] }),
       expected: entry.expected as ExpectedTarget[],
       blocking: entry.blocking === true,
       notes: typeof entry.notes === "string" ? entry.notes : undefined,

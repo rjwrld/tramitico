@@ -32,6 +32,18 @@ correct retrieval must surface. One JSON object per line:
 - `blocking` — the case fails the eval on its own, regardless of hit-rate.
   The canary from ADR 0003 is the one blocking case.
 - `seed` — provenance: `appendix-a:<n>` (SPEC Appendix A) or `corpus`.
+- `history` — optional, and what makes a case a **condensation case** (#132,
+  [ADR 0012](../docs/adr/0012-multi-turn-question-condensation.md)): a
+  non-empty list of `{ question, answer }` turns preceding this one. Both eval
+  suites condense such a case first — the same `condenseQuestion` the route
+  calls — and then run the standalone result through the ordinary path, so
+  `expected` describes the retrieval the _rewrite_ must produce, not the
+  follow-up's. Write the follow-up the way a reader would type it ("¿Y si
+  también soy asalariado?"): a case that would retrieve fine on its own proves
+  nothing about condensation. Because these cases make a real model call, the
+  hit-rate suite now needs `ANTHROPIC_API_KEY` too, and the per-case table
+  prints the rewrite under any case that carries one — a miss is usually a bad
+  rewrite rather than a retrieval regression.
 
 The assertion lives in `src/lib/eval/retrieval-hitrate.eval.test.ts`
 (loader/matcher in `src/lib/eval/dataset.ts`). It runs each question through

@@ -41,6 +41,18 @@ describe("privacy page", () => {
     expect(text).toContain("por cada consulta");
   });
 
+  it("says what a follow-up sends and what it stores (#132)", () => {
+    // Multi-turn added no subprocessor, but it changed what one of them
+    // receives and what a history row holds — both are claims this page
+    // makes, so both are asserted here.
+    render(<PrivacyPage />);
+
+    const text = document.body.textContent ?? "";
+    expect(text).toContain("los últimos intercambios de esa conversación");
+    expect(text).toContain("la versión completa que el sistema armó");
+    expect(text).toContain("le muestra siempre lo que usted");
+  });
+
   it("describes both deletion routes", () => {
     render(<PrivacyPage />);
     const text = document.body.textContent ?? "";

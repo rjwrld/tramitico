@@ -9,7 +9,10 @@ import { PRIVACY_PATH } from "@/components/chat/privacy-note";
  * Plain prose, not a legal document: it names every third party a question
  * passes through, what is kept and for how long, and the two controls a
  * reader already has for getting rid of it. Written to be true of the code as
- * it stands — if a subprocessor is added, this page is part of that change.
+ * it stands — if a subprocessor is added, this page is part of that change,
+ * and so it is when what an existing one *receives* changes: #132 added no
+ * provider, but a follow-up now sends Anthropic the recent turns of the
+ * conversation and stores the rewrite it produced, and both are said here.
  *
  * DESIGN §10 applies: no card grid, no eyebrows, no accent stripes. Headings
  * and paragraphs, one hairline rule under the title.
@@ -39,7 +42,7 @@ const SUBPROCESSORS = [
   },
   {
     name: "Anthropic",
-    role: "Redacción de la respuesta. Recibe su pregunta junto con los fragmentos oficiales recuperados.",
+    role: "Redacción de la respuesta. Recibe su pregunta junto con los fragmentos oficiales recuperados. Cuando usted repregunta sobre lo mismo, recibe además los últimos intercambios de esa conversación, para convertir la repregunta en una pregunta completa.",
   },
   {
     name: "Voyage AI",
@@ -89,8 +92,11 @@ export default function PrivacyPage() {
             Su historial, solo si inicia sesión.
           </strong>{" "}
           Cada intercambio guarda la pregunta, la respuesta, las fuentes citadas
-          y la fecha, asociados a su cuenta. Se conserva hasta que usted lo
-          elimine. Sin sesión iniciada no se guarda ninguna pregunta.
+          y la fecha, asociados a su cuenta. Si la pregunta era una repregunta,
+          se guarda también la versión completa que el sistema armó con ella
+          para poder buscar; su historial le muestra siempre lo que usted
+          escribió. Se conserva hasta que usted lo elimine. Sin sesión iniciada
+          no se guarda ninguna pregunta.
         </p>
         <p className="mt-4">
           <strong className="font-medium text-foreground">

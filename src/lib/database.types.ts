@@ -121,6 +121,7 @@ export type Database = {
         Row: {
           answer: string;
           citations: Json;
+          condensed_question: string | null;
           created_at: string;
           id: string;
           question: string;
@@ -129,6 +130,7 @@ export type Database = {
         Insert: {
           answer: string;
           citations?: Json;
+          condensed_question?: string | null;
           created_at?: string;
           id?: string;
           question: string;
@@ -137,6 +139,7 @@ export type Database = {
         Update: {
           answer?: string;
           citations?: Json;
+          condensed_question?: string | null;
           created_at?: string;
           id?: string;
           question?: string;

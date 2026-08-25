@@ -4,7 +4,10 @@
  * The single module both sides build against: the route (#21) streams this
  * shape, the chat UI (#22) consumes it.
  *
- * - Request body: `{ question: string }` — the newest user message's text.
+ * - Request body: `{ question, history? }` — the newest user message's text,
+ *   plus the bounded window of preceding exchanges a follow-up needs to be
+ *   resolvable (#132). The server condenses the two into one standalone
+ *   question; `history` is never stored.
  * - Response: an AI SDK UI message stream. Citations arrive as
  *   `data-citations` parts, each a cumulative snapshot of the deduped
  *   citations in order of use — the UI renders the latest snapshot, so
@@ -26,8 +29,79 @@
 import type { UIMessage } from "ai";
 import type { Citation } from "@/lib/retrieval";
 
+/**
+ * One completed exchange the client may send back with a follow-up (#132).
+ * Both halves are the literal text the reader saw — the server condenses
+ * them into a standalone question, and nothing here is ever stored.
+ */
+export interface ConversationTurn {
+  question: string;
+  answer: string;
+}
+
 export interface AskRequestBody {
   question: string;
+  /**
+   * The bounded window of preceding exchanges (#132), oldest first. Absent or
+   * empty on a first turn, which is exactly how the server knows to skip
+   * condensation entirely. The server re-applies `boundTurns` to whatever
+   * arrives — this bound is a cost guarantee, so it cannot be the client's to
+   * keep.
+   */
+  history?: ConversationTurn[];
+}
+
+/**
+ * How many preceding exchanges travel with a follow-up (#132 req. 4).
+ *
+ * Three, not "the conversation": the antecedent a follow-up needs is almost
+ * always in the turn immediately before it, and every turn past that is
+ * prompt tokens paid on every ask of every session. A fixed count is what
+ * makes per-ask condensation cost flat rather than growing with the thread.
+ */
+export const MAX_HISTORY_TURNS = 3;
+
+/**
+ * Per-half character caps for a turn on the wire. The question cap matches
+ * the route's own question limit — a prior turn was once a live question, so
+ * it cannot be longer than one. The answer is truncated far harder: what
+ * condensation needs from it is the subject matter ("la CCSS", "el régimen
+ * simplificado"), which is established in its opening sentences, not the
+ * artículo-by-artículo detail that follows.
+ */
+export const MAX_TURN_QUESTION_CHARS = 1_000;
+export const MAX_TURN_ANSWER_CHARS = 600;
+
+/** Cuts `text` to `max` characters on a whole word where it can. */
+function clamp(text: string, max: number): string {
+  const trimmed = text.trim();
+  if (trimmed.length <= max) return trimmed;
+  const cut = trimmed.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${(lastSpace > max / 2 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
+}
+
+/**
+ * The window bound, applied identically on both sides of the wire: the last
+ * `MAX_HISTORY_TURNS` exchanges, each half clamped, and anything that is not
+ * a pair of non-empty strings dropped.
+ *
+ * The server calls this on the parsed request body rather than trusting the
+ * client's own bounding: a hand-rolled POST with two hundred turns in it
+ * would otherwise be a way to spend our condensation budget without limit.
+ */
+export function boundTurns(turns: readonly unknown[]): ConversationTurn[] {
+  const bounded: ConversationTurn[] = [];
+  for (const turn of turns.slice(-MAX_HISTORY_TURNS)) {
+    if (typeof turn !== "object" || turn === null) continue;
+    const { question, answer } = turn as Partial<ConversationTurn>;
+    if (typeof question !== "string" || typeof answer !== "string") continue;
+    const q = clamp(question, MAX_TURN_QUESTION_CHARS);
+    const a = clamp(answer, MAX_TURN_ANSWER_CHARS);
+    if (q === "" || a === "") continue;
+    bounded.push({ question: q, answer: a });
+  }
+  return bounded;
 }
 
 /**
@@ -93,6 +167,54 @@ export function messageText(message: AskUIMessage): string {
   return message.parts
     .map((part) => (part.type === "text" ? part.text : ""))
     .join("");
+}
+
+/**
+ * The bounded history that travels with the newest question (#132).
+ *
+ * Reads the thread the way the reader sees it: every user message before the
+ * one being asked, paired with the assistant message that answered it. The
+ * newest user message is excluded — it *is* the question — and a user message
+ * with no answered assistant message after it (an ask that errored, or the
+ * one in flight) contributes nothing, because a turn with half of it missing
+ * is not a turn a condenser can resolve an antecedent against.
+ *
+ * Pure and message-shaped rather than a hook, so the unit lane can pin the
+ * window without a transport (the client's `prepareSendMessagesRequest` calls
+ * it and does nothing else).
+ */
+export function conversationTurns(
+  messages: readonly AskUIMessage[],
+): ConversationTurn[] {
+  const asking = messages.findLastIndex((m) => m.role === "user");
+  if (asking <= 0) return [];
+  const turns: ConversationTurn[] = [];
+  for (let i = 0; i < asking; i += 1) {
+    if (messages[i].role !== "user") continue;
+    const reply = messages[i + 1];
+    if (!reply || reply.role !== "assistant") continue;
+    turns.push({
+      question: messageText(messages[i]),
+      answer: messageText(reply),
+    });
+  }
+  return boundTurns(turns);
+}
+
+/**
+ * The whole request body for one ask: the newest question, plus the history
+ * window when there is one (#132). A first turn carries no `history` key at
+ * all rather than an empty array — "absent" is the shape the server's
+ * skip-condensation branch reads, and an empty array means the same thing to
+ * it, but the wire says what it means.
+ */
+export function askRequestBody(
+  messages: readonly AskUIMessage[],
+): AskRequestBody {
+  const asking = messages.findLast((m) => m.role === "user");
+  const question = asking ? messageText(asking) : "";
+  const history = conversationTurns(messages);
+  return history.length > 0 ? { question, history } : { question };
 }
 
 /** Latest citations snapshot streamed with the message; [] before any. */

@@ -42,6 +42,16 @@
  * stream carries a `data-degraded` part that the answer block turns into a
  * visible note.
  *
+ * Multi-turn (#132, ADR 0012): the client sends a bounded window of preceding
+ * exchanges with the question, and when there is one, `condenseQuestion`
+ * rewrites the two into a single standalone Spanish question that feeds the
+ * pipeline below verbatim. Everything past that line — retrieval, rerank, the
+ * groundedness prompt, the citation invariant — still reasons about exactly
+ * one question and is untouched. A first turn skips the call entirely, and a
+ * condensation that fails or times out hands the raw question back, so
+ * multi-turn can degrade an answer but can never fail an ask. History keeps
+ * the reader's literal words, with the condensed form in its own column.
+ *
  * Telemetry (#141): every ask leaves exactly one structured, content-free
  * line — outcome class, latency bucket, provider error class, and the two
  * flags (#131 citation failure, #126 quota hit) whose counters had no
@@ -76,9 +86,11 @@ import {
   RETRIEVAL_FAILED_MESSAGE,
   STATUS_PART_ID,
   UNSAVED_PART_ID,
+  boundTurns,
   type AskErrorCode,
   type AskStatusStage,
   type AskUIMessage,
+  type ConversationTurn,
 } from "@/lib/answer/contract";
 import {
   createCitationTracker,
@@ -89,6 +101,7 @@ import {
   recordCitationFailure,
   validateCitations,
 } from "@/lib/answer/invariant";
+import { condenseQuestion } from "@/lib/answer/condense";
 import { getAnswerModel } from "@/lib/answer/model";
 import { describeError } from "@/lib/log-redaction";
 import { saveQuestion, type SaveQuestionInput } from "@/lib/answer/persist";
@@ -117,6 +130,25 @@ import { createAskTelemetry, type AskTelemetry } from "@/lib/telemetry";
 export const maxDuration = 60;
 
 const MAX_QUESTION_LENGTH = 1_000;
+
+/**
+ * The question in the two forms this route has needed since #132, carried
+ * together so no call site has to remember which one it wants.
+ *
+ * `query` is what the pipeline runs on — retrieval, rerank and the answer
+ * prompt all take the standalone form, which on a first turn is the literal
+ * question and on a follow-up is the condensed one. `question` is what the
+ * reader typed, and it is what history stores: a row saying "¿y si también
+ * soy asalariado?" is the exchange they had, while a row rewritten on their
+ * behalf is not. `condensed` rides along beside it for debuggability (req.
+ * 3) and is null whenever the pipeline ran on the literal question — a first
+ * turn, or a condensation that fell back.
+ */
+interface AskedQuestion {
+  question: string;
+  condensed: string | null;
+  query: string;
+}
 
 /**
  * Generations allowed per ask: the first, plus the one retry #131 grants a
@@ -346,7 +378,7 @@ function answerFailed(
  */
 async function streamHonestDecline(
   writer: Writer,
-  question: string,
+  asked: AskedQuestion,
   userId: string | null,
 ): Promise<void> {
   const id = "fallback";
@@ -361,7 +393,8 @@ async function streamHonestDecline(
     // message to attach to.
     await persistExchange(writer, "decline", {
       userId,
-      question,
+      question: asked.question,
+      condensedQuestion: asked.condensed,
       answer: WEAK_RETRIEVAL_ANSWER,
       citations: [],
     });
@@ -452,8 +485,12 @@ export async function POST(request: Request): Promise<Response> {
   // auth and rate-limit work #71 kept in front of the 200 (telemetry.ts, #141).
   const telemetry = createAskTelemetry();
   let question: unknown;
+  let rawHistory: unknown;
   try {
-    ({ question } = (await request.json()) as { question?: unknown });
+    ({ question, history: rawHistory } = (await request.json()) as {
+      question?: unknown;
+      history?: unknown;
+    });
   } catch {
     telemetry.emit();
     return jsonError("invalid_question", INVALID_QUESTION_MESSAGE, 400);
@@ -466,7 +503,16 @@ export async function POST(request: Request): Promise<Response> {
     telemetry.emit();
     return jsonError("invalid_question", INVALID_QUESTION_MESSAGE, 400);
   }
-  const asked = question.trim();
+  const literal = question.trim();
+  // Bounded here, not trusted from the wire (#132 req. 4): the client applies
+  // the same window in `askRequestBody`, but a hand-rolled POST with two
+  // hundred turns in it would otherwise spend the condensation budget without
+  // limit. Anything that is not a pair of non-empty strings is dropped rather
+  // than rejected — a malformed history is not a reason to refuse an ask that
+  // carries a perfectly good question.
+  const history: ConversationTurn[] = Array.isArray(rawHistory)
+    ? boundTurns(rawHistory)
+    : [];
 
   const userId = await getUserId(request);
   const limit = userId
@@ -504,9 +550,20 @@ export async function POST(request: Request): Promise<Response> {
       writer.write({ type: "start" });
       writeStatus(writer, "buscando");
 
+      // #132: a follow-up is resolved into a standalone question before
+      // anything else runs, and the rest of this route neither knows nor
+      // cares that it happened. Inside the 200 rather than in front of it —
+      // it is a model call, so it belongs on the same side of the stream as
+      // the other two, under the `buscando` stage the reader is already
+      // watching. A first turn makes no call at all, and a condensation that
+      // fails hands the literal question back (condense.ts), so this line can
+      // slow an ask down but can never fail one.
+      const { query, condensed } = await condenseQuestion(literal, history);
+      const asked: AskedQuestion = { question: literal, condensed, query };
+
       let retrieval;
       try {
-        retrieval = await retrieve(asked, { matchCount: RERANK_POOL });
+        retrieval = await retrieve(asked.query, { matchCount: RERANK_POOL });
       } catch (error) {
         console.error(`ask: retrieval failed: ${describeError(error)}`);
         telemetry.failed(error);
@@ -533,7 +590,7 @@ export async function POST(request: Request): Promise<Response> {
       }
 
       // Rerank is still "buscando" — the stage flips only when the model does.
-      const chunks = await rerankChunks(asked, retrieval.chunks);
+      const chunks = await rerankChunks(asked.query, retrieval.chunks);
       writeStatus(writer, "redactando");
 
       // #131: generate, check, and only then write. The loop is the whole
@@ -543,7 +600,12 @@ export async function POST(request: Request): Promise<Response> {
       for (let attempt = 1; attempt <= MAX_ANSWER_ATTEMPTS; attempt += 1) {
         let text: string;
         try {
-          text = await generateAnswer(asked, chunks, request.signal, attempt);
+          text = await generateAnswer(
+            asked.query,
+            chunks,
+            request.signal,
+            attempt,
+          );
         } catch (error) {
           // A client stop is not a failure (#74/F-11, #126): no Spanish error
           // over an answer the user chose to cut off, no refund, nothing
@@ -598,7 +660,8 @@ export async function POST(request: Request): Promise<Response> {
       if (userId) {
         await persistExchange(writer, "answer", {
           userId,
-          question: asked,
+          question: asked.question,
+          condensedQuestion: asked.condensed,
           // History stores the reader's numbering, not the wire's: the
           // markers are rewritten to seal ordinals here (#133) so a restored
           // answer carries its superscripts without needing the chunk map,
