@@ -49,12 +49,30 @@ export function formatChunks(chunks: readonly RetrievedChunk[]): string {
     .join("\n\n");
 }
 
+/**
+ * Appended to the user prompt on the one retry the runtime citation invariant
+ * allows (#131). A bare re-roll of the same prompt mostly reproduces the same
+ * omission, so the retry says what went wrong — in the vocabulary rule 2
+ * already uses, so it reads as an enforcement of the existing contract rather
+ * than a second, competing instruction.
+ *
+ * Deliberately does not quote the rejected answer back: feeding an uncited
+ * draft in as context is the surest way to get it paraphrased uncited again.
+ */
+export const CITATION_RETRY_NOTE =
+  "Aviso: su respuesta anterior no cumplió la regla 2. Toda respuesta debe " +
+  "llevar al menos una cita [n], y cada [n] debe ser uno de los números de " +
+  "documento listados arriba — ningún otro número es válido. Vuelva a " +
+  "responder la pregunta cumpliendo esa regla. Si los documentos no " +
+  "respaldan una respuesta, aplique la regla 6.";
+
 export function buildUserPrompt(
   question: string,
   chunks: readonly RetrievedChunk[],
+  { citationRetry = false }: { citationRetry?: boolean } = {},
 ): string {
-  return (
+  const base =
     `Pregunta:\n${question}\n\n` +
-    `Documentos oficiales (cite por número):\n\n${formatChunks(chunks)}`
-  );
+    `Documentos oficiales (cite por número):\n\n${formatChunks(chunks)}`;
+  return citationRetry ? `${base}\n\n${CITATION_RETRY_NOTE}` : base;
 }

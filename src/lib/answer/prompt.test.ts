@@ -3,6 +3,7 @@ import type { RetrievedChunk } from "../retrieval";
 import {
   ANSWER_SYSTEM_PROMPT,
   buildUserPrompt,
+  CITATION_RETRY_NOTE,
   formatChunks,
   WEAK_RETRIEVAL_ANSWER,
 } from "./prompt";
@@ -134,5 +135,37 @@ describe("WEAK_RETRIEVAL_ANSWER", () => {
     expect(WEAK_RETRIEVAL_ANSWER).toContain("https://www.ccss.sa.cr");
     // No apology theater (DESIGN §9).
     expect(WEAK_RETRIEVAL_ANSWER).not.toMatch(/lo sentimos|disculp/i);
+  });
+});
+
+describe("buildUserPrompt on the citation retry (#131)", () => {
+  const CHUNKS = [chunk()];
+
+  it("says nothing extra on the first attempt", () => {
+    expect(buildUserPrompt("¿Cuánto es el IVA?", CHUNKS)).toBe(
+      buildUserPrompt("¿Cuánto es el IVA?", CHUNKS, { citationRetry: false }),
+    );
+  });
+
+  it("appends the correction after the documents, so it is the last thing read", () => {
+    const retry = buildUserPrompt("¿Cuánto es el IVA?", CHUNKS, {
+      citationRetry: true,
+    });
+
+    expect(retry).toContain(CITATION_RETRY_NOTE);
+    expect(retry.endsWith(CITATION_RETRY_NOTE)).toBe(true);
+    // The retry is the same ask with a correction on it — the question and the
+    // documents must be identical, or we are answering a different question.
+    expect(
+      retry.startsWith(buildUserPrompt("¿Cuánto es el IVA?", CHUNKS)),
+    ).toBe(true);
+  });
+
+  it("points the model at the rules it already has, not a new one", () => {
+    // Rule 2 is the citation rule and rule 6 the honest-decline rule; a retry
+    // that invented its own vocabulary would compete with the system prompt.
+    expect(CITATION_RETRY_NOTE).toContain("regla 2");
+    expect(CITATION_RETRY_NOTE).toContain("regla 6");
+    expect(ANSWER_SYSTEM_PROMPT).toContain("2. Cite cada afirmación");
   });
 });

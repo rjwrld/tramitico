@@ -54,6 +54,18 @@ const MARKER_RUN = /[ \t]*(?:\[\d+\])+/g;
 const PARTIAL_MARKER_RUN_TAIL = /[ \t]*\[\d*$/;
 
 /**
+ * The [n] markers in `text`, in order of appearance, duplicates included.
+ *
+ * The one place marker syntax is decided lives here, so anything that needs to
+ * reason about the model's citations — the tracker below, the runtime
+ * invariant (`invariant.ts`, #131) — reads them through this rather than
+ * carrying a second copy of the regex that could drift from it.
+ */
+export function citationMarkers(text: string): number[] {
+  return [...text.matchAll(MARKER)].map((match) => Number(match[1]));
+}
+
+/**
  * Chunk-index → seal ordinal, indexed by `n - 1`; `0` where no seal applies.
  *
  * The [n] the model writes counts *chunks*; a seal counts *sources*, and the
