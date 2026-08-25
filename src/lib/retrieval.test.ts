@@ -9,6 +9,7 @@ import {
   parseCitations,
   retrieve,
   rrfScore,
+  SearchChunksError,
   toCitation,
   type Citation,
   type RetrievalRpcClient,
@@ -16,6 +17,7 @@ import {
   type SearchChunksRow,
 } from "./retrieval";
 import type { Embedder } from "./ingestion/embedder";
+import { describeError } from "./log-redaction";
 import {
   degradedReason,
   degradedRetrievals,
@@ -664,15 +666,24 @@ describe("retrieve", () => {
     });
   });
 
-  it("surfaces RPC errors with the query in the message", async () => {
+  // #136: this used to read `search_chunks failed for "<the question>":
+  // <the Postgres message>`, and the route logged it. The identity is now the
+  // class; the driver's error survives as `cause`, for `describeError`.
+  it("surfaces an RPC error as SearchChunksError, carrying neither the query nor the driver's message", async () => {
     const client: RetrievalRpcClient = {
       rpc: async () => ({ data: null, error: { message: "boom" } }),
     };
-    await expect(
-      retrieve("iva", { client, embedder: fakeEmbedder() }),
-    ).rejects.toThrow(/search_chunks/);
-    await expect(
-      retrieve("iva", { client, embedder: fakeEmbedder() }),
-    ).rejects.toThrow(/boom/);
+    const rejection = retrieve("¿cuánto es el IVA para un freelancer?", {
+      client,
+      embedder: fakeEmbedder(),
+    });
+    await expect(rejection).rejects.toBeInstanceOf(SearchChunksError);
+    await expect(rejection).rejects.toThrow("search_chunks failed");
+    const error = await rejection.then(
+      () => null,
+      (e: unknown) => e as Error,
+    );
+    expect(error?.message).not.toMatch(/IVA|freelancer|boom/i);
+    expect(describeError(error)).toBe("SearchChunksError<Object>");
   });
 });

@@ -101,10 +101,15 @@ describe("listQuestions", () => {
     ]);
   });
 
-  it("throws on a database error", async () => {
-    await expect(
-      listQuestions(fakeClient({ selectError: { message: "boom" } }), "user-a"),
-    ).rejects.toThrow(/boom/);
+  // #136: the rejection names the operation, never the driver's message —
+  // PostgREST quotes the offending row, and on `questions` that row holds
+  // somebody's question.
+  it("throws on a database error, without the driver's message", async () => {
+    const failing = fakeClient({ selectError: { message: "boom" } });
+    await expect(listQuestions(failing, "user-a")).rejects.toThrow(
+      /history list failed/,
+    );
+    await expect(listQuestions(failing, "user-a")).rejects.not.toThrow(/boom/);
   });
 });
 
@@ -118,13 +123,13 @@ describe("deleteQuestion", () => {
     ]);
   });
 
-  it("throws on a database error", async () => {
-    await expect(
-      deleteQuestion(
-        fakeClient({ deleteError: { message: "boom" } }),
-        "q-9",
-        "user-a",
-      ),
-    ).rejects.toThrow(/boom/);
+  it("throws on a database error, without the driver's message", async () => {
+    const failing = fakeClient({ deleteError: { message: "boom" } });
+    await expect(deleteQuestion(failing, "q-9", "user-a")).rejects.toThrow(
+      /history delete failed/,
+    );
+    await expect(deleteQuestion(failing, "q-9", "user-a")).rejects.not.toThrow(
+      /boom/,
+    );
   });
 });

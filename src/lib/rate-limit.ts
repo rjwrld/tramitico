@@ -17,6 +17,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createHmac } from "node:crypto";
 import type { Database } from "./database.types";
 import { CR_TIME_ZONE, CR_UTC_OFFSET_MS } from "./cr-time";
+import { describeError } from "./log-redaction";
 import { serviceClient } from "./supabase/service";
 
 export type RateLimitTier = "anon" | "authed";
@@ -245,7 +246,9 @@ function refundHandle(
     } catch (error) {
       // The ask stays consumed. Worth a log — a persistently failing refund
       // is a quota bug — but never worth failing the response over.
-      console.error(`rate limit: refunding the ask failed: ${String(error)}`);
+      console.error(
+        `rate limit: refunding the ask failed: ${describeError(error)}`,
+      );
     }
   };
 }

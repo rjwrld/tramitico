@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { describeError } from "@/lib/log-redaction";
 import { createClient } from "@/lib/supabase/server";
 import { serviceClient } from "@/lib/supabase/service";
 
@@ -46,7 +47,9 @@ export async function POST() {
     // Never block the deletion on this: the user asked for the account to go,
     // and deleting the auth user cascades its sessions anyway.
     if (error) {
-      console.error(`account delete: global sign-out failed: ${error.message}`);
+      console.error(
+        `account delete: global sign-out failed: ${describeError(error)}`,
+      );
     }
   }
 

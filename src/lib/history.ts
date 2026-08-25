@@ -13,6 +13,24 @@ import type { Database } from "./database.types";
 
 export type QuestionRow = Database["public"]["Tables"]["questions"]["Row"];
 
+/**
+ * A rejected history query. The message used to be `history list failed:
+ * ${error.message}` — a PostgREST message can quote the offending row, and on
+ * `questions` the row is somebody's question (#136). Both routes already
+ * swallow this into canned Spanish, so nothing user-facing changes; what
+ * changes is that if it ever *is* logged, the class name is the whole story
+ * and `describeError` reads the driver's SQLSTATE off `cause`.
+ */
+export class HistoryQueryError extends Error {
+  constructor(
+    readonly op: "list" | "delete",
+    cause: unknown,
+  ) {
+    super(`history ${op} failed`, { cause });
+    this.name = "HistoryQueryError";
+  }
+}
+
 // The auth half: a cookie-scoped client, the only place a user id may come
 // from. Kept separate from HistoryClient because the two are now different
 // clients — the session is the caller's, the query is the service role's.
@@ -88,7 +106,7 @@ export async function listQuestions(
     .select("*")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
-  if (error) throw new Error(`history list failed: ${error.message}`);
+  if (error) throw new HistoryQueryError("list", error);
   return data ?? [];
 }
 
@@ -104,5 +122,5 @@ export async function deleteQuestion(
     .delete()
     .eq("id", id)
     .eq("user_id", userId);
-  if (error) throw new Error(`history delete failed: ${error.message}`);
+  if (error) throw new HistoryQueryError("delete", error);
 }

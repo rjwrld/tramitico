@@ -51,9 +51,10 @@ describe("saveQuestion", () => {
     // Still swallowed — it never throws at the caller — but the false is what
     // the route turns into the `data-unsaved` part behind the toast.
     await expect(saveQuestion(INPUT, fake)).resolves.toBe(false);
-    expect(spy).toHaveBeenCalledWith(
-      expect.stringContaining("insert failed: boom"),
-    );
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining("insert failed:"));
+    // #136: the row Postgres refused is the user's question, so the driver's
+    // message never reaches the log — only what the error *is*.
+    expect(spy).not.toHaveBeenCalledWith(expect.stringContaining("boom"));
     spy.mockRestore();
   });
 });

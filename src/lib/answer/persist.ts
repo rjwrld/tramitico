@@ -12,6 +12,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "../database.types";
 import type { Citation } from "../retrieval";
+import { describeError } from "../log-redaction";
 import { tryServiceClient } from "../supabase/service";
 import { dropUnbackedMarkers } from "./citations";
 
@@ -75,7 +76,7 @@ export async function saveQuestion(
     citations: input.citations as unknown as Json,
   });
   if (error) {
-    console.error(`saveQuestion: insert failed: ${error.message}`);
+    console.error(`saveQuestion: insert failed: ${describeError(error)}`);
     return false;
   }
   return true;

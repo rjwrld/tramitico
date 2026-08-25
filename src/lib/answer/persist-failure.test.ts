@@ -28,8 +28,10 @@ describe("the history-save failure counter (#139 req. 2)", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     recordHistorySaveFailure({ kind: "answer", error: new Error("db down") });
 
+    // #136: the class, never the message — a rejected insert on `questions`
+    // is a rejection of the user's own question, and Postgres quotes rows.
     expect(warn).toHaveBeenCalledWith(
-      "ask: history save failed — kind=answer error=Error: db down",
+      "ask: history save failed — kind=answer error=Error",
     );
   });
 

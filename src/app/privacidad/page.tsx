@@ -1,0 +1,171 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+
+import { PRIVACY_PATH } from "@/components/chat/privacy-note";
+
+/**
+ * The privacy statement (#136 req. 3, privacy contract from #121).
+ *
+ * Plain prose, not a legal document: it names every third party a question
+ * passes through, what is kept and for how long, and the two controls a
+ * reader already has for getting rid of it. Written to be true of the code as
+ * it stands — if a subprocessor is added, this page is part of that change.
+ *
+ * DESIGN §10 applies: no card grid, no eyebrows, no accent stripes. Headings
+ * and paragraphs, one hairline rule under the title.
+ */
+
+export const metadata: Metadata = {
+  title: "Privacidad — Tramitico",
+  description:
+    "Qué pasa con sus preguntas: a quién se envían, qué se guarda, por cuánto tiempo y cómo eliminarlo.",
+};
+
+/** The one place a privacy request can be sent. */
+const CONTACT_EMAIL = "privacidad@tramitico.com";
+
+/**
+ * Every third party a question or its answer touches, and why. Rendered as a
+ * definition list rather than cards — four short entries do not need a grid.
+ */
+const SUBPROCESSORS = [
+  {
+    name: "Vercel",
+    role: "Alojamiento de la aplicación. Atiende cada solicitud y conserva los registros operativos descritos abajo.",
+  },
+  {
+    name: "Supabase",
+    role: "Base de datos y sesiones. Guarda su cuenta, su historial y los documentos oficiales sobre los que se busca.",
+  },
+  {
+    name: "Anthropic",
+    role: "Redacción de la respuesta. Recibe su pregunta junto con los fragmentos oficiales recuperados.",
+  },
+  {
+    name: "Voyage AI",
+    role: "Búsqueda semántica. Recibe su pregunta para convertirla en un vector y para ordenar los fragmentos más pertinentes.",
+  },
+] as const;
+
+export default function PrivacyPage() {
+  return (
+    <main className="mx-auto w-full max-w-[44rem] px-6 py-12">
+      <p className="text-sm">
+        <Link href="/" className="underline underline-offset-4">
+          Volver al inicio
+        </Link>
+      </p>
+
+      <h1 className="mt-8 font-serif text-[2rem] font-semibold tracking-tight text-balance">
+        Privacidad
+      </h1>
+      <p className="mt-3 border-b border-border pb-8 text-sm text-muted-foreground">
+        Qué pasa con su pregunta desde que la escribe hasta que la elimina.
+      </p>
+
+      <Section title="A quién se envía su pregunta">
+        <p>
+          Para responder hace falta buscar en los documentos oficiales y
+          redactar una respuesta citada. Eso pasa por cuatro proveedores, cada
+          uno con una función distinta:
+        </p>
+        <dl className="mt-4 flex flex-col gap-3">
+          {SUBPROCESSORS.map((sub) => (
+            <div key={sub.name}>
+              <dt className="font-medium text-foreground">{sub.name}</dt>
+              <dd>{sub.role}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="mt-4">
+          Sus preguntas no se venden, no se comparten con terceros fuera de esta
+          lista y no se usan para entrenar modelos.
+        </p>
+      </Section>
+
+      <Section title="Qué se guarda">
+        <p>
+          <strong className="font-medium text-foreground">
+            Su historial, solo si inicia sesión.
+          </strong>{" "}
+          Cada intercambio guarda la pregunta, la respuesta, las fuentes citadas
+          y la fecha, asociados a su cuenta. Se conserva hasta que usted lo
+          elimine. Sin sesión iniciada no se guarda ninguna pregunta.
+        </p>
+        <p className="mt-4">
+          <strong className="font-medium text-foreground">
+            Registros operativos, sin contenido.
+          </strong>{" "}
+          Para detectar fallas se registra qué salió mal —el tipo de error y su
+          código—, nunca el texto de la pregunta ni el de la respuesta. Los
+          conserva el proveedor de alojamiento alrededor de 30 días.
+        </p>
+        <p className="mt-4">
+          <strong className="font-medium text-foreground">
+            El conteo del límite diario.
+          </strong>{" "}
+          Si consulta sin iniciar sesión, el límite se lleva contra un
+          identificador derivado de su dirección IP y su navegador mediante una
+          función hash con clave secreta. No se guarda la dirección IP, y del
+          identificador no se puede volver a ella ni llegar a las preguntas: no
+          quedan asociadas a él.
+        </p>
+      </Section>
+
+      <Section title="Cómo eliminarlo">
+        <p>
+          Puede borrar una pregunta a la vez desde su historial: se elimina la
+          fila completa, con su respuesta y sus fuentes, de inmediato y sin
+          copia.
+        </p>
+        <p className="mt-4">
+          Eliminar la cuenta, desde el menú de su correo, borra la cuenta y todo
+          su historial en la misma operación. Es irreversible.
+        </p>
+        <p className="mt-4">
+          Los registros operativos no llevan contenido suyo, así que no hay nada
+          que eliminar en ellos; expiran solos.
+        </p>
+      </Section>
+
+      <Section title="Contacto">
+        <p>
+          Para cualquier consulta o solicitud sobre sus datos, escriba a{" "}
+          <a
+            href={`mailto:${CONTACT_EMAIL}`}
+            className="underline underline-offset-4"
+          >
+            {CONTACT_EMAIL}
+          </a>
+          .
+        </p>
+      </Section>
+
+      <p className="mt-12 text-xs text-muted-foreground">
+        Esta página describe el funcionamiento actual de Tramitico. Su dirección
+        es{" "}
+        <Link href={PRIVACY_PATH} className="underline underline-offset-4">
+          tramitico.com{PRIVACY_PATH}
+        </Link>
+        .
+      </p>
+    </main>
+  );
+}
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="mt-10">
+      <h2 className="font-serif text-xl font-semibold tracking-tight">
+        {title}
+      </h2>
+      <div className="mt-3 text-sm/6 text-muted-foreground">{children}</div>
+    </section>
+  );
+}

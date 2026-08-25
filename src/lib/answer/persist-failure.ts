@@ -16,6 +16,8 @@
  * lost on recycle; the log line, not this tally, is the durable signal.
  */
 
+import { describeError } from "../log-redaction";
+
 /**
  * Which delivered answer failed to save. Both are answers the reader has on
  * screen and expects in their history, so both are surfaced identically — but
@@ -61,6 +63,6 @@ export function recordHistorySaveFailure({
   counts[kind] += 1;
   console.warn(
     `ask: history save failed — kind=${kind} ` +
-      `error=${error === undefined ? "insert" : String(error)}`,
+      `error=${error === undefined ? "insert" : describeError(error)}`,
   );
 }

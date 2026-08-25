@@ -15,6 +15,8 @@
  * line, not this tally, is the durable signal.
  */
 
+import { describeError } from "./log-redaction";
+
 /**
  * Why the vector leg was dropped. `timeout` is the budget expiring — the
  * provider is slow or unreachable; `error` is everything else it can answer
@@ -59,7 +61,7 @@ export function recordDegradedRetrieval(error: unknown): DegradedReason {
   counts[reason] += 1;
   console.warn(
     `retrieval: degraded to lexical-only — reason=${reason} ` +
-      `error=${String(error)}`,
+      `error=${describeError(error)}`,
   );
   return reason;
 }
