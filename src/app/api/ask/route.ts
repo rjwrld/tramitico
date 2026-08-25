@@ -42,6 +42,13 @@
  * stream carries a `data-degraded` part that the answer block turns into a
  * visible note.
  *
+ * Telemetry (#141): every ask leaves exactly one structured, content-free
+ * line — outcome class, latency bucket, provider error class, and the two
+ * flags (#131 citation failure, #126 quota hit) whose counters had no
+ * denominator until now. It is accumulated as the route goes and written in
+ * `onFinish`, or on the pre-stream returns that never get one; see
+ * `telemetry.ts` for what may and may not appear in it.
+ *
  * Stop/retry (#74, audit F-11): `request.signal` is threaded into `streamText`
  * as `abortSignal`, so a client-side `stop()` (chat.tsx) cancels the paid
  * Anthropic call once generation has started — the issue's named target for
@@ -105,6 +112,7 @@ import {
   type RateLimitResult,
 } from "@/lib/rate-limit";
 import { retrieve, type RetrievedChunk } from "@/lib/retrieval";
+import { createAskTelemetry, type AskTelemetry } from "@/lib/telemetry";
 
 export const maxDuration = 60;
 
@@ -313,10 +321,15 @@ function writeStreamError(
  * one failure the route raises itself — and both are safe to reach: the debt
  * is a flag, and the handle that settles it is once-only.
  */
-function answerFailed(error: unknown, quota: QuotaDebt): string {
+function answerFailed(
+  error: unknown,
+  quota: QuotaDebt,
+  telemetry: AskTelemetry,
+): string {
   console.error(`ask: answer stream failed: ${describeError(error)}`);
   const code: AskErrorCode = "answer_failed";
   if (REFUNDS_ASK[code]) quota.owe();
+  telemetry.failed(error);
   return askStreamErrorText(code, ASK_FALLBACK_ERROR_MESSAGE);
 }
 
@@ -435,10 +448,14 @@ function writeAnswer(
 }
 
 export async function POST(request: Request): Promise<Response> {
+  // Started here so the latency bucket covers the whole request, including the
+  // auth and rate-limit work #71 kept in front of the 200 (telemetry.ts, #141).
+  const telemetry = createAskTelemetry();
   let question: unknown;
   try {
     ({ question } = (await request.json()) as { question?: unknown });
   } catch {
+    telemetry.emit();
     return jsonError("invalid_question", INVALID_QUESTION_MESSAGE, 400);
   }
   if (
@@ -446,6 +463,7 @@ export async function POST(request: Request): Promise<Response> {
     question.trim() === "" ||
     question.length > MAX_QUESTION_LENGTH
   ) {
+    telemetry.emit();
     return jsonError("invalid_question", INVALID_QUESTION_MESSAGE, 400);
   }
   const asked = question.trim();
@@ -458,6 +476,13 @@ export async function POST(request: Request): Promise<Response> {
     // Fail-closed: an unavailable limiter denies too, but as a 503 so the
     // client can tell "try later" from "you hit the limit".
     const unavailable = limit.reason === "unavailable";
+    // A spent quota is the caller's own doing; a limiter that cannot answer is
+    // ours. Only the second belongs in the error rate the runbook alerts on —
+    // and it never charged the ask, so it is `refunded_error` by the same
+    // reading (#141).
+    if (unavailable) telemetry.failed();
+    else telemetry.quotaHit();
+    telemetry.emit();
     return jsonError(
       unavailable ? "rate_limit_unavailable" : "rate_limited",
       limit.message ?? RATE_LIMIT_UNAVAILABLE_MESSAGE,
@@ -484,6 +509,7 @@ export async function POST(request: Request): Promise<Response> {
         retrieval = await retrieve(asked, { matchCount: RERANK_POOL });
       } catch (error) {
         console.error(`ask: retrieval failed: ${describeError(error)}`);
+        telemetry.failed(error);
         writeStreamError(
           writer,
           "retrieval_failed",
@@ -496,7 +522,10 @@ export async function POST(request: Request): Promise<Response> {
       // #127: the vector leg was skipped, so the reader is told before they
       // read anything — including on the decline path below, where a thin
       // search is part of why we have nothing to say.
-      if (retrieval.isDegraded) writeDegraded(writer);
+      if (retrieval.isDegraded) {
+        writeDegraded(writer);
+        telemetry.degraded();
+      }
 
       if (retrieval.isWeak) {
         await streamHonestDecline(writer, asked, userId);
@@ -525,7 +554,7 @@ export async function POST(request: Request): Promise<Response> {
           if (request.signal.aborted) return;
           writer.write({
             type: "error",
-            errorText: answerFailed(error, quota),
+            errorText: answerFailed(error, quota, telemetry),
           });
           return;
         }
@@ -546,6 +575,7 @@ export async function POST(request: Request): Promise<Response> {
           attempt,
           unresolved: verdict.unresolved,
         });
+        telemetry.citationFailure();
       }
 
       // Fail closed. The retry is spent and we still have no answer we can
@@ -563,6 +593,7 @@ export async function POST(request: Request): Promise<Response> {
       const tracker = createCitationTracker(chunks);
       tracker.append(answer);
       writeAnswer(writer, answer, tracker);
+      telemetry.answered();
 
       if (userId) {
         await persistExchange(writer, "answer", {
@@ -578,7 +609,7 @@ export async function POST(request: Request): Promise<Response> {
       }
       writer.write({ type: "finish" });
     },
-    onError: (error) => answerFailed(error, quota),
+    onError: (error) => answerFailed(error, quota, telemetry),
     // Where a system failure actually gives the ask back (#126). The SDK
     // awaits this in the stream's flush, so the RPC completes before the
     // response does — the one place on this route that is still guaranteed
@@ -586,6 +617,9 @@ export async function POST(request: Request): Promise<Response> {
     // own failures, so a dead limiter cannot truncate a delivered answer.
     onFinish: async () => {
       if (refundOwed) await limit.refund();
+      // Last, and past the last byte the reader was waiting on: the event is
+      // a `console.log` that cannot throw, so it costs the ask nothing (#141).
+      telemetry.emit();
     },
   });
   return createUIMessageStreamResponse({ stream });

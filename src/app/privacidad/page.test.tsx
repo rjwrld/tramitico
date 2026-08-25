@@ -35,7 +35,10 @@ describe("privacy page", () => {
     // History: until the user deletes it. Logs: content-free, ~30 days.
     expect(text).toContain("hasta que usted lo elimine");
     expect(text).toContain("30 días");
-    expect(text).toContain("nunca el texto de la pregunta");
+    expect(text).toContain("Nunca el texto de la pregunta");
+    // #141 widened what the logs hold — an event per ask, not only per
+    // failure — so the page says so. The page is a claim about the code.
+    expect(text).toContain("por cada consulta");
   });
 
   it("describes both deletion routes", () => {
