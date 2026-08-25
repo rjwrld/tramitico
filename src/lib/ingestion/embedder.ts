@@ -9,8 +9,32 @@
 export interface Embedder {
   provider: string;
   dimensions: number;
+  /**
+   * Ingestion's embed: batched and paced, retries for as long as the provider
+   * asks it to. Minutes are an acceptable cost here — the CLI is the only
+   * caller and nobody is waiting on a response.
+   */
   embed(texts: string[]): Promise<number[][]>;
+  /**
+   * The interactive path's embed (#127): one text, one attempt, and a hard
+   * {@link INTERACTIVE_EMBED_TIMEOUT_MS} abort budget. It is deliberately a
+   * separate method rather than an option on `embed`, because the two policies
+   * are answerable to different clocks — `embed` may sleep 30 s and try again
+   * 60 times, which on the ask path would blow `maxDuration = 60` long before
+   * it produced a vector. A caller that cannot get one in the budget is
+   * expected to degrade (lexical-only retrieval), not to wait.
+   */
+  embedQuery(text: string): Promise<number[]>;
 }
+
+/**
+ * Abort budget for one interactive query embed (#127). ~5 s of a 60 s route
+ * budget: generous for a healthy provider (a one-text embed is well under a
+ * second), short enough that an outage costs the ask a pause rather than the
+ * answer — the fallback still has the whole lexical leg and the model call to
+ * run afterwards.
+ */
+export const INTERACTIVE_EMBED_TIMEOUT_MS = 5_000;
 
 const STUB_DIM = 256;
 
@@ -49,6 +73,12 @@ function stubVector(text: string): number[] {
 
 export interface EmbedderOptions {
   fetchImpl?: typeof fetch;
+  /**
+   * Abort budget for `embedQuery`, defaulting to
+   * {@link INTERACTIVE_EMBED_TIMEOUT_MS}. Overridable so tests can assert the
+   * abort without spending five real seconds on it.
+   */
+  queryTimeoutMs?: number;
 }
 
 /** Thrown by {@link requestEmbeddings} on a non-OK response; carries the
@@ -75,6 +105,7 @@ async function requestEmbeddings(
   model: string,
   texts: string[],
   errorPrefix: string,
+  signal?: AbortSignal,
 ): Promise<number[][]> {
   const res = await fetchImpl(url, {
     method: "POST",
@@ -83,6 +114,7 @@ async function requestEmbeddings(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ model, input: texts }),
+    signal,
   });
   if (!res.ok) {
     const retryAfterSeconds = Number(res.headers.get("retry-after")) || 0;
@@ -92,6 +124,45 @@ async function requestEmbeddings(
   return json.data.map((d) => d.embedding);
 }
 
+/** What `interactiveQueryEmbedder` needs to reach one provider's endpoint. */
+interface InteractiveQueryConfig {
+  fetchImpl: typeof fetch;
+  timeoutMs: number;
+  provider: string;
+  url: string;
+  key: string;
+  model: string;
+  errorPrefix: string;
+}
+
+/**
+ * Builds the `embedQuery` of a real provider: cache, then a single request
+ * under an `AbortSignal.timeout`. No retry loop and no pacing gap by design —
+ * every branch a provider outage could take here has to end within the budget,
+ * and a second attempt is exactly what the ingestion policy does instead
+ * (#127 req. 1). A timeout surfaces as the fetch's own abort rejection, which
+ * `retrieve` reads as "degrade to lexical-only".
+ */
+function interactiveQueryEmbedder(
+  cfg: InteractiveQueryConfig,
+): (text: string) => Promise<number[]> {
+  return async (text) => {
+    const cached = cacheGet(cfg.provider, text);
+    if (cached) return cached;
+    const [vector] = await requestEmbeddings(
+      cfg.fetchImpl,
+      cfg.url,
+      cfg.key,
+      cfg.model,
+      [text],
+      cfg.errorPrefix,
+      AbortSignal.timeout(cfg.timeoutMs),
+    );
+    cachePut(cfg.provider, text, vector);
+    return vector;
+  };
+}
+
 export function createEmbedder(
   // `||`, not `??`: CI interpolates an unset `vars.EMBEDDINGS_PROVIDER` as
   // "", which must mean the keyless stub default, not an unknown provider.
@@ -99,11 +170,13 @@ export function createEmbedder(
   options: EmbedderOptions = {},
 ): Embedder {
   const fetchImpl = options.fetchImpl ?? fetch;
+  const timeoutMs = options.queryTimeoutMs ?? INTERACTIVE_EMBED_TIMEOUT_MS;
   if (provider === "stub") {
     return {
       provider,
       dimensions: STUB_DIM,
       embed: async (texts) => texts.map(stubVector),
+      embedQuery: async (text) => stubVector(text),
     };
   }
   if (provider === "voyage") {
@@ -160,6 +233,15 @@ export function createEmbedder(
     return {
       provider,
       dimensions: 1024,
+      embedQuery: interactiveQueryEmbedder({
+        fetchImpl,
+        timeoutMs,
+        provider,
+        url: "https://api.voyageai.com/v1/embeddings",
+        key,
+        model: "voyage-3",
+        errorPrefix: "Voyage embeddings",
+      }),
       embed: async (texts) => {
         if (texts.length === 1) {
           const cached = cacheGet(provider, texts[0]);
@@ -196,6 +278,15 @@ export function createEmbedder(
     return {
       provider,
       dimensions: 1536,
+      embedQuery: interactiveQueryEmbedder({
+        fetchImpl,
+        timeoutMs,
+        provider,
+        url: "https://api.openai.com/v1/embeddings",
+        key,
+        model: "text-embedding-3-small",
+        errorPrefix: "OpenAI embeddings",
+      }),
       embed: (texts) =>
         requestEmbeddings(
           fetchImpl,

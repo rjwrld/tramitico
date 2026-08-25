@@ -4,6 +4,8 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { AnswerBlock, DISCLAIMER } from "@/components/chat/answer-block";
 import {
   CITATIONS_PART_ID,
+  DEGRADED_PART_ID,
+  DEGRADED_SEARCH_NOTE,
   MARKERS_PART_ID,
   STATUS_PART_ID,
   type AskUIMessage,
@@ -179,6 +181,52 @@ describe("AnswerBlock", () => {
   it("hides the disclaimer when the answer is still empty", () => {
     render(<AnswerBlock message={answer("", [])} />);
     expect(screen.queryByText(DISCLAIMER)).toBeNull();
+  });
+});
+
+describe("AnswerBlock degraded-search label (#127)", () => {
+  /** The same answer, plus the route's `data-degraded` part. */
+  function degraded(text: string): AskUIMessage {
+    const base = answer(text);
+    return {
+      ...base,
+      parts: [
+        { type: "data-degraded", id: DEGRADED_PART_ID, data: true },
+        ...base.parts,
+      ],
+    };
+  }
+
+  it("tells the reader the search was lexical-only", () => {
+    render(<AnswerBlock message={degraded("La tarifa es 13% [1].")} />);
+    expect(screen.getByText(DEGRADED_SEARCH_NOTE)).not.toBeNull();
+  });
+
+  it("keeps the answer and its disclaimer — the label qualifies, it does not replace", () => {
+    render(<AnswerBlock message={degraded("La tarifa es 13% [1].")} />);
+    expect(screen.getByText(/La tarifa es 13%/)).not.toBeNull();
+    expect(screen.getByText(DISCLAIMER)).not.toBeNull();
+    expect(screen.getAllByRole("listitem")).toHaveLength(1);
+  });
+
+  it("sits above the disclaimer, out of the answer's way", () => {
+    render(<AnswerBlock message={degraded("La tarifa es 13% [1].")} />);
+    const note = screen.getByText(DEGRADED_SEARCH_NOTE);
+    const disclaimer = screen.getByText(DISCLAIMER);
+    expect(
+      note.compareDocumentPosition(disclaimer) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("says nothing on an ordinary answer", () => {
+    render(<AnswerBlock message={answer("La tarifa es 13% [1].")} />);
+    expect(screen.queryByText(DEGRADED_SEARCH_NOTE)).toBeNull();
+  });
+
+  it("waits for prose — there is nothing to qualify before the first delta", () => {
+    render(<AnswerBlock message={degraded("")} busy />);
+    expect(screen.queryByText(DEGRADED_SEARCH_NOTE)).toBeNull();
   });
 });
 

@@ -11,7 +11,8 @@
  *   sellos stamp in as the answer applies them. `data-markers` carries the
  *   chunk-index → seal-ordinal map the inline superscripts resolve against
  *   (#133), written with every citations snapshot. `data-status` parts report
- *   which pipeline stage is running, under the same snapshot rule (#71).
+ *   which pipeline stage is running, under the same snapshot rule (#71), and
+ *   `data-degraded` marks an answer retrieved without its vector leg (#127).
  * - Non-OK responses carry a JSON body `{ error, message }` where `message`
  *   is user-facing Spanish (the 429 carries the rate-limit nudge from #24).
  *   The AI SDK transport throws the raw body text; `askErrorMessage`
@@ -46,6 +47,13 @@ export type AskDataParts = {
    */
   markers: number[];
   status: { stage: AskStatusStage };
+  /**
+   * True when this answer came out of degraded retrieval (#127): the
+   * embedding provider was unreachable, so only the lexical leg ran. One
+   * boolean under the snapshot rule the other parts follow — the route writes
+   * it once, before any text, and the UI turns it into the visible note.
+   */
+  degraded: boolean;
 };
 
 export type AskUIMessage = UIMessage<never, AskDataParts>;
@@ -55,6 +63,9 @@ export const CITATIONS_PART_ID = "citations";
 
 /** Stable `data-markers` part id — one part, superseded on every write. */
 export const MARKERS_PART_ID = "markers";
+
+/** Stable `data-degraded` part id — written at most once per answer. */
+export const DEGRADED_PART_ID = "degraded";
 
 /**
  * Stable `data-status` part id. Same idempotency bargain ADR 0004 struck for
@@ -88,6 +99,15 @@ export function markerOrdinalsFrom(message: AskUIMessage): number[] {
   return latest;
 }
 
+/** Did this answer come out of degraded (lexical-only) retrieval? (#127) */
+export function degradedFrom(message: AskUIMessage): boolean {
+  let latest = false;
+  for (const part of message.parts) {
+    if (part.type === "data-degraded") latest = part.data;
+  }
+  return latest;
+}
+
 /** Latest stage snapshot streamed with the message; null before any. */
 export function statusFrom(message: AskUIMessage): AskStatusStage | null {
   let latest: AskStatusStage | null = null;
@@ -108,6 +128,15 @@ export type AskErrorCode =
 /** DESIGN §9: what happened + what to do, no apology theater. */
 export const ASK_FALLBACK_ERROR_MESSAGE =
   "No se pudo obtener la respuesta. Intente de nuevo.";
+
+/**
+ * The degraded-search label (#127 req. 3), DESIGN §9 voice: what happened and
+ * what to do, in one quiet sentence, with no apology and no jargon about
+ * embeddings. It sits with the answer rather than replacing it — the answer
+ * is still cited to real documents, it just came out of a thinner search.
+ */
+export const DEGRADED_SEARCH_NOTE =
+  "Búsqueda parcial: solo se buscó por coincidencia de texto, no por significado. Vuelva a preguntar en unos minutos para una búsqueda completa.";
 
 export const RETRIEVAL_FAILED_MESSAGE =
   "No se pudo buscar en los documentos oficiales. Intente de nuevo en unos minutos.";

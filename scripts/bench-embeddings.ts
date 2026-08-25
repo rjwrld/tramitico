@@ -26,26 +26,31 @@ import { createEmbedder, type Embedder } from "../src/lib/ingestion/embedder";
 function voyageWithInputType(inputType: "document" | "query"): Embedder {
   const key = process.env.VOYAGE_API_KEY;
   if (!key) throw new Error("VOYAGE_API_KEY missing");
+  const embed = async (texts: string[]): Promise<number[][]> => {
+    const res = await fetch("https://api.voyageai.com/v1/embeddings", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "voyage-3",
+        input: texts,
+        input_type: inputType,
+      }),
+    });
+    if (!res.ok) throw new Error(`Voyage embeddings: HTTP ${res.status}`);
+    const json = (await res.json()) as { data: { embedding: number[] }[] };
+    return json.data.map((d) => d.embedding);
+  };
   return {
     provider: "voyage-it",
     dimensions: 1024,
-    embed: async (texts) => {
-      const res = await fetch("https://api.voyageai.com/v1/embeddings", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${key}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "voyage-3",
-          input: texts,
-          input_type: inputType,
-        }),
-      });
-      if (!res.ok) throw new Error(`Voyage embeddings: HTTP ${res.status}`);
-      const json = (await res.json()) as { data: { embedding: number[] }[] };
-      return json.data.map((d) => d.embedding);
-    },
+    embed,
+    // The bench embeds in bulk and measures ranking, not the interactive
+    // policy (#127) — so this reuses `embed` rather than carrying an abort
+    // budget nothing here would exercise.
+    embedQuery: async (text) => (await embed([text]))[0],
   };
 }
 

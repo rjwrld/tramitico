@@ -7,12 +7,19 @@
  * (k = 60). This module embeds the question with the same provider the corpus
  * was embedded with, calls that RPC, and maps rows to typed chunks, citations,
  * and the weak-retrieval signal the honest-fallback path keys off.
+ *
+ * The embed is the one step here that depends on a third party being up, so
+ * since #127 it is allowed to fail: an embed that errors or blows its ~5 s
+ * budget degrades the query to the RPC's lexical-only contract
+ * (`query_embedding: null`) and says so through `isDegraded`, rather than
+ * taking the ask down with it.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 import { createEmbedder, type Embedder } from "./ingestion/embedder";
 import { serviceClient } from "./supabase/service";
 import { isCitation, parseCitations, type Citation } from "./citations";
+import { recordDegradedRetrieval } from "./retrieval-degraded";
 
 // Re-exported so existing server-side imports of `Citation`/`isCitation`/
 // `parseCitations` from "@/lib/retrieval" keep working unchanged — the
@@ -145,6 +152,13 @@ export interface RetrievalResult {
   topScore: number;
   /** No returned chunk was corroborated — trigger for the honest fallback. */
   isWeak: boolean;
+  /**
+   * The vector leg never ran: the interactive embed failed or timed out and
+   * retrieval fell back to lexical-only (#127). The answer is still grounded
+   * in real documents, but in a thinner search than usual — the route labels
+   * it on the wire so the reader is told rather than quietly served less.
+   */
+  isDegraded: boolean;
 }
 
 export interface RetrieveOptions {
@@ -352,16 +366,30 @@ export async function retrieve(
       citations: [],
       topScore: 0,
       isWeak: true,
+      isDegraded: false,
     };
   }
 
   const embedder = options.embedder ?? createEmbedder();
   const client = options.client ?? createRetrievalClient();
-  const [embedding] = await embedder.embed([trimmed]);
+
+  // #127: the ask path does not get to die because the embedding provider is
+  // down. `embedQuery` is one attempt on a ~5 s budget; when it does not come
+  // back with a vector we run the RPC's own lexical-only contract
+  // (`query_embedding: null`) rather than propagating the failure into
+  // `retrieval_failed`. Counting happens here, at the one place that knows a
+  // degradation happened at all.
+  let embedding: number[] | null = null;
+  try {
+    embedding = await embedder.embedQuery(trimmed);
+  } catch (error) {
+    recordDegradedRetrieval(error);
+  }
+  const isDegraded = embedding === null;
 
   const { data, error } = await client.rpc("search_chunks", {
     query_text: trimmed,
-    query_embedding: JSON.stringify(embedding),
+    query_embedding: embedding === null ? null : JSON.stringify(embedding),
     match_count: options.matchCount ?? DEFAULT_MATCH_COUNT,
   });
   if (error) {
@@ -384,6 +412,13 @@ export async function retrieve(
     chunks,
     citations,
     topScore,
-    isWeak: !chunks.some(isCorroborated),
+    // Corroboration needs two legs, so on the degraded path it is not a
+    // signal that is available to us — every chunk has a null `vectorRank`
+    // and the structural test would decline every single degraded ask,
+    // turning the fallback #127 asks for into a dead end. Weakness there is
+    // the only honest thing lexical-only can still say: the query matched
+    // nothing at all.
+    isWeak: isDegraded ? chunks.length === 0 : !chunks.some(isCorroborated),
+    isDegraded,
   };
 }

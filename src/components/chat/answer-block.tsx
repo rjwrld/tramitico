@@ -13,6 +13,8 @@
  */
 import {
   citationsFrom,
+  DEGRADED_SEARCH_NOTE,
+  degradedFrom,
   markerOrdinalsFrom,
   messageText,
   statusFrom,
@@ -50,6 +52,10 @@ export function AnswerBlock({
     // bracket run still being typed rather than flash "[1" as prose.
     { streaming: busy },
   );
+  // Whether this answer came out of lexical-only retrieval (#127). Sticky
+  // for the life of the message: the route writes the part before any text,
+  // and a restored history message simply never carries one.
+  const degraded = degradedFrom(message);
   // The stage label is only ever this message's business while it is both
   // the active one and has no prose yet — the first text delta retires it
   // (req 4), and a historical message never reports a stage at all.
@@ -66,6 +72,21 @@ export function AnswerBlock({
         references={{ count: citations.length, anchorPrefix: message.id }}
       />
       <SelloRow citations={citations} anchorPrefix={message.id} />
+      {/*
+        The degraded-search label (#127 req. 3). Quiet, above the disclaimer,
+        and only once there is an answer to qualify — before the first delta
+        there is nothing on screen for it to be about, and the status line
+        owns that moment. Not an error and not red: what is below it is a real
+        answer with real sellos, it just came out of a thinner search. Which
+        is why it is muted text and not an `Alert` — DESIGN §10 keeps red to
+        its four sanctioned places, and a boxed warning over a good answer
+        overstates what happened.
+      */}
+      {text !== "" && degraded && (
+        <p data-slot="degraded-note" className="text-xs text-muted-foreground">
+          {DEGRADED_SEARCH_NOTE}
+        </p>
+      )}
       {text !== "" && (
         <p className="text-xs text-muted-foreground italic">{DISCLAIMER}</p>
       )}
