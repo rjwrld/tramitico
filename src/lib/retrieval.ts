@@ -21,6 +21,22 @@ import { serviceClient } from "./supabase/service";
 import { isCitation, parseCitations, type Citation } from "./citations";
 import { recordDegradedRetrieval } from "./retrieval-degraded";
 
+/**
+ * What the `search_chunks` RPC rejecting looks like to a caller. Used to read
+ * `search_chunks failed for "<the user's question>": <the Postgres message>`,
+ * which put the question — and whatever of the row Postgres chose to quote —
+ * one `console.error` away from an operational log (#136). The context now
+ * lives in the class name, which is ours, rather than in a message built from
+ * input we do not control; the driver's error rides along as `cause`, where
+ * `describeError` will take its SQLSTATE and nothing else.
+ */
+export class SearchChunksError extends Error {
+  constructor(cause: unknown) {
+    super("search_chunks failed", { cause });
+    this.name = "SearchChunksError";
+  }
+}
+
 // Re-exported so existing server-side imports of `Citation`/`isCitation`/
 // `parseCitations` from "@/lib/retrieval" keep working unchanged — the
 // definitions themselves live in the client-safe `./citations` (issue #94).
@@ -393,7 +409,7 @@ export async function retrieve(
     match_count: options.matchCount ?? DEFAULT_MATCH_COUNT,
   });
   if (error) {
-    throw new Error(`search_chunks failed for "${trimmed}": ${error.message}`);
+    throw new SearchChunksError(error);
   }
 
   const chunks = (data ?? []).map(toChunk);

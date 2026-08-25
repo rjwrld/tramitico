@@ -19,6 +19,11 @@ import {
 } from "@/lib/answer/contract";
 import type { Citation } from "@/lib/retrieval";
 import { SEED_PROMPTS } from "@/components/chat/seed-prompts";
+import {
+  PRIVACY_DISCLOSURE,
+  PRIVACY_LINK_LABEL,
+  PRIVACY_PATH,
+} from "@/components/chat/privacy-note";
 
 const chat: { messages: AskUIMessage[]; status: string } = {
   messages: [],
@@ -228,6 +233,52 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+});
+
+/**
+ * #136 req. 2: the disclosure has to be readable *before* someone presses
+ * "Enviar" for the first time — a privacy note that only appears once the
+ * question is already at Anthropic discloses nothing. So the assertion is on
+ * the empty state, the view a first-time visitor actually lands on, and on
+ * `sendMessage` never having been called at the moment it is read.
+ */
+describe("Chat pre-submission privacy disclosure (#136)", () => {
+  /** The note is one paragraph of prose plus a link, so read the slot. */
+  function privacyNote(): HTMLElement {
+    const note = document.querySelector<HTMLElement>(
+      '[data-slot="privacy-note"]',
+    );
+    if (!note) throw new Error("no privacy note rendered");
+    return note;
+  }
+
+  it("renders the disclosure on the empty state, before the first ask", () => {
+    render(<Chat />);
+
+    expect(sendMessageMock).not.toHaveBeenCalled();
+    expect(privacyNote().textContent).toContain(PRIVACY_DISCLOSURE);
+  });
+
+  it("links the disclosure to the privacy page", () => {
+    render(<Chat />);
+
+    const link = screen.getByRole("link", {
+      name: PRIVACY_LINK_LABEL,
+    }) as HTMLAnchorElement;
+    expect(link.getAttribute("href")).toBe(PRIVACY_PATH);
+  });
+
+  it("sits with the composer, so it survives the move into the conversation", () => {
+    chat.messages = conversation;
+    render(<Chat />);
+
+    const note = privacyNote();
+    const composer = screen.getByRole("textbox", { name: "Su pregunta" });
+    // Same composer block in both views — not a one-off banner on the
+    // landing screen that the first question sweeps away.
+    expect(note.textContent).toContain(PRIVACY_DISCLOSURE);
+    expect(composer.closest("form")?.parentElement?.contains(note)).toBe(true);
+  });
 });
 
 describe("Chat message scroller registration (#79)", () => {

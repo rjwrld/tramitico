@@ -83,6 +83,7 @@ import {
   validateCitations,
 } from "@/lib/answer/invariant";
 import { getAnswerModel } from "@/lib/answer/model";
+import { describeError } from "@/lib/log-redaction";
 import { saveQuestion, type SaveQuestionInput } from "@/lib/answer/persist";
 import {
   recordHistorySaveFailure,
@@ -153,7 +154,9 @@ async function anonRateLimit(request: Request): Promise<RateLimitResult> {
       request.headers.get("user-agent") ?? "",
     );
   } catch (error) {
-    console.error(`ask: anonymous rate-limit subject unavailable: ${error}`);
+    console.error(
+      `ask: anonymous rate-limit subject unavailable: ${describeError(error)}`,
+    );
     return {
       allowed: false,
       remaining: 0,
@@ -311,7 +314,7 @@ function writeStreamError(
  * is a flag, and the handle that settles it is once-only.
  */
 function answerFailed(error: unknown, quota: QuotaDebt): string {
-  console.error(`ask: answer stream failed: ${String(error)}`);
+  console.error(`ask: answer stream failed: ${describeError(error)}`);
   const code: AskErrorCode = "answer_failed";
   if (REFUNDS_ASK[code]) quota.owe();
   return askStreamErrorText(code, ASK_FALLBACK_ERROR_MESSAGE);
@@ -480,7 +483,7 @@ export async function POST(request: Request): Promise<Response> {
       try {
         retrieval = await retrieve(asked, { matchCount: RERANK_POOL });
       } catch (error) {
-        console.error(`ask: retrieval failed: ${String(error)}`);
+        console.error(`ask: retrieval failed: ${describeError(error)}`);
         writeStreamError(
           writer,
           "retrieval_failed",

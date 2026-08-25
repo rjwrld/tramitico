@@ -6,8 +6,14 @@
  * (#74, req 1) swaps it for "Detener" in the same slot rather than showing
  * both: outline variant (never the filled primary), verb-first, wired
  * straight to `useChat`'s `stop()`. One action lives in this slot at a time.
+ *
+ * The privacy disclosure (#136 req. 2) rides along under the field rather
+ * than being placed by each caller: this component is the composer, it is
+ * mounted in both the empty state and the conversation, and the one thing the
+ * disclosure has to be is present *before* the first ask.
  */
 import * as React from "react";
+import { PrivacyNote } from "@/components/chat/privacy-note";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -44,38 +50,41 @@ export function ChatInput({
   };
 
   return (
-    <form
-      className="flex items-end gap-2"
-      onSubmit={(event) => {
-        event.preventDefault();
-        submit();
-      }}
-    >
-      <Textarea
-        ref={field}
-        name="question"
-        value={question}
-        onChange={(event) => setQuestion(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" && !event.shiftKey) {
-            event.preventDefault();
-            submit();
-          }
+    <div className="flex flex-col gap-2">
+      <form
+        className="flex items-end gap-2"
+        onSubmit={(event) => {
+          event.preventDefault();
+          submit();
         }}
-        placeholder="Escriba su pregunta sobre impuestos o trámites…"
-        aria-label="Su pregunta"
-        rows={1}
-        className="min-h-10 resize-none"
-      />
-      {busy ? (
-        <Button type="button" variant="outline" onClick={onStop}>
-          Detener
-        </Button>
-      ) : (
-        <Button type="submit" disabled={question.trim() === ""}>
-          Enviar
-        </Button>
-      )}
-    </form>
+      >
+        <Textarea
+          ref={field}
+          name="question"
+          value={question}
+          onChange={(event) => setQuestion(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+              event.preventDefault();
+              submit();
+            }
+          }}
+          placeholder="Escriba su pregunta sobre impuestos o trámites…"
+          aria-label="Su pregunta"
+          rows={1}
+          className="min-h-10 resize-none"
+        />
+        {busy ? (
+          <Button type="button" variant="outline" onClick={onStop}>
+            Detener
+          </Button>
+        ) : (
+          <Button type="submit" disabled={question.trim() === ""}>
+            Enviar
+          </Button>
+        )}
+      </form>
+      <PrivacyNote />
+    </div>
   );
 }
