@@ -200,6 +200,8 @@ describe("renumberCitationMarkers", () => {
     );
   });
 
+  // Deleting rather than surfacing is deliberate, and safe only under the
+  // documented contract — the caller validated the answer first (#131, #170).
   it("drops markers with no seal, along with the space before them", () => {
     expect(
       renumberCitationMarkers("Aplica el IVA [9] y la renta [3].", ORDINALS),
