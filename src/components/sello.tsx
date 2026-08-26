@@ -38,6 +38,7 @@ const ACCENTED: Record<string, string> = {
   resolucion: "Resolución",
   electronica: "Electrónica",
   electronicos: "Electrónicos",
+  retencion: "Retención",
 };
 
 /** `reglamento-iva` → `Reglamento IVA` — the stamp's doc short-name. */

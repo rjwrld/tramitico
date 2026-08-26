@@ -1,5 +1,5 @@
 {
-  "$comment": "Ingestion source of truth (SPEC §3). Seeded from docs/research/corpus-viability.md §1. kinds: sinalevi (3-call API, idFichaNorma; vigente version resolved at fetch), hacienda-pdf (Playwright fetch — WAF blocks plain HTTP), cabys (curated dev-relevant subset, task #8), unresolved (official source to locate during ingestion; never ingest secondary commentary). deepLink (#134): audited per source — how deep the official URL can be linked. `articulo` = SINALEVI ficha; the viewer opens one artículo at Informacion?param1=<ficha>&param2=<idVersionNorma>&param3=3&param4=<idArticulo>, and `source.articulos` (artículo number → idArticulo) is harvested at ingestion from the «Ficha Artículo» rail in the full-text payload — _BuscarArticulo answers -1 for our fichas, so the rail is the only mapping. `page` = PDF whose primary text is a page range; the chip appends #page=<first page>. `none` = the document root is the deepest honest link, with the reason in that entry's notes. imagesAudited (#177): for entries carrying an IMAGE AUDIT note, every image src a human looked at in that audit — ingestion logs a quiet receipt while the payload stays inside this set, and the full #150 warning naming the new srcs the moment a re-crawl adds one.",
+  "$comment": "Ingestion source of truth (SPEC §3). Seeded from docs/research/corpus-viability.md §1. kinds: sinalevi (3-call API, idFichaNorma; vigente version resolved at fetch), hacienda-pdf (Playwright fetch — WAF blocks plain HTTP), cabys (curated dev-relevant subset, task #8), unresolved (official source to locate during ingestion; never ingest secondary commentary). deepLink (#134): audited per source — how deep the official URL can be linked. `articulo` = SINALEVI ficha; the viewer opens one artículo at Informacion?param1=<ficha>&param2=<idVersionNorma>&param3=3&param4=<idArticulo>, and `source.articulos` (artículo number → idArticulo) is harvested at ingestion from the «Ficha Artículo» rail in the full-text payload — _BuscarArticulo answers -1 for our fichas, so the rail is the only mapping. `page` = PDF whose primary text is a page range; the chip appends #page=<first page>. excerpt (#176): inside a page range, the from/to line markers bounding the one artículo the entry claims — required where the range is a reform decree, whose neighbouring pages carry incisos later reforms have superseded; ingestion fails loudly if a marker is missing or ambiguous. `none` = the document root is the deepest honest link, with the reason in that entry's notes. imagesAudited (#177): for entries carrying an IMAGE AUDIT note, every image src a human looked at in that audit — ingestion logs a quiet receipt while the payload stays inside this set, and the full #150 warning naming the new srcs the moment a re-crawl adds one.",
   "documents": [
     {
       "doc_key": "ley-iva",
@@ -27,7 +27,47 @@
         "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2010-2019\\2019\\D_41779_0_88953\\12D545\\image002.png",
         "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2010-2019\\2019\\D_41779_0_88953\\12D545\\image004.png"
       ],
-      "notes": "IMAGE AUDIT (#150): 5 images, all rendered formulas; 2 lose substance no chunk carries. (a) Artículo 31 inciso 4) — the bien-de-capital adjustment (Ca₀ − Caᵢ)/4 is image-only, so the text reads «El ajuste en cada año deberá calcularse utilizando la siguiente fórmula:» straight into «Donde:». Never cite this artículo for how the adjustment is computed; the conditions, the 15-salarios-base threshold, the i = 1..4 range and the sign rule ARE in text. (b) The retención percentage %RT = FR × (TM/13%) × 1/(1+TM) is image-only; the prose names every input and says it is deflated to exclude the IVA, but not the composition. The other 3 restate adjacent prose verbatim and lose nothing. Text-carrying primary source located but NOT ingested: La Gaceta Alcance 129 del 2019-06-11 carries both as selectable text — safe for (b), whose vigente wording is unchanged, but NOT for (a), which decreto 43173 del 3 de agosto de 2021 reformed after that publication. See #150 for the evidence."
+      "notes": "IMAGE AUDIT (#150): 5 images, all rendered formulas; 2 lose substance no chunk of THIS document carries. (a) Artículo 31 inciso 4) — the bien-de-capital adjustment (Ca₀ − Caᵢ)/4 is image-only, so the text reads «El ajuste en cada año deberá calcularse utilizando la siguiente fórmula:» straight into «Donde:». (b) The retención percentage %RT = FR × (TM/13%) × 1/(1+TM) is image-only; the prose names every input and says it is deflated to exclude the IVA, but not the composition. The other 3 restate adjacent prose verbatim and lose nothing. GAPS CLOSED ELSEWHERE (#176): both artículos are now also ingested from the Gaceta that published them, as `reglamento-iva-bienes-capital` (artículo 31, from the reform decree 43173-H) and `reglamento-iva-retencion-tarjetas` (artículo 41, from Alcance 129) — each carrying the formula as text. This ficha stays the primary, whole-reglamento source and is unaffected; never cite THESE chunks for either computation, cite the companion entry. Why they are separate entries rather than a replacement: SINALEVI's consolidated vigente text is the only source for the other 72 artículos, and no single Gaceta carries the reglamento as it now reads."
+    },
+    {
+      "doc_key": "reglamento-iva-bienes-capital",
+      "title": "Reglamento del IVA, artículo 31 — crédito aplicable respecto a bienes de capital",
+      "norma": "Decreto Ejecutivo 43173-H",
+      "source": {
+        "kind": "pdf",
+        "url": "https://www.imprentanacional.go.cr/pub/2021/10/07/ALCA202_07_10_2021.pdf",
+        "pages": "17-18",
+        "excerpt": {
+          "from": "Artículo 31.- Crédito aplicable respecto a bienes de capital",
+          "to": "ARTÍCULO 2.- Adiciónese un inciso 46)"
+        },
+        "deepLink": "page"
+      },
+      "effective_date": "2021-10-07",
+      "chunking": {
+        "articulo": "Artículo 31"
+      },
+      "notes": "Closes gap (a) of the #150 audit — see the reglamento-iva note. La Gaceta 193, Alcance 202 del 2021-10-07, which is where decreto ejecutivo 43173-H del 3 de agosto de 2021 was published: SINALEVI's reform note gives only the number and the decree's own date, and a public search for it keeps surfacing 43143-H, so the publication was found by scanning the alcances of 2021 for the decree number (#176). Its artículo 1° quotes the reformed inciso 4) in full, formula included, as selectable text (pdftotext -layout, no OCR) — and that quotation is word-for-word the vigente inciso 4) in the SINALEVI ficha, which is what makes ingesting the 2021 publication safe where ingesting the 2019 one was not. Excerpted rather than page-ranged (#176): the same two pages carry other incisos this decree reformed, and one of them — «46) Seguros de sobrevivencia» — was renumbered to 49) by decreto 44392 del 15 de noviembre de 2023, so a page-granular range would seat a superseded numbering beside vigente chunks. Rige a partir de su publicación (ARTÍCULO 3), hence the effective_date. Deep link page (#134): chips land on page 17, where the decree's quotation of artículo 31 begins inside the 91-page alcance. RESIDUE (#203): pdftotext drops the fraction bar, so the stacked formula flattens to «𝐶𝑎0 ‒ 𝐶𝑎𝑖 4» — the operands and the divisor are in the chunk, the division itself is not spelled out. Better than the silence this replaces, still not unambiguous."
+    },
+    {
+      "doc_key": "reglamento-iva-retencion-tarjetas",
+      "title": "Reglamento del IVA, artículo 41 — pagos a cuenta y porcentaje de retención (%RT)",
+      "norma": "Decreto Ejecutivo 41779",
+      "source": {
+        "kind": "pdf",
+        "url": "https://www.imprentanacional.go.cr/pub/2019/06/11/ALCA129_11_06_2019.pdf",
+        "pages": "75-80",
+        "excerpt": {
+          "from": "Artículo 41.- Pagos a cuenta del Impuesto Sobre el Valor Agregado",
+          "to": "Artículo 42.- Determinación, liquidación y pago del impuesto"
+        },
+        "deepLink": "page"
+      },
+      "effective_date": "2019-07-01",
+      "chunking": {
+        "articulo": "Artículo 41"
+      },
+      "notes": "Closes gap (b) of the #150 audit — see the reglamento-iva note. La Gaceta 108, Alcance 129 del 2019-06-11, the original publication of the reglamento, carries both the %RT formula and the tarifa media it depends on as selectable text. Safe to ingest even though the 2019 alcance as a whole is not: artículo 41 carries no reform note in the vigente SINALEVI text, so its wording is unchanged, and the excerpt is bounded to that artículo alone (#176) so no neighbouring 2019 wording comes with it. effective_date is the reglamento's own vigencia, 2019-07-01. Deep link page (#134): chips land on page 75, where artículo 41 begins inside the 106-page alcance. RESIDUE (#203 for the formulas): the %RT bracket table has two columns, below what layoutTable (#179) can read, so it survives as a run-on line in the chunk — and one bracket wraps, so «90% o menos del 100% de ventas locales, exentas o no sujetas» reads «…exentas o no 1% sujetas», with its rate spliced into the middle of its own condition. The five brackets and their five rates are all there and in order; the wrapped one has to be read carefully; and pdftotext drops the fraction bars, so the formula flattens to «𝑇𝑀 1 𝑃𝑜𝑟𝑐𝑒𝑛𝑡𝑎𝑗𝑒 𝑑𝑒 𝑟𝑒𝑡𝑒𝑛𝑐𝑖ó𝑛 = 𝐹𝑅 ∗ ∗ 13% 1 + 𝑇𝑀» — every operand reaches the chunk, the nesting does not."
     },
     {
       "doc_key": "ley-9635",

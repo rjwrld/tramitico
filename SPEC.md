@@ -56,6 +56,14 @@ in the ficha técnica annexed to acta 9570 — and the escalas are denominated i
 so the MTSS wage decree is what turns them into the colón BMC figures. `ccss-bmc` is retained for
 the adjustment mechanism (Acuerdos Segundo–Cuarto), never for a figure.
 
+Amended by [#176](https://github.com/rjwrld/tramitico/issues/176): **two docs added, count 17 →
+19** — `reglamento-iva-bienes-capital` and `reglamento-iva-retencion-tarjetas`. Both are single
+artículos of the IVA reglamento, ingested from the Gaceta alcance that published them because the
+SINALEVI ficha renders their formulas as images and drops them
+([#150](https://github.com/rjwrld/tramitico/issues/150)). They sit _beside_ `reglamento-iva`, not
+in place of it: no single Gaceta carries the reglamento as it now reads, so the ficha remains the
+only source for the other 72 artículos.
+
 Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3)):
 
 - **SINALEVI (laws/reglamentos):** 3 calls, all `_BuscarVersionNorma`/`_CargarTextoCompleto` —
@@ -66,9 +74,11 @@ Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3))
 - **hacienda.go.cr PDFs:** WAF fingerprints the TLS stack — fetch via **Playwright** (or
   curl-impersonate). Plain fetch/curl will never pass.
 - **Public PDFs (CCSS actas, Imprenta Nacional alcances):** no WAF — a browser User-Agent over
-  plain fetch suffices (`kind: "pdf"`). Two shapes the manifest declares: `member` pulls the PDF
-  out of a sesión's anexos zip, and `pages` limits extraction to the norma's own pages so a
-  170-page acta or a 420-page alcance doesn't bury it. Neither has artículo structure of its own —
+  plain fetch suffices (`kind: "pdf"`). Three shapes the manifest declares: `member` pulls the PDF
+  out of a sesión's anexos zip, `pages` limits extraction to the norma's own pages so a
+  170-page acta or a 420-page alcance doesn't bury it, and `excerpt` narrows further to one
+  artículo by line markers, for a page range that still carries superseded neighbours
+  ([#176](https://github.com/rjwrld/tramitico/issues/176)). Neither has artículo structure of its own —
   every article-shaped string is a quotation — so they set `chunking.articulo` to the acta artículo
   the acuerdo was adopted under, which is the honest citable unit ([#114](https://github.com/rjwrld/tramitico/issues/114)).
 - **CABYS:** reference data, not prose — ingest a **curated subset of developer-relevant codes**

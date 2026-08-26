@@ -66,6 +66,25 @@ describe("selloLabel", () => {
     ).toBe("Reglamento RTS · Art. 1");
   });
 
+  // The two artículo-scoped companions to `reglamento-iva` (issue #176): each
+  // carries one formula the SINALEVI ficha renders as an image.
+  it("labels the artículo-scoped reglamento IVA doc keys", () => {
+    expect(
+      selloLabel({
+        ...reglamentoIva,
+        docKey: "reglamento-iva-bienes-capital",
+        articulo: "Artículo 31",
+      }),
+    ).toBe("Reglamento IVA Bienes Capital · Art. 31");
+    expect(
+      selloLabel({
+        ...reglamentoIva,
+        docKey: "reglamento-iva-retencion-tarjetas",
+        articulo: "Artículo 41",
+      }),
+    ).toBe("Reglamento IVA Retención Tarjetas · Art. 41");
+  });
+
   it("keeps transitorios and preámbulo unabbreviated", () => {
     expect(selloLabel({ ...reglamentoIva, articulo: "Transitorio II" })).toBe(
       "Reglamento IVA · Transitorio II",

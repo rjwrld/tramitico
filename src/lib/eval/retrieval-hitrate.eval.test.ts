@@ -46,12 +46,13 @@ import {
  * embedding jitter, and above the fused-only score so CI still catches a
  * silently disabled reranker. Ratchet up, never down.
  *
- * The three condensation cases #132 added have not been measured against this
- * gate — the lane runs on demand and this branch never ran it. At 28 cases
- * the gate needs 26 hits, so it now has two misses of headroom rather than
- * two: the first real run of this lane should either confirm the cases hit or
- * say why they do not, before anyone reads a dip here as a retrieval
- * regression.
+ * Five cases have never been measured against this gate — the three #132
+ * condensation ones and the two #176 formula ones — because the lane runs on
+ * demand and neither branch ran it. At 30 cases the gate needs 28 hits, so
+ * the headroom is two misses, and five unmeasured cases can spend it: the
+ * first real run should either confirm they hit or say why they do not,
+ * before anyone reads a dip here as a retrieval regression. The #176 pair
+ * also grows the corpus past the 793 chunks the baseline was measured on.
  */
 export const HIT_RATE_GATE = 0.92;
 

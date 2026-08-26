@@ -13,6 +13,7 @@ import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { chunkDocument, type ChunkOptions } from "../src/lib/ingestion/chunker";
 import { createEmbedder } from "../src/lib/ingestion/embedder";
+import { type ExcerptSpec, sliceExcerpt } from "../src/lib/ingestion/excerpt";
 import {
   htmlToParagraphs,
   imageMarkupNotice,
@@ -42,6 +43,15 @@ interface ManifestDoc {
      * would bury the norma under hundreds of unrelated chunks.
      */
     pages?: string;
+    /**
+     * `pdf` only: the artículo inside `pages` this entry actually claims,
+     * bounded by two markers a human read off the PDF (#176). Required where
+     * the page range is a *reform decree*: its neighbouring pages carry other
+     * incisos of the same decree that later reforms have since superseded, and
+     * a page-granular range would seat those beside vigente chunks. Absent →
+     * the whole page range is ingested. See excerpt.ts.
+     */
+    excerpt?: ExcerptSpec;
     catalog?: string;
     hint?: string;
     /**
@@ -178,7 +188,9 @@ async function main() {
 
 /**
  * Cache the PDF and shell out to pdftotext, honouring `source.pages` so a
- * multi-hundred-page compilation contributes only the norma we cite.
+ * multi-hundred-page compilation contributes only the norma we cite, and
+ * `source.excerpt` so a reform decree contributes only the artículo whose
+ * wording is still vigente (#176).
  */
 function pdfToText(doc: ManifestDoc, pdf: Buffer): string {
   const pdfPath = path.join(CACHE, `${doc.doc_key}.pdf`);
@@ -193,10 +205,16 @@ function pdfToText(doc: ManifestDoc, pdf: Buffer): string {
     }
     range.push("-f", m[1], "-l", m[2]);
   }
-  return execFileSync("pdftotext", ["-layout", ...range, pdfPath, "-"], {
+  const text = execFileSync("pdftotext", ["-layout", ...range, pdfPath, "-"], {
     encoding: "utf8",
     maxBuffer: 64 * 1024 * 1024,
   });
+  if (!doc.source.excerpt) return text;
+  try {
+    return sliceExcerpt(text, doc.source.excerpt);
+  } catch (cause) {
+    throw new Error(`${doc.doc_key}: ${(cause as Error).message}`, { cause });
+  }
 }
 
 async function extract(doc: ManifestDoc): Promise<string[] | null> {
@@ -242,6 +260,11 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
       );
       if (doc.source.pages) {
         console.log(`  ${doc.doc_key}: pages ${doc.source.pages}`);
+      }
+      if (doc.source.excerpt) {
+        console.log(
+          `  ${doc.doc_key}: excerpt from "${doc.source.excerpt.from}"`,
+        );
       }
       return textToParagraphs(pdfToText(doc, pdf), doc.layoutTable);
     }
