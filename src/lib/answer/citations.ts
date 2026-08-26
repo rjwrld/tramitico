@@ -109,6 +109,16 @@ export function dropUnbackedMarkers(text: string, sealCount: number): string {
  *
  * `streaming` additionally hides a bracket run still being typed (`… 13% [1`),
  * which would otherwise flash as literal text between two deltas.
+ *
+ * **Contract (issue #170): the caller owes it a validated answer.** Deletion
+ * is only safe because every marker that reaches here has already survived
+ * `validateCitations` (`invariant.ts`, #131) — a whole answer's worth on the
+ * route, an already-renumbered persisted one on the render path, where an
+ * unresolved marker means the seal is merely not in the snapshot *yet*. Call
+ * this on model text that has not been validated and it does the opposite of
+ * what #131 exists to do: a hallucinated `[9]` is tidied into a bare uncited
+ * claim instead of surfacing as a violation, which is exactly how the
+ * pre-#131 route masked dangling markers. Validate first, then renumber.
  */
 export function renumberCitationMarkers(
   text: string,
