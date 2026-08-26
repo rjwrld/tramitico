@@ -84,6 +84,45 @@ while the acuerdo of sesión 9038 (rige 2020-01-01) shifted every triennium a ye
 11,66 % del 2026-01-01 al 2028-12-31 and 12,16 % a partir del 2029-01-01. Nothing was ingested;
 the verdict lives in `ccss-escala-ivm`'s manifest note.
 
+**Amendment (#176) — the two live gaps, closed.** #150 left `reglamento-iva`'s two
+substance-losing formulas unrecovered because Alcance 129 is the 2019 wording and art. 31(4) had
+since been reformed by decreto ejecutivo 43173 del 3 de agosto de 2021. That decree's publication
+is now located: **La Gaceta 193, [Alcance 202 del 2021-10-07](https://www.imprentanacional.go.cr/pub/2021/10/07/ALCA202_07_10_2021.pdf)**,
+pages 9–22, decreto **43173-H**.
+
+Finding it took a scan, and the method is worth keeping. SINALEVI's reform note gives only the
+number and the _decree's own_ date, never the publication; its `/ResultadosNormativa/Resultados`
+search answers HTTP 500 to every server-side request we could shape; and a public web search for
+"decreto 43173" keeps surfacing 43143-H. What worked: Imprenta Nacional's PDFs are addressable by
+date (`/pub/YYYY/MM/DD/COMP_DD_MM_YYYY.pdf` for the daily Gaceta, `ALCA<n>_DD_MM_YYYY.pdf` for an
+alcance), and alcance numbers rise monotonically through the year — so probing `ALCA<n>` over a
+date × number window from the decree's date forward enumerates every alcance, and `pdftotext` on
+each finds the decree number. The daily `COMP` never contains an alcance: the two are separate
+files, and reform decrees of this kind go in the alcance.
+
+The decree quotes the reformed inciso 4) in full, formula included, as selectable text — and
+word-for-word the vigente inciso in the SINALEVI ficha, which is what makes the 2021 publication
+safe where the 2019 one was not. Both artículos are now ingested as artículo-scoped companion
+entries beside the ficha (`reglamento-iva-bienes-capital`, `reglamento-iva-retencion-tarjetas`);
+art. 41 needed no new source, since it carries no reform note and Alcance 129's wording is still
+vigente.
+
+Two things this amendment adds to the recovery route:
+
+1. **A page range is too coarse for a reform decree.** Alcance 202's page 18 carries the vigente
+   art. 31(4) _and_ the same decree's «46) Seguros de sobrevivencia», an inciso decreto 44392
+   (2023) renumbered to 49). Ingesting the page whole would seat a superseded numbering beside
+   vigente chunks — the trade #150 refused. So the manifest gained `source.excerpt`, a from/to
+   pair of line markers bounding the one artículo an entry claims, and ingestion fails loudly when
+   a marker is missing or matches twice.
+2. **Selectable text is not the same as a legible formula.** `pdftotext` renders the glyphs but
+   drops the fraction bar, which is drawn, not typed — so `(Ca₀ − Caᵢ)/4` arrives as
+   «𝐶𝑎0 ‒ 𝐶𝑎𝑖 4» and %RT as «𝑇𝑀 1 … = 𝐹𝑅 ∗ ∗ 13% 1 + 𝑇𝑀». Every operand reaches the chunk and the
+   announcing sentence no longer runs into «Donde:» with nothing between, but the nesting is not
+   spelled out. Recorded as RESIDUE in both manifest notes and carried
+   forward as [#203](https://github.com/rjwrld/tramitico/issues/203); recovering stacked layout is
+   a separate problem from recovering the text.
+
 ## 2. Source stability — is mid-2026 turbulent?
 
 **TRIBU-CR timeline:** ATV/TRAVI shutdown began 18 Jul 2025; data cutover 25 Sep 2025; TRIBU-CR launched **6 Oct 2025** at `ovitribucr.hacienda.go.cr`. All declarations now exclusively via TRIBU-CR (Res. MH-DGT-RES-0011-2025). E-invoicing v4.4 mandatory since 1 Sep 2025. Sources: [El Financiero guide](https://www.elfinancierocr.com/lab-de-ideas/educacion-financiera/tribu-cr-esta-es-la-guia-paso-a-paso-con-todo-lo/TAKOTX35QFG7TNLEPHIWJJM3HM/story/), [Hacienda CP-39-2025](https://www.hacienda.go.cr/docs/CP39-2025.pdf), [facturele.com](https://www.facturele.com/2025/10/29/transicion-de-atv-a-tribu-cr/)
