@@ -63,6 +63,27 @@ recovers both of `reglamento-iva`'s losses verbatim. The catch is version skew: 
 the text _as published_, so it is a safe source only where the vigente wording has not since been
 reformed — which is why #150 ingested nothing (see that issue for the per-image evidence).
 
+**Amendment (#175) — when every channel is a picture.** The Transitorio XI gradualidad of the
+Reglamento del Seguro de IVM (the table the `ccss-escala-ivm` ficha técnica quotes and stops
+short of) is the first item in the corpus that **no** primary channel publishes as text. All five
+were fetched and looked at (2026-08-25): SINALEVI's vigente reglamento (ficha 26485), the reform
+ficha for sesión 9038 (89493), CCSS's own PDF of the reglamento — a print of the same SINALEVI
+page — CCSS's [acta 9038](https://www.ccss.sa.cr/arc/actas/2019/06/9038.pdf) itself, and the
+official publication in
+[La Gaceta 161, Alcance 191](https://www.imprentanacional.go.cr/pub/2019/08/28/ALCA191_28_08_2019.pdf)
+(p. 60, a single 1256×1526 JPEG). Each reads «…se realizará con la siguiente gradualidad:»
+straight into the next paragraph. So both recovery routes above have a ceiling: **the acta
+transcribes the table only when the acuerdo's author typed it** (8999 did, 9038 did not), and
+**a Gaceta alcance is only as textual as the Word file the emisor submitted.**
+
+The one text-carrying publication is the consulta pública propuesta,
+[La Gaceta 62 del 2019-03-28](https://www.imprentanacional.go.cr/pub/2019/03/28/COMP_28_03_2019.pdf)
+— and it is a trap of the same family as #150's version skew, one step earlier in the lifecycle: a
+_proposal_ is not the adopted text. It dates the 11,66 % escalón 2025–2027 and 12,16 % from 2028,
+while the acuerdo of sesión 9038 (rige 2020-01-01) shifted every triennium a year later, to
+11,66 % del 2026-01-01 al 2028-12-31 and 12,16 % a partir del 2029-01-01. Nothing was ingested;
+the verdict lives in `ccss-escala-ivm`'s manifest note.
+
 ## 2. Source stability — is mid-2026 turbulent?
 
 **TRIBU-CR timeline:** ATV/TRAVI shutdown began 18 Jul 2025; data cutover 25 Sep 2025; TRIBU-CR launched **6 Oct 2025** at `ovitribucr.hacienda.go.cr`. All declarations now exclusively via TRIBU-CR (Res. MH-DGT-RES-0011-2025). E-invoicing v4.4 mandatory since 1 Sep 2025. Sources: [El Financiero guide](https://www.elfinancierocr.com/lab-de-ideas/educacion-financiera/tribu-cr-esta-es-la-guia-paso-a-paso-con-todo-lo/TAKOTX35QFG7TNLEPHIWJJM3HM/story/), [Hacienda CP-39-2025](https://www.hacienda.go.cr/docs/CP39-2025.pdf), [facturele.com](https://www.facturele.com/2025/10/29/transicion-de-atv-a-tribu-cr/)
