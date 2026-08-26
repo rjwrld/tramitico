@@ -57,10 +57,13 @@ export default defineConfig({
       // Asks in this lane must terminate keyless and cost-free: the stub
       // embedder keeps the embedder local, and an empty Anthropic key makes
       // any model call fail fast instead of spending tokens. That empty key
-      // is a cost guard, not a stub — history-mobile.local.spec.ts leans on
-      // it: its ask is deliberately unmatchable, so the route takes the
-      // weak-retrieval path and never calls the model; an ask that somehow
-      // *did* retrieve would fail loudly here rather than bill anyone.
+      // is a cost guard, not a stub — the specs lean on it: every ask in
+      // this lane is deliberately unmatchable (UNMATCHABLE_QUESTION in
+      // e2e/support.ts), so the route takes the weak-retrieval path and never
+      // calls the model; an ask that somehow *did* retrieve would fail loudly
+      // here rather than bill anyone. That also keeps the asks off the refund
+      // path (#173): a decline is delivered, so it consumes the quota, which
+      // is what rate-limit.local.spec.ts needs to reach a real 429.
       //
       // The stub is only a default. A developer database carrying the
       // ingested corpus embeds at 1024 dimensions, which the 256-dim stub

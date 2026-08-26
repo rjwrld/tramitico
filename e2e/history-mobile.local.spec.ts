@@ -4,6 +4,11 @@ import { test, expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "../src/lib/database.types";
+import {
+  gateOnCompletableAsk,
+  UNMATCHABLE_QUESTION,
+  WEAK_ANSWER_TEXT,
+} from "./support";
 
 /**
  * The history sheet at a phone viewport, against a real signed-in session
@@ -38,19 +43,6 @@ const admin = createClient<Database>(
   { auth: { persistSession: false } },
 );
 
-/**
- * A question no chunk can match lexically, so retrieval is weak *whatever*
- * the corpus holds: `isWeak` is structural (no chunk surfaced by both legs),
- * and a lexeme absent from every chunk leaves the lexical leg empty. The
- * route then streams the honest fallback without calling the model — the ask
- * completes, persists, and costs nothing (see the ANTHROPIC_API_KEY note in
- * playwright.local.config.ts, which turns any *un*-weak ask into a loud
- * failure rather than a bill).
- */
-const UNMATCHABLE_QUESTION = "¿Qué es zxqvlodrix?";
-/** First words of WEAK_RETRIEVAL_ANSWER (src/lib/answer/prompt.ts). */
-const WEAK_ANSWER_TEXT = "No encuentro base oficial";
-
 /** Newest last — the seed loop stamps `created_at` so "top" is deterministic. */
 const SEEDED = [
   {
@@ -63,32 +55,8 @@ const SEEDED = [
   },
 ];
 
-/**
- * Whether an ask can complete on this database without a paid provider.
- *
- * The corpus is embedded at 1024 dimensions; the keyless stub embedder
- * produces 256, and `search_chunks` compares the two only when there are rows
- * to compare. So an empty stack (what CI's throwaway `supabase start` gives)
- * runs the ask keyless and end to end, while a corpus-carrying developer
- * database needs the real provider the corpus was embedded with.
- */
-let corpusEmpty = false;
-const usingStubEmbedder =
-  (process.env.EMBEDDINGS_PROVIDER || "stub") === "stub";
-const NO_ASK_REASON =
-  "an ask cannot complete keyless here: this database carries an ingested " +
-  "corpus (1024-dim embeddings) while EMBEDDINGS_PROVIDER is the 256-dim " +
-  "stub, so search_chunks errors before anything is persisted. Re-run with " +
-  "EMBEDDINGS_PROVIDER/VOYAGE_API_KEY set, or against an empty stack — " +
-  "which is what CI does.";
-
-test.beforeAll(async () => {
-  const { count, error } = await admin
-    .from("chunks")
-    .select("*", { count: "exact", head: true });
-  expect(error).toBeNull();
-  corpusEmpty = (count ?? 0) === 0;
-});
+/** Only the ask test below needs a completable ask; the rest seed rows. */
+const gateOnAsk = gateOnCompletableAsk(admin, { perTest: false });
 
 let userId: string;
 
@@ -301,12 +269,7 @@ test.describe("history sheet at a phone viewport", () => {
   test("a finished ask reaches the top of the sheet without a reload", async ({
     page,
   }) => {
-    if (!corpusEmpty && usingStubEmbedder) {
-      // The repo's gate convention (#129): skip locally naming what is
-      // missing, fail under CI rather than silently asserting nothing.
-      expect(process.env.CI, NO_ASK_REASON).toBeFalsy();
-      test.skip(true, NO_ASK_REASON);
-    }
+    gateOnAsk();
 
     await page.getByLabel("Su pregunta").fill(UNMATCHABLE_QUESTION);
     await page.getByRole("button", { name: "Enviar" }).click();
