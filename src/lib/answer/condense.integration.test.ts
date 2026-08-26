@@ -39,6 +39,7 @@ import { condenseQuestion } from "./condense";
 import { getCondenseModel } from "./model";
 import type { Database } from "../database.types";
 import type { Embedder } from "../ingestion/embedder";
+import { EMBEDDING_DIMENSIONS } from "../embedding-dimensions";
 import {
   asRetrievalClient,
   retrieve,
@@ -93,7 +94,7 @@ function deadEmbedder(): Embedder {
   };
   return {
     provider: "dead",
-    dimensions: 1024,
+    dimensions: EMBEDDING_DIMENSIONS,
     embed: async () => down(),
     embedQuery: async () => down(),
   };

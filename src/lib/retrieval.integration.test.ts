@@ -39,6 +39,7 @@ import {
   resetDegradedRetrievals,
 } from "./retrieval-degraded";
 import type { Embedder } from "./ingestion/embedder";
+import { EMBEDDING_DIMENSIONS } from "./embedding-dimensions";
 import type { Database } from "./database.types";
 import { envPrereqs, integrationSuite } from "./test-support/suite-gate";
 
@@ -66,7 +67,7 @@ function deadEmbedder(): Embedder {
   };
   return {
     provider: "dead",
-    dimensions: 1024,
+    dimensions: EMBEDDING_DIMENSIONS,
     embed: async () => down(),
     embedQuery: async () => down(),
   };

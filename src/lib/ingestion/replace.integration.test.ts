@@ -14,6 +14,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, expect, it } from "vitest";
 import { replaceDocumentChunks } from "./replace";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
+import { EMBEDDING_DIMENSIONS } from "../embedding-dimensions";
 
 const url = process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -22,10 +23,8 @@ const describeDb = integrationSuite(
 );
 
 const DOC_KEY = "__test-replace-chunks__";
-/** chunks.embedding is vector(1024) (migration 20260804190000). */
-const DIMS = 1024;
-
-const vec = (seed: number) => new Array<number>(DIMS).fill(seed);
+const vec = (seed: number) =>
+  new Array<number>(EMBEDDING_DIMENSIONS).fill(seed);
 const chunk = (label: string, part = 0) => ({
   articulo: label,
   path: ["Test"],
