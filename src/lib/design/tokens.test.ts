@@ -7,6 +7,11 @@
 // `--destructive-bg` / `--destructive-bg-hover`, mirroring `--sello` /
 // `--sello-bg`. These assertions are what keep the alpha pattern from
 // coming back.
+//
+// Issue #165 extends the same argument to a non-text pair: `ConfirmInline`'s
+// `border-destructive/30` measured 1.81:1 / 1.58:1 against the surfaces it
+// lands on, under WCAG 1.4.11's 3:1 floor for non-text UI. It is now
+// `--destructive-border`, asserted below at 3:1 and pinned in the component.
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,6 +21,8 @@ import { describe, expect, it } from "vitest";
 import { contrastOf, readThemeTokens } from "./contrast";
 
 const AA_TEXT = 4.5;
+// WCAG 1.4.11: non-text UI (borders, rules, control boundaries) clears 3:1.
+const AA_NON_TEXT = 3;
 
 // Resolved relative to this file, not `process.cwd()`: the unit project is the
 // required CI gate and CLAUDE.md says it needs no environment — including no
@@ -60,6 +67,19 @@ describe.each(["light", "dark"] as const)("%s theme tokens", (theme) => {
     expect(ratio(fg, bg)).toBeGreaterThanOrEqual(AA_TEXT);
   });
 
+  // WCAG 1.4.11. `ConfirmInline`'s container is transparent, so its border is
+  // measured against the two surfaces it is actually rendered into.
+  it.each([
+    [
+      "--destructive-border on --background",
+      "--destructive-border",
+      "--background",
+    ],
+    ["--destructive-border on --popover", "--destructive-border", "--popover"],
+  ])("%s meets AA for non-text UI", (_label, fg, bg) => {
+    expect(ratio(fg, bg)).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+
   it("does not derive the destructive ground from the destructive text", () => {
     // The #160 regression, stated as code: a ground that is an alpha of the
     // text colour would be an `oklch` sharing the text's chroma and hue.
@@ -99,8 +119,26 @@ describe("destructive grounds in components", () => {
     "%s grounds destructive surfaces in --destructive-bg",
     (_name, file) => {
       const source = readFileSync(file, "utf8");
-      // Rings and borders may still be alphas — they are not text grounds.
+      // Rings and invalid-state borders may still be alphas — they are not
+      // text grounds, and an aria-invalid ring is not the delineating rule of a
+      // destructive zone. `ConfirmInline`'s container border is (issue #165),
+      // and it is checked separately below.
       expect(source).not.toMatch(/\bbg-destructive\/\d/);
     },
   );
+
+  it("draws the ConfirmInline zone rule from --destructive-border", () => {
+    const source = readFileSync(
+      path.join(componentsDir, "ui", "confirm-inline.tsx"),
+      "utf8",
+    );
+    // Line comments stripped first — the file's own header names the retired
+    // class, and that mention must not read as a use of it.
+    const code = source.replace(/^\s*\/\/.*$/gm, "");
+    // The #165 defect as a utility class: an alpha of the text colour on the
+    // container border computes at paint time, so the token assertions above
+    // would never see it.
+    expect(code).not.toMatch(/\bborder-destructive\/\d/);
+    expect(code).toContain("border-destructive-border");
+  });
 });

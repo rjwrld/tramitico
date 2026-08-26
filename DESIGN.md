@@ -41,6 +41,7 @@ on paper. If red appears anywhere else, it's a bug.
   --destructive: oklch(0.42 0.16 12); /* crimson — see "red discipline" below */
   --destructive-bg: oklch(0.94 0.015 5); /* destructive ground */
   --destructive-bg-hover: oklch(0.88 0.03 5);
+  --destructive-border: oklch(0.64 0.11 12); /* destructive zone rule */
   --border: oklch(0.895 0.005 285);
   --input: oklch(0.895 0.005 285);
   --ring: oklch(0.5 0.155 27);
@@ -72,6 +73,7 @@ on paper. If red appears anywhere else, it's a bug.
   --destructive: oklch(0.68 0.17 15);
   --destructive-bg: oklch(0.24 0.04 15);
   --destructive-bg-hover: oklch(0.28 0.05 15);
+  --destructive-border: oklch(0.57 0.12 15);
   --border: oklch(0.32 0.012 285);
   --input: oklch(0.32 0.012 285);
   --ring: oklch(0.66 0.14 25);
@@ -98,6 +100,12 @@ toward the text and AA becomes unreachable at _any_ token value (issue #160 meas
 raising `--destructive` to 0.80 still only reached 3.38:1). This applies to any future
 text-on-tint pair, not just destructive.
 
+**Borders that carry meaning are tokens too.** `--destructive-border` — the rule around
+`ConfirmInline`'s destructive zone — is the same argument for a non-text pair: as
+`border-destructive/30` it measured 1.81:1 light / 1.58:1 dark against the surfaces the confirm
+lands on, under WCAG 1.4.11's 3:1 floor (issue #165). A border that only decorates may stay an
+alpha; one that delineates a zone gets a token and an assertion.
+
 **Contrast floors (AA):** body text ≥4.5:1 in both themes (ink on white 14.9:1; foreground on dark
 ground ≈11:1). Sello red on white ≈6.3:1 — valid for text. Muted foreground stays ≥4.6:1. Never
 lighten body text for elegance.
@@ -107,6 +115,10 @@ values straight out of `globals.css` and fails the unit suite on any pair below 
 measures 7.70:1 / 6.36:1 (light, ground and hover) and 5.33:1 / 4.76:1 (dark); destructive text on
 a bare `--background` / `--popover` — where `ConfirmInline`'s prompt copy sits — is 5.68:1 / 5.13:1
 in dark. Change a token, rerun the test.
+
+**Contrast floor (non-text, WCAG 1.4.11):** UI borders and rules that carry meaning clear 3:1
+against the surface behind them, asserted in the same test. `--destructive-border` measures 3.55:1
+on white and 3.74:1 / 3.38:1 on the dark page and popover.
 
 ## 3. Typography
 
