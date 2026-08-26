@@ -19,6 +19,7 @@ import {
   textToParagraphs,
 } from "../src/lib/ingestion/extract";
 import { fetchHaciendaPdf } from "../src/lib/ingestion/hacienda";
+import type { LayoutTableSpec } from "../src/lib/ingestion/layout-table";
 import { fetchPdfSource } from "../src/lib/ingestion/pdf";
 import { replaceDocumentChunks } from "../src/lib/ingestion/replace";
 import type { DeepLinkKind } from "../src/lib/retrieval";
@@ -63,6 +64,14 @@ interface ManifestDoc {
    * one the audit never saw. Absent → the payload is warned about every run.
    */
   imagesAudited?: string[];
+  /**
+   * Column labels for one column-aligned table in this document, read off the
+   * PDF by a human (#179). Present → that table is re-extracted as one
+   * labelled row per paragraph instead of collapsing into a run-on line, and
+   * ingestion fails loudly if the grid is no longer there. Absent → the
+   * document extracts exactly as it always has. See layout-table.ts.
+   */
+  layoutTable?: LayoutTableSpec;
   notes?: string;
 }
 
@@ -224,7 +233,7 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
     }
     case "hacienda-pdf": {
       const pdf = await fetchHaciendaPdf(doc.source.url!);
-      return textToParagraphs(pdfToText(doc, pdf));
+      return textToParagraphs(pdfToText(doc, pdf), doc.layoutTable);
     }
     case "pdf": {
       const pdf = await fetchPdfSource(
@@ -234,7 +243,7 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
       if (doc.source.pages) {
         console.log(`  ${doc.doc_key}: pages ${doc.source.pages}`);
       }
-      return textToParagraphs(pdfToText(doc, pdf));
+      return textToParagraphs(pdfToText(doc, pdf), doc.layoutTable);
     }
     case "cabys": {
       const file = path.join(ROOT, "corpus", "cabys-dev.json");
