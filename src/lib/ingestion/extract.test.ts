@@ -5,7 +5,7 @@ import {
   cleanParagraphs,
   findImageMarkup,
   htmlToParagraphs,
-  imageMarkupWarning,
+  imageMarkupNotice,
   textToParagraphs,
 } from "./extract";
 
@@ -138,59 +138,153 @@ describe("findImageMarkup", () => {
   });
 });
 
-describe("imageMarkupWarning", () => {
+describe("imageMarkupNotice", () => {
   const fixture = (name: string) =>
     readFileSync(path.join(__dirname, "__fixtures__", name), "utf8");
 
+  const WITH_TABLES_SRC =
+    "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2020-2029\\2024\\S_27_0_103276\\1701B7\\image007.jpg";
+  const WITHOUT_TABLES_SRC =
+    "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2010-2019\\2017\\D_0_0_87782\\1A2B3C\\image005.png";
+
   it("says nothing for a payload with no images", () => {
-    expect(imageMarkupWarning("ley-iva", "<p>Artículo 1.</p>")).toBeNull();
+    expect(imageMarkupNotice("ley-iva", "<p>Artículo 1.</p>")).toBeNull();
   });
 
   it("names the doc, the count and every src when tables are present", () => {
-    const warning = imageMarkupWarning(
+    const notice = imageMarkupNotice(
       "disposiciones-v44",
       fixture("images-with-tables.html"),
     );
-    expect(warning).toContain("disposiciones-v44");
-    expect(warning).toContain("1 image");
-    expect(warning).toContain("1 table");
-    expect(warning).toContain("image007.jpg");
-    expect(warning).toContain("#150");
+    expect(notice?.level).toBe("warn");
+    expect(notice?.message).toContain("disposiciones-v44");
+    expect(notice?.message).toContain("1 image");
+    expect(notice?.message).toContain("1 table");
+    expect(notice?.message).toContain("image007.jpg");
+    expect(notice?.message).toContain("#150");
   });
 
   it("is louder for the #114 shape: images and no table markup", () => {
-    const warning = imageMarkupWarning(
+    const notice = imageMarkupNotice(
       "ccss-bmc",
       fixture("images-without-tables.html"),
     );
-    expect(warning).toContain("ccss-bmc");
-    expect(warning).toContain("no table markup");
-    expect(warning).toContain("#114");
-    expect(warning).toContain("image005.png");
+    expect(notice?.level).toBe("warn");
+    expect(notice?.message).toContain("ccss-bmc");
+    expect(notice?.message).toContain("no table markup");
+    expect(notice?.message).toContain("#114");
+    expect(notice?.message).toContain("image005.png");
   });
 
   it("distinguishes the two shapes — the loud line appears only without tables", () => {
-    const withTables = imageMarkupWarning(
+    const withTables = imageMarkupNotice(
       "a",
       fixture("images-with-tables.html"),
     );
-    const without = imageMarkupWarning(
+    const without = imageMarkupNotice(
       "b",
       fixture("images-without-tables.html"),
     );
-    expect(withTables).not.toContain("no table markup");
-    expect(without).toContain("no table markup");
+    expect(withTables?.message).not.toContain("no table markup");
+    expect(without?.message).toContain("no table markup");
   });
 
   it("pluralises counts", () => {
-    const one = imageMarkupWarning("a", '<img src="a.png"><table></table>');
-    const two = imageMarkupWarning(
+    const one = imageMarkupNotice("a", '<img src="a.png"><table></table>');
+    const two = imageMarkupNotice(
       "b",
       '<img src="a.png"><img src="b.png"><table></table><table></table>',
     );
-    expect(one).toContain("1 image");
-    expect(one).toContain("1 table");
-    expect(two).toContain("2 images");
-    expect(two).toContain("2 tables");
+    expect(one?.message).toContain("1 image");
+    expect(one?.message).toContain("1 table");
+    expect(two?.message).toContain("2 images");
+    expect(two?.message).toContain("2 tables");
+  });
+
+  describe("imagesAudited (#177)", () => {
+    it("shape 1 — every payload image audited: one quiet line, no src list", () => {
+      const notice = imageMarkupNotice(
+        "disposiciones-v44",
+        fixture("images-with-tables.html"),
+        [WITH_TABLES_SRC],
+      );
+      expect(notice).toEqual({
+        level: "info",
+        message: "disposiciones-v44: 1 image, audited (#150)",
+      });
+    });
+
+    it("shape 1 — the audited set may be a superset, and duplicates count once", () => {
+      const notice = imageMarkupNotice(
+        "d",
+        '<img src="a.png"><img src="a.png"><table></table>',
+        ["a.png", "b.png"],
+      );
+      expect(notice).toEqual({
+        level: "info",
+        message: "d: 2 images, audited (#150)",
+      });
+    });
+
+    it("shape 2 — an unaudited image restores the full warning and names it", () => {
+      const html =
+        fixture("images-with-tables.html") + '<p><img src="image042.png"></p>';
+      const notice = imageMarkupNotice("disposiciones-v44", html, [
+        WITH_TABLES_SRC,
+      ]);
+      expect(notice?.level).toBe("warn");
+      // The full warning, unchanged: headline, count, and every src.
+      expect(notice?.message).toContain("2 images");
+      expect(notice?.message).toContain("1 table");
+      expect(notice?.message).toContain("image007.jpg");
+      // Plus the drift call-out, naming only what the audit never saw.
+      expect(notice?.message).toContain("#177");
+      expect(notice?.message).toContain("not in the audited set");
+      expect(notice?.message).toContain("image042.png");
+    });
+
+    it("shape 2 — drift keeps the loud #114 headline when there are no tables", () => {
+      const notice = imageMarkupNotice(
+        "ccss-bmc",
+        fixture("images-without-tables.html"),
+        ["some-other-image.png"],
+      );
+      expect(notice?.level).toBe("warn");
+      expect(notice?.message).toContain("no table markup");
+      expect(notice?.message).toContain("not in the audited set");
+      expect(notice?.message).toContain(WITHOUT_TABLES_SRC);
+    });
+
+    it("shape 2 — an empty audited list is drift, not a clean bill of health", () => {
+      const notice = imageMarkupNotice(
+        "ccss-bmc",
+        fixture("images-without-tables.html"),
+        [],
+      );
+      expect(notice?.level).toBe("warn");
+      expect(notice?.message).toContain("not in the audited set");
+    });
+
+    it("shape 3 — no audited list at all leaves the warning untouched", () => {
+      const withList = imageMarkupNotice(
+        "ccss-bmc",
+        fixture("images-without-tables.html"),
+        ["x.png"],
+      );
+      const without = imageMarkupNotice(
+        "ccss-bmc",
+        fixture("images-without-tables.html"),
+      );
+      expect(without?.level).toBe("warn");
+      expect(without?.message).not.toContain("audited");
+      // Same headline and src list; only the drift call-out differs.
+      expect(withList?.message).toContain(without!.message);
+    });
+
+    it("says nothing for an audited doc whose payload lost its images", () => {
+      expect(
+        imageMarkupNotice("d", "<p>Artículo 1.</p>", ["a.png"]),
+      ).toBeNull();
+    });
   });
 });

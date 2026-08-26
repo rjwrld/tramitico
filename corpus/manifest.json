@@ -1,5 +1,5 @@
 {
-  "$comment": "Ingestion source of truth (SPEC §3). Seeded from docs/research/corpus-viability.md §1. kinds: sinalevi (3-call API, idFichaNorma; vigente version resolved at fetch), hacienda-pdf (Playwright fetch — WAF blocks plain HTTP), cabys (curated dev-relevant subset, task #8), unresolved (official source to locate during ingestion; never ingest secondary commentary). deepLink (#134): audited per source — how deep the official URL can be linked. `articulo` = SINALEVI ficha; the viewer opens one artículo at Informacion?param1=<ficha>&param2=<idVersionNorma>&param3=3&param4=<idArticulo>, and `source.articulos` (artículo number → idArticulo) is harvested at ingestion from the «Ficha Artículo» rail in the full-text payload — _BuscarArticulo answers -1 for our fichas, so the rail is the only mapping. `page` = PDF whose primary text is a page range; the chip appends #page=<first page>. `none` = the document root is the deepest honest link, with the reason in that entry's notes.",
+  "$comment": "Ingestion source of truth (SPEC §3). Seeded from docs/research/corpus-viability.md §1. kinds: sinalevi (3-call API, idFichaNorma; vigente version resolved at fetch), hacienda-pdf (Playwright fetch — WAF blocks plain HTTP), cabys (curated dev-relevant subset, task #8), unresolved (official source to locate during ingestion; never ingest secondary commentary). deepLink (#134): audited per source — how deep the official URL can be linked. `articulo` = SINALEVI ficha; the viewer opens one artículo at Informacion?param1=<ficha>&param2=<idVersionNorma>&param3=3&param4=<idArticulo>, and `source.articulos` (artículo number → idArticulo) is harvested at ingestion from the «Ficha Artículo» rail in the full-text payload — _BuscarArticulo answers -1 for our fichas, so the rail is the only mapping. `page` = PDF whose primary text is a page range; the chip appends #page=<first page>. `none` = the document root is the deepest honest link, with the reason in that entry's notes. imagesAudited (#177): for entries carrying an IMAGE AUDIT note, every image src a human looked at in that audit — ingestion logs a quiet receipt while the payload stays inside this set, and the full #150 warning naming the new srcs the moment a re-crawl adds one.",
   "documents": [
     {
       "doc_key": "ley-iva",
@@ -20,6 +20,13 @@
         "idFichaNorma": 88953,
         "deepLink": "articulo"
       },
+      "imagesAudited": [
+        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2010-2019\\2019\\D_41779_0_88953\\147713\\image001.png",
+        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2010-2019\\2019\\D_41779_0_88953\\12D53E\\image002.png",
+        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2010-2019\\2019\\D_41779_0_88953\\12D53E\\image004.png",
+        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2010-2019\\2019\\D_41779_0_88953\\12D545\\image002.png",
+        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2010-2019\\2019\\D_41779_0_88953\\12D545\\image004.png"
+      ],
       "notes": "IMAGE AUDIT (#150): 5 images, all rendered formulas; 2 lose substance no chunk carries. (a) Artículo 31 inciso 4) — the bien-de-capital adjustment (Ca₀ − Caᵢ)/4 is image-only, so the text reads «El ajuste en cada año deberá calcularse utilizando la siguiente fórmula:» straight into «Donde:». Never cite this artículo for how the adjustment is computed; the conditions, the 15-salarios-base threshold, the i = 1..4 range and the sign rule ARE in text. (b) The retención percentage %RT = FR × (TM/13%) × 1/(1+TM) is image-only; the prose names every input and says it is deflated to exclude the IVA, but not the composition. The other 3 restate adjacent prose verbatim and lose nothing. Text-carrying primary source located but NOT ingested: La Gaceta Alcance 129 del 2019-06-11 carries both as selectable text — safe for (b), whose vigente wording is unchanged, but NOT for (a), which decreto 43173 del 3 de agosto de 2021 reformed after that publication. See #150 for the evidence."
     },
     {
@@ -31,6 +38,11 @@
         "idFichaNorma": 87720,
         "deepLink": "articulo"
       },
+      "imagesAudited": [
+        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2010-2019\\2018\\L_9635_0_87720\\14AA46\\image003.png",
+        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2010-2019\\2018\\L_9635_0_87720\\14AA46\\image005.png",
+        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2010-2019\\2018\\L_9635_0_87720\\14AA46\\image007.png"
+      ],
       "notes": "IMAGE AUDIT (#150): 3 images, all rendered formulas, all 3 image-only — and they are the same three the reglamento-renta ficha carries, because this ficha quotes TRANSITORIO I of the Reglamento de la Ley del Impuesto sobre la Renta in full under TRANSITORIO XIX. Same verdict, same reason for not replacing them: the rule is spent (fiscal periods closing 2020-12-31, pagos parciales 2021–2023). See the reglamento-renta note and #150."
     },
     {
@@ -52,6 +64,11 @@
         "idFichaNorma": 95992,
         "deepLink": "articulo"
       },
+      "imagesAudited": [
+        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2020-2029\\2021\\D_43198_0_95992\\14AA39\\image002.png",
+        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2020-2029\\2021\\D_43198_0_95992\\14AA39\\image004.png",
+        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2020-2029\\2021\\D_43198_0_95992\\14AA39\\image006.png"
+      ],
       "notes": "IMAGE AUDIT (#150): 3 images, all rendered formulas, all 3 image-only — the proration rules in TRANSITORIO I («Disposiciones sobre el Transitorio XIX de la Ley 9635»): tramo de renta and crédito fiscal prorated as (valor del periodo ordinario / 12) × meses del periodo, and impuesto determinado re-annualised as (impuesto 2020 / meses del periodo) × 12. Each chunk keeps «deberán utilizar la siguiente fórmula:» and loses the formula. Not replaced: the rule governs fiscal periods closing 2020-12-31 and pagos parciales for 2021–2023 — spent as of 2026, so ingesting a source for it would add dead law rather than an answerable fact. Never cite this Transitorio for a computation; the rest of the reglamento is unaffected."
     },
     {
@@ -162,6 +179,15 @@
         "idFichaNorma": 103276,
         "deepLink": "articulo"
       },
+      "imagesAudited": [
+        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2020-2029\\2024\\S_27_0_103276\\1701B7\\image001.png",
+        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2020-2029\\2024\\S_27_0_103276\\1701B7\\image002.png",
+        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2020-2029\\2024\\S_27_0_103276\\1701B7\\image003.png",
+        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2020-2029\\2024\\S_27_0_103276\\1701B7\\image004.png",
+        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2020-2029\\2024\\S_27_0_103276\\1701B7\\image005.png",
+        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2020-2029\\2024\\S_27_0_103276\\1701B7\\image007.jpg",
+        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2020-2029\\2024\\S_27_0_103276\\1701B7\\image009.png"
+      ],
       "notes": "Mandatory since 2025-09-01. SINALEVI vigente text is consolidated with reforms MH-DGT-RES-0001-2025 and MH-DGT-RES-0043-2025 — preferred over the original hacienda.go.cr PDF (Resolucion_General_sobre_disposiciones_tecnicas_comprobantes_electronicos_para.pdf), whose transition dates are superseded. IMAGE AUDIT (#150): 10 images, none carrying substance — 8 are Word drawing-canvas strokes (arrows and 2px rules, 2×20 to 242×2) and 2 are diagrams of digit layouts (image007.jpg, the 20-digit numeración consecutiva; image009.png, the 50-digit clave numérica). Both diagrams are redundant: incisos a)–d) and a)–h) give every field range in text, down to «del cuadragésimo tercero al quincuagésimo dígito, corresponde al código de seguridad». Nothing to replace."
     },
     {

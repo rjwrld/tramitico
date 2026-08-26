@@ -15,7 +15,7 @@ import { chunkDocument, type ChunkOptions } from "../src/lib/ingestion/chunker";
 import { createEmbedder } from "../src/lib/ingestion/embedder";
 import {
   htmlToParagraphs,
-  imageMarkupWarning,
+  imageMarkupNotice,
   textToParagraphs,
 } from "../src/lib/ingestion/extract";
 import { fetchHaciendaPdf } from "../src/lib/ingestion/hacienda";
@@ -56,6 +56,13 @@ interface ManifestDoc {
   effective_date?: string;
   /** Chunking overrides for documents with no artículo structure of their own. */
   chunking?: ChunkOptions;
+  /**
+   * Every image `src` a human has looked at, for documents carrying an IMAGE
+   * AUDIT note (#150). Present → the ingestion notice is quiet while the
+   * payload's images stay inside this set, and loud the moment a re-crawl adds
+   * one the audit never saw. Absent → the payload is warned about every run.
+   */
+  imagesAudited?: string[];
   notes?: string;
 }
 
@@ -194,9 +201,15 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
       // Images vanish in htmlToParagraphs without leaving a trace, and every
       // downstream gate stays green when they do (#150) — so the payload is
       // the last place the loss is still visible. Warn, never fail: most of
-      // these images are decorative.
-      const warning = imageMarkupWarning(doc.doc_key, norma.html);
-      if (warning) console.warn(`  ⚠ ${warning}`);
+      // these images are decorative, and the ones the manifest records as
+      // audited get a receipt rather than a warning (#177).
+      const notice = imageMarkupNotice(
+        doc.doc_key,
+        norma.html,
+        doc.imagesAudited,
+      );
+      if (notice?.level === "warn") console.warn(`  ⚠ ${notice.message}`);
+      else if (notice) console.log(`  ${notice.message}`);
       // The anchor map is harvested from the same payload the chunks come
       // from, so a chip can only ever deep-link the version it cites (#134).
       const articulos = articuloAnchors(norma.html);
