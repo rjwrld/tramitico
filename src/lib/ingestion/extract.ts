@@ -1,4 +1,5 @@
 import { decodeHTML } from "entities";
+import { type LayoutTableSpec, renderLayoutTable } from "./layout-table";
 
 /** SINALEVI navigation chrome that must never reach a chunk (SPEC §4.3). */
 const CHROME_RE =
@@ -148,9 +149,26 @@ export function htmlToParagraphs(html: string): string[] {
   return cleanParagraphs(text.split("\n"));
 }
 
-/** Plain text (e.g. pdftotext output) → cleaned paragraph list. */
-export function textToParagraphs(text: string): string[] {
+/**
+ * Plain text (e.g. pdftotext output) → cleaned paragraph list.
+ *
+ * `table` is the manifest's verdict about one column-aligned table in this
+ * document (#179). Without it the lines of a paragraph are joined with spaces,
+ * which flattens a table into a run-on line whose columns no longer line up;
+ * with it that table is re-emitted as one labelled row per paragraph first.
+ * See layout-table.ts for why the labels have to come from the manifest.
+ */
+export function textToParagraphs(
+  text: string,
+  table?: LayoutTableSpec,
+): string[] {
+  const lines = table
+    ? renderLayoutTable(text.split("\n"), table)
+    : text.split("\n");
   return cleanParagraphs(
-    text.split(/\n{2,}/).map((p) => p.replace(/\n/g, " ")),
+    lines
+      .join("\n")
+      .split(/\n{2,}/)
+      .map((p) => p.replace(/\n/g, " ")),
   );
 }
