@@ -9,6 +9,15 @@
  * a rule 4 change that fixes one by breaking the other is the failure mode
  * #182 exists to prevent.
  *
+ * A/B run 2026-08-25, answer=claude-sonnet-5, judge=claude-sonnet-4-5, same
+ * fixture and same judge on both arms: the rule 4 of HEAD~1 **fails** it 3/3
+ * (unanimous), the rule 4 of this branch passes. The old arm reproduced the
+ * production defect verbatim — «En cuanto a los servicios de educación
+ * privada, las fuentes discrepan», followed by a referral to Hacienda to
+ * check which wording rules — over a difference that is only the 2024 reform
+ * fragment [1] itself annotates. That is the evidence this suite is not
+ * vacuous: it separates the two prompts, rather than passing either way.
+ *
  * Like the conflict case it needs no database and no embeddings — the
  * fragments stand in for retrieval — so it is gated on ANTHROPIC_API_KEY alone
  * and runs in the eval lane:
