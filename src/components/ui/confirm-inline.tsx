@@ -5,7 +5,11 @@
 // container itself stays transparent: the prompt copy reads on whichever
 // surface it lands on — the page in the sidebar, the popover in the account
 // menu — and issue #160 raised dark `--destructive` until both clear AA
-// (5.68:1 and 5.13:1). See `src/lib/design/tokens.test.ts`.
+// (5.68:1 and 5.13:1). The rule that delineates the zone is its own
+// `--destructive-border` token for the same reason: as an alpha
+// (`border-destructive/30`) it measured 1.81:1 light / 1.58:1 dark against
+// those surfaces, under the 3:1 WCAG 1.4.11 floor for non-text UI (issue
+// #165). See `src/lib/design/tokens.test.ts`.
 // The element is polymorphic
 // via `render` because one call site is a list item and the other sits inside a
 // menu.
@@ -46,7 +50,7 @@ function ConfirmInline({
     props: mergeProps<"div">(
       {
         className: cn(
-          "flex flex-col gap-2 rounded-lg border border-destructive/30 p-2",
+          "flex flex-col gap-2 rounded-lg border border-destructive-border p-2",
           className,
         ),
         children: (
