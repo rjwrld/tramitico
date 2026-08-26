@@ -117,6 +117,30 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     expect(ANSWER_SYSTEM_PROMPT).toContain("[m]");
   });
 
+  it("exempts one norma at two moments from the discrepancy rule (#182)", () => {
+    // A consolidated text beside the law that reformed it is not a live
+    // conflict; rule 4 used to report one, and the groundedness judge
+    // correctly scored the invented discrepancy as unsupported.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/misma norma en dos momentos/i);
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/texto consolidado/i);
+    // The consolidated text is the current one, and it is what the answer
+    // must be built from — the earlier wording is not a second source.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/vigente/i);
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/no.{0,40}discrepan/i);
+    // The two recognisable signals a fragment pair actually carries.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/mismo artículo de la misma norma/i);
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/Así reformado/);
+  });
+
+  it("keeps two different normas on the conflict branch (#182 guards #135)", () => {
+    // The carve-out is the narrow one: same norma, stated in the fragments.
+    // Two decrees with different numbers stay a discrepancy even when one is
+    // newer — inferring repeal from recency is exactly what the conflicting
+    // sources judge fails an answer for.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/normas distintas/i);
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/aunque una sea más reciente/i);
+  });
+
   it("tells the model to keep consecutive bullets on consecutive lines (#95)", () => {
     // Renderer-side merges blank-line-separated bullets back into one list
     // (issue #95); this prompt-side rule asks the model not to introduce
