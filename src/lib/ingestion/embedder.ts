@@ -5,6 +5,7 @@
  *   - "stub"    → deterministic hash vectors, keyless local dev only
  * The Voyage-vs-OpenAI decision is the Week 2 ADR; both stay swappable here.
  */
+import { EMBEDDING_DIMENSIONS } from "../embedding-dimensions";
 
 export interface Embedder {
   provider: string;
@@ -36,8 +37,6 @@ export interface Embedder {
  */
 export const INTERACTIVE_EMBED_TIMEOUT_MS = 5_000;
 
-const STUB_DIM = 256;
-
 // Single-text embeds repeat heavily — the seeded one-click prompts (SPEC §8)
 // and test suites ask the same questions again and again — and every Voyage
 // request is precious at 3/min. Memoize lone-query embeddings module-wide.
@@ -60,12 +59,33 @@ function cachePut(provider: string, text: string, vector: number[]): void {
   queryCache.set(cacheKey(provider, text), vector);
 }
 
+/**
+ * A keyless, deterministic vector of the schema's width (#193). What it is
+ * worth as *search* depends entirely on what it is compared against:
+ *
+ *   - against other stub vectors (an empty or stub-ingested database) it is a
+ *     coherent, if crude, character-hash similarity;
+ *   - against a real corpus it is **noise, not a search**. It returns some
+ *     neighbours and they mean nothing — a hash of the question's bytes has
+ *     no relation to where voyage-3 put the chunks.
+ *
+ * The local e2e lane leans on that being harmless: it only ever asks the
+ * unmatchable question, whose weakness is structural — `isCorroborated` in
+ * `src/lib/retrieval.ts` needs a chunk surfaced by *both* legs, and a lexeme
+ * present in no chunk leaves the lexical leg empty — so the honest decline it
+ * asserts holds whatever the vector leg hands back.
+ *
+ * Being the schema's width is not optional: pgvector compares fixed
+ * dimensions strictly, so a narrower vector cannot be written to
+ * `chunks.embedding` at all, and errors inside `search_chunks` the moment
+ * there is one row to compare against.
+ */
 function stubVector(text: string): number[] {
-  const v = new Array<number>(STUB_DIM).fill(0);
+  const v = new Array<number>(EMBEDDING_DIMENSIONS).fill(0);
   let h = 2166136261;
   for (let i = 0; i < text.length; i++) {
     h = Math.imul(h ^ text.charCodeAt(i), 16777619);
-    v[Math.abs(h) % STUB_DIM] += 1;
+    v[Math.abs(h) % EMBEDDING_DIMENSIONS] += 1;
   }
   const norm = Math.sqrt(v.reduce((s, x) => s + x * x, 0)) || 1;
   return v.map((x) => x / norm);
@@ -174,7 +194,7 @@ export function createEmbedder(
   if (provider === "stub") {
     return {
       provider,
-      dimensions: STUB_DIM,
+      dimensions: EMBEDDING_DIMENSIONS,
       embed: async (texts) => texts.map(stubVector),
       embedQuery: async (text) => stubVector(text),
     };
@@ -232,7 +252,7 @@ export function createEmbedder(
     };
     return {
       provider,
-      dimensions: 1024,
+      dimensions: EMBEDDING_DIMENSIONS,
       embedQuery: interactiveQueryEmbedder({
         fetchImpl,
         timeoutMs,

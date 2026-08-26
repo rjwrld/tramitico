@@ -65,15 +65,13 @@ export default defineConfig({
       // path (#173): a decline is delivered, so it consumes the quota, which
       // is what rate-limit.local.spec.ts needs to reach a real 429.
       //
-      // The stub is only a default. A developer database carrying the
-      // ingested corpus embeds at 1024 dimensions, which the 256-dim stub
-      // cannot be compared against — `search_chunks` errors — so running
-      // against one needs the provider the corpus was embedded with:
-      //
-      //   EMBEDDINGS_PROVIDER=voyage pnpm test:e2e:local
-      //
-      // CI's throwaway stack has no corpus, so the stub is right there and
-      // no secret is involved.
+      // Since #193 the stub emits vectors of the schema's own width, so this
+      // lane runs keyless against *any* stack — CI's empty throwaway one and
+      // a developer database carrying the ingested corpus alike. The stub's
+      // vector leg is meaningless against a real corpus, which costs these
+      // specs nothing: every ask here is unmatchable, and that weakness is
+      // structural (no chunk in both legs), not a matter of what the vector
+      // leg returns.
       EMBEDDINGS_PROVIDER: process.env.EMBEDDINGS_PROVIDER || "stub",
       VOYAGE_API_KEY: process.env.VOYAGE_API_KEY ?? "",
       ANTHROPIC_API_KEY: "",

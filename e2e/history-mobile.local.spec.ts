@@ -4,11 +4,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "../src/lib/database.types";
-import {
-  gateOnCompletableAsk,
-  UNMATCHABLE_QUESTION,
-  WEAK_ANSWER_TEXT,
-} from "./support";
+import { UNMATCHABLE_QUESTION, WEAK_ANSWER_TEXT } from "./support";
 
 /**
  * The history sheet at a phone viewport, against a real signed-in session
@@ -54,9 +50,6 @@ const SEEDED = [
     answer: "El IVA se declara mensualmente, en el formulario D-104.",
   },
 ];
-
-/** Only the ask test below needs a completable ask; the rest seed rows. */
-const gateOnAsk = gateOnCompletableAsk(admin, { perTest: false });
 
 let userId: string;
 
@@ -269,8 +262,6 @@ test.describe("history sheet at a phone viewport", () => {
   test("a finished ask reaches the top of the sheet without a reload", async ({
     page,
   }) => {
-    gateOnAsk();
-
     await page.getByLabel("Su pregunta").fill(UNMATCHABLE_QUESTION);
     await page.getByRole("button", { name: "Enviar" }).click();
     // The honest fallback, streamed without a model call — the exchange is

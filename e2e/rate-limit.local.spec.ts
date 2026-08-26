@@ -2,12 +2,7 @@ import { test, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "../src/lib/database.types";
-import {
-  gateOnCompletableAsk,
-  inlineAlert,
-  UNMATCHABLE_QUESTION,
-  WEAK_ANSWER_TEXT,
-} from "./support";
+import { inlineAlert, UNMATCHABLE_QUESTION, WEAK_ANSWER_TEXT } from "./support";
 
 /**
  * Real 429 through /api/ask with a local Supabase in the loop (issue #47,
@@ -36,14 +31,6 @@ const admin = createClient<Database>(
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
   { auth: { persistSession: false } },
 );
-
-/**
- * The one database shape this lane still cannot run against: an ingested
- * corpus plus the 256-dim stub embedder, where `search_chunks` errors before
- * any ask can complete. Named and gated (#129) rather than left to fail as a
- * mysterious 200 on the second ask.
- */
-gateOnCompletableAsk(admin);
 
 // Counters persist across runs (fixed daily window), so each test starts from
 // a clean slate for every anonymous subject.

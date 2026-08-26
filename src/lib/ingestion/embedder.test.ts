@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createEmbedder, INTERACTIVE_EMBED_TIMEOUT_MS } from "./embedder";
+import { EMBEDDING_DIMENSIONS } from "../embedding-dimensions";
 
 /**
  * Fake Voyage/OpenAI endpoint: embeds each input text as a one-dimensional
@@ -75,6 +76,25 @@ describe("createEmbedder", () => {
   it('defaults to stub when EMBEDDINGS_PROVIDER is empty — CI interpolates unset vars as ""', () => {
     vi.stubEnv("EMBEDDINGS_PROVIDER", "");
     expect(createEmbedder().provider).toBe("stub");
+  });
+
+  /**
+   * The stub is only usable if the schema can hold and compare what it emits
+   * (#193): a narrower vector is rejected by `chunks.embedding` on write and
+   * errors inside `search_chunks` on read.
+   */
+  describe("stub", () => {
+    it("emits vectors of the schema's pinned width", () => {
+      expect(createEmbedder("stub").dimensions).toBe(EMBEDDING_DIMENSIONS);
+    });
+
+    it("returns that many components per text, document and query alike", async () => {
+      const embedder = createEmbedder("stub");
+      const [document] = await embedder.embed(["El IVA es del 13%."]);
+      const query = await embedder.embedQuery("¿cuánto es el IVA?");
+      expect(document).toHaveLength(EMBEDDING_DIMENSIONS);
+      expect(query).toHaveLength(EMBEDDING_DIMENSIONS);
+    });
   });
 
   it("rejects an unknown provider", () => {
