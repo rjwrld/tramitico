@@ -408,4 +408,49 @@ describe("AnswerBlock word-fade reveal (#219)", () => {
     expect(screen.getAllByRole("listitem")).toHaveLength(1);
     expect(screen.getByText(DISCLAIMER)).toBeTruthy();
   });
+
+  it("renders a live answer whole and instantly under prefers-reduced-motion", () => {
+    const matchMedia = vi.fn().mockReturnValue({ matches: true });
+    vi.stubGlobal("matchMedia", matchMedia);
+    try {
+      render(<AnswerBlock message={answer("La tarifa es 13% [1].")} busy />);
+      expect(revealTokens()).toHaveLength(0);
+      expect(screen.getAllByRole("listitem")).toHaveLength(1);
+      expect(screen.getByText(DISCLAIMER)).toBeTruthy();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("waits for the real rendered token schedule, not a naive word count of the text", () => {
+    vi.useFakeTimers();
+    try {
+      // Two resolvable markers: the rendered token stream is longer than a
+      // whitespace split of the text (each marker is its own fade token), so
+      // an end computed from the naive count would fire while the tail is
+      // still fading. The deadline must come from the delays actually
+      // handed out.
+      const message = answer(
+        "Exentos según la ley [1]. La tarifa es 13% [2].",
+        [citation, otherCitation],
+        [1, 2],
+      );
+      const { rerender } = render(<AnswerBlock message={message} busy />);
+      const spans = revealTokens();
+      const lastDelay = Math.max(
+        ...spans.map((s) => parseFloat(s.style.animationDelay || "0")),
+      );
+      rerender(<AnswerBlock message={message} busy={false} />);
+
+      // Just before the last token's fade has finished: still revealing.
+      act(() => vi.advanceTimersByTime(Math.floor(lastDelay) + 100));
+      expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+
+      // Once the last fade is over (200ms after its start), the reveal ends.
+      act(() => vi.advanceTimersByTime(200));
+      expect(screen.getAllByRole("listitem")).toHaveLength(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

@@ -23,7 +23,7 @@
 import * as React from "react";
 
 import type { AskStatusStage } from "@/lib/answer/contract";
-import { cn } from "@/lib/utils";
+import { cn, prefersReducedMotion } from "@/lib/utils";
 
 const STAGE_LABEL: Record<AskStatusStage, string> = {
   buscando: "Consultando los documentos oficiales…",
@@ -56,14 +56,6 @@ function sameState(
   return a.kind === "stage"
     ? a.stage === (b as { stage: AskStatusStage }).stage
     : a.text === (b as { text: string }).text;
-}
-
-function prefersReducedMotion(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  );
 }
 
 /**
@@ -125,11 +117,22 @@ export function AskStatus({
   }
   const swapping = !sameState(state, shown);
 
+  // The swap timer keys on `swapping` alone and reads the target through a
+  // ref: `state` is a fresh object literal every parent render, and having it
+  // as a dependency would clear and restart the timeout on every unrelated
+  // re-render mid-swap — under a fast delta stream the label would stay stuck
+  // at opacity-0. With the ref, one timer per swap; if the stage changes
+  // again inside the window, the swap lands on the latest stage (a stage that
+  // lived under 150ms coalesces away rather than flashing).
+  const stateRef = React.useRef(state);
+  React.useEffect(() => {
+    stateRef.current = state;
+  });
   React.useEffect(() => {
     if (!swapping) return;
-    const timer = setTimeout(() => setShown(state), CROSSFADE_MS);
+    const timer = setTimeout(() => setShown(stateRef.current), CROSSFADE_MS);
     return () => clearTimeout(timer);
-  }, [swapping, state]);
+  }, [swapping]);
 
   if (shown === null) return null;
   return (

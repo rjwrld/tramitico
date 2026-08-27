@@ -34,6 +34,7 @@ import { renumberCitationMarkers } from "@/lib/answer/citations";
 import { AnswerProse } from "@/components/chat/answer-prose";
 import { AskStatus, type AskStatusState } from "@/components/chat/ask-status";
 import { SelloRow } from "@/components/sello";
+import { prefersReducedMotion } from "@/lib/utils";
 
 export const DISCLAIMER =
   "No es asesoría legal ni contable — verifique con Hacienda.";
@@ -60,15 +61,7 @@ const WORD_FADE_MS = 200;
  * rather than in chat.tsx since #219: the moment starts when the summary is
  * actually shown — after the reveal — not when the stream finished.
  */
-export const COMPLETION_DISPLAY_MS = 3000;
-
-function prefersReducedMotion(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  );
-}
+const COMPLETION_DISPLAY_MS = 3000;
 
 type RevealPhase =
   /** Live exchange, no prose yet — the stage label owns the screen. */
@@ -97,6 +90,14 @@ function useWordReveal(text: string, busy: boolean) {
   );
   const startRef = React.useRef<number | null>(null);
   const delaysRef = React.useRef<number[]>([]);
+  /**
+   * When the latest-scheduled token starts its fade, in epoch ms. The
+   * close-out effect ends the reveal at this plus the fade — measured off the
+   * delays actually handed out, so it cannot disagree with what AnswerProse
+   * rendered (a naive re-count of `text` would: markers and bold runs make
+   * the rendered token stream longer than a whitespace split).
+   */
+  const lastFadeStartRef = React.useRef(0);
 
   // Arm on the first prose of a live exchange, or resolve `pending` to
   // `done` outright (reduced motion; an exchange that ended before any
@@ -113,19 +114,25 @@ function useWordReveal(text: string, busy: boolean) {
 
   React.useEffect(() => {
     if (phase !== "holding") return;
+    // `startRef` is set by the first `delayFor` call, which happens during
+    // the render that committed before this effect — the fallback only fires
+    // for the degenerate answer that renders no fade token at all (e.g. its
+    // only content was an unresolvable marker), where there is nothing to
+    // hold for.
     const timer = setTimeout(
       () => setPhase("revealing"),
-      Math.max(0, startRef.current! - Date.now()),
+      Math.max(0, (startRef.current ?? Date.now()) - Date.now()),
     );
     return () => clearTimeout(timer);
   }, [phase]);
 
   // Close out once the exchange is over and the full text is in hand: the
-  // last token's slot plus its fade is when the reveal is done.
+  // reveal is done when the last fade actually scheduled has finished. `text`
+  // stays a dependency so tokens that arrive after `busy` flips still extend
+  // the deadline (their render precedes this effect's re-run).
   React.useEffect(() => {
     if (busy || phase === "pending" || phase === "done") return;
-    const tokens = text.split(/(?<= )/).filter((t) => t !== "").length;
-    const end = startRef.current! + tokens * REVEAL_TOKEN_MS + WORD_FADE_MS;
+    const end = lastFadeStartRef.current + WORD_FADE_MS;
     const timer = setTimeout(
       () => setPhase("done"),
       Math.max(0, end - Date.now()),
@@ -139,12 +146,13 @@ function useWordReveal(text: string, busy: boolean) {
     // Lazy clock start (write-once, like a ref's lazy init): the first token
     // ever asked for — during the first "holding" render, which always
     // precedes the timer effects — opens the schedule at now + the hold.
-    startRef.current ??= Date.now() + VERIFY_HOLD_MS;
-    const delay = Math.max(
-      0,
-      startRef.current + index * REVEAL_TOKEN_MS - Date.now(),
-    );
+    const now = Date.now();
+    startRef.current ??= now + VERIFY_HOLD_MS;
+    const delay = Math.max(0, startRef.current + index * REVEAL_TOKEN_MS - now);
     delaysRef.current[index] = delay;
+    // The token's fade starts `delay` from now — its slot, or immediately
+    // for a token that arrived past its slot (the catch-up).
+    lastFadeStartRef.current = Math.max(lastFadeStartRef.current, now + delay);
     return delay;
   }, []);
 

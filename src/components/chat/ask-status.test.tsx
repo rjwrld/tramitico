@@ -128,6 +128,42 @@ describe("AskStatus", () => {
       rerender(<AskStatus state={null} />);
       expect(screen.queryByRole("status")).toBeNull();
     });
+
+    it("does not restart the swap timer when unrelated re-renders rebuild the state object", () => {
+      vi.useFakeTimers();
+      try {
+        const { rerender } = render(
+          <AskStatus state={{ kind: "stage", stage: "redactando" }} />,
+        );
+        rerender(<AskStatus state={{ kind: "stage", stage: "verificando" }} />);
+        // Parent re-renders mid-swap with a fresh (but equal) object each
+        // time — the pending 150ms timer must survive them.
+        act(() => vi.advanceTimersByTime(100));
+        rerender(<AskStatus state={{ kind: "stage", stage: "verificando" }} />);
+        act(() => vi.advanceTimersByTime(50));
+        expect(screen.getByRole("status").textContent).toBe(
+          "Verificando citas…",
+        );
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("swaps instantly under prefers-reduced-motion", () => {
+      const matchMedia = vi.fn().mockReturnValue({ matches: true });
+      vi.stubGlobal("matchMedia", matchMedia);
+      try {
+        const { rerender } = render(
+          <AskStatus state={{ kind: "stage", stage: "redactando" }} />,
+        );
+        rerender(<AskStatus state={{ kind: "stage", stage: "verificando" }} />);
+        expect(screen.getByRole("status").textContent).toBe(
+          "Verificando citas…",
+        );
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    });
   });
 });
 
