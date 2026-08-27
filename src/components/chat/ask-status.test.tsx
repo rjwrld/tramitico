@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { describe, expect, it, afterEach } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { describe, expect, it, afterEach, vi } from "vitest";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import {
   AskStatus,
   completionAnnouncement,
@@ -71,11 +71,64 @@ describe("AskStatus", () => {
     expect(node.getAttribute("aria-hidden")).toBe("true");
   });
 
-  // DESIGN §8 names exactly three sanctioned motion moments, none of which
-  // is this indicator; its own crossfade allowance is only ≤150ms and only
-  // "at most". A mount/unmount text swap is instant instead, which stays
-  // inside that budget and needs no CSS transition — so there is nothing for
-  // `prefers-reduced-motion` to disable, and no transition classes to assert.
+  // #219 (DESIGN §8 as amended): the wait is the opening of motion moment 2 —
+  // seal-ring, label shine, and a 150ms crossfade between stage labels. The
+  // ring and shine are CSS classes whose reduced-motion fallbacks live in
+  // globals.css; what the component owns is the markup and the timed swap.
+  describe("wait treatment (#219)", () => {
+    it("shows the verificando label", () => {
+      render(<AskStatus state={{ kind: "stage", stage: "verificando" }} />);
+      expect(screen.getByRole("status").textContent).toBe("Verificando citas…");
+    });
+
+    it("renders the seal-ring on a stage, outside the accessibility tree", () => {
+      render(<AskStatus state={{ kind: "stage", stage: "redactando" }} />);
+      const ring = screen.getByRole("status").querySelector(".seal-ring");
+      expect(ring).not.toBeNull();
+      expect(ring!.getAttribute("aria-hidden")).toBe("true");
+      expect(ring!.querySelectorAll("i")).toHaveLength(8);
+    });
+
+    it("keeps the completion summary ring-free and shine-free", () => {
+      render(
+        <AskStatus state={{ kind: "complete", text: "Respuesta lista." }} />,
+      );
+      const region = screen.getByRole("status");
+      expect(region.querySelector(".seal-ring")).toBeNull();
+      expect(region.className).not.toContain("status-shimmer");
+    });
+
+    it("crossfades a stage change: old label holds 150ms, then the new one lands", () => {
+      vi.useFakeTimers();
+      try {
+        const { rerender } = render(
+          <AskStatus state={{ kind: "stage", stage: "redactando" }} />,
+        );
+        rerender(<AskStatus state={{ kind: "stage", stage: "verificando" }} />);
+
+        // Mid-fade: still the old text, faded out.
+        const region = screen.getByRole("status");
+        expect(region.textContent).toBe("Redactando la respuesta…");
+        expect(region.className).toContain("opacity-0");
+
+        act(() => vi.advanceTimersByTime(150));
+        expect(screen.getByRole("status").textContent).toBe(
+          "Verificando citas…",
+        );
+        expect(screen.getByRole("status").className).not.toContain("opacity-0");
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("appears and disappears instantly — the crossfade is only for swaps", () => {
+      const { rerender } = render(
+        <AskStatus state={{ kind: "stage", stage: "buscando" }} />,
+      );
+      rerender(<AskStatus state={null} />);
+      expect(screen.queryByRole("status")).toBeNull();
+    });
+  });
 });
 
 describe("completionAnnouncement", () => {

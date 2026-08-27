@@ -40,6 +40,43 @@ export interface AnswerReferences {
   anchorPrefix: string;
 }
 
+/**
+ * The word-fade reveal (#219, DESIGN §8 moment 2). While active, every prose
+ * token — a word, or a `[k]` superscript — renders wrapped in a span whose
+ * `animation-delay` is `delayFor(i)`, with `i` the token's position in
+ * reading order. The delay schedule is the caller's (answer-block.tsx owns
+ * the clock and the catch-up rule); this file only walks the tree in render
+ * order and hands out consecutive indices. When `reveal` is absent the tree
+ * is exactly the pre-#219 one — no spans, no animation.
+ */
+export interface AnswerReveal {
+  /** ms until token `i` fades in — must be stable per token across renders. */
+  delayFor: (index: number) => number;
+}
+
+/** `AnswerReveal` plus the render-order token counter one pass consumes. */
+interface RevealCtx {
+  delayFor: (index: number) => number;
+  counter: { i: number };
+}
+
+/** One revealed token: consumes the next index, fades on its schedule. */
+function fadeToken(
+  node: React.ReactNode,
+  key: string,
+  reveal: RevealCtx,
+): React.ReactNode {
+  return (
+    <span
+      key={key}
+      className="animate-word-fade motion-reduce:animate-none"
+      style={{ animationDelay: `${reveal.delayFor(reveal.counter.i++)}ms` }}
+    >
+      {node}
+    </span>
+  );
+}
+
 /** A table row: pipe-delimited, opening and closing pipe required. */
 const TABLE_LINE = /^\s*\|.*\|\s*$/;
 /** `---`, `:--`, `--:` — the GFM alignment rule row, which we drop. */
@@ -66,6 +103,7 @@ function inline(
   text: string,
   key: string,
   references?: AnswerReferences,
+  reveal?: RevealCtx,
 ): React.ReactNode[] {
   const parts = text.split(/\*\*/);
   // Even part count ⇒ odd delimiter count ⇒ the last part is never closed.
@@ -73,11 +111,11 @@ function inline(
   return parts.map((part, i) =>
     i % 2 === 1 && i < closed ? (
       <strong key={`${key}-${i}`} className="font-medium">
-        {leaf(part, `${key}-${i}`, references)}
+        {leaf(part, `${key}-${i}`, references, reveal)}
       </strong>
     ) : (
       <React.Fragment key={`${key}-${i}`}>
-        {leaf(part, `${key}-${i}`, references)}
+        {leaf(part, `${key}-${i}`, references, reveal)}
       </React.Fragment>
     ),
   );
@@ -99,12 +137,21 @@ function leaf(
   text: string,
   key: string,
   references?: AnswerReferences,
+  reveal?: RevealCtx,
 ): React.ReactNode[] {
-  return text.split(REFERENCE).map((piece, i) => {
-    if (i % 2 === 0) return piece;
+  return text.split(REFERENCE).flatMap((piece, i): React.ReactNode[] => {
+    if (i % 2 === 0) {
+      if (!reveal) return [piece];
+      // Split on trailing spaces so each word rides its own fade; the space
+      // travels with the word before it, keeping the text node identical.
+      return piece
+        .split(/(?<= )/)
+        .filter((token) => token !== "")
+        .map((token, j) => fadeToken(token, `${key}-w-${i}-${j}`, reveal));
+    }
     const ordinal = Number(piece);
-    if (!references || ordinal < 1 || ordinal > references.count) return null;
-    return (
+    if (!references || ordinal < 1 || ordinal > references.count) return [];
+    const sup = (
       <sup key={`${key}-r-${i}`} className="ml-px font-mono tabular-nums">
         <a
           href={`#${selloAnchorId(references.anchorPrefix, ordinal)}`}
@@ -115,6 +162,8 @@ function leaf(
         </a>
       </sup>
     );
+    // A reference is one token like any word — it fades in whole (#219).
+    return [reveal ? fadeToken(sup, `${key}-rw-${i}`, reveal) : sup];
   });
 }
 
@@ -191,10 +240,12 @@ function Table({
   lines,
   keyPrefix,
   references,
+  reveal,
 }: {
   lines: string[];
   keyPrefix: string;
   references?: AnswerReferences;
+  reveal?: RevealCtx;
 }) {
   const rows = lines
     .map(cells)
@@ -213,7 +264,7 @@ function Table({
                 scope="col"
                 className="py-2 pr-4 text-left font-normal text-muted-foreground last:pr-0"
               >
-                {inline(cell, `${keyPrefix}-h-${i}`, references)}
+                {inline(cell, `${keyPrefix}-h-${i}`, references, reveal)}
               </th>
             ))}
           </tr>
@@ -223,7 +274,7 @@ function Table({
             <tr key={r} className="border-b border-border last:border-b-0">
               {row.map((cell, c) => (
                 <td key={c} className="py-2 pr-4 align-top last:pr-0">
-                  {inline(cell, `${keyPrefix}-${r}-${c}`, references)}
+                  {inline(cell, `${keyPrefix}-${r}-${c}`, references, reveal)}
                 </td>
               ))}
             </tr>
@@ -238,16 +289,23 @@ function Segment({
   run,
   keyPrefix,
   references,
+  reveal,
 }: {
   run: Run;
   keyPrefix: string;
   references?: AnswerReferences;
+  reveal?: RevealCtx;
 }) {
   const { kind, lines } = run;
 
   if (kind === "table")
     return (
-      <Table lines={lines} keyPrefix={keyPrefix} references={references} />
+      <Table
+        lines={lines}
+        keyPrefix={keyPrefix}
+        references={references}
+        reveal={reveal}
+      />
     );
 
   if (kind === "bullet") {
@@ -255,7 +313,7 @@ function Segment({
       <ul className="my-4 list-disc pl-5 marker:text-border">
         {lines.map((line, i) => (
           <li key={i} className="py-0.5 pl-1">
-            {inline(line.slice(2), `${keyPrefix}-${i}`, references)}
+            {inline(line.slice(2), `${keyPrefix}-${i}`, references, reveal)}
           </li>
         ))}
       </ul>
@@ -267,7 +325,12 @@ function Segment({
   if (kind === "heading") {
     return (
       <p className="mt-6 mb-2 font-medium first:mt-0">
-        {inline(lines[0].replace(HEADING_LINE, ""), keyPrefix, references)}
+        {inline(
+          lines[0].replace(HEADING_LINE, ""),
+          keyPrefix,
+          references,
+          reveal,
+        )}
       </p>
     );
   }
@@ -275,7 +338,7 @@ function Segment({
   // Soft line breaks inside a paragraph flow, as they would in markdown.
   return (
     <p className="my-4 first:mt-0 last:mb-0">
-      {inline(lines.join(" "), keyPrefix, references)}
+      {inline(lines.join(" "), keyPrefix, references, reveal)}
     </p>
   );
 }
@@ -283,11 +346,19 @@ function Segment({
 export function AnswerProse({
   text,
   references,
+  reveal,
 }: {
   text: string;
   /** Omit and `[k]` markers render as nothing — see `leaf`. */
   references?: AnswerReferences;
+  /** Present while the #219 word-fade reveal is running — see `AnswerReveal`. */
+  reveal?: AnswerReveal | null;
 }) {
+  // One counter per render pass: `Segment` renders synchronously in reading
+  // order, so consecutive `counter.i` values are reading order.
+  const revealCtx: RevealCtx | undefined = reveal
+    ? { delayFor: reveal.delayFor, counter: { i: 0 } }
+    : undefined;
   const blockRuns = text
     .split(/\n{2,}/)
     .filter((block) => block.trim() !== "")
@@ -302,6 +373,7 @@ export function AnswerProse({
           run={run}
           keyPrefix={String(i)}
           references={references}
+          reveal={revealCtx}
         />
       ))}
     </div>

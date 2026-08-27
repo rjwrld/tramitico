@@ -59,14 +59,6 @@ const transport = new DefaultChatTransport<AskUIMessage>({
   }),
 });
 
-/**
- * How long the completion summary sits in the status region (req 3: it
- * announces, "then clears visually") before it unmounts. Long enough for a
- * screen reader to have started reading a one-sentence announcement; short
- * enough that it reads as a moment, not a lingering banner.
- */
-const COMPLETION_ANNOUNCEMENT_MS = 3000;
-
 /** The status region's completion state: which message it belongs to, and for how long. */
 interface Completion {
   messageId: string;
@@ -123,14 +115,10 @@ export function Chat() {
       },
     });
 
-  React.useEffect(() => {
-    if (!completion) return;
-    const timer = setTimeout(
-      () => setCompletion(null),
-      COMPLETION_ANNOUNCEMENT_MS,
-    );
-    return () => clearTimeout(timer);
-  }, [completion]);
+  // The summary's 3s display window lives in answer-block.tsx since #219 —
+  // it starts when the summary is actually shown (after the word-fade
+  // reveal), not when the stream finished. This state only needs to survive
+  // until then; the next ask clears it either way.
 
   const busy = status === "submitted" || status === "streaming";
   const ask = (question: string) => {

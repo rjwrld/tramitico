@@ -414,33 +414,58 @@ describe("Chat staged ask status (#72)", () => {
     expect(ariaBusy()).toBe("true");
   });
 
-  it("hides the indicator the moment the first text delta lands (req 4)", () => {
-    chat.messages = [
-      question("q1", "¿Cómo me inscribo en Hacienda?"),
-      statusMessage("a1", "redactando", "Con el formulario"),
-    ];
-    chat.status = "streaming";
-    render(<Chat />);
+  it("retires the indicator once the first word is due — after the #219 hold, not before", () => {
+    vi.useFakeTimers();
+    try {
+      chat.messages = [
+        question("q1", "¿Cómo me inscribo en Hacienda?"),
+        statusMessage("a1", "redactando", "Con el formulario"),
+      ];
+      chat.status = "streaming";
+      render(<Chat />);
 
-    expect(screen.queryByRole("status")).toBeNull();
-    expect(screen.getByText(/Con el formulario/)).toBeTruthy();
-    // Still mid-exchange — the container itself stays busy even though the
-    // stage label is gone.
-    expect(ariaBusy()).toBe("true");
+      // #219: prose arriving no longer retires the stage instantly — the
+      // label holds through the legibility beat while the (still invisible)
+      // words wait for their slots.
+      expect(screen.getByRole("status")).toBeTruthy();
+      // The prose is in the tree already, one fade token per word.
+      expect(
+        screen.getByText(
+          (_, node) =>
+            node?.tagName === "P" && node.textContent === "Con el formulario",
+        ),
+      ).toBeTruthy();
+
+      act(() => vi.advanceTimersByTime(400));
+      expect(screen.queryByRole("status")).toBeNull();
+      // Still mid-exchange — the container itself stays busy even though the
+      // stage label is gone.
+      expect(ariaBusy()).toBe("true");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("never shows the redactando label for a weak-retrieval answer (req 5)", () => {
-    // The route never writes a "redactando" status for the canned fallback —
-    // only "buscando", immediately followed by text.
-    chat.messages = [
-      question("q1", "¿Qué es el impuesto sobre loterías extranjeras?"),
-      statusMessage("a1", "buscando", "No encontré información suficiente."),
-    ];
-    chat.status = "streaming";
-    render(<Chat />);
+    vi.useFakeTimers();
+    try {
+      // The route never writes a "redactando" status for the canned fallback —
+      // only "buscando", immediately followed by text; the #219 hold shows
+      // that same buscando label, never a stage the route didn't report.
+      chat.messages = [
+        question("q1", "¿Qué es el impuesto sobre loterías extranjeras?"),
+        statusMessage("a1", "buscando", "No encontré información suficiente."),
+      ];
+      chat.status = "streaming";
+      render(<Chat />);
 
-    expect(screen.queryByRole("status")).toBeNull();
-    expect(screen.queryByText("Redactando la respuesta…")).toBeNull();
+      expect(screen.queryByText("Redactando la respuesta…")).toBeNull();
+      act(() => vi.advanceTimersByTime(400));
+      expect(screen.queryByRole("status")).toBeNull();
+      expect(screen.queryByText("Redactando la respuesta…")).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("clears aria-busy once the exchange is done", () => {
@@ -660,6 +685,7 @@ describe("Chat stop and retry controls (#74)", () => {
   // successful finish, and whatever already streamed in — text, sellos, the
   // disclaimer — must survive the stop untouched.
   it("stopping mid-stream keeps the partial answer, sellos, and disclaimer, and never announces completion", () => {
+    vi.useFakeTimers();
     const partial: AskUIMessage = {
       id: "a1",
       role: "assistant",
@@ -686,17 +712,21 @@ describe("Chat stop and retry controls (#74)", () => {
       }),
     );
 
-    expect(screen.queryByRole("status")).toBeNull();
-    expect(screen.queryByText(/Respuesta lista/)).toBeNull();
-    expect(screen.getByText(/Con el formul/)).toBeTruthy();
-    expect(screen.getByText("Reglamento IVA · Art. 11")).toBeTruthy();
-    expect(screen.getByText(/No es asesoría legal ni contable/)).toBeTruthy();
-
     // Composer re-enables (issue's own scenario: "click Detener → stream
     // stops → composer re-enables"). `status` is the SDK's real signal for
     // this — once it settles to "ready" the slot swaps back from Detener.
     chat.status = "ready";
     rerender(<Chat />);
+    // The #219 reveal for the few words that made it in runs out its clock;
+    // what survives the stop is everything that already streamed.
+    act(() => vi.advanceTimersByTime(2000));
+    vi.useRealTimers();
+
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.queryByText(/Respuesta lista/)).toBeNull();
+    expect(screen.getByText(/Con el formul/)).toBeTruthy();
+    expect(screen.getByText("Reglamento IVA · Art. 11")).toBeTruthy();
+    expect(screen.getByText(/No es asesoría legal ni contable/)).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Detener" })).toBeNull();
     expect(screen.getByRole("button", { name: "Enviar" })).toBeTruthy();
   });
