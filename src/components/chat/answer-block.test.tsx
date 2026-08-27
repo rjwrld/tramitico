@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
-import { describe, expect, it, afterEach } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, afterEach, vi } from "vitest";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { AnswerBlock, DISCLAIMER } from "@/components/chat/answer-block";
 import {
   CITATIONS_PART_ID,
@@ -260,22 +266,32 @@ describe("AnswerBlock staged status (#72)", () => {
     );
   });
 
-  it("hides the stage label once prose exists, even while still busy (req 4)", () => {
-    const message: AskUIMessage = {
-      id: "a1",
-      role: "assistant",
-      parts: [
-        {
-          type: "data-status",
-          id: STATUS_PART_ID,
-          data: { stage: "redactando" },
-        },
-        { type: "text", text: "Con el formulario" },
-      ],
-    };
-    render(<AnswerBlock message={message} busy />);
-    expect(screen.queryByRole("status")).toBeNull();
-    expect(ariaBusy()).toBe("true");
+  it("holds the stage label through the #219 beat, then retires it while still busy (req 4)", () => {
+    vi.useFakeTimers();
+    try {
+      const message: AskUIMessage = {
+        id: "a1",
+        role: "assistant",
+        parts: [
+          {
+            type: "data-status",
+            id: STATUS_PART_ID,
+            data: { stage: "verificando" },
+          },
+          { type: "text", text: "Con el formulario" },
+        ],
+      };
+      render(<AnswerBlock message={message} busy />);
+      // Prose exists but is still invisible (word-fade slots pending), so
+      // «Verificando citas…» keeps the screen for its legibility beat.
+      expect(screen.getByRole("status").textContent).toBe("Verificando citas…");
+
+      act(() => vi.advanceTimersByTime(400));
+      expect(screen.queryByRole("status")).toBeNull();
+      expect(ariaBusy()).toBe("true");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("ignores a stage snapshot once the message is no longer the busy one", () => {
@@ -293,5 +309,148 @@ describe("AnswerBlock staged status (#72)", () => {
     expect(screen.getByRole("status").textContent).toBe(
       "Respuesta lista, 1 fuente citada.",
     );
+  });
+
+  it("clears the completion summary after its display window", () => {
+    vi.useFakeTimers();
+    try {
+      render(
+        <AnswerBlock
+          message={answer("La tarifa es 13% [1].")}
+          completionText="Respuesta lista, 1 fuente citada."
+        />,
+      );
+      expect(screen.getByRole("status")).toBeTruthy();
+      act(() => vi.advanceTimersByTime(3000));
+      expect(screen.queryByRole("status")).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe("AnswerBlock word-fade reveal (#219)", () => {
+  /** Tokens carrying the reveal animation, in document order. */
+  function revealTokens(): HTMLElement[] {
+    return Array.from(
+      document.querySelectorAll('[data-slot="answer"] .animate-word-fade'),
+    );
+  }
+
+  it("wraps each word of a live answer in a fade token with an increasing delay", () => {
+    vi.useFakeTimers();
+    try {
+      render(
+        <AnswerBlock
+          message={answer("La tarifa general es 13% [1].", [citation], [1])}
+          busy
+        />,
+      );
+
+      const tokens = revealTokens();
+      // "La ", "tarifa ", "general ", "es ", "13%", the [1] sup, "."
+      expect(tokens.length).toBe(7);
+      const delays = tokens.map((t) =>
+        parseFloat(t.style.animationDelay || "0"),
+      );
+      // The schedule opens past the verificando hold and walks forward at
+      // the reveal cadence — strictly increasing, ~8.3ms apart.
+      expect(delays[0]).toBeGreaterThanOrEqual(390);
+      for (let i = 1; i < delays.length; i++) {
+        expect(delays[i]).toBeGreaterThan(delays[i - 1]);
+      }
+      // The prose text is intact — the spans only pace, never rewrite.
+      const prose = document.querySelector('[data-slot="answer"] > div');
+      expect(prose?.textContent).toBe("La tarifa general es 13%1.");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("keeps sellos, disclaimer and completion back until the reveal has finished", () => {
+    vi.useFakeTimers();
+    try {
+      const message = answer("La tarifa es 13% [1].");
+      const { rerender } = render(<AnswerBlock message={message} busy />);
+
+      // Mid-reveal: prose is on its way, nothing below it yet.
+      expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+      expect(screen.queryByText(DISCLAIMER)).toBeNull();
+
+      // The exchange finishes; the reveal still owes the last words.
+      rerender(
+        <AnswerBlock
+          message={message}
+          busy={false}
+          completionText="Respuesta lista, 1 fuente citada."
+        />,
+      );
+      expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+      expect(screen.queryByText(/Respuesta lista/)).toBeNull();
+
+      // Hold (400ms) + 6 tokens × ~8.3ms + fade (200ms) < 1s.
+      act(() => vi.advanceTimersByTime(1000));
+      expect(screen.getAllByRole("listitem")).toHaveLength(1);
+      expect(screen.getByText(DISCLAIMER)).toBeTruthy();
+      expect(screen.getByRole("status").textContent).toBe(
+        "Respuesta lista, 1 fuente citada.",
+      );
+      // Once done, the pacing spans are gone — plain prose again.
+      expect(revealTokens()).toHaveLength(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("renders a history-restored answer whole and instantly — no reveal", () => {
+    render(<AnswerBlock message={answer("La tarifa es 13% [1].")} />);
+    expect(revealTokens()).toHaveLength(0);
+    expect(screen.getAllByRole("listitem")).toHaveLength(1);
+    expect(screen.getByText(DISCLAIMER)).toBeTruthy();
+  });
+
+  it("renders a live answer whole and instantly under prefers-reduced-motion", () => {
+    const matchMedia = vi.fn().mockReturnValue({ matches: true });
+    vi.stubGlobal("matchMedia", matchMedia);
+    try {
+      render(<AnswerBlock message={answer("La tarifa es 13% [1].")} busy />);
+      expect(revealTokens()).toHaveLength(0);
+      expect(screen.getAllByRole("listitem")).toHaveLength(1);
+      expect(screen.getByText(DISCLAIMER)).toBeTruthy();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("waits for the real rendered token schedule, not a naive word count of the text", () => {
+    vi.useFakeTimers();
+    try {
+      // Two resolvable markers: the rendered token stream is longer than a
+      // whitespace split of the text (each marker is its own fade token), so
+      // an end computed from the naive count would fire while the tail is
+      // still fading. The deadline must come from the delays actually
+      // handed out.
+      const message = answer(
+        "Exentos según la ley [1]. La tarifa es 13% [2].",
+        [citation, otherCitation],
+        [1, 2],
+      );
+      const { rerender } = render(<AnswerBlock message={message} busy />);
+      const spans = revealTokens();
+      const lastDelay = Math.max(
+        ...spans.map((s) => parseFloat(s.style.animationDelay || "0")),
+      );
+      rerender(<AnswerBlock message={message} busy={false} />);
+
+      // Just before the last token's fade has finished: still revealing.
+      act(() => vi.advanceTimersByTime(Math.floor(lastDelay) + 100));
+      expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+
+      // Once the last fade is over (200ms after its start), the reveal ends.
+      act(() => vi.advanceTimersByTime(200));
+      expect(screen.getAllByRole("listitem")).toHaveLength(2);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

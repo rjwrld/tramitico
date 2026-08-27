@@ -106,10 +106,13 @@ export function boundTurns(turns: readonly unknown[]): ConversationTurn[] {
 
 /**
  * Stages the route reports while the answer is still on its way. `buscando`
- * covers retrieval + rerank, `redactando` starts when the model does. The
- * stream carries no stage once text flows — the text is the status.
+ * covers retrieval + rerank, `redactando` starts when the model does, and
+ * `verificando` is the citation-invariant check between a finished generation
+ * and the first text on the wire (#131, #219) — a retry flips back to
+ * `redactando` and earns its own `verificando`. The stream carries no stage
+ * once text flows — the text is the status.
  */
-export type AskStatusStage = "buscando" | "redactando";
+export type AskStatusStage = "buscando" | "redactando" | "verificando";
 
 /** Data parts the ask stream may carry alongside text. */
 export type AskDataParts = {

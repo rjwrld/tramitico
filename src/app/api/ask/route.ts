@@ -598,6 +598,9 @@ export async function POST(request: Request): Promise<Response> {
       // invariant or not at all.
       let answer: string | null = null;
       for (let attempt = 1; attempt <= MAX_ANSWER_ATTEMPTS; attempt += 1) {
+        // The retry is the model writing again, so the stage says so (#219) —
+        // the first attempt rides the `redactando` written above.
+        if (attempt > 1) writeStatus(writer, "redactando");
         let text: string;
         try {
           text = await generateAnswer(
@@ -627,6 +630,10 @@ export async function POST(request: Request): Promise<Response> {
         // a reader who has already left.
         if (request.signal.aborted) return;
 
+        // #219: the invariant check is a real pipeline moment, so it gets a
+        // stage. The check itself takes microseconds — the client is the one
+        // that holds the label on screen long enough to be legible.
+        writeStatus(writer, "verificando");
         const verdict = validateCitations(text, chunks.length);
         if (verdict.ok) {
           answer = text;

@@ -200,11 +200,17 @@ Restrained and fast — precision, not theater. Durations 120–200ms, ease-out-
 budget is spent on exactly three moments:
 
 1. **Stamp settle** on citations (§5) — the signature.
-2. **Streaming text** — native token flow, no skeleton shimmer.
+2. **Answer reveal** (#169/#219) — since #131 the answer is generated, validated, and only then
+   sent, so token flow is a **paced replay of a validated answer, not live streaming**: each word
+   fades in at 120 palabras/s (200ms fade, catch-up bounded by the schedule), and only when the
+   last word lands do the sellos stamp. The wait is this moment's opening — staged labels
+   (buscando → redactando → verificando) with the seal-ring (eight dots chasing a sello rim, in
+   `--sello`) and label shine, crossfading 150ms between stages. Still no skeleton shimmer.
 3. **Theme toggle** — 150ms crossfade on ground colors only.
 
 No scroll-triggered reveals, no staggered section entrances, no bounce. Every animation has a
-`prefers-reduced-motion` alternative (instant or crossfade).
+`prefers-reduced-motion` alternative (instant or crossfade) — for moment 2 that means no ring,
+static labels, instant text.
 
 ## 9. Voice & copy
 

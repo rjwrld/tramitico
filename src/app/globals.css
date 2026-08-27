@@ -127,6 +127,98 @@
   }
 }
 
+/* Answer reveal (DESIGN §8 as amended by #219) — each word of a validated
+   answer fades in on its own schedule; the per-token `animation-delay` is what
+   paces the reveal, so the keyframe itself is just the fade. ease-out-quart,
+   like the stamp it hands off to. */
+@theme inline {
+  --animate-word-fade: word-fade 200ms cubic-bezier(0.25, 1, 0.5, 1) both;
+
+  @keyframes word-fade {
+    from {
+      opacity: 0;
+      filter: blur(3px);
+    }
+    to {
+      opacity: 1;
+      filter: blur(0);
+    }
+  }
+}
+
+/* The wait indicator (#219): eight dots on the rim of a 20px seal — the sello
+   being formed, not an "AI orb" — plus the label shine. Both are the opening
+   of DESIGN §8's amended moment 2 and disappear entirely under
+   `prefers-reduced-motion` (the label falls back to its plain muted color). */
+@layer components {
+  .seal-ring {
+    position: relative;
+    flex: none;
+    width: 20px;
+    height: 20px;
+  }
+  .seal-ring > i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 3px;
+    height: 3px;
+    margin: -1.5px;
+    border-radius: 9999px;
+    background: var(--sello);
+    transform: rotate(calc(var(--dot) * 45deg)) translateY(-8px);
+    animation: seal-chase 1.1s linear infinite;
+    /* Negative delays seed each dot partway through the cycle — eight
+       identical animations become one comet chasing the rim. */
+    animation-delay: calc(var(--dot) * -137.5ms);
+  }
+  @keyframes seal-chase {
+    0% {
+      opacity: 1;
+    }
+    60%,
+    100% {
+      opacity: 0.15;
+    }
+  }
+
+  .status-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--muted-foreground) 0% 32%,
+      color-mix(in oklch, var(--muted-foreground) 45%, var(--background)) 46%
+        54%,
+      var(--muted-foreground) 68% 100%
+    );
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: label-shine 2.25s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+  }
+  @keyframes label-shine {
+    0%,
+    15% {
+      background-position: 100% 0;
+    }
+    85%,
+    100% {
+      background-position: 0% 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .seal-ring {
+      display: none;
+    }
+    .status-shimmer {
+      background: none;
+      color: var(--muted-foreground);
+      animation: none;
+    }
+  }
+}
+
 /* Safe-area padding (issue #138) — the design's own inline/bottom padding,
    floored by whatever the device's notch or home indicator needs. Override the
    design value per surface with `[--safe-pad:1.5rem]`; the inset only resolves

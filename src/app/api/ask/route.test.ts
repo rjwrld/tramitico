@@ -591,7 +591,7 @@ describe("POST /api/ask", () => {
     expect(vi.mocked(saveQuestion)).not.toHaveBeenCalled();
   });
 
-  it("reports buscando then redactando before the answer text (#71)", async () => {
+  it("reports buscando, redactando, then verificando before the answer text (#71, #219)", async () => {
     allowRateLimit();
     vi.mocked(retrieve).mockResolvedValue(retrievalResult());
     mockModel("Aplica el 13% [1].");
@@ -599,18 +599,18 @@ describe("POST /api/ask", () => {
     const response = await POST(askRequest({ question: "¿Cuánto es el IVA?" }));
     const events = await readEvents(response);
 
-    expect(stages(events)).toEqual(["buscando", "redactando"]);
-    // Both stages are snapshots on one part, so a client that renders the
+    expect(stages(events)).toEqual(["buscando", "redactando", "verificando"]);
+    // All stages are snapshots on one part, so a client that renders the
     // latest can never stack them (ADR 0004's idempotency rule).
     const ids = events
       .filter((e) => e.type === "data-status")
       .map((e) => (e as { id?: string }).id);
-    expect(ids).toEqual(["status", "status"]);
+    expect(ids).toEqual(["status", "status", "status"]);
 
     const order = contractOrder(events);
     expect(order[0]).toBe("start");
     expect(order.slice(1, 3)).toEqual(["data-status", "data-status"]);
-    expect(order.indexOf("text-delta")).toBeGreaterThan(2);
+    expect(order.indexOf("text-delta")).toBeGreaterThan(3);
     expect(order.indexOf("data-citations")).toBeGreaterThan(
       order.indexOf("text-delta"),
     );
@@ -994,6 +994,26 @@ describe("POST /api/ask", () => {
         no_markers: 0,
         unresolved_markers: 0,
       });
+    });
+
+    it("reports redactando again, then verificando again, across the retry (#219)", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModelSequence(UNCITED, CITED);
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      // Attempt 1 fails the check, so the reader sees the model go back to
+      // writing and the check run once more — never a stage left dangling.
+      expect(stages(events)).toEqual([
+        "buscando",
+        "redactando",
+        "verificando",
+        "redactando",
+        "verificando",
+      ]);
     });
 
     it("tells the model what it got wrong on the retry", async () => {
