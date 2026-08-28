@@ -50,6 +50,11 @@ export const RRF_K = 60;
  * Rows each leg contributes to the fusion, mirrored by the SQL function.
  * Widened from 20 in #51 so vector-deep chunks (ley-iva Art. 10 sits at
  * vector #34 for the tarifa-general question) can reach the rerank pool.
+ *
+ * An HNSW scan returns at most `hnsw.ef_search` rows regardless of LIMIT, so
+ * `search_chunks` pins that GUC above this value
+ * (supabase/migrations/20260828120000_hnsw_ef_search_rate_limits_index.sql);
+ * if this constant moves, that setting must move with it.
  */
 export const LEG_LIMIT = 50;
 
