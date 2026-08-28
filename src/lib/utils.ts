@@ -6,8 +6,11 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Open-redirect guard for auth ?next= params: same-origin relative paths only.
+// Backslashes are rejected outright, not just at the second position: WHATWG
+// URL parsing treats `\` as `/` for http(s), so `Location: /\evil.com` is
+// protocol-relative — and no legitimate app path contains one (#210).
 export function safeNextPath(next: string | null): string {
-  if (next && next.startsWith("/") && !next.startsWith("//")) return next;
+  if (next && /^\/(?![/\\])/.test(next) && !next.includes("\\")) return next;
   return "/";
 }
 
