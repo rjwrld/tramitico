@@ -72,6 +72,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // No framework fingerprint on responses (#210).
+  poweredByHeader: false,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

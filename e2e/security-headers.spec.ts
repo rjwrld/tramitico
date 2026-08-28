@@ -41,6 +41,8 @@ for (const [path, label] of [
     expect(csp).toContain("report-uri /api/csp-report");
     // Report-only never enforces — nothing must be sent as enforced yet (#121).
     expect(headers["content-security-policy"]).toBeUndefined();
+    // poweredByHeader: false (#210) — no framework fingerprint.
+    expect(headers["x-powered-by"]).toBeUndefined();
   });
 }
 
