@@ -1,13 +1,14 @@
 /**
  * Hybrid retrieval against a real, ingested database (issue #20).
  *
- * Env-gated: skipped locally unless SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
- * are set; on CI a missing one fails the integration job rather than
- * skipping (#129). To run it locally:
+ * Env-gated: skipped locally unless SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+ * and a real embeddings provider are set; on CI a missing one fails the eval
+ * job rather than skipping (#129). To run it locally:
  *
  *   supabase start && pnpm ingest
  *   SUPABASE_URL=http://127.0.0.1:54321 \
- *   SUPABASE_SERVICE_ROLE_KEY=<service role key> pnpm test
+ *   SUPABASE_SERVICE_ROLE_KEY=<service role key> \
+ *   EMBEDDINGS_PROVIDER=voyage VOYAGE_API_KEY=<key> pnpm test
  */
 import { createClient } from "@supabase/supabase-js";
 import { expect, it, vi } from "vitest";
@@ -17,7 +18,7 @@ import { expect, it, vi } from "vitest";
 // distinct question can legitimately wait out a rate-limit window.
 vi.setConfig({ testTimeout: 120_000 });
 import type { Database } from "./database.types";
-import { createEmbedder } from "./ingestion/embedder";
+import { createEmbedder, realEmbedderConfigured } from "./ingestion/embedder";
 import { envPrereqs, integrationSuite } from "./test-support/suite-gate";
 import {
   DEFAULT_MATCH_COUNT,
@@ -36,9 +37,15 @@ import {
 const url = process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const anonKey = process.env.SUPABASE_ANON_KEY;
-const describeDb = integrationSuite(
-  envPrereqs("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"),
-);
+// The embedder prerequisite matches the corpus this suite queries: without it
+// every embed() silently uses the 256-dim stub against the 1024-dim ingested
+// vectors, and the vector leg asserts nothing.
+const REAL_EMBEDDINGS =
+  "a real embeddings provider (EMBEDDINGS_PROVIDER + its API key)";
+const describeDb = integrationSuite({
+  ...envPrereqs("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"),
+  [REAL_EMBEDDINGS]: realEmbedderConfigured(),
+});
 const describeGrants = integrationSuite(
   envPrereqs("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_ANON_KEY"),
 );

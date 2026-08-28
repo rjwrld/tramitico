@@ -1,9 +1,16 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { binaryPrereqs, integrationSuite } from "../test-support/suite-gate";
 import { fetchPdfSource, type FetchLike } from "./pdf";
+
+// The zip cases shell out for real — `zip` to build the fixture, `unzip`
+// inside fetchPdfSource — so they are gated like any other external
+// prerequisite (#129): skipped on a machine without the tools, failed by
+// name on CI, where ubuntu runners carry both.
+const describeZip = integrationSuite(binaryPrereqs("zip", "unzip"));
 
 const PDF = Buffer.from("%PDF-1.7\nfake body\n%%EOF\n");
 
@@ -28,9 +35,7 @@ function zipContaining(name: string, body: Buffer): Buffer {
   execFileSync("zip", ["-q", "-j", path.join(dir, "a.zip"), name], {
     cwd: staging,
   });
-  return execFileSync("cat", [path.join(dir, "a.zip")], {
-    maxBuffer: 8 * 1024 * 1024,
-  });
+  return readFileSync(path.join(dir, "a.zip"));
 }
 
 describe("fetchPdfSource", () => {
@@ -61,6 +66,28 @@ describe("fetchPdfSource", () => {
     expect((seen as Record<string, string>)["User-Agent"]).toMatch(/Mozilla/);
   });
 
+  it("rejects a non-PDF payload (WAF interstitial or moved page)", async () => {
+    await expect(
+      fetchPdfSource(
+        { url: "https://example.test/a.pdf" },
+        scratch(),
+        serving(Buffer.from("<html>not found</html>")),
+      ),
+    ).rejects.toThrow(/not a PDF/);
+  });
+
+  it("surfaces a failed request as an error, not an empty document", async () => {
+    await expect(
+      fetchPdfSource(
+        { url: "https://example.test/a.pdf" },
+        scratch(),
+        serving(Buffer.from(""), 404),
+      ),
+    ).rejects.toThrow(/HTTP 404/);
+  });
+});
+
+describeZip("fetchPdfSource with zip sources", () => {
   it("extracts the named member when the source is a zip", async () => {
     const zip = zipContaining("ficha tecnica.pdf", PDF);
 
@@ -83,25 +110,5 @@ describe("fetchPdfSource", () => {
         serving(zip),
       ),
     ).rejects.toThrow(/ficha\.pdf/);
-  });
-
-  it("rejects a non-PDF payload (WAF interstitial or moved page)", async () => {
-    await expect(
-      fetchPdfSource(
-        { url: "https://example.test/a.pdf" },
-        scratch(),
-        serving(Buffer.from("<html>not found</html>")),
-      ),
-    ).rejects.toThrow(/not a PDF/);
-  });
-
-  it("surfaces a failed request as an error, not an empty document", async () => {
-    await expect(
-      fetchPdfSource(
-        { url: "https://example.test/a.pdf" },
-        scratch(),
-        serving(Buffer.from(""), 404),
-      ),
-    ).rejects.toThrow(/HTTP 404/);
   });
 });

@@ -71,11 +71,14 @@ interface CaseResult {
 }
 
 describeEval("groundedness (eval/dataset.jsonl)", () => {
-  const embedder = createEmbedder();
   const cases = parseDataset(readFileSync(DATASET_PATH, "utf8"));
   const results: CaseResult[] = [];
 
   beforeAll(async () => {
+    // Constructed here, not in the describe body: `describe.skip` still runs
+    // its callback, so a constructor that throws without the environment
+    // would crash the file on the gate's skip path (#129).
+    const embedder = createEmbedder();
     for (const evalCase of cases) {
       // #132: a case carrying `history` is a follow-up, and the whole
       // pipeline below — retrieval, rerank, the answer prompt and the judge —

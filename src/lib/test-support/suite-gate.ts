@@ -10,7 +10,7 @@
  * Importing this module also loads `.env.local`, so a local `supabase start`
  * stack lights the integration suites up without exporting anything by hand.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { accessSync, constants, existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, it } from "vitest";
 
@@ -64,6 +64,33 @@ export function envPrereqs(...names: string[]): Prerequisites {
   return Object.fromEntries(names.map((n) => [n, Boolean(process.env[n])]));
 }
 
+/** Is an executable with this name reachable through PATH? */
+export function binaryOnPath(
+  name: string,
+  envPath = process.env.PATH ?? "",
+): boolean {
+  return envPath.split(path.delimiter).some((dir) => {
+    if (!dir) return false;
+    try {
+      accessSync(path.join(dir, name), constants.X_OK);
+      return true;
+    } catch {
+      return false;
+    }
+  });
+}
+
+/**
+ * Builds prerequisites from external binary names — a suite that shells out
+ * (zip/unzip fixtures, pdftotext) skips on a machine without the tool and
+ * fails on CI naming it, like any other missing prerequisite.
+ */
+export function binaryPrereqs(...names: string[]): Prerequisites {
+  return Object.fromEntries(
+    names.map((n) => [`the \`${n}\` binary on PATH`, binaryOnPath(n)]),
+  );
+}
+
 /**
  * A drop-in `describe` for suites that need an environment: it runs the suite
  * when the prerequisites hold, skips it locally when they don't, and on CI
@@ -74,8 +101,11 @@ export function envPrereqs(...names: string[]): Prerequisites {
  *
  * The suite body is never evaluated on the failing path — an unset variable
  * would otherwise surface as a collection crash from some client constructor
- * instead of the message. For the same reason, keep anything that can throw
- * without the environment (client and embedder constructors) inside the body.
+ * instead of the message. The skipping path is different: `describe.skip`
+ * still executes its callback to collect test names, so keep anything that
+ * can throw without the environment (client and embedder constructors)
+ * inside hooks or tests (`beforeAll`, `it`), never in the describe body
+ * itself (#211).
  */
 export function integrationSuite(
   prereqs: Prerequisites,
