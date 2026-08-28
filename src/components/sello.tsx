@@ -12,33 +12,64 @@ import type { Citation } from "@/lib/retrieval";
 import { cn } from "@/lib/utils";
 
 /**
- * Tokens of a `doc_key` that print as-is (uppercased): agency and tax
- * acronyms plus roman numerals used in título/transitorio keys.
+ * How each `doc_key` token prints in a stamp (#214).
+ *
+ * The short name is derived token by token, so a token missing from this
+ * table falls back to plain capitalisation — which silently mis-cased
+ * acronyms (`ivm` → "Ivm") and dropped accents (`minimos` → "Minimos") on
+ * documents whose own manifest titles spell them correctly. The table is
+ * therefore exhaustive over `corpus/manifest.json`, and `sello.test.tsx`
+ * fails if a manifest doc_key ever carries a token that is not listed here:
+ * adding a document means deciding, once, how its tokens print.
  */
-const UPPER_TOKENS = new Set([
-  "iva",
-  "ccss",
-  "cabys",
-  "bmc",
-  "mtss",
-  "rts",
-  "cr",
-  "ii",
-  "iii",
-  "iv",
-  "vi",
-  "vii",
-  "viii",
-]);
-
-/** doc_key words whose display form carries an accent. */
-const ACCENTED: Record<string, string> = {
-  titulo: "Título",
+export const SHORT_NAME_TOKENS: Record<string, string> = {
+  // Agencies, taxes and product names.
+  bmc: "BMC",
+  cabys: "CABYS",
+  ccss: "CCSS",
+  cr: "CR",
+  dgt: "DGT",
+  iva: "IVA",
+  ivm: "IVM",
+  rts: "RTS",
+  tribu: "TRIBU",
+  // Roman numerals used in título/transitorio keys.
+  ii: "II",
+  iii: "III",
+  iv: "IV",
+  vi: "VI",
+  vii: "VII",
+  viii: "VIII",
+  // Words whose display form carries an accent.
   codigo: "Código",
-  resolucion: "Resolución",
   electronica: "Electrónica",
   electronicos: "Electrónicos",
+  guia: "Guía",
+  minimos: "Mínimos",
+  resolucion: "Resolución",
   retencion: "Retención",
+  titulo: "Título",
+  // Plain words — listed so the completeness check is a real check.
+  bienes: "Bienes",
+  capital: "Capital",
+  comprobantes: "Comprobantes",
+  dev: "Dev",
+  disposiciones: "Disposiciones",
+  escala: "Escala",
+  export: "Export",
+  ley: "Ley",
+  reglamento: "Reglamento",
+  renta: "Renta",
+  salarios: "Salarios",
+  salud: "Salud",
+  servicios: "Servicios",
+  tarjetas: "Tarjetas",
+  tramos: "Tramos",
+  // Norm numbers and the version the Hacienda disposiciones are known by.
+  "2026": "2026",
+  "9635": "9635",
+  "10363": "10363",
+  v44: "v4.4",
 };
 
 /** `reglamento-iva` → `Reglamento IVA` — the stamp's doc short-name. */
@@ -46,12 +77,14 @@ export function docShortName(docKey: string): string {
   return docKey
     .split("-")
     .filter(Boolean)
-    .map((token) => {
-      if (UPPER_TOKENS.has(token)) return token.toUpperCase();
-      const accented = ACCENTED[token];
-      if (accented) return accented;
-      return token.charAt(0).toUpperCase() + token.slice(1);
-    })
+    .map((token) =>
+      // `hasOwn`, not `??`: a token spelled like an Object.prototype member
+      // ("constructor") would otherwise resolve to the inherited value and
+      // slip past the completeness check the table exists to support.
+      Object.hasOwn(SHORT_NAME_TOKENS, token)
+        ? SHORT_NAME_TOKENS[token]
+        : token.charAt(0).toUpperCase() + token.slice(1),
+    )
     .join(" ");
 }
 
@@ -62,7 +95,9 @@ export function docShortName(docKey: string): string {
 export function selloLabel(citation: Citation): string {
   const doc = docShortName(citation.docKey);
   if (!citation.articulo) return doc;
-  const articulo = citation.articulo.replace(/^Artículo(?=\s)/, "Art.");
+  // The chunker's ART_RE emits all-caps `ARTÍCULO N` headings, so the match
+  // is case- and accent-insensitive the way `articuloAnchorKey` is (#214).
+  const articulo = citation.articulo.replace(/^art[íi]culo(?=\s)/i, "Art.");
   return `${doc} · ${articulo}`;
 }
 
