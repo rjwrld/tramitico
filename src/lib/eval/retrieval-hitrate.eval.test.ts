@@ -84,12 +84,15 @@ interface CaseResult {
 }
 
 describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
-  const embedder = createEmbedder();
   const cases = parseDataset(readFileSync(DATASET_PATH, "utf8"));
   const results: CaseResult[] = [];
   const rerankMode = process.env.RERANK || "voyage";
 
   beforeAll(async () => {
+    // Constructed here, not in the describe body: `describe.skip` still runs
+    // its callback, so a constructor that throws without the environment
+    // would crash the file on the gate's skip path (#129).
+    const embedder = createEmbedder();
     for (const evalCase of cases) {
       // The route's own first step (#132): a case carrying `history` is a
       // follow-up, and what the pipeline sees is the standalone rewrite. A

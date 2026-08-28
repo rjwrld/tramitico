@@ -63,7 +63,8 @@ Env-dependent suites are gated with `integrationSuite()` from
 It skips locally when prerequisites are missing and **fails** under `CI=true`, naming what
 is absent: a required check that silently asserts nothing is the failure mode it exists to
 prevent (#129). Keep anything that throws without the environment (client and embedder
-constructors) inside the suite body, not at module scope.
+constructors) inside hooks or tests (`beforeAll`, `it`) — `describe.skip` still executes
+the suite body, so describe scope is as unsafe as module scope (#211).
 
 Every interactive component (anything with a click/submit/toggle path) ships with a jsdom
 interaction test that exercises the interaction — not just the states an issue's Tests section

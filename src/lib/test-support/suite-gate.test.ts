@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  binaryOnPath,
+  binaryPrereqs,
   envPrereqs,
   gateDecision,
   isCi,
@@ -62,6 +64,41 @@ describe("envPrereqs", () => {
       delete process.env.SUITE_GATE_SET;
       delete process.env.SUITE_GATE_EMPTY;
     }
+  });
+});
+
+describe("binaryOnPath", () => {
+  it("finds an executable that every POSIX system carries", () => {
+    expect(binaryOnPath("sh")).toBe(true);
+  });
+
+  it("reports a binary that exists nowhere as absent", () => {
+    expect(binaryOnPath("suite-gate-no-such-binary")).toBe(false);
+  });
+
+  it("searches only the PATH it is given", () => {
+    expect(binaryOnPath("sh", "")).toBe(false);
+  });
+});
+
+describe("binaryPrereqs", () => {
+  it("labels each binary so the failing test names what to install", () => {
+    expect(binaryPrereqs("sh", "suite-gate-no-such-binary")).toEqual({
+      "the `sh` binary on PATH": true,
+      "the `suite-gate-no-such-binary` binary on PATH": false,
+    });
+  });
+
+  it("skips locally and fails on CI when a binary is missing", () => {
+    const prereqs = binaryPrereqs("suite-gate-no-such-binary");
+    expect(gateDecision(prereqs, false)).toEqual({
+      mode: "skip",
+      missing: ["the `suite-gate-no-such-binary` binary on PATH"],
+    });
+    expect(gateDecision(prereqs, true)).toEqual({
+      mode: "fail",
+      missing: ["the `suite-gate-no-such-binary` binary on PATH"],
+    });
   });
 });
 
