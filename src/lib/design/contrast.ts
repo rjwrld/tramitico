@@ -7,6 +7,8 @@
 // stick; `tokens.test.ts` is the check.
 //
 // The pipeline is oklch → linear sRGB → WCAG relative luminance → ratio.
+// `toHex` taps the same pipeline one step earlier, for the places a token has
+// to be written out as a colour rather than measured (issue #217's icons).
 
 type Rgb = readonly [number, number, number];
 
@@ -48,6 +50,27 @@ export function parseOklch(css: string): Rgb {
     clamp(p * lms[0] + q * lms[1] + s * lms[2]),
   );
   return [r, g, b] as const;
+}
+
+/**
+ * Encode a linear-sRGB triple as `#rrggbb` — the same colour, in the form a
+ * standalone SVG or a raster pixel has to be written in. Issue #217's icons
+ * are generated from the tokens rather than from a copy of them, and this is
+ * the last step of that pipeline.
+ */
+export function toHex([r, g, b]: Rgb): string {
+  const channel = (v: number) => {
+    const encoded = v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055;
+    return Math.round(clamp(encoded) * 255)
+      .toString(16)
+      .padStart(2, "0");
+  };
+  return `#${channel(r)}${channel(g)}${channel(b)}`;
+}
+
+/** `oklch()` token → `#rrggbb`, the two halves of that pipeline joined up. */
+export function oklchToHex(css: string): string {
+  return toHex(parseOklch(css));
 }
 
 /** WCAG 2.x relative luminance of a linear-sRGB colour. */

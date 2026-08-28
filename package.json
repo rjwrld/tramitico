@@ -20,7 +20,8 @@
     "test:e2e:local": "playwright test --config=playwright.local.config.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "ingest": "tsx scripts/ingest.ts"
+    "ingest": "tsx scripts/ingest.ts",
+    "icons": "tsx scripts/generate-icons.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.28",
