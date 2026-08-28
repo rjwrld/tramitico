@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   checkRateLimit,
   coarseUserAgent,
@@ -178,6 +178,16 @@ describe("register (DESIGN §9: Spanish, usted)", () => {
 });
 
 describe("checkRateLimit — fake client", () => {
+  // The fail-closed cases below log now (#208); the assertions on that line
+  // live in their own suite, and here the spy only keeps the output clean.
+  beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("allows when the incremented count is within the limit", async () => {
     const client = fakeClient({ count: 1 });
     const result = await checkRateLimit("user:1", "authed", client);
@@ -423,5 +433,67 @@ describe("rateLimitReachedMessage", () => {
     const resetAt = new Date("2026-07-24T00:00:00Z"); // midnight UTC = 6pm CR (UTC-6)
     const msg = rateLimitReachedMessage("authed", resetAt);
     expect(msg).toMatch(/6:00\s*p\.?\s*m\.?/i);
+  });
+});
+
+/**
+ * #208: `telemetry.ts` leaves the ask event's `providerError` empty on this
+ * door because "the rate-limit path already logged its own reason". This
+ * suite is what makes that sentence true.
+ */
+describe("checkRateLimit — the unavailable log line", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("logs exactly one describeError line when the RPC returns an error", async () => {
+    const client = fakeClient(null, { message: "connection refused" });
+
+    await checkRateLimit("anon:x", "anon", client);
+
+    expect(console.error).toHaveBeenCalledTimes(1);
+    // The RPC's own error object is what gets thrown, and a PostgREST error
+    // is a plain object — its identity is all `describeError` can name.
+    expect(console.error).toHaveBeenCalledWith(
+      "rate limit: unavailable — error=Object",
+    );
+  });
+
+  it("names the identity of a thrown Postgres-shaped error", async () => {
+    const client: RpcClient = {
+      rpc: async () => {
+        throw Object.assign(new Error('relation "rate_limits" is missing'), {
+          code: "42P01",
+        });
+      },
+    };
+
+    await checkRateLimit("anon:x", "anon", client);
+
+    expect(console.error).toHaveBeenCalledWith(
+      "rate limit: unavailable — error=Error#42P01",
+    );
+  });
+
+  it("never puts the error's own message in the line", async () => {
+    const client = fakeClient(null, {
+      message: "row: ¿cómo declaro el D-101?",
+    });
+
+    await checkRateLimit("anon:x", "anon", client);
+
+    expect(vi.mocked(console.error).mock.calls.flat().join("\n")).not.toContain(
+      "D-101",
+    );
+  });
+
+  it("stays quiet when the limiter answers", async () => {
+    await checkRateLimit("anon:x", "anon", fakeClient({ count: 1 }));
+
+    expect(console.error).not.toHaveBeenCalled();
   });
 });

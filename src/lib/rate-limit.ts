@@ -278,7 +278,12 @@ export async function checkRateLimit(
     if (error || !data)
       throw error ?? new Error("rate_limit_increment: no row returned");
     count = data.count;
-  } catch {
+  } catch (error) {
+    // Fail-closed means every ask 503s until this clears, and the ask event
+    // carries no error field of its own for this door (telemetry.ts) — so
+    // this line is the only diagnosable signal there is. Its prefix is what
+    // the runbook's rate-limit procedure searches for.
+    console.error(`rate limit: unavailable — error=${describeError(error)}`);
     return {
       allowed: false,
       remaining: 0,
