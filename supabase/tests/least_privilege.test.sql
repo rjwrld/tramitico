@@ -22,7 +22,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(10);
+select plan(18);
 
 -- 1. Tables, views and sequences: no privilege of any kind, for either Data
 --    API role or for PUBLIC. A NULL relacl means "owner only", which is why
@@ -111,6 +111,69 @@ select isnt_empty(
       and pg_get_userbyid(a.grantee) = 'service_role'
   $$,
   'service_role still holds privileges on public.questions (the only data path)'
+);
+
+-- 5b. Positive controls, per surface (#207). Check 5 proves service_role holds
+--     *something*; before these, revoking service_role EXECUTE on
+--     `search_chunks` — or its privileges on `chunks`/`documents`/
+--     `rate_limits` — would have passed every assertion in this file while
+--     breaking every API route. One check per owned RPC, one per table a
+--     route depends on, each naming the privileges the routes actually
+--     exercise.
+select ok(
+  has_function_privilege(
+    'service_role',
+    'public.search_chunks(text, extensions.vector, int)'::regprocedure,
+    'execute'),
+  'service_role can execute search_chunks (the /api/ask retrieval path)'
+);
+select ok(
+  has_function_privilege(
+    'service_role', 'public.replace_chunks(uuid, jsonb)'::regprocedure,
+    'execute'),
+  'service_role can execute replace_chunks (the ingest path)'
+);
+select ok(
+  has_function_privilege(
+    'service_role',
+    'public.rate_limit_increment(text, timestamptz, timestamptz)'::regprocedure,
+    'execute'),
+  'service_role can execute rate_limit_increment (the quota path)'
+);
+select ok(
+  has_function_privilege(
+    'service_role', 'public.rate_limit_refund(text, timestamptz)'::regprocedure,
+    'execute'),
+  'service_role can execute rate_limit_refund (the quota refund path)'
+);
+
+-- The RPCs above are SECURITY INVOKER, so service_role also needs the table
+-- privileges each body exercises. has_table_privilege with a privilege list
+-- is an OR, so each required privilege is asserted on its own and ANDed.
+select ok(
+  has_table_privilege('service_role', 'public.questions', 'select')
+    and has_table_privilege('service_role', 'public.questions', 'insert')
+    and has_table_privilege('service_role', 'public.questions', 'delete'),
+  'service_role can select/insert/delete public.questions (history routes)'
+);
+select ok(
+  has_table_privilege('service_role', 'public.chunks', 'select')
+    and has_table_privilege('service_role', 'public.chunks', 'insert')
+    and has_table_privilege('service_role', 'public.chunks', 'delete'),
+  'service_role can select/insert/delete public.chunks (retrieval + replace_chunks)'
+);
+select ok(
+  has_table_privilege('service_role', 'public.documents', 'select')
+    and has_table_privilege('service_role', 'public.documents', 'insert')
+    and has_table_privilege('service_role', 'public.documents', 'update'),
+  'service_role can select/insert/update public.documents (retrieval + ingest upsert)'
+);
+select ok(
+  has_table_privilege('service_role', 'public.rate_limits', 'select')
+    and has_table_privilege('service_role', 'public.rate_limits', 'insert')
+    and has_table_privilege('service_role', 'public.rate_limits', 'update')
+    and has_table_privilege('service_role', 'public.rate_limits', 'delete'),
+  'service_role holds all four DML privileges on public.rate_limits (quota RPCs)'
 );
 
 -- 6. RLS on public.questions (issue #147 req. 4). #123 keeps these policies as
