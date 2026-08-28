@@ -31,6 +31,17 @@ afterEach(() => {
 });
 
 describe("HistoryShell", () => {
+  // Stands in for the chat, which calls the same context hook from
+  // `useChat`'s `onFinish`.
+  function Refresher() {
+    const refresh = useHistoryRefresh();
+    return (
+      <button type="button" onClick={refresh}>
+        terminar respuesta
+      </button>
+    );
+  }
+
   it("signed out: renders children only and never calls /api/history", () => {
     render(
       <HistoryShell signedIn={false}>
@@ -149,6 +160,173 @@ describe("HistoryShell", () => {
     expect(
       await screen.findByText("¿Debo facturar electrónicamente?"),
     ).toBeTruthy();
+  });
+
+  // Two writers, one list (#213). A delete that is still in flight must not
+  // let a snapshot of the pre-delete list — its own, or one a concurrent
+  // refresh fetched from the server — put a removed row back on screen.
+  describe("concurrent deletes and refreshes", () => {
+    function deferred<T>() {
+      let resolve!: (value: T) => void;
+      const promise = new Promise<T>((r) => {
+        resolve = r;
+      });
+      return { promise, resolve };
+    }
+
+    const rowA = {
+      id: "q-a",
+      question: "¿Debo facturar electrónicamente?",
+      answer: "Sí…",
+      citations: [],
+      created_at: "2026-08-02T10:00:00Z",
+    };
+    const rowB = {
+      id: "q-b",
+      question: "¿Cuándo vence el D-101?",
+      answer: "En…",
+      citations: [],
+      created_at: "2026-08-01T10:00:00Z",
+    };
+
+    function historyResponse(questions: HistoryItem[]) {
+      return { ok: true, json: async () => ({ questions }) };
+    }
+
+    async function confirmDelete(
+      userEvent: { click: (element: Element) => Promise<void> },
+      question: string,
+    ) {
+      await userEvent.click(
+        screen.getByRole("button", { name: `Eliminar: ${question}` }),
+      );
+      await userEvent.click(screen.getByRole("button", { name: "Eliminar" }));
+    }
+
+    it("a failed delete restores only its own row, not the list it started with", async () => {
+      const slowA = deferred<{ ok: boolean; status: number }>();
+      fetchMock.mockImplementation((url: string, init?: RequestInit) => {
+        if (init?.method !== "DELETE") {
+          return Promise.resolve(historyResponse([rowA, rowB]));
+        }
+        if (url === "/api/history/q-a") return slowA.promise;
+        return Promise.resolve({ ok: true, json: async () => ({ ok: true }) });
+      });
+
+      render(
+        <HistoryShell signedIn>
+          <p>contenido principal</p>
+        </HistoryShell>,
+      );
+      await screen.findByText(rowA.question);
+      const { default: userEvent } =
+        await import("@testing-library/user-event");
+
+      await confirmDelete(userEvent, rowA.question);
+      await confirmDelete(userEvent, rowB.question);
+      expect(screen.queryByText(rowA.question)).toBe(null);
+      expect(screen.queryByText(rowB.question)).toBe(null);
+
+      slowA.resolve({ ok: false, status: 500 });
+
+      expect(await screen.findByText(rowA.question)).toBeTruthy();
+      expect(
+        screen.queryByText(rowB.question),
+        "the row whose delete succeeded came back",
+      ).toBe(null);
+    });
+
+    it("a refresh that overlaps a delete does not bring the row back", async () => {
+      const newest = {
+        id: "q-c",
+        question: "¿Qué es el IVA?",
+        answer: "El…",
+        citations: [],
+        created_at: "2026-08-03T10:00:00Z",
+      };
+      const slowA = deferred<{ ok: boolean; json: () => Promise<unknown> }>();
+      let loaded = false;
+      fetchMock.mockImplementation((url: string, init?: RequestInit) => {
+        if (init?.method === "DELETE") return slowA.promise;
+        // The refresh reads the server *before* the DELETE commits, so it
+        // still carries the row being deleted.
+        const questions = loaded ? [newest, rowA, rowB] : [rowA, rowB];
+        loaded = true;
+        return Promise.resolve(historyResponse(questions));
+      });
+
+      render(
+        <HistoryShell signedIn>
+          <Refresher />
+        </HistoryShell>,
+      );
+      await screen.findByText(rowA.question);
+      const { default: userEvent } =
+        await import("@testing-library/user-event");
+
+      await confirmDelete(userEvent, rowA.question);
+      expect(screen.queryByText(rowA.question)).toBe(null);
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "terminar respuesta" }),
+      );
+      expect(await screen.findByText(newest.question)).toBeTruthy();
+      expect(
+        screen.queryByText(rowA.question),
+        "the refresh resurrected the row being deleted",
+      ).toBe(null);
+
+      slowA.resolve({ ok: true, json: async () => ({ ok: true }) });
+      await waitFor(() => expect(screen.queryByText(rowA.question)).toBe(null));
+      expect(screen.getByText(rowB.question)).toBeTruthy();
+    });
+
+    // The other ordering: the read is the slow one. It left before the delete
+    // did, so it carries pre-delete state and must not win, however long it
+    // takes to come back.
+    it("a refresh that started before the delete does not bring the row back", async () => {
+      const staleRead = deferred<{
+        ok: boolean;
+        json: () => Promise<unknown>;
+      }>();
+      let reads = 0;
+      fetchMock.mockImplementation((url: string, init?: RequestInit) => {
+        if (init?.method === "DELETE") {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ ok: true }),
+          });
+        }
+        reads += 1;
+        // The first read is the initial load; the second is the refresh, and
+        // it hangs until the delete has already come back successful.
+        return reads === 1
+          ? Promise.resolve(historyResponse([rowA, rowB]))
+          : staleRead.promise;
+      });
+
+      render(
+        <HistoryShell signedIn>
+          <Refresher />
+        </HistoryShell>,
+      );
+      await screen.findByText(rowA.question);
+      const { default: userEvent } =
+        await import("@testing-library/user-event");
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "terminar respuesta" }),
+      );
+      await confirmDelete(userEvent, rowA.question);
+      expect(screen.queryByText(rowA.question)).toBe(null);
+
+      staleRead.resolve(historyResponse([rowA, rowB]));
+      await waitFor(() => expect(screen.getByText(rowB.question)).toBeTruthy());
+      expect(
+        screen.queryByText(rowA.question),
+        "a read that predates the delete resurrected the row",
+      ).toBe(null);
+    });
   });
 
   // Mobile (#138). jsdom applies no Tailwind, so both the sheet trigger and
