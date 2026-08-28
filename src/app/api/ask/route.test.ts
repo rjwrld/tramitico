@@ -32,6 +32,7 @@ import {
   historySaveFailures,
   resetHistorySaveFailures,
 } from "@/lib/answer/persist-failure";
+import { ASK_DEADLINE_MS } from "@/lib/answer/deadline";
 import {
   CITATION_RETRY_NOTE,
   WEAK_RETRIEVAL_ANSWER,
@@ -530,9 +531,14 @@ describe("POST /api/ask", () => {
     const response = await POST(askRequest({ question: "¿Cuánto es el IVA?" }));
     await readEvents(response);
 
+    // One clock read serves subject and window alike (#205) — the route
+    // passes its single `now` through rather than letting `checkRateLimit`
+    // read the clock again.
     expect(vi.mocked(checkRateLimit)).toHaveBeenCalledWith(
       "user:user-123",
       "authed",
+      undefined,
+      expect.any(Date),
     );
     expect(vi.mocked(saveQuestion)).toHaveBeenCalledTimes(1);
     const saved = vi.mocked(saveQuestion).mock.calls[0][0];
@@ -878,7 +884,7 @@ describe("POST /api/ask", () => {
       spy.mockRestore();
     });
 
-    it("does not refund a client-initiated abort", async () => {
+    it("refunds a client abort mid-generation — Detener and a drop look the same (#205)", async () => {
       const refund = allowRateLimit();
       vi.mocked(retrieve).mockResolvedValue(retrievalResult());
       mockModel("La tarifa es 13% para servicios.", undefined, 25);
@@ -887,11 +893,250 @@ describe("POST /api/ask", () => {
       const response = await POST(
         askRequest({ question: "¿Cuánto es el IVA?" }, controller.signal),
       );
-      await readUntilRedactandoThenAbort(response, controller);
+      const events = await readUntilRedactandoThenAbort(response, controller);
 
-      // Nothing on our side failed, and a refundable stop would be the same
-      // free-ask hole the decline rule closes.
+      // The server cannot tell a deliberate stop from a WiFi handoff or a
+      // proxy idle-kill, and the reader received no value either way — so
+      // every abort refunds (ADR 0013, replacing ADR 0011's reading).
+      expect(refund).toHaveBeenCalledTimes(1);
+      // Still not an error: nothing on our side broke.
+      expect(errorMessages(events)).toEqual([]);
+    });
+  });
+
+  /**
+   * #205 / ADR 0013: an ask ends in exactly one of three ways — answered and
+   * persisted, refunded, or declined-with-value (the honest declines). A
+   * client disconnect at any point before delivery refunds and persists
+   * nothing; the pipeline's own ~50 s deadline turns the platform's silent
+   * `maxDuration` kill into an observable, refundable system failure.
+   */
+  describe("disconnects and the internal deadline (#205)", () => {
+    const ANSWER = "La tarifa es 13% [1].";
+
+    it("refunds a disconnect during retrieval, and persists nothing", async () => {
+      vi.mocked(getUserId).mockResolvedValue("user-123");
+      const refund = allowRateLimit();
+      let releaseRetrieval!: (result: RetrievalResult) => void;
+      vi.mocked(retrieve).mockReturnValue(
+        new Promise<RetrievalResult>((resolve) => {
+          releaseRetrieval = resolve;
+        }),
+      );
+      mockModel(ANSWER);
+
+      const controller = new AbortController();
+      const response = await POST(
+        askRequest({ question: "¿Cuánto es el IVA?" }, controller.signal),
+      );
+      // The reader leaves while retrieval is still in flight…
+      controller.abort();
+      // …and retrieval then completes into a request nobody is waiting on.
+      releaseRetrieval(retrievalResult());
+      const events = await readEvents(response);
+
+      expect(refund).toHaveBeenCalledTimes(1);
+      expect(vi.mocked(getAnswerModel)).not.toHaveBeenCalled();
+      expect(vi.mocked(saveQuestion)).not.toHaveBeenCalled();
+      expect(streamedText(events)).toBe("");
+      expect(errorMessages(events)).toEqual([]);
+    });
+
+    it("refunds a disconnect between generation and delivery — nothing written, nothing persisted", async () => {
+      vi.mocked(getUserId).mockResolvedValue("user-123");
+      const refund = allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      const controller = new AbortController();
+      // The provider stream completes normally, but the client's signal fires
+      // just as the last delta lands — the disconnect the route can only see
+      // *after* generation, at the last-look check before `writeAnswer`.
+      vi.mocked(getAnswerModel).mockReturnValue(
+        new MockLanguageModelV4({
+          doStream: {
+            stream: new ReadableStream<LanguageModelV4StreamPart>({
+              start(c) {
+                c.enqueue({ type: "stream-start", warnings: [] });
+                c.enqueue({ type: "text-start", id: "t1" });
+                c.enqueue({ type: "text-delta", id: "t1", delta: ANSWER });
+                c.enqueue({ type: "text-end", id: "t1" });
+                controller.abort();
+                c.enqueue({
+                  type: "finish",
+                  finishReason: { unified: "stop", raw: "end_turn" },
+                  usage: {
+                    inputTokens: {
+                      total: 1,
+                      noCache: 1,
+                      cacheRead: 0,
+                      cacheWrite: 0,
+                    },
+                    outputTokens: { total: 1, text: 1, reasoning: 0 },
+                  },
+                });
+                c.close();
+              },
+            }),
+          },
+        }),
+      );
+
+      const response = await POST(
+        askRequest({ question: "¿Cuánto es el IVA?" }, controller.signal),
+      );
+      const events = await readEvents(response);
+
+      // A validated answer the reader disconnected in front of is still an
+      // answer they never received.
+      expect(refund).toHaveBeenCalledTimes(1);
+      expect(streamedText(events)).toBe("");
+      expect(vi.mocked(saveQuestion)).not.toHaveBeenCalled();
+      expect(errorMessages(events)).toEqual([]);
+    });
+
+    it("treats the internal deadline as a system failure: error part, refund, telemetry", async () => {
+      vi.useFakeTimers();
+      try {
+        const refund = allowRateLimit();
+        vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+        // A generation that never returns: the provider call resolves only
+        // when the abort signal — here, the deadline's — cuts it.
+        vi.mocked(getAnswerModel).mockReturnValue(
+          new MockLanguageModelV4({
+            doStream: ({ abortSignal }) =>
+              new Promise((_, reject) => {
+                abortSignal?.addEventListener("abort", () =>
+                  reject(abortSignal.reason ?? new Error("aborted")),
+                );
+              }),
+          }),
+        );
+        const lines: string[] = [];
+        vi.spyOn(console, "log").mockImplementation((...args: unknown[]) => {
+          lines.push(args.map(String).join(" "));
+        });
+        const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+        const response = await POST(
+          askRequest({ question: "¿Cuánto es el IVA?" }),
+        );
+        const eventsPromise = readEvents(response);
+        await vi.advanceTimersByTimeAsync(ASK_DEADLINE_MS);
+        const events = await eventsPromise;
+
+        // The reader is still connected, so the failure is said in Spanish…
+        expect(errorMessages(events)).toEqual([ASK_FALLBACK_ERROR_MESSAGE]);
+        // …the slot comes back…
+        expect(refund).toHaveBeenCalledTimes(1);
+        // …and the event records both the failure class and why it ended —
+        // the whole point of expiring before the platform's silent kill.
+        const telemetryLine = lines.find((l) =>
+          l.startsWith(`${TELEMETRY_PREFIX} `),
+        );
+        expect(telemetryLine).toBeDefined();
+        expect(
+          JSON.parse(telemetryLine!.slice(TELEMETRY_PREFIX.length + 1)),
+        ).toMatchObject({ outcome: "refunded_error", abort: "deadline" });
+        spy.mockRestore();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("catches a budget already spent before generation — retrieval alone exhausting it still refunds", async () => {
+      vi.useFakeTimers();
+      try {
+        const refund = allowRateLimit();
+        let releaseRetrieval!: (result: RetrievalResult) => void;
+        vi.mocked(retrieve).mockReturnValue(
+          new Promise<RetrievalResult>((resolve) => {
+            releaseRetrieval = resolve;
+          }),
+        );
+        mockModel(ANSWER);
+        const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+        const response = await POST(
+          askRequest({ question: "¿Cuánto es el IVA?" }),
+        );
+        const eventsPromise = readEvents(response);
+        // The whole budget burns while retrieval is still in flight; the
+        // boundary check after it must take the deadline door, not carry on
+        // into a paid generation the platform is about to kill.
+        await vi.advanceTimersByTimeAsync(ASK_DEADLINE_MS);
+        releaseRetrieval(retrievalResult());
+        const events = await eventsPromise;
+
+        expect(errorMessages(events)).toEqual([ASK_FALLBACK_ERROR_MESSAGE]);
+        expect(refund).toHaveBeenCalledTimes(1);
+        expect(vi.mocked(getAnswerModel)).not.toHaveBeenCalled();
+        spy.mockRestore();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("does not refund a disconnect during the history write — the answer was delivered", async () => {
+      vi.mocked(getUserId).mockResolvedValue("user-123");
+      const refund = allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModel(ANSWER);
+      const controller = new AbortController();
+      // The reader disconnects while `saveQuestion` is in flight — after the
+      // answer went out. #205's boundary is *received value*: past delivery,
+      // a disconnect changes nothing, and the best-effort save still lands.
+      let releaseSave!: (saved: boolean) => void;
+      vi.mocked(saveQuestion).mockImplementation(() => {
+        controller.abort();
+        return new Promise<boolean>((resolve) => {
+          releaseSave = resolve;
+        });
+      });
+
+      const response = await POST(
+        askRequest({ question: "¿Cuánto es el IVA?" }, controller.signal),
+      );
+      const eventsPromise = readEvents(response);
+      await vi.waitFor(() =>
+        expect(vi.mocked(saveQuestion)).toHaveBeenCalled(),
+      );
+      releaseSave(true);
+      const events = await eventsPromise;
+
+      expect(streamedText(events).trim()).toBe(ANSWER);
       expect(refund).not.toHaveBeenCalled();
+      expect(vi.mocked(saveQuestion)).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not persist the exchange the deadline cut off", async () => {
+      vi.useFakeTimers();
+      try {
+        vi.mocked(getUserId).mockResolvedValue("user-123");
+        allowRateLimit();
+        vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+        vi.mocked(getAnswerModel).mockReturnValue(
+          new MockLanguageModelV4({
+            doStream: ({ abortSignal }) =>
+              new Promise((_, reject) => {
+                abortSignal?.addEventListener("abort", () =>
+                  reject(abortSignal.reason ?? new Error("aborted")),
+                );
+              }),
+          }),
+        );
+        const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+        const response = await POST(
+          askRequest({ question: "¿Cuánto es el IVA?" }),
+        );
+        const eventsPromise = readEvents(response);
+        await vi.advanceTimersByTimeAsync(ASK_DEADLINE_MS);
+        await eventsPromise;
+
+        expect(vi.mocked(saveQuestion)).not.toHaveBeenCalled();
+        spy.mockRestore();
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 
@@ -1340,6 +1585,7 @@ describe("POST /api/ask", () => {
         providerError: null,
         citationFailure: false,
         quotaHit: false,
+        abort: null,
       });
     });
 
@@ -1502,9 +1748,13 @@ describe("POST /api/ask", () => {
       );
       await readUntilRedactandoThenAbort(response, controller);
 
+      // Declined — nothing was delivered, nothing broke — with the abort
+      // reason riding beside it (#205). `client` on purpose, not "stop":
+      // Detener and a network drop are one event on the server.
       expect(soleEvent(capture)).toMatchObject({
         outcome: "declined",
         providerError: null,
+        abort: "client",
       });
     });
 
@@ -1532,6 +1782,7 @@ describe("POST /api/ask", () => {
       expect(line).not.toContain("user-123");
       // Exhaustive: no field exists that could hold content in the first place.
       expect(Object.keys(event).sort()).toEqual([
+        "abort",
         "citationFailure",
         "event",
         "latency",

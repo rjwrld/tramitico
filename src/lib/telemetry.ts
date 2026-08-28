@@ -21,10 +21,10 @@
  * Nothing #136 redacts. No question text, no answer text, no user id, no raw
  * IP, no anonymous subject — a hashed subject is still a per-person key and
  * would turn the log drain into a behavioural record of who asked how often.
- * The shape below is the whole permitted vocabulary: four enums and two
- * booleans, plus `describeError`'s log-safe token, which is the ONLY way an
- * error may appear here (`log-redaction.ts`). A field is either a value from a
- * closed set decided in this file, or it does not go in.
+ * The shape below is the whole permitted vocabulary: a handful of enums and
+ * two booleans, plus `describeError`'s log-safe token, which is the ONLY way
+ * an error may appear here (`log-redaction.ts`). A field is either a value
+ * from a closed set decided in this file, or it does not go in.
  *
  * ## What it must never do
  *
@@ -80,6 +80,15 @@ export function latencyBucket(ms: number): LatencyBucket {
 }
 
 /**
+ * Why an ask was cut short before its natural end (#205). `client` is the
+ * caller's signal firing — Detener and a passive network drop are the same
+ * event on the server, deliberately not distinguished. `deadline` is our own
+ * internal budget expiring so the refund could run before the platform's
+ * `maxDuration` kill. A reason, never a cause: no error text rides here.
+ */
+export type AskAbort = "client" | "deadline";
+
+/**
  * The event, in full. Every field is content-free by construction; see the
  * module note. `providerError` is `describeError`'s token — a class name and
  * maybe a status — or `null` when nothing was caught.
@@ -91,6 +100,7 @@ export interface AskEvent {
   providerError: string | null;
   citationFailure: boolean;
   quotaHit: boolean;
+  abort: AskAbort | null;
 }
 
 /**
@@ -120,6 +130,7 @@ interface AskFacts {
   citationFailure: boolean;
   quotaHit: boolean;
   providerError: string | null;
+  abort: AskAbort | null;
 }
 
 /**
@@ -131,7 +142,10 @@ interface AskFacts {
  * 2. `degraded` — the operational fact outranks the product outcome. A
  *    degraded ask that then declined is counted as degraded, because a
  *    lexical-only search is the likeliest reason it had nothing to say; the
- *    decline is the symptom.
+ *    decline is the symptom. But not a degraded ask the *client* cut off
+ *    (#205): `degraded` means something was produced on a thinner search,
+ *    and a refunded non-delivery produced nothing — counting it would
+ *    pollute the runbook's degraded-rate query with asks nobody received.
  * 3. `answered` — an answer went out, undegraded.
  * 4. everything else declines. Note what this makes the default: an ask that
  *    reached no terminal point at all — a reader who pressed stop — is
@@ -140,7 +154,7 @@ interface AskFacts {
  */
 function askOutcome(facts: AskFacts): AskOutcome {
   if (facts.failed) return "refunded_error";
-  if (facts.degraded) return "degraded";
+  if (facts.degraded && facts.abort !== "client") return "degraded";
   if (facts.answered) return "ok";
   return "declined";
 }
@@ -167,6 +181,12 @@ export interface AskTelemetry {
   citationFailure: () => void;
   /** The ask was denied because the caller's daily quota was spent (#126). */
   quotaHit: () => void;
+  /**
+   * The ask was cut short (#205). First reason wins: an ask can trip the
+   * deadline and then see the client's signal fire as the stream tears down,
+   * and the first is the one that says what actually ended it.
+   */
+  aborted: (reason: AskAbort) => void;
   /** Writes the event, once. Further calls are no-ops. */
   emit: () => void;
 }
@@ -184,6 +204,7 @@ export function createAskTelemetry(now: () => number = Date.now): AskTelemetry {
     citationFailure: false,
     quotaHit: false,
     providerError: null,
+    abort: null,
   };
   let emitted = false;
   return {
@@ -208,6 +229,9 @@ export function createAskTelemetry(now: () => number = Date.now): AskTelemetry {
     quotaHit: () => {
       facts.quotaHit = true;
     },
+    aborted: (reason: AskAbort) => {
+      facts.abort ??= reason;
+    },
     emit: () => {
       if (emitted) return;
       emitted = true;
@@ -218,6 +242,7 @@ export function createAskTelemetry(now: () => number = Date.now): AskTelemetry {
         providerError: facts.providerError,
         citationFailure: facts.citationFailure,
         quotaHit: facts.quotaHit,
+        abort: facts.abort,
       });
     },
   };

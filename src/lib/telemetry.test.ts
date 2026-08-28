@@ -73,6 +73,7 @@ describe("emitAskEvent", () => {
     providerError: null,
     citationFailure: false,
     quotaHit: false,
+    abort: null,
   };
 
   it("writes one line: the stable prefix, a space, then the JSON", () => {
@@ -80,7 +81,8 @@ describe("emitAskEvent", () => {
     emitAskEvent(event);
     expect(capture.lines).toEqual([
       `${TELEMETRY_PREFIX} {"event":"ask","outcome":"ok","latency":"1s_3s",` +
-        `"providerError":null,"citationFailure":false,"quotaHit":false}`,
+        `"providerError":null,"citationFailure":false,"quotaHit":false,` +
+        `"abort":null}`,
     ]);
   });
 
@@ -192,6 +194,43 @@ describe("createAskTelemetry", () => {
     expect(capture.events()[0].latency).toBe("3s_10s");
   });
 
+  it("carries the abort reason, and holds outcome to what else was marked (#205)", () => {
+    // A client abort delivered nothing and broke nothing: `declined`, with
+    // the reason riding beside it rather than becoming a fifth outcome the
+    // runbook's queries would miss.
+    const telemetry = createAskTelemetry();
+    telemetry.aborted("client");
+    telemetry.emit();
+    expect(capture.events()[0]).toMatchObject({
+      outcome: "declined",
+      abort: "client",
+    });
+  });
+
+  it("does not let degraded outrank a client abort — nothing was produced (#205)", () => {
+    // The vector leg dropped, then the reader disconnected before anything
+    // was delivered. `degraded` means "produced on a thinner search"; a
+    // refunded non-delivery produced nothing, so it declines.
+    const telemetry = createAskTelemetry();
+    telemetry.degraded();
+    telemetry.aborted("client");
+    telemetry.emit();
+    expect(capture.events()[0]).toMatchObject({
+      outcome: "declined",
+      abort: "client",
+    });
+  });
+
+  it("keeps the first abort reason — the second signal arrives too late to matter", () => {
+    // A deadline expiry can be followed by the client's own signal as the
+    // stream tears down; the deadline is what ended the ask.
+    const telemetry = createAskTelemetry();
+    telemetry.aborted("deadline");
+    telemetry.aborted("client");
+    telemetry.emit();
+    expect(capture.events()[0].abort).toBe("deadline");
+  });
+
   it("writes once — a double count halves every rate queried off it", () => {
     const telemetry = createAskTelemetry();
     telemetry.answered();
@@ -239,10 +278,11 @@ describe("no telemetry event can carry content (#141)", () => {
     const telemetry = createAskTelemetry();
     telemetry.answered();
     telemetry.emit();
-    // Exhaustive, not a subset: the event's whole vocabulary is four enums,
+    // Exhaustive, not a subset: the event's whole vocabulary is closed enums,
     // two booleans and one log-safe error token. Nothing here is free text —
     // no question, no answer, no user id, no IP, no subject hash.
     expect(Object.keys(capture.events()[0]).sort()).toEqual([
+      "abort",
       "citationFailure",
       "event",
       "latency",
