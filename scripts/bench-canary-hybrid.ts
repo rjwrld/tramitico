@@ -85,12 +85,10 @@ async function main() {
     if (data.length < 1000) break;
   }
 
+  // Exact articulo match — sub-split parts share the label, and a prefix test
+  // would let "Artículo 8" claim "Artículo 80" (bench-embeddings.ts, matches()).
   const isTarget = (c: Chunk) =>
-    TARGETS.some(
-      (t) =>
-        c.doc_key === t.docKey &&
-        (c.articulo ?? "").startsWith(t.articulo ?? ""),
-    );
+    TARGETS.some((t) => c.doc_key === t.docKey && c.articulo === t.articulo);
 
   // Real lexical leg: stub embedder + empty-vector call is not possible via
   // the RPC types here, so reproduce it with the same SQL shape the RPC uses —

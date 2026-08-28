@@ -15,7 +15,7 @@ missing.
 
 ## 1. What the app emits
 
-Four log signals, all content-free by construction. None of them may ever carry a question,
+Five log signals, all content-free by construction. None of them may ever carry a question,
 an answer, a user id, an IP, or an anonymous subject hash — see `src/lib/log-redaction.ts`
 and `/privacidad`. If a change adds a field here, it changes a privacy claim.
 
@@ -47,7 +47,7 @@ quoted in every query below, and renaming it silently breaks all of them.
 `declined`. So `degraded` counts a degraded ask that then declined, and `declined` is the
 default for an ask that delivered nothing at all.
 
-### 1.2 The three detail lines
+### 1.2 The four detail lines
 
 The event says _that_ something happened; these say _what_. The first three predate #141 and
 keep their prefixes; the fourth is #132's, added under the same rule — a detail line, not a
@@ -120,7 +120,7 @@ result count over the selected timeline.
 Note what is deliberately _not_ in the numerator: `declined` (including the honest decline
 and a spent quota) is the product working, and `degraded` is a delivered answer.
 
-`refunded_error` and the three prefixes in §1.2 are unique strings in this codebase, so those
+`refunded_error` and the four prefixes in §1.2 are unique strings in this codebase, so those
 queries need no quoting. Q3, Q4, Q6, Q8 and Q9 match on JSON fragments; if the search box
 ever mangles the punctuation, fall back to the bare token (`degraded`, `gte_30s`) plus
 `tramitico.event`.

@@ -16,20 +16,32 @@ The `.html` files are the raw `html` payload from SINALEVI's API — Word-export
 ## SINALEVI fetch recipe (no cookies, no session)
 
 The legacy `pgrweb.go.cr/scij` URLs redirect to `sinalevi.go.cr`, an app shell that
-loads legal text client-side. The underlying API is three plain requests
-(browser User-Agent required — bare curl UA gets 403):
+loads legal text client-side. The underlying API is three plain POSTs — two when
+the norm has a single version, where step 2 collapses into step 1 (browser
+User-Agent required; bare curl UA gets 403), per
+[ADR 0001](../adr/0001-sinalevi-fetch-recipe.md):
 
-1. `GET /ResultadosNormativa/Informacion?param1=<idFichaNorma>&param2=<versionId>&param3=1&param4=`
-   → parse hidden field `cantidadVersiones` from the HTML.
-2. `POST /ResultadosNormativa/_BuscarVersionNorma` with `idFichaNorma=<id>&numeroVersion=<cantidadVersiones>`
-   → JSON `{ idVersionNorma }` — the **vigente** version id.
+1. `POST /ResultadosNormativa/_BuscarVersionNorma` with `idFichaNorma=<id>&numeroVersion=1`
+   → the ficha card for version 1, which always exists; read the total off its
+   `"1 de M"` label.
+2. `POST /ResultadosNormativa/_BuscarVersionNorma` with `idFichaNorma=<id>&numeroVersion=M`
+   → JSON `{ idVersionNorma }` — the **vigente** version id. Skipped when `M`
+   is 1 (step 1's response is already the vigente one). An out-of-range
+   `numeroVersion` returns id `0`, which is a loud failure, not a fallback.
 3. `POST /ResultadosNormativa/_CargarTextoCompleto` with `idFichaNorma=<id>&version=<idVersionNorma>&busqueda=`
    → JSON `{ html }` — the full consolidated text.
+
+**Do not** read the version count from the `Informacion` shell page's hidden
+`cantidadVersiones` field: against the live API it is always `0` (populated
+client-side), and the first ingestion run failed on it — ADR 0001 dropped the
+shell page for exactly that reason.
 
 Mapping from old SCIJ URLs: `nValor2` = `idFichaNorma`, `nValor3` = a version id.
 **Trap:** the redirected URL lands on the *original* version (1 de N), not the vigente
 one — always resolve the vigente id via step 2. POSTs need an explicit body
-(empty body without Content-Length → HTTP 411).
+(empty body without Content-Length → HTTP 411). `sinalevi.go.cr` also serves an
+incomplete certificate chain; the vendored intermediate and the undici Agent that
+trusts it are ADR 0001's TLS section.
 
 ## hacienda.go.cr WAF
 
