@@ -6,7 +6,16 @@ import {
   type Citation,
   type RetrievedChunk,
 } from "@/lib/retrieval";
-import { Sello, SelloRow, fetchedLabel, selloLabel } from "@/components/sello";
+import {
+  SHORT_NAME_TOKENS,
+  Sello,
+  SelloRow,
+  docShortName,
+  fetchedLabel,
+  selloLabel,
+} from "@/components/sello";
+/** The corpus manifest — the set of doc_keys a sello can ever have to print. */
+import MANIFEST from "../../corpus/manifest.json";
 
 afterEach(cleanup);
 
@@ -85,6 +94,23 @@ describe("selloLabel", () => {
     ).toBe("Reglamento IVA Retención Tarjetas · Art. 41");
   });
 
+  // The chunker's own ART_RE emits all-caps `ARTÍCULO N` headings, which the
+  // case-sensitive abbreviation used to leave unabbreviated (#214);
+  // `articuloAnchorKey` in retrieval.ts matches case-insensitively for the
+  // same reason.
+  it("abbreviates the artículo whatever casing the heading carried", () => {
+    expect(selloLabel({ ...reglamentoIva, articulo: "ARTÍCULO 3" })).toBe(
+      "Reglamento IVA · Art. 3",
+    );
+    expect(selloLabel({ ...reglamentoIva, articulo: "artículo 3 bis" })).toBe(
+      "Reglamento IVA · Art. 3 bis",
+    );
+    // Unaccented headings occur in the wild too.
+    expect(selloLabel({ ...reglamentoIva, articulo: "ARTICULO 11" })).toBe(
+      "Reglamento IVA · Art. 11",
+    );
+  });
+
   it("keeps transitorios and preámbulo unabbreviated", () => {
     expect(selloLabel({ ...reglamentoIva, articulo: "Transitorio II" })).toBe(
       "Reglamento IVA · Transitorio II",
@@ -92,6 +118,54 @@ describe("selloLabel", () => {
     expect(selloLabel({ ...reglamentoIva, articulo: "Preámbulo" })).toBe(
       "Reglamento IVA · Preámbulo",
     );
+  });
+});
+
+/**
+ * ADR-0004's invariant, made checkable (#214): the stamp's short name is
+ * derived token by token, so a doc_key carrying a token the table does not
+ * know silently renders a mis-cased or unaccented word — `ccss-escala-ivm`
+ * printed "Ivm" until this test existed. Adding a document to the manifest
+ * therefore means deciding how its tokens print, here.
+ */
+describe("docShortName covers the manifest", () => {
+  const docKeys = MANIFEST.documents.map((d) => d.doc_key);
+
+  it("knows every token of every manifest doc_key", () => {
+    const unknown = docKeys
+      .flatMap((key) => key.split("-").filter(Boolean))
+      .filter((token) => !Object.hasOwn(SHORT_NAME_TOKENS, token));
+    expect([...new Set(unknown)]).toEqual([]);
+  });
+
+  it("does not mistake an Object.prototype member for a known token", () => {
+    expect(docShortName("constructor-toString")).toBe("Constructor ToString");
+  });
+
+  it("prints each manifest doc_key the way its title spells it", () => {
+    expect(
+      Object.fromEntries(docKeys.map((k) => [k, docShortName(k)])),
+    ).toEqual({
+      "ley-iva": "Ley IVA",
+      "reglamento-iva": "Reglamento IVA",
+      "reglamento-iva-bienes-capital": "Reglamento IVA Bienes Capital",
+      "reglamento-iva-retencion-tarjetas": "Reglamento IVA Retención Tarjetas",
+      "ley-9635": "Ley 9635",
+      "reglamento-titulo-iv-9635": "Reglamento Título IV 9635",
+      "reglamento-renta": "Reglamento Renta",
+      "tramos-renta-2026": "Tramos Renta 2026",
+      "ley-10363": "Ley 10363",
+      "ccss-bmc": "CCSS BMC",
+      "ccss-escala-ivm": "CCSS Escala IVM",
+      "ccss-escala-salud": "CCSS Escala Salud",
+      "salarios-minimos": "Salarios Mínimos",
+      "reglamento-rts": "Reglamento RTS",
+      "reglamento-comprobantes": "Reglamento Comprobantes",
+      "disposiciones-v44": "Disposiciones v4.4",
+      "dgt-export-servicios": "DGT Export Servicios",
+      "tribu-cr-guia": "TRIBU CR Guía",
+      "cabys-dev": "CABYS Dev",
+    });
   });
 });
 
