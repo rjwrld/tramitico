@@ -15,7 +15,8 @@ Drop the shell page entirely. The client ([src/lib/ingestion/sinalevi.ts](../../
 1. `POST /_BuscarVersionNorma` with `numeroVersion=1` — always exists; its ficha card carries
    the total as `"1 de M"`.
 2. `POST /_BuscarVersionNorma` with `numeroVersion=M` — returns the **vigente** `idVersionNorma`
-   (out-of-range requests return id `0`, which we treat as a loud failure).
+   (out-of-range requests return id `0`, which we treat as a loud failure). Skipped when `M`
+   is 1: version 1 is already the vigente one, so step 1's response carries the id.
 3. `POST /_CargarTextoCompleto` with that id — full consolidated text.
 
 Confirmed traps, now encoded in code and tests: legacy SCIJ redirects land on version 1 (for the
