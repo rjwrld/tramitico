@@ -16,15 +16,17 @@ The `.html` files are the raw `html` payload from SINALEVI's API — Word-export
 ## SINALEVI fetch recipe (no cookies, no session)
 
 The legacy `pgrweb.go.cr/scij` URLs redirect to `sinalevi.go.cr`, an app shell that
-loads legal text client-side. The underlying API is three plain POSTs (browser
-User-Agent required — bare curl UA gets 403), per
+loads legal text client-side. The underlying API is three plain POSTs — two when
+the norm has a single version, where step 2 collapses into step 1 (browser
+User-Agent required; bare curl UA gets 403), per
 [ADR 0001](../adr/0001-sinalevi-fetch-recipe.md):
 
 1. `POST /ResultadosNormativa/_BuscarVersionNorma` with `idFichaNorma=<id>&numeroVersion=1`
    → the ficha card for version 1, which always exists; read the total off its
    `"1 de M"` label.
 2. `POST /ResultadosNormativa/_BuscarVersionNorma` with `idFichaNorma=<id>&numeroVersion=M`
-   → JSON `{ idVersionNorma }` — the **vigente** version id. An out-of-range
+   → JSON `{ idVersionNorma }` — the **vigente** version id. Skipped when `M`
+   is 1 (step 1's response is already the vigente one). An out-of-range
    `numeroVersion` returns id `0`, which is a loud failure, not a fallback.
 3. `POST /ResultadosNormativa/_CargarTextoCompleto` with `idFichaNorma=<id>&version=<idVersionNorma>&busqueda=`
    → JSON `{ html }` — the full consolidated text.
