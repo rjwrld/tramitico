@@ -115,7 +115,7 @@ async function main() {
         ),
     );
 
-  for (const provider of ["voyage", "openai"]) {
+  for (const provider of ["voyage"]) {
     const chunkVecs = loadCache(provider, "chunks");
     const questionVecs = loadCache(provider, "questions");
     const qv = questionVecs[CANARY_INDEX];

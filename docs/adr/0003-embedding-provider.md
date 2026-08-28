@@ -65,7 +65,8 @@ therefore transfers to #25 with this data as its baseline.
    (migration `20260804190000_embedding_vector_1024.sql`); stub vectors were nulled and the
    corpus re-embedded via `pnpm ingest`.
 3. `EMBEDDINGS_PROVIDER=voyage` in production. OpenAI and stub paths stay in the embedder — stub
-   still powers keyless local dev and CI unit tests.
+   still powers keyless local dev and CI unit tests. (The OpenAI path was removed by the
+   [2026-08-28 amendment](#amendment-2026-08-28--the-openai-path-is-removed-209).)
 4. The Voyage embedder handles the keyless tier itself (~3 requests + 10K tokens per minute):
    **token-aware batching** (≈8K estimated tokens per request — a request above the TPM budget
    is rejected forever, not queued), ≥21s proactive gap between requests (bursting provokes
@@ -104,3 +105,23 @@ Reranking is therefore **on by default** (`RERANK=off` opts out;
 with the canary as a named blocking case — the referee for any future
 lexical-leg tuning (ADR 0005). `WEAK_SCORE_THRESHOLD` was re-checked against
 the same runs: every legitimate question scores ≥18% above it, value unchanged.
+
+## Amendment (2026-08-28) — the OpenAI path is removed (#209)
+
+Decision 3 kept the OpenAI adapter in `src/lib/ingestion/embedder.ts` as a dormant alternative.
+It was not dormant: `EMBEDDINGS_PROVIDER=openai` selected it at request time, `embedQuery`
+included, and `retrieve()` calls that on every `/api/ask`. One hosting-dashboard env var — no
+PR, no deploy, no review — routed every user question to a subprocessor `/privacidad` does not
+name. Since [#136](https://github.com/rjwrld/tramitico/issues/136) that page is a claim about
+the code, and a claim a config flip can falsify is not a claim.
+
+**Amended:** the openai case is deleted from `createEmbedder`; `EMBEDDINGS_PROVIDER=openai` — like
+any other unknown value — throws `Unknown EMBEDDINGS_PROVIDER`. `OPENAI_API_KEY` is gone from
+`.env.example` and from `.github/workflows/recrawl.yml`, and the benchmark harnesses run over
+the providers that still exist. The provider set is now exactly `stub | voyage`.
+
+This costs nothing that was not already being paid. This ADR's own Consequences price a provider
+switch as a column-dimension migration plus a full re-embed — a PR either way, never a config
+flip — so the adapter is re-introduced _in that PR_, together with the `/privacidad`
+subprocessor edit and the migration. Same change, same review: the #136 invariant. The benchmark
+table above stands as the evidence that produced this decision; it is history, not a live path.

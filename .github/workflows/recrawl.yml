@@ -49,7 +49,6 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           EMBEDDINGS_PROVIDER: ${{ vars.EMBEDDINGS_PROVIDER }}
           VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: pnpm ingest
       - name: Report failure
         if: failure()

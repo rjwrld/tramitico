@@ -1,7 +1,9 @@
 /**
- * Embedding benchmark for ADR 0003 (issue #19): Voyage voyage-3 (1024d) vs
- * OpenAI text-embedding-3-small (1536d), judged on the Appendix-A questions
- * against the live local corpus.
+ * Embedding benchmark for ADR 0003 (issue #19), judged on the Appendix-A
+ * questions against the live local corpus. The comparison it was written for
+ * (voyage-3 vs OpenAI text-embedding-3-small) is settled and the openai
+ * adapter is gone (#209); what stays runnable is every provider the embedder
+ * still offers, plus the in-script voyage-3 input_type candidate.
  *
  * Measures the vector leg alone — the lexical leg is identical under either
  * provider, so it would only blur the comparison. Hit = an acceptable target
@@ -10,7 +12,7 @@
  * Embeddings are cached per provider under the OS temp dir, so re-runs after
  * the first cost nothing.
  *
- * Usage:  pnpm tsx scripts/bench-embeddings.ts [voyage openai stub]
+ * Usage:  pnpm tsx scripts/bench-embeddings.ts [voyage stub voyage-it]
  */
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import os from "node:os";
@@ -233,7 +235,7 @@ async function main() {
   if (!url || !key) throw new Error("SUPABASE_URL / SERVICE_ROLE_KEY missing");
   const providers = process.argv.slice(2).length
     ? process.argv.slice(2)
-    : ["stub", "voyage", "openai"];
+    : ["stub", "voyage"];
 
   const db = createClient(url, key, { auth: { persistSession: false } });
   const chunks: ChunkRow[] = [];

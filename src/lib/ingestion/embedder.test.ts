@@ -3,7 +3,7 @@ import { createEmbedder, INTERACTIVE_EMBED_TIMEOUT_MS } from "./embedder";
 import { EMBEDDING_DIMENSIONS } from "../embedding-dimensions";
 
 /**
- * Fake Voyage/OpenAI endpoint: embeds each input text as a one-dimensional
+ * Fake embeddings endpoint: embeds each input text as a one-dimensional
  * vector holding its first char code, so tests can assert both batching
  * (call count / batch sizes) and that vector order matches input order.
  */
@@ -207,31 +207,30 @@ describe("createEmbedder", () => {
     });
   });
 
-  describe("openai", () => {
-    it("embeds via the injected fetch and returns vectors in order", async () => {
-      vi.stubEnv("OPENAI_API_KEY", "sk-test");
-      const fetchImpl = fakeEmbeddingsFetch();
-      const embedder = createEmbedder("openai", { fetchImpl });
-      const vectors = await embedder.embed(["Alpha", "Beta"]);
-      expect(vectors).toEqual([["A".charCodeAt(0)], ["B".charCodeAt(0)]]);
-      expect(fetchImpl).toHaveBeenCalledTimes(1);
-      const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
-      expect(url).toContain("openai.com");
-      expect((JSON.parse(init.body as string) as { model: string }).model).toBe(
-        "text-embedding-3-small",
-      );
-    });
+  /**
+   * The provider list is a privacy contract, not a convenience (#209): a
+   * provider wired here is selectable from a hosting dashboard with no PR and
+   * no deploy, so anything not named on /privacidad must not be reachable.
+   * The openai adapter was removed for exactly that reason; these cases pin
+   * the closed door.
+   */
+  describe("removed and unknown providers", () => {
+    it.each(["openai", "cohere", "OPENAI", "voyage-3"])(
+      "throws on EMBEDDINGS_PROVIDER=%s instead of reaching a provider",
+      (provider) => {
+        vi.stubEnv("OPENAI_API_KEY", "sk-test");
+        const fetchImpl = fakeEmbeddingsFetch();
+        expect(() => createEmbedder(provider, { fetchImpl })).toThrow(
+          `Unknown EMBEDDINGS_PROVIDER: ${provider}`,
+        );
+        expect(fetchImpl).not.toHaveBeenCalled();
+      },
+    );
 
-    it("throws on a non-OK response", async () => {
-      vi.stubEnv("OPENAI_API_KEY", "sk-test");
-      const fetchImpl = vi
-        .fn()
-        .mockResolvedValue(
-          new Response("nope", { status: 500 }),
-        ) as unknown as typeof fetch;
-      const embedder = createEmbedder("openai", { fetchImpl });
-      await expect(embedder.embed(["Gamma"])).rejects.toThrow(
-        "OpenAI embeddings: HTTP 500",
+    it("throws on an unknown provider taken from the environment", () => {
+      vi.stubEnv("EMBEDDINGS_PROVIDER", "openai");
+      expect(() => createEmbedder()).toThrow(
+        "Unknown EMBEDDINGS_PROVIDER: openai",
       );
     });
   });
