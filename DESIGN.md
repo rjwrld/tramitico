@@ -30,6 +30,9 @@ on paper. If red appears anywhere else, it's a bug.
   --popover-foreground: oklch(0.24 0.015 285);
   --primary: oklch(0.5 0.155 27); /* sello red */
   --primary-foreground: oklch(0.98 0.005 40);
+  --primary-hover: oklch(
+    0.44 0.15 27
+  ); /* CTA hover ground — darker, not paler */
   --secondary: oklch(
     0.965 0.004 40
   ); /* folio — warm-tinted toward the brand hue */
@@ -64,6 +67,7 @@ on paper. If red appears anywhere else, it's a bug.
   --popover-foreground: oklch(0.9 0.008 285);
   --primary: oklch(0.66 0.14 25); /* warm sello on dark */
   --primary-foreground: oklch(0.18 0.03 25);
+  --primary-hover: oklch(0.72 0.13 25); /* the polarity inverts: lighter here */
   --secondary: oklch(0.27 0.013 285);
   --secondary-foreground: oklch(0.85 0.01 285);
   --muted: oklch(0.27 0.013 285);
@@ -133,7 +137,9 @@ Three voices, paired on a contrast axis:
 Scale (rem): 0.6875 (11px, sello/meta) · 0.75 · 0.875 (UI default) · 1 (answer prose) · 1.25 ·
 1.5 · 2 (page title, serif). Answer prose: `line-height 1.7`, measure capped at 68ch. Headings get
 `text-wrap: balance`; long answers `text-wrap: pretty`. Display letter-spacing never tighter than
-−0.02em.
+−0.02em — that floor is the `--tracking-display` token (`tracking-display`), not Tailwind's
+`tracking-tight`, which is −0.025em and undercuts it; `src/lib/design/typography.test.ts` fails the
+build on either tighter class (#215).
 
 ## 4. Name treatment
 
@@ -214,9 +220,12 @@ static labels, instant text.
 
 ## 9. Voice & copy
 
-- **Answers and UI in Spanish, usted.** App chrome available in English (EN shell); answers never
-  translate.
-- Sentence case everywhere; no exclamation marks in system copy; contractions natural in EN chrome.
+- **Answers and chrome in Spanish, usted.** Every visible string, `aria-label`, `sr-only` label
+  and page title ([ADR 0013](docs/adr/0013-spanish-chrome.md), #215). The English shell this line
+  used to promise is retired: it only ever reached screen-reader users, as English controls
+  narrated over a Spanish page. README and the demo script stay English — they address
+  contributors, not users.
+- Sentence case everywhere; no exclamation marks in system copy.
 - Buttons: verb first ("Enviar", "Iniciar sesión", "Ver fuente").
 - Errors: what happened + what to do, no apology theater ("No se pudo conectar. Intente de nuevo.").
 - Rate-limit message: friendly, names the reset time, nudges sign-in — never scolds.

@@ -8,6 +8,11 @@
 // `--sello-bg`. These assertions are what keep the alpha pattern from
 // coming back.
 //
+// Issue #215 is the same defect on the *hover* half of the one sanctioned CTA:
+// the filled primary hovered at `bg-primary/80`, an alpha of the ground against
+// the page, which composited its label down to ≈2.92:1 in light mode. The hover
+// ground is now `--primary-hover`, asserted below in both themes.
+//
 // Issue #165 extends the same argument to a non-text pair: `ConfirmInline`'s
 // `border-destructive/30` measured 1.81:1 / 1.58:1 against the surfaces it
 // lands on, under WCAG 1.4.11's 3:1 floor for non-text UI. It is now
@@ -63,6 +68,13 @@ describe.each(["light", "dark"] as const)("%s theme tokens", (theme) => {
     ],
     ["--sello on --sello-bg", "--sello", "--sello-bg"],
     ["--primary-foreground on --primary", "--primary-foreground", "--primary"],
+    // Issue #215: the hovered CTA is a state a user reads text in, so it
+    // carries the same AA floor as the resting one.
+    [
+      "--primary-foreground on --primary-hover",
+      "--primary-foreground",
+      "--primary-hover",
+    ],
   ])("%s meets AA for text", (_label, fg, bg) => {
     expect(ratio(fg, bg)).toBeGreaterThanOrEqual(AA_TEXT);
   });
@@ -78,6 +90,26 @@ describe.each(["light", "dark"] as const)("%s theme tokens", (theme) => {
     ["--destructive-border on --popover", "--destructive-border", "--popover"],
   ])("%s meets AA for non-text UI", (_label, fg, bg) => {
     expect(ratio(fg, bg)).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+
+  it("moves the primary hover ground away from the page, not toward it", () => {
+    // The #215 regression stated as a value: `bg-primary/80` composites toward
+    // `--background`, so in light mode the hover ground gets *lighter* than
+    // the resting one and the pale label loses contrast. Whichever direction
+    // the theme runs, the hover ground must move away from the page.
+    const lightness = (token: string) => {
+      const match = /oklch\(([\d.]+)/.exec(t[token]);
+      if (!match) throw new Error(`${token} is not oklch(): ${t[token]}`);
+      return Number(match[1]);
+    };
+    const towardPage = Math.sign(
+      lightness("--background") - lightness("--primary"),
+    );
+    const moved = Math.sign(
+      lightness("--primary-hover") - lightness("--primary"),
+    );
+    expect(moved).not.toBe(0);
+    expect(moved).toBe(-towardPage);
   });
 
   it("does not derive the destructive ground from the destructive text", () => {
@@ -96,11 +128,12 @@ describe.each(["light", "dark"] as const)("%s theme tokens", (theme) => {
   });
 });
 
-// The token pair only helps where it is actually used. `bg-destructive/<alpha>`
+// A token pair only helps where it is actually used. `bg-destructive/<alpha>`
 // is the #160 defect written as a utility class: it computes the ground from
 // the text colour at paint time, so it would sail past every assertion above
-// and still ship a 3.35:1 control. Ban it in the tree instead.
-describe("destructive grounds in components", () => {
+// and still ship a 3.35:1 control. `bg-primary/<alpha>` is the same defect on
+// the CTA hover (#215). Ban them in the tree instead.
+describe("tinted grounds in components", () => {
   const componentsDir = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
     "../../components",
@@ -126,6 +159,18 @@ describe("destructive grounds in components", () => {
       expect(source).not.toMatch(/\bbg-destructive\/\d/);
     },
   );
+
+  it("grounds the filled primary hover in --primary-hover", () => {
+    const source = readFileSync(
+      path.join(componentsDir, "ui", "button.tsx"),
+      "utf8",
+    );
+    const code = source.replace(/^\s*\/\/.*$/gm, "");
+    // The #215 defect as a utility class: an alpha of the ground composites at
+    // paint time, so the token assertions above would never see it.
+    expect(code).not.toMatch(/\bbg-primary\/\d/);
+    expect(code).toContain("hover:bg-primary-hover");
+  });
 
   it("draws the ConfirmInline zone rule from --destructive-border", () => {
     const source = readFileSync(

@@ -38,7 +38,7 @@ export function QAView({
       </div>
       {/* A pasted question can be one unbroken string (#138) — it wraps
           rather than pushing the column wider than the phone. */}
-      <h1 className="font-serif text-2xl font-semibold tracking-tight wrap-break-word">
+      <h1 className="font-serif text-2xl font-semibold tracking-display wrap-break-word">
         {item.question}
       </h1>
       {/* Same prose treatment as the live answer (#77): the snapshot carries
