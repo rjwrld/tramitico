@@ -8,7 +8,9 @@ export const metadata: Metadata = {
 export default function AuthErrorPage() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-[44rem] flex-col items-center justify-center gap-4 px-6 text-center">
-      <h1 className="text-lg font-semibold">No se pudo iniciar sesión</h1>
+      <h1 className="font-serif text-lg font-semibold tracking-display">
+        No se pudo iniciar sesión
+      </h1>
       <p className="text-muted-foreground text-sm">
         El enlace expiró o ya fue usado. Vuelva al inicio e intente de nuevo.
       </p>

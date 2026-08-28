@@ -157,7 +157,7 @@ export function Chat() {
   if (messages.length === 0) {
     return (
       <div className="mx-auto flex w-full max-w-[44rem] flex-1 flex-col justify-center gap-8 px-4 py-8">
-        <h1 className="text-center font-serif text-[2rem] font-semibold tracking-tight text-balance">
+        <h1 className="text-center font-serif text-[2rem] font-semibold tracking-display text-balance">
           ¿Qué trámite le quita el sueño?
         </h1>
         <SeedPrompts onSelect={ask} disabled={busy} />

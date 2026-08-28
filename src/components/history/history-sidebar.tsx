@@ -97,7 +97,7 @@ export function HistorySidebar({
                   <span className="w-full truncate text-sm">
                     {item.question}
                   </span>
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className="font-mono text-[11px] text-muted-foreground tabular-nums">
                     {dateFormat.format(new Date(item.created_at))}
                   </span>
                 </button>

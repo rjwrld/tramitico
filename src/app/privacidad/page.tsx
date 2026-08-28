@@ -59,7 +59,7 @@ export default function PrivacyPage() {
         </Link>
       </p>
 
-      <h1 className="mt-8 font-serif text-[2rem] font-semibold tracking-tight text-balance">
+      <h1 className="mt-8 font-serif text-[2rem] font-semibold tracking-display text-balance">
         Privacidad
       </h1>
       <p className="mt-3 border-b border-border pb-8 text-sm text-muted-foreground">
@@ -170,7 +170,7 @@ function Section({
 }) {
   return (
     <section className="mt-10">
-      <h2 className="font-serif text-xl font-semibold tracking-tight">
+      <h2 className="font-serif text-xl font-semibold tracking-display">
         {title}
       </h2>
       <div className="mt-3 text-sm/6 text-muted-foreground">{children}</div>

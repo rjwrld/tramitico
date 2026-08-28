@@ -13,7 +13,13 @@
    is the same argument for a non-text pair (issue #165): `border-destructive/30`
    measured 1.81:1 / 1.58:1, under the 3:1 WCAG 1.4.11 floor, so the rule that
    delineates a destructive zone is a token too. Values are checked by
-   `src/lib/design/tokens.test.ts`; do not hand-edit one without rerunning it. */
+   `src/lib/design/tokens.test.ts`; do not hand-edit one without rerunning it.
+
+   `--primary-hover` is the same argument for the one sanctioned CTA (issue
+   #215): the filled primary hovered at `bg-primary/80`, which composites the
+   ground toward the page and dropped its label to ≈2.9:1 in light mode. The
+   hover ground is a token, tuned per theme — darker in light, lighter in dark
+   — so both directions keep AA against `--primary-foreground`. */
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.24 0.015 285);
@@ -23,6 +29,7 @@
   --popover-foreground: oklch(0.24 0.015 285);
   --primary: oklch(0.5 0.155 27);
   --primary-foreground: oklch(0.98 0.005 40);
+  --primary-hover: oklch(0.44 0.15 27);
   --secondary: oklch(0.965 0.004 40);
   --secondary-foreground: oklch(0.3 0.015 285);
   --muted: oklch(0.965 0.004 40);
@@ -54,6 +61,7 @@
   --popover-foreground: oklch(0.9 0.008 285);
   --primary: oklch(0.66 0.14 25);
   --primary-foreground: oklch(0.18 0.03 25);
+  --primary-hover: oklch(0.72 0.13 25);
   --secondary: oklch(0.27 0.013 285);
   --secondary-foreground: oklch(0.85 0.01 285);
   --muted: oklch(0.27 0.013 285);
@@ -84,6 +92,7 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -105,6 +114,10 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-serif: var(--font-source-serif);
+  /* DESIGN §3: display letter-spacing never tighter than -0.02em. Tailwind's
+     own `tracking-tight` is -0.025em, past that floor — display headings use
+     `tracking-display` instead. */
+  --tracking-display: -0.02em;
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: calc(var(--radius) - 1px);
   --radius-lg: var(--radius);

@@ -4,7 +4,7 @@
  * Manual light/dark switch (DESIGN §1/§8). The switch arms a 150ms crossfade
  * on ground colors only — `.theme-crossfade` on <html>, consumed by
  * globals.css — and disarms it right after, so nothing else ever transitions
- * on theme change. Chrome is EN per SPEC §8.
+ * on theme change. Chrome is Spanish per SPEC §8 (ADR 0013).
  */
 import { useTheme } from "next-themes";
 import { MoonIcon, SunIcon } from "lucide-react";
@@ -29,7 +29,7 @@ export function ThemeToggle() {
     <Button
       variant="ghost"
       size="icon"
-      aria-label="Toggle theme"
+      aria-label="Cambiar tema"
       onClick={toggle}
     >
       {/* Icon picked by the .dark class so server and client render alike. */}
