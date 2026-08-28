@@ -1,7 +1,9 @@
 # ADR 0011 — The answer is buffered and checked before any of it is written
 
 Date: 2026-08-25 · Status: accepted · Amends
-[ADR 0009](0009-stream-first-ask.md) ·
+[ADR 0009](0009-stream-first-ask.md) · Amended by
+[ADR 0013](0013-disconnect-refunds-and-internal-deadline.md) (the abort branch: every
+abort now refunds — the server cannot tell Detener from a network drop) ·
 Context: issue [#131](https://github.com/rjwrld/tramitico/issues/131), decision on
 [#121](https://github.com/rjwrld/tramitico/issues/121)
 

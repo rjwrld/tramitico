@@ -62,14 +62,22 @@
  * Stop/retry (#74, audit F-11): `request.signal` is threaded into `streamText`
  * as `abortSignal`, so a client-side `stop()` (chat.tsx) cancels the paid
  * Anthropic call once generation has started — the issue's named target for
- * F-11. Retrieval and rerank are out of scope here and still run to
- * completion after an abort; they are comparatively cheap next to the model
- * call and #74 doesn't ask for their cancellation. Persistence-on-abort is
- * still a no-op, but buffering made it a branch that has to be named rather
- * than a consequence of `onFinish` never firing: the loop below returns the
- * moment it sees an aborted signal, whether the abort surfaced as a rejection
- * or just ended the provider stream. No user was ever shown "listo" for it,
- * so there is nothing worth remembering.
+ * F-11. Persistence-on-abort is a no-op: no user was ever shown "listo" for
+ * it, so there is nothing worth remembering.
+ *
+ * Aborts refund, and the pipeline carries its own deadline (#205, ADR 0013).
+ * `request.signal` fires on Detener and on a passive network drop alike — a
+ * WiFi handoff, a locked phone, a proxy idle-kill — and the server cannot
+ * tell them apart, so every client abort refunds the slot and persists
+ * nothing. ADR 0011's "abort = deliberate stop, nothing owed" reading is
+ * replaced: the reader received no value either way. Generation also runs
+ * under `startAskDeadline` (~50 s, cumulative across both attempts), so a
+ * slow retry run surfaces as a refundable system failure *inside* the route
+ * instead of hitting the platform's silent `maxDuration` kill — which runs
+ * no `finally`, lands no refund, writes no telemetry. Refunds themselves
+ * settle in `execute`'s own `finally`, not in the stream's `onFinish`: a
+ * disconnect can fire `onFinish` via `cancel()` before the debt is even
+ * marked, and settlement must not depend on that ordering.
  */
 import {
   createUIMessageStream,
@@ -102,6 +110,7 @@ import {
   validateCitations,
 } from "@/lib/answer/invariant";
 import { condenseQuestion } from "@/lib/answer/condense";
+import { startAskDeadline } from "@/lib/answer/deadline";
 import { getAnswerModel } from "@/lib/answer/model";
 import { describeError } from "@/lib/log-redaction";
 import { saveQuestion, type SaveQuestionInput } from "@/lib/answer/persist";
@@ -186,12 +195,16 @@ function clientIp(request: Request): string {
  * letting an unhandled throw turn into a 500 the client contract doesn't
  * describe.
  */
-async function anonRateLimit(request: Request): Promise<RateLimitResult> {
+async function anonRateLimit(
+  request: Request,
+  now: Date,
+): Promise<RateLimitResult> {
   let subject: string;
   try {
     subject = subjectForAnon(
       clientIp(request),
       request.headers.get("user-agent") ?? "",
+      now,
     );
   } catch (error) {
     console.error(
@@ -200,13 +213,13 @@ async function anonRateLimit(request: Request): Promise<RateLimitResult> {
     return {
       allowed: false,
       remaining: 0,
-      resetAt: new Date(),
+      resetAt: now,
       reason: "unavailable",
       message: RATE_LIMIT_UNAVAILABLE_MESSAGE,
       refund: NO_REFUND,
     };
   }
-  return checkRateLimit(subject, "anon");
+  return checkRateLimit(subject, "anon", undefined, now);
 }
 
 type Writer = UIMessageStreamWriter<AskUIMessage>;
@@ -515,9 +528,14 @@ export async function POST(request: Request): Promise<Response> {
     : [];
 
   const userId = await getUserId(request);
+  // One clock read for the whole rate-limit decision (#205): the anonymous
+  // subject and the quota window each derive a date, and two separate reads
+  // straddling CR midnight would key the subject to one day and the window
+  // to the next.
+  const now = new Date();
   const limit = userId
-    ? await checkRateLimit(subjectForUser(userId), "authed")
-    : await anonRateLimit(request);
+    ? await checkRateLimit(subjectForUser(userId), "authed", undefined, now)
+    : await anonRateLimit(request, now);
   if (!limit.allowed) {
     // Fail-closed: an unavailable limiter denies too, but as a 503 so the
     // client can tell "try later" from "you hit the limit".
@@ -543,154 +561,247 @@ export async function POST(request: Request): Promise<Response> {
     },
   };
 
+  // The pipeline's own budget (#205, deadline.ts): expire it inside the route,
+  // observably, before the platform's silent `maxDuration` kill can. Started
+  // here, after the increment landed, because this is the moment there is a
+  // slot to lose.
+  const deadline = startAskDeadline();
+
+  /**
+   * Settles the debt and writes the event — the two things that must happen
+   * however the ask ended. Reached from `execute`'s `finally` (the path that
+   * cannot be skipped short of a platform kill) and from `onFinish` as a
+   * backstop. Meeting it twice pays at most once — but a debt marked *after*
+   * the first settlement (the `onError` door) is still paid by the second.
+   */
+  let refundPaid = false;
+  const settle = async (): Promise<void> => {
+    if (refundOwed && !refundPaid) {
+      refundPaid = true;
+      await limit.refund();
+    }
+    telemetry.emit();
+  };
+
+  const runAsk = async (writer: Writer): Promise<void> => {
+    /**
+     * The two doors out of a cut-short ask (#205), checked in this order at
+     * every await boundary below — the deadline first, because when both have
+     * fired, our expired budget is the fact worth reporting.
+     *
+     * `deadlineHit` is a system failure: the reader is (as far as we know)
+     * still connected and waiting, so they get the contract's Spanish error,
+     * a refund, and a `refunded_error` event. `clientGone` is the caller's
+     * signal — Detener and a passive network drop are indistinguishable here,
+     * so both refund and neither persists; there is nobody left to write an
+     * error part for.
+     */
+    const deadlineHit = (): boolean => {
+      if (!deadline.signal.aborted) return false;
+      console.error("ask: internal deadline exceeded before the answer");
+      telemetry.aborted("deadline");
+      telemetry.failed(deadline.signal.reason);
+      writeStreamError(
+        writer,
+        "answer_failed",
+        ASK_FALLBACK_ERROR_MESSAGE,
+        quota,
+      );
+      return true;
+    };
+    const clientGone = (): boolean => {
+      if (!request.signal.aborted) return false;
+      telemetry.aborted("client");
+      quota.owe();
+      return true;
+    };
+    // The one check the boundaries below actually call. Always both doors,
+    // always in the same order — leaving a caller free to check only one is
+    // how a boundary quietly loses its deadline coverage.
+    const cutShort = (): boolean => deadlineHit() || clientGone();
+
+    // Our own `start` so the status parts have a message to attach to
+    // before retrieval begins.
+    writer.write({ type: "start" });
+    writeStatus(writer, "buscando");
+
+    // #132: a follow-up is resolved into a standalone question before
+    // anything else runs, and the rest of this route neither knows nor
+    // cares that it happened. Inside the 200 rather than in front of it —
+    // it is a model call, so it belongs on the same side of the stream as
+    // the other two, under the `buscando` stage the reader is already
+    // watching. A first turn makes no call at all, and a condensation that
+    // fails hands the literal question back (condense.ts), so this line can
+    // slow an ask down but can never fail one.
+    const { query, condensed } = await condenseQuestion(literal, history);
+    const asked: AskedQuestion = { question: literal, condensed, query };
+
+    let retrieval;
+    try {
+      retrieval = await retrieve(asked.query, { matchCount: RERANK_POOL });
+    } catch (error) {
+      console.error(`ask: retrieval failed: ${describeError(error)}`);
+      telemetry.failed(error);
+      writeStreamError(
+        writer,
+        "retrieval_failed",
+        RETRIEVAL_FAILED_MESSAGE,
+        quota,
+      );
+      return;
+    }
+    // A reader who left during condensation or retrieval gets their slot
+    // back (#205) — nothing below is on their behalf, and nothing was
+    // delivered. A budget already spent by retrieval alone is caught here
+    // too, before any paid generation begins.
+    if (cutShort()) return;
+
+    // #127: the vector leg was skipped, so the reader is told before they
+    // read anything — including on the decline path below, where a thin
+    // search is part of why we have nothing to say.
+    if (retrieval.isDegraded) {
+      writeDegraded(writer);
+      telemetry.degraded();
+    }
+
+    if (retrieval.isWeak) {
+      await streamHonestDecline(writer, asked, userId);
+      return;
+    }
+
+    // Rerank is still "buscando" — the stage flips only when the model does.
+    const chunks = await rerankChunks(asked.query, retrieval.chunks);
+    if (cutShort()) return;
+    writeStatus(writer, "redactando");
+
+    // The client's signal and our deadline, composed: either one cancels
+    // the paid provider call (#74/F-11 kept the first; #205 adds the
+    // second). Which one fired is re-read off the source signals after —
+    // the composed signal cannot say.
+    const generationSignal = AbortSignal.any([request.signal, deadline.signal]);
+
+    // #131: generate, check, and only then write. The loop is the whole
+    // enforcement — an answer leaves this block either having satisfied the
+    // invariant or not at all.
+    let answer: string | null = null;
+    for (let attempt = 1; attempt <= MAX_ANSWER_ATTEMPTS; attempt += 1) {
+      // The retry is the model writing again, so the stage says so (#219) —
+      // the first attempt rides the `redactando` written above.
+      if (attempt > 1) writeStatus(writer, "redactando");
+      let text: string;
+      try {
+        text = await generateAnswer(
+          asked.query,
+          chunks,
+          generationSignal,
+          attempt,
+        );
+      } catch (error) {
+        // An aborted generation arrives here as a rejection. Which signal
+        // cut it decides everything (#205): the deadline is our failure
+        // (error part, refund, telemetry — all inside `deadlineHit`), and
+        // a client abort — Detener or a network drop, indistinguishable —
+        // refunds quietly and persists nothing.
+        if (cutShort()) return;
+        writer.write({
+          type: "error",
+          errorText: answerFailed(error, quota, telemetry),
+        });
+        return;
+      }
+      // The quieter half of the same stops: an abort mid-generation can end
+      // the provider stream without an error at all (the SDK routes it
+      // through its own `onAbort`), so the loop simply gets a truncated
+      // draft back. Validating, retrying or persisting it would be work on
+      // an answer nobody will receive.
+      if (cutShort()) return;
+
+      // #219: the invariant check is a real pipeline moment, so it gets a
+      // stage. The check itself takes microseconds — the client is the one
+      // that holds the label on screen long enough to be legible.
+      writeStatus(writer, "verificando");
+      const verdict = validateCitations(text, chunks.length);
+      if (verdict.ok) {
+        answer = text;
+        break;
+      }
+      recordCitationFailure({
+        violation: verdict.violation,
+        attempt,
+        unresolved: verdict.unresolved,
+      });
+      telemetry.citationFailure();
+    }
+
+    // Fail closed. The retry is spent and we still have no answer we can
+    // stand behind, so the user gets the same honest decline weak retrieval
+    // gives rather than prose with nothing under it. It is a *delivered*
+    // answer, so it consumes the ask like any other decline (#126) and is
+    // persisted like one — refunding here would hand a free ask back every
+    // time a badly-behaved model misbehaves, which is a hole whose shape we
+    // do not control.
+    if (answer === null) {
+      await streamHonestDecline(writer, asked, userId);
+      return;
+    }
+
+    // The last look before anything is delivered (#205). A validated
+    // answer the reader disconnected in front of is still an answer they
+    // never received: refund, write nothing, persist nothing.
+    if (cutShort()) return;
+
+    const tracker = createCitationTracker(chunks);
+    tracker.append(answer);
+    writeAnswer(writer, answer, tracker);
+    telemetry.answered();
+
+    if (userId) {
+      await persistExchange(writer, "answer", {
+        userId,
+        question: asked.question,
+        condensedQuestion: asked.condensed,
+        // History stores the reader's numbering, not the wire's: the
+        // markers are rewritten to seal ordinals here (#133) so a restored
+        // answer carries its superscripts without needing the chunk map,
+        // which is not persisted.
+        answer: renumberCitationMarkers(answer, tracker.ordinals()),
+        citations: tracker.used(),
+      });
+    }
+    writer.write({ type: "finish" });
+  };
+
   const stream = createUIMessageStream<AskUIMessage>({
     execute: async ({ writer }) => {
-      // Our own `start` (the merge below runs with `sendStart: false`) so the
-      // status parts have a message to attach to before retrieval begins.
-      writer.write({ type: "start" });
-      writeStatus(writer, "buscando");
-
-      // #132: a follow-up is resolved into a standalone question before
-      // anything else runs, and the rest of this route neither knows nor
-      // cares that it happened. Inside the 200 rather than in front of it —
-      // it is a model call, so it belongs on the same side of the stream as
-      // the other two, under the `buscando` stage the reader is already
-      // watching. A first turn makes no call at all, and a condensation that
-      // fails hands the literal question back (condense.ts), so this line can
-      // slow an ask down but can never fail one.
-      const { query, condensed } = await condenseQuestion(literal, history);
-      const asked: AskedQuestion = { question: literal, condensed, query };
-
-      let retrieval;
       try {
-        retrieval = await retrieve(asked.query, { matchCount: RERANK_POOL });
+        await runAsk(writer);
       } catch (error) {
-        console.error(`ask: retrieval failed: ${describeError(error)}`);
-        telemetry.failed(error);
-        writeStreamError(
-          writer,
-          "retrieval_failed",
-          RETRIEVAL_FAILED_MESSAGE,
-          quota,
-        );
-        return;
-      }
-
-      // #127: the vector leg was skipped, so the reader is told before they
-      // read anything — including on the decline path below, where a thin
-      // search is part of why we have nothing to say.
-      if (retrieval.isDegraded) {
-        writeDegraded(writer);
-        telemetry.degraded();
-      }
-
-      if (retrieval.isWeak) {
-        await streamHonestDecline(writer, asked, userId);
-        return;
-      }
-
-      // Rerank is still "buscando" — the stage flips only when the model does.
-      const chunks = await rerankChunks(asked.query, retrieval.chunks);
-      writeStatus(writer, "redactando");
-
-      // #131: generate, check, and only then write. The loop is the whole
-      // enforcement — an answer leaves this block either having satisfied the
-      // invariant or not at all.
-      let answer: string | null = null;
-      for (let attempt = 1; attempt <= MAX_ANSWER_ATTEMPTS; attempt += 1) {
-        // The retry is the model writing again, so the stage says so (#219) —
-        // the first attempt rides the `redactando` written above.
-        if (attempt > 1) writeStatus(writer, "redactando");
-        let text: string;
-        try {
-          text = await generateAnswer(
-            asked.query,
-            chunks,
-            request.signal,
-            attempt,
-          );
-        } catch (error) {
-          // A client stop is not a failure (#74/F-11, #126): no Spanish error
-          // over an answer the user chose to cut off, no refund, nothing
-          // persisted. Buffering is what makes this a branch to name — the
-          // abort used to fall out of the SDK's own `onAbort` and simply never
-          // reach `onFinish`, and now it arrives here as a rejection like any
-          // other.
-          if (request.signal.aborted) return;
-          writer.write({
-            type: "error",
-            errorText: answerFailed(error, quota, telemetry),
-          });
-          return;
-        }
-        // The quieter half of the same stop: an abort mid-generation ends the
-        // provider stream without an error at all (the SDK routes it through
-        // its own `onAbort`), so the loop simply gets a truncated draft back.
-        // Validating, retrying or persisting it would all be work on behalf of
-        // a reader who has already left.
-        if (request.signal.aborted) return;
-
-        // #219: the invariant check is a real pipeline moment, so it gets a
-        // stage. The check itself takes microseconds — the client is the one
-        // that holds the label on screen long enough to be legible.
-        writeStatus(writer, "verificando");
-        const verdict = validateCitations(text, chunks.length);
-        if (verdict.ok) {
-          answer = text;
-          break;
-        }
-        recordCitationFailure({
-          violation: verdict.violation,
-          attempt,
-          unresolved: verdict.unresolved,
+        // A throw the pipeline did not map itself — a bug in `execute`, a
+        // missing key. Caught here rather than left to the SDK's `onError`
+        // so the debt is marked *before* the `finally` settles it; `onError`
+        // fires after `execute` rejects, which is after `finally` has run.
+        writer.write({
+          type: "error",
+          errorText: answerFailed(error, quota, telemetry),
         });
-        telemetry.citationFailure();
+      } finally {
+        // Where refunds actually settle (#205). `execute` runs to completion
+        // even when the client is gone — the stream machinery awaits it — so
+        // this is the one block every path above funnels through, whatever
+        // `onFinish`'s cancel-vs-flush timing did. The deadline timer dies
+        // here too, expired or not, so it cannot hold the function open.
+        deadline.clear();
+        await settle();
       }
-
-      // Fail closed. The retry is spent and we still have no answer we can
-      // stand behind, so the user gets the same honest decline weak retrieval
-      // gives rather than prose with nothing under it. It is a *delivered*
-      // answer, so it consumes the ask like any other decline (#126) and is
-      // persisted like one — refunding here would hand a free ask back every
-      // time a badly-behaved model misbehaves, which is a hole whose shape we
-      // do not control.
-      if (answer === null) {
-        await streamHonestDecline(writer, asked, userId);
-        return;
-      }
-
-      const tracker = createCitationTracker(chunks);
-      tracker.append(answer);
-      writeAnswer(writer, answer, tracker);
-      telemetry.answered();
-
-      if (userId) {
-        await persistExchange(writer, "answer", {
-          userId,
-          question: asked.question,
-          condensedQuestion: asked.condensed,
-          // History stores the reader's numbering, not the wire's: the
-          // markers are rewritten to seal ordinals here (#133) so a restored
-          // answer carries its superscripts without needing the chunk map,
-          // which is not persisted.
-          answer: renumberCitationMarkers(answer, tracker.ordinals()),
-          citations: tracker.used(),
-        });
-      }
-      writer.write({ type: "finish" });
     },
+    // The doors `execute`'s own try cannot cover: a failure in the stream
+    // machinery itself. `onFinish` then settles what this marks.
     onError: (error) => answerFailed(error, quota, telemetry),
-    // Where a system failure actually gives the ask back (#126). The SDK
-    // awaits this in the stream's flush, so the RPC completes before the
-    // response does — the one place on this route that is still guaranteed
-    // to run, and still guaranteed to be waited for. `refund()` swallows its
-    // own failures, so a dead limiter cannot truncate a delivered answer.
-    onFinish: async () => {
-      if (refundOwed) await limit.refund();
-      // Last, and past the last byte the reader was waiting on: the event is
-      // a `console.log` that cannot throw, so it costs the ask nothing (#141).
-      telemetry.emit();
-    },
+    // The backstop. The SDK awaits this in the stream's flush, so on the
+    // paths that reach it a refund still completes before the response does;
+    // `settle`'s halves are once-only, so following `execute`'s `finally` is
+    // a no-op.
+    onFinish: settle,
   });
   return createUIMessageStreamResponse({ stream });
 }

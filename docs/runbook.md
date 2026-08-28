@@ -25,19 +25,20 @@ One line per request to `/api/ask`, whatever the request did, written from
 `src/lib/telemetry.ts`:
 
 ```
-tramitico.event {"event":"ask","outcome":"ok","latency":"1s_3s","providerError":null,"citationFailure":false,"quotaHit":false}
+tramitico.event {"event":"ask","outcome":"ok","latency":"1s_3s","providerError":null,"citationFailure":false,"quotaHit":false,"abort":null}
 ```
 
-| Field             | Values                                                 | Means                                                                                   |
-| ----------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| `outcome`         | `ok`                                                   | an answer was delivered                                                                 |
-|                   | `declined`                                             | no answer, nothing broke: honest decline, bad request, spent quota, reader pressed stop |
-|                   | `degraded`                                             | delivered without the vector leg — the embedding provider was down (#127)               |
-|                   | `refunded_error`                                       | **our side broke**; the ask was refunded or never charged                               |
-| `latency`         | `lt_1s` `1s_3s` `3s_10s` `10s_30s` `gte_30s`           | whole request, auth and rate limit included                                             |
-| `providerError`   | a `describeError` token (`APICallError#429`) or `null` | error _class_, never an error message                                                   |
-| `citationFailure` | `true` / `false`                                       | the citation invariant rejected at least one generation this ask (#131)                 |
-| `quotaHit`        | `true` / `false`                                       | denied because the caller's daily quota was spent (#126)                                |
+| Field             | Values                                                 | Means                                                                                                                                                               |
+| ----------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `outcome`         | `ok`                                                   | an answer was delivered                                                                                                                                             |
+|                   | `declined`                                             | no answer, nothing broke: honest decline, bad request, spent quota, or a client abort (refunded since #205, but still not our failure — see `abort`)                |
+|                   | `degraded`                                             | delivered without the vector leg — the embedding provider was down (#127)                                                                                           |
+|                   | `refunded_error`                                       | **our side broke**; the ask was refunded or never charged                                                                                                           |
+| `latency`         | `lt_1s` `1s_3s` `3s_10s` `10s_30s` `gte_30s`           | whole request, auth and rate limit included                                                                                                                         |
+| `providerError`   | a `describeError` token (`APICallError#429`) or `null` | error _class_, never an error message                                                                                                                               |
+| `citationFailure` | `true` / `false`                                       | the citation invariant rejected at least one generation this ask (#131)                                                                                             |
+| `quotaHit`        | `true` / `false`                                       | denied because the caller's daily quota was spent (#126)                                                                                                            |
+| `abort`           | `client` / `deadline` / `null`                         | cut short: the client's signal (Detener or a network drop — refunded, #205), or the route's own ~50 s deadline expiring before the platform kill (a system failure) |
 
 The prefix `tramitico.event` is a contract. It is a constant in `telemetry.ts`, it is
 quoted in every query below, and renaming it silently breaks all of them.
@@ -101,17 +102,19 @@ should deploy on Pro at minimum.**
 Each is a search-box string plus the sidebar filters already applied. Counts come from the
 result count over the selected timeline.
 
-| #   | Question                             | Search box                                                   |
-| --- | ------------------------------------ | ------------------------------------------------------------ |
-| Q1  | How many asks? (the denominator)     | `tramitico.event`                                            |
-| Q2  | How many broke on our side?          | `refunded_error`                                             |
-| Q3  | Which provider is failing?           | `"providerError":"` — read the tokens off the matching lines |
-| Q4  | How many ran on lexical-only search? | `"outcome":"degraded"`                                       |
-| Q5  | Citation-invariant violations        | `ask: citation invariant violated`                           |
-| Q6  | Asks touched by a citation failure   | `"citationFailure":true`                                     |
-| Q7  | Lost history rows                    | `ask: history save failed`                                   |
-| Q8  | Quota denials                        | `"quotaHit":true`                                            |
-| Q9  | Slow asks                            | `"latency":"gte_30s"`                                        |
+| #   | Question                             | Search box                                                                          |
+| --- | ------------------------------------ | ----------------------------------------------------------------------------------- |
+| Q1  | How many asks? (the denominator)     | `tramitico.event`                                                                   |
+| Q2  | How many broke on our side?          | `refunded_error`                                                                    |
+| Q3  | Which provider is failing?           | `"providerError":"` — read the tokens off the matching lines                        |
+| Q4  | How many ran on lexical-only search? | `"outcome":"degraded"`                                                              |
+| Q5  | Citation-invariant violations        | `ask: citation invariant violated`                                                  |
+| Q6  | Asks touched by a citation failure   | `"citationFailure":true`                                                            |
+| Q7  | Lost history rows                    | `ask: history save failed`                                                          |
+| Q8  | Quota denials                        | `"quotaHit":true`                                                                   |
+| Q9  | Slow asks                            | `"latency":"gte_30s"`                                                               |
+| Q10 | Asks cut short by the reader/network | `"abort":"client"`                                                                  |
+| Q11 | Asks the internal deadline killed    | `"abort":"deadline"` — any at all means generation is running against `maxDuration` |
 
 **Error rate = Q2 ÷ Q1** over the same timeline. That is the number §4 is written against.
 Note what is deliberately _not_ in the numerator: `declined` (including the honest decline
