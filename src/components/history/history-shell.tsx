@@ -44,6 +44,22 @@ async function fetchHistory(): Promise<HistoryItem[]> {
 const wait = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
 
+/**
+ * Put a row back where the server would have it — newest first, by
+ * `created_at` — rather than at the head. A failed delete has to leave the
+ * list exactly as it found it, including for rows that arrived while the
+ * request was in flight.
+ */
+function restore(current: HistoryItem[], item: HistoryItem): HistoryItem[] {
+  if (current.some((existing) => existing.id === item.id)) return current;
+  const at = current.findIndex(
+    (existing) => existing.created_at < item.created_at,
+  );
+  const next = [...current];
+  next.splice(at === -1 ? current.length : at, 0, item);
+  return next;
+}
+
 export function HistoryShell({
   signedIn,
   children,
@@ -59,18 +75,62 @@ export function HistoryShell({
   // Read by `refresh`, which must compare against whatever the list holds at
   // the moment it runs — not the render it was created in.
   const newestIdRef = useRef<string | null>(null);
+  // Rows the UI has removed but the server has not confirmed gone (issue
+  // #213). Every server list is filtered through these before it reaches the
+  // screen, because a GET that overlapped the delete reads the *pre*-delete
+  // state and would put the row back.
+  //
+  // A tombstone outlives its own DELETE: dropping it the moment the delete
+  // succeeds still loses to a GET that was already in flight when the delete
+  // started. So each tombstone records the read counter at the moment it
+  // settled, and only a read begun *after* that — one that cannot be carrying
+  // pre-delete state — is authoritative enough to clear it.
+  const tombstonesRef = useRef(new Map<string, number | null>());
+  // Reads of `/api/history`, counted in the order they are sent.
+  const readSeqRef = useRef(0);
+  // `handleDelete` reads the list and the selection at the moment it runs,
+  // and must not be re-created per render: two deletes racing each other have
+  // to share one set of tombstones, not one per closure.
+  const itemsRef = useRef<HistoryItem[]>([]);
+  const selectedRef = useRef<HistoryItem | null>(null);
+  useEffect(() => {
+    itemsRef.current = items;
+    selectedRef.current = selected;
+    // A delete and its rollback move the list without going through `apply`,
+    // so the newest id is tracked from the list itself rather than only from
+    // the last server response.
+    newestIdRef.current = items[0]?.id ?? null;
+  }, [items, selected]);
 
-  const apply = useCallback((questions: HistoryItem[]) => {
-    newestIdRef.current = questions[0]?.id ?? null;
-    setItems(questions);
+  // One read of the list, tagged with its place in the read order so `apply`
+  // can tell a response that predates a delete from one that follows it.
+  const readHistory = useCallback(async () => {
+    const seq = ++readSeqRef.current;
+    return { seq, questions: await fetchHistory() };
   }, []);
+
+  const apply = useCallback(
+    ({ seq, questions }: { seq: number; questions: HistoryItem[] }) => {
+      for (const [id, settledAt] of tombstonesRef.current) {
+        if (settledAt !== null && settledAt < seq)
+          tombstonesRef.current.delete(id);
+      }
+      const visible = questions.filter(
+        (question) => !tombstonesRef.current.has(question.id),
+      );
+      newestIdRef.current = visible[0]?.id ?? null;
+      setItems(visible);
+      return visible;
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!signedIn) return;
     let cancelled = false;
-    fetchHistory()
-      .then((questions) => {
-        if (!cancelled) apply(questions);
+    readHistory()
+      .then((read) => {
+        if (!cancelled) apply(read);
       })
       .catch(() => {
         if (!cancelled) toast.error(HISTORY_LOAD_ERROR);
@@ -81,7 +141,7 @@ export function HistoryShell({
     return () => {
       cancelled = true;
     };
-  }, [signedIn, apply]);
+  }, [signedIn, apply, readHistory]);
 
   const refresh = useCallback(() => {
     if (!signedIn) return;
@@ -89,9 +149,8 @@ export function HistoryShell({
     void (async () => {
       for (let attempt = 0; attempt < REFRESH_ATTEMPTS; attempt++) {
         try {
-          const questions = await fetchHistory();
-          apply(questions);
-          if ((questions[0]?.id ?? null) !== before) return;
+          const visible = apply(await readHistory());
+          if ((visible[0]?.id ?? null) !== before) return;
         } catch {
           // Silent on purpose: nothing the reader asked for failed — they have
           // their answer, and the list is one reload away from correct.
@@ -99,25 +158,34 @@ export function HistoryShell({
         if (attempt < REFRESH_ATTEMPTS - 1) await wait(REFRESH_RETRY_MS);
       }
     })();
-  }, [signedIn, apply]);
+  }, [signedIn, apply, readHistory]);
 
-  const handleDelete = useCallback(
-    async (id: string) => {
-      const previous = items;
-      apply(items.filter((item) => item.id !== id));
-      if (selected?.id === id) setSelected(null);
-      try {
-        const response = await fetch(`/api/history/${id}`, {
-          method: "DELETE",
-        });
-        if (!response.ok) throw new Error(String(response.status));
-      } catch {
-        apply(previous);
-        toast.error("No se pudo eliminar la pregunta. Intente de nuevo.");
-      }
-    },
-    [items, selected, apply],
-  );
+  const handleDelete = useCallback(async (id: string) => {
+    // A second confirm for a row already being deleted must not send a second
+    // DELETE: the first one wins on the server, and the loser's 404 would
+    // roll a genuinely deleted row back onto the screen. `itemsRef` cannot
+    // catch this on its own — it is only current as of the last commit.
+    if (tombstonesRef.current.has(id)) return;
+    const removed = itemsRef.current.find((item) => item.id === id);
+    if (!removed) return;
+    tombstonesRef.current.set(id, null);
+    setItems((current) => current.filter((item) => item.id !== id));
+    if (selectedRef.current?.id === id) setSelected(null);
+    try {
+      const response = await fetch(`/api/history/${id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error(String(response.status));
+      // Gone for good — but keep the tombstone until a read begun from here
+      // on confirms it, so a GET still in flight cannot resurrect the row.
+      tombstonesRef.current.set(id, readSeqRef.current);
+    } catch {
+      // Per-item rollback, against whatever the list holds *now* (#213). The
+      // old code restored a snapshot taken before the request, which undid
+      // every delete and refresh that had landed in the meantime.
+      tombstonesRef.current.delete(id);
+      setItems((current) => restore(current, removed));
+      toast.error("No se pudo eliminar la pregunta. Intente de nuevo.");
+    }
+  }, []);
 
   if (!signedIn) {
     return <>{children}</>;
