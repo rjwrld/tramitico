@@ -1,9 +1,13 @@
 /**
  * Pluggable embedder (SPEC §5). Provider chosen by EMBEDDINGS_PROVIDER:
  *   - "voyage"  → Voyage AI REST API (VOYAGE_API_KEY)
- *   - "openai"  → text-embedding-3-small (OPENAI_API_KEY)
  *   - "stub"    → deterministic hash vectors, keyless local dev only
- * The Voyage-vs-OpenAI decision is the Week 2 ADR; both stay swappable here.
+ * Those two are the whole list, and deliberately so (#209): every provider
+ * reachable from here is one an operator can select with a dashboard env var,
+ * with no PR and no deploy, so the set has to stay exactly the set
+ * `/privacidad` names as subprocessors (#136). ADR 0003 already prices a
+ * provider switch as a migration + full re-embed; the adapter comes back in
+ * that PR, alongside the /privacidad edit.
  */
 import { EMBEDDING_DIMENSIONS } from "../embedding-dimensions";
 
@@ -115,9 +119,9 @@ class EmbeddingRequestError extends Error {
   }
 }
 
-// Shared shape of a Voyage/OpenAI embeddings call: POST { model, input },
-// Bearer auth, JSON body; on success parse `data[].embedding` in request
-// order. Retry/pacing is provider-specific and lives outside this helper.
+// Shared shape of an embeddings call: POST { model, input }, Bearer auth,
+// JSON body; on success parse `data[].embedding` in request order. Retry and
+// pacing are provider-specific and live outside this helper.
 async function requestEmbeddings(
   fetchImpl: typeof fetch,
   url: string,
@@ -289,33 +293,6 @@ export function createEmbedder(
         if (batch.length > 0) vectors.push(...(await embedBatch(batch)));
         return vectors;
       },
-    };
-  }
-  if (provider === "openai") {
-    const key = process.env.OPENAI_API_KEY;
-    if (!key)
-      throw new Error("EMBEDDINGS_PROVIDER=openai needs OPENAI_API_KEY");
-    return {
-      provider,
-      dimensions: 1536,
-      embedQuery: interactiveQueryEmbedder({
-        fetchImpl,
-        timeoutMs,
-        provider,
-        url: "https://api.openai.com/v1/embeddings",
-        key,
-        model: "text-embedding-3-small",
-        errorPrefix: "OpenAI embeddings",
-      }),
-      embed: (texts) =>
-        requestEmbeddings(
-          fetchImpl,
-          "https://api.openai.com/v1/embeddings",
-          key,
-          "text-embedding-3-small",
-          texts,
-          "OpenAI embeddings",
-        ),
     };
   }
   throw new Error(`Unknown EMBEDDINGS_PROVIDER: ${provider}`);
