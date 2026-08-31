@@ -11,7 +11,6 @@
  * {@link persistDocument} sits on top of it and owns the *order* the two
  * writes happen in, which is the part a runner must not get wrong (#206).
  */
-import type { SupabaseClient } from "@supabase/supabase-js";
 
 /** What a chunk row carries besides its embedding (chunker output, sans docKey). */
 export interface ReplaceableChunk {
@@ -93,6 +92,33 @@ export interface DocumentStamp {
 }
 
 /**
+ * The slice of `SupabaseClient` the `documents` row writes need — the same
+ * narrowing {@link ReplaceRpcClient} does for the RPC, so the ordering below
+ * can be asserted against a fake instead of only against a live database.
+ */
+export interface DocumentRowClient {
+  from(table: "documents"): {
+    upsert(
+      values: DocumentIdentity,
+      options: { onConflict: "doc_key" },
+    ): {
+      select(columns: "id"): {
+        single(): PromiseLike<{
+          data: { id: string } | null;
+          error: { message: string } | null;
+        }>;
+      };
+    };
+    update(values: DocumentStamp): {
+      eq(
+        column: "id",
+        value: string,
+      ): PromiseLike<{ error: { message: string } | null }>;
+    };
+  };
+}
+
+/**
  * Write one document and its chunks, stamping freshness last (#206).
  *
  * The order is the whole point. `fetched_at` is a claim that the chunks
@@ -107,7 +133,7 @@ export interface DocumentStamp {
  * Returns the number of chunks inserted.
  */
 export async function persistDocument(
-  client: SupabaseClient,
+  client: DocumentRowClient & ReplaceRpcClient,
   identity: DocumentIdentity,
   stamp: DocumentStamp,
   chunks: readonly ReplaceableChunk[],

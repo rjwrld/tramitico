@@ -17,11 +17,8 @@ import {
   fetchCorpusChunks,
   serializeCorpusIndex,
 } from "../src/lib/eval/corpus-index";
-import {
-  assertChunksCarryContent,
-  chunkDocument,
-  type ChunkOptions,
-} from "../src/lib/ingestion/chunker";
+import type { ChunkOptions } from "../src/lib/ingestion/chunker";
+import { ingestDocument } from "../src/lib/ingestion/ingest-document";
 import { createEmbedder } from "../src/lib/ingestion/embedder";
 import { type ExcerptSpec, sliceExcerpt } from "../src/lib/ingestion/excerpt";
 import {
@@ -32,7 +29,6 @@ import {
 import { fetchHaciendaPdf } from "../src/lib/ingestion/hacienda";
 import type { LayoutTableSpec } from "../src/lib/ingestion/layout-table";
 import { fetchPdfSource } from "../src/lib/ingestion/pdf";
-import { persistDocument } from "../src/lib/ingestion/replace";
 import type { DeepLinkKind } from "../src/lib/retrieval";
 import { articuloAnchors, fetchNorma } from "../src/lib/ingestion/sinalevi";
 
@@ -145,43 +141,14 @@ async function main() {
       skipped.push(doc.doc_key);
       continue;
     }
-    const chunks = chunkDocument(
-      doc.doc_key,
-      doc.title,
+    const written = await ingestDocument(
+      { client: supabase, embedder },
+      doc,
       paragraphs,
-      doc.chunking ?? {},
-    );
-    assertChunksCarryContent(doc.doc_key, chunks);
-
-    const embeddings: number[][] = [];
-    for (let i = 0; i < chunks.length; i += 64) {
-      embeddings.push(
-        ...(await embedder.embed(
-          chunks.slice(i, i + 64).map((c) => c.content),
-        )),
-      );
-    }
-
-    await persistDocument(
-      supabase,
-      {
-        doc_key: doc.doc_key,
-        title: doc.title,
-        norma: doc.norma,
-        source: doc.source,
-        effective_date: doc.effective_date ?? null,
-      },
-      {
-        fetched_at: new Date().toISOString(),
-        embedding_provider: embedder.provider,
-        embedding_dim: embedder.dimensions,
-      },
-      chunks,
-      embeddings,
     );
 
     ingested++;
-    console.log(`✓ ${doc.doc_key}: ${chunks.length} chunks`);
+    console.log(`✓ ${doc.doc_key}: ${written} chunks`);
   }
 
   if (skipped.length > 0) {
