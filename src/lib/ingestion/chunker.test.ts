@@ -36,8 +36,18 @@ describe("chunkDocument — Ley 10.363 (small, article-structured)", () => {
     expect(art2!.content).toMatch(/cuatro años|4 años/i);
   });
 
-  it("tags the preámbulo", () => {
-    expect(chunks.some((c) => c.articulo === "Preámbulo")).toBe(true);
+  // SPEC §4 rule 3: the title block ("Ley 10363 / N° 10363 / LA ASAMBLEA
+  // LEGISLATIVA … DECRETA: / LEY DEL TRABAJADOR INDEPENDIENTE") is doc
+  // metadata. This ley carries no considerandos, so it has no preámbulo at
+  // all — and the boilerplate must not become a retrievable chunk (#216).
+  it("drops the title block instead of emitting it as an untagged chunk", () => {
+    expect(chunks.some((c) => /ASAMBLEA LEGISLATIVA/.test(c.content))).toBe(
+      false,
+    );
+  });
+
+  it("emits no preámbulo chunk when there are no considerandos", () => {
+    expect(chunks.some((c) => c.articulo === "Preámbulo")).toBe(false);
   });
 
   it("captures transitorios as chunks", () => {
@@ -95,6 +105,27 @@ describe("chunkDocument — Reglamento IVA (71 artículos, 1.5MB)", () => {
     for (const c of chunks) {
       expect(c.content).not.toMatch(/Usted está en la/);
     }
+  });
+
+  // #216: the considerandos used to be flushed as an untagged chunk the
+  // moment the enacting formula appeared, and the "Preámbulo" label landed on
+  // the title block instead. Exactly one preámbulo chunk, and it carries the
+  // recitals.
+  it("tags the considerandos as the single preámbulo chunk", () => {
+    const preamble = chunks.filter((c) => c.articulo === "Preámbulo");
+    expect(preamble).toHaveLength(1);
+    expect(preamble[0].content).toMatch(/Con fundamento en las atribuciones/);
+    expect(preamble[0].content).toMatch(/Considerando/);
+  });
+
+  it("keeps the title block out of the preámbulo and out of every chunk", () => {
+    expect(
+      chunks.some((c) =>
+        /EL PRESIDENTE DE LA REPÚBLICA Y LA MINISTRA DE HACIENDA/.test(
+          c.content,
+        ),
+      ),
+    ).toBe(false);
   });
 });
 
@@ -179,6 +210,120 @@ describe("chunkDocument — lowercase in-sentence heading words (RES-0027-2024 s
     ]);
     expect(chunks).toHaveLength(1);
     expect(chunks[0].path).toEqual([]);
+  });
+});
+
+describe("chunkDocument — front matter (SPEC §4 rule 3)", () => {
+  it("keeps the recitals and drops the enacting formula and the ley title", () => {
+    const chunks = chunkDocument("d", "T", [
+      "N° 41779",
+      "EL PRESIDENTE DE LA REPÚBLICA Y LA MINISTRA DE HACIENDA",
+      "Considerando:",
+      "I.- Que la Administración Tributaria requiere instrumentos ágiles.",
+      "Por tanto, Decretan:",
+      "REGLAMENTO DE LA LEY DEL IVA",
+      "Artículo 1- Objeto. Este reglamento desarrolla la ley.",
+    ]);
+
+    const preamble = chunks.filter((c) => c.articulo === "Preámbulo");
+    expect(preamble).toHaveLength(1);
+    expect(preamble[0].content).toMatch(/instrumentos ágiles/);
+    expect(preamble[0].content).not.toMatch(/PRESIDENTE DE LA REPÚBLICA/);
+    expect(preamble[0].content).not.toMatch(/Decretan/);
+    expect(preamble[0].content).not.toMatch(/REGLAMENTO DE LA LEY DEL IVA/);
+    expect(chunks.every((c) => c.articulo !== null)).toBe(true);
+  });
+
+  it("recognises a recital opened by the facultades formula", () => {
+    const chunks = chunkDocument("d", "T", [
+      "N° 1",
+      "En uso de las facultades que le confiere la Constitución Política.",
+      "ACUERDA:",
+      "Artículo 1- Rige a partir de su publicación.",
+    ]);
+    const preamble = chunks.filter((c) => c.articulo === "Preámbulo");
+    expect(preamble).toHaveLength(1);
+    expect(preamble[0].content).toMatch(/Constitución Política/);
+  });
+
+  it("emits nothing for front matter that is only a title block", () => {
+    const chunks = chunkDocument("d", "T", [
+      "Ley 10363",
+      "N° 10363",
+      "LA ASAMBLEA LEGISLATIVA DE LA REPÚBLICA DE COSTA RICA",
+      "DECRETA:",
+      "LEY DEL TRABAJADOR INDEPENDIENTE",
+      "Artículo 1- Definiciones. Se entenderá por trabajador independiente.",
+    ]);
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0].articulo).toBe("Artículo 1");
+  });
+
+  it("drops front matter that ends at a capítulo heading too", () => {
+    const chunks = chunkDocument("d", "T", [
+      "LA ASAMBLEA LEGISLATIVA DECRETA:",
+      "LEY X",
+      "CAPÍTULO I DISPOSICIONES GENERALES",
+      "Artículo 1- Objeto.",
+    ]);
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0].path).toEqual(["CAPÍTULO I DISPOSICIONES GENERALES"]);
+  });
+
+  it("cuts at a ministerial enacting verb, not only DECRETA", () => {
+    const chunks = chunkDocument("d", "T", [
+      "N° 1",
+      "El Ministro de Hacienda",
+      "Considerando:",
+      "I.- Que se requiere regular la materia.",
+      "Por tanto, el Ministro dispone:",
+      "REGLAMENTO ESPECIAL DE TASAS",
+      "Artículo 1- Objeto.",
+    ]);
+    const preamble = chunks.filter((c) => c.articulo === "Preámbulo");
+    expect(preamble).toHaveLength(1);
+    expect(preamble[0].content).not.toMatch(/REGLAMENTO ESPECIAL DE TASAS/);
+  });
+
+  it("cuts at the last formula, not a quotation of one in a considerando", () => {
+    const chunks = chunkDocument("d", "T", [
+      "Considerando:",
+      'I.- Que el artículo 5 de la Ley N° 1 dispone: "quedan exentas las exportaciones de bienes".',
+      "Por tanto, decreta:",
+      "REGLAMENTO X",
+      "Artículo 1- Objeto.",
+    ]);
+    const preamble = chunks.filter((c) => c.articulo === "Preámbulo");
+    expect(preamble).toHaveLength(1);
+    expect(preamble[0].content).toMatch(/exportaciones de bienes/);
+    expect(preamble[0].content).not.toMatch(/REGLAMENTO X/);
+  });
+
+  // Losing real recitals is worse than carrying a title line: front matter is
+  // dropped only when there is nothing in it to lose.
+  it("keeps recitals opened by unrecognised wording rather than dropping them", () => {
+    const chunks = chunkDocument("d", "T", [
+      "N° 1",
+      "El Poder Ejecutivo",
+      "Primero: Que el trámite de inscripción ante la Administración Tributaria requiere ajustes para los trabajadores independientes.",
+      "Por tanto, decreta:",
+      "REGLAMENTO X",
+      "Artículo 1- Objeto.",
+    ]);
+    const preamble = chunks.filter((c) => c.articulo === "Preámbulo");
+    expect(preamble).toHaveLength(1);
+    expect(preamble[0].content).toMatch(/requiere ajustes/);
+    expect(preamble[0].content).not.toMatch(/REGLAMENTO X/);
+  });
+
+  it("does not mistake a considerando's prose for the enacting formula", () => {
+    const chunks = chunkDocument("d", "T", [
+      "Considerando: I.- Que la ley decreta la exención de las exportaciones.",
+      "Artículo 1- Objeto.",
+    ]);
+    const preamble = chunks.filter((c) => c.articulo === "Preámbulo");
+    expect(preamble).toHaveLength(1);
+    expect(preamble[0].content).toMatch(/exención de las exportaciones/);
   });
 });
 
