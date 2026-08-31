@@ -65,17 +65,30 @@ pnpm vitest run src/lib/eval/retrieval-hitrate.eval.test.ts
 `RERANK=off` measures the fused-only baseline; the per-case table (pool rank,
 top score) prints with the run.
 
-## Satisfiability guard (issue #111)
+## Satisfiability guard (issues #111, #163)
 
-`src/lib/eval/dataset-satisfiability.eval.test.ts` asserts every
-expected target is satisfiable by at least one chunk in `public.chunks`, and
-prints the full per-target census. The hit-rate eval cannot catch this: a case
-hits when _any one_ of its targets matches, so a multi-target case can carry a
-permanently unsatisfiable target and stay green forever — measuring the corpus
-gap instead of answer quality. Re-run it after any corpus change.
+The guard asserts every expected target is satisfiable by at least one ingested
+chunk, and prints the full per-target census. The hit-rate eval cannot catch
+this: a case hits when _any one_ of its targets matches, so a multi-target case
+can carry a permanently unsatisfiable target and stay green forever — measuring
+the corpus gap instead of answer quality.
 
-It needs no embeddings and no retrieval, only the database, so it is far
-cheaper than the hit-rate eval:
+It runs in **two lanes over one census** (`src/lib/eval/satisfiability.ts`):
+
+- `src/lib/eval/dataset-satisfiability.test.ts` — the unit lane, on every PR,
+  against `corpus-index.json`: a committed dump of the distinct
+  `(docKey, articulo, path)` triples in `public.chunks`. Coverage is what the
+  census needs, and coverage does not need embeddings — so a PR that adds an
+  unsatisfiable target goes red with no database and no secrets. `pnpm ingest`
+  rewrites the dump at the end of every run; **commit it with the corpus
+  change**.
+- `src/lib/eval/dataset-satisfiability.eval.test.ts` — the eval lane, against
+  the real table. Same census, plus the drift check the committed dump cannot
+  do for itself: it fails when `corpus-index.json` no longer describes
+  `public.chunks`.
+
+The eval-lane run needs no embeddings and no retrieval, only the database, so
+it is far cheaper than the hit-rate eval:
 
 ```sh
 SUPABASE_URL=http://127.0.0.1:54321 \
