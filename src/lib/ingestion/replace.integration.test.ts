@@ -12,7 +12,7 @@
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, expect, it } from "vitest";
-import { replaceDocumentChunks } from "./replace";
+import { persistDocument, replaceDocumentChunks } from "./replace";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import { EMBEDDING_DIMENSIONS } from "../embedding-dimensions";
 
@@ -44,6 +44,24 @@ describeDb("replace_chunks (integration)", () => {
       .order("articulo");
     if (error) throw new Error(error.message);
     return (data as { articulo: string | null }[]).map((c) => c.articulo ?? "");
+  }
+
+  async function freshness() {
+    const { data, error } = await db
+      .from("documents")
+      .select("fetched_at, embedding_provider, embedding_dim")
+      .eq("id", documentId)
+      .single();
+    if (error) throw new Error(error.message);
+    const row = data as {
+      fetched_at: string | null;
+      embedding_provider: string | null;
+      embedding_dim: number | null;
+    };
+    return {
+      ...row,
+      fetched_at: row.fetched_at && new Date(row.fetched_at).toISOString(),
+    };
   }
 
   beforeAll(async () => {
@@ -117,5 +135,81 @@ describeDb("replace_chunks (integration)", () => {
     ).rejects.toThrow(new RegExp(documentId));
 
     expect(await chunkLabels()).toEqual(["Artículo 10", "Artículo 20"]);
+  });
+
+  /**
+   * `fetched_at` is a claim about the chunks that are actually in the table
+   * (`search_chunks` returns it so the UI can date a citation), so it must be
+   * written after them, never before (#206). Ingestion used to upsert the row
+   * — freshness stamp and all — and only then replace the chunks: a failure in
+   * between left the previous run's chunks dated by this run's clock.
+   */
+  it("leaves fetched_at untouched when replace_chunks fails", async () => {
+    const identity = {
+      doc_key: DOC_KEY,
+      title: "Replace-chunks integration fixture",
+      norma: null,
+      source: { kind: "unresolved" },
+      effective_date: null,
+    };
+    const prior = [chunk("Artículo 10"), chunk("Artículo 20")];
+    const priorStamp = {
+      fetched_at: "2020-01-01T00:00:00.000Z",
+      embedding_provider: "stub",
+      embedding_dim: EMBEDDING_DIMENSIONS,
+    };
+    await persistDocument(
+      db,
+      identity,
+      priorStamp,
+      prior,
+      prior.map((_, i) => vec(i + 1)),
+    );
+    expect(await freshness()).toEqual(priorStamp);
+
+    // Wrong-dimension embedding again: replace_chunks rejects, and everything
+    // after it — the stamp — must not have run.
+    await expect(
+      persistDocument(
+        db,
+        identity,
+        {
+          fetched_at: new Date().toISOString(),
+          embedding_provider: "voyage",
+          embedding_dim: EMBEDDING_DIMENSIONS,
+        },
+        [chunk("Artículo 30")],
+        [[0.1, 0.2]],
+      ),
+    ).rejects.toThrow(/replace_chunks failed/);
+
+    expect(await freshness()).toEqual(priorStamp);
+    expect(await chunkLabels()).toEqual(["Artículo 10", "Artículo 20"]);
+  });
+
+  it("stamps fetched_at once the chunks are in place", async () => {
+    const stamp = {
+      fetched_at: "2021-02-03T04:05:06.000Z",
+      embedding_provider: "stub",
+      embedding_dim: EMBEDDING_DIMENSIONS,
+    };
+    const chunks = [chunk("Artículo 99")];
+    const inserted = await persistDocument(
+      db,
+      {
+        doc_key: DOC_KEY,
+        title: "Replace-chunks integration fixture",
+        norma: null,
+        source: { kind: "unresolved" },
+        effective_date: null,
+      },
+      stamp,
+      chunks,
+      [vec(1)],
+    );
+
+    expect(inserted).toBe(1);
+    expect(await freshness()).toEqual(stamp);
+    expect(await chunkLabels()).toEqual(["Artículo 99"]);
   });
 });

@@ -50,6 +50,13 @@ function hangingFetch() {
   ) as unknown as typeof fetch & ReturnType<typeof vi.fn>;
 }
 
+/** Fetch that answers 200 with `payload`, whatever shape that is. */
+function respondingWith(payload: unknown) {
+  return vi.fn(
+    async () => new Response(JSON.stringify(payload), { status: 200 }),
+  ) as unknown as typeof fetch & ReturnType<typeof vi.fn>;
+}
+
 function batchSizesFromCalls(fetchImpl: ReturnType<typeof vi.fn>) {
   return fetchImpl.mock.calls.map(
     (call) =>
@@ -204,6 +211,65 @@ describe("createEmbedder", () => {
       const second = await embedder.embed(["misma consulta"]);
       expect(fetchImpl).toHaveBeenCalledTimes(1);
       expect(second).toEqual(first);
+    });
+  });
+
+  /**
+   * A 200 that carries no usable vector used to become `undefined` typed as
+   * `number[]`, cached and returned (#206) — the #127 contract says a provider
+   * that cannot answer must fail at the call site so retrieval can degrade,
+   * not hand back a hole that fails somewhere unrecognisable later.
+   */
+  describe("malformed 200 responses", () => {
+    it("throws when the response carries fewer vectors than inputs", async () => {
+      vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+      const fetchImpl = respondingWith({ data: [{ embedding: [1] }] });
+      const embedder = createEmbedder("voyage", { fetchImpl });
+      await expect(embedder.embed(["uno", "dos"])).rejects.toThrow(
+        "Voyage embeddings: expected 2 vectors, got 1",
+      );
+    });
+
+    it("throws on an empty data array instead of yielding undefined", async () => {
+      vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+      const fetchImpl = respondingWith({ data: [] });
+      const embedder = createEmbedder("voyage", { fetchImpl });
+      await expect(
+        embedder.embedQuery("consulta sin respuesta"),
+      ).rejects.toThrow("Voyage embeddings: expected 1 vectors, got 0");
+    });
+
+    it("throws on an empty or non-numeric vector", async () => {
+      vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+      for (const payload of [
+        { data: [{ embedding: [] }] },
+        { data: [{ embedding: null }] },
+        { data: [{ embedding: ["0.1"] }] },
+        { data: [{}] },
+      ]) {
+        const embedder = createEmbedder("voyage", {
+          fetchImpl: respondingWith(payload),
+        });
+        await expect(embedder.embed(["uno"])).rejects.toThrow(
+          "Voyage embeddings: response carried a malformed vector",
+        );
+      }
+    });
+
+    it("caches nothing it rejected — a later good response is fetched, not served stale", async () => {
+      vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+      const question = "consulta que primero falla";
+      const broken = createEmbedder("voyage", {
+        fetchImpl: respondingWith({ data: [] }),
+      });
+      await expect(broken.embedQuery(question)).rejects.toThrow();
+
+      const fetchImpl = fakeEmbeddingsFetch();
+      const healthy = createEmbedder("voyage", { fetchImpl });
+      expect(await healthy.embedQuery(question)).toEqual([
+        question.charCodeAt(0),
+      ]);
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
     });
   });
 

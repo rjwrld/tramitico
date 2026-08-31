@@ -144,8 +144,31 @@ async function requestEmbeddings(
     const retryAfterSeconds = Number(res.headers.get("retry-after")) || 0;
     throw new EmbeddingRequestError(errorPrefix, res.status, retryAfterSeconds);
   }
-  const json = (await res.json()) as { data: { embedding: number[] }[] };
-  return json.data.map((d) => d.embedding);
+  const json = (await res.json()) as {
+    data?: { embedding?: unknown }[];
+  };
+  const vectors = (json.data ?? []).map((d) => d?.embedding);
+  // A 200 is not a vector (#206). A truncated or empty `data` array used to
+  // destructure to `undefined`, which the signature promised was a `number[]`
+  // — cached, returned, and only failing much later, somewhere that could not
+  // tell it apart from a real vector. That defeats the #127 contract, where a
+  // provider that cannot answer is supposed to degrade retrieval loudly at the
+  // call site. Validate here, once, for every caller.
+  if (vectors.length !== texts.length) {
+    throw new Error(
+      `${errorPrefix}: expected ${texts.length} vectors, got ${vectors.length}`,
+    );
+  }
+  for (const v of vectors) {
+    if (
+      !Array.isArray(v) ||
+      v.length === 0 ||
+      !v.every((n) => typeof n === "number" && Number.isFinite(n))
+    ) {
+      throw new Error(`${errorPrefix}: response carried a malformed vector`);
+    }
+  }
+  return vectors as number[][];
 }
 
 /** What `interactiveQueryEmbedder` needs to reach one provider's endpoint. */
