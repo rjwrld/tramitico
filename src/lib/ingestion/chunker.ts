@@ -85,6 +85,54 @@ export function normalizeFragments(paragraphs: string[]): string[] {
   return out;
 }
 
+// SPEC §4 rule 3 splits everything before a document's first heading into two
+// halves. The enacting formula ("DECRETA:", "Por tanto, Decretan:", a
+// ministerial "dispone:") separates them: the norm number, the issuing
+// authority and the ley's own title are doc metadata and must never become
+// retrievable chunks, while the recitals between the authority line and the
+// formula are the preámbulo — one chunk, tagged (#216).
+//
+// The colon is required — real formulas always carry one — and the *last*
+// match wins: a considerando that quotes another norma ("el artículo 5
+// dispone:") sits before the formula, never after it, so anchoring on the last
+// occurrence keeps a quotation from cutting the recitals short.
+const ENACTING_FORMULA_RE =
+  /\b(?:DECRETA|ACUERDA|RESUELVE|DISPONE|ORDENA|EMITE|ADOPTA)N?\s*:/gi;
+// Where the recitals begin. Matched against the front matter *joined*, not
+// per paragraph: extraction line-wraps these documents, so "Con" and
+// "fundamento en las atribuciones…" arrive as separate paragraphs and no
+// single one carries a whole opening.
+const PREAMBLE_START_RE =
+  /\bConsiderandos?\s*:|\bResultandos?\s*:|\bCon\s+fundamento\s+en\b|\bEn\s+uso\s+de\s+(?:las|sus)\b|\bEn\s+ejercicio\s+de\s+(?:las|sus)\b/i;
+// A twelve-word-or-longer sentence: the fallback that tells recitals opened by
+// wording this file has never seen from a title block. Dropping front matter
+// is only safe when there is nothing in it to lose — silent content loss is
+// the #114/#206 failure mode — so anything that reads as prose is kept even
+// though a title line or two may ride along with it. Title blocks are name,
+// number and issuing authority; none of them is a sentence.
+const RECITAL_PROSE_RE = /(?:\S+\s+){11,}\S*\.(?:\s|$)/;
+
+/**
+ * The preámbulo carried by a document's front matter, or `null` when the front
+ * matter is title block only (SPEC §4 rule 3).
+ */
+function preambleOf(frontMatter: string): string | null {
+  let cut = frontMatter.length;
+  for (const formula of frontMatter.matchAll(ENACTING_FORMULA_RE)) {
+    cut = formula.index;
+  }
+  const recitals = frontMatter.slice(0, cut);
+  const start = recitals.match(PREAMBLE_START_RE);
+  const text = (
+    start?.index === undefined
+      ? RECITAL_PROSE_RE.test(recitals)
+        ? recitals
+        : ""
+      : recitals.slice(start.index)
+  ).trim();
+  return text.length > 0 ? text : null;
+}
+
 const MAX_WORDS = 1000;
 const OVERLAP_WORDS = 100;
 
@@ -152,7 +200,8 @@ export function chunkDocument(
   let current: string[] = [];
   let label: string | null = null;
   let path: string[] = [];
-  let sawArticulo = false;
+  /** Paragraphs before the first heading; `null` once structure is reached. */
+  let frontMatter: string[] | null = [];
 
   const flush = () => {
     if (current.length === 0) return;
@@ -171,14 +220,32 @@ export function chunkDocument(
     current = [];
   };
 
+  /**
+   * Resolve the buffered front matter the moment structure begins: emit the
+   * preámbulo if there is one, drop the title block either way.
+   */
+  const flushFrontMatter = () => {
+    if (frontMatter === null) return;
+    const preamble = preambleOf(frontMatter.join(" "));
+    frontMatter = null;
+    if (preamble === null) return;
+    label = "Preámbulo";
+    current = [preamble];
+    flush();
+    label = null;
+  };
+
   for (const p of normalizeFragments(paragraphs).flatMap(splitInlineHeadings)) {
-    if (label === null && !sawArticulo && /DECRETA/.test(p.toUpperCase())) {
-      flush();
-      label = "Preámbulo";
-      current.push(p);
-      continue;
+    const isHeading = HDR_RE.test(p) && p.split(" ").length < 15;
+    const m = isHeading ? null : p.match(ART_RE);
+    if (frontMatter !== null) {
+      if (!isHeading && !m) {
+        frontMatter.push(p);
+        continue;
+      }
+      flushFrontMatter();
     }
-    if (HDR_RE.test(p) && p.split(" ").length < 15) {
+    if (isHeading) {
       flush();
       label = null;
       const level = headerLevel(p);
@@ -186,13 +253,18 @@ export function chunkDocument(
       path.push(p);
       continue;
     }
-    const m = p.match(ART_RE);
     if (m) {
       flush();
       label = m[1];
-      sawArticulo = true;
     }
     current.push(p);
+  }
+  if (frontMatter !== null) {
+    // A document that never reached a heading has no front matter to strip —
+    // it is the unstructured whole-doc case of SPEC §4 rule 4, and dropping
+    // its text as boilerplate would leave nothing behind.
+    current = frontMatter;
+    frontMatter = null;
   }
   flush();
 
