@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-31T16:53:27.175Z",
-  "chunkCount": 828,
+  "generatedAt": "2026-08-31T21:38:34.369Z",
+  "chunkCount": 715,
   "entries": [
     {
       "docKey": "cabys-dev",
@@ -140,1332 +140,1775 @@
     {
       "docKey": "ley-10363",
       "articulo": "ARTÍCULO 1",
-      "path": ["CAPÍTULO I"]
+      "path": ["CAPÍTULO I TRABAJADORES INDEPENDIENTES"]
     },
     {
       "docKey": "ley-10363",
       "articulo": "ARTÍCULO 2",
-      "path": ["CAPÍTULO I"]
-    },
-    {
-      "docKey": "ley-10363",
-      "articulo": "Preámbulo",
-      "path": []
+      "path": ["CAPÍTULO I TRABAJADORES INDEPENDIENTES"]
     },
     {
       "docKey": "ley-10363",
       "articulo": "TRANSITORIO I",
-      "path": ["CAPÍTULO II"]
+      "path": ["CAPÍTULO II DISPOSICIONES TRANSITORIAS"]
     },
     {
       "docKey": "ley-10363",
       "articulo": "TRANSITORIO II",
-      "path": ["CAPÍTULO II"]
-    },
-    {
-      "docKey": "ley-10363",
-      "articulo": null,
-      "path": ["CAPÍTULO I"]
-    },
-    {
-      "docKey": "ley-10363",
-      "articulo": null,
-      "path": ["CAPÍTULO II"]
-    },
-    {
-      "docKey": "ley-10363",
-      "articulo": null,
-      "path": []
+      "path": ["CAPÍTULO II DISPOSICIONES TRANSITORIAS"]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 1 bis",
-      "path": ["TITULO II"]
+      "path": ["TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES"]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 1",
-      "path": ["TÍTULO I", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO I MATERIA IMPONIBLE Y HECHO GENERADOR"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 1",
-      "path": ["TÍTULO I"]
+      "path": ["TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO"]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 1",
-      "path": ["TITULO II"]
+      "path": ["TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES"]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 1",
-      "path": ["TÍTULO III", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VIII REFORMAS Y DEROGACIONES A DISPOSICIONES LEGALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 10",
-      "path": ["TÍTULO I", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO III EXENCIONES Y TASA DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 10",
-      "path": ["TÍTULO IV", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO II DISPOSICIONES ATINENTES A LA REGLA FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 11",
-      "path": ["TÍTULO I", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO III EXENCIONES Y TASA DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 11",
-      "path": ["TÍTULO IV", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO II DISPOSICIONES ATINENTES A LA REGLA FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 12 bis",
-      "path": ["TÍTULO IV", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO VI DISPOSICIONES VARIAS, REFORMAS Y DEROGATORIAS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 12",
-      "path": ["TÍTULO I", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO IV BASE IMPONIBLE"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 12",
-      "path": ["TÍTULO III", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VIII REFORMAS Y DEROGACIONES A DISPOSICIONES LEGALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 12",
-      "path": ["TÍTULO IV", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO II DISPOSICIONES ATINENTES A LA REGLA FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 13",
-      "path": ["TÍTULO I", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO IV BASE IMPONIBLE"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 13",
-      "path": ["TÍTULO IV", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO II DISPOSICIONES ATINENTES A LA REGLA FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 14",
-      "path": ["TÍTULO I", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO IV BASE IMPONIBLE"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 14",
-      "path": ["TÍTULO IV", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO II DISPOSICIONES ATINENTES A LA REGLA FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 15",
-      "path": ["TÍTULO I", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO V DETERMINACIÓN DEL IMPUESTO, CRÉDITOS, LIQUIDACIÓN Y PAGO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 15",
-      "path": ["TITULO II"]
+      "path": ["TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES"]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 15",
-      "path": ["TÍTULO III", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VIII REFORMAS Y DEROGACIONES A DISPOSICIONES LEGALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 15",
-      "path": ["TÍTULO IV", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO III DISPOSICIONES DE RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 16",
-      "path": ["TÍTULO I", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO V DETERMINACIÓN DEL IMPUESTO, CRÉDITOS, LIQUIDACIÓN Y PAGO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 16",
-      "path": ["TÍTULO IV", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO III DISPOSICIONES DE RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 17",
-      "path": ["TÍTULO I", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO V DETERMINACIÓN DEL IMPUESTO, CRÉDITOS, LIQUIDACIÓN Y PAGO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 17",
-      "path": ["TÍTULO IV", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO III DISPOSICIONES DE RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 18",
-      "path": ["TÍTULO I", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO V DETERMINACIÓN DEL IMPUESTO, CRÉDITOS, LIQUIDACIÓN Y PAGO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 18",
-      "path": ["TÍTULO IV", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO III DISPOSICIONES DE RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 19",
-      "path": ["TÍTULO I", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO V DETERMINACIÓN DEL IMPUESTO, CRÉDITOS, LIQUIDACIÓN Y PAGO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 19",
-      "path": ["TÍTULO IV", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO IV CUMPLIMIENTO DE LA REGLA FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 2",
-      "path": ["TÍTULO I", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO I MATERIA IMPONIBLE Y HECHO GENERADOR"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 2",
-      "path": ["TITULO II"]
+      "path": ["TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES"]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 2",
-      "path": ["TITULO II"]
+      "path": ["TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES"]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 2",
-      "path": ["TÍTULO III", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VIII REFORMAS Y DEROGACIONES A DISPOSICIONES LEGALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 20",
-      "path": ["TÍTULO I", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO V DETERMINACIÓN DEL IMPUESTO, CRÉDITOS, LIQUIDACIÓN Y PAGO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 20",
-      "path": ["TÍTULO IV", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO IV CUMPLIMIENTO DE LA REGLA FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 21",
-      "path": ["TÍTULO I", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO V DETERMINACIÓN DEL IMPUESTO, CRÉDITOS, LIQUIDACIÓN Y PAGO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 21",
-      "path": ["TÍTULO III", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VIII REFORMAS Y DEROGACIONES A DISPOSICIONES LEGALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 21",
-      "path": ["TÍTULO IV", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO IV CUMPLIMIENTO DE LA REGLA FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 22",
-      "path": ["TÍTULO I", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO V DETERMINACIÓN DEL IMPUESTO, CRÉDITOS, LIQUIDACIÓN Y PAGO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 22",
-      "path": ["TÍTULO IV", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO IV CUMPLIMIENTO DE LA REGLA FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 23",
-      "path": ["TÍTULO I", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO V DETERMINACIÓN DEL IMPUESTO, CRÉDITOS, LIQUIDACIÓN Y PAGO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 23",
-      "path": ["TITULO II"]
+      "path": ["TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES"]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 23",
-      "path": ["TÍTULO III", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VIII REFORMAS Y DEROGACIONES A DISPOSICIONES LEGALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 23",
-      "path": ["TÍTULO IV", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO IV CUMPLIMIENTO DE LA REGLA FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 24",
-      "path": ["TÍTULO I", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO V DETERMINACIÓN DEL IMPUESTO, CRÉDITOS, LIQUIDACIÓN Y PAGO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 24",
-      "path": ["TITULO II"]
+      "path": ["TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES"]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 24",
-      "path": ["TÍTULO III", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VIII REFORMAS Y DEROGACIONES A DISPOSICIONES LEGALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 24",
-      "path": ["TÍTULO IV", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO IV CUMPLIMIENTO DE LA REGLA FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 25",
-      "path": ["TÍTULO I", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO V DETERMINACIÓN DEL IMPUESTO, CRÉDITOS, LIQUIDACIÓN Y PAGO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 25",
-      "path": ["TÍTULO IV", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO IV CUMPLIMIENTO DE LA REGLA FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 26",
-      "path": ["TÍTULO I", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO V DETERMINACIÓN DEL IMPUESTO, CRÉDITOS, LIQUIDACIÓN Y PAGO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 26",
-      "path": ["TÍTULO III", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO III ORDENAMIENTO DEL SISTEMA REMUNERATIVO Y DEL AUXILIO DE CESANTÍA PARA EL SECTOR PÚBLICO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 26",
-      "path": ["TÍTULO IV", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO V SANCIONES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 26",
-      "path": ["TÍTULO IV", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO VI DISPOSICIONES VARIAS, REFORMAS Y DEROGATORIAS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 27 bis",
-      "path": ["TITULO II", "CAPÍTULO XI", "SECCIÓN I"]
+      "path": [
+        "TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES",
+        "CAPÍTULO XI RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "SECCIÓN I MATERIA IMPONIBLE Y HECHO GENERADOR"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 27 ter",
-      "path": ["TITULO II", "CAPÍTULO XI", "SECCIÓN I"]
+      "path": [
+        "TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES",
+        "CAPÍTULO XI RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "SECCIÓN I MATERIA IMPONIBLE Y HECHO GENERADOR"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 27",
-      "path": ["TÍTULO I", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO V DETERMINACIÓN DEL IMPUESTO, CRÉDITOS, LIQUIDACIÓN Y PAGO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 27",
-      "path": ["TITULO II", "CAPÍTULO XI", "SECCIÓN I"]
+      "path": [
+        "TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES",
+        "CAPÍTULO XI RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "SECCIÓN I MATERIA IMPONIBLE Y HECHO GENERADOR"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 27",
-      "path": ["TÍTULO III", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO III ORDENAMIENTO DEL SISTEMA REMUNERATIVO Y DEL AUXILIO DE CESANTÍA PARA EL SECTOR PÚBLICO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 27",
-      "path": ["TÍTULO IV", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO VI DISPOSICIONES VARIAS, REFORMAS Y DEROGATORIAS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 28 bis",
-      "path": ["TITULO II", "CAPÍTULO XI", "SECCIÓN I"]
+      "path": [
+        "TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES",
+        "CAPÍTULO XI RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "SECCIÓN I MATERIA IMPONIBLE Y HECHO GENERADOR"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 28 ter",
-      "path": ["TITULO II", "CAPÍTULO XI", "SECCIÓN I"]
+      "path": [
+        "TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES",
+        "CAPÍTULO XI RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "SECCIÓN I MATERIA IMPONIBLE Y HECHO GENERADOR"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 28",
-      "path": ["TÍTULO I", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO V DETERMINACIÓN DEL IMPUESTO, CRÉDITOS, LIQUIDACIÓN Y PAGO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 28",
-      "path": ["TITULO II", "CAPÍTULO XI", "SECCIÓN I"]
+      "path": [
+        "TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES",
+        "CAPÍTULO XI RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "SECCIÓN I MATERIA IMPONIBLE Y HECHO GENERADOR"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 28",
-      "path": ["TÍTULO III", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO IV DEDICACIÓN EXCLUSIVA Y PROHIBICIÓN"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 28",
-      "path": ["TÍTULO III", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VIII REFORMAS Y DEROGACIONES A DISPOSICIONES LEGALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 28",
-      "path": ["TÍTULO IV", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO VI DISPOSICIONES VARIAS, REFORMAS Y DEROGATORIAS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 29 bis",
-      "path": ["TITULO II", "CAPÍTULO XI", "SECCIÓN I"]
+      "path": [
+        "TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES",
+        "CAPÍTULO XI RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "SECCIÓN I MATERIA IMPONIBLE Y HECHO GENERADOR"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 29",
-      "path": ["TÍTULO I", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO V DETERMINACIÓN DEL IMPUESTO, CRÉDITOS, LIQUIDACIÓN Y PAGO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 29",
-      "path": ["TITULO II", "CAPÍTULO XI", "SECCIÓN I"]
+      "path": [
+        "TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES",
+        "CAPÍTULO XI RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "SECCIÓN I MATERIA IMPONIBLE Y HECHO GENERADOR"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 29",
-      "path": ["TÍTULO III", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO IV DEDICACIÓN EXCLUSIVA Y PROHIBICIÓN"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 29",
-      "path": ["TÍTULO IV", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO VI DISPOSICIONES VARIAS, REFORMAS Y DEROGATORIAS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 3",
-      "path": ["TÍTULO I", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO I MATERIA IMPONIBLE Y HECHO GENERADOR"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 3",
-      "path": ["TITULO II"]
+      "path": ["TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES"]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 3",
-      "path": ["TÍTULO III"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 30 bis",
-      "path": ["TITULO II", "CAPÍTULO XI", "SECCIÓN I"]
+      "path": [
+        "TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES",
+        "CAPÍTULO XI RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "SECCIÓN I MATERIA IMPONIBLE Y HECHO GENERADOR"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 30",
-      "path": ["TÍTULO I", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO V DETERMINACIÓN DEL IMPUESTO, CRÉDITOS, LIQUIDACIÓN Y PAGO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 30",
-      "path": ["TITULO II", "CAPÍTULO XI", "SECCIÓN I"]
+      "path": [
+        "TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES",
+        "CAPÍTULO XI RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "SECCIÓN I MATERIA IMPONIBLE Y HECHO GENERADOR"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 30",
-      "path": ["TÍTULO III", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO IV DEDICACIÓN EXCLUSIVA Y PROHIBICIÓN"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 30",
-      "path": ["TÍTULO IV", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO VI DISPOSICIONES VARIAS, REFORMAS Y DEROGATORIAS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 31 bis",
-      "path": ["TITULO II", "CAPÍTULO XI", "SECCIÓN I"]
+      "path": [
+        "TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES",
+        "CAPÍTULO XI RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "SECCIÓN I MATERIA IMPONIBLE Y HECHO GENERADOR"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 31 ter",
-      "path": ["TITULO II", "CAPÍTULO XI", "SECCIÓN I"]
+      "path": [
+        "TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES",
+        "CAPÍTULO XI RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "SECCIÓN I MATERIA IMPONIBLE Y HECHO GENERADOR"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 31",
-      "path": ["TÍTULO I", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO VI RÉGIMEN ESPECIAL DE BIENES USADOS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 31",
-      "path": ["TITULO II", "CAPÍTULO XI", "SECCIÓN I"]
+      "path": [
+        "TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES",
+        "CAPÍTULO XI RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "SECCIÓN I MATERIA IMPONIBLE Y HECHO GENERADOR"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 31",
-      "path": ["TÍTULO III", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO IV DEDICACIÓN EXCLUSIVA Y PROHIBICIÓN"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 31",
-      "path": ["TÍTULO IV", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO VI DISPOSICIONES VARIAS, REFORMAS Y DEROGATORIAS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 32",
-      "path": ["TÍTULO I", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO VI RÉGIMEN ESPECIAL DE BIENES USADOS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 32",
-      "path": ["TÍTULO III", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO IV DEDICACIÓN EXCLUSIVA Y PROHIBICIÓN"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 32",
-      "path": ["TÍTULO IV", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO VI DISPOSICIONES VARIAS, REFORMAS Y DEROGATORIAS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 33",
-      "path": ["TÍTULO I", "CAPÍTULO VII"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO VII ADMINISTRACIÓN, GESTIÓN DEL IMPUESTO Y REGÍMENES ESPECIALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 33",
-      "path": ["TITULO II", "CAPÍTULO XI", "SECCIÓN I"]
+      "path": [
+        "TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES",
+        "CAPÍTULO XI RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "SECCIÓN I MATERIA IMPONIBLE Y HECHO GENERADOR"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 33",
-      "path": ["TÍTULO III", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO IV DEDICACIÓN EXCLUSIVA Y PROHIBICIÓN"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 33",
-      "path": ["TÍTULO IV", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO VI DISPOSICIONES VARIAS, REFORMAS Y DEROGATORIAS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 34",
-      "path": ["TÍTULO I", "CAPÍTULO VII"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO VII ADMINISTRACIÓN, GESTIÓN DEL IMPUESTO Y REGÍMENES ESPECIALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 34",
-      "path": ["TÍTULO III", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO IV DEDICACIÓN EXCLUSIVA Y PROHIBICIÓN"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 34",
-      "path": ["TÍTULO IV", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO VI DISPOSICIONES VARIAS, REFORMAS Y DEROGATORIAS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 35",
-      "path": ["TÍTULO I", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO VIII RÉGIMEN DE TRIBUTACIÓN SIMPLIFICADA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 35",
-      "path": ["TÍTULO III", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO IV DEDICACIÓN EXCLUSIVA Y PROHIBICIÓN"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 35",
-      "path": ["TÍTULO IV", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO VI DISPOSICIONES VARIAS, REFORMAS Y DEROGATORIAS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 36",
-      "path": ["TÍTULO I", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO VIII RÉGIMEN DE TRIBUTACIÓN SIMPLIFICADA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 36",
-      "path": ["TÍTULO III", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO IV DEDICACIÓN EXCLUSIVA Y PROHIBICIÓN"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 36",
-      "path": ["TÍTULO IV", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO VI DISPOSICIONES VARIAS, REFORMAS Y DEROGATORIAS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 37",
-      "path": ["TÍTULO I", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO VIII RÉGIMEN DE TRIBUTACIÓN SIMPLIFICADA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 37",
-      "path": ["TÍTULO III", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO IV DEDICACIÓN EXCLUSIVA Y PROHIBICIÓN"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 37",
-      "path": ["TÍTULO III", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VIII REFORMAS Y DEROGACIONES A DISPOSICIONES LEGALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 37",
-      "path": ["TÍTULO IV", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO VI DISPOSICIONES VARIAS, REFORMAS Y DEROGATORIAS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 38",
-      "path": ["TÍTULO I", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO VIII RÉGIMEN DE TRIBUTACIÓN SIMPLIFICADA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 38",
-      "path": ["TÍTULO III", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO IV DEDICACIÓN EXCLUSIVA Y PROHIBICIÓN"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 38",
-      "path": ["TÍTULO IV", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO VI DISPOSICIONES VARIAS, REFORMAS Y DEROGATORIAS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 39",
-      "path": ["TÍTULO I", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO VIII RÉGIMEN DE TRIBUTACIÓN SIMPLIFICADA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 39",
-      "path": ["TÍTULO III", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO IV DEDICACIÓN EXCLUSIVA Y PROHIBICIÓN"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 39",
-      "path": ["TÍTULO IV", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO VI DISPOSICIONES VARIAS, REFORMAS Y DEROGATORIAS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 4",
-      "path": ["TÍTULO I", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO II LOS CONTRIBUYENTES Y LA INSCRIPCIÓN"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 4",
-      "path": ["TITULO II"]
+      "path": ["TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES"]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 4",
-      "path": ["TÍTULO III", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VIII REFORMAS Y DEROGACIONES A DISPOSICIONES LEGALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 4",
-      "path": ["TÍTULO IV", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO I DISPOSICIONES GENERALES OBJETO, ÁMBITO DE APLICACIÓN, DEFINICIONES Y PRINCIPIOS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 40",
-      "path": ["TÍTULO I", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO VIII RÉGIMEN DE TRIBUTACIÓN SIMPLIFICADA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 40",
-      "path": ["TÍTULO III", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO IV DEDICACIÓN EXCLUSIVA Y PROHIBICIÓN"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 41",
-      "path": ["TÍTULO I", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO VIII RÉGIMEN DE TRIBUTACIÓN SIMPLIFICADA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 41",
-      "path": ["TÍTULO III", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO V REMUNERACIONES PARA QUIENES CONFORMAN EL NIVEL JERÁRQUICO SUPERIOR DEL SECTOR PÚBLICO, TITULARES, SUBORDINADOS Y MIEMBROS DE JUNTAS DIRECTIVAS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 42",
-      "path": ["TÍTULO I", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO VIII RÉGIMEN DE TRIBUTACIÓN SIMPLIFICADA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 42",
-      "path": ["TÍTULO III", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO V REMUNERACIONES PARA QUIENES CONFORMAN EL NIVEL JERÁRQUICO SUPERIOR DEL SECTOR PÚBLICO, TITULARES, SUBORDINADOS Y MIEMBROS DE JUNTAS DIRECTIVAS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 43",
-      "path": ["TÍTULO I", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO VIII RÉGIMEN DE TRIBUTACIÓN SIMPLIFICADA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 43",
-      "path": ["TÍTULO III", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO V REMUNERACIONES PARA QUIENES CONFORMAN EL NIVEL JERÁRQUICO SUPERIOR DEL SECTOR PÚBLICO, TITULARES, SUBORDINADOS Y MIEMBROS DE JUNTAS DIRECTIVAS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 44",
-      "path": ["TÍTULO I", "CAPÍTULO IX"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO IX ADICIÓN Y DISPOSICIONES FINALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 44",
-      "path": ["TÍTULO III", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO V REMUNERACIONES PARA QUIENES CONFORMAN EL NIVEL JERÁRQUICO SUPERIOR DEL SECTOR PÚBLICO, TITULARES, SUBORDINADOS Y MIEMBROS DE JUNTAS DIRECTIVAS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 45",
-      "path": ["TÍTULO I", "CAPÍTULO IX"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO IX ADICIÓN Y DISPOSICIONES FINALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 45",
-      "path": ["TÍTULO III", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VI RECTORÍA Y EVALUACIÓN DEL DESEMPEÑO DE LOS SERVIDORES PÚBLICOS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 46",
-      "path": ["TÍTULO III", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VI RECTORÍA Y EVALUACIÓN DEL DESEMPEÑO DE LOS SERVIDORES PÚBLICOS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 47",
-      "path": ["TÍTULO III", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VI RECTORÍA Y EVALUACIÓN DEL DESEMPEÑO DE LOS SERVIDORES PÚBLICOS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 47",
-      "path": ["TÍTULO III", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VIII REFORMAS Y DEROGACIONES A DISPOSICIONES LEGALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 48 bis",
-      "path": ["TÍTULO III", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VIII REFORMAS Y DEROGACIONES A DISPOSICIONES LEGALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 48",
-      "path": ["TÍTULO III", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VI RECTORÍA Y EVALUACIÓN DEL DESEMPEÑO DE LOS SERVIDORES PÚBLICOS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 49",
-      "path": ["TÍTULO III", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VI RECTORÍA Y EVALUACIÓN DEL DESEMPEÑO DE LOS SERVIDORES PÚBLICOS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 5",
-      "path": ["TÍTULO I", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO II LOS CONTRIBUYENTES Y LA INSCRIPCIÓN"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 5",
-      "path": ["TITULO II"]
+      "path": ["TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES"]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 5",
-      "path": ["TÍTULO III", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VIII REFORMAS Y DEROGACIONES A DISPOSICIONES LEGALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 5",
-      "path": ["TÍTULO IV", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO I DISPOSICIONES GENERALES OBJETO, ÁMBITO DE APLICACIÓN, DEFINICIONES Y PRINCIPIOS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 50",
-      "path": ["TÍTULO III", "CAPÍTULO VI"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VI RECTORÍA Y EVALUACIÓN DEL DESEMPEÑO DE LOS SERVIDORES PÚBLICOS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 51",
-      "path": ["TÍTULO III", "CAPÍTULO VII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VII DISPOSICIONES GENERALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 52",
-      "path": ["TÍTULO III", "CAPÍTULO VII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VII DISPOSICIONES GENERALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 53",
-      "path": ["TÍTULO III", "CAPÍTULO VII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VII DISPOSICIONES GENERALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 54",
-      "path": ["TÍTULO III", "CAPÍTULO VII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VII DISPOSICIONES GENERALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 54",
-      "path": ["TÍTULO III", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VIII REFORMAS Y DEROGACIONES A DISPOSICIONES LEGALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 55",
-      "path": ["TÍTULO III", "CAPÍTULO VII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VII DISPOSICIONES GENERALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 56",
-      "path": ["TÍTULO III", "CAPÍTULO VII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VII DISPOSICIONES GENERALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 57",
-      "path": ["TÍTULO III", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VIII REFORMAS Y DEROGACIONES A DISPOSICIONES LEGALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 58",
-      "path": ["TÍTULO III", "CAPÍTULO VIII"]
+      "path": [
+        "TÍTULO III MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA, DE 9 DE OCTUBRE DE 1957",
+        "CAPÍTULO VIII REFORMAS Y DEROGACIONES A DISPOSICIONES LEGALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 59",
-      "path": ["TITULO II", "CAPÍTULO XI", "SECCIÓN I"]
+      "path": [
+        "TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES",
+        "CAPÍTULO XI RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "SECCIÓN I MATERIA IMPONIBLE Y HECHO GENERADOR"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 6",
-      "path": ["TÍTULO I", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO II LOS CONTRIBUYENTES Y LA INSCRIPCIÓN"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 6",
-      "path": ["TITULO II"]
+      "path": ["TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES"]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 6",
-      "path": ["TÍTULO IV", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO I DISPOSICIONES GENERALES OBJETO, ÁMBITO DE APLICACIÓN, DEFINICIONES Y PRINCIPIOS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 7",
-      "path": ["TÍTULO I", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO II LOS CONTRIBUYENTES Y LA INSCRIPCIÓN"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 7",
-      "path": ["TÍTULO IV", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO I DISPOSICIONES GENERALES OBJETO, ÁMBITO DE APLICACIÓN, DEFINICIONES Y PRINCIPIOS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 8",
-      "path": ["TÍTULO I", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO III EXENCIONES Y TASA DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 8",
-      "path": ["TITULO II"]
+      "path": ["TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES"]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 8",
-      "path": ["TÍTULO IV", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO I DISPOSICIONES GENERALES OBJETO, ÁMBITO DE APLICACIÓN, DEFINICIONES Y PRINCIPIOS"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 81 bis",
-      "path": ["TÍTULO V", "CAPÍTULO XXXI"]
+      "path": [
+        "TÍTULO V DISPOSICIONES GENERALES […]",
+        "CAPÍTULO XXXI DISPOSICIONES GENERALES NO RELACIONADAS CON LA ADMINISTRACIÓN DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 85 bis",
-      "path": ["TÍTULO I", "CAPÍTULO IX"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO IX ADICIÓN Y DISPOSICIONES FINALES"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 9 bis",
-      "path": ["TITULO II"]
+      "path": ["TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES"]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 9",
-      "path": ["TÍTULO I", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO I LEY DEL IMPUESTO AL VALOR AGREGADO",
+        "CAPÍTULO III EXENCIONES Y TASA DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Artículo 9",
-      "path": ["TITULO II"]
+      "path": ["TITULO II LEY DE IMPUESTO A LOS INGRESOS Y UTILIDADES"]
     },
     {
       "docKey": "ley-9635",
       "articulo": "ARTÍCULO 9",
-      "path": ["TÍTULO IV", "CAPÍTULO II"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": "Preámbulo",
-      "path": []
+      "path": [
+        "TÍTULO IV RESPONSABILIDAD FISCAL DE LA REPÚBLICA",
+        "CAPÍTULO II DISPOSICIONES ATINENTES A LA REGLA FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO I",
-      "path": ["TÍTULO V", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO I DISPOSICIONES TRANSITORIAS AL TÍTULO I DE LA PRESENTE LEY, LEY DEL IMPUESTO AL VALOR AGREGADO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO II",
-      "path": ["TÍTULO V", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO I DISPOSICIONES TRANSITORIAS AL TÍTULO I DE LA PRESENTE LEY, LEY DEL IMPUESTO AL VALOR AGREGADO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO III",
-      "path": ["TÍTULO V", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO I DISPOSICIONES TRANSITORIAS AL TÍTULO I DE LA PRESENTE LEY, LEY DEL IMPUESTO AL VALOR AGREGADO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO III",
-      "path": ["TÍTULO V", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO II DISPOSICIONES TRANSITORIAS AL TÍTULO II DE LA PRESENTE LEY, REFORMAS DE LA LEY N.° 7092, LEY DEL IMPUESTO SOBRE LA RENTA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO IV",
-      "path": ["TÍTULO V", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO I DISPOSICIONES TRANSITORIAS AL TÍTULO I DE LA PRESENTE LEY, LEY DEL IMPUESTO AL VALOR AGREGADO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO IV",
-      "path": ["TÍTULO V", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO II DISPOSICIONES TRANSITORIAS AL TÍTULO II DE LA PRESENTE LEY, REFORMAS DE LA LEY N.° 7092, LEY DEL IMPUESTO SOBRE LA RENTA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO IX",
-      "path": ["TÍTULO V", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO I DISPOSICIONES TRANSITORIAS AL TÍTULO I DE LA PRESENTE LEY, LEY DEL IMPUESTO AL VALOR AGREGADO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Transitorio L",
-      "path": ["TÍTULO V", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO IV DISPOSICIONES TRANSITORIAS AL TÍTULO IV, RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Transitorio LI",
-      "path": ["TÍTULO V", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO IV DISPOSICIONES TRANSITORIAS AL TÍTULO IV, RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Transitorio LII",
-      "path": ["TÍTULO V", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO IV DISPOSICIONES TRANSITORIAS AL TÍTULO IV, RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Transitorio LIII",
-      "path": ["TÍTULO V", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO IV DISPOSICIONES TRANSITORIAS AL TÍTULO IV, RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Transitorio V",
-      "path": ["TÍTULO V", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO I DISPOSICIONES TRANSITORIAS AL TÍTULO I DE LA PRESENTE LEY, LEY DEL IMPUESTO AL VALOR AGREGADO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Transitorio V",
-      "path": ["TÍTULO V", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO II DISPOSICIONES TRANSITORIAS AL TÍTULO II DE LA PRESENTE LEY, REFORMAS DE LA LEY N.° 7092, LEY DEL IMPUESTO SOBRE LA RENTA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO V",
-      "path": ["TÍTULO V", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO II DISPOSICIONES TRANSITORIAS AL TÍTULO II DE LA PRESENTE LEY, REFORMAS DE LA LEY N.° 7092, LEY DEL IMPUESTO SOBRE LA RENTA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO VI",
-      "path": ["TÍTULO V", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO I DISPOSICIONES TRANSITORIAS AL TÍTULO I DE LA PRESENTE LEY, LEY DEL IMPUESTO AL VALOR AGREGADO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO VII",
-      "path": ["TÍTULO V", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO I DISPOSICIONES TRANSITORIAS AL TÍTULO I DE LA PRESENTE LEY, LEY DEL IMPUESTO AL VALOR AGREGADO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO VIII",
-      "path": ["TÍTULO V", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO I DISPOSICIONES TRANSITORIAS AL TÍTULO I DE LA PRESENTE LEY, LEY DEL IMPUESTO AL VALOR AGREGADO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO X",
-      "path": ["TÍTULO V", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO I DISPOSICIONES TRANSITORIAS AL TÍTULO I DE LA PRESENTE LEY, LEY DEL IMPUESTO AL VALOR AGREGADO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XI",
-      "path": ["TÍTULO V", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO I DISPOSICIONES TRANSITORIAS AL TÍTULO I DE LA PRESENTE LEY, LEY DEL IMPUESTO AL VALOR AGREGADO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XII",
-      "path": ["TÍTULO V", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO I DISPOSICIONES TRANSITORIAS AL TÍTULO I DE LA PRESENTE LEY, LEY DEL IMPUESTO AL VALOR AGREGADO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XIII",
-      "path": ["TÍTULO V", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO I DISPOSICIONES TRANSITORIAS AL TÍTULO I DE LA PRESENTE LEY, LEY DEL IMPUESTO AL VALOR AGREGADO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XIV",
-      "path": ["TÍTULO V", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO I DISPOSICIONES TRANSITORIAS AL TÍTULO I DE LA PRESENTE LEY, LEY DEL IMPUESTO AL VALOR AGREGADO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XIX",
-      "path": ["TÍTULO V", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO II DISPOSICIONES TRANSITORIAS AL TÍTULO II DE LA PRESENTE LEY, REFORMAS DE LA LEY N.° 7092, LEY DEL IMPUESTO SOBRE LA RENTA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XL",
-      "path": ["TÍTULO V", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO IV DISPOSICIONES TRANSITORIAS AL TÍTULO IV, RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Transitorio XLI",
-      "path": ["TÍTULO V", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO IV DISPOSICIONES TRANSITORIAS AL TÍTULO IV, RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Transitorio XLII",
-      "path": ["TÍTULO V", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO IV DISPOSICIONES TRANSITORIAS AL TÍTULO IV, RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Transitorio XLIII",
-      "path": ["TÍTULO V", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO IV DISPOSICIONES TRANSITORIAS AL TÍTULO IV, RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Transitorio XLIV",
-      "path": ["TÍTULO V", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO IV DISPOSICIONES TRANSITORIAS AL TÍTULO IV, RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Transitorio XLIX",
-      "path": ["TÍTULO V", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO IV DISPOSICIONES TRANSITORIAS AL TÍTULO IV, RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Transitorio XLV",
-      "path": ["TÍTULO V", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO IV DISPOSICIONES TRANSITORIAS AL TÍTULO IV, RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Transitorio XLVI",
-      "path": ["TÍTULO V", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO IV DISPOSICIONES TRANSITORIAS AL TÍTULO IV, RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Transitorio XLVII",
-      "path": ["TÍTULO V", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO IV DISPOSICIONES TRANSITORIAS AL TÍTULO IV, RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Transitorio XLVIII",
-      "path": ["TÍTULO V", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO IV DISPOSICIONES TRANSITORIAS AL TÍTULO IV, RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XV",
-      "path": ["TÍTULO V", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO I DISPOSICIONES TRANSITORIAS AL TÍTULO I DE LA PRESENTE LEY, LEY DEL IMPUESTO AL VALOR AGREGADO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XVI",
-      "path": ["TÍTULO V", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO I DISPOSICIONES TRANSITORIAS AL TÍTULO I DE LA PRESENTE LEY, LEY DEL IMPUESTO AL VALOR AGREGADO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XVII",
-      "path": ["TÍTULO V", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO I DISPOSICIONES TRANSITORIAS AL TÍTULO I DE LA PRESENTE LEY, LEY DEL IMPUESTO AL VALOR AGREGADO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XVIII",
-      "path": ["TÍTULO V", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO I DISPOSICIONES TRANSITORIAS AL TÍTULO I DE LA PRESENTE LEY, LEY DEL IMPUESTO AL VALOR AGREGADO"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Transitorio XX",
-      "path": ["TÍTULO V", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO II DISPOSICIONES TRANSITORIAS AL TÍTULO II DE LA PRESENTE LEY, REFORMAS DE LA LEY N.° 7092, LEY DEL IMPUESTO SOBRE LA RENTA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XX",
-      "path": ["TÍTULO V", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO II DISPOSICIONES TRANSITORIAS AL TÍTULO II DE LA PRESENTE LEY, REFORMAS DE LA LEY N.° 7092, LEY DEL IMPUESTO SOBRE LA RENTA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XXI",
-      "path": ["TÍTULO V", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO II DISPOSICIONES TRANSITORIAS AL TÍTULO II DE LA PRESENTE LEY, REFORMAS DE LA LEY N.° 7092, LEY DEL IMPUESTO SOBRE LA RENTA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Transitorio XXII",
-      "path": ["TÍTULO V", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO II DISPOSICIONES TRANSITORIAS AL TÍTULO II DE LA PRESENTE LEY, REFORMAS DE LA LEY N.° 7092, LEY DEL IMPUESTO SOBRE LA RENTA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XXII",
-      "path": ["TÍTULO V", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO II DISPOSICIONES TRANSITORIAS AL TÍTULO II DE LA PRESENTE LEY, REFORMAS DE LA LEY N.° 7092, LEY DEL IMPUESTO SOBRE LA RENTA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XXIII",
-      "path": ["TÍTULO V", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO II DISPOSICIONES TRANSITORIAS AL TÍTULO II DE LA PRESENTE LEY, REFORMAS DE LA LEY N.° 7092, LEY DEL IMPUESTO SOBRE LA RENTA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XXIV",
-      "path": ["TÍTULO V", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO II DISPOSICIONES TRANSITORIAS AL TÍTULO II DE LA PRESENTE LEY, REFORMAS DE LA LEY N.° 7092, LEY DEL IMPUESTO SOBRE LA RENTA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XXIX",
-      "path": ["TÍTULO V", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO III DISPOSICIONES TRANSITORIAS AL TÍTULO III, MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XXV",
-      "path": ["TÍTULO V", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO III DISPOSICIONES TRANSITORIAS AL TÍTULO III, MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XXVI",
-      "path": ["TÍTULO V", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO III DISPOSICIONES TRANSITORIAS AL TÍTULO III, MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XXVII",
-      "path": ["TÍTULO V", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO III DISPOSICIONES TRANSITORIAS AL TÍTULO III, MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XXVIII",
-      "path": ["TÍTULO V", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO III DISPOSICIONES TRANSITORIAS AL TÍTULO III, MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XXX",
-      "path": ["TÍTULO V", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO III DISPOSICIONES TRANSITORIAS AL TÍTULO III, MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XXXI",
-      "path": ["TÍTULO V", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO III DISPOSICIONES TRANSITORIAS AL TÍTULO III, MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XXXII",
-      "path": ["TÍTULO V", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO III DISPOSICIONES TRANSITORIAS AL TÍTULO III, MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XXXIII",
-      "path": ["TÍTULO V", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO III DISPOSICIONES TRANSITORIAS AL TÍTULO III, MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XXXIV",
-      "path": ["TÍTULO V", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO III DISPOSICIONES TRANSITORIAS AL TÍTULO III, MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XXXIX",
-      "path": ["TÍTULO V", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO IV DISPOSICIONES TRANSITORIAS AL TÍTULO IV, RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "Transitorio XXXV",
-      "path": ["TÍTULO V", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO III DISPOSICIONES TRANSITORIAS AL TÍTULO III, MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XXXV",
-      "path": ["TÍTULO V", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO III DISPOSICIONES TRANSITORIAS AL TÍTULO III, MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XXXVI",
-      "path": ["TÍTULO V", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO III DISPOSICIONES TRANSITORIAS AL TÍTULO III, MODIFICACIÓN DE LA LEY N.° 2166, LEY DE SALARIOS DE LA ADMINISTRACIÓN PÚBLICA"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XXXVII",
-      "path": ["TÍTULO V", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO IV DISPOSICIONES TRANSITORIAS AL TÍTULO IV, RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-9635",
       "articulo": "TRANSITORIO XXXVIII",
-      "path": ["TÍTULO V", "CAPÍTULO IV"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO I", "CAPÍTULO I"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO I", "CAPÍTULO II"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO I", "CAPÍTULO III"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO I", "CAPÍTULO IV"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO I", "CAPÍTULO IX"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO I", "CAPÍTULO V"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO I", "CAPÍTULO VI"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO I", "CAPÍTULO VII"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO I", "CAPÍTULO VIII"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO I"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TITULO II", "CAPÍTULO XI", "SECCIÓN I"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TITULO II", "CAPÍTULO XI"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TITULO II"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO III", "CAPÍTULO III"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO III", "CAPÍTULO IV"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO III", "CAPÍTULO V"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO III", "CAPÍTULO VI"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO III", "CAPÍTULO VII"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO III", "CAPÍTULO VIII"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO III"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO IV", "CAPÍTULO I"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO IV", "CAPÍTULO II"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO IV", "CAPÍTULO III"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO IV", "CAPÍTULO IV"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO IV", "CAPÍTULO V"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO IV", "CAPÍTULO VI"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO IV"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO V", "CAPÍTULO I"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO V", "CAPÍTULO II"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO V", "CAPÍTULO III"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO V", "CAPÍTULO IV"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO V", "CAPÍTULO XXXI"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": ["TÍTULO V"]
-    },
-    {
-      "docKey": "ley-9635",
-      "articulo": null,
-      "path": []
+      "path": [
+        "TÍTULO V DISPOSICIONES TRANSITORIAS",
+        "CAPÍTULO IV DISPOSICIONES TRANSITORIAS AL TÍTULO IV, RESPONSABILIDAD FISCAL"
+      ]
     },
     {
       "docKey": "ley-iva",
@@ -1767,56 +2210,56 @@
       "docKey": "reglamento-comprobantes",
       "articulo": "Artículo 12",
       "path": [
-        "CAPÍTULO II DE LOS REQUISITOS Y CARACTERÍSTICAS DE LOS COMPROBANTES"
+        "CAPÍTULO II DE LOS REQUISITOS Y CARACTERÍSTICAS DE LOS COMPROBANTES Y SISTEMAS ELECTRÓNICOS PARA SU EMISIÓN"
       ]
     },
     {
       "docKey": "reglamento-comprobantes",
       "articulo": "Artículo 13",
       "path": [
-        "CAPÍTULO II DE LOS REQUISITOS Y CARACTERÍSTICAS DE LOS COMPROBANTES"
+        "CAPÍTULO II DE LOS REQUISITOS Y CARACTERÍSTICAS DE LOS COMPROBANTES Y SISTEMAS ELECTRÓNICOS PARA SU EMISIÓN"
       ]
     },
     {
       "docKey": "reglamento-comprobantes",
       "articulo": "Artículo 14",
       "path": [
-        "CAPÍTULO II DE LOS REQUISITOS Y CARACTERÍSTICAS DE LOS COMPROBANTES"
+        "CAPÍTULO II DE LOS REQUISITOS Y CARACTERÍSTICAS DE LOS COMPROBANTES Y SISTEMAS ELECTRÓNICOS PARA SU EMISIÓN"
       ]
     },
     {
       "docKey": "reglamento-comprobantes",
       "articulo": "Artículo 15",
       "path": [
-        "CAPÍTULO III SOBRE LA TRANSPARENCIA TECNOLÓGICA Y LOS PROVEEDORES"
+        "CAPÍTULO III SOBRE LA TRANSPARENCIA TECNOLÓGICA Y LOS PROVEEDORES DE SISTEMAS DE EMlSlÓN DE COMPROBANTES ELECTRÓNICOS"
       ]
     },
     {
       "docKey": "reglamento-comprobantes",
       "articulo": "Artículo 16",
       "path": [
-        "CAPÍTULO III SOBRE LA TRANSPARENCIA TECNOLÓGICA Y LOS PROVEEDORES"
+        "CAPÍTULO III SOBRE LA TRANSPARENCIA TECNOLÓGICA Y LOS PROVEEDORES DE SISTEMAS DE EMlSlÓN DE COMPROBANTES ELECTRÓNICOS"
       ]
     },
     {
       "docKey": "reglamento-comprobantes",
       "articulo": "Artículo 17",
       "path": [
-        "CAPÍTULO IV DE LA EMISIÓN Y ENTREGA DE COMPROBANTES ELECTRONICOS"
+        "CAPÍTULO IV DE LA EMISIÓN Y ENTREGA DE COMPROBANTES ELECTRONICOS Y OTRAS OBLIGACIONES ANEXAS"
       ]
     },
     {
       "docKey": "reglamento-comprobantes",
       "articulo": "Artículo 18",
       "path": [
-        "CAPÍTULO IV DE LA EMISIÓN Y ENTREGA DE COMPROBANTES ELECTRONICOS"
+        "CAPÍTULO IV DE LA EMISIÓN Y ENTREGA DE COMPROBANTES ELECTRONICOS Y OTRAS OBLIGACIONES ANEXAS"
       ]
     },
     {
       "docKey": "reglamento-comprobantes",
       "articulo": "Artículo 19",
       "path": [
-        "CAPÍTULO IV DE LA EMISIÓN Y ENTREGA DE COMPROBANTES ELECTRONICOS"
+        "CAPÍTULO IV DE LA EMISIÓN Y ENTREGA DE COMPROBANTES ELECTRONICOS Y OTRAS OBLIGACIONES ANEXAS"
       ]
     },
     {
@@ -1828,49 +2271,49 @@
       "docKey": "reglamento-comprobantes",
       "articulo": "Artículo 20",
       "path": [
-        "CAPÍTULO IV DE LA EMISIÓN Y ENTREGA DE COMPROBANTES ELECTRONICOS"
+        "CAPÍTULO IV DE LA EMISIÓN Y ENTREGA DE COMPROBANTES ELECTRONICOS Y OTRAS OBLIGACIONES ANEXAS"
       ]
     },
     {
       "docKey": "reglamento-comprobantes",
       "articulo": "Artículo 21",
       "path": [
-        "CAPÍTULO IV DE LA EMISIÓN Y ENTREGA DE COMPROBANTES ELECTRONICOS"
+        "CAPÍTULO IV DE LA EMISIÓN Y ENTREGA DE COMPROBANTES ELECTRONICOS Y OTRAS OBLIGACIONES ANEXAS"
       ]
     },
     {
       "docKey": "reglamento-comprobantes",
       "articulo": "Artículo 22",
       "path": [
-        "CAPÍTULO IV DE LA EMISIÓN Y ENTREGA DE COMPROBANTES ELECTRONICOS"
+        "CAPÍTULO IV DE LA EMISIÓN Y ENTREGA DE COMPROBANTES ELECTRONICOS Y OTRAS OBLIGACIONES ANEXAS"
       ]
     },
     {
       "docKey": "reglamento-comprobantes",
       "articulo": "Artículo 23",
       "path": [
-        "CAPÍTULO IV DE LA EMISIÓN Y ENTREGA DE COMPROBANTES ELECTRONICOS"
+        "CAPÍTULO IV DE LA EMISIÓN Y ENTREGA DE COMPROBANTES ELECTRONICOS Y OTRAS OBLIGACIONES ANEXAS"
       ]
     },
     {
       "docKey": "reglamento-comprobantes",
       "articulo": "Artículo 24",
-      "path": ["CAPÍTULO V"]
+      "path": ["CAPÍTULO V DE LAS INFRACCIONES TRIBUTARIAS"]
     },
     {
       "docKey": "reglamento-comprobantes",
       "articulo": "Artículo 25",
-      "path": ["CAPÍTULO Vl"]
+      "path": ["CAPÍTULO Vl DISPOSICIONES FINALES"]
     },
     {
       "docKey": "reglamento-comprobantes",
       "articulo": "Artículo 26",
-      "path": ["CAPÍTULO Vl"]
+      "path": ["CAPÍTULO Vl DISPOSICIONES FINALES"]
     },
     {
       "docKey": "reglamento-comprobantes",
       "articulo": "Artículo 27",
-      "path": ["CAPÍTULO Vl"]
+      "path": ["CAPÍTULO Vl DISPOSICIONES FINALES"]
     },
     {
       "docKey": "reglamento-comprobantes",
@@ -1910,42 +2353,6 @@
     {
       "docKey": "reglamento-comprobantes",
       "articulo": "Preámbulo",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-comprobantes",
-      "articulo": null,
-      "path": [
-        "CAPÍTULO II DE LOS REQUISITOS Y CARACTERÍSTICAS DE LOS COMPROBANTES"
-      ]
-    },
-    {
-      "docKey": "reglamento-comprobantes",
-      "articulo": null,
-      "path": [
-        "CAPÍTULO III SOBRE LA TRANSPARENCIA TECNOLÓGICA Y LOS PROVEEDORES"
-      ]
-    },
-    {
-      "docKey": "reglamento-comprobantes",
-      "articulo": null,
-      "path": [
-        "CAPÍTULO IV DE LA EMISIÓN Y ENTREGA DE COMPROBANTES ELECTRONICOS"
-      ]
-    },
-    {
-      "docKey": "reglamento-comprobantes",
-      "articulo": null,
-      "path": ["CAPÍTULO V"]
-    },
-    {
-      "docKey": "reglamento-comprobantes",
-      "articulo": null,
-      "path": ["CAPÍTULO Vl"]
-    },
-    {
-      "docKey": "reglamento-comprobantes",
-      "articulo": null,
       "path": []
     },
     {
@@ -1961,1549 +2368,1422 @@
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 1",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO I DEFINICIONES"
-      ]
+      "path": ["CAPÍTULO I DEFINICIONES"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 10",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO III"
-      ]
+      "path": ["CAPÍTULO III CONTRIBUYENTES DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 11",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO IV"
-      ]
+      "path": ["CAPÍTULO IV EXENCIONES Y NO SUJECIONES"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 12",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO IV"
-      ]
+      "path": ["CAPÍTULO IV EXENCIONES Y NO SUJECIONES"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 13",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO V"
-      ]
+      "path": ["CAPÍTULO V DE LA BASE IMPONIBLE DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 14",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO V"
-      ]
+      "path": ["CAPÍTULO V DE LA BASE IMPONIBLE DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 15",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO V"
-      ]
+      "path": ["CAPÍTULO V DE LA BASE IMPONIBLE DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 16",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO V"
-      ]
+      "path": ["CAPÍTULO V DE LA BASE IMPONIBLE DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 17",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO V"
-      ]
+      "path": ["CAPÍTULO V DE LA BASE IMPONIBLE DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 18",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO V"
-      ]
+      "path": ["CAPÍTULO V DE LA BASE IMPONIBLE DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 19",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO V"
-      ]
+      "path": ["CAPÍTULO V DE LA BASE IMPONIBLE DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 2",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO II"
-      ]
+      "path": ["CAPÍTULO II Del Objeto y del Hecho Generador"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 20",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO V"
-      ]
+      "path": ["CAPÍTULO V DE LA BASE IMPONIBLE DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 21",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO V"
-      ]
+      "path": ["CAPÍTULO V DE LA BASE IMPONIBLE DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 22",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VI"
-      ]
+      "path": ["CAPÍTULO VI DE LA TARIFA DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 23 bis",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VI"
-      ]
+      "path": ["CAPÍTULO VI DE LA TARIFA DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 23",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VI"
-      ]
+      "path": ["CAPÍTULO VI DE LA TARIFA DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 24",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VII"
-      ]
+      "path": ["CAPÍTULO VII DEL PERÍODO FISCAL DEL IMPUESTO"]
+    },
+    {
+      "docKey": "reglamento-iva",
+      "articulo": "Artículo 25",
+      "path": ["CAPÍTULO I DEFINICIONES"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 25",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO I DEFINICIONES"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": "Artículo 25",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION I"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION I De la determinación del impuesto"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 26",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION II"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION II Condiciones para el derecho al crédito fiscal"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 27",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION II"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION II Condiciones para el derecho al crédito fiscal"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 28",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION II"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION II Condiciones para el derecho al crédito fiscal"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 29",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION II"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION II Condiciones para el derecho al crédito fiscal"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 3",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO II"
-      ]
+      "path": ["CAPÍTULO II Del Objeto y del Hecho Generador"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 30",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION II"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION II Condiciones para el derecho al crédito fiscal"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 31",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION II"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION II Condiciones para el derecho al crédito fiscal"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 32",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION II"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION II Condiciones para el derecho al crédito fiscal"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 33",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION II"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION II Condiciones para el derecho al crédito fiscal"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 34",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION II"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION II Condiciones para el derecho al crédito fiscal"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 35",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION II"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION II Condiciones para el derecho al crédito fiscal"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 36",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION II"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION II Condiciones para el derecho al crédito fiscal"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 37",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION III"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION III De los saldos a favor, devoluciones y reembolsos del impuesto"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 38 bis",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION III"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION III De los saldos a favor, devoluciones y reembolsos del impuesto"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 38",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION III"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION III De los saldos a favor, devoluciones y reembolsos del impuesto"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 39",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION III"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION III De los saldos a favor, devoluciones y reembolsos del impuesto"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 4",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO II"
-      ]
+      "path": ["CAPÍTULO II Del Objeto y del Hecho Generador"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 40 bis",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION IV"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION IV De la declaración y pago del impuesto"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 40",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION IV"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION IV De la declaración y pago del impuesto"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 41",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION IV"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION IV De la declaración y pago del impuesto"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 42",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION IV"
+        "CAPÍTULO VIII DE LA DETERMINACIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO",
+        "SECCION IV De la declaración y pago del impuesto"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 43",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN I"
+        "CAPITULO IX CONSIDERACIONES ESPECIALES DEL IMPUESTO SOBRE EL VALOR AGREGADO",
+        "SECCIÓN I Impuesto sobre el Valor Agregado bajo el sistema especial de determinación a nivel de fábrica, mayorista y Aduanas"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 44",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN I"
+        "CAPITULO IX CONSIDERACIONES ESPECIALES DEL IMPUESTO SOBRE EL VALOR AGREGADO",
+        "SECCIÓN I Impuesto sobre el Valor Agregado bajo el sistema especial de determinación a nivel de fábrica, mayorista y Aduanas"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 45",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN I"
+        "CAPITULO IX CONSIDERACIONES ESPECIALES DEL IMPUESTO SOBRE EL VALOR AGREGADO",
+        "SECCIÓN I Impuesto sobre el Valor Agregado bajo el sistema especial de determinación a nivel de fábrica, mayorista y Aduanas"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 46",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN II"
+        "CAPITULO IX CONSIDERACIONES ESPECIALES DEL IMPUESTO SOBRE EL VALOR AGREGADO",
+        "SECCIÓN II De los servicios digitales transfronterizos"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 47",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN II"
+        "CAPITULO IX CONSIDERACIONES ESPECIALES DEL IMPUESTO SOBRE EL VALOR AGREGADO",
+        "SECCIÓN II De los servicios digitales transfronterizos"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 48",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN II"
+        "CAPITULO IX CONSIDERACIONES ESPECIALES DEL IMPUESTO SOBRE EL VALOR AGREGADO",
+        "SECCIÓN II De los servicios digitales transfronterizos"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 49",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN II"
+        "CAPITULO IX CONSIDERACIONES ESPECIALES DEL IMPUESTO SOBRE EL VALOR AGREGADO",
+        "SECCIÓN II De los servicios digitales transfronterizos"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 5",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO II"
-      ]
+      "path": ["CAPÍTULO II Del Objeto y del Hecho Generador"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 50",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN II"
+        "CAPITULO IX CONSIDERACIONES ESPECIALES DEL IMPUESTO SOBRE EL VALOR AGREGADO",
+        "SECCIÓN II De los servicios digitales transfronterizos"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 51",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN III"
+        "CAPITULO IX CONSIDERACIONES ESPECIALES DEL IMPUESTO SOBRE EL VALOR AGREGADO",
+        "SECCIÓN III Régimen especial de bienes usados"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 52",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN III"
+        "CAPITULO IX CONSIDERACIONES ESPECIALES DEL IMPUESTO SOBRE EL VALOR AGREGADO",
+        "SECCIÓN III Régimen especial de bienes usados"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 53",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN III"
+        "CAPITULO IX CONSIDERACIONES ESPECIALES DEL IMPUESTO SOBRE EL VALOR AGREGADO",
+        "SECCIÓN III Régimen especial de bienes usados"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 54",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN III"
+        "CAPITULO IX CONSIDERACIONES ESPECIALES DEL IMPUESTO SOBRE EL VALOR AGREGADO",
+        "SECCIÓN III Régimen especial de bienes usados"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 55",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN III"
+        "CAPITULO IX CONSIDERACIONES ESPECIALES DEL IMPUESTO SOBRE EL VALOR AGREGADO",
+        "SECCIÓN III Régimen especial de bienes usados"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 56",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN III"
+        "CAPITULO IX CONSIDERACIONES ESPECIALES DEL IMPUESTO SOBRE EL VALOR AGREGADO",
+        "SECCIÓN III Régimen especial de bienes usados"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 57",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN IV"
+        "CAPITULO IX CONSIDERACIONES ESPECIALES DEL IMPUESTO SOBRE EL VALOR AGREGADO",
+        "SECCIÓN IV DE LOS JUEGOS DE AZAR"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 58",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN IV"
+        "CAPITULO IX CONSIDERACIONES ESPECIALES DEL IMPUESTO SOBRE EL VALOR AGREGADO",
+        "SECCIÓN IV DE LOS JUEGOS DE AZAR"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 59",
       "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN IV"
+        "CAPITULO IX CONSIDERACIONES ESPECIALES DEL IMPUESTO SOBRE EL VALOR AGREGADO",
+        "SECCIÓN IV DE LOS JUEGOS DE AZAR"
       ]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 6",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO II"
-      ]
+      "path": ["CAPÍTULO II Del Objeto y del Hecho Generador"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 60",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO X"
-      ]
+      "path": ["CAPITULO X OBLIGACIONES DEL CONTRIBUYENTE"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 61",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO X"
-      ]
+      "path": ["CAPITULO X OBLIGACIONES DEL CONTRIBUYENTE"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 62",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO X"
-      ]
+      "path": ["CAPITULO X OBLIGACIONES DEL CONTRIBUYENTE"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 63",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO X"
-      ]
+      "path": ["CAPITULO X OBLIGACIONES DEL CONTRIBUYENTE"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 64",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO X"
-      ]
+      "path": ["CAPITULO X OBLIGACIONES DEL CONTRIBUYENTE"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 65",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO X"
-      ]
+      "path": ["CAPITULO X OBLIGACIONES DEL CONTRIBUYENTE"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 66",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO X"
-      ]
+      "path": ["CAPITULO X OBLIGACIONES DEL CONTRIBUYENTE"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 67",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO X"
-      ]
+      "path": ["CAPITULO X OBLIGACIONES DEL CONTRIBUYENTE"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 68",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 69",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 7",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO II"
-      ]
+      "path": ["CAPÍTULO II Del Objeto y del Hecho Generador"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 70",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 71",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 8",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO II"
-      ]
+      "path": ["CAPÍTULO II Del Objeto y del Hecho Generador"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Artículo 9",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO II"
-      ]
+      "path": ["CAPÍTULO II Del Objeto y del Hecho Generador"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Preámbulo",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el"
-      ]
+      "path": []
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Transitorio I",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Transitorio II",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Transitorio III",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Transitorio IV",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Transitorio IX",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Transitorio V",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Transitorio VI",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Transitorio VII",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Transitorio VIII",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Transitorio X",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Transitorio XI",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Transitorio XII",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Transitorio XIII",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Transitorio XIV",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Transitorio XV",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Transitorio XVI",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-iva",
       "articulo": "Transitorio XVII",
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO II"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO III"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO IV"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN I"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN II"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN III"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX",
-        "SECCIÓN IV"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO IX"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO V"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VI"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VII"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION I"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION II"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION III"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII",
-        "SECCION IV"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPÍTULO VIII"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO X"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
-        "CAPITULO XI"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": [
-        "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el"
-      ]
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": null,
-      "path": []
+      "path": ["CAPITULO XI DE LA ADMINISTRACION Y FISCALIZACION DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 1",
-      "path": ["CAPÍTULO I"]
+      "path": ["CAPÍTULO I DE LAS DEFINICIONES\""]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 10",
-      "path": ["CAPÍTULO VI"]
+      "path": [
+        "CAPÍTULO VI DE LOS CONTRIBUYENTES Y ENTIDADES NO SUJETAS AL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 100",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO III LIBROS Y NORMAS DE CONTABILIDAD"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 101",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO IV"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO IV DE LOS INVENTARIOS Y SU REGISTRO"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 102",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO IV"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO IV DE LOS INVENTARIOS Y SU REGISTRO"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 103",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO V"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO V REGULACIONES PARA OTORGAR INCENTIVOS A LAS EXPORTACIONES"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 104",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO V"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO V REGULACIONES PARA OTORGAR INCENTIVOS A LAS EXPORTACIONES"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 105",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO V"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO V REGULACIONES PARA OTORGAR INCENTIVOS A LAS EXPORTACIONES"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 106",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO V"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO V REGULACIONES PARA OTORGAR INCENTIVOS A LAS EXPORTACIONES"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 107",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO V"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO V REGULACIONES PARA OTORGAR INCENTIVOS A LAS EXPORTACIONES"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 11",
-      "path": ["CAPÍTULO VI"]
+      "path": [
+        "CAPÍTULO VI DE LOS CONTRIBUYENTES Y ENTIDADES NO SUJETAS AL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 12",
-      "path": ["CAPÍTULO VII"]
+      "path": ["CAPÍTULO VII DEL PERÍODO DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 13",
-      "path": ["CAPÍTULO VIII", "Sección I"]
+      "path": [
+        "CAPÍTULO VIII DE LA DETERMINACIÓN DE LA BASE IMPONIBLE",
+        "Sección I Determinación de la base imponible conforme al artículo 125 del Código de Normas y Procedimientos Tributarios\""
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 14",
-      "path": ["CAPÍTULO VIII", "Sección I"]
+      "path": [
+        "CAPÍTULO VIII DE LA DETERMINACIÓN DE LA BASE IMPONIBLE",
+        "Sección I Determinación de la base imponible conforme al artículo 125 del Código de Normas y Procedimientos Tributarios\""
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 15",
-      "path": ["CAPÍTULO VIII", "Sección I"]
+      "path": [
+        "CAPÍTULO VIII DE LA DETERMINACIÓN DE LA BASE IMPONIBLE",
+        "Sección I Determinación de la base imponible conforme al artículo 125 del Código de Normas y Procedimientos Tributarios\""
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 16",
-      "path": ["CAPÍTULO VIII", "Sección I"]
+      "path": [
+        "CAPÍTULO VIII DE LA DETERMINACIÓN DE LA BASE IMPONIBLE",
+        "Sección I Determinación de la base imponible conforme al artículo 125 del Código de Normas y Procedimientos Tributarios\""
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 17",
-      "path": ["CAPÍTULO VIII", "Sección I"]
+      "path": [
+        "CAPÍTULO VIII DE LA DETERMINACIÓN DE LA BASE IMPONIBLE",
+        "Sección I Determinación de la base imponible conforme al artículo 125 del Código de Normas y Procedimientos Tributarios\""
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 18",
-      "path": ["CAPÍTULO VIII", "Sección I"]
+      "path": [
+        "CAPÍTULO VIII DE LA DETERMINACIÓN DE LA BASE IMPONIBLE",
+        "Sección I Determinación de la base imponible conforme al artículo 125 del Código de Normas y Procedimientos Tributarios\""
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 19",
-      "path": ["CAPÍTULO VIII", "Sección I"]
+      "path": [
+        "CAPÍTULO VIII DE LA DETERMINACIÓN DE LA BASE IMPONIBLE",
+        "Sección I Determinación de la base imponible conforme al artículo 125 del Código de Normas y Procedimientos Tributarios\""
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 2",
-      "path": ["CAPITULO II"]
+      "path": ["CAPITULO II DEL HECHO GENERADOR DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 20",
-      "path": ["CAPÍTULO VIII", "Sección II"]
+      "path": [
+        "CAPÍTULO VIII DE LA DETERMINACIÓN DE LA BASE IMPONIBLE",
+        "Sección II Determinación de la base imponible por rentas netas presuntivas"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 21",
-      "path": ["CAPÍTULO VIII", "Sección II"]
+      "path": [
+        "CAPÍTULO VIII DE LA DETERMINACIÓN DE LA BASE IMPONIBLE",
+        "Sección II Determinación de la base imponible por rentas netas presuntivas"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 22",
-      "path": ["CAPÍTULO VIII", "Sección II"]
+      "path": [
+        "CAPÍTULO VIII DE LA DETERMINACIÓN DE LA BASE IMPONIBLE",
+        "Sección II Determinación de la base imponible por rentas netas presuntivas"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 23",
-      "path": ["CAPÍTULO IX"]
+      "path": ["CAPÍTULO IX DE LA TARIFA Y DEDUCCIONES APLICABLES AL IMPUESTO"]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 24",
-      "path": [
-        "CAPÍTULO IX",
-        "Sección VIII denominada \"De las devoluciones\", ambos del Capítulo"
-      ]
+      "path": ["CAPÍTULO IX DE LA TARIFA Y DEDUCCIONES APLICABLES AL IMPUESTO"]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 25",
-      "path": [
-        "CAPÍTULO IX",
-        "Sección VIII denominada \"De las devoluciones\", ambos del Capítulo"
-      ]
+      "path": ["CAPÍTULO IX DE LA TARIFA Y DEDUCCIONES APLICABLES AL IMPUESTO"]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 26",
-      "path": [
-        "CAPÍTULO IX",
-        "Sección VIII denominada \"De las devoluciones\", ambos del Capítulo"
-      ]
+      "path": ["CAPÍTULO IX DE LA TARIFA Y DEDUCCIONES APLICABLES AL IMPUESTO"]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 27",
-      "path": ["CAPÍTULO X"]
+      "path": ["CAPÍTULO X DE LA INSCRIPCIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 28",
-      "path": ["CAPÍTULO X"]
+      "path": ["CAPÍTULO X DE LA INSCRIPCIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 29",
-      "path": ["CAPÍTULO X"]
+      "path": ["CAPÍTULO X DE LA INSCRIPCIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 3",
-      "path": ["CAPITULO III"]
+      "path": ["CAPITULO III DE LA MATERIA IMPONIBLE DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 30",
-      "path": ["CAPÍTULO X"]
+      "path": ["CAPÍTULO X DE LA INSCRIPCIÓN, DECLARACIÓN Y PAGO DEL IMPUESTO"]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 31",
-      "path": ["CAPITULO XI"]
+      "path": ["CAPITULO XI DE LOS REGÍMENES ESPECIALES"]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 32",
-      "path": ["CAPITULO XI"]
+      "path": ["CAPITULO XI DE LOS REGÍMENES ESPECIALES"]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 33",
-      "path": ["TÍTULO II", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO I DE LA MATERIA IMPONIBLE DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 34",
-      "path": ["TÍTULO II", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO I DE LA MATERIA IMPONIBLE DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 35",
-      "path": ["TÍTULO II", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO I DE LA MATERIA IMPONIBLE DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 36",
-      "path": ["TÍTULO II", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO I DE LA MATERIA IMPONIBLE DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 37",
-      "path": ["TÍTULO II", "CAPÍTULO I"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO I DE LA MATERIA IMPONIBLE DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 38 bis",
-      "path": ["TÍTULO II", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO II DE LOS CONTRIBUYENTES"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 38 ter",
-      "path": ["TÍTULO II", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO II DE LOS CONTRIBUYENTES"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Articulo 38",
-      "path": ["TÍTULO II", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO II DE LOS CONTRIBUYENTES"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 38",
-      "path": ["TÍTULO II", "CAPÍTULO II"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO II DE LOS CONTRIBUYENTES"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 39",
-      "path": ["TÍTULO II", "CAPÍTULO III"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO III DE LAS EXENCIONES"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 4",
-      "path": ["CAPITULO IV"]
+      "path": ["CAPITULO IV INTEGRACION DE RENTAS POR AFECTACION"]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 40",
-      "path": ["TÍTULO II", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO IV DETERMINACIÓN DE LA BASE IMPONIBLE DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 41",
-      "path": ["TÍTULO II", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO IV DETERMINACIÓN DE LA BASE IMPONIBLE DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 42",
-      "path": ["TÍTULO II", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO IV DETERMINACIÓN DE LA BASE IMPONIBLE DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 43",
-      "path": ["TÍTULO II", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO IV DETERMINACIÓN DE LA BASE IMPONIBLE DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 44",
-      "path": ["TÍTULO II", "CAPÍTULO IV"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO IV DETERMINACIÓN DE LA BASE IMPONIBLE DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 45",
-      "path": ["TÍTULO II", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO V DEL HECHO GENERADOR DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 46",
-      "path": ["TÍTULO II", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO V DEL HECHO GENERADOR DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 47",
-      "path": ["TÍTULO II", "CAPÍTULO V"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO V DEL HECHO GENERADOR DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 48",
-      "path": ["TÍTULO II", "CAPÍTULO VI", "Sección I"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO VI DE LA DECLARACIÓN, LIQUIDACIÓN, PAGO Y COMPENSACIÓN DEL IMPUESTO",
+        "Sección I De la opción para trasladar y declarar rentas, ganancias y pérdidas del capital en el Impuesto sobre las Utilidades"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 49",
-      "path": ["TÍTULO II", "CAPÍTULO VI", "Sección I"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO VI DE LA DECLARACIÓN, LIQUIDACIÓN, PAGO Y COMPENSACIÓN DEL IMPUESTO",
+        "Sección I De la opción para trasladar y declarar rentas, ganancias y pérdidas del capital en el Impuesto sobre las Utilidades"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 5",
-      "path": ["CAPITULO V"]
+      "path": [
+        "CAPITULO V DE LAS OPCIONES PARA DECLARAR RENTAS, GANANCIAS Y PÉRDIDAS DEL CAPITAL EN EL IMPUESTO SOBRE LAS UTILIDADES"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 50",
-      "path": ["TÍTULO II", "CAPÍTULO VI", "Sección II"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO VI DE LA DECLARACIÓN, LIQUIDACIÓN, PAGO Y COMPENSACIÓN DEL IMPUESTO",
+        "Sección II De las modalidades de declaración del Impuesto sobre Rentas del Capital"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 51",
-      "path": ["TÍTULO II", "CAPÍTULO VI", "Sección II"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO VI DE LA DECLARACIÓN, LIQUIDACIÓN, PAGO Y COMPENSACIÓN DEL IMPUESTO",
+        "Sección II De las modalidades de declaración del Impuesto sobre Rentas del Capital"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 52",
-      "path": ["TÍTULO II", "CAPÍTULO VI", "Sección III"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO VI DE LA DECLARACIÓN, LIQUIDACIÓN, PAGO Y COMPENSACIÓN DEL IMPUESTO",
+        "Sección III De las modalidades de declaración del Impuesto sobre Ganancias y Pérdidas del Capital"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 53 bis",
       "path": [
-        "TÍTULO II",
-        "Capítulo XI de la Ley del Impuesto sobre la Renta, deberá manifestar la"
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO VI DE LA DECLARACIÓN, LIQUIDACIÓN, PAGO Y COMPENSACIÓN DEL IMPUESTO",
+        "Sección III De las modalidades de declaración del Impuesto sobre Ganancias y Pérdidas del Capital"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 53",
-      "path": ["TÍTULO II", "CAPÍTULO VI", "Sección III"]
+      "path": [
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO VI DE LA DECLARACIÓN, LIQUIDACIÓN, PAGO Y COMPENSACIÓN DEL IMPUESTO",
+        "Sección III De las modalidades de declaración del Impuesto sobre Ganancias y Pérdidas del Capital"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 54",
       "path": [
-        "TÍTULO II",
-        "Capítulo XI de la Ley del Impuesto sobre la Renta, deberá manifestar la",
-        "Sección IV"
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO VI DE LA DECLARACIÓN, LIQUIDACIÓN, PAGO Y COMPENSACIÓN DEL IMPUESTO",
+        "Sección IV De la compensación y devolución de ganancias y pérdidas de capital y diferimiento de pérdidas"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 55",
       "path": [
-        "TÍTULO II",
-        "Capítulo XI de la Ley del Impuesto sobre la Renta, deberá manifestar la",
-        "Sección IV"
+        "TÍTULO II IMPUESTO SOBRE LAS RENTAS DE CAPITAL Y GANANCIAS Y PÉRDIDAS DE CAPITAL",
+        "CAPÍTULO VI DE LA DECLARACIÓN, LIQUIDACIÓN, PAGO Y COMPENSACIÓN DEL IMPUESTO",
+        "Sección IV De la compensación y devolución de ganancias y pérdidas de capital y diferimiento de pérdidas"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 56",
-      "path": ["TITULO III", "CAPITULO I"]
+      "path": [
+        "TITULO III IMPUESTO UNICO SOBRE LAS RENTAS DELTRABAJO PERSONAL DEPENDIENTE O POR CONCEPTO DE JUBILACIÓN O PENSION U OTRAS REMUNERACIONES POR SERVICIOS PERSONALES",
+        "CAPITULO I DE LOS ELEMENTOS ESTRUCTURALES DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 57",
-      "path": ["TITULO III", "CAPITULO I"]
+      "path": [
+        "TITULO III IMPUESTO UNICO SOBRE LAS RENTAS DELTRABAJO PERSONAL DEPENDIENTE O POR CONCEPTO DE JUBILACIÓN O PENSION U OTRAS REMUNERACIONES POR SERVICIOS PERSONALES",
+        "CAPITULO I DE LOS ELEMENTOS ESTRUCTURALES DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 58",
-      "path": ["TITULO III", "CAPITULO II"]
+      "path": [
+        "TITULO III IMPUESTO UNICO SOBRE LAS RENTAS DELTRABAJO PERSONAL DEPENDIENTE O POR CONCEPTO DE JUBILACIÓN O PENSION U OTRAS REMUNERACIONES POR SERVICIOS PERSONALES",
+        "CAPITULO II DEDUCCIONES DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 59",
-      "path": ["TITULO III", "CAPITULO III"]
+      "path": [
+        "TITULO III IMPUESTO UNICO SOBRE LAS RENTAS DELTRABAJO PERSONAL DEPENDIENTE O POR CONCEPTO DE JUBILACIÓN O PENSION U OTRAS REMUNERACIONES POR SERVICIOS PERSONALES",
+        "CAPITULO III SITUACIONES ESPECIALES"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 6",
-      "path": ["CAPITULO V"]
+      "path": [
+        "CAPITULO V DE LAS OPCIONES PARA DECLARAR RENTAS, GANANCIAS Y PÉRDIDAS DEL CAPITAL EN EL IMPUESTO SOBRE LAS UTILIDADES"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 60",
-      "path": ["TITULO III", "CAPITULO III"]
+      "path": [
+        "TITULO III IMPUESTO UNICO SOBRE LAS RENTAS DELTRABAJO PERSONAL DEPENDIENTE O POR CONCEPTO DE JUBILACIÓN O PENSION U OTRAS REMUNERACIONES POR SERVICIOS PERSONALES",
+        "CAPITULO III SITUACIONES ESPECIALES"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 61",
-      "path": ["TITULO III", "CAPITULO III"]
+      "path": [
+        "TITULO III IMPUESTO UNICO SOBRE LAS RENTAS DELTRABAJO PERSONAL DEPENDIENTE O POR CONCEPTO DE JUBILACIÓN O PENSION U OTRAS REMUNERACIONES POR SERVICIOS PERSONALES",
+        "CAPITULO III SITUACIONES ESPECIALES"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 62",
-      "path": ["TITULO III", "CAPITULO III"]
+      "path": [
+        "TITULO III IMPUESTO UNICO SOBRE LAS RENTAS DELTRABAJO PERSONAL DEPENDIENTE O POR CONCEPTO DE JUBILACIÓN O PENSION U OTRAS REMUNERACIONES POR SERVICIOS PERSONALES",
+        "CAPITULO III SITUACIONES ESPECIALES"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 63",
-      "path": ["TITULO III", "CAPITULO IV"]
+      "path": [
+        "TITULO III IMPUESTO UNICO SOBRE LAS RENTAS DELTRABAJO PERSONAL DEPENDIENTE O POR CONCEPTO DE JUBILACIÓN O PENSION U OTRAS REMUNERACIONES POR SERVICIOS PERSONALES",
+        "CAPITULO IV DE LA RETENCION Y PAGO DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 64",
-      "path": ["TITULO III", "CAPITULO IV"]
+      "path": [
+        "TITULO III IMPUESTO UNICO SOBRE LAS RENTAS DELTRABAJO PERSONAL DEPENDIENTE O POR CONCEPTO DE JUBILACIÓN O PENSION U OTRAS REMUNERACIONES POR SERVICIOS PERSONALES",
+        "CAPITULO IV DE LA RETENCION Y PAGO DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 65",
-      "path": ["TITULO III", "CAPITULO IV"]
+      "path": [
+        "TITULO III IMPUESTO UNICO SOBRE LAS RENTAS DELTRABAJO PERSONAL DEPENDIENTE O POR CONCEPTO DE JUBILACIÓN O PENSION U OTRAS REMUNERACIONES POR SERVICIOS PERSONALES",
+        "CAPITULO IV DE LA RETENCION Y PAGO DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 66",
-      "path": ["TITULO IV", "CAPITULO I"]
+      "path": [
+        "TITULO IV IMPUESTO SOBRE LAS REMESAS AL EXTERIOR",
+        "CAPITULO I DE LOS ELEMENTOS ESTRUCTURALES DEL IMPUESTO\""
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 67",
-      "path": ["TITULO IV", "CAPITULO I"]
+      "path": [
+        "TITULO IV IMPUESTO SOBRE LAS REMESAS AL EXTERIOR",
+        "CAPITULO I DE LOS ELEMENTOS ESTRUCTURALES DEL IMPUESTO\""
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 68",
-      "path": ["TITULO IV", "CAPITULO I"]
+      "path": [
+        "TITULO IV IMPUESTO SOBRE LAS REMESAS AL EXTERIOR",
+        "CAPITULO I DE LOS ELEMENTOS ESTRUCTURALES DEL IMPUESTO\""
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 69",
-      "path": ["TITULO IV", "CAPITULO I"]
+      "path": [
+        "TITULO IV IMPUESTO SOBRE LAS REMESAS AL EXTERIOR",
+        "CAPITULO I DE LOS ELEMENTOS ESTRUCTURALES DEL IMPUESTO\""
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 7",
-      "path": ["CAPÍTULO VI"]
+      "path": [
+        "CAPÍTULO VI DE LOS CONTRIBUYENTES Y ENTIDADES NO SUJETAS AL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 70",
-      "path": ["TITULO IV", "CAPITULO II"]
+      "path": [
+        "TITULO IV IMPUESTO SOBRE LAS REMESAS AL EXTERIOR",
+        "CAPITULO II DE LA RETENCION Y PAGO DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 71",
-      "path": ["TITULO IV", "CAPITULO II"]
+      "path": [
+        "TITULO IV IMPUESTO SOBRE LAS REMESAS AL EXTERIOR",
+        "CAPITULO II DE LA RETENCION Y PAGO DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 72",
-      "path": ["TITULO IV", "CAPITULO II"]
+      "path": [
+        "TITULO IV IMPUESTO SOBRE LAS REMESAS AL EXTERIOR",
+        "CAPITULO II DE LA RETENCION Y PAGO DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 73",
-      "path": ["TITULO IV", "CAPITULO II"]
+      "path": [
+        "TITULO IV IMPUESTO SOBRE LAS REMESAS AL EXTERIOR",
+        "CAPITULO II DE LA RETENCION Y PAGO DEL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 74",
-      "path": ["TÍTULO V", "CAPITULO UNICO"]
+      "path": [
+        "TÍTULO V OPERACIONES ENTRE PARTES VINCULADAS",
+        "CAPITULO UNICO DISPOSICIONES SOBRE PRECIOS DE TRANSFERENCIA"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 75",
-      "path": ["TÍTULO V", "CAPITULO UNICO"]
+      "path": [
+        "TÍTULO V OPERACIONES ENTRE PARTES VINCULADAS",
+        "CAPITULO UNICO DISPOSICIONES SOBRE PRECIOS DE TRANSFERENCIA"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 76",
-      "path": ["TÍTULO V", "CAPITULO UNICO"]
+      "path": [
+        "TÍTULO V OPERACIONES ENTRE PARTES VINCULADAS",
+        "CAPITULO UNICO DISPOSICIONES SOBRE PRECIOS DE TRANSFERENCIA"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 77",
-      "path": ["TÍTULO V", "CAPITULO UNICO"]
+      "path": [
+        "TÍTULO V OPERACIONES ENTRE PARTES VINCULADAS",
+        "CAPITULO UNICO DISPOSICIONES SOBRE PRECIOS DE TRANSFERENCIA"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 78",
-      "path": ["TÍTULO V", "CAPITULO UNICO"]
+      "path": [
+        "TÍTULO V OPERACIONES ENTRE PARTES VINCULADAS",
+        "CAPITULO UNICO DISPOSICIONES SOBRE PRECIOS DE TRANSFERENCIA"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 79",
-      "path": ["TÍTULO V", "CAPITULO UNICO"]
+      "path": [
+        "TÍTULO V OPERACIONES ENTRE PARTES VINCULADAS",
+        "CAPITULO UNICO DISPOSICIONES SOBRE PRECIOS DE TRANSFERENCIA"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 8",
-      "path": ["CAPÍTULO VI"]
+      "path": [
+        "CAPÍTULO VI DE LOS CONTRIBUYENTES Y ENTIDADES NO SUJETAS AL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 80",
-      "path": ["TÍTULO V", "CAPITULO UNICO"]
+      "path": [
+        "TÍTULO V OPERACIONES ENTRE PARTES VINCULADAS",
+        "CAPITULO UNICO DISPOSICIONES SOBRE PRECIOS DE TRANSFERENCIA"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 81",
-      "path": ["TÍTULO V", "CAPITULO UNICO"]
+      "path": [
+        "TÍTULO V OPERACIONES ENTRE PARTES VINCULADAS",
+        "CAPITULO UNICO DISPOSICIONES SOBRE PRECIOS DE TRANSFERENCIA"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 82",
-      "path": ["TÍTULO V", "CAPITULO UNICO"]
+      "path": [
+        "TÍTULO V OPERACIONES ENTRE PARTES VINCULADAS",
+        "CAPITULO UNICO DISPOSICIONES SOBRE PRECIOS DE TRANSFERENCIA"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 83",
-      "path": ["TÍTULO V", "CAPITULO UNICO"]
+      "path": [
+        "TÍTULO V OPERACIONES ENTRE PARTES VINCULADAS",
+        "CAPITULO UNICO DISPOSICIONES SOBRE PRECIOS DE TRANSFERENCIA"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 84",
-      "path": ["TITULO VI", "CAPÍTULO I"]
+      "path": [
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPÍTULO I DE LOS COMPROBANTES ELECTRÓNICOS"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 85",
-      "path": ["TITULO VI", "CAPITULO II"]
+      "path": [
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO II DE LOS CERTIFICADOS PARA EFECTOS TRIBUTARIOS"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 86",
-      "path": ["TITULO VI", "CAPITULO II"]
+      "path": [
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO II DE LOS CERTIFICADOS PARA EFECTOS TRIBUTARIOS"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 87",
-      "path": ["TITULO VI", "CAPITULO II"]
+      "path": [
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO II DE LOS CERTIFICADOS PARA EFECTOS TRIBUTARIOS"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 88",
-      "path": ["TITULO VI", "CAPITULO II"]
+      "path": [
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO II DE LOS CERTIFICADOS PARA EFECTOS TRIBUTARIOS"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 89",
-      "path": ["TITULO VI", "CAPITULO II"]
+      "path": [
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO II DE LOS CERTIFICADOS PARA EFECTOS TRIBUTARIOS"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 9",
-      "path": ["CAPÍTULO VI"]
+      "path": [
+        "CAPÍTULO VI DE LOS CONTRIBUYENTES Y ENTIDADES NO SUJETAS AL IMPUESTO"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 90",
-      "path": ["TITULO VI", "CAPITULO II"]
+      "path": [
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO II DE LOS CERTIFICADOS PARA EFECTOS TRIBUTARIOS"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 91",
-      "path": ["TITULO VI", "CAPITULO II"]
+      "path": [
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO II DE LOS CERTIFICADOS PARA EFECTOS TRIBUTARIOS"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 92",
-      "path": ["TITULO VI", "CAPITULO II"]
+      "path": [
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO II DE LOS CERTIFICADOS PARA EFECTOS TRIBUTARIOS"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 93",
-      "path": ["TITULO VI", "CAPITULO II"]
+      "path": [
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO II DE LOS CERTIFICADOS PARA EFECTOS TRIBUTARIOS"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 94",
-      "path": ["TITULO VI", "CAPITULO II"]
+      "path": [
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO II DE LOS CERTIFICADOS PARA EFECTOS TRIBUTARIOS"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 95",
-      "path": ["TITULO VI", "CAPITULO II"]
+      "path": [
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO II DE LOS CERTIFICADOS PARA EFECTOS TRIBUTARIOS"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 96",
-      "path": ["TITULO VI", "CAPITULO III"]
+      "path": [
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO III LIBROS Y NORMAS DE CONTABILIDAD"
+      ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 97",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO III LIBROS Y NORMAS DE CONTABILIDAD"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 98",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO III LIBROS Y NORMAS DE CONTABILIDAD"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Artículo 99",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO III LIBROS Y NORMAS DE CONTABILIDAD"
       ]
     },
     {
@@ -3515,327 +3795,89 @@
       "docKey": "reglamento-renta",
       "articulo": "TRANSITORIO I",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO V"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO V REGULACIONES PARA OTORGAR INCENTIVOS A LAS EXPORTACIONES"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "TRANSITORIO II",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO V"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO V REGULACIONES PARA OTORGAR INCENTIVOS A LAS EXPORTACIONES"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "TRANSITORIO III",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO V"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO V REGULACIONES PARA OTORGAR INCENTIVOS A LAS EXPORTACIONES"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "TRANSITORIO IV",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO V"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO V REGULACIONES PARA OTORGAR INCENTIVOS A LAS EXPORTACIONES"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "TRANSITORIO IX",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO V"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO V REGULACIONES PARA OTORGAR INCENTIVOS A LAS EXPORTACIONES"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "TRANSITORIO V",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO V"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO V REGULACIONES PARA OTORGAR INCENTIVOS A LAS EXPORTACIONES"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "TRANSITORIO VI",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO V"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO V REGULACIONES PARA OTORGAR INCENTIVOS A LAS EXPORTACIONES"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "TRANSITORIO VII",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO V"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO V REGULACIONES PARA OTORGAR INCENTIVOS A LAS EXPORTACIONES"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "TRANSITORIO VIII",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO V"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO V REGULACIONES PARA OTORGAR INCENTIVOS A LAS EXPORTACIONES"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Transitorio XX",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO V"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO V REGULACIONES PARA OTORGAR INCENTIVOS A LAS EXPORTACIONES"
       ]
     },
     {
       "docKey": "reglamento-renta",
       "articulo": "Transitorio XXII",
       "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO V"
+        "TITULO VI DE LA ADMINISTRACIÓN Y FISCALIZACIÓN",
+        "CAPITULO V REGULACIONES PARA OTORGAR INCENTIVOS A LAS EXPORTACIONES"
       ]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["CAPÍTULO I"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["CAPITULO II"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["CAPITULO III"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["CAPITULO IV"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": [
-        "CAPÍTULO IX",
-        "Sección VIII denominada \"De las devoluciones\", ambos del Capítulo"
-      ]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["CAPÍTULO IX"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["CAPITULO V"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["CAPÍTULO VI"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["CAPÍTULO VII"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["CAPÍTULO VIII", "Sección I"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["CAPÍTULO VIII", "Sección II"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["CAPÍTULO VIII"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["CAPÍTULO X"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["CAPITULO XI"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO IV"
-      ]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
-        "CAPITULO V"
-      ]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": [
-        "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,"
-      ]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TÍTULO II", "CAPÍTULO I"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TÍTULO II", "CAPÍTULO II"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TÍTULO II", "CAPÍTULO III"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TÍTULO II", "CAPÍTULO IV"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TÍTULO II", "CAPÍTULO V"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TÍTULO II", "CAPÍTULO VI", "Sección I"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TÍTULO II", "CAPÍTULO VI", "Sección II"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TÍTULO II", "CAPÍTULO VI", "Sección III"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TÍTULO II", "CAPÍTULO VI"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": [
-        "TÍTULO II",
-        "Capítulo XI de la Ley del Impuesto sobre la Renta, deberá manifestar la",
-        "Sección IV"
-      ]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": [
-        "TÍTULO II",
-        "Capítulo XI de la Ley del Impuesto sobre la Renta, deberá manifestar la"
-      ]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TÍTULO II"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TITULO III", "CAPITULO I"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TITULO III", "CAPITULO II"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TITULO III", "CAPITULO III"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TITULO III", "CAPITULO IV"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TITULO III"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TITULO IV", "CAPITULO I"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TITULO IV", "CAPITULO II"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TITULO IV"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TÍTULO V", "CAPITULO UNICO"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TÍTULO V"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TITULO VI", "CAPÍTULO I"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TITULO VI", "CAPITULO II"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TITULO VI", "CAPITULO III"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": ["TITULO VI"]
-    },
-    {
-      "docKey": "reglamento-renta",
-      "articulo": null,
-      "path": []
     },
     {
       "docKey": "reglamento-rts",
@@ -3945,52 +3987,52 @@
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 10",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 11",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 12",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 13",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 14",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 15",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 16",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 17",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 18",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 19",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
@@ -4000,52 +4042,52 @@
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 20",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 21",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 22",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 23",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 24",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 25",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 26",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 27",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 28",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 29",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
@@ -4055,58 +4097,42 @@
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 30",
-      "path": [
-        "Título IV de la Ley aquí reglamentada, es responsabilidad de las entidades y"
-      ]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 31",
-      "path": [
-        "Título IV de la Ley aquí reglamentada, es responsabilidad de las entidades y"
-      ]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 32",
-      "path": [
-        "Título IV de la Ley aquí reglamentada, es responsabilidad de las entidades y"
-      ]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 33",
-      "path": [
-        "Título IV de la Ley aquí reglamentada, es responsabilidad de las entidades y"
-      ]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 34",
-      "path": [
-        "Título IV de la Ley aquí reglamentada, es responsabilidad de las entidades y"
-      ]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 35",
-      "path": [
-        "Título IV de la Ley aquí reglamentada, es responsabilidad de las entidades y"
-      ]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 36",
-      "path": [
-        "Título IV de la Ley aquí reglamentada, es responsabilidad de las entidades y"
-      ]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 37",
-      "path": [
-        "Título IV de la Ley aquí reglamentada, es responsabilidad de las entidades y"
-      ]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
@@ -4146,38 +4172,21 @@
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "TRANSITORIO I",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "TRANSITORIO II",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "TRANSITORIO III",
-      "path": ["Título supra citado."]
+      "path": []
     },
     {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Transitorio IV",
-      "path": ["Título supra citado."]
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": null,
-      "path": [
-        "Título IV de la Ley aquí reglamentada, es responsabilidad de las entidades y"
-      ]
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": null,
-      "path": ["Título supra citado."]
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": null,
       "path": []
     },
     {
