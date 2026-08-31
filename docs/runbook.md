@@ -15,7 +15,7 @@ missing.
 
 ## 1. What the app emits
 
-Five log signals, all content-free by construction. None of them may ever carry a question,
+Seven log signals, all content-free by construction. None of them may ever carry a question,
 an answer, a user id, an IP, or an anonymous subject hash — see `src/lib/log-redaction.ts`
 and `/privacidad`. If a change adds a field here, it changes a privacy claim.
 
@@ -47,11 +47,13 @@ quoted in every query below, and renaming it silently breaks all of them.
 `declined`. So `degraded` counts a degraded ask that then declined, and `declined` is the
 default for an ask that delivered nothing at all.
 
-### 1.2 The four detail lines
+### 1.2 The detail lines
 
 The event says _that_ something happened; these say _what_. The first three predate #141 and
 keep their prefixes; the fourth is #132's, added under the same rule — a detail line, not a
-new field on the event, whose shape is a privacy claim.
+new field on the event, whose shape is a privacy claim. The last two are #208's: the
+rate-limit door is the one failure the event cannot describe (it 503s before there is an
+event), and `/api/csp-report` is the one line a stranger can cause to be written.
 
 A rising `ask: condensation failed` count is a **degradation, not an outage**: every one of
 those asks was answered, on the reader's literal question instead of a standalone rewrite, so
@@ -65,6 +67,19 @@ said, which points at the prompt or the model rather than at availability.
 | `retrieval: degraded to lexical-only` | `src/lib/retrieval-degraded.ts`     | `reason=timeout\|error`, `error=`           |
 | `ask: history save failed`            | `src/lib/answer/persist-failure.ts` | `kind=answer\|decline`, `error=`            |
 | `ask: condensation failed`            | `src/lib/answer/condense.ts`        | `reason=timeout\|error\|unusable`, `error=` |
+| `rate limit: unavailable`             | `src/lib/rate-limit.ts`             | `error=`                                    |
+| `[csp-report] violation`              | `src/app/api/csp-report/route.ts`   | `directive=`, `blocked=`, `document=`       |
+
+`rate limit: unavailable` is the whole diagnosis of a 503 (§1.3): the ask never reached the
+telemetry event, so this line and its `error=` token — a `PostgrestError#…`, a
+`TypeError`, an `Error` from a missing `RATE_LIMIT_SUBJECT_SECRET` — are the only signal
+there is. One line per denied ask, so it also counts the blast radius.
+
+`[csp-report] violation` carries only what an unauthenticated caller cannot use as a
+channel: a directive name, the blocked load's **origin**, the document's **path**. Anything
+outside those shapes reads `redacted`, and a body that never became a report is counted by
+`[csp-report] dropped — reason=oversized|unreadable|unparsable|malformed` and otherwise
+thrown away. A rising `dropped` count is someone poking the endpoint, not a CSP problem.
 
 ### 1.3 What is _not_ visible as an HTTP error
 
@@ -80,6 +95,9 @@ The only ask-route failures that appear as HTTP errors:
 | `400`  | missing/oversized question — client bug, not ours                                  |
 | `429`  | quota spent — the product working                                                  |
 | `503`  | rate limiter unavailable (Supabase RPC down, or `RATE_LIMIT_SUBJECT_SECRET` unset) |
+
+The `503` is the one that carries no telemetry event; read `rate limit: unavailable` (§1.2)
+for its reason.
 
 This is exactly why §1.1 exists, and why the provider-failure alert in §3.2 cannot be one of
 Vercel's built-in ones.
@@ -115,12 +133,13 @@ result count over the selected timeline.
 | Q9  | Slow asks                            | `"latency":"gte_30s"`                                                               |
 | Q10 | Asks cut short by the reader/network | `"abort":"client"`                                                                  |
 | Q11 | Asks the internal deadline killed    | `"abort":"deadline"` — any at all means generation is running against `maxDuration` |
+| Q12 | Why the limiter is 503ing            | `rate limit: unavailable` — read the `error=` tokens off the matching lines         |
 
 **Error rate = Q2 ÷ Q1** over the same timeline. That is the number §4 is written against.
 Note what is deliberately _not_ in the numerator: `declined` (including the honest decline
 and a spent quota) is the product working, and `degraded` is a delivered answer.
 
-`refunded_error` and the four prefixes in §1.2 are unique strings in this codebase, so those
+`refunded_error` and the prefixes in §1.2 are unique strings in this codebase, so those
 queries need no quoting. Q3, Q4, Q6, Q8 and Q9 match on JSON fragments; if the search box
 ever mangles the punctuation, fall back to the bare token (`degraded`, `gte_30s`) plus
 `tramitico.event`.
