@@ -23,13 +23,18 @@ import path from "node:path";
  * The dividing question when adding a suite: would it pass against a database
  * that has just been migrated and holds no rows? Yes → integration. No → eval.
  *
- * That question is why dataset-satisfiability stays in the eval lane (#163).
- * Credential-wise it is database-only — no embeddings, no Anthropic key — but
- * it asserts that every target in eval/dataset.jsonl is matched by at least
- * one row in `public.chunks`, so on the per-PR lane's empty stack every target
- * would MISS and it would fail on every PR. Moving it needs a corpus in that
- * lane, which needs a real embeddings provider to build: #163's premise is
- * right and its remedy is not available here.
+ * That question is why the real-table dataset census stays in the eval lane
+ * (#163). Credential-wise it is database-only — no embeddings, no Anthropic
+ * key — but it asserts that every target in eval/dataset.jsonl is matched by
+ * at least one row in `public.chunks`, so on the per-PR lane's empty stack
+ * every target would MISS and it would fail on every PR. Moving the suite is
+ * not the remedy; carrying the *answer* is. `eval/corpus-index.json` is a
+ * committed dump of the distinct `(docKey, articulo, path)` triples the corpus
+ * holds, re-written by `pnpm ingest` on every run, and
+ * `dataset-satisfiability.test.ts` runs the same census over it in the unit
+ * lane — so a PR adding an unsatisfiable target goes red with no database and
+ * no secrets. The eval-lane twin keeps the real-table census and additionally
+ * fails when the committed dump has drifted from the table.
  *
  * `pnpm test` still runs all three, for local convenience.
  */

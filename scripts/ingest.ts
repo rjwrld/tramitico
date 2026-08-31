@@ -11,6 +11,12 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import {
+  buildCorpusIndex,
+  CORPUS_INDEX_PATH,
+  fetchCorpusChunks,
+  serializeCorpusIndex,
+} from "../src/lib/eval/corpus-index";
 import { chunkDocument, type ChunkOptions } from "../src/lib/ingestion/chunker";
 import { createEmbedder } from "../src/lib/ingestion/embedder";
 import { type ExcerptSpec, sliceExcerpt } from "../src/lib/ingestion/excerpt";
@@ -183,6 +189,20 @@ async function main() {
   if (skipped.length > 0) {
     console.log(`skipped (source pending): ${skipped.join(", ")}`);
   }
+
+  // Re-dump the committed corpus index from the whole table — not just the
+  // documents this run touched — so the per-PR satisfiability census reads a
+  // fixture that matches the corpus as it now stands (#163). A partial run
+  // still leaves the table complete, so the full dump is right either way.
+  const index = buildCorpusIndex(
+    await fetchCorpusChunks(supabase),
+    new Date().toISOString(),
+  );
+  writeFileSync(CORPUS_INDEX_PATH, serializeCorpusIndex(index));
+  console.log(
+    `corpus index: ${index.entries.length} distinct targets from ${index.chunkCount} chunks → ${path.relative(ROOT, CORPUS_INDEX_PATH)}`,
+  );
+
   console.log(`done — ${ingested} ingested, ${skipped.length} skipped`);
 }
 

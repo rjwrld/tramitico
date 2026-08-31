@@ -59,10 +59,11 @@ jobs:
   # `integrationSuite` runs the suites rather than failing or skipping them,
   # and a re-added grant fails this job with zero secrets configured.
   #
-  # The corpus-dependent suites (retrieval, groundedness, hit-rate, dataset
-  # satisfiability) are NOT here — they need an ingested corpus and paid
-  # providers, which a throwaway stack has neither of. They run on a schedule
-  # in eval.yml.
+  # The corpus-dependent suites (retrieval, groundedness, hit-rate, the
+  # real-table dataset census) are NOT here — they need an ingested corpus and
+  # paid providers, which a throwaway stack has neither of. They run on a
+  # schedule in eval.yml. Dataset *satisfiability* is now checked per PR by the
+  # unit lane instead, against the committed eval/corpus-index.json (#163).
   suites:
     runs-on: ubuntu-latest
     env:
