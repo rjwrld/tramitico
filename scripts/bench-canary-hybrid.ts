@@ -11,6 +11,7 @@ import os from "node:os";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { fuseRrf, LEG_LIMIT } from "../src/lib/retrieval";
+import { matchesTarget, type Target } from "./target-match";
 
 const ROOT = path.resolve(__dirname, "..");
 const CACHE = path.join(os.tmpdir(), "tramitico-bench-embeddings");
@@ -18,7 +19,7 @@ const CANARY = "¿Debo cobrar IVA en facturas a clientes fuera de Costa Rica?";
 // Index of the canary in bench-embeddings.ts QUESTIONS — keep in step.
 const CANARY_INDEX = 1;
 
-const TARGETS = [
+const TARGETS: Target[] = [
   { docKey: "reglamento-iva", articulo: "Artículo 11" },
   { docKey: "ley-9635", articulo: "Artículo 8" },
   { docKey: "ley-iva", articulo: "Artículo 8" },
@@ -85,10 +86,7 @@ async function main() {
     if (data.length < 1000) break;
   }
 
-  // Exact articulo match — sub-split parts share the label, and a prefix test
-  // would let "Artículo 8" claim "Artículo 80" (bench-embeddings.ts, matches()).
-  const isTarget = (c: Chunk) =>
-    TARGETS.some((t) => c.doc_key === t.docKey && c.articulo === t.articulo);
+  const isTarget = (c: Chunk) => matchesTarget(c, TARGETS);
 
   // Real lexical leg: stub embedder + empty-vector call is not possible via
   // the RPC types here, so reproduce it with the same SQL shape the RPC uses —

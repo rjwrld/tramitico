@@ -19,6 +19,7 @@ import os from "node:os";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { createEmbedder, type Embedder } from "../src/lib/ingestion/embedder";
+import { matchesTarget, type Target } from "./target-match";
 
 /**
  * Candidate not in the production embedder yet: voyage-3 with the documented
@@ -84,16 +85,10 @@ interface ChunkRow {
 }
 
 /**
- * Acceptable targets per question. `articulo` present = artículo-level match
- * (prefix, so "Artículo 11" also matches sub-split parts); absent = any chunk
- * of the doc counts. Targets are identical for every provider — this ranks
+ * Acceptable targets per question — see `Target` in ./target-match, which owns
+ * the match rule. Targets are identical for every provider: this ranks
  * providers, it does not grade the corpus.
  */
-interface Target {
-  docKey: string;
-  articulo?: string;
-}
-
 const QUESTIONS: { q: string; targets: Target[]; canary?: boolean }[] = [
   {
     q: "¿Tengo que inscribirme en Hacienda si facturo a clientes en el extranjero?",
@@ -170,16 +165,6 @@ function cosine(a: number[], b: number[]): number {
     nb += b[i] * b[i];
   }
   return dot / (Math.sqrt(na) * Math.sqrt(nb) || 1);
-}
-
-function matches(chunk: ChunkRow, targets: Target[]): boolean {
-  // Exact articulo match — sub-split parts share the label, and a prefix test
-  // would let "Artículo 8" claim "Artículo 81 bis".
-  return targets.some(
-    (t) =>
-      chunk.doc_key === t.docKey &&
-      (!t.articulo || chunk.articulo === t.articulo),
-  );
 }
 
 async function embedAll(
@@ -284,7 +269,7 @@ async function main() {
         .map((c, i) => ({ c, score: cosine(questionVecs[qi], chunkVecs[i]) }))
         .sort((a, b) => b.score - a.score)
         .slice(0, TOP_K);
-      const hitIndex = ranked.findIndex((r) => matches(r.c, targets));
+      const hitIndex = ranked.findIndex((r) => matchesTarget(r.c, targets));
       const hit = hitIndex >= 0;
       if (hit) hits++;
       if (canary && hit) canaryHit = true;
