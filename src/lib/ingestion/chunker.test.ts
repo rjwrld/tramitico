@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { htmlToParagraphs, textToParagraphs } from "./extract";
-import { chunkDocument, type Chunk } from "./chunker";
+import { assertChunksCarryContent, chunkDocument, type Chunk } from "./chunker";
 
 const SAMPLES = path.resolve(__dirname, "../../../docs/corpus-samples");
 
@@ -241,5 +241,91 @@ describe("chunkDocument — manifest-declared label (actas, fichas técnicas)", 
     expect(new Set(chunks.map((c) => c.articulo))).toEqual(
       new Set(["Artículo 4°, sesión 9570"]),
     );
+  });
+});
+
+/**
+ * The #114 failure mode, made impossible (#206): `ccss-escala-salud` is five
+ * pages of a 170-page acta with no `layoutTable` safety net, so a source
+ * re-layout that leaves pdftotext with nothing is a live possibility — and it
+ * used to produce exactly one header-only chunk, which the runner counted as
+ * success while `replace_chunks` deleted the rate table.
+ */
+describe("chunkDocument — extraction that recovered nothing", () => {
+  const options = { articulo: "Artículo 30°, sesión 8999" };
+
+  it("returns no chunks for no paragraphs", () => {
+    expect(
+      chunkDocument("ccss-escala-salud", "CCSS — Escala Salud", [], options),
+    ).toEqual([]);
+  });
+
+  it("returns no chunks for whitespace-only paragraphs", () => {
+    expect(
+      chunkDocument(
+        "ccss-escala-salud",
+        "CCSS — Escala Salud",
+        ["  ", "\n", ""],
+        options,
+      ),
+    ).toEqual([]);
+  });
+
+  it("still chunks a body that survived the whitespace", () => {
+    const chunks = chunkDocument("d", "T", ["", " 2.89% ", ""], options);
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0].content).toBe("[T — Artículo 30°, sesión 8999] 2.89%");
+  });
+});
+
+describe("assertChunksCarryContent", () => {
+  const headerOnly = (docKey: string): Chunk[] => [
+    {
+      docKey,
+      articulo: "Artículo 30°, sesión 8999",
+      path: [],
+      part: 0,
+      content: "[CCSS — Escala Salud — Artículo 30°, sesión 8999] ",
+    },
+  ];
+
+  it("rejects an empty chunk set, naming the document", () => {
+    expect(() => assertChunksCarryContent("ccss-escala-salud", [])).toThrow(
+      /ccss-escala-salud/,
+    );
+  });
+
+  it("rejects a header-only chunk set, naming the document", () => {
+    expect(() =>
+      assertChunksCarryContent(
+        "ccss-escala-salud",
+        headerOnly("ccss-escala-salud"),
+      ),
+    ).toThrow(/ccss-escala-salud/);
+  });
+
+  it("accepts a set where any chunk carries body text", () => {
+    const chunks = [
+      ...headerOnly("ccss-escala-salud"),
+      {
+        docKey: "ccss-escala-salud",
+        articulo: null,
+        path: [],
+        part: 1,
+        content: "[CCSS — Escala Salud] Trabajador independiente 2.89%.",
+      },
+    ];
+    expect(() =>
+      assertChunksCarryContent("ccss-escala-salud", chunks),
+    ).not.toThrow();
+  });
+
+  it("accepts what the chunker actually emits", () => {
+    expect(() =>
+      assertChunksCarryContent(
+        "d",
+        chunkDocument("d", "T", ["Artículo 1- Texto."]),
+      ),
+    ).not.toThrow();
   });
 });

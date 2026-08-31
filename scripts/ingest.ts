@@ -17,7 +17,11 @@ import {
   fetchCorpusChunks,
   serializeCorpusIndex,
 } from "../src/lib/eval/corpus-index";
-import { chunkDocument, type ChunkOptions } from "../src/lib/ingestion/chunker";
+import {
+  assertChunksCarryContent,
+  chunkDocument,
+  type ChunkOptions,
+} from "../src/lib/ingestion/chunker";
 import { createEmbedder } from "../src/lib/ingestion/embedder";
 import { type ExcerptSpec, sliceExcerpt } from "../src/lib/ingestion/excerpt";
 import {
@@ -28,7 +32,7 @@ import {
 import { fetchHaciendaPdf } from "../src/lib/ingestion/hacienda";
 import type { LayoutTableSpec } from "../src/lib/ingestion/layout-table";
 import { fetchPdfSource } from "../src/lib/ingestion/pdf";
-import { replaceDocumentChunks } from "../src/lib/ingestion/replace";
+import { persistDocument } from "../src/lib/ingestion/replace";
 import type { DeepLinkKind } from "../src/lib/retrieval";
 import { articuloAnchors, fetchNorma } from "../src/lib/ingestion/sinalevi";
 
@@ -147,9 +151,7 @@ async function main() {
       paragraphs,
       doc.chunking ?? {},
     );
-    if (chunks.length === 0) {
-      throw new Error(`${doc.doc_key}: extraction produced zero chunks`);
-    }
+    assertChunksCarryContent(doc.doc_key, chunks);
 
     const embeddings: number[][] = [];
     for (let i = 0; i < chunks.length; i += 64) {
@@ -160,27 +162,23 @@ async function main() {
       );
     }
 
-    const { data: docRow, error: docErr } = await supabase
-      .from("documents")
-      .upsert(
-        {
-          doc_key: doc.doc_key,
-          title: doc.title,
-          norma: doc.norma,
-          source: doc.source,
-          effective_date: doc.effective_date ?? null,
-          fetched_at: new Date().toISOString(),
-          embedding_provider: embedder.provider,
-          embedding_dim: embedder.dimensions,
-        },
-        { onConflict: "doc_key" },
-      )
-      .select("id")
-      .single();
-    if (docErr)
-      throw new Error(`${doc.doc_key}: upsert document — ${docErr.message}`);
-
-    await replaceDocumentChunks(supabase, docRow.id, chunks, embeddings);
+    await persistDocument(
+      supabase,
+      {
+        doc_key: doc.doc_key,
+        title: doc.title,
+        norma: doc.norma,
+        source: doc.source,
+        effective_date: doc.effective_date ?? null,
+      },
+      {
+        fetched_at: new Date().toISOString(),
+        embedding_provider: embedder.provider,
+        embedding_dim: embedder.dimensions,
+      },
+      chunks,
+      embeddings,
+    );
 
     ingested++;
     console.log(`✓ ${doc.doc_key}: ${chunks.length} chunks`);

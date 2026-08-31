@@ -131,8 +131,15 @@ export function chunkDocument(
   options: ChunkOptions = {},
 ): Chunk[] {
   if (options.articulo !== undefined) {
+    // No body, no chunk (#206). `[].join(" ")` is `""`, and `"".split(" ")` is
+    // `[""]`, so without this guard a document whose extraction recovered
+    // nothing still produced one header-only chunk — enough to satisfy the
+    // runner's `chunks.length === 0` check while `replace_chunks` deleted the
+    // document's real chunks. Silent content loss is the #114 failure mode.
+    const body = paragraphs.join(" ").trim();
+    if (body.length === 0) return [];
     const header = `[${title} — ${options.articulo}]`;
-    return subsplit(paragraphs.join(" ")).map((part, i) => ({
+    return subsplit(body).map((part, i) => ({
       docKey,
       articulo: options.articulo!,
       path: [],
@@ -190,4 +197,36 @@ export function chunkDocument(
   flush();
 
   return chunks;
+}
+
+/** The `[Title — Contexto]` prefix `chunkDocument` puts on every chunk. */
+const CONTEXT_HEADER_RE = /^\[[^\]]*\]\s*/;
+
+/**
+ * Fail unless `chunks` carries text of its own — the belt to the empty-body
+ * guard's braces (#206).
+ *
+ * A chunk set can be non-empty and still hold nothing citable: every path
+ * through `chunkDocument` prepends a context header it synthesises from the
+ * title, so a run whose extraction recovered no text can still emit chunks
+ * that are pure header. Counting chunks does not catch that, and the count is
+ * the only thing standing between a broken extraction and a `replace_chunks`
+ * that swaps a document's real chunks for nothing.
+ */
+export function assertChunksCarryContent(
+  docKey: string,
+  chunks: readonly Chunk[],
+): void {
+  if (chunks.length === 0) {
+    throw new Error(`${docKey}: extraction produced zero chunks`);
+  }
+  const carries = chunks.some(
+    (c) => c.content.replace(CONTEXT_HEADER_RE, "").trim().length > 0,
+  );
+  if (!carries) {
+    throw new Error(
+      `${docKey}: extraction produced ${chunks.length} chunk(s) with no ` +
+        `content beyond the context header`,
+    );
+  }
 }
