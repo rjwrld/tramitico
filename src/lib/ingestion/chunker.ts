@@ -24,8 +24,52 @@ const ART_RE =
 // breaks onto their own line ('sección "Propuestas en consulta pública"…',
 // "título gratuito y con fines de interés social…") are not — the RES-0027-2024
 // ingestion showed those mislabel every following chunk's citation path.
-const HDR_RE =
-  /^(T[ÍI]TULO|T[íi]tulo|CAP[ÍI]TULO|Cap[íi]tulo|SECCI[ÓO]N|Secci[óo]n)\b/;
+//
+// Case alone is not enough (#237): extraction also wraps sentences so that a
+// capitalized reference opens a line ("Título I, a un nuevo marco normativo,
+// denominado Ley del Impuesto sobre el"), and a TÍTULO mismatch is level 0 —
+// nothing ever pops it, so it poisons every path in the document. A real
+// heading is structural: heading word, then an ordinal (roman numeral —
+// "CAPÍTULO Vl" with an OCR'd lowercase l included — number, or ÚNICO/ÚNICA),
+// then nothing or a caption after a delimiter. The ordinal must end its token:
+// "Título I," carries a comma and is prose.
+const HDR_WORD =
+  "T[ÍI]TULO|T[íi]tulo|CAP[ÍI]TULO|Cap[íi]tulo|SECCI[ÓO]N|Secci[óo]n";
+const HDR_LINE_RE = new RegExp(
+  `^(?:${HDR_WORD})\\s+(?:[IVXLCDM]+l*|\\d+|[ÚU]NIC[OA]|[ÚU]nic[oa])(?:[.\\-–—°:\\s]+([\\s\\S]*))?$`,
+);
+
+// A heading's caption is a title line — ALL CAPS ("EXENCIONES Y NO
+// SUJECIONES") or capitalized title case ("De la determinación del impuesto").
+// An all-caps line can never be body prose in these documents, so only a word
+// budget bounds it: ley-9635's transitorio captions name the reformed ley
+// ("REFORMAS DE LA LEY N.° 7092, …") and run past twenty words with periods
+// inside. A mixed-case line can be a wrapped sentence fragment, so it must
+// also not dangle — end in a comma, sentence punctuation, or a lowercase
+// function word ("…denominado Ley del Impuesto sobre el"). The function-word
+// list is every common preposition, article and demonstrative, not just the
+// endings the corpus has produced so far — a wrapped sentence can break on
+// any of them.
+const LOWERCASE_RE = /[a-záéíóúñü]/;
+const ALL_CAPS_CAPTION_MAX_WORDS = 40;
+const CAPTION_MAX_WORDS = 20;
+const CAPTION_DANGLING_END_RE =
+  /(?:^|\s)(?:al?|ambos|ante|bajo|como|con|contra|de|del?|desde|durante|el|en|entre|est[aeo]s?|hacia|hasta|las?|los?|mediante|o|para|por|que|se|según|sin|sobre|sus?|tras|u|una?|y)$|[.,:;]$/;
+
+function isCaption(text: string): boolean {
+  if (!/^[A-ZÁÉÍÓÚÑÜ]/.test(text)) return false;
+  const words = text.split(/\s+/).length;
+  if (!LOWERCASE_RE.test(text)) return words <= ALL_CAPS_CAPTION_MAX_WORDS;
+  return words <= CAPTION_MAX_WORDS && !CAPTION_DANGLING_END_RE.test(text);
+}
+
+/** A structural heading line: heading word + ordinal, alone or captioned. */
+function isHeadingLine(p: string): boolean {
+  const m = p.match(HDR_LINE_RE);
+  if (!m) return false;
+  const caption = m[1]?.trim() ?? "";
+  return caption.length === 0 || isCaption(caption);
+}
 
 // Some consolidated texts (Ley IVA) glue the capítulo heading and the first
 // artículo into one extracted paragraph, so ART_RE's ^ anchor never fires and
@@ -46,13 +90,25 @@ function splitInlineHeadings(paragraph: string): string[] {
 // Ley IVA's markup also fragments headings across paragraphs — "Artículo" /
 // "8- Exenciones…" and "CAPÍTULO" / "III" / "EXENCIONES" / "Y TASA DEL
 // IMPUESTO" each arrive as separate extracted paragraphs, so neither ART_RE
-// nor HDR_RE ever sees a whole heading. Rejoin those fragments first.
+// nor HDR_LINE_RE ever sees a whole heading. Rejoin those fragments first.
 const FRAG_ART_WORD_RE = /^(ART[ÍI]CULO|Art[íi]culo|TRANSITORIO|Transitorio)$/;
-const FRAG_HDR_WORD_RE =
-  /^(T[ÍI]TULO|T[íi]tulo|CAP[ÍI]TULO|Cap[íi]tulo|SECCI[ÓO]N|Secci[óo]n)$/;
+const FRAG_HDR_WORD_RE = new RegExp(`^(?:${HDR_WORD})$`);
 const FRAG_NUM_START_RE = /^(\d|[IVXLCDM]+\b)/;
-/** Short all-caps caption line continuing a fragmented header. */
-const FRAG_CAPTION_RE = /^[^a-záéíóúñ]{1,60}$/;
+
+/** Structure a caption can never cross: an artículo or heading start. */
+function isStructuralBoundary(line: string): boolean {
+  return (
+    FRAG_ART_WORD_RE.test(line) ||
+    FRAG_HDR_WORD_RE.test(line) ||
+    isHeadingLine(line) ||
+    ART_RE.test(line)
+  );
+}
+
+/** A line carrying sentence punctuation among lowercase — prose, not caption. */
+function isSentenceLike(line: string): boolean {
+  return LOWERCASE_RE.test(line) && /[.:;]/.test(line);
+}
 
 export function normalizeFragments(paragraphs: string[]): string[] {
   const out: string[] = [];
@@ -61,23 +117,41 @@ export function normalizeFragments(paragraphs: string[]): string[] {
     const next = paragraphs[i + 1];
     if (FRAG_ART_WORD_RE.test(p) && next && FRAG_NUM_START_RE.test(next)) {
       p = `${p} ${paragraphs[++i]}`;
-    } else if (
-      FRAG_HDR_WORD_RE.test(p) &&
-      next &&
-      FRAG_NUM_START_RE.test(next)
-    ) {
+      out.push(p);
+      continue;
+    }
+    if (FRAG_HDR_WORD_RE.test(p) && next && FRAG_NUM_START_RE.test(next)) {
       p = `${p} ${paragraphs[++i]}`;
-      for (
-        let absorbed = 0;
-        absorbed < 3 &&
-        i + 1 < paragraphs.length &&
-        FRAG_CAPTION_RE.test(paragraphs[i + 1]) &&
-        !/DECRETA/.test(paragraphs[i + 1]) &&
-        !FRAG_ART_WORD_RE.test(paragraphs[i + 1]) &&
-        !FRAG_HDR_WORD_RE.test(paragraphs[i + 1]);
-        absorbed++
+    }
+    // A heading owns its caption line(s), however the heading arrived —
+    // fragmented and rejoined above, or whole ("CAPÍTULO I" followed by
+    // "TRABAJADORES INDEPENDIENTES", #237). Left unabsorbed, the caption
+    // flushes as an untagged chunk with no citable artículo.
+    //
+    // Captions wrap: "De los saldos a favor, devoluciones y reembolsos del" +
+    // "impuesto" only read as a caption once joined, so collect forward to
+    // the next structural boundary (artículo or heading) and absorb only if
+    // the joined text is caption-shaped and actually reaches that boundary.
+    // Wrapped prose fails on its sentence punctuation, its length, or its
+    // dangling end — and anything rejected stays a chunk, the status quo.
+    if (isHeadingLine(p)) {
+      let j = i;
+      const collected: string[] = [];
+      while (
+        j + 1 < paragraphs.length &&
+        collected.length < 6 &&
+        !isStructuralBoundary(paragraphs[j + 1]) &&
+        !isSentenceLike(paragraphs[j + 1]) &&
+        !/DECRETA/.test(paragraphs[j + 1])
       ) {
-        p = `${p} ${paragraphs[++i]}`;
+        collected.push(paragraphs[++j]);
+      }
+      const caption = collected.join(" ");
+      const reachedBoundary =
+        j + 1 >= paragraphs.length || isStructuralBoundary(paragraphs[j + 1]);
+      if (collected.length > 0 && reachedBoundary && isCaption(caption)) {
+        p = `${p} ${caption}`;
+        i = j;
       }
     }
     out.push(p);
@@ -236,7 +310,7 @@ export function chunkDocument(
   };
 
   for (const p of normalizeFragments(paragraphs).flatMap(splitInlineHeadings)) {
-    const isHeading = HDR_RE.test(p) && p.split(" ").length < 15;
+    const isHeading = isHeadingLine(p);
     const m = isHeading ? null : p.match(ART_RE);
     if (frontMatter !== null) {
       if (!isHeading && !m) {

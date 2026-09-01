@@ -63,6 +63,15 @@ describe("chunkDocument — Ley 10.363 (small, article-structured)", () => {
       );
     }
   });
+
+  // #237 defect 1: each capítulo's caption arrives on its own line and used
+  // to flush as an untagged chunk of its own.
+  it("keeps capítulo captions as path context, not as chunks", () => {
+    expect(chunks.every((c) => c.articulo !== null)).toBe(true);
+    const paths = new Set(chunks.flatMap((c) => c.path));
+    expect(paths).toContain("CAPÍTULO I TRABAJADORES INDEPENDIENTES");
+    expect(paths).toContain("CAPÍTULO II DISPOSICIONES TRANSITORIAS");
+  });
 });
 
 describe("chunkDocument — Reglamento IVA (71 artículos, 1.5MB)", () => {
@@ -109,13 +118,36 @@ describe("chunkDocument — Reglamento IVA (71 artículos, 1.5MB)", () => {
 
   // #216: the considerandos used to be flushed as an untagged chunk the
   // moment the enacting formula appeared, and the "Preámbulo" label landed on
-  // the title block instead. Exactly one preámbulo chunk, and it carries the
-  // recitals.
-  it("tags the considerandos as the single preámbulo chunk", () => {
+  // the title block instead. One preámbulo identity carrying the recitals —
+  // since #237 stopped the wrapped "Título I," fragment truncating them, they
+  // run long enough to sub-split, so parts share the label.
+  it("tags the considerandos as the single preámbulo identity", () => {
     const preamble = chunks.filter((c) => c.articulo === "Preámbulo");
-    expect(preamble).toHaveLength(1);
-    expect(preamble[0].content).toMatch(/Con fundamento en las atribuciones/);
-    expect(preamble[0].content).toMatch(/Considerando/);
+    expect(preamble.length).toBeGreaterThan(0);
+    expect(preamble.map((c) => c.part)).toEqual(preamble.map((_, i) => i));
+    const joined = preamble.map((c) => c.content).join(" ");
+    expect(joined).toMatch(/Con fundamento en las atribuciones/);
+    expect(joined).toMatch(/Considerando/);
+    // The tail the false heading used to cut off (considerando XIII).
+    expect(joined).toMatch(/estandarizar el tratamiento de los créditos/);
+  });
+
+  // #237 defect 1: 18 chunks of this document were nothing but a heading's
+  // caption line ("EXENCIONES Y NO SUJECIONES", "De la determinación del
+  // impuesto"). SPEC §4 rule 1 makes the artículo the unit — with captions
+  // merged into their headings and the preámbulo tagged, nothing untagged
+  // remains.
+  it("emits no untagged chunk (captions belong to their headings)", () => {
+    expect(chunks.every((c) => c.articulo !== null)).toBe(true);
+  });
+
+  // #237 defect 2: the considerandos wrap a sentence so that a paragraph
+  // starts "Título I," — it used to be matched as the level-0 heading and
+  // poisoned every chunk's path in the document.
+  it("keeps the wrapped 'Título I,' considerando fragment off every path", () => {
+    for (const c of chunks) {
+      expect(c.path.join(" ")).not.toMatch(/Título I, a un nuevo marco/);
+    }
   });
 
   it("keeps the title block out of the preámbulo and out of every chunk", () => {
@@ -210,6 +242,176 @@ describe("chunkDocument — lowercase in-sentence heading words (RES-0027-2024 s
     ]);
     expect(chunks).toHaveLength(1);
     expect(chunks[0].path).toEqual([]);
+  });
+});
+
+describe("chunkDocument — heading shape (#237 defect 2)", () => {
+  // reglamento-iva's considerandos line-wrap so that a sentence fragment
+  // arrives as its own paragraph starting "Título I,". Matching it as a
+  // TÍTULO heading truncated the preámbulo mid-considerando and, because
+  // TÍTULO is level 0, put the fragment on every chunk's path.
+  it("does not treat a wrapped 'Título I,' sentence fragment as a heading", () => {
+    const chunks = chunkDocument("x", "X", [
+      "Considerando:",
+      "II.- Que mediante la Ley N° 9635 el legislador migró, en su",
+      "Título I, a un nuevo marco normativo, denominado Ley del Impuesto sobre el",
+      "Valor Agregado, el cual se encuentra regulado en la citada Ley.",
+      "Por tanto, decreta:",
+      "CAPÍTULO I DISPOSICIONES GENERALES",
+      "Artículo 1- Objeto.",
+    ]);
+    const preamble = chunks.filter((c) => c.articulo === "Preámbulo");
+    expect(preamble).toHaveLength(1);
+    expect(preamble[0].content).toMatch(/nuevo marco normativo/);
+    expect(preamble[0].content).toMatch(/Valor Agregado/);
+    for (const c of chunks) {
+      expect(c.path.join(" ")).not.toMatch(/nuevo marco normativo/);
+    }
+  });
+
+  // The same class from the committed corpus index: mixed-case in-sentence
+  // references that the first-letter case rule alone does not catch.
+  it("does not treat other in-sentence Título/Capítulo/Sección references as headings", () => {
+    const fragments = [
+      "Título supra citado.",
+      "Título I de la Ley deben llevar, para el adecuado control de sus operaciones,",
+      "Capítulo XI de la Ley del Impuesto sobre la Renta, deberá manifestar la",
+      'Sección VIII denominada "De las devoluciones", ambos del Capítulo',
+    ];
+    for (const fragment of fragments) {
+      const chunks = chunkDocument("x", "X", [
+        "Artículo 1- Los contribuyentes citados en el",
+        fragment,
+        "presentarán la declaración. Artículo 2- Vigencia. Rige a partir de su publicación.",
+      ]);
+      expect(chunks.every((c) => c.path.length === 0)).toBe(true);
+      expect(chunks.some((c) => c.articulo === "Artículo 2")).toBe(true);
+    }
+  });
+
+  // The dangling-end guard is not just the corpus's observed endings: any
+  // lowercase function word (prepositions included) marks a wrapped sentence.
+  it("rejects an uppercase-opening fragment that dangles on a preposition", () => {
+    const chunks = chunkDocument("x", "X", [
+      "Artículo 1- La retención se practicará conforme al",
+      "Título IV Ley de Fortalecimiento de las Finanzas Públicas según",
+      "lo dispuesto por la Administración. Artículo 2- Vigencia.",
+    ]);
+    expect(chunks.every((c) => c.path.length === 0)).toBe(true);
+  });
+
+  it("recognises a heading whose caption is glued to the ordinal's punctuation", () => {
+    const chunks = chunkDocument("x", "X", [
+      "SECCIÓN I.De la determinación del impuesto",
+      "Artículo 20- Determinación.",
+    ]);
+    expect(chunks[0].path).toEqual([
+      "SECCIÓN I.De la determinación del impuesto",
+    ]);
+  });
+
+  it("recognises the feminine ÚNICA ordinal", () => {
+    const chunks = chunkDocument("x", "X", [
+      "SECCIÓN ÚNICA",
+      "Artículo 1- Objeto.",
+    ]);
+    expect(chunks[0].path).toEqual(["SECCIÓN ÚNICA"]);
+  });
+
+  it("still treats real heading lines with ordinal and caption as headings", () => {
+    const chunks = chunkDocument("x", "X", [
+      "TÍTULO II",
+      "CAPITULO UNICO",
+      "Artículo 4- Objeto.",
+      "CAPÍTULO Vl",
+      "Artículo 5- Ámbito.",
+      "Sección I",
+      "Artículo 6- Alcance.",
+    ]);
+    expect(chunks.find((c) => c.articulo === "Artículo 4")!.path).toEqual([
+      "TÍTULO II",
+      "CAPITULO UNICO",
+    ]);
+    expect(chunks.find((c) => c.articulo === "Artículo 5")!.path).toEqual([
+      "TÍTULO II",
+      "CAPÍTULO Vl",
+    ]);
+    expect(chunks.find((c) => c.articulo === "Artículo 6")!.path).toEqual([
+      "TÍTULO II",
+      "CAPÍTULO Vl",
+      "Sección I",
+    ]);
+  });
+});
+
+describe("chunkDocument — heading captions (#237 defect 1)", () => {
+  // A caption on its own line belongs to its heading, not to a chunk of its
+  // own: it carries no citable artículo and duplicates what the context
+  // header already puts on the real chunks.
+  it("merges an ALL-CAPS caption line into the heading", () => {
+    const chunks = chunkDocument("x", "X", [
+      "CAPÍTULO I",
+      "TRABAJADORES INDEPENDIENTES",
+      "Artículo 1- Definiciones.",
+    ]);
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0].articulo).toBe("Artículo 1");
+    expect(chunks[0].path).toEqual(["CAPÍTULO I TRABAJADORES INDEPENDIENTES"]);
+  });
+
+  it("merges a title-case caption line into the heading", () => {
+    const chunks = chunkDocument("x", "X", [
+      "CAPÍTULO VIII",
+      "SECCION I",
+      "De la determinación del impuesto",
+      "Artículo 20- Determinación.",
+    ]);
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0].path).toEqual([
+      "CAPÍTULO VIII",
+      "SECCION I De la determinación del impuesto",
+    ]);
+  });
+
+  // ley-9635's transitorio capítulos: the caption names the reformed ley
+  // ("LEY N.° 7092"), so it carries periods and runs past 20 words — but an
+  // ALL-CAPS line can never be body prose in these documents, only a caption
+  // (or the title block, which front matter already strips).
+  it("merges a long ALL-CAPS caption with N.° abbreviations", () => {
+    const chunks = chunkDocument("x", "X", [
+      "CAPÍTULO II",
+      "DISPOSICIONES TRANSITORIAS AL TÍTULO II DE LA PRESENTE LEY,",
+      "REFORMAS DE LA LEY N.° 7092, LEY DEL IMPUESTO SOBRE LA RENTA",
+      "Transitorio I- Los contribuyentes se ajustarán.",
+    ]);
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0].articulo).toBe("Transitorio I");
+    expect(chunks[0].path).toEqual([
+      "CAPÍTULO II DISPOSICIONES TRANSITORIAS AL TÍTULO II DE LA PRESENTE LEY, REFORMAS DE LA LEY N.° 7092, LEY DEL IMPUESTO SOBRE LA RENTA",
+    ]);
+  });
+
+  it("does not absorb a following heading line as a caption", () => {
+    const chunks = chunkDocument("x", "X", [
+      "CAPÍTULO VIII",
+      "SECCION I",
+      "Artículo 20- Determinación.",
+    ]);
+    expect(chunks[0].path).toEqual(["CAPÍTULO VIII", "SECCION I"]);
+  });
+
+  it("does not absorb prose after a heading", () => {
+    const chunks = chunkDocument("x", "X", [
+      "Artículo 1- Objeto.",
+      "CAPÍTULO II",
+      "La Administración Tributaria dispondrá lo necesario para el control.",
+      "Artículo 2- Control.",
+    ]);
+    const art2 = chunks.find((c) => c.articulo === "Artículo 2");
+    expect(art2!.path).toEqual(["CAPÍTULO II"]);
+    expect(chunks.some((c) => /dispondrá lo necesario/.test(c.content))).toBe(
+      true,
+    );
   });
 });
 
