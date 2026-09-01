@@ -1,0 +1,11 @@
+    consecutivos siguientes al año en el que se adquirió el bien de capital:
+
+    El ajuste en cada año deberá calcularse utilizando la siguiente fórmula:
+
+                                            𝐶𝑎0 ‒ 𝐶𝑎𝑖
+                                                 4
+
+    Donde:
+
+    “𝐶𝑎0” significa el crédito aplicado en forma definitiva en el año de adquisición.
+

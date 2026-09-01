@@ -1,6 +1,7 @@
 import { decodeHTML } from "entities";
 import { renderLabelRail } from "./label-rail";
 import { type LayoutTableSpec, renderLayoutTable } from "./layout-table";
+import { renderStackedFraction } from "./stacked-fraction";
 
 /** SINALEVI navigation chrome that must never reach a chunk (SPEC §4.3). */
 const CHROME_RE =
@@ -156,18 +157,23 @@ export interface TextLayout {
   table?: LayoutTableSpec;
   /** This document is a two-column form; read its rails as cells (#199). */
   labelRail?: boolean;
+  /** This document carries a stacked formula; restore its bars (#203). */
+  stackedFraction?: boolean;
 }
 
 /**
  * Plain text (e.g. pdftotext output) → cleaned paragraph list.
  *
  * `layout` carries the manifest's verdicts about this document's page (#179,
- * #199). Without them the lines of a paragraph are joined with spaces, which
- * flattens a table into a run-on line whose columns no longer line up and
- * splices a form's rail into the sentence beside it. The table is rewritten
- * first: `renderLayoutTable` needs the grid as pdftotext laid it out, and it
- * leaves behind single-line rows that carry no rail for `renderLabelRail` to
- * find. See layout-table.ts and label-rail.ts.
+ * #199, #203). Without them the lines of a paragraph are joined with spaces,
+ * which flattens a table into a run-on line whose columns no longer line up,
+ * splices a form's rail into the sentence beside it, and drops the bar out of
+ * a stacked fraction. The order is fixed by what each pass needs to see: the
+ * table first, because `renderLayoutTable` needs the grid as pdftotext laid it
+ * out; then the fractions, which collapse a formula's two or three lines into
+ * one; and the rails last, so neither a rendered row nor a collapsed formula —
+ * both single lines by then — can be mistaken for a two-column block. See
+ * layout-table.ts, stacked-fraction.ts and label-rail.ts.
  */
 export function textToParagraphs(
   text: string,
@@ -175,6 +181,7 @@ export function textToParagraphs(
 ): string[] {
   let lines = text.split("\n");
   if (layout.table) lines = renderLayoutTable(lines, layout.table);
+  if (layout.stackedFraction) lines = renderStackedFraction(lines);
   if (layout.labelRail) lines = renderLabelRail(lines);
   return cleanParagraphs(
     lines

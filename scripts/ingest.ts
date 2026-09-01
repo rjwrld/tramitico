@@ -102,6 +102,16 @@ interface ManifestDoc {
    * Absent → the document extracts exactly as it always has. See label-rail.ts.
    */
   labelRail?: boolean;
+  /**
+   * True when this document carries a formula laid out as a stacked fraction
+   * (#203). The bar is drawn rather than typed, so pdftotext emits nothing for
+   * it and the division is lost. Present → the numerator and denominator are
+   * paired by the columns they occupy and re-emitted as `(a)/(b)` spliced back
+   * into the expression, and ingestion fails loudly rather than pair them on a
+   * guess. Absent → the document extracts exactly as it always has. See
+   * stacked-fraction.ts.
+   */
+  stackedFraction?: boolean;
   notes?: string;
 }
 
@@ -253,6 +263,7 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
       return textToParagraphs(pdfToText(doc, pdf), {
         table: doc.layoutTable,
         labelRail: doc.labelRail,
+        stackedFraction: doc.stackedFraction,
       });
     }
     case "pdf": {
@@ -272,6 +283,7 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
       return textToParagraphs(pdfToText(doc, pdf), {
         table: doc.layoutTable,
         labelRail: doc.labelRail,
+        stackedFraction: doc.stackedFraction,
       });
     }
     case "cabys": {

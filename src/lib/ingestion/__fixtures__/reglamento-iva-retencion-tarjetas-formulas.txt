@@ -1,0 +1,24 @@
+   Asimismo, dado que las operaciones pueden estar sujetas a tarifa general, así como a
+
+   tarifa reducida, es necesario ajustar el factor de retención por medio del cociente que se
+   obtiene de dividir la tarifa media entre la tarifa general del 13%. La siguiente fórmula
+
+   presenta la forma de calcular el porcentaje de retención:
+
+                                                        𝑇𝑀     1
+                   𝑃𝑜𝑟𝑐𝑒𝑛𝑡𝑎𝑗𝑒 𝑑𝑒 𝑟𝑒𝑡𝑒𝑛𝑐𝑖ó𝑛 = 𝐹𝑅 ∗          ∗
+                                                        13% 1 + 𝑇𝑀
+
+   La tarifa media que se obtiene de dividir el impuesto total repercutido por operaciones
+
+   sujetas con base en los datos de las declaraciones del Impuesto sobre el Valor Agregado,
+
+   de los meses del semestre tras anterior entre la sumatoria de las bases imponibles que
+
+   corresponda la tarifa general y a las tarifas reducidas de las mismas declaraciones, de
+
+   acuerdo con la siguiente fórmula:
+
+                                            Total de impuesto repecutido
+             𝑇𝑎𝑟𝑖𝑓𝑎 𝑀𝑒𝑑𝑖𝑎 (𝑇𝑀) =
+                                        𝑇𝑜𝑡𝑎𝑙 𝑑𝑒 𝑣𝑒𝑛𝑡𝑎𝑠 𝑠𝑢𝑗𝑒𝑡𝑎𝑠 𝑦 𝑛𝑜 𝑒𝑥𝑒𝑛𝑡𝑎𝑠
