@@ -179,14 +179,28 @@
       "source": {
         "kind": "pdf",
         "url": "https://www.ccss.sa.cr/arc/actas/2018/11/8999.pdf",
-        "pages": "104-108",
+        "pages": "105-108",
+        "excerpt": [
+          {
+            "from": "2. Propuesta de ajuste",
+            "to": "Nivel de Ingreso Seguro de IVM"
+          },
+          {
+            "from": "ACUERDO PRIMERO: Establecer la siguiente escala",
+            "to": "(1) Adicionalmente la contribución del Estado como tal es de 0.25% en el Seguro de Salud"
+          },
+          {
+            "from": "ACUERDO SEGUNDO: Encargar a la Gerencia Financiera",
+            "to": "ARTICULO 31º"
+          }
+        ],
         "deepLink": "page"
       },
       "effective_date": "2018-10-01",
       "chunking": {
         "articulo": "Artículo 30°, sesión 8999"
       },
-      "notes": "Salud rates by income bracket (afiliado 2.89–10.69%, conjunta 12.00% + 0.25% Estado como tal), still vigente — the 2026 adjustment touched IVM only (see ccss-escala-ivm). Same acuerdo SINALEVI carries as an image in ccss-bmc; the acta transcribes the table as text. Page-ranged because the full acta is 170 pages of unrelated Junta Directiva business — re-verify the range if CCSS re-publishes the acta. Deep link page (#134): chips land on page 104, the first page of the ingested range inside the 170-page acta. SURVEY (#199): no rail. Its two escala tables are data grids, and their wrapped rows do misorder («Más de 0.8590 SM a menos / de 2 SM» closing around the numbers) — but that is #179's shape, not this one, and labelRail reads those grids as rails and mangles them, so this document is deliberately left unflagged."
+      "notes": "Salud rates by income bracket (afiliado 2.89–10.69%, conjunta 12.00% + 0.25% Estado como tal), still vigente — the 2026 adjustment touched IVM only (see ccss-escala-ivm). Same acuerdo SINALEVI carries as an image in ccss-bmc; the acta transcribes the table as text. Page-ranged because the full acta is 170 pages of unrelated Junta Directiva business — re-verify the range if CCSS re-publishes the acta. Deep link page (#134): chips land on page 105, the first page of the ingested range and the page the vigente escala sits on. The range was 104–108 until #198: page 104 carries only Tabla N°1 (afiliado counts, not rates) and the head of the superseded Tabla N°2, none of which survives the excerpt, so a chip that landed there pointed at content the corpus does not hold. EXCERPT (#198), THREE slices, because the claim this document makes is not contiguous. Pages 104–108 carry four tables and no page cut separates them: Tabla N°2 «Escala contributiva vigente hasta el 30 de setiembre de 2018» straddles the 104/105 break, and the vigente Salud escala sits on 105 beside its tail. Slice 1 («2. Propuesta de ajuste» → the IVM table's header) keeps the vigente Salud escala and its three notes, and drops Tabla N°1 and Tabla N°2 whole — with them the interleaved header («Conjunt Afiliad … a o Estado Conjunta», two labels split mid-word across physical lines) and the «104 N° 8999» page furniture pdftotext leaves between its categories 2 and 3. Slice 2 picks the operative ACUERDO PRIMERO back up. Slice 3 runs ACUERDO SEGUNDO → ARTICULO 31°, so the acuerdos arrive whole and the unrelated MIPYMES artículo below them does not. IVM DELIBERATELY EXCLUDED (#198, #150), and that is what costs the second and third slice. This document is the Salud escala; ccss-escala-ivm owns IVM, and no IVM figure should reach a reader from here. Two of them had to be cut, not one. (a) The 2018 IVM escala between slices 1 and 2: legible and dated, but its 8.92% conjunta was replaced by 9.91% effective 2026-01-01. (b) The «Notas» block under ACUERDO PRIMERO, between slices 2 and 3, whose note (1) reads «0.25% en el Seguro de Salud y 1.24% Seguro de IVM» — the Estado-como-tal figure, since raised to 1.75%. Cutting it costs nothing: the identical Salud-only note («la contribución del Estado como tal es de 0.25%») is already in slice 1, so the 0.25% this document is cited for survives, and only the stale IVM half is gone. Both figures are true of 2018 and neither is disqualified by anything inside this acta — «vigencia a partir del 01 de octubre del 2018» is a start date, and a 2018 acuerdo cannot announce its own supersession. Retrieval ranks on text, not on effective_date, and the answer prompt is forbidden from preferring a source merely for being newer, so a stale figure that reaches the model becomes a reported conflict rather than a wrong answer — on a question the corpus can answer outright. If historical questions ever enter scope, the 2018 IVM escala belongs in its own dated document, not inside this chunk. THE ACUERDO CARRIES NO TABLE (#114): ACUERDO PRIMERO's own escala is a raster image — the text runs straight from «…ajustes en los sistemas informáticos.» to «Notas:». Every rate here is therefore quoted from the propuesta section slice 1 keeps, never from the acuerdo body; narrowing to the acuerdo alone would empty the document of rates. NOT layoutTable (#179): tested against this document and findLayoutGrid returns null for every column count — the Salud table's wrapped rows («Más de 0.9295 SM a 4.33% / menos de 2 SM») change the column count line to line, so no run of lines agrees on a grid. Before the excerpt the only grid it found was the IVM table's header plus two rows, so opting in would have relabelled the wrong table. Opting in now fails ingestion rather than improving it. RESIDUE: category 2 keeps its rate spliced into its own bracket text, which the «%» signs (Tabla N°2 had none) keep unambiguous; ACUERDO CUARTO keeps «107 N° 8999» inside a sentence, where the page break falls — prose, not a data row; and slice 2 ends on the orphan word «Notas:», the heading of the block cut for its 1.24%. SURVEY (#199): no rail. Its escala tables are data grids, and labelRail reads those as rails and mangles them, so this document is deliberately left unflagged."
     },
     {
       "doc_key": "salarios-minimos",
