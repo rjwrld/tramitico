@@ -88,6 +88,14 @@ interface ManifestDoc {
    * document extracts exactly as it always has. See layout-table.ts.
    */
   layoutTable?: LayoutTableSpec;
+  /**
+   * True when this document is laid out as a two-column form — a narrow rail
+   * of short labels or values beside a wide column of prose (#199). Present →
+   * each such block is re-read as `label: body`, so no rail word lands inside
+   * the sentence beside it, and ingestion fails loudly if the rail is gone.
+   * Absent → the document extracts exactly as it always has. See label-rail.ts.
+   */
+  labelRail?: boolean;
   notes?: string;
 }
 
@@ -236,7 +244,10 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
     }
     case "hacienda-pdf": {
       const pdf = await fetchHaciendaPdf(doc.source.url!);
-      return textToParagraphs(pdfToText(doc, pdf), doc.layoutTable);
+      return textToParagraphs(pdfToText(doc, pdf), {
+        table: doc.layoutTable,
+        labelRail: doc.labelRail,
+      });
     }
     case "pdf": {
       const pdf = await fetchPdfSource(
@@ -251,7 +262,10 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
           `  ${doc.doc_key}: excerpt from "${doc.source.excerpt.from}"`,
         );
       }
-      return textToParagraphs(pdfToText(doc, pdf), doc.layoutTable);
+      return textToParagraphs(pdfToText(doc, pdf), {
+        table: doc.layoutTable,
+        labelRail: doc.labelRail,
+      });
     }
     case "cabys": {
       const file = path.join(ROOT, "corpus", "cabys-dev.json");

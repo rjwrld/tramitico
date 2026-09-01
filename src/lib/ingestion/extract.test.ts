@@ -74,6 +74,21 @@ describe("textToParagraphs", () => {
   it("returns [] for empty input", () => {
     expect(textToParagraphs("")).toEqual([]);
   });
+
+  it("reads a two-column form as cells when the manifest says so (#199)", () => {
+    const ficha = readFileSync(
+      path.join(__dirname, "__fixtures__", "ccss-escala-ivm-rail.txt"),
+      "utf8",
+    );
+    const spliced = textToParagraphs(ficha);
+    expect(spliced.join("\n")).toMatch(/con la CONSIDERANDO aplicación/);
+
+    const paragraphs = textToParagraphs(ficha, { labelRail: true });
+    expect(paragraphs.join("\n")).not.toMatch(/con la CONSIDERANDO aplicación/);
+    expect(paragraphs).toContain(
+      "PROPUESTAS DE ACUERDO: • Afiliado: 0,16 p.p. • Estado (Cuota complementaria): 0,16 p.p. • Estado como Tal: 0,18 p.p.",
+    );
+  });
 });
 
 describe("findImageMarkup", () => {

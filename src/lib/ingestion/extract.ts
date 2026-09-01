@@ -1,4 +1,5 @@
 import { decodeHTML } from "entities";
+import { renderLabelRail } from "./label-rail";
 import { type LayoutTableSpec, renderLayoutTable } from "./layout-table";
 
 /** SINALEVI navigation chrome that must never reach a chunk (SPEC §4.3). */
@@ -149,22 +150,32 @@ export function htmlToParagraphs(html: string): string[] {
   return cleanParagraphs(text.split("\n"));
 }
 
+/** The manifest's verdicts about how this document is laid out on the page. */
+export interface TextLayout {
+  /** One column-aligned data table to re-emit as labelled rows (#179). */
+  table?: LayoutTableSpec;
+  /** This document is a two-column form; read its rails as cells (#199). */
+  labelRail?: boolean;
+}
+
 /**
  * Plain text (e.g. pdftotext output) → cleaned paragraph list.
  *
- * `table` is the manifest's verdict about one column-aligned table in this
- * document (#179). Without it the lines of a paragraph are joined with spaces,
- * which flattens a table into a run-on line whose columns no longer line up;
- * with it that table is re-emitted as one labelled row per paragraph first.
- * See layout-table.ts for why the labels have to come from the manifest.
+ * `layout` carries the manifest's verdicts about this document's page (#179,
+ * #199). Without them the lines of a paragraph are joined with spaces, which
+ * flattens a table into a run-on line whose columns no longer line up and
+ * splices a form's rail into the sentence beside it. The table is rewritten
+ * first: `renderLayoutTable` needs the grid as pdftotext laid it out, and it
+ * leaves behind single-line rows that carry no rail for `renderLabelRail` to
+ * find. See layout-table.ts and label-rail.ts.
  */
 export function textToParagraphs(
   text: string,
-  table?: LayoutTableSpec,
+  layout: TextLayout = {},
 ): string[] {
-  const lines = table
-    ? renderLayoutTable(text.split("\n"), table)
-    : text.split("\n");
+  let lines = text.split("\n");
+  if (layout.table) lines = renderLayoutTable(lines, layout.table);
+  if (layout.labelRail) lines = renderLabelRail(lines);
   return cleanParagraphs(
     lines
       .join("\n")
