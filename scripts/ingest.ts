@@ -20,7 +20,11 @@ import {
 import type { ChunkOptions } from "../src/lib/ingestion/chunker";
 import { ingestDocument } from "../src/lib/ingestion/ingest-document";
 import { createEmbedder } from "../src/lib/ingestion/embedder";
-import { type ExcerptSpec, sliceExcerpt } from "../src/lib/ingestion/excerpt";
+import {
+  type ExcerptSpec,
+  excerptSlices,
+  sliceExcerpt,
+} from "../src/lib/ingestion/excerpt";
 import {
   htmlToParagraphs,
   imageMarkupNotice,
@@ -55,9 +59,11 @@ interface ManifestDoc {
      * the page range is a *reform decree*: its neighbouring pages carry other
      * incisos of the same decree that later reforms have since superseded, and
      * a page-granular range would seat those beside vigente chunks. Absent →
-     * the whole page range is ingested. See excerpt.ts.
+     * the whole page range is ingested. A list where the claim is not
+     * contiguous — the acuerdo and the escala it adopts sitting either side of
+     * a superseded table (#198). See excerpt.ts.
      */
-    excerpt?: ExcerptSpec;
+    excerpt?: ExcerptSpec | ExcerptSpec[];
     catalog?: string;
     hint?: string;
     /**
@@ -258,8 +264,9 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
         console.log(`  ${doc.doc_key}: pages ${doc.source.pages}`);
       }
       if (doc.source.excerpt) {
+        const slices = excerptSlices(doc.source.excerpt);
         console.log(
-          `  ${doc.doc_key}: excerpt from "${doc.source.excerpt.from}"`,
+          `  ${doc.doc_key}: excerpt ${slices.map((s) => `from "${s.from}"`).join(", ")}`,
         );
       }
       return textToParagraphs(pdfToText(doc, pdf), {
