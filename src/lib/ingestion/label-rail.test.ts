@@ -85,6 +85,16 @@ describe("readRailBlock", () => {
       ]),
     ).toBeNull();
   });
+
+  it("keeps a three-column gutter aligned beside an astral glyph", () => {
+    expect(
+      readRailBlock([
+        "𝑇asa   texto uno",
+        "       texto dos",
+        "Base   texto tres",
+      ]),
+    ).toBe("𝑇asa Base: texto uno texto dos texto tres");
+  });
 });
 
 describe("renderLabelRail — ccss-escala-ivm's ficha técnica", () => {

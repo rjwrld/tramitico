@@ -35,6 +35,8 @@
  * PDF-sourced documents; those two carry the flag.
  */
 
+import { type ColumnLine, columnsOf, isBlank } from "./column-model";
+
 /** Runs of whitespace this wide or wider separate columns, narrower ones don't. */
 const MIN_GUTTER = 3;
 /**
@@ -52,11 +54,15 @@ const MAX_LABEL_CHARS = 40;
 const HAS_CONTENT_RE = /[\p{L}\p{N}]/u;
 
 /** Character ranges that are blank on *every* line — the candidate gutters. */
-function gutters(lines: string[]): [number, number][] {
-  const ends = lines.map((l) => l.trimEnd().length);
+function gutters(lines: ColumnLine[]): [number, number][] {
+  const ends = lines.map((line) => {
+    let end = line.length;
+    while (end > 0 && isBlank(line[end - 1])) end--;
+    return end;
+  });
   const width = Math.max(...ends);
   const blank = (i: number) =>
-    lines.every((l, n) => i >= ends[n] || l[i] === " ");
+    lines.every((line, n) => i >= ends[n] || isBlank(line[i]));
 
   const runs: [number, number][] = [];
   let i = 0;
@@ -75,13 +81,13 @@ function gutters(lines: string[]): [number, number][] {
 
 /** The lines one column of a block has a cell on, and what those cells say. */
 function columnCells(
-  lines: string[],
-  slice: (l: string) => string,
+  lines: ColumnLine[],
+  slice: (line: ColumnLine) => ColumnLine,
 ): { at: number[]; cells: string[] } {
   const at: number[] = [];
   const cells: string[] = [];
   lines.forEach((line, i) => {
-    const cell = slice(line).trim();
+    const cell = slice(line).join("").trim();
     if (cell) {
       at.push(i);
       cells.push(cell);
@@ -117,7 +123,7 @@ const stacked = (a: number[], b: number[]) =>
  * `Legal   Artículo 33 y transitorio XI…` already joins in reading order, and
  * a rule that rewrote it would be changing text that was never broken.
  */
-function isRail(lines: string[], [start, end]: [number, number]): boolean {
+function isRail(lines: ColumnLine[], [start, end]: [number, number]): boolean {
   const left = columnCells(lines, (l) => l.slice(0, start));
   const right = columnCells(lines, (l) => l.slice(end));
   if (left.cells.length === 0 || right.cells.length === 0) return false;
@@ -126,7 +132,10 @@ function isRail(lines: string[], [start, end]: [number, number]): boolean {
 
   const railish = ({ cells }: { cells: string[] }) =>
     cells.length < lines.length &&
-    cells.every((c) => c.length <= MAX_LABEL_CHARS && HAS_CONTENT_RE.test(c));
+    cells.every(
+      (cell) =>
+        columnsOf(cell).length <= MAX_LABEL_CHARS && HAS_CONTENT_RE.test(cell),
+    );
   return railish(left) || railish(right);
 }
 
@@ -147,15 +156,21 @@ export function readRailBlock(block: string[]): string | null {
   const lines = block.filter((l) => l.trim());
   if (lines.length < 2) return null;
 
-  const ranked = gutters(lines)
-    .filter((g) => isRail(lines, g))
+  const columnLines = lines.map(columnsOf);
+
+  const ranked = gutters(columnLines)
+    .filter((g) => isRail(columnLines, g))
     .sort((a, b) => b[1] - b[0] - (a[1] - a[0]));
   if (ranked.length === 0) return null;
   const [best, rival] = ranked;
   if (rival && rival[1] - rival[0] === best[1] - best[0]) return null;
 
-  const label = joined(columnCells(lines, (l) => l.slice(0, best[0])).cells);
-  const body = joined(columnCells(lines, (l) => l.slice(best[1])).cells);
+  const label = joined(
+    columnCells(columnLines, (line) => line.slice(0, best[0])).cells,
+  );
+  const body = joined(
+    columnCells(columnLines, (line) => line.slice(best[1])).cells,
+  );
   return `${label}${label.endsWith(":") ? "" : ":"} ${body}`;
 }
 

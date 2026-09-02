@@ -52,6 +52,14 @@ describe("findLayoutGrid", () => {
     ];
     expect(findLayoutGrid(lines, 4)).toBeNull();
   });
+
+  it("keeps columns aligned when a table cell contains an astral glyph", () => {
+    expect(
+      renderLayoutTable(["header", "", "1𝑇  A  X", "22  B  Y"], {
+        columns: ["Primera", "Segunda", "Tercera"],
+      }),
+    ).toContain("Primera: 1𝑇 | Segunda: A | Tercera: X.");
+  });
 });
 
 describe("renderLayoutTable", () => {
