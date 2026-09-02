@@ -33,6 +33,7 @@ import {
 import { fetchHaciendaPdf } from "../src/lib/ingestion/hacienda";
 import type { LayoutTableSpec } from "../src/lib/ingestion/layout-table";
 import { fetchPdfSource } from "../src/lib/ingestion/pdf";
+import { pdfImageNotice } from "../src/lib/ingestion/pdf-images";
 import type { DeepLinkKind } from "../src/lib/retrieval";
 import { articuloAnchors, fetchNorma } from "../src/lib/ingestion/sinalevi";
 
@@ -80,10 +81,11 @@ interface ManifestDoc {
   /** Chunking overrides for documents with no artículo structure of their own. */
   chunking?: ChunkOptions;
   /**
-   * Every image `src` a human has looked at, for documents carrying an IMAGE
-   * AUDIT note (#150). Present → the ingestion notice is quiet while the
-   * payload's images stay inside this set, and loud the moment a re-crawl adds
-   * one the audit never saw. Absent → the payload is warned about every run.
+   * Every image a human has looked at for documents carrying an IMAGE AUDIT
+   * note: the `src` for SINALEVI HTML, or `p<page>-obj<object>-<generation>`
+   * for a PDF. Present → the ingestion notice is quiet while the payload's
+   * images stay inside this set, and loud the moment a re-crawl adds one the
+   * audit never saw. Absent → the payload is warned about every run (#177).
    */
   imagesAudited?: string[];
   /**
@@ -223,6 +225,20 @@ function pdfToText(doc: ManifestDoc, pdf: Buffer): string {
     }
     range.push("-f", m[1], "-l", m[2]);
   }
+  // `pdftotext` is blind to embedded rasters, so inspect the same page range
+  // before extraction erases the only evidence that a table or formula was a
+  // picture. This is a go-look notice, never a verdict or image-triggered
+  // failure; small page furniture is filtered by the corpus-derived floor.
+  const imageListing = execFileSync("pdfimages", ["-list", ...range, pdfPath], {
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  const notice = pdfImageNotice(doc.doc_key, imageListing, {
+    pages: doc.source.pages,
+    imagesAudited: doc.imagesAudited,
+  });
+  if (notice?.level === "warn") console.warn(`  ⚠ ${notice.message}`);
+  else if (notice) console.log(`  ${notice.message}`);
   const text = execFileSync("pdftotext", ["-layout", ...range, pdfPath, "-"], {
     encoding: "utf8",
     maxBuffer: 64 * 1024 * 1024,
