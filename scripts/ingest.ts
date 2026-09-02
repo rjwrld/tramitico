@@ -112,6 +112,15 @@ interface ManifestDoc {
    * stacked-fraction.ts.
    */
   stackedFraction?: boolean;
+  /**
+   * True when a two-column table in this document has a row whose left cell
+   * wraps and pdftotext puts a blank line inside the row (#242). Present → the
+   * fragment is re-joined onto the row's own line, so the rate no longer lands
+   * in the middle of its condition, and ingestion fails loudly if no such row
+   * is found. Absent → the document extracts exactly as it always has. See
+   * wrapped-row.ts.
+   */
+  wrappedRow?: boolean;
   notes?: string;
 }
 
@@ -264,6 +273,7 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
         table: doc.layoutTable,
         labelRail: doc.labelRail,
         stackedFraction: doc.stackedFraction,
+        wrappedRow: doc.wrappedRow,
       });
     }
     case "pdf": {
@@ -284,6 +294,7 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
         table: doc.layoutTable,
         labelRail: doc.labelRail,
         stackedFraction: doc.stackedFraction,
+        wrappedRow: doc.wrappedRow,
       });
     }
     case "cabys": {

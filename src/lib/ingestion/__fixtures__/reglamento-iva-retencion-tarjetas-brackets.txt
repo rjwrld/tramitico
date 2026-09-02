@@ -1,0 +1,21 @@
+
+
+
+                                                                        Porcentaje de
+              Porcentaje de ventas exentas o no sujetas
+                                                                      retención (% RT)
+    100% ventas locales, exentas o no sujetas                                 0%
+
+    90% o menos del 100% de ventas locales, exentas o no                       1%
+
+              sujetas
+
+    75% o menos del 90% de ventas locales, exentas o no sujetas                2%
+
+    50% o menos del 75% de ventas locales, exentas o no sujetas                3%
+
+    0% o menos del 50% de ventas locales, exentas o no sujetas                 6%
+
+
+
+   El porcentaje de retención se obtiene deflactando el factor de retención para excluir el
