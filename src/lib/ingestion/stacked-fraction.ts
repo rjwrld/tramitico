@@ -47,6 +47,8 @@
  * a document without the flag extracts byte-for-byte as it did before.
  */
 
+import { type ColumnLine, columnsOf, isBlank } from "./column-model";
+
 /** A run of ink on one line, and the column range it occupies: `[start, end)`. */
 interface Cell {
   start: number;
@@ -77,23 +79,11 @@ const CENTRE_SLACK = 1;
 /** The letterforms a Word equation object emits, and prose never does. */
 const EQUATION_GLYPH = /[\u{1D400}-\u{1D7FF}]/u;
 
-const isBlank = (ch: string | undefined) => ch === undefined || /\s/.test(ch);
-
-/**
- * A line as the page laid it out: one entry per *character*, not per UTF-16
- * code unit. Every glyph of «𝑇𝑀» is astral, so a column measured in code units
- * is off by one per equation glyph — and this whole module is column
- * arithmetic against a line of prose that has none.
- */
-type Columns = string[];
-
-const columnsOf = (line: string): Columns => [...line];
-
-const textAt = (columns: Columns, start: number, end: number) =>
+const textAt = (columns: ColumnLine, start: number, end: number) =>
   flatten(columns.slice(start, end).join(""));
 
 /** The ink runs of `columns`, runs closer than `MIN_GAP` counted as one cell. */
-function cellsOf(columns: Columns): Cell[] {
+function cellsOf(columns: ColumnLine): Cell[] {
   const cells: Cell[] = [];
   let i = 0;
   while (i < columns.length) {
@@ -143,7 +133,7 @@ const isStacked = (a: [number, number], b: [number, number]) =>
 
 /** The blank column runs of `columns` that fall inside `[from, to)`. */
 function blankRunsWithin(
-  columns: Columns,
+  columns: ColumnLine,
   from: number,
   to: number,
 ): [number, number][] {
@@ -189,7 +179,7 @@ const MAX_SPLIT_CANDIDATES = 32;
 function splitCandidates(
   fused: Cell[],
   guide: Cell[],
-  columns: Columns,
+  columns: ColumnLine,
 ): Cell[][] {
   let cutSets: [number, number][][] = [[]];
   for (let i = 1; i < guide.length; i++) {
@@ -207,7 +197,7 @@ function splitCandidates(
 function applyCuts(
   cells: Cell[],
   cuts: readonly [number, number][],
-  columns: Columns,
+  columns: ColumnLine,
 ): Cell[] {
   let out = cells;
   for (const [from, to] of cuts) {

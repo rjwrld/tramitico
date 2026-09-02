@@ -32,6 +32,8 @@
  * exactly as it did before.
  */
 
+import { columnsOf, isBlank } from "./column-model";
+
 /** A document's manifest verdict about one table it contains. */
 export interface LayoutTableSpec {
   /** Column labels, left to right, as a reader of the PDF sees them. */
@@ -66,9 +68,9 @@ const MAX_HEADER_LINES = 4;
  * complement of the whitespace runs that are blank in all of them.
  */
 function columnRanges(lines: string[]): [number, number][] {
-  const width = Math.max(...lines.map((l) => l.length));
-  const blank = (i: number) =>
-    lines.every((l) => i >= l.length || l[i] === " ");
+  const columnLines = lines.map(columnsOf);
+  const width = Math.max(...columnLines.map((line) => line.length));
+  const blank = (i: number) => columnLines.every((line) => isBlank(line[i]));
 
   const columns: [number, number][] = [];
   let i = 0;
@@ -98,8 +100,12 @@ function columnRanges(lines: string[]): [number, number][] {
 }
 
 function cellsOf(line: string, columns: LayoutGrid["columns"]): string[] {
+  const columnLine = columnsOf(line);
   return columns.map(([start, end], i) =>
-    line.slice(start, i === columns.length - 1 ? undefined : end).trim(),
+    columnLine
+      .slice(start, i === columns.length - 1 ? undefined : end)
+      .join("")
+      .trim(),
   );
 }
 
