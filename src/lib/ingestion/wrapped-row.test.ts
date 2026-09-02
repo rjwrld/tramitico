@@ -94,4 +94,16 @@ describe("textToParagraphs with wrappedRow (#242)", () => {
     expect(others(after)).toEqual(others(before));
     expect(after).toHaveLength(before.length - 1);
   });
+
+  it("composes with stackedFraction, which the same manifest entry carries", () => {
+    const page = `${fixture("reglamento-iva-retencion-tarjetas-formulas.txt")}\n\n${brackets()}`;
+    const joined = textToParagraphs(page, {
+      stackedFraction: true,
+      wrappedRow: true,
+    }).join(" ");
+    expect(joined).toContain("𝐹𝑅 ∗ (𝑇𝑀)/(13%) ∗ (1)/(1 + 𝑇𝑀)");
+    expect(joined).toContain(
+      "90% o menos del 100% de ventas locales, exentas o no sujetas 1%",
+    );
+  });
 });
