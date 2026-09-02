@@ -1,15 +1,10 @@
 {
-  "generatedAt": "2026-09-02T16:30:21.113Z",
-  "chunkCount": 714,
+  "generatedAt": "2026-09-02T21:55:00.332Z",
+  "chunkCount": 709,
   "entries": [
     {
       "docKey": "cabys-dev",
       "articulo": null,
-      "path": []
-    },
-    {
-      "docKey": "ccss-bmc",
-      "articulo": "Preámbulo",
       "path": []
     },
     {
@@ -44,7 +39,7 @@
     },
     {
       "docKey": "dgt-export-servicios",
-      "articulo": null,
+      "articulo": "Preámbulo",
       "path": []
     },
     {
@@ -119,6 +114,11 @@
     },
     {
       "docKey": "disposiciones-v44",
+      "articulo": "Preámbulo",
+      "path": []
+    },
+    {
+      "docKey": "disposiciones-v44",
       "articulo": "Transitorio I",
       "path": []
     },
@@ -130,11 +130,6 @@
     {
       "docKey": "disposiciones-v44",
       "articulo": "Transitorio III",
-      "path": []
-    },
-    {
-      "docKey": "disposiciones-v44",
-      "articulo": null,
       "path": []
     },
     {
@@ -2182,16 +2177,6 @@
       "path": ["CAPÍTULO III EXENCIONES Y TASA DEL IMPUESTO"]
     },
     {
-      "docKey": "ley-iva",
-      "articulo": "Preámbulo",
-      "path": []
-    },
-    {
-      "docKey": "ley-iva",
-      "articulo": null,
-      "path": []
-    },
-    {
       "docKey": "reglamento-comprobantes",
       "articulo": "Artículo 1",
       "path": ["CAPÍTULO I DISPOSICIONES GENERALES"]
@@ -3975,11 +3960,6 @@
       "path": []
     },
     {
-      "docKey": "reglamento-rts",
-      "articulo": null,
-      "path": []
-    },
-    {
       "docKey": "reglamento-titulo-iv-9635",
       "articulo": "Artículo 1",
       "path": []
@@ -4232,11 +4212,6 @@
     {
       "docKey": "salarios-minimos",
       "articulo": "Preámbulo",
-      "path": []
-    },
-    {
-      "docKey": "salarios-minimos",
-      "articulo": null,
       "path": []
     },
     {
