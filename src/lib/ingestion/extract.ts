@@ -2,6 +2,7 @@ import { decodeHTML } from "entities";
 import { renderLabelRail } from "./label-rail";
 import { type LayoutTableSpec, renderLayoutTable } from "./layout-table";
 import { renderStackedFraction } from "./stacked-fraction";
+import { renderWrappedRow } from "./wrapped-row";
 
 /** SINALEVI navigation chrome that must never reach a chunk (SPEC §4.3). */
 const CHROME_RE =
@@ -159,6 +160,8 @@ export interface TextLayout {
   labelRail?: boolean;
   /** This document carries a stacked formula; restore its bars (#203). */
   stackedFraction?: boolean;
+  /** A table row here wraps below its own right cell; re-join it (#242). */
+  wrappedRow?: boolean;
 }
 
 /**
@@ -171,9 +174,11 @@ export interface TextLayout {
  * a stacked fraction. The order is fixed by what each pass needs to see: the
  * table first, because `renderLayoutTable` needs the grid as pdftotext laid it
  * out; then the fractions, which collapse a formula's two or three lines into
- * one; and the rails last, so neither a rendered row nor a collapsed formula —
- * both single lines by then — can be mistaken for a two-column block. See
- * layout-table.ts, stacked-fraction.ts and label-rail.ts.
+ * one; then the wrapped rows, which pull a stray fragment back onto the line
+ * it fell out of; and the rails last, so neither a rendered row nor a
+ * collapsed formula — both single lines by then — can be mistaken for a
+ * two-column block. See layout-table.ts, stacked-fraction.ts, wrapped-row.ts
+ * and label-rail.ts.
  */
 export function textToParagraphs(
   text: string,
@@ -182,6 +187,7 @@ export function textToParagraphs(
   let lines = text.split("\n");
   if (layout.table) lines = renderLayoutTable(lines, layout.table);
   if (layout.stackedFraction) lines = renderStackedFraction(lines);
+  if (layout.wrappedRow) lines = renderWrappedRow(lines);
   if (layout.labelRail) lines = renderLabelRail(lines);
   return cleanParagraphs(
     lines
