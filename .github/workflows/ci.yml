@@ -29,7 +29,11 @@ jobs:
       # --prod is gated: build-time tooling is not attacker-reachable at
       # runtime, and moderate/low findings are accepted risk recorded on #121 —
       # an acceptance that expires 2026-11-12, when this level gets revisited.
+      # The advisories endpoint sometimes answers slower than pnpm's default
+      # 60s fetch timeout (three consecutive timeouts on 2026-09-03).
       - run: pnpm audit --prod --audit-level=high
+        env:
+          npm_config_fetch_timeout: "300000"
       - run: pnpm lint
       - run: pnpm typecheck
       # Unit tests only — no database, no API keys, nothing to skip (#129).
