@@ -29,6 +29,7 @@ export function ThemeToggle() {
     <Button
       variant="ghost"
       size="icon"
+      className="pointer-coarse:size-11"
       aria-label="Cambiar tema"
       onClick={toggle}
     >

@@ -214,6 +214,12 @@ budget is spent on exactly three moments:
    `--sello`) and label shine, crossfading 150ms between stages. Still no skeleton shimmer.
 3. **Theme toggle** — 150ms crossfade on ground colors only.
 
+**Panel transitions** are continuity, not a fourth moment: the history sheet slides in from the
+edge it is anchored to with a backdrop fade (200ms in, 150ms out, same ease), and the desktop
+sidebar folds to zero width with the same curve, staying mounted but `inert` while closed. A
+full-height panel that pops into place reads as a glitch; the slide says where it came from and
+where it goes back to. Under `prefers-reduced-motion` the movement drops and the fade remains.
+
 No scroll-triggered reveals, no staggered section entrances, no bounce. Every animation has a
 `prefers-reduced-motion` alternative (instant or crossfade) — for moment 2 that means no ring,
 static labels, instant text.

@@ -11,6 +11,14 @@
  * than being placed by each caller: this component is the composer, it is
  * mounted in both the empty state and the conversation, and the one thing the
  * disclosure has to be is present *before* the first ask.
+ *
+ * Touch targets: on a coarse pointer the field and its button grow to 44px
+ * (the HIG floor; WCAG 2.5.8 only asks 24). Keyed on `pointer-coarse`, not a
+ * viewport width — a narrow desktop window keeps the 32px control, a tablet
+ * in landscape gets the touch size. The placeholder is short on purpose: the
+ * longer "…sobre impuestos o trámites" wrapped to two lines at 375px and
+ * made the empty field 66px tall before anyone typed; the headline above
+ * already names the scope.
  */
 import * as React from "react";
 import { PrivacyNote } from "@/components/chat/privacy-note";
@@ -69,17 +77,26 @@ export function ChatInput({
               submit();
             }
           }}
-          placeholder="Escriba su pregunta sobre impuestos o trámites…"
+          placeholder="Escriba su pregunta…"
           aria-label="Su pregunta"
           rows={1}
-          className="min-h-10 resize-none"
+          className="min-h-10 resize-none pointer-coarse:min-h-11"
         />
         {busy ? (
-          <Button type="button" variant="outline" onClick={onStop}>
+          <Button
+            type="button"
+            variant="outline"
+            className="pointer-coarse:h-11"
+            onClick={onStop}
+          >
             Detener
           </Button>
         ) : (
-          <Button type="submit" disabled={question.trim() === ""}>
+          <Button
+            type="submit"
+            className="pointer-coarse:h-11"
+            disabled={question.trim() === ""}
+          >
             Enviar
           </Button>
         )}

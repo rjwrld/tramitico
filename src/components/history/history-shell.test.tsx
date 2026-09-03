@@ -53,7 +53,13 @@ describe("HistoryShell", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("collapse toggle unmounts and remounts the sidebar", async () => {
+  /**
+   * The fold is a transition (DESIGN §8, panel transitions), so the sidebar
+   * stays mounted while closed. What unmounting used to guarantee — nothing
+   * inside it is reachable or announced — now rests on `inert` and
+   * `aria-hidden`, which is what this asserts.
+   */
+  it("collapse toggle folds the sidebar inert and unfolds it", async () => {
     fetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({ questions: [] }),
@@ -63,18 +69,58 @@ describe("HistoryShell", () => {
         <p>contenido principal</p>
       </HistoryShell>,
     );
-    expect(await screen.findByText("Historial")).toBeTruthy();
+    const nav = await screen.findByRole("navigation", { name: "Historial" });
+    const aside = nav.closest("aside");
+    if (!aside) throw new Error("sidebar has no aside");
+    expect(aside.hasAttribute("inert")).toBe(false);
 
     const { default: userEvent } = await import("@testing-library/user-event");
     await userEvent.click(
       screen.getByRole("button", { name: "Ocultar historial" }),
     );
-    expect(screen.queryByText("Historial")).toBe(null);
+    expect(aside.hasAttribute("inert")).toBe(true);
+    expect(aside.getAttribute("aria-hidden")).toBe("true");
+    // Out of the accessibility tree, not just visually folded.
+    expect(screen.queryByRole("navigation", { name: "Historial" })).toBe(null);
 
     await userEvent.click(
       screen.getByRole("button", { name: "Mostrar historial" }),
     );
-    expect(screen.getByText("Historial")).toBeTruthy();
+    expect(aside.hasAttribute("inert")).toBe(false);
+    expect(screen.getByRole("navigation", { name: "Historial" })).toBeTruthy();
+  });
+
+  it("folding with focus inside the sidebar hands focus to the toggle", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        questions: [
+          {
+            id: "q-1",
+            question: "¿Debo facturar electrónicamente?",
+            answer: "Sí…",
+            citations: [],
+            created_at: "2026-08-01T10:00:00Z",
+          },
+        ],
+      }),
+    });
+    render(
+      <HistoryShell signedIn>
+        <p>contenido principal</p>
+      </HistoryShell>,
+    );
+    const nav = await screen.findByRole("navigation", { name: "Historial" });
+    within(nav).getAllByRole("button")[0].focus();
+    expect(nav.contains(document.activeElement)).toBe(true);
+
+    const toggle = screen.getByRole("button", { name: "Ocultar historial" });
+    // Fire the handler without the click moving focus first — this is the
+    // Safari path, where a clicked button does not take focus.
+    const { fireEvent } = await import("@testing-library/react");
+    fireEvent.click(toggle);
+
+    expect(document.activeElement).toBe(toggle);
   });
 
   it("signed in: fetches history and shows the sidebar", async () => {

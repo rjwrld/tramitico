@@ -14,6 +14,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 import { HistoryRefreshProvider } from "./history-refresh";
@@ -72,6 +73,20 @@ export function HistoryShell({
   const [selected, setSelected] = useState<HistoryItem | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  // The desktop sidebar and its toggle (DESIGN §8, panel transitions): the
+  // fold is a width + opacity transition, so the aside stays mounted while
+  // closed — `inert` keeps it out of the tab order and the accessibility
+  // tree, which is what unmounting used to buy. Folding with focus still
+  // inside it (Safari does not move focus to a clicked button) would let
+  // `inert` drop focus to `<body>`, so the toggle takes it first.
+  const asideRef = useRef<HTMLElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const toggleSidebar = () => {
+    if (!collapsed && asideRef.current?.contains(document.activeElement)) {
+      toggleRef.current?.focus();
+    }
+    setCollapsed(!collapsed);
+  };
   // Read by `refresh`, which must compare against whatever the list holds at
   // the moment it runs — not the render it was created in.
   const newestIdRef = useRef<string | null>(null);
@@ -207,12 +222,21 @@ export function HistoryShell({
   return (
     <div className="flex min-h-0 flex-1">
       {/* DESIGN §7: the sidebar collapses first — hidden on small screens,
-          unmounted (not css-hidden) when toggled closed. */}
-      {!collapsed && (
-        <aside className="hidden w-64 shrink-0 border-r md:flex md:flex-col">
-          {sidebar()}
-        </aside>
-      )}
+          folded to zero width (inert, not unmounted) when toggled closed. The
+          inner column keeps its 16rem so the list never re-wraps mid-fold;
+          the border rides on it so nothing is left behind at width 0. */}
+      <aside
+        ref={asideRef}
+        inert={collapsed}
+        aria-hidden={collapsed}
+        className={cn(
+          "hidden shrink-0 overflow-hidden md:flex",
+          "transition-[width,opacity] duration-200 ease-out-quart motion-reduce:transition-opacity",
+          collapsed ? "w-0 opacity-0" : "w-64 opacity-100",
+        )}
+      >
+        <div className="flex w-64 shrink-0 flex-col border-r">{sidebar()}</div>
+      </aside>
       {/* The ground owns its scroll (issue #172). Without `min-h-0` this
           column grew to its content instead, spilling out of the `h-dvh`
           shell and making the *document* the scroller — which took the
@@ -252,12 +276,13 @@ export function HistoryShell({
             </SheetContent>
           </Sheet>
           <Button
+            ref={toggleRef}
             variant="ghost"
             size="icon-sm"
             aria-label={collapsed ? "Mostrar historial" : "Ocultar historial"}
             aria-expanded={!collapsed}
             className="hidden md:inline-flex"
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={toggleSidebar}
           >
             <PanelLeft />
           </Button>
