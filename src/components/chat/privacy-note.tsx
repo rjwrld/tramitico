@@ -11,8 +11,10 @@ import Link from "next/link";
  * a footer nobody scrolls to.
  *
  * Quiet, like the answer disclaimer it rhymes with (DESIGN §9: "always
- * present, always quiet, never a modal") — 12px muted, one line of prose, and
- * the link to the full page carries the only emphasis.
+ * present, always quiet, never a modal") — 11px muted (DESIGN §3's meta size),
+ * snug leading, one paragraph of prose, and the link to the full page carries
+ * the only emphasis. Both facts stay visible; the size and leading are what
+ * keep the note to three lines on a phone, inside the pinned composer bar.
  */
 
 /** Where the full privacy statement lives. One constant; the page and the link agree. */
@@ -26,7 +28,10 @@ export const PRIVACY_LINK_LABEL = "Ver cómo se tratan sus datos";
 
 export function PrivacyNote() {
   return (
-    <p data-slot="privacy-note" className="text-xs text-muted-foreground">
+    <p
+      data-slot="privacy-note"
+      className="text-[0.6875rem] leading-snug text-pretty text-muted-foreground"
+    >
       {PRIVACY_DISCLOSURE}{" "}
       <Link href={PRIVACY_PATH} className="underline underline-offset-4">
         {PRIVACY_LINK_LABEL}

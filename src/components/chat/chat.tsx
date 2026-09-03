@@ -65,7 +65,17 @@ interface Completion {
   text: string;
 }
 
-export function Chat() {
+export function Chat({
+  corpusCaption,
+}: {
+  /**
+   * The record line under the empty state's headline (`corpusCaption` in
+   * lib/corpus-summary.ts) — read from the manifest on the server and passed
+   * down, so this client component never bundles the manifest. Absent, the
+   * headline stands alone.
+   */
+  corpusCaption?: string;
+} = {}) {
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [completion, setCompletion] = React.useState<Completion | null>(null);
   // #74 (audit F-49): `status` catches up with a click a render or two
@@ -156,13 +166,45 @@ export function Chat() {
 
   if (messages.length === 0) {
     return (
-      <div className="mx-auto flex w-full max-w-[44rem] flex-1 flex-col justify-center gap-8 px-4 py-8">
-        <h1 className="text-center font-serif text-[2rem] font-semibold tracking-display text-balance">
-          ¿Qué trámite le quita el sueño?
-        </h1>
-        <SeedPrompts onSelect={ask} disabled={busy} />
-        {errorMessage && <InlineError message={errorMessage} onRetry={retry} />}
-        <ChatInput onSubmit={ask} onStop={() => void stop()} busy={busy} />
+      <div className="flex min-h-0 flex-1 flex-col">
+        {/* The invitation scrolls; the composer does not. On a phone the ten
+            seeded prompts run past the fold, and a centered stack put the
+            field itself below it — a first-time visitor saw no place to
+            type. The composer takes the same pinned bottom slot it has in
+            the conversation, and the headline + prompts center in whatever
+            space is left (`my-auto` on the child, not `justify-center` on the
+            scroller: the latter clips the top once the content overflows). */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-safe">
+          <div className="mx-auto my-auto flex w-full max-w-[44rem] flex-col gap-8 py-8">
+            <div className="flex flex-col gap-3">
+              <h1 className="text-center font-serif text-[2rem] font-semibold tracking-display text-balance">
+                ¿Qué trámite le quita el sueño?
+              </h1>
+              {/* The expediente line: what is open on the desk before the
+                  first question. Geist Mono in the 11px meta slot — the
+                  sello's caption voice (DESIGN §3, §5) — tabular so the
+                  count sits like a figure in a ledger. A caption under the
+                  heading, never an eyebrow above it. */}
+              {corpusCaption && (
+                <p
+                  data-slot="corpus-caption"
+                  className="text-center font-mono text-[0.6875rem] tracking-[0.03em] text-balance text-muted-foreground tabular-nums"
+                >
+                  {corpusCaption}
+                </p>
+              )}
+            </div>
+            <SeedPrompts onSelect={ask} disabled={busy} />
+            {errorMessage && (
+              <InlineError message={errorMessage} onRetry={retry} />
+            )}
+          </div>
+        </div>
+        <div className="crossfade-ground border-t border-border bg-background pt-2 pb-safe">
+          <div className="mx-auto w-full max-w-[44rem] px-safe">
+            <ChatInput onSubmit={ask} onStop={() => void stop()} busy={busy} />
+          </div>
+        </div>
       </div>
     );
   }
@@ -250,7 +292,7 @@ export function Chat() {
         {/* The composer sits on the bottom edge, so it clears the home
             indicator itself (#138) — 16px or the device's inset, whichever is
             larger. */}
-        <div className="crossfade-ground sticky bottom-0 bg-background pt-2 pb-safe">
+        <div className="crossfade-ground sticky bottom-0 border-t border-border bg-background pt-2 pb-safe">
           <div className="mx-auto w-full max-w-[44rem] px-safe">
             <ChatInput
               onSubmit={ask}

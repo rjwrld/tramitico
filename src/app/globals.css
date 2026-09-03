@@ -118,6 +118,10 @@
      own `tracking-tight` is -0.025em, past that floor — display headings use
      `tracking-display` instead. */
   --tracking-display: -0.02em;
+  /* DESIGN §8: the one easing curve. `ease-out-quart` as a utility so the
+     surfaces that transition (sheet, theme crossfade, stamp) share it by
+     name rather than by pasted bezier. */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: calc(var(--radius) - 1px);
   --radius-lg: var(--radius);

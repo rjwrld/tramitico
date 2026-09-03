@@ -58,7 +58,12 @@ export function UserMenu({ email }: { email: string }) {
     >
       <DropdownMenuTrigger
         render={
-          <Button variant="ghost" size="icon" aria-label="Cuenta">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="pointer-coarse:size-11"
+            aria-label="Cuenta"
+          >
             <Avatar className="size-7">
               <AvatarFallback>{(email[0] ?? "?").toUpperCase()}</AvatarFallback>
             </Avatar>

@@ -1103,3 +1103,39 @@ describe("Chat history-save toast (#139)", () => {
     expect(refresh).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * The record line under the empty state's headline: what the desk has open
+ * before the first question. Supplied by the server page (it reads the
+ * manifest); the client component renders exactly what it is handed, and
+ * nothing when handed nothing.
+ */
+describe("Chat empty-state corpus caption", () => {
+  it("renders the caption under the headline", () => {
+    render(
+      <Chat corpusCaption="19 documentos oficiales · cada respuesta cita el artículo" />,
+    );
+
+    const caption = document.querySelector('[data-slot="corpus-caption"]');
+    expect(caption?.textContent).toBe(
+      "19 documentos oficiales · cada respuesta cita el artículo",
+    );
+    // A caption, not a heading: the h1 stays the one heading of the view.
+    expect(screen.getAllByRole("heading")).toHaveLength(1);
+  });
+
+  it("renders nothing when no caption is supplied", () => {
+    render(<Chat />);
+
+    expect(document.querySelector('[data-slot="corpus-caption"]')).toBeNull();
+  });
+
+  it("does not follow the headline into the conversation", () => {
+    chat.messages = conversation;
+    render(
+      <Chat corpusCaption="19 documentos oficiales · cada respuesta cita el artículo" />,
+    );
+
+    expect(document.querySelector('[data-slot="corpus-caption"]')).toBeNull();
+  });
+});

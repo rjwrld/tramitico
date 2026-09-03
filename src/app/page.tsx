@@ -5,6 +5,7 @@ import { Chat } from "@/components/chat/chat";
 import { HistoryShell } from "@/components/history/history-shell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
+import { CORPUS_DOCUMENT_COUNT, corpusCaption } from "@/lib/corpus-summary";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function Home() {
@@ -29,7 +30,11 @@ export default async function Home() {
           ) : (
             <Link
               href="/login"
-              className={buttonVariants({ variant: "outline", size: "sm" })}
+              className={buttonVariants({
+                variant: "outline",
+                size: "sm",
+                className: "pointer-coarse:h-11",
+              })}
             >
               Iniciar sesión
             </Link>
@@ -38,7 +43,7 @@ export default async function Home() {
       </header>
       <HistoryShell signedIn={signedIn}>
         <main className="flex min-h-0 flex-1 flex-col">
-          <Chat />
+          <Chat corpusCaption={corpusCaption(CORPUS_DOCUMENT_COUNT)} />
         </main>
       </HistoryShell>
     </div>
