@@ -161,6 +161,7 @@ describe("docShortName covers the manifest", () => {
       "reglamento-rts": "Reglamento RTS",
       "reglamento-comprobantes": "Reglamento Comprobantes",
       "disposiciones-v44": "Disposiciones v4.4",
+      "tribu-cr-faq": "TRIBU CR FAQ",
       "tribu-cr-guia": "TRIBU CR Guía",
       "cabys-dev": "CABYS Dev",
     });

@@ -244,6 +244,138 @@ export interface ChunkOptions {
    * manifest knows.
    */
   articulo?: string;
+  /**
+   * Segment a FAQ into one chunk per numbered question. The section heading
+   * becomes the chunk path and the citable label is `<section> · <number>`.
+   * `minimum` is a source-shape guard: a re-published PDF that no longer
+   * exposes its question headings must fail before it can replace good rows.
+   */
+  questions?: { minimum: number };
+}
+
+// A real question can start with the inverted mark (the common case) or with
+// a short lead-in before it ("20. Si una persona…, ¿puede…?"). Keeping the
+// look-ahead bounded prevents numbered answer lists from becoming boundaries
+// merely because a later sentence happens to contain a question mark.
+const QUESTION_RE = /(?:^|\s)(\d{1,3})\.\s+(?=(?:¿|[^.?!]{1,180}¿))/;
+const UNNUMBERED_QUESTION_RE = /^¿[^?]{1,300}\?/;
+const PAGE_NUMBER_RE = /^(?:[1-9]|[1-3]\d|4[0-3])(?:\s+|$)/;
+
+function faqSection(text: string): string | null {
+  const candidate = text.replace(PAGE_NUMBER_RE, "").trim();
+  if (
+    candidate.length === 0 ||
+    candidate.split(/\s+/).length > 12 ||
+    /[.!?¿:;]/.test(candidate)
+  ) {
+    return null;
+  }
+  // The document's broad visual heading says "Declaraciones y Pagos", but
+  // the numbered 1–64 sequence is specifically its RUT declarations family.
+  // Use the corpus section identity from #257 so its repeated numbers remain
+  // unambiguous to eval targets and readers.
+  return candidate === "Declaraciones y Pagos"
+    ? "Declaraciones del RUT"
+    : candidate;
+}
+
+/** Question-specific segmentation for Hacienda's TRIBU-CR FAQ shape. */
+export function chunkQuestions(
+  docKey: string,
+  title: string,
+  paragraphs: string[],
+  minimum: number,
+): Chunk[] {
+  if (!Number.isInteger(minimum) || minimum < 1) {
+    throw new Error(`${docKey}: question minimum must be a positive integer`);
+  }
+
+  const chunks: Chunk[] = [];
+  let section: string | null = null;
+  let number: number | null = null;
+  let body: string[] = [];
+
+  const flush = () => {
+    if (number === null || section === null) return;
+    const articulo = `${section} · ${number}`;
+    chunks.push({
+      docKey,
+      articulo,
+      path: [section],
+      part: 0,
+      content: `[${title} — ${section} — ${articulo}] ${body.join(" ").trim()}`,
+    });
+    body = [];
+  };
+
+  for (let i = 0; i < paragraphs.length; i++) {
+    const raw = paragraphs[i].trim();
+    if (raw.length === 0) continue;
+
+    const question = raw.match(QUESTION_RE);
+    if (question?.index !== undefined) {
+      const prefix = raw.slice(0, question.index).trim();
+      const inlineSection = faqSection(prefix);
+      if (inlineSection) {
+        // The previous answer ends before this new, page-number-prefixed
+        // section. Flush while the old path is still current.
+        flush();
+        number = null;
+        body = [];
+        section = inlineSection;
+      }
+
+      // Ignore numbered text until a section heading establishes that this is
+      // the FAQ body (rather than its numbered table of contents).
+      if (section === null) continue;
+      if (!inlineSection) flush();
+      number = Number(question[1]);
+      body = [raw.slice(question.index).trim()];
+      continue;
+    }
+
+    const standaloneSection = faqSection(raw);
+    const nextQuestion = paragraphs[i + 1]?.trim().match(QUESTION_RE);
+    if (
+      standaloneSection &&
+      nextQuestion &&
+      (number === null || nextQuestion[1] === "1")
+    ) {
+      flush();
+      number = null;
+      body = [];
+      section = standaloneSection;
+      continue;
+    }
+
+    // The published PDF omits "6." from one otherwise ordinary question.
+    // Infer only a single-number gap confirmed by the following heading; an
+    // arbitrary unnumbered question still stays with the current answer.
+    const nextNumber = nextQuestion ? Number(nextQuestion[1]) : null;
+    if (
+      section !== null &&
+      number !== null &&
+      UNNUMBERED_QUESTION_RE.test(raw) &&
+      nextNumber === number + 2
+    ) {
+      flush();
+      number += 1;
+      body = [raw];
+      continue;
+    }
+
+    if (number !== null) {
+      body.push(raw.replace(PAGE_NUMBER_RE, "").trim());
+    }
+  }
+  flush();
+
+  if (chunks.length < minimum) {
+    throw new Error(
+      `${docKey}: found ${chunks.length} question headings; expected at least ${minimum}`,
+    );
+  }
+  return chunks;
 }
 
 export function chunkDocument(
@@ -252,6 +384,14 @@ export function chunkDocument(
   paragraphs: string[],
   options: ChunkOptions = {},
 ): Chunk[] {
+  if (options.questions && options.articulo !== undefined) {
+    throw new Error(
+      `${docKey}: question chunking and a fixed articulo are mutually exclusive`,
+    );
+  }
+  if (options.questions) {
+    return chunkQuestions(docKey, title, paragraphs, options.questions.minimum);
+  }
   if (options.articulo !== undefined) {
     // No body, no chunk (#206). `[].join(" ")` is `""`, and `"".split(" ")` is
     // `[""]`, so without this guard a document whose extraction recovered

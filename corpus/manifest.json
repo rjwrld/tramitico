@@ -263,6 +263,62 @@
       "notes": "Mandatory since 2025-09-01. SINALEVI vigente text is consolidated with reforms MH-DGT-RES-0001-2025 and MH-DGT-RES-0043-2025 — preferred over the original hacienda.go.cr PDF, whose transition dates are superseded. EXCERPT (#256): keeps every operative artículo (1–13) and Transitorio (I–III), ending after artículo 13 and before the separately titled «Anexos y Estructuras». The excluded 7,000+ extracted blocks are implementation annexes: schemas and XML samples, certificate/base64 payloads, signature examples, API/OAuth URLs and credential instructions. They are vendor-facing noise, not audience law, and previously dominated lexical retrieval. IMAGE AUDIT (#150): 10 images, none carrying substance — 8 are Word drawing-canvas strokes and 2 are redundant digit-layout diagrams."
     },
     {
+      "doc_key": "tribu-cr-faq",
+      "title": "Preguntas y respuestas TRIBU-CR y la OVi",
+      "norma": null,
+      "source": {
+        "kind": "hacienda-pdf",
+        "url": "https://www.hacienda.go.cr/docs/dPreguntasYRespuestasDeTRIBU-CR.pdf",
+        "pages": "9-43",
+        "sha256": "422dce862c0676cd63dd181db227f04dd4cb33f2364ca59da5b95124e0b1daf9",
+        "deepLink": "page"
+      },
+      "chunking": {
+        "questions": {
+          "minimum": 150
+        }
+      },
+      "imagesAudited": [
+        "p9-obj5-0",
+        "p10-obj5-0",
+        "p11-obj5-0",
+        "p12-obj5-0",
+        "p13-obj5-0",
+        "p14-obj5-0",
+        "p15-obj5-0",
+        "p16-obj5-0",
+        "p17-obj5-0",
+        "p18-obj5-0",
+        "p19-obj5-0",
+        "p20-obj5-0",
+        "p21-obj5-0",
+        "p22-obj5-0",
+        "p23-obj5-0",
+        "p24-obj5-0",
+        "p25-obj5-0",
+        "p26-obj5-0",
+        "p27-obj5-0",
+        "p28-obj5-0",
+        "p29-obj5-0",
+        "p29-obj404-0",
+        "p30-obj5-0",
+        "p31-obj5-0",
+        "p32-obj5-0",
+        "p33-obj5-0",
+        "p34-obj5-0",
+        "p35-obj5-0",
+        "p36-obj5-0",
+        "p37-obj5-0",
+        "p38-obj5-0",
+        "p39-obj5-0",
+        "p40-obj5-0",
+        "p41-obj5-0",
+        "p42-obj5-0",
+        "p43-obj5-0"
+      ],
+      "notes": "Official procedural FAQ for the current TRIBU-CR/OVi flows. Pages 1–8 are the index and are excluded; pages 9–43 contain the answers. Questions are chunked individually under their section; the broad printed heading «Declaraciones y Pagos» is given the specific corpus identity «Declaraciones del RUT», including questions 31–47 for desinscripción. Hacienda publishes this PDF without a printed date and may replace it at the same URL: SHA-256 audited 2026-09-03 is 422dce862c0676cd63dd181db227f04dd4cb33f2364ca59da5b95124e0b1daf9; ingestion logs a warning when the fetched bytes differ. Deep link page (#134): chips land on page 9, the first ingested page; the source has no stable per-question anchors. The PDF metadata says it was created 2025-10-05, and the body describes the 2025 TRIBU-CR rollout. IMAGE AUDIT (#150): 35 substantial images are the decorative full-page background, repeated once on every ingested page. The remaining substantial image, p29-obj404-0, is an OVi alert screenshot whose substance is repeated in the surrounding selectable answer (annual RUT update required; click «Aceptar» to enter the form). Repeated «Clic aquí para volver al inicio» artwork falls below the substantial-image floor and is navigation, not answer content. All substantive FAQ text is selectable and extracted with pdftotext."
+    },
+    {
       "doc_key": "tribu-cr-guia",
       "title": "TRIBU-CR — comunicado y guía oficial de transición",
       "norma": "CP-39-2025",

@@ -31,7 +31,7 @@ import {
   imageMarkupNotice,
   textToParagraphs,
 } from "../src/lib/ingestion/extract";
-import { fetchHaciendaPdf } from "../src/lib/ingestion/hacienda";
+import { fetchHaciendaPdf, pdfHashNotice } from "../src/lib/ingestion/hacienda";
 import type { LayoutTableSpec } from "../src/lib/ingestion/layout-table";
 import { fetchPdfSource } from "../src/lib/ingestion/pdf";
 import { pdfImageNotice } from "../src/lib/ingestion/pdf-images";
@@ -76,6 +76,8 @@ interface ManifestDoc {
      * a page-ranged PDF) or `none` (document root is the deepest honest link).
      */
     deepLink: DeepLinkKind;
+    /** Audited SHA-256 for an official PDF that is silently republished. */
+    sha256?: string;
     /** `sinalevi` only: artículo number → viewer id, harvested at ingestion. */
     articulos?: Record<string, number>;
   };
@@ -305,6 +307,11 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
     }
     case "hacienda-pdf": {
       const pdf = await fetchHaciendaPdf(doc.source.url!);
+      if (doc.source.sha256) {
+        const notice = pdfHashNotice(doc.doc_key, pdf, doc.source.sha256);
+        if (notice.level === "warn") console.warn(`  ⚠ ${notice.message}`);
+        else console.log(`  ${notice.message}`);
+      }
       return textToParagraphs(pdfToText(doc, pdf), {
         table: doc.layoutTable,
         labelRail: doc.labelRail,
