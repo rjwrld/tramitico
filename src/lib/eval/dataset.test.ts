@@ -2,10 +2,12 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  abstentionCases,
   caseHit,
   chunkMatchesTarget,
   DATASET_PATH,
   parseDataset,
+  retrievalCases,
 } from "./dataset";
 
 const line = (obj: object) => JSON.stringify(obj);
@@ -56,6 +58,134 @@ describe("parseDataset", () => {
 
   it("rejects malformed JSON with the offending line number", () => {
     expect(() => parseDataset(`${line(CASE)}\nnot json`)).toThrow(/line 2/i);
+  });
+});
+
+describe("parseDataset coverage contract (#261)", () => {
+  const TIER1 = {
+    ...CASE,
+    tier: 1,
+    family: "T1-D",
+    requiredClaims: [
+      "el hecho generador ocurre al prestar el servicio",
+      { claim: "la tarifa general es 13 %", literal: ["13 %", "13%"] },
+    ],
+    requiredSteps: ["declarar en TRIBU-CR"],
+    freshness: ["ley-iva"],
+  };
+  const ABSTAIN = {
+    id: "fuera-de-alcance",
+    seed: "held-out",
+    question: "¿Cuánto cobro por hora?",
+    tier: "abstain",
+    abstainIf: "no existe fuente oficial de tarifas de mercado",
+    routeTo: "un colegio profesional",
+  };
+
+  it("defaults a case with no tier to tier 2, non-blocking", () => {
+    const [only] = parseDataset(line(CASE));
+    expect(only.tier).toBe(2);
+    expect(only.blocking).toBe(false);
+    expect(only.requiredClaims).toBeUndefined();
+  });
+
+  it("keeps the whole contract of a tier 1 case, blocking by default", () => {
+    const [only] = parseDataset(line(TIER1));
+    expect(only.tier).toBe(1);
+    expect(only.family).toBe("T1-D");
+    expect(only.blocking).toBe(true);
+    // A bare string is the judged form; the object form carries the literals.
+    expect(only.requiredClaims).toEqual([
+      { claim: "el hecho generador ocurre al prestar el servicio" },
+      { claim: "la tarifa general es 13 %", literal: ["13 %", "13%"] },
+    ]);
+    expect(only.requiredSteps).toEqual(["declarar en TRIBU-CR"]);
+    expect(only.freshness).toEqual(["ley-iva"]);
+  });
+
+  it("refuses a tier 1 case that does not carry what makes it checkable", () => {
+    expect(() => parseDataset(line({ ...TIER1, family: undefined }))).toThrow(
+      /family/,
+    );
+    expect(() =>
+      parseDataset(line({ ...TIER1, requiredClaims: undefined })),
+    ).toThrow(/requiredClaims/);
+    expect(() => parseDataset(line({ ...TIER1, blocking: false }))).toThrow(
+      /always blocking/,
+    );
+  });
+
+  it("rejects a non-boolean blocking rather than reading it as false", () => {
+    expect(() => parseDataset(line({ ...CASE, blocking: "false" }))).toThrow(
+      /blocking must be a boolean/,
+    );
+    expect(() => parseDataset(line({ ...TIER1, blocking: "false" }))).toThrow(
+      /blocking must be a boolean/,
+    );
+  });
+
+  it("rejects an unknown tier or family", () => {
+    expect(() => parseDataset(line({ ...CASE, tier: 3 }))).toThrow(/tier/);
+    expect(() => parseDataset(line({ ...TIER1, family: "T1-Z" }))).toThrow(
+      /family/,
+    );
+  });
+
+  it("caps requiredClaims at five", () => {
+    expect(() =>
+      parseDataset(
+        line({ ...TIER1, requiredClaims: ["a", "b", "c", "d", "e", "f"] }),
+      ),
+    ).toThrow(/at most 5/);
+  });
+
+  it("rejects an empty or malformed claim, step or freshness list", () => {
+    expect(() => parseDataset(line({ ...TIER1, requiredClaims: [] }))).toThrow(
+      /non-empty array/,
+    );
+    expect(() =>
+      parseDataset(
+        line({ ...TIER1, requiredClaims: [{ claim: "x", literal: [] }] }),
+      ),
+    ).toThrow(/literal must be a non-empty array/);
+    expect(() =>
+      parseDataset(line({ ...TIER1, requiredClaims: [{}] })),
+    ).toThrow(/claim/);
+    expect(() => parseDataset(line({ ...TIER1, requiredSteps: [""] }))).toThrow(
+      /requiredSteps must hold non-empty strings/,
+    );
+    expect(() => parseDataset(line({ ...TIER1, freshness: [] }))).toThrow(
+      /freshness must be a non-empty array/,
+    );
+  });
+
+  it("lets an abstention case carry no expected target, and requires abstainIf and routeTo", () => {
+    const [only] = parseDataset(line(ABSTAIN));
+    expect(only.expected).toEqual([]);
+    expect(only.blocking).toBe(false);
+    expect(only.routeTo).toBe("un colegio profesional");
+    expect(() =>
+      parseDataset(line({ ...ABSTAIN, abstainIf: undefined })),
+    ).toThrow(/abstainIf/);
+    // Both halves of the verdict: declining into a dead end is still a fail.
+    expect(() =>
+      parseDataset(line({ ...ABSTAIN, routeTo: undefined })),
+    ).toThrow(/routeTo/);
+    expect(() =>
+      parseDataset(line({ ...ABSTAIN, expected: CASE.expected })),
+    ).toThrow(/no expected targets/);
+  });
+
+  it("still demands expected targets on every other tier", () => {
+    expect(() => parseDataset(line({ ...CASE, expected: undefined }))).toThrow(
+      /missing expected targets/,
+    );
+  });
+
+  it("splits the lanes: abstention cases out of retrieval, and only them in", () => {
+    const cases = parseDataset(`${line(TIER1)}\n${line(ABSTAIN)}`);
+    expect(retrievalCases(cases).map((c) => c.id)).toEqual([TIER1.id]);
+    expect(abstentionCases(cases).map((c) => c.id)).toEqual([ABSTAIN.id]);
   });
 });
 
@@ -168,9 +298,9 @@ describe("caseHit", () => {
 describe("eval/dataset.jsonl", () => {
   const cases = parseDataset(readFileSync(DATASET_PATH, "utf8"));
 
-  it("holds 25–40 cases (SPEC §9)", () => {
+  it("holds 25–45 cases (SPEC §9)", () => {
     expect(cases.length).toBeGreaterThanOrEqual(25);
-    expect(cases.length).toBeLessThanOrEqual(40);
+    expect(cases.length).toBeLessThanOrEqual(45);
   });
 
   it("carries the #132 condensation cases, each with its turns", () => {

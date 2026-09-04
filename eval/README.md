@@ -1,8 +1,9 @@
 # Eval dataset (SPEC §9, issues #25/#26)
 
-`dataset.jsonl` holds the 30±5 hand-written eval questions — Appendix A's ten
-pain questions plus corpus-derived ones — each with the source docs/artículos a
-correct retrieval must surface. One JSON object per line:
+`dataset.jsonl` holds the hand-written eval questions — Appendix A's nine Tier 1
+seeds (#264) plus demand- and corpus-derived ones — each with the source
+docs/artículos a correct retrieval must surface. SPEC §9 caps it at 45 until
+#261's held-out set replaces the band. One JSON object per line:
 
 ```json
 {
@@ -202,6 +203,126 @@ a clean corpus the gate _does_ see a quality gap, and Sonnet 5 stays the
 default on quality grounds, not just inertia. The 2026-08-06 numbers (7
 questions short-circuited to the deterministic fallback by a polluted corpus)
 should not be quoted.
+
+## Coverage contract: tiers, required claims, abstention (issues #130, #261)
+
+`expected` is a claim about **retrieval** — did the right artículo reach the
+model? It says nothing about what the answer then did with it. Since #261 a
+case also carries its place in the coverage contract of the #254 map:
+
+```json
+{
+  "id": "ccss-cuanto-pago",
+  "seed": "held-out",
+  "question": "¿Cuánto es lo mínimo que se paga a la Caja como independiente?",
+  "tier": 1,
+  "family": "T1-F",
+  "expected": [{ "docKey": "ccss-escala-salud" }],
+  "requiredClaims": [
+    {
+      "claim": "la cuota del afiliado es 6,71 %",
+      "literal": ["6,71 %", "6,71%"]
+    },
+    "la cuota se calcula sobre el ingreso de referencia declarado"
+  ],
+  "requiredSteps": ["dónde se declara y actualiza el ingreso de referencia"],
+  "freshness": ["salarios-minimos"],
+  "notes": "…"
+}
+```
+
+- `tier` — `1` (the published beta promise), `2` (measured, not advertised) or
+  `"abstain"`. Defaults to `2`, which is what every pre-#261 case is.
+- `family` — `T1-A`…`T1-I`, the nine Tier 1 families of the coverage contract.
+  **Required on tier 1**, and so are `requiredClaims`; `blocking` defaults to
+  `true` there and may not be set to `false`. The parser refuses a tier 1 case
+  that does not carry what makes it checkable, so the contract cannot be
+  claimed without the evidence for it.
+- `requiredClaims` — at most five short, verifiable things the answer must
+  say. A bare string is judged; the object form with `literal` is **not
+  judged** — it lists the accepted spellings of a figure or date, one of which
+  must appear verbatim _and_ carry a `[n]` before its sentence ends. A number
+  is either printed with a source beside it or it is not, and that needs a
+  regex, not a model.
+- `requiredSteps` — for a procedural case, the next steps the answer owes the
+  reader (the portal, the form, the deadline).
+- `abstainIf` — the condition that obliges a decline. **Required on an
+  abstention case**, where it is what the abstention judge checks; optional
+  elsewhere, where it documents the edge the case does not cover.
+- `routeTo` — the institution or professional an abstention must name. Also
+  **required on an abstention case**: the verdict has two halves, and without a
+  named destination there is nothing to check the routing against.
+- `freshness` — docKeys whose figures the answer depends on: the ones a decree
+  cycle invalidates.
+
+An abstention case is the one kind with **no `expected` targets** — the point
+is that no correct source exists — so the retrieval and groundedness lanes skip
+it (`retrievalCases()`), and it is judged on whether it declined and routed.
+
+### The adequacy gate (#130)
+
+`src/lib/eval/adequacy.ts` is the second question the eval asks, and it is
+deliberately independent of groundedness. Groundedness passes an answer that is
+supported and incomplete — "sí, debe asegurarse en la CCSS", never saying what
+the cuota is. Adequacy asks whether the answer contained what the reader came
+for. Three checks, in ascending order of trust required:
+
+1. `checkLiterals` — regex, no model, for every claim with `literal`.
+2. `judgeAdequacy` — the pinned judge at temperature 0, one requirement at a
+   time, for the prose claims and steps; same fail → re-judge → majority
+   orchestration as the groundedness judge, so both gates behave the same way
+   under flakiness.
+3. `judgeAbstention` — "did it decline **and** route?", paired with
+   `figureMentions`, the deterministic check that a refusal printed no invented
+   colón amount or percentage.
+
+The rule that gives the gate teeth is in none of the three: **a weak-retrieval
+decline on a case that declares required claims is an adequacy failure**
+(`declineAdequacy`). Groundedness passes that decline — it claims nothing — so
+without the rule the honest fallback would be a way to score full marks on a
+question the product promised to answer.
+
+Thresholds: **tier 1 is per-case blocking** (100 %, no rate — a strong average
+must never hide a red Tier 1 case), tier 2 is an aggregate
+`ADEQUACY_TIER2_GATE` of 0.8. Both run inside `groundedness.eval.test.ts`,
+which already has the answers, so the gate costs judge calls rather than a
+second pass of the whole pipeline.
+
+`src/lib/eval/adequacy.eval.test.ts` is the fixture that pins the behavior:
+a hand-written CCSS answer, supported by its fragments and missing the rate,
+**passes groundedness and fails adequacy** — with a complete version of the
+same answer as the positive control, so a judge stuck on one verdict is
+visible. It needs no database and no embeddings:
+
+```sh
+ANTHROPIC_API_KEY=<key> \
+pnpm vitest run src/lib/eval/adequacy.eval.test.ts
+```
+
+### The abstention lane (#261)
+
+`src/lib/eval/abstention.eval.test.ts` runs the `"abstain"` cases through the
+same production path and asks the binary question: did it decline, **and** did
+it name where to go? Both routes are measured — the deterministic
+weak-retrieval fallback and, when a question's vocabulary retrieves well
+anyway, rule 6 of the answer prompt. Gate: correct abstention ≥ 90 %
+(`ABSTENTION_GATE`), and **zero invented figures** (`figureMentions`), since an
+answer with no fragments behind it that prints a colón amount or a percentage
+made it up.
+
+Until the held-out abstention cases land, the suite fails on an empty set
+rather than passing vacuously — the #129 rule that a check asserting nothing is
+worse than a red one.
+
+### The citation invariant, at eval time (#168)
+
+The harness used to bypass `validateCitations` entirely: an answer citing
+nothing — which `/api/ask` retries and then refuses to ship (#131) — could
+score a groundedness pass here. `groundedness.eval.test.ts` now runs the same
+runtime check over every generated answer and prints the violations. It is
+**asserted on blocking cases** and reported for the rest: #254 §A3 sets no
+recovery-rate threshold until #195 measures a baseline, and a number nobody has
+measured is not a gate.
 
 ## Adversarial conflicting-sources case (issue #135)
 

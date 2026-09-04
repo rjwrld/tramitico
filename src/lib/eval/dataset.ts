@@ -13,6 +13,16 @@
  * `question` a follow-up. Those cases exist to prove the condensation step
  * earns its keep, so the eval condenses them the way the route does and then
  * runs the standalone result through the same path as every other case.
+ *
+ * Since #261 a case also carries its place in the coverage contract (#254
+ * Part A §A3): `tier`, `family`, and — for the Tier 1 families — the
+ * `requiredClaims`/`requiredSteps` an answer must actually contain. That is a
+ * different question from the one `expected` asks. `expected` is about
+ * retrieval: did the right artículo reach the model? Required claims are about
+ * adequacy: did the answer say the things a reader came for? Groundedness sits
+ * between the two and passes an answer that is supported but incomplete
+ * (#130), which is exactly why the contract needs its own field here and its
+ * own judge in `adequacy.ts`.
  */
 import path from "node:path";
 import type { ConversationTurn } from "../answer/contract";
@@ -32,6 +42,52 @@ export interface ExpectedTarget {
   pathIncludes?: string;
 }
 
+/**
+ * Coverage tier (#254 Part B §B3). Tier 1 is the published beta promise —
+ * every such case is individually blocking on hit-rate, groundedness and
+ * adequacy, and a strong average never excuses a red one. Tier 2 is measured
+ * but not advertised. `"abstain"` is the third kind: a case the product must
+ * decline and route, which is why it is the one tier that carries no
+ * `expected` retrieval targets.
+ */
+export type Tier = 1 | 2 | "abstain";
+
+/** The nine Tier 1 families of the coverage contract (#254 Part B §B3). */
+export const FAMILIES = [
+  "T1-A",
+  "T1-B",
+  "T1-C",
+  "T1-D",
+  "T1-E",
+  "T1-F",
+  "T1-G",
+  "T1-H",
+  "T1-I",
+] as const;
+export type Family = (typeof FAMILIES)[number];
+
+/**
+ * One thing the answer must say. Written short and verifiable, because a
+ * judge reads it one at a time: "la tarifa general del IVA es 13 %", not "the
+ * answer explains IVA".
+ *
+ * `literal` turns the claim into a **deterministic** check instead of a judged
+ * one (#261 req. 3). It lists the accepted spellings of a figure or date —
+ * `["13 %", "13%"]` — one of which must appear verbatim in the answer *and*
+ * carry a citation marker in the same sentence. No judge is asked about a
+ * claim that has `literal`: a number is either printed or it is not, and a
+ * printed number a reader cannot trace to a source is the failure mode the
+ * marker requirement exists to catch. The prose `claim` still travels with it
+ * for the report line.
+ */
+export interface RequiredClaim {
+  claim: string;
+  literal?: string[];
+}
+
+/** A bare string in the JSONL is the judged form of a claim. */
+export type RequiredClaimEntry = string | RequiredClaim;
+
 export interface EvalCase {
   id: string;
   /**
@@ -49,10 +105,111 @@ export interface EvalCase {
    * single-turn case, which is most of them.
    */
   history?: ConversationTurn[];
+  /**
+   * Retrieval targets. Empty only on an abstention case, which has no correct
+   * source by construction — the whole point is that none exists.
+   */
   expected: ExpectedTarget[];
   /** Blocking cases fail the eval on their own, regardless of hit-rate. */
   blocking: boolean;
+  /** Coverage tier; defaults to 2, the tier that promises nothing. */
+  tier: Tier;
+  /** Tier 1 family. Required on tier 1, absent elsewhere. */
+  family?: Family;
+  /** What the answer must contain (≤5). Required on tier 1. */
+  requiredClaims?: RequiredClaim[];
+  /** For a procedural case: the next steps the answer must give. */
+  requiredSteps?: string[];
+  /**
+   * The condition that obliges the answer to decline. Required on an
+   * abstention case, where it is what the abstention judge is told to check
+   * the answer honored; optional elsewhere, where it documents the edge the
+   * case does *not* cover.
+   */
+  abstainIf?: string;
+  /** The institution or professional an abstention must name and route to. */
+  routeTo?: string;
+  /**
+   * docKeys whose figures the answer depends on — the ones that go stale on a
+   * decree cycle. Read by the freshness half of the trust contract, not by
+   * the matcher.
+   */
+  freshness?: string[];
   notes?: string;
+}
+
+/** Cases the retrieval and groundedness lanes run: everything but abstention. */
+export function retrievalCases(cases: readonly EvalCase[]): EvalCase[] {
+  return cases.filter((evalCase) => evalCase.tier !== "abstain");
+}
+
+/** Cases the abstention judge runs. */
+export function abstentionCases(cases: readonly EvalCase[]): EvalCase[] {
+  return cases.filter((evalCase) => evalCase.tier === "abstain");
+}
+
+/** ≤5, per #261 req. 1: a longer list is a case that should have been split. */
+export const MAX_REQUIRED_CLAIMS = 5;
+
+function parseTier(where: string, raw: unknown): Tier {
+  if (raw === undefined) return 2;
+  if (raw === 1 || raw === 2 || raw === "abstain") return raw;
+  throw new Error(`${where}: tier must be 1, 2 or "abstain"`);
+}
+
+function parseFamily(where: string, raw: unknown): Family | undefined {
+  if (raw === undefined) return undefined;
+  if (typeof raw !== "string" || !FAMILIES.includes(raw as Family)) {
+    throw new Error(`${where}: family must be one of ${FAMILIES.join(", ")}`);
+  }
+  return raw as Family;
+}
+
+function parseOptionalString(where: string, raw: unknown): string | undefined {
+  if (raw === undefined) return undefined;
+  if (typeof raw !== "string" || raw === "") {
+    throw new Error(`${where} must be a non-empty string`);
+  }
+  return raw;
+}
+
+function parseStringList(where: string, raw: unknown): string[] | undefined {
+  if (raw === undefined) return undefined;
+  if (!Array.isArray(raw) || raw.length === 0) {
+    throw new Error(`${where} must be a non-empty array`);
+  }
+  for (const item of raw) {
+    if (typeof item !== "string" || item === "") {
+      throw new Error(`${where} must hold non-empty strings`);
+    }
+  }
+  return raw as string[];
+}
+
+function parseRequiredClaims(
+  where: string,
+  raw: unknown,
+): RequiredClaim[] | undefined {
+  if (raw === undefined) return undefined;
+  if (!Array.isArray(raw) || raw.length === 0) {
+    throw new Error(`${where}: requiredClaims must be a non-empty array`);
+  }
+  if (raw.length > MAX_REQUIRED_CLAIMS) {
+    throw new Error(
+      `${where}: at most ${MAX_REQUIRED_CLAIMS} requiredClaims (got ${raw.length})`,
+    );
+  }
+  return (raw as RequiredClaimEntry[]).map((entry, index) => {
+    const at = `${where}: requiredClaims[${index}]`;
+    if (typeof entry === "string") {
+      if (entry === "") throw new Error(`${at} must be a non-empty string`);
+      return { claim: entry };
+    }
+    const claim = parseOptionalString(`${at}.claim`, entry?.claim);
+    if (claim === undefined) throw new Error(`${at} needs a claim`);
+    const literal = parseStringList(`${at}.literal`, entry.literal);
+    return literal === undefined ? { claim } : { claim, literal };
+  });
 }
 
 export function parseDataset(jsonl: string): EvalCase[] {
@@ -76,16 +233,24 @@ export function parseDataset(jsonl: string): EvalCase[] {
         `eval dataset line ${i + 1} (${entry.id}): missing question`,
       );
     }
-    if (!Array.isArray(entry.expected) || entry.expected.length === 0) {
-      throw new Error(
-        `eval dataset line ${i + 1} (${entry.id}): missing expected targets`,
-      );
+    const where = `eval dataset line ${i + 1} (${entry.id})`;
+    const tier = parseTier(where, (entry as { tier?: unknown }).tier);
+    // An abstention case has no correct source, so demanding one would be
+    // demanding the thing the case denies exists.
+    const expected = (entry.expected ?? []) as ExpectedTarget[];
+    if (!Array.isArray(expected)) {
+      throw new Error(`${where}: expected must be an array`);
     }
-    for (const target of entry.expected as ExpectedTarget[]) {
+    if (tier === "abstain") {
+      if (expected.length > 0) {
+        throw new Error(`${where}: an abstention case has no expected targets`);
+      }
+    } else if (expected.length === 0) {
+      throw new Error(`${where}: missing expected targets`);
+    }
+    for (const target of expected) {
       if (typeof target.docKey !== "string" || target.docKey === "") {
-        throw new Error(
-          `eval dataset line ${i + 1} (${entry.id}): target missing docKey`,
-        );
+        throw new Error(`${where}: target missing docKey`);
       }
     }
     if (seen.has(entry.id)) {
@@ -112,6 +277,65 @@ export function parseDataset(jsonl: string): EvalCase[] {
         }
       }
     }
+    const coverage = entry as {
+      family?: unknown;
+      requiredClaims?: unknown;
+      requiredSteps?: unknown;
+      abstainIf?: unknown;
+      routeTo?: unknown;
+      freshness?: unknown;
+    };
+    const family = parseFamily(where, coverage.family);
+    const requiredClaims = parseRequiredClaims(where, coverage.requiredClaims);
+    const requiredSteps = parseStringList(
+      `${where}: requiredSteps`,
+      coverage.requiredSteps,
+    );
+    const freshness = parseStringList(
+      `${where}: freshness`,
+      coverage.freshness,
+    );
+    const abstainIf = parseOptionalString(
+      `${where}: abstainIf`,
+      coverage.abstainIf,
+    );
+    const routeTo = parseOptionalString(`${where}: routeTo`, coverage.routeTo);
+
+    // Checked, not coerced: the old `entry.blocking === true` read any
+    // non-`true` value as false, which would quietly swallow a hand-written
+    // `"blocking": "false"` — a string, so the tier 1 guard below (strict
+    // equality against the boolean) would miss it too, and a case that meant
+    // to opt out would ship blocking. 45 hand-written held-out cases are
+    // exactly the place that typo happens.
+    if (entry.blocking !== undefined && typeof entry.blocking !== "boolean") {
+      throw new Error(`${where}: blocking must be a boolean`);
+    }
+
+    // The Tier 1 contract (#254 §A3), enforced at parse time so a case cannot
+    // claim the beta promise without carrying what makes it checkable.
+    if (tier === 1) {
+      if (family === undefined) {
+        throw new Error(`${where}: a tier 1 case needs a family (T1-A…T1-I)`);
+      }
+      if (requiredClaims === undefined) {
+        throw new Error(`${where}: a tier 1 case needs requiredClaims`);
+      }
+      if (entry.blocking === false) {
+        throw new Error(`${where}: a tier 1 case is always blocking`);
+      }
+    }
+    if (tier === "abstain") {
+      if (abstainIf === undefined) {
+        throw new Error(`${where}: an abstention case needs abstainIf`);
+      }
+      // Both halves, because the verdict has both: an abstention passes only
+      // when it declined *and* routed, and without a named destination the
+      // judge has nothing to check the routing against.
+      if (routeTo === undefined) {
+        throw new Error(`${where}: an abstention case needs routeTo`);
+      }
+    }
+
     cases.push({
       id: entry.id,
       seed: typeof entry.seed === "string" ? entry.seed : "corpus",
@@ -119,8 +343,16 @@ export function parseDataset(jsonl: string): EvalCase[] {
       ...(history === undefined
         ? {}
         : { history: history as ConversationTurn[] }),
-      expected: entry.expected as ExpectedTarget[],
-      blocking: entry.blocking === true,
+      expected,
+      // Tier 1 is blocking by definition; anything else opts in.
+      blocking: entry.blocking ?? tier === 1,
+      tier,
+      ...(family === undefined ? {} : { family }),
+      ...(requiredClaims === undefined ? {} : { requiredClaims }),
+      ...(requiredSteps === undefined ? {} : { requiredSteps }),
+      ...(abstainIf === undefined ? {} : { abstainIf }),
+      ...(routeTo === undefined ? {} : { routeTo }),
+      ...(freshness === undefined ? {} : { freshness }),
       notes: typeof entry.notes === "string" ? entry.notes : undefined,
     });
   }

@@ -13,6 +13,7 @@ const evalCase = (id: string, expected: EvalCase["expected"]): EvalCase => ({
   question: "¿?",
   expected,
   blocking: false,
+  tier: 2,
 });
 
 describe("censusTargets", () => {

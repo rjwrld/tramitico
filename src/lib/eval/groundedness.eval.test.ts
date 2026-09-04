@@ -40,7 +40,22 @@ import { rerankChunks, RERANK_POOL } from "../answer/rerank";
 import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import { retrieve } from "../retrieval";
-import { DATASET_PATH, parseDataset, type EvalCase } from "./dataset";
+import { validateCitations, type CitationVerdict } from "../answer/invariant";
+import {
+  ADEQUACY_TIER2_GATE,
+  checkLiterals,
+  declineAdequacy,
+  judgeAdequacy,
+  judgedRequirements,
+  literalFailures,
+  type AdequacyOutcome,
+} from "./adequacy";
+import {
+  DATASET_PATH,
+  parseDataset,
+  retrievalCases,
+  type EvalCase,
+} from "./dataset";
 import {
   GROUNDEDNESS_GATE,
   judgeAnswer,
@@ -68,10 +83,63 @@ interface CaseResult {
   verdicts: Verdict[];
   reason: string;
   answer: string;
+  /**
+   * The runtime citation invariant, run over the eval's own answers (#168).
+   * The harness used to bypass it entirely, so an answer citing nothing —
+   * which the route would have retried and then refused to ship — could score
+   * a groundedness pass here. `null` on a weak-retrieval decline, which the
+   * route streams without markers by construction.
+   */
+  citations: CitationVerdict | null;
+  /** Absent on a case that declares no requiredClaims/requiredSteps. */
+  adequacy: (AdequacyOutcome & { literals: string[] }) | null;
+}
+
+/**
+ * The adequacy verdict for a case the pipeline declined on weak retrieval:
+ * every requirement missing, no judge call, `null` for a case that declares
+ * none (#261 req. 2).
+ */
+function requirementsOf(
+  evalCase: EvalCase,
+): (AdequacyOutcome & { literals: string[] }) | null {
+  if (
+    evalCase.requiredClaims === undefined &&
+    evalCase.requiredSteps === undefined
+  ) {
+    return null;
+  }
+  return {
+    ...declineAdequacy(judgedRequirements(evalCase)),
+    literals: literalFailures(
+      checkLiterals(WEAK_RETRIEVAL_ANSWER, evalCase.requiredClaims ?? []),
+    ),
+  };
+}
+
+/** Adequacy fails when a judged requirement or a literal check fails. */
+function adequacyFailed(result: CaseResult): boolean {
+  return (
+    result.adequacy !== null &&
+    (result.adequacy.verdict === "fail" || result.adequacy.literals.length > 0)
+  );
+}
+
+function adequacyReason(result: CaseResult): string {
+  const parts = [
+    ...(result.adequacy?.missing ?? []),
+    ...(result.adequacy?.literals ?? []),
+  ];
+  return parts.join("; ");
 }
 
 describeEval("groundedness (eval/dataset.jsonl)", () => {
-  const cases = parseDataset(readFileSync(DATASET_PATH, "utf8"));
+  // Abstention cases have no correct source and must not be answered at all;
+  // they are judged in their own lane (`abstention.eval.test.ts`), not by a
+  // judge asking whether their answer was supported.
+  const cases = retrievalCases(
+    parseDataset(readFileSync(DATASET_PATH, "utf8")),
+  );
   const results: CaseResult[] = [];
 
   beforeAll(async () => {
@@ -104,6 +172,12 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
           verdicts: [],
           reason: "weak-retrieval fallback (no model call)",
           answer: WEAK_RETRIEVAL_ANSWER,
+          citations: null,
+          // …but a decline is never *adequate* on a case that declares
+          // required claims: the satisfiability census says the corpus can
+          // answer it, so declining is a product failure groundedness cannot
+          // see (#261 req. 2).
+          adequacy: requirementsOf(evalCase),
         });
         continue;
       }
@@ -119,7 +193,24 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
       // "is this supported?" about a bare "¿Y si también soy asalariado?"
       // would judge the condensation, not the groundedness.
       const judged = await judgeAnswer(query, chunks, answer);
-      results.push({ evalCase, ...judged, answer });
+      const requirements = judgedRequirements(evalCase);
+      const declaresRequirements =
+        evalCase.requiredClaims !== undefined ||
+        evalCase.requiredSteps !== undefined;
+      results.push({
+        evalCase,
+        ...judged,
+        answer,
+        citations: validateCitations(answer, chunks.length),
+        adequacy: declaresRequirements
+          ? {
+              ...(await judgeAdequacy(query, requirements, answer)),
+              literals: literalFailures(
+                checkLiterals(answer, evalCase.requiredClaims ?? []),
+              ),
+            }
+          : null,
+      });
     }
 
     const passes = results.filter((r) => r.verdict === "pass").length;
@@ -134,9 +225,76 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
           (r.verdict === "fail" ? `  — ${r.reason}` : ""),
       );
     }
+
+    const judgedForAdequacy = results.filter((r) => r.adequacy !== null);
+    console.log(
+      `\nadequacy (#130): ` +
+        `${judgedForAdequacy.filter((r) => !adequacyFailed(r)).length}/` +
+        `${judgedForAdequacy.length}`,
+    );
+    for (const r of judgedForAdequacy) {
+      console.log(
+        `  ${adequacyFailed(r) ? "FAIL" : "pass"}  tier ${r.evalCase.tier}` +
+          `  ${r.evalCase.family ?? "—"}  ${r.evalCase.id}` +
+          (adequacyFailed(r) ? `  — missing: ${adequacyReason(r)}` : ""),
+      );
+    }
+
+    const violations = results.filter(
+      (r) => r.citations !== null && !r.citations.ok,
+    );
+    console.log(
+      `\ncitation invariant (#168): ${violations.length} violation(s)`,
+    );
+    for (const r of violations) {
+      const verdict = r.citations as Exclude<CitationVerdict, { ok: true }>;
+      console.log(
+        `  ${verdict.violation}  ${r.evalCase.id}` +
+          (verdict.unresolved.length > 0
+            ? `  unresolved=${verdict.unresolved.join(",")}`
+            : ""),
+      );
+    }
     // Serial on purpose: shares the Voyage keyless-tier budget with the
     // hit-rate eval (3 requests/min) and keeps Anthropic usage tame.
   }, 5_400_000);
+
+  it("every tier 1 case states all of its required claims and steps", () => {
+    const failed = results
+      .filter((r) => r.evalCase.tier === 1 && adequacyFailed(r))
+      .map((r) => `${r.evalCase.id} (${adequacyReason(r)})`);
+    expect(failed, `inadequate tier 1 answers: ${failed.join("; ")}`).toEqual(
+      [],
+    );
+  });
+
+  it(`at least ${ADEQUACY_TIER2_GATE * 100}% of tier 2 cases with required claims are adequate`, () => {
+    const tier2 = results.filter(
+      (r) => r.evalCase.tier === 2 && r.adequacy !== null,
+    );
+    const failed = tier2
+      .filter(adequacyFailed)
+      .map((r) => `${r.evalCase.id} (${adequacyReason(r)})`);
+    const rate =
+      tier2.length === 0 ? 1 : (tier2.length - failed.length) / tier2.length;
+    expect(
+      rate,
+      `inadequate tier 2 answers: ${failed.join("; ")}`,
+    ).toBeGreaterThanOrEqual(ADEQUACY_TIER2_GATE);
+  });
+
+  it("ships no blocking answer the runtime citation invariant would refuse", () => {
+    // Reported for every case above; asserted only on the blocking ones until
+    // #195 measures a baseline for the rest (#254 §A3: no threshold yet).
+    const failed = results
+      .filter((r) => r.evalCase.blocking)
+      .filter((r) => r.citations !== null && !r.citations.ok)
+      .map(
+        (r) =>
+          `${r.evalCase.id} (${(r.citations as Exclude<CitationVerdict, { ok: true }>).violation})`,
+      );
+    expect(failed, `citation violations: ${failed.join("; ")}`).toEqual([]);
+  });
 
   it(`at least ${GROUNDEDNESS_GATE * 100}% of answers are supported by their retrieved chunks`, () => {
     const failed = results
