@@ -1,8 +1,9 @@
 # Eval dataset (SPEC §9, issues #25/#26)
 
-`dataset.jsonl` holds the 30±5 hand-written eval questions — Appendix A's ten
-pain questions plus corpus-derived ones — each with the source docs/artículos a
-correct retrieval must surface. One JSON object per line:
+`dataset.jsonl` holds the hand-written eval questions — Appendix A's nine Tier 1
+seeds (#264) plus demand- and corpus-derived ones — each with the source
+docs/artículos a correct retrieval must surface. SPEC §9 caps it at 45 until
+#261's held-out set replaces the band. One JSON object per line:
 
 ```json
 {

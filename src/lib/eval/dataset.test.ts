@@ -298,9 +298,9 @@ describe("caseHit", () => {
 describe("eval/dataset.jsonl", () => {
   const cases = parseDataset(readFileSync(DATASET_PATH, "utf8"));
 
-  it("holds 25–40 cases (SPEC §9)", () => {
+  it("holds 25–45 cases (SPEC §9)", () => {
     expect(cases.length).toBeGreaterThanOrEqual(25);
-    expect(cases.length).toBeLessThanOrEqual(40);
+    expect(cases.length).toBeLessThanOrEqual(45);
   });
 
   it("carries the #132 condensation cases, each with its turns", () => {
