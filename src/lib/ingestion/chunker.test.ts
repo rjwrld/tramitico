@@ -539,6 +539,124 @@ describe("chunkDocument — heading captions (#237 defect 1)", () => {
   });
 });
 
+describe("chunkDocument — artículo suffixes (#274)", () => {
+  // Costa Rican legislative practice numbers amendments well past `ter`, and
+  // an unrecognised suffix does not leave a chunk unlabelled — it labels a
+  // distinct artículo with its neighbour's número, which is a confidently
+  // wrong citation.
+  it("labels ordinal suffixes past ter as their own artículo", () => {
+    const chunks = chunkDocument("x", "X", [
+      "Artículo 2- Definiciones.",
+      "Artículo 2 quater - Pertenencia a grupo multinacional.",
+      "Artículo 2 quinquies- Cláusula específica antiabuso.",
+      "Artículo 27 quáter - Reorganización empresarial.",
+      "Artículo 31 sexies - Otra cosa.",
+      "Artículo 31 septies - Y otra.",
+    ]);
+    expect(chunks.map((c) => c.articulo)).toEqual([
+      "Artículo 2",
+      "Artículo 2 quater",
+      "Artículo 2 quinquies",
+      "Artículo 27 quáter",
+      "Artículo 31 sexies",
+      "Artículo 31 septies",
+    ]);
+  });
+
+  it("labels letter suffixes as their own artículo", () => {
+    const chunks = chunkDocument("x", "X", [
+      "ARTICULO 66.-Los contratos de exportación.",
+      "ARTICULO 66-B .-(ANULADO por Resolución de la Sala Constitucional).",
+      "ARTICULO 66-C.-Los Certificados de Abono Tributario.",
+      "ARTICULO 66-CH.-Las personas físicas o jurídicas.",
+      "ARTICULO 66-D.- a) El Consejo Nacional.",
+    ]);
+    expect(chunks.map((c) => c.articulo)).toEqual([
+      "ARTICULO 66",
+      "ARTICULO 66-B",
+      "ARTICULO 66-C",
+      "ARTICULO 66-CH",
+      "ARTICULO 66-D",
+    ]);
+  });
+
+  // A caption opening in uppercase is not a letter suffix: "Artículo 8-
+  // Exenciones" must stay artículo 8.
+  it("does not read a capitalized caption as a letter suffix", () => {
+    const chunks = chunkDocument("x", "X", [
+      "Artículo 8-Exenciones. Están exentas las siguientes operaciones.",
+    ]);
+    expect(chunks[0].articulo).toBe("Artículo 8");
+  });
+
+  it("rejoins a número broken from its ordinal suffix", () => {
+    const chunks = chunkDocument("x", "X", [
+      "Artículo 64",
+      "bis.—Obligación de informar anualmente a la Asamblea Legislativa.",
+      "Artículo",
+      "65",
+      "ter- Otra obligación.",
+    ]);
+    expect(chunks.map((c) => c.articulo)).toEqual([
+      "Artículo 64 bis",
+      "Artículo 65 ter",
+    ]);
+  });
+
+  it("splits an inline suffixed heading glued to the previous paragraph", () => {
+    const chunks = chunkDocument("x", "X", [
+      "Artículo 31- Normas específicas. Artículo 31 quinquies- Declaración jurada.",
+    ]);
+    expect(chunks.map((c) => c.articulo)).toEqual([
+      "Artículo 31",
+      "Artículo 31 quinquies",
+    ]);
+  });
+});
+
+describe("chunkDocument — transitorio headings (#274)", () => {
+  it("separates a suffixed transitorio from its base", () => {
+    const chunks = chunkDocument("x", "X", [
+      "Transitorio VII.- De conformidad con lo dispuesto.",
+      "Transitorio VII bis.- De conformidad con lo dispuesto en el",
+    ]);
+    expect(chunks.map((c) => c.articulo)).toEqual([
+      "Transitorio VII",
+      "Transitorio VII bis",
+    ]);
+  });
+
+  // The #237 lesson, for TRANSITORIO: extraction wraps prose so a sentence
+  // can open a line with a transitorio reference. A heading is structural —
+  // the ordinal carries a delimiter — so wrapped prose stays body text.
+  it("does not open a chunk on wrapped prose naming a transitorio", () => {
+    const chunks = chunkDocument("x", "X", [
+      "Transitorio IX.- Los servicios turísticos brindados por quienes se",
+      "encuentren inscritos, según lo dispuesto en el",
+      "Transitorio IX de la Ley No. 9635. Para estos efectos, el hecho",
+      "generador es el definido en el reglamento.",
+    ]);
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0].articulo).toBe("Transitorio IX");
+    expect(chunks[0].content).toMatch(/Para estos efectos/);
+  });
+
+  it("keeps recognising the delimiter shapes the corpus already carries", () => {
+    const chunks = chunkDocument("x", "X", [
+      "TRANSITORIO I. Derogado",
+      "Transitorio II -. Hasta tanto se implemente la versión 4.4.",
+      "Transitorio V.— Establécese un impuesto adicional.",
+      "TRANSITORIO VI- Para el cumplimiento de lo dispuesto.",
+    ]);
+    expect(chunks.map((c) => c.articulo)).toEqual([
+      "TRANSITORIO I",
+      "Transitorio II",
+      "Transitorio V",
+      "TRANSITORIO VI",
+    ]);
+  });
+});
+
 describe("chunkDocument — front matter (SPEC §4 rule 3)", () => {
   it("keeps the recitals and drops the enacting formula and the ley title", () => {
     const chunks = chunkDocument("d", "T", [

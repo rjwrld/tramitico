@@ -1,7 +1,8 @@
 /**
  * The committed corpus index (issue #163): the distinct
  * `(docKey, articulo, path)` triples present in `public.chunks` after an
- * ingestion run, dumped to `eval/corpus-index.json`.
+ * ingestion run, dumped to `eval/corpus-index.json`, each with the number of
+ * chunks and of distinct `part`s behind it (#274).
  *
  * Why it exists: the satisfiability census (#111) asserts every target in
  * `eval/dataset.jsonl` is matched by at least one ingested chunk. That is a
@@ -27,33 +28,77 @@ export const CORPUS_INDEX_PATH = path.join(
   "corpus-index.json",
 );
 
+/** A chunk as the census reads it: the matchable triple plus its `part`, the
+ * fourth column of the key a chunk's citation is supposed to identify (#274). */
+export interface CensusChunk extends MatchableChunk {
+  part: number;
+}
+
+/**
+ * One distinct triple, with the two counts that make the uniqueness invariant
+ * checkable from the dump alone (#274). A well-formed corpus splits a triple
+ * into `part` 0…n-1 and nothing else, so `chunks` and `parts` agree; they
+ * diverge exactly when two chunks were labelled with the same citation — one
+ * artículo ingested under its neighbour's número.
+ */
+export interface CorpusIndexEntry extends MatchableChunk {
+  /** Rows in `public.chunks` carrying this triple. */
+  chunks: number;
+  /** Distinct `part` values among them. */
+  parts: number;
+}
+
 export interface CorpusIndex {
   /** ISO timestamp of the ingestion run that produced this dump. */
   generatedAt: string;
   /** Rows in `public.chunks` at dump time — context for a stale-looking index. */
   chunkCount: number;
   /** Distinct `(docKey, articulo, path)` triples, in a stable order. */
-  entries: MatchableChunk[];
+  entries: CorpusIndexEntry[];
 }
 
 function entryKey(chunk: MatchableChunk): string {
   return JSON.stringify([chunk.docKey, chunk.articulo, chunk.path]);
 }
 
+/** An entry rendered for an assertion message. */
+export function describeEntry(entry: MatchableChunk): string {
+  const parts = [entry.docKey, entry.articulo ?? "(sin artículo)"];
+  if (entry.path.length > 0) parts.push(`@${entry.path.join(" › ")}`);
+  return parts.join(" · ");
+}
+
+/**
+ * The entries whose `(docKey, articulo, path, part)` key is carried by more
+ * than one chunk — distinct artículos sharing one citation (#274).
+ */
+export function collidingEntries(index: CorpusIndex): CorpusIndexEntry[] {
+  return index.entries.filter((entry) => entry.chunks !== entry.parts);
+}
+
 /** Distinct triples in a deterministic order, so a re-dump of an unchanged
  * corpus produces a byte-identical file and only real drift shows in a diff. */
 export function buildCorpusIndex(
-  chunks: readonly MatchableChunk[],
+  chunks: readonly CensusChunk[],
   generatedAt: string,
 ): CorpusIndex {
-  const distinct = new Map<string, MatchableChunk>();
+  const distinct = new Map<string, CorpusIndexEntry>();
+  const seenParts = new Map<string, Set<number>>();
   for (const chunk of chunks) {
-    const entry: MatchableChunk = {
+    const key = entryKey(chunk);
+    const entry = distinct.get(key) ?? {
       docKey: chunk.docKey,
       articulo: chunk.articulo,
       path: [...chunk.path],
+      chunks: 0,
+      parts: 0,
     };
-    distinct.set(entryKey(entry), entry);
+    const parts = seenParts.get(key) ?? new Set<number>();
+    parts.add(chunk.part);
+    entry.chunks += 1;
+    entry.parts = parts.size;
+    seenParts.set(key, parts);
+    distinct.set(key, entry);
   }
   const entries = [...distinct.values()].sort((a, b) =>
     entryKey(a).localeCompare(entryKey(b)),
@@ -82,7 +127,7 @@ export function parseCorpusIndex(json: string): CorpusIndex {
   if (!Array.isArray(index.entries) || index.entries.length === 0) {
     throw new Error("corpus index: missing entries");
   }
-  for (const entry of index.entries as MatchableChunk[]) {
+  for (const entry of index.entries as CorpusIndexEntry[]) {
     if (typeof entry.docKey !== "string" || entry.docKey === "") {
       throw new Error("corpus index: entry missing docKey");
     }
@@ -96,6 +141,11 @@ export function parseCorpusIndex(json: string): CorpusIndex {
       throw new Error(
         `corpus index: ${entry.docKey} entry has a non-string path`,
       );
+    }
+    for (const count of ["chunks", "parts"] as const) {
+      if (!Number.isInteger(entry[count]) || entry[count] < 1) {
+        throw new Error(`corpus index: ${entry.docKey} entry missing ${count}`);
+      }
     }
   }
   return index as CorpusIndex;
@@ -115,6 +165,7 @@ export interface ChunkCensusClient {
           | {
               articulo: string | null;
               path: string[];
+              part: number;
               documents: { doc_key: string };
             }[]
           | null;
@@ -128,15 +179,16 @@ export interface ChunkCensusClient {
  * so the two can only ever disagree about the corpus, never about the read. */
 export async function fetchCorpusChunks(
   client: ChunkCensusClient,
-): Promise<MatchableChunk[]> {
+): Promise<CensusChunk[]> {
   const { data, error } = await client
     .from("chunks")
-    .select("articulo, path, documents!inner(doc_key)")
+    .select("articulo, path, part, documents!inner(doc_key)")
     .limit(CHUNK_FETCH_LIMIT);
   if (error) throw new Error(`chunk census query failed: ${error.message}`);
   return (data ?? []).map((row) => ({
     docKey: row.documents.doc_key,
     articulo: row.articulo,
     path: row.path,
+    part: row.part,
   }));
 }

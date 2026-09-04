@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import {
   buildCorpusIndex,
+  collidingEntries,
   CORPUS_INDEX_PATH,
+  describeEntry,
   parseCorpusIndex,
   serializeCorpusIndex,
 } from "./corpus-index";
@@ -11,25 +13,34 @@ const chunk = (
   docKey: string,
   articulo: string | null,
   path: string[] = [],
+  part = 0,
 ) => ({
   docKey,
   articulo,
   path,
+  part,
 });
+
+const entry = (
+  docKey: string,
+  articulo: string | null,
+  path: string[] = [],
+  counts: { chunks: number; parts: number } = { chunks: 1, parts: 1 },
+) => ({ docKey, articulo, path, ...counts });
 
 describe("buildCorpusIndex", () => {
   it("keeps one entry per distinct (docKey, articulo, path) triple", () => {
     const index = buildCorpusIndex(
       [
-        chunk("ley-iva", "Artículo 8"),
-        chunk("ley-iva", "Artículo 8"),
+        chunk("ley-iva", "Artículo 8", [], 0),
+        chunk("ley-iva", "Artículo 8", [], 1),
         chunk("ley-iva", "Artículo 9"),
       ],
       "2026-01-01T00:00:00.000Z",
     );
     expect(index.entries).toEqual([
-      chunk("ley-iva", "Artículo 8"),
-      chunk("ley-iva", "Artículo 9"),
+      entry("ley-iva", "Artículo 8", [], { chunks: 2, parts: 2 }),
+      entry("ley-iva", "Artículo 9"),
     ]);
   });
 
@@ -46,11 +57,28 @@ describe("buildCorpusIndex", () => {
 
   it("records the row count, not the entry count", () => {
     const index = buildCorpusIndex(
-      [chunk("ley-iva", "Artículo 8"), chunk("ley-iva", "Artículo 8")],
+      [
+        chunk("ley-iva", "Artículo 8", [], 0),
+        chunk("ley-iva", "Artículo 8", [], 1),
+      ],
       "2026-01-01T00:00:00.000Z",
     );
     expect(index.chunkCount).toBe(2);
     expect(index.entries).toHaveLength(1);
+  });
+
+  it("counts chunks and distinct parts per entry", () => {
+    const index = buildCorpusIndex(
+      [
+        chunk("ley-renta", "ARTICULO 66", [], 0),
+        chunk("ley-renta", "ARTICULO 66", [], 0),
+        chunk("ley-renta", "ARTICULO 66", [], 1),
+      ],
+      "2026-01-01T00:00:00.000Z",
+    );
+    expect(index.entries).toEqual([
+      entry("ley-renta", "ARTICULO 66", [], { chunks: 3, parts: 2 }),
+    ]);
   });
 
   it("orders entries so an unchanged corpus re-dumps byte-identically", () => {
@@ -106,6 +134,14 @@ describe("parseCorpusIndex", () => {
       '{"generatedAt":"x","chunkCount":1,"entries":[{"docKey":"d","articulo":null,"path":[1]}]}',
       "non-string path",
     ],
+    [
+      '{"generatedAt":"x","chunkCount":1,"entries":[{"docKey":"d","articulo":null,"path":[]}]}',
+      "entry missing chunks",
+    ],
+    [
+      '{"generatedAt":"x","chunkCount":1,"entries":[{"docKey":"d","articulo":null,"path":[],"chunks":1}]}',
+      "entry missing parts",
+    ],
   ])("rejects %s", (json, message) => {
     expect(() => parseCorpusIndex(json)).toThrow(message);
   });
@@ -123,5 +159,46 @@ describe("the committed document set (#256)", () => {
   it("keeps the two excerpted documents", () => {
     expect(docKeys.has("ccss-bmc")).toBe(true);
     expect(docKeys.has("disposiciones-v44")).toBe(true);
+  });
+});
+
+describe("chunk citation uniqueness (#274)", () => {
+  it("flags a triple whose chunks outnumber its parts", () => {
+    const index = buildCorpusIndex(
+      [
+        chunk("ley-renta", "Artículo 31"),
+        chunk("ley-renta", "Artículo 31"),
+        chunk("ley-renta", "Artículo 32"),
+      ],
+      "2026-01-01T00:00:00.000Z",
+    );
+    expect(collidingEntries(index).map(describeEntry)).toEqual([
+      "ley-renta · Artículo 31",
+    ]);
+  });
+
+  it("does not flag one long artículo split into parts", () => {
+    const index = buildCorpusIndex(
+      [
+        chunk("ley-renta", "Artículo 31", [], 0),
+        chunk("ley-renta", "Artículo 31", [], 1),
+      ],
+      "2026-01-01T00:00:00.000Z",
+    );
+    expect(collidingEntries(index)).toEqual([]);
+  });
+
+  // The invariant the corpus must hold: a citation identifies one artículo.
+  // Before #274 nine keys in the shipped corpus were carried by two to six
+  // distinct artículos each — quáter, quinquies and 66-B labelled as their
+  // base número — and no eval could see it, because groundedness and hit-rate
+  // both read the same wrong label.
+  it("holds over the committed corpus", () => {
+    const committed = parseCorpusIndex(readFileSync(CORPUS_INDEX_PATH, "utf8"));
+    const collisions = collidingEntries(committed);
+    expect(
+      collisions.map(describeEntry),
+      "chunks sharing one (docKey, articulo, path, part) citation",
+    ).toEqual([]);
   });
 });

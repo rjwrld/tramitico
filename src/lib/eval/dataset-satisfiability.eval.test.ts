@@ -21,11 +21,14 @@ import { serviceClient } from "../supabase/service";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import {
   buildCorpusIndex,
+  type CensusChunk,
+  collidingEntries,
   CORPUS_INDEX_PATH,
+  describeEntry,
   fetchCorpusChunks,
   parseCorpusIndex,
 } from "./corpus-index";
-import { DATASET_PATH, parseDataset, type MatchableChunk } from "./dataset";
+import { DATASET_PATH, parseDataset } from "./dataset";
 import {
   censusTargets,
   formatCensus,
@@ -39,7 +42,7 @@ const describeEval = integrationSuite(
 
 describeEval("eval dataset targets are satisfiable by the corpus", () => {
   const cases = parseDataset(readFileSync(DATASET_PATH, "utf8"));
-  let chunks: MatchableChunk[] = [];
+  let chunks: CensusChunk[] = [];
   let census: TargetCensusRow[] = [];
 
   beforeAll(async () => {
@@ -53,6 +56,19 @@ describeEval("eval dataset targets are satisfiable by the corpus", () => {
     expect(
       unsatisfiable,
       `expected targets no ingested chunk can satisfy:\n  ${unsatisfiable.join("\n  ")}`,
+    ).toEqual([]);
+  });
+
+  // The per-PR lane checks this over the committed dump; here it is over the
+  // table itself, so a corpus that drifted without a re-dump is still caught
+  // (#274).
+  it("gives every chunk a citation no other chunk carries", () => {
+    const collisions = collidingEntries(
+      buildCorpusIndex(chunks, new Date().toISOString()),
+    );
+    expect(
+      collisions.map(describeEntry),
+      "chunks sharing one (docKey, articulo, path, part) citation",
     ).toEqual([]);
   });
 
