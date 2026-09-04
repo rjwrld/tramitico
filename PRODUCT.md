@@ -10,15 +10,36 @@ web
 
 ## Users
 
-Costa Rican freelance and independent developers — RJ and peers. They arrive with a specific dreaded question (CCSS retroactivity, IVA on exported services, TRIBU-CR filing), usually after work hours, wanting a straight answer they can verify. Secondary audience: recruiters and hiring managers evaluating the engineering through the product; they get the English shell and demo, not translated answers.
+The primary beta audience is people operating in Costa Rica as natural persons with independent
+lucrative activity: freelancers, professionals and technicians who provide services, and
+micro-entrepreneurs without a company. Nationality is irrelevant; the boundary is whether the
+person works, invoices, or has Hacienda/CCSS obligations in Costa Rica. Software developers and
+adjacent knowledge workers are the first cohort, not the product boundary.
+
+The measured expansion audience is salaried people with side activity, people starting or closing
+an activity, and platform earners whose questions share the same Hacienda/CCSS legal and source
+base. Companies, employers, customs/importers, free-zone businesses, employee labor-rights cases,
+municipalities/patentes, INS, Registro Nacional, and immigration are explicitly excluded from the
+beta and routed to the relevant institution.
+
+Recruiters and hiring managers are an audience of the public repository, English README, and demo;
+they are not product users and do not determine corpus coverage.
 
 ## Product Purpose
 
-A RAG assistant that answers CR tax and trámite questions in plain Spanish, with every answer cited to the official document and artículo it came from. It retrieves and cites; it never rules. Success: a dev gets a grounded answer with a verifiable citation in under a minute, and the eval harness proves groundedness in CI. It is also the portfolio flagship — a public app with real backend, auth, and a nameable AI claim.
+A RAG assistant that answers frequent Hacienda and CCSS questions for natural persons working for
+themselves in Costa Rica, in plain Spanish, with every material claim cited to the current official
+document and artículo it came from. It retrieves and cites; it never rules. Success means a person
+gets the applicable general rule, the conditions that can change it, and supported next steps in
+under a minute—or an honest abstention and the right official/professional route when the trust
+contract cannot be met. The eval harness must prove both behaviors. It is also the portfolio
+flagship: a public app with a real backend, auth, and a nameable AI claim.
 
 ## Positioning
 
-The only place where the answer to a CR freelance-tax question arrives with the exact artículo that backs it — cross-agency (Hacienda + CCSS), in the language developers actually ask in.
+The place where an independent worker's frequent Hacienda/CCSS question gets a plain-language
+answer backed by the current official article—or a clear explanation of why Tramitico cannot
+answer—using the language people actually ask in.
 
 ## Brand Personality
 

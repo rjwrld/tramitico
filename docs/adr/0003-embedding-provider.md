@@ -125,3 +125,12 @@ switch as a column-dimension migration plus a full re-embed — a PR either way,
 flip — so the adapter is re-introduced _in that PR_, together with the `/privacidad`
 subprocessor edit and the migration. Same change, same review: the #136 invariant. The benchmark
 table above stands as the evidence that produced this decision; it is history, not a live path.
+
+## Amendment (2026-09-04) — corpus-noise removals change the benchmark population (#256)
+
+The benchmark tables above remain historical evidence, not measurements of the current corpus.
+Issue #256 removed the Regla Fiscal and port-services documents and excluded stale CCSS notes and
+v4.4 implementation annexes. Those chunks were irrelevant competitors for both vector retrieval
+and reranking. Their removal does not by itself prove an embedding-quality improvement: the next
+authorized baseline (#267) measures the resulting 23-document corpus, and that result—not a
+before/after assumption—becomes the evidence for any future provider or reranker change.

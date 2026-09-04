@@ -38,3 +38,17 @@ linking the spec section or ADR that owns the definition. Created lazily per
   that is the current Supabase default. Hence `POST /api/account/delete` verifies its caller
   with `getUser()` and globally signs the account out _before_ deleting it, while read paths
   keep `getClaims()` and carry the ≤1h token tail as the accepted risk on #121. Issue #124.
+- **Tier 1** — a published beta question family whose every eval case blocks release across
+  retrieval, required claims and steps, citations, freshness, and abstention behavior. It is the
+  coverage Tramitico promises, not a quality average. [ADR 0015](docs/adr/0015-coverage-tiers-and-required-claims.md).
+- **Tier 2** — an adjacent question family answerable to the same evidence standard as Tier 1 but
+  not advertised as guaranteed coverage; it may receive a cited best-effort answer or an honest
+  abstention. [ADR 0015](docs/adr/0015-coverage-tiers-and-required-claims.md).
+- **Required claim** — a material assertion that an answer to a particular eval case must contain
+  to be adequate; a required procedural step is the action-oriented form of the same contract.
+  [SPEC §9](SPEC.md#9-eval--quality-gates).
+- **Derived figure** — a number calculated deterministically by code from an official formula and
+  cited official inputs, rather than arithmetic inferred by the answer model. Issue #263.
+- **Routing category** — a content-free classification of an out-of-scope question by the
+  institution that should receive it; it selects the honest decline route and may be counted
+  without recording question text. [ADR 0017](docs/adr/0017-other-institutions-are-routed.md).
