@@ -206,6 +206,27 @@ describe("chunkDocument — inline artículo headings (Ley IVA shape, ADR 0002 a
   });
 });
 
+describe("chunkDocument — Ley 7092 consolidada", () => {
+  const fixture = readFileSync(
+    path.resolve(__dirname, "__fixtures__/ley-renta-articulo-8.html"),
+    "utf8",
+  );
+  const chunks = chunkDocument(
+    "ley-renta",
+    "Ley del Impuesto sobre la Renta (texto consolidado)",
+    htmlToParagraphs(fixture),
+  );
+
+  it("keeps the Ley 10818 optional 25% deduction in Artículo 8 (#268)", () => {
+    const art8 = chunks.find(
+      (chunk) => chunk.articulo?.toLowerCase() === "articulo 8",
+    );
+    expect(art8).toBeDefined();
+    expect(art8!.content).toContain("veinticinco por ciento (25%)");
+    expect(art8!.content).toContain("ley N° 10818");
+  });
+});
+
 describe("chunkDocument — lowercase in-sentence heading words (RES-0027-2024 shape)", () => {
   // The disposiciones-v44 text fragments considerando X so that a line starting
   // with lowercase 'sección "Propuestas en consulta pública", antes de su

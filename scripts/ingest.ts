@@ -34,6 +34,7 @@ import { fetchHaciendaPdf } from "../src/lib/ingestion/hacienda";
 import type { LayoutTableSpec } from "../src/lib/ingestion/layout-table";
 import { fetchPdfSource } from "../src/lib/ingestion/pdf";
 import { pdfImageNotice } from "../src/lib/ingestion/pdf-images";
+import { retireDocuments } from "../src/lib/ingestion/retire";
 import type { DeepLinkKind } from "../src/lib/retrieval";
 import { articuloAnchors, fetchNorma } from "../src/lib/ingestion/sinalevi";
 
@@ -153,7 +154,7 @@ async function main() {
 
   const manifest = JSON.parse(
     readFileSync(path.join(ROOT, "corpus", "manifest.json"), "utf8"),
-  ) as { documents: ManifestDoc[] };
+  ) as { retiredDocKeys?: string[]; documents: ManifestDoc[] };
 
   const wanted = process.argv.slice(2);
   const docs = manifest.documents.filter(
@@ -188,6 +189,12 @@ async function main() {
 
   if (skipped.length > 0) {
     console.log(`skipped (source pending): ${skipped.join(", ")}`);
+  }
+
+  const retiredDocKeys = manifest.retiredDocKeys ?? [];
+  if (retiredDocKeys.length > 0) {
+    await retireDocuments(supabase, retiredDocKeys);
+    console.log(`retired: ${retiredDocKeys.join(", ")}`);
   }
 
   // Re-dump the committed corpus index from the whole table — not just the

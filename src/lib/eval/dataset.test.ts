@@ -203,4 +203,25 @@ describe("eval/dataset.jsonl", () => {
       }
     }
   });
+
+  it("does not target or ingest a retired document", () => {
+    const manifest = JSON.parse(
+      readFileSync(path.join(process.cwd(), "corpus", "manifest.json"), "utf8"),
+    ) as {
+      retiredDocKeys?: string[];
+      documents: { doc_key: string }[];
+    };
+    const retired = new Set(manifest.retiredDocKeys ?? []);
+    const active = new Set(manifest.documents.map((doc) => doc.doc_key));
+
+    expect([...retired].filter((docKey) => active.has(docKey))).toEqual([]);
+    for (const evalCase of cases) {
+      for (const target of evalCase.expected) {
+        expect(
+          retired.has(target.docKey),
+          `${evalCase.id}: retired doc_key ${target.docKey}`,
+        ).toBe(false);
+      }
+    }
+  });
 });

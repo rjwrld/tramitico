@@ -95,7 +95,7 @@ const QUESTIONS: { q: string; targets: Target[]; canary?: boolean }[] = [
     targets: [
       { docKey: "reglamento-renta" },
       { docKey: "reglamento-titulo-iv-9635" },
-      { docKey: "ley-9635" },
+      { docKey: "ley-renta", articulo: "ARTICULO 2" },
     ],
   },
   {
@@ -104,7 +104,6 @@ const QUESTIONS: { q: string; targets: Target[]; canary?: boolean }[] = [
     q: "¿Debo cobrar IVA en facturas a clientes fuera de Costa Rica?",
     targets: [
       { docKey: "reglamento-iva", articulo: "Artículo 11" },
-      { docKey: "ley-9635", articulo: "Artículo 8" },
       { docKey: "ley-iva", articulo: "Artículo 8" },
     ],
     canary: true,
@@ -137,7 +136,8 @@ const QUESTIONS: { q: string; targets: Target[]; canary?: boolean }[] = [
     targets: [
       { docKey: "reglamento-renta" },
       { docKey: "reglamento-titulo-iv-9635" },
-      { docKey: "ley-9635" },
+      { docKey: "ley-renta", articulo: "ARTICULO 8" },
+      { docKey: "ley-renta", articulo: "Artículo 15" },
       { docKey: "tramos-renta-2026" },
     ],
   },

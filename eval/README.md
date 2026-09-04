@@ -11,11 +11,7 @@ correct retrieval must surface. One JSON object per line:
   "question": "¿Debo cobrar IVA en facturas a clientes fuera de Costa Rica?",
   "expected": [
     { "docKey": "reglamento-iva", "articulo": "Artículo 11" },
-    {
-      "docKey": "ley-9635",
-      "articulo": "Artículo 8",
-      "pathIncludes": "TÍTULO I"
-    }
+    { "docKey": "ley-iva", "articulo": "Artículo 8" }
   ],
   "blocking": true,
   "notes": "…"
@@ -28,7 +24,7 @@ correct retrieval must surface. One JSON object per line:
 - `articulo` — exact label as chunked (case-insensitive); omit it to accept any
   chunk of the document (single-artículo docs like `cabys-dev`).
 - `pathIncludes` — exact heading-path element, for artículo labels that repeat
-  across Títulos of one norma (ley-9635 has three distinct "Artículo 15"s).
+  across Títulos of one norma.
 - `blocking` — the case fails the eval on its own, regardless of hit-rate.
   The canary from ADR 0003 is the one blocking case.
 - `seed` — provenance: `appendix-a:<n>` (SPEC Appendix A) or `corpus`.
@@ -139,7 +135,7 @@ pnpm vitest run src/lib/eval/groundedness.eval.test.ts
 > console output and a run reports only pass/fail, which is why two earlier
 > entries here say "per-case not captured".
 >
-> The one failure is `iva-tarifas-reducidas` — **not** one of the three cases
+> The one failure was `iva-tarifas-reducidas` — **not** one of the three cases
 > that failed on 2026-08-13. It is a rule 4 false positive: fragment [1] is
 > `ley-iva` Artículo 11 (Ley 6826, consolidated text) and fragment [2] is
 > `ley-9635` Artículo 11 (Ley 9635, the reform that rewrote it) — the same norma
@@ -151,6 +147,11 @@ pnpm vitest run src/lib/eval/groundedness.eval.test.ts
 > `conflicting-sources.eval.test.ts`, which rule 4 exists to hold in place, and
 > that is a different piece of work. Failed 3/3 attempts (gate run plus two
 > subset reps) — consistent, not judge noise.
+>
+> [#268](https://github.com/rjwrld/tramitico/issues/268) later removed this
+> production shape by retiring `ley-9635` after migrating every target to the
+> consolidated `ley-iva`/`ley-renta` sources. The fixed two-fragment fixture in
+> `amending-law.eval.test.ts` remains as a prompt regression test.
 >
 > **The 2026-08-13 failures did not reproduce.** That run scored 22/25 (88%,
 > FAIL) on `iva-clientes-fuera-cr`, `ccss-cuanto-pago-base` and
