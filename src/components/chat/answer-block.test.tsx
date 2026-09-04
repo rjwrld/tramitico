@@ -11,6 +11,7 @@ import {
   AnswerBlock,
   DISCLAIMER,
   ROUTED_LINKS_LABEL,
+  ROUTED_LINKS_LABEL_PLURAL,
 } from "@/components/chat/answer-block";
 import {
   CITATIONS_PART_ID,
@@ -281,6 +282,9 @@ describe("AnswerBlock routed decline (#264)", () => {
     expect(
       screen.getByRole("link", { name: "CCSS" }).getAttribute("href"),
     ).toBe("https://www.ccss.sa.cr");
+    expect(
+      document.querySelector('[data-slot="routed-links"]')?.textContent,
+    ).toContain(ROUTED_LINKS_LABEL_PLURAL);
   });
 
   it("stamps no sello under a decline — it cites nothing", () => {

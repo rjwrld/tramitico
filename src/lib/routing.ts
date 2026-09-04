@@ -306,26 +306,25 @@ function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function patternsFor(category: RoutingCategory): readonly RegExp[] {
-  return KEYWORDS[category].map(
+function patternsFor(keywords: readonly string[]): readonly RegExp[] {
+  return keywords.map(
     // Word boundaries on ASCII: `normaliseQuestion` has already folded the
     // diacritics away, so `\b` behaves for Spanish here.
     (keyword) => new RegExp(`\\b${escapeRegExp(keyword)}\\b`),
   );
 }
 
-const PATTERNS = {
-  hacienda: patternsFor("hacienda"),
-  ccss: patternsFor("ccss"),
-  ins: patternsFor("ins"),
-  municipal: patternsFor("municipal"),
-  "registro-nacional": patternsFor("registro-nacional"),
-  colegios: patternsFor("colegios"),
-  bancos: patternsFor("bancos"),
-  meic: patternsFor("meic"),
-  migracion: patternsFor("migracion"),
-  mtss: patternsFor("mtss"),
-} satisfies Record<RoutingCategory, readonly RegExp[]>;
+function mapCategories<T>(
+  build: (category: RoutingCategory) => T,
+): Record<RoutingCategory, T> {
+  const entries = ROUTING_CATEGORIES.map((category) => [
+    category,
+    build(category),
+  ]);
+  return Object.fromEntries(entries) as Record<RoutingCategory, T>;
+}
+
+const PATTERNS = mapCategories((category) => patternsFor(KEYWORDS[category]));
 
 /** Lower case, diacritics stripped, whitespace collapsed. */
 export function normaliseQuestion(question: string): string {

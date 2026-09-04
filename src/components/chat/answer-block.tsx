@@ -41,8 +41,9 @@ import { prefersReducedMotion } from "@/lib/utils";
 export const DISCLAIMER =
   "No es asesoría legal ni contable — verifique con Hacienda.";
 
-/** Lead-in of the routed decline's link row (#264). */
+/** Lead-in of the routed decline's link row (#264): one link, or several. */
 export const ROUTED_LINKS_LABEL = "Fuente oficial:";
+export const ROUTED_LINKS_LABEL_PLURAL = "Fuentes oficiales:";
 
 /** The reveal cadence the #169/#219 prototypes settled on. */
 const REVEAL_WORDS_PER_SECOND = 120;
@@ -290,7 +291,7 @@ function RoutedLinks({ category }: { category: RoutedCategory }) {
   const entries = routingEntriesFor(category);
   return (
     <p data-slot="routed-links" className="text-xs text-muted-foreground">
-      {ROUTED_LINKS_LABEL}{" "}
+      {entries.length > 1 ? ROUTED_LINKS_LABEL_PLURAL : ROUTED_LINKS_LABEL}{" "}
       {entries.map((entry, index) => (
         <React.Fragment key={entry.category}>
           {index > 0 && " · "}
