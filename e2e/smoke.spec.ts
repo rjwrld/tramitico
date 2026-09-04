@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 
+import { SEED_PROMPTS } from "../src/components/chat/seed-prompts";
 import { CITATION, answerStream, inlineAlert, stubAsk } from "./support";
 
 /**
@@ -20,7 +21,7 @@ test("landing shows the wordmark and the empty-state invitation", async ({
     page
       .getByRole("list", { name: "Preguntas frecuentes" })
       .getByRole("button"),
-  ).toHaveCount(10);
+  ).toHaveCount(SEED_PROMPTS.length);
 });
 
 test("seeded prompt click streams an answer with sello and disclaimer", async ({
