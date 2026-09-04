@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { articuloAnchors, fetchNorma, type FetchLike } from "./sinalevi";
+import type { Chunk } from "./chunker";
+import {
+  articuloAnchors,
+  fetchNorma,
+  filterArticulos,
+  type FetchLike,
+} from "./sinalevi";
 
 function res(body: object, status = 200): Response {
   return new Response(JSON.stringify(body), { status });
@@ -123,5 +129,101 @@ describe("fetchNorma", () => {
     const fake: FetchLike = async () =>
       new Response("forbidden", { status: 403 });
     await expect(fetchNorma(1, fake)).rejects.toThrow(/HTTP 403/);
+  });
+});
+
+describe("filterArticulos", () => {
+  const chunk = (articulo: string | null, path: string[], part = 0): Chunk => ({
+    docKey: "cnpt",
+    articulo,
+    path,
+    part,
+    content: `${articulo ?? "sin artículo"} texto`,
+  });
+
+  const TITULO_II = [
+    "TITULO II OBLIGACION TRIBUTARIA",
+    "CAPITULO VI Intereses",
+  ];
+  const TITULO_III = [
+    "TÍTULO III HECHOS ILÍCITOS TRIBUTARIOS",
+    "SECCIÓN II INFRACCIONES ADMINISTRATIVAS",
+  ];
+
+  // The shape of ficha 6530: the claimed artículos sit in two títulos with
+  // unclaimed ones between and around them, art. 81 runs long enough to be
+  // sub-split, and a preámbulo chunk carries no artículo at all.
+  const CODIGO: Chunk[] = [
+    chunk(null, TITULO_II),
+    chunk("Artículo 56", TITULO_II),
+    chunk("Artículo 57", TITULO_II),
+    chunk("Artículo 58", TITULO_II),
+    chunk("Artículo 77", TITULO_III),
+    chunk("Artículo 78", TITULO_III),
+    chunk("Artículo 80 bis", TITULO_III),
+    chunk("Artículo 81", TITULO_III),
+    chunk("Artículo 81", TITULO_III, 1),
+    chunk("Artículo 82", TITULO_III),
+    chunk("Artículo 88", TITULO_III),
+  ];
+
+  it("keeps exactly the listed artículos, in document order", () => {
+    const kept = filterArticulos("cnpt", CODIGO, [
+      "Artículo 78",
+      "Artículo 88",
+      "Artículo 57",
+      "Artículo 80 bis",
+      "Artículo 81",
+    ]);
+
+    expect(kept.map((c) => `${c.articulo}#${c.part}`)).toEqual([
+      "Artículo 57#0",
+      "Artículo 78#0",
+      "Artículo 80 bis#0",
+      "Artículo 81#0",
+      "Artículo 81#1",
+      "Artículo 88#0",
+    ]);
+  });
+
+  it("keeps each chunk's own path, so a citation still names its título", () => {
+    const kept = filterArticulos("cnpt", CODIGO, [
+      "Artículo 57",
+      "Artículo 78",
+    ]);
+
+    expect(kept.map((c) => c.path[0])).toEqual([
+      "TITULO II OBLIGACION TRIBUTARIA",
+      "TÍTULO III HECHOS ILÍCITOS TRIBUTARIOS",
+    ]);
+  });
+
+  it("matches labels whatever casing and spacing the ficha uses", () => {
+    const kept = filterArticulos("cnpt", CODIGO, ["ARTÍCULO 80  BIS"]);
+
+    expect(kept.map((c) => c.articulo)).toEqual(["Artículo 80 bis"]);
+  });
+
+  it("fails loudly when a claimed artículo is no longer there", () => {
+    expect(() => filterArticulos("cnpt", CODIGO, ["Artículo 79"])).toThrow(
+      /"Artículo 79", which no chunk carries/,
+    );
+  });
+
+  it("fails loudly when the same artículo is listed twice", () => {
+    expect(() =>
+      filterArticulos("cnpt", CODIGO, ["Artículo 78", "ARTÍCULO 78"]),
+    ).toThrow(/lists "ARTÍCULO 78" twice/);
+  });
+
+  it("fails loudly when the número repeats across títulos", () => {
+    const ambiguous = [
+      ...CODIGO,
+      chunk("Artículo 57", ["TITULO IX", "CAPÍTULO I"]),
+    ];
+
+    expect(() => filterArticulos("cnpt", ambiguous, ["Artículo 57"])).toThrow(
+      /2 different títulos carry/,
+    );
   });
 });

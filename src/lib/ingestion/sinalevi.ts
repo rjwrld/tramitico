@@ -13,6 +13,7 @@
  * loudly — verification is never disabled (research §4).
  */
 
+import type { Chunk } from "./chunker";
 import { BROWSER_UA, type FetchLike } from "./official-http";
 export type { FetchLike } from "./official-http";
 
@@ -174,4 +175,69 @@ export function articuloAnchors(html: string): Record<string, number> {
   return Object.fromEntries(
     [...seen].filter((entry): entry is [string, number] => entry[1] !== null),
   );
+}
+
+/**
+ * The chunks of a whole-código ficha narrowed to the artículos a manifest
+ * entry actually claims (#259).
+ *
+ * `excerpt` is the wrong instrument here. It bounds one contiguous run of
+ * lines, and what a code like the CNPT (ficha 6530, ~200 artículos across
+ * nine títulos) contributes is neither contiguous nor line-shaped: the
+ * sanctions entry claims arts. 78–81 of Título III, art. 88 twenty lines
+ * further down, and art. 57 in a different título altogether. Naming line
+ * markers for each of those would encode three fragile guesses about wording
+ * the reformers keep rewriting, when the honest claim is simply a list of
+ * artículo numbers.
+ *
+ * So the filter runs *after* chunking, on labels the chunker already derived:
+ * each kept chunk keeps the `path` its own headings gave it, so a citation
+ * still reads «TÍTULO III … SECCIÓN II … Artículo 78» even though nothing
+ * between arts. 57 and 78 was ingested.
+ *
+ * It fails loudly in every direction a drifting ficha or a slipped manifest
+ * edit can break it. A label that matches nothing means the artículo was
+ * renumbered, repealed or re-worded — the entry would silently ingest less
+ * than it claims. A label that matches chunks under more than one `path`
+ * means the número repeats across títulos (ley-9635 has three distinct
+ * "Artículo 15"s), so the list no longer names one artículo and the text it
+ * would keep is a guess. A label listed twice would ingest that artículo's
+ * text twice, seating a duplicate beside itself in retrieval — the one
+ * failure the other two guards would let through silently.
+ */
+export function filterArticulos(
+  docKey: string,
+  chunks: readonly Chunk[],
+  keep: readonly string[],
+): Chunk[] {
+  const norm = (label: string) =>
+    label.replace(/\s+/g, " ").trim().toLowerCase();
+  const seen = new Set<string>();
+  const kept: Chunk[] = [];
+  for (const label of keep) {
+    if (seen.has(norm(label))) {
+      throw new Error(
+        `${docKey}: keepArticulos lists "${label}" twice — its text would be ingested twice`,
+      );
+    }
+    seen.add(norm(label));
+    const matches = chunks.filter(
+      (c) => c.articulo !== null && norm(c.articulo) === norm(label),
+    );
+    if (matches.length === 0) {
+      throw new Error(
+        `${docKey}: keepArticulos names "${label}", which no chunk carries — renumbered, derogado, or re-worded in this version`,
+      );
+    }
+    const paths = new Set(matches.map((c) => JSON.stringify(c.path)));
+    if (paths.size > 1) {
+      throw new Error(
+        `${docKey}: keepArticulos names "${label}", which ${paths.size} different títulos carry — the number is ambiguous, so the text it keeps is a guess`,
+      );
+    }
+    kept.push(...matches);
+  }
+  // Document order, not manifest order: a reader of the ficha meets art. 57
+  // before art. 78 however the list happens to be written.
+  return kept.sort((a, b) => chunks.indexOf(a) - chunks.indexOf(b));
 }

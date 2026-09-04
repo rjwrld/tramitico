@@ -244,8 +244,11 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
 
 ## 9. Eval & quality gates
 
-- **Eval set:** 30±5 hand-written Q&As seeded from appendix A + corpus reading; stored in-repo
-  (`eval/dataset.jsonl`) with expected source docs/artículos per question. A case may carry
+- **Eval set:** 25–40 hand-written Q&As seeded from appendix A + corpus reading; stored in-repo
+  (`eval/dataset.jsonl`) with expected source docs/artículos per question. The band was 30±5 until
+  the #254 corpus issues began opening Tier 1 families the corpus could not previously answer —
+  each one adds its cases here (#259 added the two sanctions cases) — and #261 replaces the band
+  outright with the held-out Tier 1/Tier 2/abstention set. A case may carry
   `history` (#132): its question is a follow-up, and both eval suites condense it first, so the
   expected targets are the retrieval the _standalone_ question must produce.
 - **Groundedness judge in CI:** LLM-as-judge — "is this answer supported by the retrieved

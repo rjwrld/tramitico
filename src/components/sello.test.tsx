@@ -159,6 +159,8 @@ describe("docShortName covers the manifest", () => {
       "ccss-escala-salud": "CCSS Escala Salud",
       "ccss-faq": "CCSS FAQ",
       "ccss-reglamento-ti": "CCSS Reglamento TI",
+      cnpt: "CNPT",
+      "salario-base-2026": "Salario Base 2026",
       "salarios-minimos": "Salarios Mínimos",
       "reglamento-rts": "Reglamento RTS",
       "reglamento-comprobantes": "Reglamento Comprobantes",

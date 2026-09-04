@@ -17,8 +17,11 @@ import {
   fetchCorpusChunks,
   serializeCorpusIndex,
 } from "../src/lib/eval/corpus-index";
-import type { ChunkOptions } from "../src/lib/ingestion/chunker";
-import type { Chunk } from "../src/lib/ingestion/chunker";
+import {
+  chunkDocument,
+  type Chunk,
+  type ChunkOptions,
+} from "../src/lib/ingestion/chunker";
 import {
   faqCountMessage,
   extractCcssFaqChunks,
@@ -46,7 +49,11 @@ import { fetchPdfSource } from "../src/lib/ingestion/pdf";
 import { pdfImageNotice } from "../src/lib/ingestion/pdf-images";
 import { retireDocuments } from "../src/lib/ingestion/retire";
 import type { DeepLinkKind } from "../src/lib/retrieval";
-import { articuloAnchors, fetchNorma } from "../src/lib/ingestion/sinalevi";
+import {
+  articuloAnchors,
+  fetchNorma,
+  filterArticulos,
+} from "../src/lib/ingestion/sinalevi";
 
 interface ManifestDoc {
   doc_key: string;
@@ -79,6 +86,15 @@ interface ManifestDoc {
      * a superseded table (#198). See excerpt.ts.
      */
     excerpt?: ExcerptSpec | ExcerptSpec[];
+    /**
+     * `sinalevi` only — unlike `excerpt`, which every extracted kind honours,
+     * so `extract` refuses it on any other kind rather than ignore it: the
+     * artículo labels this entry claims out of a whole código, applied after
+     * chunking (#259). The instrument `excerpt` is not: the claim is a handful
+     * of numbered artículos scattered across títulos, not one contiguous run
+     * of lines. Absent → the whole ficha is ingested. See sinalevi.ts.
+     */
+    keepArticulos?: string[];
     catalog?: string;
     hint?: string;
     /**
@@ -87,7 +103,11 @@ interface ManifestDoc {
      * a page-ranged PDF) or `none` (document root is the deepest honest link).
      */
     deepLink: DeepLinkKind;
-    /** Audited SHA-256 for an official PDF that is silently republished. */
+    /**
+     * Audited SHA-256 for an official PDF that is silently republished — both
+     * PDF kinds honour it. `extract` refuses it on the kinds that fetch no
+     * PDF, rather than accept a hash it would never check.
+     */
     sha256?: string;
     /** `sinalevi` only: artículo number → viewer id, harvested at ingestion. */
     articulos?: Record<string, number>;
@@ -280,10 +300,47 @@ function pdfToText(doc: ManifestDoc, pdf: Buffer): string {
   }
 }
 
+/**
+ * Report an audited PDF against its manifest hash (#259 follow-up).
+ *
+ * Both PDF kinds need this and neither owns it: `hacienda-pdf` had the only
+ * call, so a `sha256` on a plain `pdf` entry — an Imprenta Nacional alcance or
+ * a CCSS acta, exactly the documents that get silently republished — was
+ * accepted by the manifest type and then never checked. A shared helper is
+ * what stops the two branches drifting again.
+ *
+ * A mismatch warns rather than fails: the hash records what a human audited,
+ * and a republication is a go-look, not proof the new bytes are wrong.
+ */
+function reportPdfHash(doc: ManifestDoc, pdf: Buffer): void {
+  if (!doc.source.sha256) return;
+  const notice = pdfHashNotice(doc.doc_key, pdf, doc.source.sha256);
+  if (notice.level === "warn") console.warn(`  ⚠ ${notice.message}`);
+  else console.log(`  ${notice.message}`);
+}
+
 type ExtractedContent =
   { kind: "paragraphs"; value: string[] } | { kind: "chunks"; value: Chunk[] };
 
 async function extract(doc: ManifestDoc): Promise<ExtractedContent | null> {
+  // `excerpt` narrows a PDF and a ficha alike, so a reader may reasonably
+  // expect its sibling to travel as far. It cannot: it filters chunks the
+  // artículo chunker labelled, which only a norma has. Refuse it here rather
+  // than let a misplaced list ingest the whole document unfiltered.
+  if (doc.source.keepArticulos && doc.source.kind !== "sinalevi") {
+    throw new Error(
+      `${doc.doc_key}: source.keepArticulos is sinalevi-only, but this entry is "${doc.source.kind}"`,
+    );
+  }
+  if (
+    doc.source.sha256 &&
+    doc.source.kind !== "pdf" &&
+    doc.source.kind !== "hacienda-pdf"
+  ) {
+    throw new Error(
+      `${doc.doc_key}: source.sha256 needs a PDF to hash, but this entry is "${doc.source.kind}"`,
+    );
+  }
   switch (doc.source.kind) {
     case "sinalevi": {
       const norma = await fetchNorma(doc.source.idFichaNorma!);
@@ -313,6 +370,28 @@ async function extract(doc: ManifestDoc): Promise<ExtractedContent | null> {
         ...doc.source,
         ...{ idVersionNorma: norma.idVersionNorma, articulos },
       };
+      if (doc.source.keepArticulos) {
+        if (doc.source.excerpt) {
+          throw new Error(
+            `${doc.doc_key}: source.excerpt and source.keepArticulos both narrow this ficha — pick one`,
+          );
+        }
+        const keep = doc.source.keepArticulos;
+        console.log(`  ${doc.doc_key}: keeping artículos ${keep.join(", ")}`);
+        return {
+          kind: "chunks",
+          value: filterArticulos(
+            doc.doc_key,
+            chunkDocument(
+              doc.doc_key,
+              doc.title,
+              htmlToParagraphs(norma.html),
+              doc.chunking ?? {},
+            ),
+            keep,
+          ),
+        };
+      }
       if (!doc.source.excerpt) {
         return { kind: "paragraphs", value: htmlToParagraphs(norma.html) };
       }
@@ -363,11 +442,7 @@ async function extract(doc: ManifestDoc): Promise<ExtractedContent | null> {
     }
     case "hacienda-pdf": {
       const pdf = await fetchHaciendaPdf(doc.source.url!);
-      if (doc.source.sha256) {
-        const notice = pdfHashNotice(doc.doc_key, pdf, doc.source.sha256);
-        if (notice.level === "warn") console.warn(`  ⚠ ${notice.message}`);
-        else console.log(`  ${notice.message}`);
-      }
+      reportPdfHash(doc, pdf);
       return {
         kind: "paragraphs",
         value: textToParagraphs(pdfToText(doc, pdf), {
@@ -383,6 +458,9 @@ async function extract(doc: ManifestDoc): Promise<ExtractedContent | null> {
         { url: doc.source.url!, member: doc.source.member },
         CACHE,
       );
+      // After the zip member is extracted, so the hash covers the bytes this
+      // entry actually ingests rather than the archive they arrived in.
+      reportPdfHash(doc, pdf);
       if (doc.source.pages) {
         console.log(`  ${doc.doc_key}: pages ${doc.source.pages}`);
       }

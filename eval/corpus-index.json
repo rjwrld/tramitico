@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-04T05:13:37.854Z",
-  "chunkCount": 831,
+  "generatedAt": "2026-09-04T06:02:19.034Z",
+  "chunkCount": 840,
   "entries": [
     {
       "docKey": "cabys-dev",
@@ -690,6 +690,65 @@
       "docKey": "ccss-reglamento-ti",
       "articulo": "TRANSITORIO V",
       "path": ["SECCION IV Disposiciones finales"]
+    },
+    {
+      "docKey": "cnpt",
+      "articulo": "Artículo 57",
+      "path": ["TITULO II OBLIGACION TRIBUTARIA", "CAPITULO VI Intereses"]
+    },
+    {
+      "docKey": "cnpt",
+      "articulo": "Artículo 78",
+      "path": [
+        "TÍTULO III HECHOS ILÍCITOS TRIBUTARIOS",
+        "CAPÍTULO II INFRACCIONES Y SANCIONES ADMINISTRATIVAS",
+        "SECCIÓN II INFRACCIONES ADMINISTRATIVAS"
+      ]
+    },
+    {
+      "docKey": "cnpt",
+      "articulo": "Artículo 79",
+      "path": [
+        "TÍTULO III HECHOS ILÍCITOS TRIBUTARIOS",
+        "CAPÍTULO II INFRACCIONES Y SANCIONES ADMINISTRATIVAS",
+        "SECCIÓN II INFRACCIONES ADMINISTRATIVAS"
+      ]
+    },
+    {
+      "docKey": "cnpt",
+      "articulo": "Artículo 80 bis",
+      "path": [
+        "TÍTULO III HECHOS ILÍCITOS TRIBUTARIOS",
+        "CAPÍTULO II INFRACCIONES Y SANCIONES ADMINISTRATIVAS",
+        "SECCIÓN II INFRACCIONES ADMINISTRATIVAS"
+      ]
+    },
+    {
+      "docKey": "cnpt",
+      "articulo": "Artículo 80",
+      "path": [
+        "TÍTULO III HECHOS ILÍCITOS TRIBUTARIOS",
+        "CAPÍTULO II INFRACCIONES Y SANCIONES ADMINISTRATIVAS",
+        "SECCIÓN II INFRACCIONES ADMINISTRATIVAS"
+      ]
+    },
+    {
+      "docKey": "cnpt",
+      "articulo": "Artículo 81",
+      "path": [
+        "TÍTULO III HECHOS ILÍCITOS TRIBUTARIOS",
+        "CAPÍTULO II INFRACCIONES Y SANCIONES ADMINISTRATIVAS",
+        "SECCIÓN II INFRACCIONES ADMINISTRATIVAS"
+      ]
+    },
+    {
+      "docKey": "cnpt",
+      "articulo": "Artículo 88",
+      "path": [
+        "TÍTULO III HECHOS ILÍCITOS TRIBUTARIOS",
+        "CAPÍTULO II INFRACCIONES Y SANCIONES ADMINISTRATIVAS",
+        "SECCIÓN II INFRACCIONES ADMINISTRATIVAS"
+      ]
     },
     {
       "docKey": "disposiciones-v44",
@@ -3758,6 +3817,11 @@
     {
       "docKey": "reglamento-rts",
       "articulo": "Preámbulo",
+      "path": []
+    },
+    {
+      "docKey": "salario-base-2026",
+      "articulo": "Circular 246-2025",
       "path": []
     },
     {
