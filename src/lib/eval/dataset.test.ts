@@ -115,6 +115,15 @@ describe("parseDataset coverage contract (#261)", () => {
     );
   });
 
+  it("rejects a non-boolean blocking rather than reading it as false", () => {
+    expect(() => parseDataset(line({ ...CASE, blocking: "false" }))).toThrow(
+      /blocking must be a boolean/,
+    );
+    expect(() => parseDataset(line({ ...TIER1, blocking: "false" }))).toThrow(
+      /blocking must be a boolean/,
+    );
+  });
+
   it("rejects an unknown tier or family", () => {
     expect(() => parseDataset(line({ ...CASE, tier: 3 }))).toThrow(/tier/);
     expect(() => parseDataset(line({ ...TIER1, family: "T1-Z" }))).toThrow(

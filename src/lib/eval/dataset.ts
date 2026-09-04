@@ -277,7 +277,7 @@ export function parseDataset(jsonl: string): EvalCase[] {
         }
       }
     }
-    const raw261 = entry as {
+    const coverage = entry as {
       family?: unknown;
       requiredClaims?: unknown;
       requiredSteps?: unknown;
@@ -285,18 +285,31 @@ export function parseDataset(jsonl: string): EvalCase[] {
       routeTo?: unknown;
       freshness?: unknown;
     };
-    const family = parseFamily(where, raw261.family);
-    const requiredClaims = parseRequiredClaims(where, raw261.requiredClaims);
+    const family = parseFamily(where, coverage.family);
+    const requiredClaims = parseRequiredClaims(where, coverage.requiredClaims);
     const requiredSteps = parseStringList(
       `${where}: requiredSteps`,
-      raw261.requiredSteps,
+      coverage.requiredSteps,
     );
-    const freshness = parseStringList(`${where}: freshness`, raw261.freshness);
+    const freshness = parseStringList(
+      `${where}: freshness`,
+      coverage.freshness,
+    );
     const abstainIf = parseOptionalString(
       `${where}: abstainIf`,
-      raw261.abstainIf,
+      coverage.abstainIf,
     );
-    const routeTo = parseOptionalString(`${where}: routeTo`, raw261.routeTo);
+    const routeTo = parseOptionalString(`${where}: routeTo`, coverage.routeTo);
+
+    // Checked, not coerced: the old `entry.blocking === true` read any
+    // non-`true` value as false, which would quietly swallow a hand-written
+    // `"blocking": "false"` — a string, so the tier 1 guard below (strict
+    // equality against the boolean) would miss it too, and a case that meant
+    // to opt out would ship blocking. 45 hand-written held-out cases are
+    // exactly the place that typo happens.
+    if (entry.blocking !== undefined && typeof entry.blocking !== "boolean") {
+      throw new Error(`${where}: blocking must be a boolean`);
+    }
 
     // The Tier 1 contract (#254 §A3), enforced at parse time so a case cannot
     // claim the beta promise without carrying what makes it checkable.
