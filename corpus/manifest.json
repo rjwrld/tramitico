@@ -1,5 +1,6 @@
 {
-  "$comment": "Ingestion source of truth (SPEC §3). Seeded from docs/research/corpus-viability.md §1. kinds: sinalevi (3-call API, idFichaNorma; vigente version resolved at fetch), hacienda-pdf (Playwright fetch — WAF blocks plain HTTP), cabys (curated dev-relevant subset, task #8), unresolved (official source to locate during ingestion; never ingest secondary commentary). deepLink (#134): audited per source — how deep the official URL can be linked. `articulo` = SINALEVI ficha; the viewer opens one artículo at Informacion?param1=<ficha>&param2=<idVersionNorma>&param3=3&param4=<idArticulo>, and `source.articulos` (artículo number → idArticulo) is harvested at ingestion from the «Ficha Artículo» rail in the full-text payload — _BuscarArticulo answers -1 for our fichas, so the rail is the only mapping. `page` = PDF whose primary text is a page range; the chip appends #page=<first page>. excerpt (#176): inside a page range, the from/to line markers bounding the one artículo the entry claims — required where the range is a reform decree, whose neighbouring pages carry incisos later reforms have superseded; ingestion fails loudly if a marker is missing or ambiguous. `none` = the document root is the deepest honest link, with the reason in that entry's notes. imagesAudited (#177): for entries carrying an IMAGE AUDIT note, every SINALEVI image src or PDF page/object identity a human looked at in that audit — ingestion logs a quiet receipt while the payload stays inside this set, and the full warning naming new identities the moment a re-crawl adds one.",
+  "$comment": "Ingestion source of truth (SPEC §3). Seeded from docs/research/corpus-viability.md §1. kinds: sinalevi (3-call API, idFichaNorma; vigente version resolved at fetch), hacienda-pdf (Playwright fetch — WAF blocks plain HTTP), cabys (curated dev-relevant subset, task #8), unresolved (official source to locate during ingestion; never ingest secondary commentary). retiredDocKeys names documents that a run must remove from the database before dumping the corpus index. deepLink (#134): audited per source — how deep the official URL can be linked. `articulo` = SINALEVI ficha; the viewer opens one artículo at Informacion?param1=<ficha>&param2=<idVersionNorma>&param3=3&param4=<idArticulo>, and `source.articulos` (artículo number → idArticulo) is harvested at ingestion from the «Ficha Artículo» rail in the full-text payload — _BuscarArticulo answers -1 for our fichas, so the rail is the only mapping. `page` = PDF whose primary text is a page range; the chip appends #page=<first page>. excerpt (#176): inside a page range, the from/to line markers bounding the one artículo the entry claims — required where the range is a reform decree, whose neighbouring pages carry incisos later reforms have superseded; ingestion fails loudly if a marker is missing or ambiguous. `none` = the document root is the deepest honest link, with the reason in that entry's notes. imagesAudited (#177): for entries carrying an IMAGE AUDIT note, every SINALEVI image src or PDF page/object identity a human looked at in that audit — ingestion logs a quiet receipt while the payload stays inside this set, and the full warning naming new identities the moment a re-crawl adds one.",
+  "retiredDocKeys": ["ley-9635"],
   "documents": [
     {
       "doc_key": "ley-iva",
@@ -10,6 +11,17 @@
         "idFichaNorma": 32526,
         "deepLink": "articulo"
       }
+    },
+    {
+      "doc_key": "ley-renta",
+      "title": "Ley del Impuesto sobre la Renta (texto consolidado)",
+      "norma": "Ley 7092",
+      "source": {
+        "kind": "sinalevi",
+        "idFichaNorma": 10969,
+        "deepLink": "articulo"
+      },
+      "notes": "Texto consolidado vigente de la Ley 7092. La ficha ya incorpora la Ley 10818 y sus cifras para 2026: el artículo 8 inciso s) permite a las personas físicas prestadoras de servicios optar por una deducción única del 25 % sin prueba, y el artículo 15 contiene la escala de personas físicas con actividades lucrativas y la regla aplicable cuando también perciben salario. Se ingiere junto a reglamento-renta porque la ley fija la obligación sustantiva y el reglamento su aplicación. Reemplaza por completo a ley-9635 Título II: la ley reformadora omitía con «[…]» los incisos no modificados y duplicaba, además, la Ley del IVA consolidada. Retiro en el mismo cambio #268; todos los objetivos de evaluación se migraron a ley-renta o ley-iva."
     },
     {
       "doc_key": "reglamento-iva",
@@ -71,22 +83,6 @@
       "stackedFraction": true,
       "wrappedRow": true,
       "notes": "Closes gap (b) of the #150 audit — see the reglamento-iva note. La Gaceta 108, Alcance 129 del 2019-06-11, the original publication of the reglamento, carries both the %RT formula and the tarifa media it depends on as selectable text. Safe to ingest even though the 2019 alcance as a whole is not: artículo 41 carries no reform note in the vigente SINALEVI text, so its wording is unchanged, and the excerpt is bounded to that artículo alone (#176) so no neighbouring 2019 wording comes with it. effective_date is the reglamento's own vigencia, 2019-07-01. Deep link page (#134): chips land on page 75, where artículo 41 begins inside the 106-page alcance. BRACKET TABLE (#242, was RESIDUE): the %RT bracket table has two columns, below what layoutTable (#179) can read, so it survives as a run-on line in the chunk — and one bracket wraps, with pdftotext putting a blank line inside the row, so «90% o menos del 100% de ventas locales, exentas o no sujetas» used to read «…exentas o no 1% sujetas», its rate spliced into the middle of its own condition. Remedied: wrappedRow pulls the stray «sujetas» back onto the row's own line and the chunk now carries «90% o menos del 100% de ventas locales, exentas o no sujetas 1%»; the other four brackets read exactly as they did. The fraction bars are a separate fault, and remedied (#203, was RESIDUE): pdftotext drops them — they are drawn, not typed — so the formula used to flatten to «𝑇𝑀 1 𝑃𝑜𝑟𝑐𝑒𝑛𝑡𝑎𝑗𝑒 𝑑𝑒 𝑟𝑒𝑡𝑒𝑛𝑐𝑖ó𝑛 = 𝐹𝑅 ∗ ∗ 13% 1 + 𝑇𝑀», both numerators hoisted to the front and both denominators pushed to the back. With stackedFraction the chunk carries «𝑃𝑜𝑟𝑐𝑒𝑛𝑡𝑎𝑗𝑒 𝑑𝑒 𝑟𝑒𝑡𝑒𝑛𝑐𝑖ó𝑛 = 𝐹𝑅 ∗ (𝑇𝑀)/(13%) ∗ (1)/(1 + 𝑇𝑀)», and the same page's tarifa media reads «𝑇𝑎𝑟𝑖𝑓𝑎 𝑀𝑒𝑑𝑖𝑎 (𝑇𝑀) = (Total de impuesto repecutido)/(𝑇𝑜𝑡𝑎𝑙 𝑑𝑒 𝑣𝑒𝑛𝑡𝑎𝑠 𝑠𝑢𝑗𝑒𝑡𝑎𝑠 𝑦 𝑛𝑜 𝑒𝑥𝑒𝑛𝑡𝑎𝑠)». The denominators «13%» and «1 + 𝑇𝑀» are one space apart, so the reading is only unambiguous because the numerators above them say where the boundary is; a fused row nothing on the page can cut fails ingestion instead of guessing. SURVEY (#199): no rail — the %RT brackets are one line each. The wrapped bracket above was a different fault, one labelRail does not address, and is flagged wrappedRow instead. Not flagged labelRail."
-    },
-    {
-      "doc_key": "ley-9635",
-      "title": "Ley de Fortalecimiento de las Finanzas Públicas",
-      "norma": "Ley 9635",
-      "source": {
-        "kind": "sinalevi",
-        "idFichaNorma": 87720,
-        "deepLink": "articulo"
-      },
-      "imagesAudited": [
-        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2010-2019\\2018\\L_9635_0_87720\\14AA46\\image003.png",
-        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2010-2019\\2018\\L_9635_0_87720\\14AA46\\image005.png",
-        "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2010-2019\\2018\\L_9635_0_87720\\14AA46\\image007.png"
-      ],
-      "notes": "IMAGE AUDIT (#150): 3 images, all rendered formulas, all 3 image-only — and they are the same three the reglamento-renta ficha carries, because this ficha quotes TRANSITORIO I of the Reglamento de la Ley del Impuesto sobre la Renta in full under TRANSITORIO XIX. Same verdict, same reason for not replacing them: the rule is spent (fiscal periods closing 2020-12-31, pagos parciales 2021–2023). See the reglamento-renta note and #150. SURVEY (#203): out of #203's reach for the same reason as reglamento-renta, whose three formulas these are — SINALEVI HTML, so no pdftotext and no fraction bar to restore; the loss is the images the IMAGE AUDIT above records."
     },
     {
       "doc_key": "reglamento-titulo-iv-9635",

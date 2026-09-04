@@ -150,7 +150,7 @@ describe("docShortName covers the manifest", () => {
       "reglamento-iva": "Reglamento IVA",
       "reglamento-iva-bienes-capital": "Reglamento IVA Bienes Capital",
       "reglamento-iva-retencion-tarjetas": "Reglamento IVA Retención Tarjetas",
-      "ley-9635": "Ley 9635",
+      "ley-renta": "Ley Renta",
       "reglamento-titulo-iv-9635": "Reglamento Título IV 9635",
       "reglamento-renta": "Reglamento Renta",
       "tramos-renta-2026": "Tramos Renta 2026",

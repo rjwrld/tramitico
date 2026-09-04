@@ -64,6 +64,14 @@ SINALEVI ficha renders their formulas as images and drops them
 in place of it: no single Gaceta carries the reglamento as it now reads, so the ficha remains the
 only source for the other 72 artículos.
 
+Amended by [#268](https://github.com/rjwrld/tramitico/issues/268): `ley-renta` (Ley 7092,
+SINALEVI ficha 10969) replaces `ley-9635` one-for-one, so the count stays **19**. The consolidated
+law includes the complete vigente renta text, Ley 10818's optional 25% deduction for physical
+persons providing services, and the 2026 figures. `ley-9635` is retired rather than trimmed: its
+Título I duplicated `ley-iva`, its Título II elided unchanged provisions, and its remaining titles
+were out-of-scope retrieval noise. `ley-renta` sits beside `reglamento-renta`; the former owns the
+substantive tax rules and the latter their application.
+
 Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3)):
 
 - **SINALEVI (laws/reglamentos):** 3 calls, all `_BuscarVersionNorma`/`_CargarTextoCompleto` —

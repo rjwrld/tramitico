@@ -21,7 +21,6 @@ const CANARY_INDEX = 1;
 
 const TARGETS: Target[] = [
   { docKey: "reglamento-iva", articulo: "Artículo 11" },
-  { docKey: "ley-9635", articulo: "Artículo 8" },
   { docKey: "ley-iva", articulo: "Artículo 8" },
 ];
 
