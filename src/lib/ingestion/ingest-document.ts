@@ -13,6 +13,7 @@
 import {
   assertChunksCarryContent,
   chunkDocument,
+  type Chunk,
   type ChunkOptions,
 } from "./chunker";
 import {
@@ -70,6 +71,16 @@ export async function ingestDocument(
     paragraphs,
     doc.chunking ?? {},
   );
+  return ingestChunks(deps, doc, chunks);
+}
+
+/** Persist already-structured chunks from extractors whose source supplies
+ * its own citation boundary (the CCSS FAQ's question/modal pairs). */
+export async function ingestChunks(
+  deps: IngestDeps,
+  doc: IngestableDocument,
+  chunks: Chunk[],
+): Promise<number> {
   assertChunksCarryContent(doc.doc_key, chunks);
 
   const embeddings: number[][] = [];

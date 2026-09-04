@@ -12,17 +12,14 @@
 import { execFileSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import path from "node:path";
-
-const BROWSER_UA =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+import { BROWSER_UA, type FetchLike } from "./official-http";
+export type { FetchLike } from "./official-http";
 
 export interface PdfSource {
   url: string;
   /** File name inside the zip at `url`, when the PDF is zipped. */
   member?: string;
 }
-
-export type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
 
 /**
  * Fetch a source's PDF bytes. `scratchDir` receives the intermediate zip when

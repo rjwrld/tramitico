@@ -32,6 +32,7 @@ export const SHORT_NAME_TOKENS: Record<string, string> = {
   iva: "IVA",
   ivm: "IVM",
   rts: "RTS",
+  ti: "TI",
   tribu: "TRIBU",
   // Roman numerals used in título/transitorio keys.
   ii: "II",
