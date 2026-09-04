@@ -8,6 +8,7 @@ import {
   parseDerivedFigures,
   resolveDerivedFigures,
   type DerivedFigure,
+  type ResolvedDerivedFigure,
 } from "./derived";
 
 function chunk(docKey: string, articulo: string | null): RetrievedChunk {
@@ -151,6 +152,31 @@ describe("parseDerivedFigures", () => {
       }),
     ).toThrow(/artículo/i);
   });
+
+  it.each([-1, 11])("rejects output precision %i outside 0..10", (decimals) => {
+    expect(() =>
+      parseDerivedFigures({
+        documents: [{ derivedFigures: [{ ...BMC_IVM, decimals }] }],
+      }),
+    ).toThrow(/declaration/i);
+  });
+
+  it.each([-1, 11])("rejects input precision %i outside 0..10", (decimals) => {
+    expect(() =>
+      parseDerivedFigures({
+        documents: [
+          {
+            derivedFigures: [
+              {
+                ...BMC_IVM,
+                inputs: [{ ...BMC_IVM.inputs[0], decimals }],
+              },
+            ],
+          },
+        ],
+      }),
+    ).toThrow(/name, value/i);
+  });
 });
 
 describe("formatCostaRicanColones", () => {
@@ -188,5 +214,44 @@ describe("incompletelyCitedDerivedFigures", () => {
         resolved,
       ),
     ).toEqual([]);
+  });
+
+  it("checks every occurrence in one paragraph independently", () => {
+    expect(
+      incompletelyCitedDerivedFigures(
+        "La base es ¢324.590 [1][2]. Repetimos: ¢324.590 [1].",
+        resolved,
+      ),
+    ).toEqual(["bmc-ivm-2026"]);
+  });
+
+  it("distinguishes equal amounts by their non-shared input marker", () => {
+    const equalAmounts: ResolvedDerivedFigure[] = [
+      {
+        ...resolved[0],
+        id: "articulo-78",
+        formattedValue: "¢231.100",
+        citationMarkers: [1, 3],
+      },
+      {
+        ...resolved[0],
+        id: "articulo-79",
+        formattedValue: "¢231.100",
+        citationMarkers: [2, 3],
+      },
+    ];
+
+    expect(
+      incompletelyCitedDerivedFigures(
+        "Por declaración son ¢231.100 [2][3].",
+        equalAmounts,
+      ),
+    ).toEqual([]);
+    expect(
+      incompletelyCitedDerivedFigures(
+        "Por declaración son ¢231.100 [2].",
+        equalAmounts,
+      ),
+    ).toEqual(["articulo-79"]);
   });
 });

@@ -446,6 +446,45 @@ describe("POST /api/ask", () => {
     expect(prompt).toContain("[2][3]");
   });
 
+  it("omits each BMC prompt figure when one of its inputs is missing", async () => {
+    const ivm = chunk(1, {
+      docKey: "ccss-escala-ivm",
+      articulo: "Artículo 4°, sesión 9570",
+    });
+    const salud = chunk(2, {
+      docKey: "ccss-escala-salud",
+      articulo: "Artículo 30°, sesión 8999",
+    });
+    const salario = chunk(3, {
+      docKey: "salarios-minimos",
+      articulo: "Artículo 1",
+    });
+
+    const promptFor = async (chunks: RetrievedChunk[]) => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult({ chunks }));
+      const model = mockModel("Respuesta respaldada [1].");
+      await readEvents(await POST(askRequest({ question: "¿Cuánto pago?" })));
+      return JSON.stringify(model.doStreamCalls[0].prompt);
+    };
+
+    const withoutSalary = await promptFor([ivm, salud]);
+    expect(withoutSalary).not.toContain("Base mínima contributiva de IVM");
+    expect(withoutSalary).not.toContain("Base mínima contributiva de SEM");
+    expect(withoutSalary).not.toContain("¢324.590");
+    expect(withoutSalary).not.toContain("¢346.789");
+
+    const withoutIvm = await promptFor([salud, salario]);
+    expect(withoutIvm).not.toContain("Base mínima contributiva de IVM");
+    expect(withoutIvm).not.toContain("¢324.590");
+    expect(withoutIvm).toContain("Base mínima contributiva de SEM");
+
+    const withoutSalud = await promptFor([ivm, salario]);
+    expect(withoutSalud).not.toContain("Base mínima contributiva de SEM");
+    expect(withoutSalud).not.toContain("¢346.789");
+    expect(withoutSalud).toContain("Base mínima contributiva de IVM");
+  });
+
   it("re-chunks the model's bursty deltas into one word per event (#73)", async () => {
     allowRateLimit();
     vi.mocked(retrieve).mockResolvedValue(retrievalResult());

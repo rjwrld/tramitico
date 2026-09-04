@@ -1,6 +1,7 @@
 /** Deterministic, source-gated arithmetic for figures no corpus chunk states. */
 import manifest from "../../../corpus/manifest.json";
 import type { RetrievedChunk } from "../retrieval";
+import { citationMarkers } from "./citations";
 
 export interface DerivedFigureInput {
   /** Identifier used by `formula`; dotted names keep domain context readable. */
@@ -195,6 +196,10 @@ function nonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.length > 0;
 }
 
+function validDecimals(value: unknown): value is number {
+  return Number.isInteger(value) && Number(value) >= 0 && Number(value) <= 10;
+}
+
 /** Validate the manifest boundary before any declared arithmetic can run. */
 export function parseDerivedFigures(value: unknown): DerivedFigure[] {
   if (!isRecord(value) || !Array.isArray(value.documents)) {
@@ -212,7 +217,7 @@ export function parseDerivedFigures(value: unknown): DerivedFigure[] {
         !nonEmptyString(candidate.id) ||
         !nonEmptyString(candidate.label) ||
         !nonEmptyString(candidate.formula) ||
-        !Number.isInteger(candidate.decimals) ||
+        !validDecimals(candidate.decimals) ||
         !Array.isArray(candidate.inputs) ||
         candidate.inputs.length === 0
       ) {
@@ -224,7 +229,7 @@ export function parseDerivedFigures(value: unknown): DerivedFigure[] {
           !nonEmptyString(input.name) ||
           typeof input.value !== "number" ||
           !Number.isFinite(input.value) ||
-          !Number.isInteger(input.decimals) ||
+          !validDecimals(input.decimals) ||
           !nonEmptyString(input.docKey) ||
           !nonEmptyString(input.articulo) ||
           (input.currency !== undefined && typeof input.currency !== "boolean")
@@ -290,20 +295,47 @@ export function incompletelyCitedDerivedFigures(
   answer: string,
   figures: readonly ResolvedDerivedFigure[],
 ): string[] {
-  const paragraphs = answer.split(/\n+/);
-  return figures
-    .filter((figure) =>
-      paragraphs
-        .filter((paragraph) => paragraph.includes(figure.formattedValue))
-        .some((paragraph) => {
-          const afterFigure = paragraph.slice(
-            paragraph.indexOf(figure.formattedValue) +
-              figure.formattedValue.length,
-          );
-          return figure.citationMarkers.some(
-            (marker) => !afterFigure.includes(`[${marker}]`),
-          );
-        }),
-    )
-    .map((figure) => figure.id);
+  const byValue = new Map<string, ResolvedDerivedFigure[]>();
+  for (const figure of figures) {
+    const group = byValue.get(figure.formattedValue) ?? [];
+    group.push(figure);
+    byValue.set(figure.formattedValue, group);
+  }
+
+  const incomplete = new Set<string>();
+  for (const [formattedValue, group] of byValue) {
+    let searchFrom = 0;
+    for (;;) {
+      const occurrence = answer.indexOf(formattedValue, searchFrom);
+      if (occurrence < 0) break;
+      const afterValue = occurrence + formattedValue.length;
+      const remainder = answer.slice(afterValue);
+      const boundary = remainder.search(/[.!?](?=\s|$)|\n/);
+      const claim = boundary < 0 ? remainder : remainder.slice(0, boundary);
+      const markers = new Set(citationMarkers(claim));
+
+      const identified =
+        group.length === 1
+          ? group
+          : group.filter((figure) =>
+              figure.citationMarkers.some(
+                (marker) =>
+                  markers.has(marker) &&
+                  group.every(
+                    (other) =>
+                      other === figure ||
+                      !other.citationMarkers.includes(marker),
+                  ),
+              ),
+            );
+      const candidates = identified.length > 0 ? identified : group;
+      for (const figure of candidates) {
+        if (figure.citationMarkers.some((marker) => !markers.has(marker))) {
+          incomplete.add(figure.id);
+        }
+      }
+      searchFrom = afterValue;
+    }
+  }
+  return figures.map((figure) => figure.id).filter((id) => incomplete.has(id));
 }
