@@ -27,6 +27,7 @@ import {
 } from "../src/lib/ingestion/excerpt";
 import {
   htmlToParagraphs,
+  htmlExcerptToParagraphs,
   imageMarkupNotice,
   textToParagraphs,
 } from "../src/lib/ingestion/extract";
@@ -56,8 +57,9 @@ interface ManifestDoc {
      */
     pages?: string;
     /**
-     * `pdf` only: the artículo inside `pages` this entry actually claims,
-     * bounded by two markers a human read off the PDF (#176). Required where
+     * The portion of an extracted PDF or SINALEVI ficha this entry actually
+     * claims, bounded by two markers a human read off the source (#176, #256).
+     * Required where
      * the page range is a *reform decree*: its neighbouring pages carry other
      * incisos of the same decree that later reforms have since superseded, and
      * a page-granular range would seat those beside vigente chunks. Absent →
@@ -288,7 +290,18 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
         ...doc.source,
         ...{ idVersionNorma: norma.idVersionNorma, articulos },
       };
-      return htmlToParagraphs(norma.html);
+      if (!doc.source.excerpt) return htmlToParagraphs(norma.html);
+      const slices = excerptSlices(doc.source.excerpt);
+      console.log(
+        `  ${doc.doc_key}: excerpt ${slices.map((s) => `from "${s.from}"`).join(", ")}`,
+      );
+      try {
+        return htmlExcerptToParagraphs(norma.html, doc.source.excerpt);
+      } catch (cause) {
+        throw new Error(`${doc.doc_key}: ${(cause as Error).message}`, {
+          cause,
+        });
+      }
     }
     case "hacienda-pdf": {
       const pdf = await fetchHaciendaPdf(doc.source.url!);

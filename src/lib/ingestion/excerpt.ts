@@ -57,6 +57,19 @@ const flatten = (s: string) => s.replace(/\s+/g, " ").trim();
 /** The single index in `lines` whose flattened text carries `marker`. */
 function locate(lines: string[], marker: string, field: "from" | "to"): number {
   const needle = flatten(marker);
+  const exactHits = lines.flatMap((line, i) =>
+    flatten(line) === needle ? [i] : [],
+  );
+  // A full-line marker is the strongest claim the manifest can make. Prefer
+  // it when the same words also occur inside prose elsewhere in the source —
+  // e.g. the v4.4 annex title is quoted by artículo 1 before appearing as its
+  // own heading at the start of the annexes (#256).
+  if (exactHits.length === 1) return exactHits[0];
+  if (exactHits.length > 1) {
+    throw new Error(
+      `excerpt.${field}: ${exactHits.length} lines equal "${marker}" — the marker is ambiguous, so the boundary it names is a guess`,
+    );
+  }
   const hits = lines.flatMap((line, i) =>
     flatten(line).includes(needle) ? [i] : [],
   );

@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { type ChunkOptions, chunkDocument } from "./chunker";
 import { type ExcerptSpec, excerptSlices, sliceExcerpt } from "./excerpt";
 import { textToParagraphs } from "./extract";
+import { htmlExcerptToParagraphs } from "./extract";
 
 const PAGE = [
   "“Artículo 23.- Aplicación de tarifas reducidas.",
@@ -55,6 +56,22 @@ describe("sliceExcerpt", () => {
       to: "ARTÍCULO 2.-",
     });
     expect(out.startsWith("“Artículo 31.-")).toBe(true);
+  });
+
+  it("prefers a unique full-line marker over the same title quoted in prose", () => {
+    const text = [
+      "Artículo 1.- Consulte Anexos y Estructuras para la Emisión de Comprobantes Electrónicos.",
+      "Artículo 13.- Vigencia.",
+      "Anexos y Estructuras para la Emisión de Comprobantes Electrónicos",
+      "BEGIN CERTIFICATE",
+    ].join("\n");
+
+    expect(
+      sliceExcerpt(text, {
+        from: "Artículo 1.-",
+        to: "Anexos y Estructuras para la Emisión de Comprobantes Electrónicos",
+      }),
+    ).toContain("Artículo 13.- Vigencia");
   });
 
   it("runs to the end of the text when `to` is omitted", () => {
@@ -133,6 +150,25 @@ describe("sliceExcerpt", () => {
         to: "Artículo 31.- Crédito aplicable",
       }),
     ).toThrow(/above/);
+  });
+});
+
+describe("htmlExcerptToParagraphs", () => {
+  it("narrows cleaned SINALEVI blocks before they can be chunked", () => {
+    const html = [
+      "<p>Acuerdo Primero: porcentaje obsoleto 1.24%</p>",
+      "<p>Acuerdo Segundo: ajustar la base.</p>",
+      "<p>Acuerdo Tercero: usar la base menor.</p>",
+      "<p>Acuerdo Cuarto: ajustar con el salario mínimo.</p>",
+    ].join("");
+
+    expect(htmlExcerptToParagraphs(html, { from: "Acuerdo Segundo:" })).toEqual(
+      [
+        "Acuerdo Segundo: ajustar la base.",
+        "Acuerdo Tercero: usar la base menor.",
+        "Acuerdo Cuarto: ajustar con el salario mínimo.",
+      ],
+    );
   });
 });
 

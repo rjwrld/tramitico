@@ -1,6 +1,15 @@
 {
-  "$comment": "Ingestion source of truth (SPEC §3). Seeded from docs/research/corpus-viability.md §1. kinds: sinalevi (3-call API, idFichaNorma; vigente version resolved at fetch), hacienda-pdf (Playwright fetch — WAF blocks plain HTTP), cabys (curated dev-relevant subset, task #8), unresolved (official source to locate during ingestion; never ingest secondary commentary). retiredDocKeys names documents that a run must remove from the database before dumping the corpus index. deepLink (#134): audited per source — how deep the official URL can be linked. `articulo` = SINALEVI ficha; the viewer opens one artículo at Informacion?param1=<ficha>&param2=<idVersionNorma>&param3=3&param4=<idArticulo>, and `source.articulos` (artículo number → idArticulo) is harvested at ingestion from the «Ficha Artículo» rail in the full-text payload — _BuscarArticulo answers -1 for our fichas, so the rail is the only mapping. `page` = PDF whose primary text is a page range; the chip appends #page=<first page>. excerpt (#176): inside a page range, the from/to line markers bounding the one artículo the entry claims — required where the range is a reform decree, whose neighbouring pages carry incisos later reforms have superseded; ingestion fails loudly if a marker is missing or ambiguous. `none` = the document root is the deepest honest link, with the reason in that entry's notes. imagesAudited (#177): for entries carrying an IMAGE AUDIT note, every SINALEVI image src or PDF page/object identity a human looked at in that audit — ingestion logs a quiet receipt while the payload stays inside this set, and the full warning naming new identities the moment a re-crawl adds one.",
-  "retiredDocKeys": ["ley-9635"],
+  "$comment": "Ingestion source of truth (SPEC §3). Seeded from docs/research/corpus-viability.md §1. kinds: sinalevi (3-call API, idFichaNorma; vigente version resolved at fetch), hacienda-pdf (Playwright fetch — WAF blocks plain HTTP), cabys (curated dev-relevant subset, task #8), unresolved (official source to locate during ingestion; never ingest secondary commentary). retiredDocKeys names documents that a run must remove from the database before dumping the corpus index; retirementNotes records why. deepLink (#134): audited per source — how deep the official URL can be linked. `articulo` = SINALEVI ficha; the viewer opens one artículo at Informacion?param1=<ficha>&param2=<idVersionNorma>&param3=3&param4=<idArticulo>, and `source.articulos` (artículo number → idArticulo) is harvested at ingestion from the «Ficha Artículo» rail in the full-text payload — _BuscarArticulo answers -1 for our fichas, so the rail is the only mapping. `page` = PDF whose primary text is a page range; the chip appends #page=<first page>. excerpt (#176, #256): from/to line markers bounding the portion an entry claims, after PDF or SINALEVI HTML extraction; ingestion fails loudly if a marker is missing or ambiguous. `none` = the document root is the deepest honest link, with the reason in that entry's notes. imagesAudited (#177): for entries carrying an IMAGE AUDIT note, every SINALEVI image src or PDF page/object identity a human looked at in that audit — ingestion logs a quiet receipt while the payload stays inside this set, and the full warning naming new identities the moment a re-crawl adds one.",
+  "retiredDocKeys": [
+    "ley-9635",
+    "reglamento-titulo-iv-9635",
+    "dgt-export-servicios"
+  ],
+  "retirementNotes": {
+    "ley-9635": "Retired by #268 after consolidated Ley 7092 replaced its incomplete renta excerpt and Ley IVA duplication.",
+    "reglamento-titulo-iv-9635": "Retired by #256: this is the Regla Fiscal regulation for non-financial public-sector spending, not renta; 0/47 audited chunks mentioned impuesto sobre la renta/utilidades and 27/47 said regla fiscal. No eval target referenced it.",
+    "dgt-export-servicios": "Retired by #256: MH-DGT-RES-0017-2023 enumerates port and vessel-attention services tied to goods exports, not professional-service exports. #111 had already removed it as an eval target."
+  },
   "documents": [
     {
       "doc_key": "ley-iva",
@@ -85,16 +94,6 @@
       "notes": "Closes gap (b) of the #150 audit — see the reglamento-iva note. La Gaceta 108, Alcance 129 del 2019-06-11, the original publication of the reglamento, carries both the %RT formula and the tarifa media it depends on as selectable text. Safe to ingest even though the 2019 alcance as a whole is not: artículo 41 carries no reform note in the vigente SINALEVI text, so its wording is unchanged, and the excerpt is bounded to that artículo alone (#176) so no neighbouring 2019 wording comes with it. effective_date is the reglamento's own vigencia, 2019-07-01. Deep link page (#134): chips land on page 75, where artículo 41 begins inside the 106-page alcance. BRACKET TABLE (#242, was RESIDUE): the %RT bracket table has two columns, below what layoutTable (#179) can read, so it survives as a run-on line in the chunk — and one bracket wraps, with pdftotext putting a blank line inside the row, so «90% o menos del 100% de ventas locales, exentas o no sujetas» used to read «…exentas o no 1% sujetas», its rate spliced into the middle of its own condition. Remedied: wrappedRow pulls the stray «sujetas» back onto the row's own line and the chunk now carries «90% o menos del 100% de ventas locales, exentas o no sujetas 1%»; the other four brackets read exactly as they did. The fraction bars are a separate fault, and remedied (#203, was RESIDUE): pdftotext drops them — they are drawn, not typed — so the formula used to flatten to «𝑇𝑀 1 𝑃𝑜𝑟𝑐𝑒𝑛𝑡𝑎𝑗𝑒 𝑑𝑒 𝑟𝑒𝑡𝑒𝑛𝑐𝑖ó𝑛 = 𝐹𝑅 ∗ ∗ 13% 1 + 𝑇𝑀», both numerators hoisted to the front and both denominators pushed to the back. With stackedFraction the chunk carries «𝑃𝑜𝑟𝑐𝑒𝑛𝑡𝑎𝑗𝑒 𝑑𝑒 𝑟𝑒𝑡𝑒𝑛𝑐𝑖ó𝑛 = 𝐹𝑅 ∗ (𝑇𝑀)/(13%) ∗ (1)/(1 + 𝑇𝑀)», and the same page's tarifa media reads «𝑇𝑎𝑟𝑖𝑓𝑎 𝑀𝑒𝑑𝑖𝑎 (𝑇𝑀) = (Total de impuesto repecutido)/(𝑇𝑜𝑡𝑎𝑙 𝑑𝑒 𝑣𝑒𝑛𝑡𝑎𝑠 𝑠𝑢𝑗𝑒𝑡𝑎𝑠 𝑦 𝑛𝑜 𝑒𝑥𝑒𝑛𝑡𝑎𝑠)». The denominators «13%» and «1 + 𝑇𝑀» are one space apart, so the reading is only unambiguous because the numerators above them say where the boundary is; a fused row nothing on the page can cut fails ingestion instead of guessing. SURVEY (#199): no rail — the %RT brackets are one line each. The wrapped bracket above was a different fault, one labelRail does not address, and is flagged wrappedRow instead. Not flagged labelRail."
     },
     {
-      "doc_key": "reglamento-titulo-iv-9635",
-      "title": "Reglamento al Título IV de la Ley 9635 (renta)",
-      "norma": "Decreto Ejecutivo (ver ficha)",
-      "source": {
-        "kind": "sinalevi",
-        "idFichaNorma": 88641,
-        "deepLink": "articulo"
-      }
-    },
-    {
       "doc_key": "reglamento-renta",
       "title": "Reglamento de la Ley del Impuesto sobre la Renta",
       "norma": "Decreto Ejecutivo (ver ficha)",
@@ -140,9 +139,12 @@
       "source": {
         "kind": "sinalevi",
         "idFichaNorma": 87782,
+        "excerpt": {
+          "from": "Acuerdo Segundo:"
+        },
         "deepLink": "articulo"
       },
-      "notes": "Annual churn — verify vigente version each re-crawl; figures only from primary decree. CARRIES NO RATES (#114): the escala contributiva table is a raster image in the SINALEVI payload (image005.png), not markup, so HTML→text extraction cannot recover it — the ingested text jumps from «Establecer la siguiente escala contributiva» to «Notas:». Same for the sibling ficha 82804. The doc is kept for Acuerdos Segundo–Cuarto (how the BMC is adjusted when the minimum wage moves); never cite it for a percentage or a BMC amount — those live in ccss-escala-salud, ccss-escala-ivm and salarios-minimos, ingested from the CCSS actas that transcribe the same tables as text. Deep link articulo (#134) — the acuerdos are numbered artículos in the ficha rail."
+      "notes": "Annual churn — verify vigente version each re-crawl. EXCERPT (#256): only Acuerdos Segundo–Cuarto are ingested, because they define how the BMC and income brackets move when the minimum wage changes. Acuerdo Primero and its notes are excluded wholesale: its escala is a raster image (#114), so it contributes no rates, while note (1) exposes the superseded 1.24% IVM State contribution (1.75% since 2026). Never cite this entry for a percentage or BMC amount — current rates live in ccss-escala-salud and ccss-escala-ivm, and the colón input in salarios-minimos. Deep link articulo (#134) — the acuerdos are numbered artículos in the ficha rail."
     },
     {
       "doc_key": "ccss-escala-ivm",
@@ -243,6 +245,10 @@
       "source": {
         "kind": "sinalevi",
         "idFichaNorma": 103276,
+        "excerpt": {
+          "from": "Artículo 1.- Formatos y especificaciones",
+          "to": "Anexos y Estructuras para la Emisión de"
+        },
         "deepLink": "articulo"
       },
       "imagesAudited": [
@@ -254,18 +260,7 @@
         "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2020-2029\\2024\\S_27_0_103276\\1701B7\\image007.jpg",
         "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2020-2029\\2024\\S_27_0_103276\\1701B7\\image009.png"
       ],
-      "notes": "Mandatory since 2025-09-01. SINALEVI vigente text is consolidated with reforms MH-DGT-RES-0001-2025 and MH-DGT-RES-0043-2025 — preferred over the original hacienda.go.cr PDF (Resolucion_General_sobre_disposiciones_tecnicas_comprobantes_electronicos_para.pdf), whose transition dates are superseded. IMAGE AUDIT (#150): 10 images, none carrying substance — 8 are Word drawing-canvas strokes (arrows and 2px rules, 2×20 to 242×2) and 2 are diagrams of digit layouts (image007.jpg, the 20-digit numeración consecutiva; image009.png, the 50-digit clave numérica). Both diagrams are redundant: incisos a)–d) and a)–h) give every field range in text, down to «del cuadragésimo tercero al quincuagésimo dígito, corresponde al código de seguridad». Nothing to replace."
-    },
-    {
-      "doc_key": "dgt-export-servicios",
-      "title": "Operaciones exentas relacionadas con las exportaciones (artículo 11 del Reglamento del IVA)",
-      "norma": "MH-DGT-RES-0017-2023",
-      "source": {
-        "kind": "sinalevi",
-        "idFichaNorma": 99994,
-        "deepLink": "articulo"
-      },
-      "notes": "Primary DGT resolution behind the EY/observador summaries; consolidates and derogates DGT-R-035-2019, DGT-R-038-2019, DGT-R-036-2021. Quotes LIVA art. 8.1: services are exempt only when used outside the territorial scope — consumption entirely outside CR, not merely billing abroad."
+      "notes": "Mandatory since 2025-09-01. SINALEVI vigente text is consolidated with reforms MH-DGT-RES-0001-2025 and MH-DGT-RES-0043-2025 — preferred over the original hacienda.go.cr PDF, whose transition dates are superseded. EXCERPT (#256): keeps every operative artículo (1–13) and Transitorio (I–III), ending after artículo 13 and before the separately titled «Anexos y Estructuras». The excluded 7,000+ extracted blocks are implementation annexes: schemas and XML samples, certificate/base64 payloads, signature examples, API/OAuth URLs and credential instructions. They are vendor-facing noise, not audience law, and previously dominated lexical retrieval. IMAGE AUDIT (#150): 10 images, none carrying substance — 8 are Word drawing-canvas strokes and 2 are redundant digit-layout diagrams."
     },
     {
       "doc_key": "tribu-cr-guia",

@@ -94,7 +94,6 @@ const QUESTIONS: { q: string; targets: Target[]; canary?: boolean }[] = [
     q: "¿Tengo que inscribirme en Hacienda si facturo a clientes en el extranjero?",
     targets: [
       { docKey: "reglamento-renta" },
-      { docKey: "reglamento-titulo-iv-9635" },
       { docKey: "ley-renta", articulo: "ARTICULO 2" },
     ],
   },
@@ -114,7 +113,12 @@ const QUESTIONS: { q: string; targets: Target[]; canary?: boolean }[] = [
   },
   {
     q: "¿Cuánto pago a la CCSS como trabajador independiente y cómo se calcula la base?",
-    targets: [{ docKey: "ccss-bmc" }, { docKey: "ley-10363" }],
+    targets: [
+      { docKey: "ccss-escala-salud" },
+      { docKey: "ccss-escala-ivm" },
+      { docKey: "ley-10363" },
+      { docKey: "salarios-minimos" },
+    ],
   },
   {
     q: "¿Me pueden cobrar retroactivo si nunca me inscribí en la CCSS?",
@@ -126,16 +130,12 @@ const QUESTIONS: { q: string; targets: Target[]; canary?: boolean }[] = [
   },
   {
     q: "¿Qué pasa si dejo de trabajar independiente — desinscripción D-140 y consecuencias?",
-    targets: [
-      { docKey: "reglamento-renta" },
-      { docKey: "reglamento-titulo-iv-9635" },
-    ],
+    targets: [{ docKey: "reglamento-renta" }],
   },
   {
     q: "¿Cómo calculo renta como persona física con actividad lucrativa — aplica la deducción automática del 25%?",
     targets: [
       { docKey: "reglamento-renta" },
-      { docKey: "reglamento-titulo-iv-9635" },
       { docKey: "ley-renta", articulo: "ARTICULO 8" },
       { docKey: "ley-renta", articulo: "Artículo 15" },
       { docKey: "tramos-renta-2026" },

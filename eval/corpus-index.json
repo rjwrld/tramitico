@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-04T02:26:01.692Z",
-  "chunkCount": 623,
+  "generatedAt": "2026-09-04T03:01:53.578Z",
+  "chunkCount": 535,
   "entries": [
     {
       "docKey": "cabys-dev",
@@ -20,26 +20,6 @@
     {
       "docKey": "ccss-escala-salud",
       "articulo": "Artículo 30°, sesión 8999",
-      "path": []
-    },
-    {
-      "docKey": "dgt-export-servicios",
-      "articulo": "Artículo 1",
-      "path": []
-    },
-    {
-      "docKey": "dgt-export-servicios",
-      "articulo": "Artículo 2",
-      "path": []
-    },
-    {
-      "docKey": "dgt-export-servicios",
-      "articulo": "Artículo 3",
-      "path": []
-    },
-    {
-      "docKey": "dgt-export-servicios",
-      "articulo": "Preámbulo",
       "path": []
     },
     {
@@ -99,22 +79,12 @@
     },
     {
       "docKey": "disposiciones-v44",
-      "articulo": "Articulo 8",
-      "path": []
-    },
-    {
-      "docKey": "disposiciones-v44",
       "articulo": "Artículo 8",
       "path": []
     },
     {
       "docKey": "disposiciones-v44",
       "articulo": "Artículo 9",
-      "path": []
-    },
-    {
-      "docKey": "disposiciones-v44",
-      "articulo": "Preámbulo",
       "path": []
     },
     {
@@ -3119,216 +3089,6 @@
     {
       "docKey": "reglamento-rts",
       "articulo": "Preámbulo",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 1",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 10",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 11",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 12",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 13",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 14",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 15",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 16",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 17",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 18",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 19",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 2",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 20",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 21",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 22",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 23",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 24",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 25",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 26",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 27",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 28",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 29",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 3",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 30",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 31",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 32",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 33",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 34",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 35",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 36",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 37",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 4",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 5",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 6",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 7",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 8",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Artículo 9",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Preámbulo",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "TRANSITORIO I",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "TRANSITORIO II",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "TRANSITORIO III",
-      "path": []
-    },
-    {
-      "docKey": "reglamento-titulo-iv-9635",
-      "articulo": "Transitorio IV",
       "path": []
     },
     {

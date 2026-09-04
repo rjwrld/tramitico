@@ -1,4 +1,5 @@
 import { decodeHTML } from "entities";
+import { type ExcerptSpec, sliceExcerpt } from "./excerpt";
 import { renderLabelRail } from "./label-rail";
 import { type LayoutTableSpec, renderLayoutTable } from "./layout-table";
 import { renderStackedFraction } from "./stacked-fraction";
@@ -150,6 +151,22 @@ export function htmlToParagraphs(html: string): string[] {
   const withBreaks = dropNonContent(html).replace(BLOCK_TAG_RE, "\n");
   const text = decodeHTML(withBreaks.replace(TAG_RE, " "));
   return cleanParagraphs(text.split("\n"));
+}
+
+/**
+ * SINALEVI HTML narrowed by the same manifest markers used for PDFs.
+ *
+ * Excerpting after HTML cleanup makes each semantic block one searchable line,
+ * while still failing loudly when a marker disappears or becomes ambiguous.
+ */
+export function htmlExcerptToParagraphs(
+  html: string,
+  excerpt: ExcerptSpec | readonly ExcerptSpec[],
+): string[] {
+  const paragraphs = htmlToParagraphs(html);
+  return sliceExcerpt(paragraphs.join("\n"), excerpt)
+    .split("\n")
+    .filter(Boolean);
 }
 
 /** The manifest's verdicts about how this document is laid out on the page. */
