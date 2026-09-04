@@ -120,7 +120,7 @@ vi.mock("@/components/ui/message-scroller", async (importOriginal) => {
 
 import { HistoryRefreshProvider } from "@/components/history/history-refresh";
 
-import { Chat } from "./chat";
+import { Chat, NON_PROMISE_LINE, SCOPE_LINE } from "./chat";
 
 type IntersectionCallback = ConstructorParameters<
   typeof IntersectionObserver
@@ -278,6 +278,54 @@ describe("Chat pre-submission privacy disclosure (#136)", () => {
     // landing screen that the first question sweeps away.
     expect(note.textContent).toContain(PRIVACY_DISCLOSURE);
     expect(composer.closest("form")?.parentElement?.contains(note)).toBe(true);
+  });
+});
+
+/**
+ * #264 req. 2: the scope and the non-promise are readable before the first
+ * ask, on the empty state — and gone with it once the conversation starts,
+ * where the decline itself names the boundary.
+ */
+describe("Chat scope and non-promise (#264)", () => {
+  function scope(): HTMLElement | null {
+    return document.querySelector<HTMLElement>('[data-slot="scope"]');
+  }
+
+  it("shows what it covers and what it does not, before the first ask", () => {
+    render(<Chat />);
+
+    expect(sendMessageMock).not.toHaveBeenCalled();
+    const text = scope()?.textContent ?? "";
+    expect(text).toContain(SCOPE_LINE);
+    expect(text).toContain(NON_PROMISE_LINE);
+    // The two claims the audit fixed: Hacienda + CCSS for personas físicas
+    // independientes; no personalised calculation, sociedades or other
+    // institutions.
+    expect(text).toMatch(/Hacienda y la CCSS/);
+    expect(text).toMatch(/cuenta propia/);
+    expect(text).toMatch(/No calcula/);
+    expect(text).toMatch(/sociedades/);
+    expect(text).toMatch(/otras instituciones/);
+  });
+
+  it("sits under the headline and above the seeds", () => {
+    render(<Chat />);
+
+    const headline = screen.getByRole("heading", { level: 1 });
+    const seeds = screen.getByRole("list", { name: "Preguntas frecuentes" });
+    const node = scope()!;
+    expect(
+      headline.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      node.compareDocumentPosition(seeds) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("belongs to the empty state only", () => {
+    chat.messages = conversation;
+    render(<Chat />);
+    expect(scope()).toBeNull();
   });
 });
 

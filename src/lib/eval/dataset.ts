@@ -34,7 +34,11 @@ export interface ExpectedTarget {
 
 export interface EvalCase {
   id: string;
-  /** Provenance: "appendix-a:<n>" (SPEC Appendix A) or "corpus". */
+  /**
+   * Provenance: "appendix-a:<n>" (a SPEC Appendix A seed, numbered by Tier 1
+   * family since #264), "demand:<family>" (the demand taxonomy of #254) or
+   * "corpus".
+   */
   seed: string;
   question: string;
   /**

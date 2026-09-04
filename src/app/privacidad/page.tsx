@@ -13,6 +13,8 @@ import { PRIVACY_PATH } from "@/components/chat/privacy-note";
  * and so it is when what an existing one *receives* changes: #132 added no
  * provider, but a follow-up now sends Anthropic the recent turns of the
  * conversation and stores the rewrite it produced, and both are said here.
+ * Likewise a field added to the per-ask log line (#264's routing category)
+ * is a claim this page makes about what the operational record holds.
  *
  * DESIGN §10 applies: no card grid, no eyebrows, no accent stripes. Headings
  * and paragraphs, one hairline rule under the title.
@@ -104,9 +106,13 @@ export default function PrivacyPage() {
           </strong>{" "}
           Para detectar fallas se registra, por cada consulta, cómo terminó: si
           se respondió, cuánto tardó de forma aproximada y, cuando algo falla,
-          el tipo de error y su código. Nunca el texto de la pregunta ni el de
-          la respuesta, ni quién consultó. Los conserva el proveedor de
-          alojamiento alrededor de 30 días.
+          el tipo de error y su código. Cuando no se encontró base oficial para
+          responder, se registra también a qué institución se le remitió (una
+          categoría de una lista fija: Hacienda, CCSS, INS, municipalidad,
+          Registro Nacional, colegio profesional, banco, MEIC, migración o
+          MTSS). Nunca el texto de la pregunta ni el de la respuesta, ni quién
+          consultó. Los conserva el proveedor de alojamiento alrededor de 30
+          días.
         </p>
         <p className="mt-4">
           <strong className="font-medium text-foreground">

@@ -27,9 +27,11 @@ import {
   degradedFrom,
   markerOrdinalsFrom,
   messageText,
+  routedFrom,
   statusFrom,
   type AskUIMessage,
 } from "@/lib/answer/contract";
+import { routingEntriesFor, type RoutedCategory } from "@/lib/routing";
 import { renumberCitationMarkers } from "@/lib/answer/citations";
 import { AnswerProse } from "@/components/chat/answer-prose";
 import { AskStatus, type AskStatusState } from "@/components/chat/ask-status";
@@ -38,6 +40,19 @@ import { prefersReducedMotion } from "@/lib/utils";
 
 export const DISCLAIMER =
   "No es asesoría legal ni contable — verifique con Hacienda.";
+
+/**
+ * The disclaimer under a routed decline (#264). The standard line says
+ * «verifique con Hacienda», which contradicts a decline that just sent the
+ * reader to the INS or their municipalidad; this one points at whatever the
+ * decline named.
+ */
+export const ROUTED_DISCLAIMER =
+  "No es asesoría legal ni contable — verifique con la institución indicada.";
+
+/** Lead-in of the routed decline's link row (#264): one link, or several. */
+export const ROUTED_LINKS_LABEL = "Fuente oficial:";
+export const ROUTED_LINKS_LABEL_PLURAL = "Fuentes oficiales:";
 
 /** The reveal cadence the #169/#219 prototypes settled on. */
 const REVEAL_WORDS_PER_SECOND = 120;
@@ -206,6 +221,10 @@ export function AnswerBlock({
   // for the life of the message: the route writes the part before any text,
   // and a restored history message simply never carries one.
   const degraded = degradedFrom(message);
+  // Which institution an honest decline was routed to (#264). Same
+  // lifecycle as `degraded`: written before the text, absent on a restored
+  // message (whose text still carries the URL as plain words).
+  const routed = routedFrom(message);
   // The stage label is this message's business until its first word is
   // actually visible (#219): before any prose, and through the «Verificando
   // citas…» hold that sits between the last stage snapshot and the first
@@ -252,10 +271,51 @@ export function AnswerBlock({
           {DEGRADED_SEARCH_NOTE}
         </p>
       )}
+      {/*
+        The routed decline's link row (#264). The decline's prose already
+        names the institution and prints its URL as words — this is the
+        same destination as a real link, and it is the one href on an
+        answer besides the citation reference: it comes from the routing
+        table in code, never from the streamed text (SPEC §8). Sits where
+        the sellos would, since it is what the decline has instead of them.
+      */}
+      {revealDone && text !== "" && routed !== null && (
+        <RoutedLinks category={routed} />
+      )}
       {revealDone && text !== "" && (
-        <p className="text-xs text-muted-foreground italic">{DISCLAIMER}</p>
+        <p className="text-xs text-muted-foreground italic">
+          {routed === null ? DISCLAIMER : ROUTED_DISCLAIMER}
+        </p>
       )}
       <AskStatus state={statusState} />
     </div>
+  );
+}
+
+/**
+ * The institution(s) a decline points at, as links. One for a routed
+ * category, two (Hacienda, CCSS) for the general decline. Quiet — the same
+ * meta size as the notes around it — and `rel="noopener"` since every
+ * destination is another organisation's site.
+ */
+function RoutedLinks({ category }: { category: RoutedCategory }) {
+  const entries = routingEntriesFor(category);
+  return (
+    <p data-slot="routed-links" className="text-xs text-muted-foreground">
+      {entries.length > 1 ? ROUTED_LINKS_LABEL_PLURAL : ROUTED_LINKS_LABEL}{" "}
+      {entries.map((entry, index) => (
+        <React.Fragment key={entry.category}>
+          {index > 0 && " · "}
+          <a
+            href={entry.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-4"
+          >
+            {entry.institution}
+          </a>
+        </React.Fragment>
+      ))}
+    </p>
   );
 }

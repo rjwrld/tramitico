@@ -28,6 +28,7 @@ import {
 } from "@/components/chat/ask-status";
 import { ChatInput } from "@/components/chat/chat-input";
 import { SeedPrompts } from "@/components/chat/seed-prompts";
+import { SCOPE_PHRASE } from "@/lib/routing";
 import { useHistoryRefresh } from "@/components/history/history-refresh";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,18 @@ const transport = new DefaultChatTransport<AskUIMessage>({
     body: askRequestBody(messages),
   }),
 });
+
+/**
+ * The scope and the non-promise (#264, decision record on #254 Part A §A2),
+ * visible before the first ask: two lines under the headline, what the
+ * assistant covers and what it does not. The first line reuses the phrase
+ * the routed decline says (`routing.ts`), so the promise on the landing
+ * page and the boundary a decline names are one string. DESIGN §9 voice:
+ * sentence case, usted, no exclamation, no apology.
+ */
+export const SCOPE_LINE = `Responde sobre ${SCOPE_PHRASE}, citando el artículo oficial.`;
+export const NON_PROMISE_LINE =
+  "No calcula su caso ni cubre sociedades ni otras instituciones.";
 
 /** The status region's completion state: which message it belongs to, and for how long. */
 interface Completion {
@@ -193,6 +206,19 @@ export function Chat({
                   {corpusCaption}
                 </p>
               )}
+              {/* The scope and the non-promise (#264): two short lines in
+                  the body voice, under the record line and above the seeds,
+                  so a first-time visitor reads what this covers before
+                  choosing a question. Not a card, not an eyebrow — prose
+                  (DESIGN §10). */}
+              <p
+                data-slot="scope"
+                className="text-center text-sm text-balance text-muted-foreground"
+              >
+                {SCOPE_LINE}
+                <br />
+                {NON_PROMISE_LINE}
+              </p>
             </div>
             <SeedPrompts onSelect={ask} disabled={busy} />
             {errorMessage && (

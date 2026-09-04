@@ -37,6 +37,7 @@ import {
   CITATION_RETRY_NOTE,
   WEAK_RETRIEVAL_ANSWER,
 } from "@/lib/answer/prompt";
+import { declineAnswer } from "@/lib/routing";
 import { saveQuestion } from "@/lib/answer/persist";
 import { condenseFailures, resetCondenseFailures } from "@/lib/answer/condense";
 import { getAnswerModel, getCondenseModel } from "@/lib/answer/model";
@@ -315,6 +316,10 @@ function unsavedParts(events: SseEvent[]): unknown[] {
 /** Payload of each `data-degraded` part — [] on an undegraded ask (#127). */
 function degradedParts(events: SseEvent[]): unknown[] {
   return events.filter((e) => e.type === "data-degraded").map((e) => e.data);
+}
+
+function routedParts(events: SseEvent[]): unknown[] {
+  return events.filter((e) => e.type === "data-routed").map((e) => e.data);
 }
 
 /** Stage of each `data-status` part, in the order the stream carried them. */
@@ -1359,7 +1364,9 @@ describe("POST /api/ask", () => {
       );
 
       expect(degradedParts(events)).toEqual([true]);
-      expect(streamedText(events)).toBe(WEAK_RETRIEVAL_ANSWER);
+      // «IVA» routes the decline to Hacienda (#264); the label is what this
+      // test is about, and it must precede the routed text all the same.
+      expect(streamedText(events)).toBe(declineAnswer("hacienda"));
     });
 
     it("says nothing at all on a healthy ask", async () => {
@@ -1521,6 +1528,116 @@ describe("POST /api/ask", () => {
   });
 
   /**
+   * #264: the honest decline is routed by institution. The classifier runs
+   * on the condensed question only when retrieval is weak, the text names
+   * the institution and its URL, a `data-routed` part precedes the text,
+   * and the category rides on the telemetry event.
+   */
+  describe("institution routing on the honest decline (#264)", () => {
+    const WEAK = retrievalResult({ chunks: [], topScore: 0, isWeak: true });
+
+    it("routes an out-of-scope question to its institution, with the part ahead of the text", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(WEAK);
+
+      const events = await readEvents(
+        await POST(
+          askRequest({
+            question: "¿Necesito patente municipal para trabajar desde casa?",
+          }),
+        ),
+      );
+
+      expect(streamedText(events)).toBe(declineAnswer("municipal"));
+      expect(streamedText(events)).toContain("la municipalidad de su cantón");
+      expect(streamedText(events)).toContain("https://www.ifam.go.cr");
+      expect(streamedText(events)).not.toContain("hacienda.go.cr");
+      expect(routedParts(events)).toEqual([{ category: "municipal" }]);
+      // The part lands before the text, so the client has the category by
+      // the time there is a decline to attach it to.
+      const routedAt = events.findIndex((e) => e.type === "data-routed");
+      const textAt = events.findIndex((e) => e.type === "text-start");
+      expect(routedAt).toBeGreaterThanOrEqual(0);
+      expect(routedAt).toBeLessThan(textAt);
+      // Still a decline: no model, no citations.
+      expect(vi.mocked(getAnswerModel)).not.toHaveBeenCalled();
+      expect(events.filter((e) => e.type === "data-citations")).toHaveLength(0);
+    });
+
+    it("falls back to the general decline when nothing names an institution", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(WEAK);
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "asdf qwerty zzz" })),
+      );
+
+      expect(streamedText(events)).toBe(WEAK_RETRIEVAL_ANSWER);
+      expect(routedParts(events)).toEqual([{ category: "general" }]);
+    });
+
+    it("classifies the condensed question, not the literal follow-up (#132)", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(WEAK);
+      mockCondenser("¿Necesito patente municipal para trabajar desde casa?");
+
+      const events = await readEvents(
+        await POST(
+          askRequest({
+            question: "¿Y la patente?",
+            history: [
+              {
+                question: "¿Tengo que inscribirme en Hacienda?",
+                answer: "Sí, al iniciar la actividad [1].",
+              },
+            ],
+          }),
+        ),
+      );
+
+      expect(routedParts(events)).toEqual([{ category: "municipal" }]);
+    });
+
+    it("persists the routed text, so history shows what the reader saw", async () => {
+      vi.mocked(getUserId).mockResolvedValue("user-123");
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(WEAK);
+
+      await readEvents(
+        await POST(
+          askRequest({ question: "¿Tengo aguinaldo como freelancer?" }),
+        ),
+      );
+
+      expect(vi.mocked(saveQuestion)).toHaveBeenCalledWith({
+        userId: "user-123",
+        question: "¿Tengo aguinaldo como freelancer?",
+        condensedQuestion: null,
+        answer: declineAnswer("mtss"),
+        citations: [],
+      });
+    });
+
+    it("does not route the fail-closed decline — retrieval was strong there (#131)", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModelSequence(
+        "La patente municipal se paga en el cantón.",
+        "Se paga en la municipalidad.",
+      );
+
+      const events = await readEvents(
+        await POST(
+          askRequest({ question: "¿Dónde pago la patente municipal?" }),
+        ),
+      );
+
+      expect(streamedText(events)).toBe(WEAK_RETRIEVAL_ANSWER);
+      expect(routedParts(events)).toEqual([]);
+    });
+  });
+
+  /**
    * #141: one structured, content-free line per ask. The assertions read the
    * line off `console.log` and parse it, rather than reaching into the
    * telemetry module — the prefix and the JSON are what the runbook's Vercel
@@ -1586,6 +1703,7 @@ describe("POST /api/ask", () => {
         citationFailure: false,
         quotaHit: false,
         abort: null,
+        routedCategory: null,
       });
     });
 
@@ -1616,7 +1734,32 @@ describe("POST /api/ask", () => {
       expect(soleEvent(capture)).toMatchObject({
         outcome: "declined",
         citationFailure: false,
+        routedCategory: "general",
       });
+    });
+
+    it("counts the routing category of a routed decline, and only that (#264)", async () => {
+      const capture = captureTelemetry();
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(
+        retrievalResult({ chunks: [], topScore: 0, isWeak: true }),
+      );
+
+      await readEvents(
+        await POST(
+          askRequest({ question: "¿Ocupo patente municipal en Escazú?" }),
+        ),
+      );
+
+      const event = soleEvent(capture);
+      expect(event).toMatchObject({
+        outcome: "declined",
+        routedCategory: "municipal",
+      });
+      // The category, never the question.
+      const line = capture.lines.find((l) => l.startsWith(TELEMETRY_PREFIX));
+      expect(line).not.toContain("Escazú");
+      expect(line).not.toContain("patente");
     });
 
     it("raises the citation flag on the fail-closed decline (#131)", async () => {
@@ -1634,6 +1777,9 @@ describe("POST /api/ask", () => {
       expect(soleEvent(capture)).toMatchObject({
         outcome: "declined",
         citationFailure: true,
+        // Not a routed decline: retrieval was strong, the model could not
+        // cite — the counter is for scope decisions only.
+        routedCategory: null,
       });
     });
 
@@ -1789,6 +1935,7 @@ describe("POST /api/ask", () => {
         "outcome",
         "providerError",
         "quotaHit",
+        "routedCategory",
       ]);
     });
   });
@@ -1955,7 +2102,9 @@ describe("POST /api/ask", () => {
         userId: "user-123",
         question: FOLLOW_UP,
         condensedQuestion: STANDALONE,
-        answer: WEAK_RETRIEVAL_ANSWER,
+        // The standalone question names the CCSS, so the decline is routed
+        // there (#264) — off the condensed form, like retrieval.
+        answer: declineAnswer("ccss"),
         citations: [],
       });
     });

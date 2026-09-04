@@ -74,6 +74,7 @@ describe("emitAskEvent", () => {
     citationFailure: false,
     quotaHit: false,
     abort: null,
+    routedCategory: null,
   };
 
   it("writes one line: the stable prefix, a space, then the JSON", () => {
@@ -82,7 +83,7 @@ describe("emitAskEvent", () => {
     expect(capture.lines).toEqual([
       `${TELEMETRY_PREFIX} {"event":"ask","outcome":"ok","latency":"1s_3s",` +
         `"providerError":null,"citationFailure":false,"quotaHit":false,` +
-        `"abort":null}`,
+        `"abort":null,"routedCategory":null}`,
     ]);
   });
 
@@ -231,6 +232,23 @@ describe("createAskTelemetry", () => {
     expect(capture.events()[0].abort).toBe("deadline");
   });
 
+  it("carries the routing category of an honest decline (#264)", () => {
+    const telemetry = createAskTelemetry();
+    telemetry.routed("municipal");
+    telemetry.emit();
+    expect(capture.events()[0]).toMatchObject({
+      outcome: "declined",
+      routedCategory: "municipal",
+    });
+  });
+
+  it("leaves the routing category null on anything that was not a routed decline", () => {
+    const telemetry = createAskTelemetry();
+    telemetry.answered();
+    telemetry.emit();
+    expect(capture.events()[0].routedCategory).toBeNull();
+  });
+
   it("writes once — a double count halves every rate queried off it", () => {
     const telemetry = createAskTelemetry();
     telemetry.answered();
@@ -278,8 +296,9 @@ describe("no telemetry event can carry content (#141)", () => {
     const telemetry = createAskTelemetry();
     telemetry.answered();
     telemetry.emit();
-    // Exhaustive, not a subset: the event's whole vocabulary is closed enums,
-    // two booleans and one log-safe error token. Nothing here is free text —
+    // Exhaustive, not a subset: the event's whole vocabulary is closed enums
+    // (the routing category among them, #264), two booleans and one log-safe
+    // error token. Nothing here is free text —
     // no question, no answer, no user id, no IP, no subject hash.
     expect(Object.keys(capture.events()[0]).sort()).toEqual([
       "abort",
@@ -289,6 +308,7 @@ describe("no telemetry event can carry content (#141)", () => {
       "outcome",
       "providerError",
       "quotaHit",
+      "routedCategory",
     ]);
   });
 });
