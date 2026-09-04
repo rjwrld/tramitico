@@ -30,6 +30,11 @@ import { readFileSync } from "node:fs";
 import { generateText } from "ai";
 import { beforeAll, expect, it } from "vitest";
 import { condenseQuestion } from "../answer/condense";
+import {
+  incompletelyCitedDerivedFigures,
+  resolveDerivedFigures,
+  type ResolvedDerivedFigure,
+} from "../answer/derived";
 import { getAnswerModel, DEFAULT_ANSWER_MODEL } from "../answer/model";
 import {
   ANSWER_SYSTEM_PROMPT,
@@ -93,6 +98,7 @@ interface CaseResult {
   citations: CitationVerdict | null;
   /** Absent on a case that declares no requiredClaims/requiredSteps. */
   adequacy: (AdequacyOutcome & { literals: string[] }) | null;
+  derivedFigures: ResolvedDerivedFigure[];
 }
 
 /**
@@ -178,21 +184,29 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
           // answer it, so declining is a product failure groundedness cannot
           // see (#261 req. 2).
           adequacy: requirementsOf(evalCase),
+          derivedFigures: [],
         });
         continue;
       }
 
       const chunks = await rerankChunks(query, retrieval.chunks);
+      const derivedFigures = resolveDerivedFigures(chunks);
       const { text: answer } = await generateText({
         model: getAnswerModel(),
         system: ANSWER_SYSTEM_PROMPT,
-        prompt: buildUserPrompt(query, chunks),
+        prompt: buildUserPrompt(query, chunks, { derivedFigures }),
       });
 
       // Judged against the same question the answer was written for: asking
       // "is this supported?" about a bare "¿Y si también soy asalariado?"
       // would judge the condensation, not the groundedness.
-      const judged = await judgeAnswer(query, chunks, answer);
+      const judged = await judgeAnswer(
+        query,
+        chunks,
+        answer,
+        undefined,
+        derivedFigures,
+      );
       const requirements = judgedRequirements(evalCase);
       const declaresRequirements =
         evalCase.requiredClaims !== undefined ||
@@ -201,6 +215,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
         evalCase,
         ...judged,
         answer,
+        derivedFigures,
         citations: validateCitations(answer, chunks.length),
         adequacy: declaresRequirements
           ? {
@@ -305,5 +320,27 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
       passes / results.length,
       `ungrounded answers: ${failed.join("; ")}`,
     ).toBeGreaterThanOrEqual(GROUNDEDNESS_GATE);
+  });
+
+  it("answers F1 with both BMC figures and citations to every input", () => {
+    const result = results.find(
+      ({ evalCase }) => evalCase.id === "ccss-cuanto-pago-base",
+    );
+    expect(result, "missing F1 eval case").toBeDefined();
+    expect(result!.verdict).toBe("pass");
+
+    for (const id of ["bmc-ivm-2026", "bmc-sem-2026"]) {
+      const figure = result!.derivedFigures.find(
+        (candidate) => candidate.id === id,
+      );
+      expect(
+        figure,
+        `${id} was not resolved from the answer chunks`,
+      ).toBeDefined();
+      expect(result!.answer).toContain(figure!.formattedValue);
+      expect(
+        incompletelyCitedDerivedFigures(result!.answer, [figure!]),
+      ).toEqual([]);
+    }
   });
 });

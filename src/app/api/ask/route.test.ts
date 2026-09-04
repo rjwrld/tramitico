@@ -413,6 +413,78 @@ describe("POST /api/ask", () => {
     });
   });
 
+  it("gives the model BMC figures only when all manifest inputs were retrieved", async () => {
+    allowRateLimit();
+    vi.mocked(retrieve).mockResolvedValue(
+      retrievalResult({
+        chunks: [
+          chunk(1, {
+            docKey: "ccss-escala-ivm",
+            articulo: "Artículo 4°, sesión 9570",
+          }),
+          chunk(2, {
+            docKey: "ccss-escala-salud",
+            articulo: "Artículo 30°, sesión 8999",
+          }),
+          chunk(3, {
+            docKey: "salarios-minimos",
+            articulo: "Artículo 1",
+          }),
+        ],
+      }),
+    );
+    const model = mockModel("Las bases son estas [1][2][3].");
+
+    await readEvents(await POST(askRequest({ question: "¿Cuánto pago?" })));
+
+    const prompt = JSON.stringify(model.doStreamCalls[0].prompt);
+    expect(prompt).toContain("Base mínima contributiva de IVM 2026");
+    expect(prompt).toContain("¢324.590");
+    expect(prompt).toContain("Base mínima contributiva de SEM (Salud) 2026");
+    expect(prompt).toContain("¢346.789");
+    expect(prompt).toContain("[1][3]");
+    expect(prompt).toContain("[2][3]");
+  });
+
+  it("omits each BMC prompt figure when one of its inputs is missing", async () => {
+    const ivm = chunk(1, {
+      docKey: "ccss-escala-ivm",
+      articulo: "Artículo 4°, sesión 9570",
+    });
+    const salud = chunk(2, {
+      docKey: "ccss-escala-salud",
+      articulo: "Artículo 30°, sesión 8999",
+    });
+    const salario = chunk(3, {
+      docKey: "salarios-minimos",
+      articulo: "Artículo 1",
+    });
+
+    const promptFor = async (chunks: RetrievedChunk[]) => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult({ chunks }));
+      const model = mockModel("Respuesta respaldada [1].");
+      await readEvents(await POST(askRequest({ question: "¿Cuánto pago?" })));
+      return JSON.stringify(model.doStreamCalls[0].prompt);
+    };
+
+    const withoutSalary = await promptFor([ivm, salud]);
+    expect(withoutSalary).not.toContain("Base mínima contributiva de IVM");
+    expect(withoutSalary).not.toContain("Base mínima contributiva de SEM");
+    expect(withoutSalary).not.toContain("¢324.590");
+    expect(withoutSalary).not.toContain("¢346.789");
+
+    const withoutIvm = await promptFor([salud, salario]);
+    expect(withoutIvm).not.toContain("Base mínima contributiva de IVM");
+    expect(withoutIvm).not.toContain("¢324.590");
+    expect(withoutIvm).toContain("Base mínima contributiva de SEM");
+
+    const withoutSalud = await promptFor([ivm, salario]);
+    expect(withoutSalud).not.toContain("Base mínima contributiva de SEM");
+    expect(withoutSalud).not.toContain("¢346.789");
+    expect(withoutSalud).toContain("Base mínima contributiva de IVM");
+  });
+
   it("re-chunks the model's bursty deltas into one word per event (#73)", async () => {
     allowRateLimit();
     vi.mocked(retrieve).mockResolvedValue(retrievalResult());
@@ -1155,6 +1227,38 @@ describe("POST /api/ask", () => {
     const UNCITED = "La tarifa aplica a todo servicio prestado.";
     const CITED = "La tarifa es 13% [1].";
 
+    it("retries a quoted derived figure missing one of its input markers", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(
+        retrievalResult({
+          chunks: [
+            chunk(1, {
+              docKey: "ccss-escala-ivm",
+              articulo: "Artículo 4°, sesión 9570",
+            }),
+            chunk(2, {
+              docKey: "salarios-minimos",
+              articulo: "Artículo 1",
+            }),
+          ],
+        }),
+      );
+      const complete = "La base es ¢324.590 [1][2].";
+      const model = mockModelSequence("La base es ¢324.590 [1].", complete);
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "¿Cuánto pago?" })),
+      );
+
+      expect(streamedText(events)).toBe(complete);
+      expect(model.doStreamCalls).toHaveLength(2);
+      expect(citationFailures()).toEqual({
+        no_markers: 0,
+        unresolved_markers: 0,
+        incomplete_derived_markers: 1,
+      });
+    });
+
     it("keeps an uncited answer off the wire and streams the cited retry instead", async () => {
       allowRateLimit();
       vi.mocked(retrieve).mockResolvedValue(retrievalResult());
@@ -1170,6 +1274,7 @@ describe("POST /api/ask", () => {
       expect(citationFailures()).toEqual({
         no_markers: 1,
         unresolved_markers: 0,
+        incomplete_derived_markers: 0,
       });
     });
 
@@ -1194,6 +1299,7 @@ describe("POST /api/ask", () => {
       expect(citationFailures()).toEqual({
         no_markers: 0,
         unresolved_markers: 1,
+        incomplete_derived_markers: 0,
       });
     });
 
@@ -1215,6 +1321,7 @@ describe("POST /api/ask", () => {
       expect(citationFailures()).toEqual({
         no_markers: 2,
         unresolved_markers: 0,
+        incomplete_derived_markers: 0,
       });
     });
 
@@ -1243,6 +1350,7 @@ describe("POST /api/ask", () => {
       expect(citationFailures()).toEqual({
         no_markers: 0,
         unresolved_markers: 0,
+        incomplete_derived_markers: 0,
       });
     });
 

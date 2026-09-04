@@ -1,15 +1,29 @@
 import { describe, expect, it } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
 import { declineAnswer, ROUTING } from "../routing";
+import type { ResolvedDerivedFigure } from "./derived";
 import {
   ANSWER_SYSTEM_PROMPT,
   buildUserPrompt,
   CCSS_URL,
   CITATION_RETRY_NOTE,
+  formatDerivedFigures,
   formatChunks,
   HACIENDA_URL,
   WEAK_RETRIEVAL_ANSWER,
 } from "./prompt";
+
+const DERIVED_FIGURE: ResolvedDerivedFigure = {
+  id: "bmc-ivm-2026",
+  label: "Base mínima contributiva de IVM 2026",
+  formula: "factor * sm.tonc",
+  decimals: 0,
+  inputs: [],
+  value: 324_590.301,
+  formattedValue: "¢324.590",
+  formattedFormula: "0,87 × ¢373.092,30",
+  citationMarkers: [1, 2],
+};
 
 function chunk(overrides: Partial<RetrievedChunk> = {}): RetrievedChunk {
   return {
@@ -66,6 +80,36 @@ describe("buildUserPrompt", () => {
     const prompt = buildUserPrompt("¿Cuánto es el IVA?", [chunk()]);
     expect(prompt).toContain("Documentos oficiales");
     expect(prompt).not.toMatch(/fragmento|chunk/i);
+  });
+
+  it("appends system-calculated figures with their input markers", () => {
+    const prompt = buildUserPrompt("¿Cuánto pago?", [chunk(), chunk()], {
+      derivedFigures: [DERIVED_FIGURE],
+    });
+
+    expect(prompt).toContain(
+      "Cifras derivadas (calculadas por el sistema a partir de [1] y [2])",
+    );
+    expect(prompt).toContain(
+      "Base mínima contributiva de IVM 2026: ¢324.590 (0,87 × ¢373.092,30) [1][2]",
+    );
+  });
+
+  it("omits the derived-figure block when there are no resolved figures", () => {
+    expect(
+      buildUserPrompt("¿Cuánto pago?", [chunk()], { derivedFigures: [] }),
+    ).not.toContain("Cifras derivadas");
+  });
+});
+
+describe("formatDerivedFigures", () => {
+  it("deduplicates source markers in the heading", () => {
+    expect(
+      formatDerivedFigures([
+        DERIVED_FIGURE,
+        { ...DERIVED_FIGURE, id: "second", citationMarkers: [2, 3] },
+      ]),
+    ).toContain("a partir de [1], [2] y [3]");
   });
 });
 

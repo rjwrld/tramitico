@@ -141,6 +141,77 @@
         ],
         "deepLink": "articulo"
       },
+      "derivedFigures": [
+        {
+          "id": "cnpt-articulo-78-multa-mensual-2026",
+          "label": "Multa por mes o fracción por omitir la inscripción (artículo 78)",
+          "formula": "factor * salario.base",
+          "decimals": 0,
+          "inputs": [
+            {
+              "name": "factor",
+              "value": 0.5,
+              "decimals": 2,
+              "docKey": "cnpt",
+              "articulo": "Artículo 78"
+            },
+            {
+              "name": "salario.base",
+              "value": 462200,
+              "decimals": 0,
+              "currency": true,
+              "docKey": "salario-base-2026",
+              "articulo": "Circular 246-2025"
+            }
+          ]
+        },
+        {
+          "id": "cnpt-articulo-78-tope-2026",
+          "label": "Tope de la multa por omitir la inscripción (artículo 78)",
+          "formula": "tope * salario.base",
+          "decimals": 0,
+          "inputs": [
+            {
+              "name": "tope",
+              "value": 3,
+              "decimals": 0,
+              "docKey": "cnpt",
+              "articulo": "Artículo 78"
+            },
+            {
+              "name": "salario.base",
+              "value": 462200,
+              "decimals": 0,
+              "currency": true,
+              "docKey": "salario-base-2026",
+              "articulo": "Circular 246-2025"
+            }
+          ]
+        },
+        {
+          "id": "cnpt-articulo-79-multa-declaracion-2026",
+          "label": "Multa por cada declaración omitida (artículo 79)",
+          "formula": "factor * salario.base",
+          "decimals": 0,
+          "inputs": [
+            {
+              "name": "factor",
+              "value": 0.5,
+              "decimals": 2,
+              "docKey": "cnpt",
+              "articulo": "Artículo 79"
+            },
+            {
+              "name": "salario.base",
+              "value": 462200,
+              "decimals": 0,
+              "currency": true,
+              "docKey": "salario-base-2026",
+              "articulo": "Circular 246-2025"
+            }
+          ]
+        }
+      ],
       "notes": "Cierra la familia T1-I (sanciones) y la mitad «consecuencias» de T1-A, T1-D y T1-H (#259): el corpus mencionaba «multa» solo de pasada y no traía ningún artículo sancionador. Ficha SINALEVI 6530, vigente desde 1971-05-03, 22 versiones al 2026-09-03. Recortado con source.keepArticulos y no ingerido entero a propósito: el Código son ~200 artículos repartidos en nueve títulos, casi todos sobre procedimiento administrativo, recursos y delitos que este producto no promete; ingerirlo completo enterraría los siete artículos que sí cita bajo doscientos vecinos que compiten por el mismo espacio de recuperación. Se conservan los cinco artículos del Título III (hechos ilícitos tributarios) que un trabajador independiente puede incumplir — 78 (omisión de inscripción, modificación o desinscripción), 79 (omisión de declaraciones), 80 y 80 bis (morosidad determinada por la Administración y autoliquidada), 81 (infracciones materiales) — más el 88 (reducción de sanciones), que es la mitad accionable de la respuesta, y el 57 (intereses a cargo del sujeto pasivo), que vive en el Título II y es lo que corre además de la multa. No se usa excerpt (#176) porque la reclamación no es contigua ni está hecha de líneas: son números de artículo en dos títulos distintos, y marcarlos por texto codificaría suposiciones frágiles sobre una redacción que las reformas siguen reescribiendo. El filtro corre después del chunking, así que cada chunk conserva el path de sus propios encabezados y la cita sigue diciendo «TÍTULO III … SECCIÓN II … Artículo 78»; falla ruidosamente si un artículo listado desaparece o si su número se repite entre títulos. Las sanciones de los artículos 78, 79 y 81 se expresan en salarios base, cuya cifra no está en este Código: la aporta salario-base-2026. El monto en colones es una cifra derivada (salario base × el porcentaje del artículo) y se calcula, nunca se afirma de memoria. Deep link articulo (#134): la ficha expone el rail «Ficha Artículo» y los chips de los artículos 57, 78, 79 y 88 abren su propio artículo. Los del 80 y el 81 caen a la raíz del documento a propósito: el rail rotula «80 bis» y «81 bis» como número 80 y 81, así que articuloAnchors descarta esos números por ambiguos antes que arriesgarse a abrir el artículo equivocado."
     },
     {
@@ -234,6 +305,31 @@
       "chunking": {
         "articulo": "Artículo 4°, sesión 9570"
       },
+      "derivedFigures": [
+        {
+          "id": "bmc-ivm-2026",
+          "label": "Base mínima contributiva de IVM 2026",
+          "formula": "factor * sm.tonc",
+          "decimals": 0,
+          "inputs": [
+            {
+              "name": "factor",
+              "value": 0.87,
+              "decimals": 2,
+              "docKey": "ccss-escala-ivm",
+              "articulo": "Artículo 4°, sesión 9570"
+            },
+            {
+              "name": "sm.tonc",
+              "value": 373092.3,
+              "decimals": 2,
+              "currency": true,
+              "docKey": "salarios-minimos",
+              "articulo": "Artículo 1"
+            }
+          ]
+        }
+      ],
       "imagesAudited": ["p1-obj27-0", "p1-obj33-0", "p2-obj27-0", "p3-obj27-0"],
       "layoutTable": {
         "columns": [
@@ -276,6 +372,31 @@
       "chunking": {
         "articulo": "Artículo 30°, sesión 8999"
       },
+      "derivedFigures": [
+        {
+          "id": "bmc-sem-2026",
+          "label": "Base mínima contributiva de SEM (Salud) 2026",
+          "formula": "factor * sm.tonc",
+          "decimals": 0,
+          "inputs": [
+            {
+              "name": "factor",
+              "value": 0.9295,
+              "decimals": 4,
+              "docKey": "ccss-escala-salud",
+              "articulo": "Artículo 30°, sesión 8999"
+            },
+            {
+              "name": "sm.tonc",
+              "value": 373092.3,
+              "decimals": 2,
+              "currency": true,
+              "docKey": "salarios-minimos",
+              "articulo": "Artículo 1"
+            }
+          ]
+        }
+      ],
       "notes": "Salud rates by income bracket (afiliado 2.89–10.69%, conjunta 12.00% + 0.25% Estado como tal), still vigente — the 2026 adjustment touched IVM only (see ccss-escala-ivm). Same acuerdo SINALEVI carries as an image in ccss-bmc; the acta transcribes the table as text. Page-ranged because the full acta is 170 pages of unrelated Junta Directiva business — re-verify the range if CCSS re-publishes the acta. Deep link page (#134): chips land on page 105, the first page of the ingested range and the page the vigente escala sits on. The range was 104–108 until #198: page 104 carries only Tabla N°1 (afiliado counts, not rates) and the head of the superseded Tabla N°2, none of which survives the excerpt, so a chip that landed there pointed at content the corpus does not hold. EXCERPT (#198), THREE slices, because the claim this document makes is not contiguous. Pages 104–108 carry four tables and no page cut separates them: Tabla N°2 «Escala contributiva vigente hasta el 30 de setiembre de 2018» straddles the 104/105 break, and the vigente Salud escala sits on 105 beside its tail. Slice 1 («2. Propuesta de ajuste» → the IVM table's header) keeps the vigente Salud escala and its three notes, and drops Tabla N°1 and Tabla N°2 whole — with them the interleaved header («Conjunt Afiliad … a o Estado Conjunta», two labels split mid-word across physical lines) and the «104 N° 8999» page furniture pdftotext leaves between its categories 2 and 3. Slice 2 picks the operative ACUERDO PRIMERO back up. Slice 3 runs ACUERDO SEGUNDO → ARTICULO 31°, so the acuerdos arrive whole and the unrelated MIPYMES artículo below them does not. IVM DELIBERATELY EXCLUDED (#198, #150), and that is what costs the second and third slice. This document is the Salud escala; ccss-escala-ivm owns IVM, and no IVM figure should reach a reader from here. Two of them had to be cut, not one. (a) The 2018 IVM escala between slices 1 and 2: legible and dated, but its 8.92% conjunta was replaced by 9.91% effective 2026-01-01. (b) The «Notas» block under ACUERDO PRIMERO, between slices 2 and 3, whose note (1) reads «0.25% en el Seguro de Salud y 1.24% Seguro de IVM» — the Estado-como-tal figure, since raised to 1.75%. Cutting it costs nothing: the identical Salud-only note («la contribución del Estado como tal es de 0.25%») is already in slice 1, so the 0.25% this document is cited for survives, and only the stale IVM half is gone. Both figures are true of 2018 and neither is disqualified by anything inside this acta — «vigencia a partir del 01 de octubre del 2018» is a start date, and a 2018 acuerdo cannot announce its own supersession. Retrieval ranks on text, not on effective_date, and the answer prompt is forbidden from preferring a source merely for being newer, so a stale figure that reaches the model becomes a reported conflict rather than a wrong answer — on a question the corpus can answer outright. If historical questions ever enter scope, the 2018 IVM escala belongs in its own dated document, not inside this chunk. THE ACUERDO CARRIES NO TABLE (#114): ACUERDO PRIMERO's own escala is a raster image — the text runs straight from «…ajustes en los sistemas informáticos.» to «Notas:». Every rate here is therefore quoted from the propuesta section slice 1 keeps, never from the acuerdo body; narrowing to the acuerdo alone would empty the document of rates. NOT layoutTable (#179): tested against this document and findLayoutGrid returns null for every column count — the Salud table's wrapped rows («Más de 0.9295 SM a 4.33% / menos de 2 SM») change the column count line to line, so no run of lines agrees on a grid. Before the excerpt the only grid it found was the IVM table's header plus two rows, so opting in would have relabelled the wrong table. Opting in now fails ingestion rather than improving it. RESIDUE: category 2 keeps its rate spliced into its own bracket text, which the «%» signs (Tabla N°2 had none) keep unambiguous; ACUERDO CUARTO keeps «107 N° 8999» inside a sentence, where the page break falls — prose, not a data row; and slice 2 ends on the orphan word «Notas:», the heading of the block cut for its 1.24%. SURVEY (#199): no rail. Its escala tables are data grids, and labelRail reads those as rails and mangles them, so this document is deliberately left unflagged. SURVEY (#203): no stacked formula — the acuerdos and their escalas carry rates, not expressions. Not flagged."
     },
     {
