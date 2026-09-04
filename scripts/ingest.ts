@@ -17,8 +17,11 @@ import {
   fetchCorpusChunks,
   serializeCorpusIndex,
 } from "../src/lib/eval/corpus-index";
-import type { ChunkOptions } from "../src/lib/ingestion/chunker";
-import type { Chunk } from "../src/lib/ingestion/chunker";
+import {
+  chunkDocument,
+  type Chunk,
+  type ChunkOptions,
+} from "../src/lib/ingestion/chunker";
 import {
   faqCountMessage,
   extractCcssFaqChunks,
@@ -46,7 +49,11 @@ import { fetchPdfSource } from "../src/lib/ingestion/pdf";
 import { pdfImageNotice } from "../src/lib/ingestion/pdf-images";
 import { retireDocuments } from "../src/lib/ingestion/retire";
 import type { DeepLinkKind } from "../src/lib/retrieval";
-import { articuloAnchors, fetchNorma } from "../src/lib/ingestion/sinalevi";
+import {
+  articuloAnchors,
+  fetchNorma,
+  filterArticulos,
+} from "../src/lib/ingestion/sinalevi";
 
 interface ManifestDoc {
   doc_key: string;
@@ -79,6 +86,15 @@ interface ManifestDoc {
      * a superseded table (#198). See excerpt.ts.
      */
     excerpt?: ExcerptSpec | ExcerptSpec[];
+    /**
+     * `sinalevi` only — unlike `excerpt`, which every extracted kind honours,
+     * so `extract` refuses it on any other kind rather than ignore it: the
+     * artículo labels this entry claims out of a whole código, applied after
+     * chunking (#259). The instrument `excerpt` is not: the claim is a handful
+     * of numbered artículos scattered across títulos, not one contiguous run
+     * of lines. Absent → the whole ficha is ingested. See sinalevi.ts.
+     */
+    keepArticulos?: string[];
     catalog?: string;
     hint?: string;
     /**
@@ -284,6 +300,15 @@ type ExtractedContent =
   { kind: "paragraphs"; value: string[] } | { kind: "chunks"; value: Chunk[] };
 
 async function extract(doc: ManifestDoc): Promise<ExtractedContent | null> {
+  // `excerpt` narrows a PDF and a ficha alike, so a reader may reasonably
+  // expect its sibling to travel as far. It cannot: it filters chunks the
+  // artículo chunker labelled, which only a norma has. Refuse it here rather
+  // than let a misplaced list ingest the whole document unfiltered.
+  if (doc.source.keepArticulos && doc.source.kind !== "sinalevi") {
+    throw new Error(
+      `${doc.doc_key}: source.keepArticulos is sinalevi-only, but this entry is "${doc.source.kind}"`,
+    );
+  }
   switch (doc.source.kind) {
     case "sinalevi": {
       const norma = await fetchNorma(doc.source.idFichaNorma!);
@@ -313,6 +338,28 @@ async function extract(doc: ManifestDoc): Promise<ExtractedContent | null> {
         ...doc.source,
         ...{ idVersionNorma: norma.idVersionNorma, articulos },
       };
+      if (doc.source.keepArticulos) {
+        if (doc.source.excerpt) {
+          throw new Error(
+            `${doc.doc_key}: source.excerpt and source.keepArticulos both narrow this ficha — pick one`,
+          );
+        }
+        const keep = doc.source.keepArticulos;
+        console.log(`  ${doc.doc_key}: keeping artículos ${keep.join(", ")}`);
+        return {
+          kind: "chunks",
+          value: filterArticulos(
+            doc.doc_key,
+            chunkDocument(
+              doc.doc_key,
+              doc.title,
+              htmlToParagraphs(norma.html),
+              doc.chunking ?? {},
+            ),
+            keep,
+          ),
+        };
+      }
       if (!doc.source.excerpt) {
         return { kind: "paragraphs", value: htmlToParagraphs(norma.html) };
       }

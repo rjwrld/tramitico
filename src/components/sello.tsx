@@ -27,6 +27,7 @@ export const SHORT_NAME_TOKENS: Record<string, string> = {
   bmc: "BMC",
   cabys: "CABYS",
   ccss: "CCSS",
+  cnpt: "CNPT",
   cr: "CR",
   dgt: "DGT",
   iva: "IVA",
@@ -51,6 +52,7 @@ export const SHORT_NAME_TOKENS: Record<string, string> = {
   retencion: "Retención",
   titulo: "Título",
   // Plain words — listed so the completeness check is a real check.
+  base: "Base",
   bienes: "Bienes",
   capital: "Capital",
   comprobantes: "Comprobantes",
@@ -62,6 +64,7 @@ export const SHORT_NAME_TOKENS: Record<string, string> = {
   ley: "Ley",
   reglamento: "Reglamento",
   renta: "Renta",
+  salario: "Salario",
   salarios: "Salarios",
   salud: "Salud",
   servicios: "Servicios",
