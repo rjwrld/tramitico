@@ -72,6 +72,12 @@ Título I duplicated `ley-iva`, its Título II elided unchanged provisions, and 
 were out-of-scope retrieval noise. `ley-renta` sits beside `reglamento-renta`; the former owns the
 substantive tax rules and the latter their application.
 
+Amended by [#258](https://github.com/rjwrld/tramitico/issues/258): **two docs added, count 19 →
+21** — `ccss-faq`, the official CCSS question/modal page filtered to Cobros, Seguro voluntario
+and Trabajador Independiente, and `ccss-reglamento-ti`, the vigente SINALEVI regulation for
+independent-worker affiliation and contribution. The FAQ supplies the procedural text absent
+from the normative corpus; rates continue to come from the CCSS actas, not its image table.
+
 Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3)):
 
 - **SINALEVI (laws/reglamentos):** 3 calls, all `_BuscarVersionNorma`/`_CargarTextoCompleto` —
@@ -89,6 +95,10 @@ Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3))
   ([#176](https://github.com/rjwrld/tramitico/issues/176)). Neither has artículo structure of its own —
   every article-shaped string is a quotation — so they set `chunking.articulo` to the acta artículo
   the acuerdo was adopted under, which is the honest citable unit ([#114](https://github.com/rjwrld/tramitico/issues/114)).
+- **Official HTML FAQs:** plain fetch with the shared browser User-Agent, then an explicit
+  manifest-selected extractor for that page shape. CCSS question rows pair visible headings with
+  Bootstrap modal bodies; a relevant-question floor and cached count delta make redesigns loud
+  ([ADR 0014](docs/adr/0014-html-faq-question-chunks.md)).
 - **CABYS:** reference data, not prose — ingest a **curated subset of developer-relevant codes**
   as a structured mini-doc (curated during Week 1 ingestion); full-catalog search is out of scope.
 - Numeric figures (brackets, BMC) come **only from primary decrees** — aggregators disagreed.
@@ -111,6 +121,9 @@ Chunking rules ([#4](https://github.com/rjwrld/tramitico/issues/4), prototype on
    `Ficha Artículo N`, version pager) and mso/Word markup. Title blocks become doc metadata,
    never retrievable chunks. Preamble/considerandos → one chunk tagged `preambulo`.
 4. **Unstructured PDFs** (tramos decree): whole-doc chunk; window only if long.
+5. **Structured FAQs:** one question/modal pair per chunk; the visible question is its citation
+   label and the category is its path. These chunks are prepared by the declared HTML extractor
+   and join the shared embed/persist stage ([ADR 0014](docs/adr/0014-html-faq-question-chunks.md)).
 
 Chunk identity and boundary detection were refined against the live corpus (repeated artículo
 numbers in consolidated texts; quoted-reform false boundaries) — **[ADR 0002](docs/adr/0002-chunk-identity.md)**.
@@ -121,7 +134,7 @@ numbers in consolidated texts; quoted-reform false boundaries) — **[ADR 0002](
 documents (
   id uuid pk, doc_key text unique,        -- 'reglamento-iva'
   title text, norma text,                 -- 'Decreto Ejecutivo 41779'
-  source jsonb,                           -- {kind:'sinalevi', idFichaNorma, idVersionNorma} | {kind:'url', url}
+  source jsonb,                           -- {kind:'sinalevi', idFichaNorma, idVersionNorma} | {kind:'html', extractor, url} | {kind:'url', url}
   effective_date date, fetched_at timestamptz
 )
 chunks (

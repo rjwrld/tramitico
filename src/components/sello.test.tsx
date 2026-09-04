@@ -157,6 +157,8 @@ describe("docShortName covers the manifest", () => {
       "ccss-bmc": "CCSS BMC",
       "ccss-escala-ivm": "CCSS Escala IVM",
       "ccss-escala-salud": "CCSS Escala Salud",
+      "ccss-faq": "CCSS FAQ",
+      "ccss-reglamento-ti": "CCSS Reglamento TI",
       "salarios-minimos": "Salarios Mínimos",
       "reglamento-rts": "Reglamento RTS",
       "reglamento-comprobantes": "Reglamento Comprobantes",

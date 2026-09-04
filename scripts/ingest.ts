@@ -18,7 +18,16 @@ import {
   serializeCorpusIndex,
 } from "../src/lib/eval/corpus-index";
 import type { ChunkOptions } from "../src/lib/ingestion/chunker";
-import { ingestDocument } from "../src/lib/ingestion/ingest-document";
+import type { Chunk } from "../src/lib/ingestion/chunker";
+import {
+  faqCountMessage,
+  extractCcssFaqChunks,
+  fetchCcssFaq,
+} from "../src/lib/ingestion/ccss-faq";
+import {
+  ingestChunks,
+  ingestDocument,
+} from "../src/lib/ingestion/ingest-document";
 import { createEmbedder } from "../src/lib/ingestion/embedder";
 import {
   type ExcerptSpec,
@@ -44,9 +53,11 @@ interface ManifestDoc {
   title: string;
   norma: string | null;
   source: {
-    kind: "sinalevi" | "hacienda-pdf" | "pdf" | "cabys" | "unresolved";
+    kind: "sinalevi" | "html" | "hacienda-pdf" | "pdf" | "cabys" | "unresolved";
     idFichaNorma?: number;
     url?: string;
+    /** `html` only: the source-specific structured extractor to run. */
+    extractor?: "ccss-faq-modals";
     /** `pdf` only: file inside the zip at `url`, when the PDF is zipped. */
     member?: string;
     /**
@@ -176,16 +187,23 @@ async function main() {
   const skipped: string[] = [];
 
   for (const doc of docs) {
-    const paragraphs = await extract(doc);
-    if (paragraphs === null) {
+    const extracted = await extract(doc);
+    if (extracted === null) {
       skipped.push(doc.doc_key);
       continue;
     }
-    const written = await ingestDocument(
-      { client: supabase, embedder },
-      doc,
-      paragraphs,
-    );
+    const written =
+      extracted.kind === "chunks"
+        ? await ingestChunks(
+            { client: supabase, embedder },
+            doc,
+            extracted.value,
+          )
+        : await ingestDocument(
+            { client: supabase, embedder },
+            doc,
+            extracted.value,
+          );
 
     ingested++;
     console.log(`✓ ${doc.doc_key}: ${written} chunks`);
@@ -262,7 +280,10 @@ function pdfToText(doc: ManifestDoc, pdf: Buffer): string {
   }
 }
 
-async function extract(doc: ManifestDoc): Promise<string[] | null> {
+type ExtractedContent =
+  { kind: "paragraphs"; value: string[] } | { kind: "chunks"; value: Chunk[] };
+
+async function extract(doc: ManifestDoc): Promise<ExtractedContent | null> {
   switch (doc.source.kind) {
     case "sinalevi": {
       const norma = await fetchNorma(doc.source.idFichaNorma!);
@@ -292,18 +313,53 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
         ...doc.source,
         ...{ idVersionNorma: norma.idVersionNorma, articulos },
       };
-      if (!doc.source.excerpt) return htmlToParagraphs(norma.html);
+      if (!doc.source.excerpt) {
+        return { kind: "paragraphs", value: htmlToParagraphs(norma.html) };
+      }
       const slices = excerptSlices(doc.source.excerpt);
       console.log(
         `  ${doc.doc_key}: excerpt ${slices.map((s) => `from "${s.from}"`).join(", ")}`,
       );
       try {
-        return htmlExcerptToParagraphs(norma.html, doc.source.excerpt);
+        return {
+          kind: "paragraphs",
+          value: htmlExcerptToParagraphs(norma.html, doc.source.excerpt),
+        };
       } catch (cause) {
         throw new Error(`${doc.doc_key}: ${(cause as Error).message}`, {
           cause,
         });
       }
+    }
+    case "html": {
+      if (doc.source.extractor !== "ccss-faq-modals") {
+        throw new Error(
+          `${doc.doc_key}: unknown HTML extractor "${doc.source.extractor ?? "missing"}"`,
+        );
+      }
+      const url = doc.source.url!;
+      const cachePath = path.join(CACHE, `${doc.doc_key}.html`);
+      const html = await fetchCcssFaq(url);
+      const chunks = extractCcssFaqChunks(doc.doc_key, doc.title, html, url);
+      let previous: number | undefined;
+      if (existsSync(cachePath)) {
+        try {
+          previous = extractCcssFaqChunks(
+            doc.doc_key,
+            doc.title,
+            readFileSync(cachePath, "utf8"),
+            url,
+            1,
+          ).length;
+        } catch {
+          // A stale/unreadable cache is not a trustworthy comparison point.
+        }
+      }
+      console.log(
+        `  ${doc.doc_key}: ${faqCountMessage(chunks.length, previous)}`,
+      );
+      writeFileSync(cachePath, html);
+      return { kind: "chunks", value: chunks };
     }
     case "hacienda-pdf": {
       const pdf = await fetchHaciendaPdf(doc.source.url!);
@@ -312,12 +368,15 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
         if (notice.level === "warn") console.warn(`  ⚠ ${notice.message}`);
         else console.log(`  ${notice.message}`);
       }
-      return textToParagraphs(pdfToText(doc, pdf), {
-        table: doc.layoutTable,
-        labelRail: doc.labelRail,
-        stackedFraction: doc.stackedFraction,
-        wrappedRow: doc.wrappedRow,
-      });
+      return {
+        kind: "paragraphs",
+        value: textToParagraphs(pdfToText(doc, pdf), {
+          table: doc.layoutTable,
+          labelRail: doc.labelRail,
+          stackedFraction: doc.stackedFraction,
+          wrappedRow: doc.wrappedRow,
+        }),
+      };
     }
     case "pdf": {
       const pdf = await fetchPdfSource(
@@ -333,12 +392,15 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
           `  ${doc.doc_key}: excerpt ${slices.map((s) => `from "${s.from}"`).join(", ")}`,
         );
       }
-      return textToParagraphs(pdfToText(doc, pdf), {
-        table: doc.layoutTable,
-        labelRail: doc.labelRail,
-        stackedFraction: doc.stackedFraction,
-        wrappedRow: doc.wrappedRow,
-      });
+      return {
+        kind: "paragraphs",
+        value: textToParagraphs(pdfToText(doc, pdf), {
+          table: doc.layoutTable,
+          labelRail: doc.labelRail,
+          stackedFraction: doc.stackedFraction,
+          wrappedRow: doc.wrappedRow,
+        }),
+      };
     }
     case "cabys": {
       const file = path.join(ROOT, "corpus", "cabys-dev.json");
@@ -354,10 +416,13 @@ async function extract(doc: ManifestDoc): Promise<string[] | null> {
         iva: string;
         note?: string;
       }[];
-      return rows.map(
-        (r) =>
-          `Código CABYS ${r.code}: ${r.description}. IVA: ${r.iva}.${r.note ? ` ${r.note}` : ""}`,
-      );
+      return {
+        kind: "paragraphs",
+        value: rows.map(
+          (r) =>
+            `Código CABYS ${r.code}: ${r.description}. IVA: ${r.iva}.${r.note ? ` ${r.note}` : ""}`,
+        ),
+      };
     }
     case "unresolved":
       console.warn(

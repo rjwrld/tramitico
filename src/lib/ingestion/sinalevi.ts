@@ -13,10 +13,10 @@
  * loudly — verification is never disabled (research §4).
  */
 
-const BASE = "https://sinalevi.go.cr/ResultadosNormativa";
+import { BROWSER_UA, type FetchLike } from "./official-http";
+export type { FetchLike } from "./official-http";
 
-const BROWSER_UA =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+const BASE = "https://sinalevi.go.cr/ResultadosNormativa";
 
 /**
  * sinalevi.go.cr serves an incomplete TLS chain (missing the "GlobalSign RSA
@@ -60,8 +60,6 @@ async function defaultFetch(
   });
   return res as unknown as Response;
 }
-
-export type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
 
 export interface SinaleviNorma {
   idFichaNorma: number;

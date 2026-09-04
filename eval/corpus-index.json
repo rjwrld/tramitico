@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-04T04:40:23.598Z",
-  "chunkCount": 704,
+  "generatedAt": "2026-09-04T05:13:37.854Z",
+  "chunkCount": 831,
   "entries": [
     {
       "docKey": "cabys-dev",
@@ -21,6 +21,675 @@
       "docKey": "ccss-escala-salud",
       "articulo": "Artículo 30°, sesión 8999",
       "path": []
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿A cuáles instituciones la CAJA no les recauda sus fondos, una vez transcurridos 90 días del vencimiento de la respectiva planilla?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿A qué consecuencia me expongo si no pago la deuda o formalizo una adecuación de pago, según los términos expuestos en la prevención motivada de cierre?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cómo me retiro de mi Seguro Voluntario?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cómo procedo si mis condiciones para el aseguramiento han variado?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cómo procedo si mis ingresos han variado?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cómo puede detenerse un proceso judicial por deudas con la CAJA?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cómo puedo obtener el documento digital que indique que estoy al día con la CAJA?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cómo se determina el ingreso de los asegurados voluntarios y asegurados migrantes?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Con el seguro voluntario, migrante o de trabajador independiente recibo orden patronal?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Con este seguro recibo orden patronal?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Con que propósito se realizan estudios de recuperabilidad para formalizar un convenio de pago en caso de deudas en cobro judicial?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuál es el horario de atención para trámites y consultas?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuál es el plazo para que un convenio de pago sea finalizado por incumplimiento?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuál es la vigencia de la constancia estar al día?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuál es la vigencia del documento digital “consulta de morosidad” patrono/TI/AV” de estar al día con la CCSS?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuáles son las consecuencias de no pagar oportunamente las obligaciones con la CAJA?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuáles son las razones por las que se facturan los servicios médicos y subsidios?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuáles son los beneficios de ser un asegurado voluntario?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuáles son mis beneficios o derechos como Trabajador Independiente?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuáles son mis Obligaciones como Trabajador Independiente?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuándo empiezan a regir los beneficios por el aseguramiento?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuándo gozo de los beneficios de mi seguro migrante?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuándo gozo de los beneficios de mi seguro voluntario?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuándo me corresponde pagar mi seguro voluntario, migrante o de trabajador independiente?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuándo se le facturan los servicios a un Voluntario Moroso (Directo o beneficiario)?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuantas facturas puedo cancelar en los centros recaudadores y cuáles son los centros recaudadores donde puedo pagar?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuánto tiempo tengo para cumplir con una prevención de cierre de negocios por morosidad?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Dónde me corresponde realizar el trámite de afiliación como asegurado voluntario o asegurado migrante?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Dónde me corresponde realizar el trámite de afiliación?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Dónde puede obtener los requisitos para formalizar un acuerdo de pago?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Dónde puedo pagar mi seguro si me encuentro atrasado en mis pagos de seguro voluntario o seguro migrante?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Dónde puedo pagar mi seguro si me encuentro atrasado en mis pagos?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Dónde puedo pagar mi seguro si me encuentro atrasado en mis pagos?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Dónde puedo pagar mi seguro?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Dónde puedo revisar si tengo deudas con la CAJA?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿El Trabajador Independiente está obligado a asegurarse ante la CCSS?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿En cuál departamento se realizan los estudios para anulación de planillas o cuotas de Trabajador Independiente?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿En qué momento la institución traslada las deudas a cobro judicial?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Hace tiempo fui asegurado como Trabajador Independiente y quiero volver a serlo, qué tengo que hacer?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Hace tiempo fui asegurado voluntario y quiero volver a serlo, que tengo que hacer?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Horario de Atención?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Por qué cuando el Trabajador Independiente ingresa a laborar con una empresa, la suspensión del seguro no es automática?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Por qué se cobran gastos administrativos para la formalización de convenios y arreglos de pago?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Por qué se dice que el seguro voluntario es irrenunciable?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Por qué se registran varias facturas para un mismo periodo (mes)?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Puedo cancelar las cuotas del convenio o arreglo en cualquier sucursal?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Puedo pagar las cuotas de arreglo o convenios de pago utilizando medios virtuales?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Puedo tener un seguro de Trabajador Independiente si actualmente vivo fuera de Costa Rica?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Puedo tener un seguro si actualmente vivo fuera de Costa Rica?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Qué debo hacer si dejo de trabajar de forma Independiente?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Qué debo hacer si me pensiono?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Qué es un Aviso de Cobro?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Qué es un patrono/trabajador independiente inactivo al día?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Qué es una planilla adicional?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Qué función realiza el Centro de Llamadas de la Dirección de Cobros de la CAJA?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Qué hago si consigo un trabajo o inicio a trabajar por mi cuenta?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Qué hago si voy a salir del país por un periodo de tiempo mayor a tres meses?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Qué hago si voy a salir del país por un periodo de tiempo mayor a tres meses?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Qué significa la abreviatura “T.I.” utilizada en las constancias de estar al día con la CAJA o en la consulta de morosidad de la página Web institucional?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Qué sucede con los dineros amortizados de un convenio de pago que ha sido finalizado por incumplimiento?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Qué tipo de facturas puedo cancelar en los centros recaudadores?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Qué tipo de interés cobra la CAJA en caso de morosidad en el pago de las cuotas?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Quién es un Trabajador Independiente?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Quién puede optar por aplica a un Seguro Voluntario?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Quién realiza la facturación a un Trabajador Independiente moroso?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Se puede pagar en las oficinas o sucursales de la Caja con tarjeta de débito o crédito?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Se puede suspender el seguro de trabajador independiente?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Se pueden realizar pagos parciales a la deuda?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Se realizan revisiones periódicas a los montos de aseguramiento?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Se realizan revisiones periódicas a los montos de aseguramiento?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Si me atraso en el pago debo pagar intereses?",
+      "path": ["Seguro voluntario"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Si me atraso en el pago debo pagar intereses?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Tiene la CCSS facultad para asegurar de manera obligatoria a los trabajadores independientes que realizan actividades liberales?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "El pensionado por Vejez que realice una actividad por cuenta propia. ¿Está obligado a asegurarse como Trabajador Independiente?",
+      "path": ["Trabajador Independiente"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "La presentación de una solicitud de convenio ó arreglo de pago, ¿suspende las gestiones cobratorias?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "Si al recibir la atención médica presento el recibo de pago de la última cuota de Trabajador Independiente, pero tengo deudas anteriores, ¿procede la facturación de los servicios médicos?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "Si cancelo algún concepto con cheque sin certificar y se me reversa el pago, ¿podría sustituir dicho cheque?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "Si estoy al día como patrono físico pero moroso como trabajador independiente, ¿puedo generar el documento digital de patrono al día?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "Si pago en efectivo la totalidad de la deuda, ¿me hacen descuento?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "Si realizo un pago con cheque (no certificado ni de gerencia), ¿me pueden emitir una constancia de estar al día?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "Si soy extranjero, ¿puedo formalizar un acuerdo de pago con mi cédula de residencia vencida?",
+      "path": ["Cobros"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 1",
+      "path": ["SECCIÓN I Campo de aplicación y generalidades"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 10",
+      "path": ["SECCION II Trámites de afiliación y desafiliación"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 11",
+      "path": ["SECCION II Trámites de afiliación y desafiliación"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 12",
+      "path": ["SECCION II Trámites de afiliación y desafiliación"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 13",
+      "path": ["SECCION III"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 14",
+      "path": ["SECCION III"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 15",
+      "path": ["SECCION III"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 16",
+      "path": ["SECCION IV Debido proceso y solicitudes administrativas"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 17",
+      "path": ["SECCION IV Debido proceso y solicitudes administrativas"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 18",
+      "path": [
+        "SECCIÓN I Prescripción en procedimientos de verificación de obligaciones de trabajadores independientes"
+      ]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 19",
+      "path": [
+        "SECCIÓN I Prescripción en procedimientos de verificación de obligaciones de trabajadores independientes"
+      ]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 2",
+      "path": ["SECCIÓN I Campo de aplicación y generalidades"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 20",
+      "path": [
+        "SECCIÓN I Prescripción en procedimientos de verificación de obligaciones de trabajadores independientes"
+      ]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 21",
+      "path": [
+        "SECCIÓN I Prescripción en procedimientos de verificación de obligaciones de trabajadores independientes"
+      ]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 22",
+      "path": [
+        "SECCIÓN I Prescripción en procedimientos de verificación de obligaciones de trabajadores independientes"
+      ]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 23",
+      "path": [
+        "SECCIÓN I Prescripción en procedimientos de verificación de obligaciones de trabajadores independientes"
+      ]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 24",
+      "path": [
+        "SECCIÓN I Prescripción en procedimientos de verificación de obligaciones de trabajadores independientes"
+      ]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 25",
+      "path": [
+        "SECCION II Prescripción de obligaciones de trabajadores independientes en proceso de cobro"
+      ]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 26",
+      "path": [
+        "SECCION II Prescripción de obligaciones de trabajadores independientes en proceso de cobro"
+      ]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 27",
+      "path": [
+        "SECCION II Prescripción de obligaciones de trabajadores independientes en proceso de cobro"
+      ]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 28",
+      "path": [
+        "SECCION II Prescripción de obligaciones de trabajadores independientes en proceso de cobro"
+      ]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 29",
+      "path": [
+        "SECCION II Prescripción de obligaciones de trabajadores independientes en proceso de cobro"
+      ]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 3",
+      "path": ["SECCIÓN I Campo de aplicación y generalidades"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 30",
+      "path": [
+        "SECCION II Prescripción de obligaciones de trabajadores independientes en proceso de cobro"
+      ]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 31",
+      "path": [
+        "SECCION II Prescripción de obligaciones de trabajadores independientes en proceso de cobro"
+      ]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 32",
+      "path": [
+        "SECCION II Prescripción de obligaciones de trabajadores independientes en proceso de cobro"
+      ]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 33",
+      "path": [
+        "SECCION II Prescripción de obligaciones de trabajadores independientes en proceso de cobro"
+      ]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 34",
+      "path": [
+        "SECCION III Prescripción de cuotas del Régimen de Invalidez, Vejez y Muerte"
+      ]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 35",
+      "path": ["SECCION IV Disposiciones finales"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 4",
+      "path": ["SECCIÓN I Campo de aplicación y generalidades"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 5",
+      "path": ["SECCIÓN I Campo de aplicación y generalidades"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 6",
+      "path": ["SECCIÓN I Campo de aplicación y generalidades"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 7",
+      "path": ["SECCION II Trámites de afiliación y desafiliación"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 8",
+      "path": ["SECCION II Trámites de afiliación y desafiliación"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Artículo 9",
+      "path": ["SECCION II Trámites de afiliación y desafiliación"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "Preámbulo",
+      "path": []
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "TRANSITORIO I",
+      "path": ["SECCION IV Disposiciones finales"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "TRANSITORIO II",
+      "path": ["SECCION IV Disposiciones finales"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "TRANSITORIO III",
+      "path": ["SECCION IV Disposiciones finales"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "TRANSITORIO IV",
+      "path": ["SECCION IV Disposiciones finales"]
+    },
+    {
+      "docKey": "ccss-reglamento-ti",
+      "articulo": "TRANSITORIO V",
+      "path": ["SECCION IV Disposiciones finales"]
     },
     {
       "docKey": "disposiciones-v44",

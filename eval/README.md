@@ -158,12 +158,13 @@ pnpm vitest run src/lib/eval/groundedness.eval.test.ts
 > `tribu-cr-declarar-pagar`, and concluded the #135 prompt amendment was not the
 > cause and corpus drift probably was. Re-measured on the post-#114 corpus, the
 > first two pass in the gate run and 2/2 in a pinned-chunk subset re-run; the
-> drift diagnosis holds. `tribu-cr-declarar-pagar` passes the gate but is
+> drift diagnosis holds. `tribu-cr-declarar-pagar` passed the gate but was
 > **unstable** — 1/2 in the same subset re-run, failing when the answer either
 > over-reads «la salida de TRIBU-CR, el próximo 4 de agosto» as an operational
 > date or invents a discrepancy, the latter being the same rule 4 pattern as
-> `iva-tarifas-reducidas`. Per-case stability at n≈25 is real: treat a single
-> case's verdict as a sample, not a fact.
+> `iva-tarifas-reducidas`. It was retired when #258 added five stable CCSS cases
+> and the 30±5 cap required one case to leave. Per-case stability at n≈25 is
+> real: treat a single case's verdict as a sample, not a fact.
 
 ### Haiku comparison (SPEC §5)
 

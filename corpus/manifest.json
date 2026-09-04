@@ -1,5 +1,5 @@
 {
-  "$comment": "Ingestion source of truth (SPEC §3). Seeded from docs/research/corpus-viability.md §1. kinds: sinalevi (3-call API, idFichaNorma; vigente version resolved at fetch), hacienda-pdf (Playwright fetch — WAF blocks plain HTTP), cabys (curated dev-relevant subset, task #8), unresolved (official source to locate during ingestion; never ingest secondary commentary). retiredDocKeys names documents that a run must remove from the database before dumping the corpus index; retirementNotes records why. deepLink (#134): audited per source — how deep the official URL can be linked. `articulo` = SINALEVI ficha; the viewer opens one artículo at Informacion?param1=<ficha>&param2=<idVersionNorma>&param3=3&param4=<idArticulo>, and `source.articulos` (artículo number → idArticulo) is harvested at ingestion from the «Ficha Artículo» rail in the full-text payload — _BuscarArticulo answers -1 for our fichas, so the rail is the only mapping. `page` = PDF whose primary text is a page range; the chip appends #page=<first page>. excerpt (#176, #256): from/to line markers bounding the portion an entry claims, after PDF or SINALEVI HTML extraction; ingestion fails loudly if a marker is missing or ambiguous. `none` = the document root is the deepest honest link, with the reason in that entry's notes. imagesAudited (#177): for entries carrying an IMAGE AUDIT note, every SINALEVI image src or PDF page/object identity a human looked at in that audit — ingestion logs a quiet receipt while the payload stays inside this set, and the full warning naming new identities the moment a re-crawl adds one.",
+  "$comment": "Ingestion source of truth (SPEC §3). Seeded from docs/research/corpus-viability.md §1. kinds: sinalevi (3-call API, idFichaNorma; vigente version resolved at fetch), html (official HTML with a source-specific extractor), hacienda-pdf (Playwright fetch — WAF blocks plain HTTP), cabys (curated dev-relevant subset, task #8), unresolved (official source to locate during ingestion; never ingest secondary commentary). retiredDocKeys names documents that a run must remove from the database before dumping the corpus index; retirementNotes records why. deepLink (#134): audited per source — how deep the official URL can be linked. `articulo` = SINALEVI ficha; the viewer opens one artículo at Informacion?param1=<ficha>&param2=<idVersionNorma>&param3=3&param4=<idArticulo>, and `source.articulos` (artículo number → idArticulo) is harvested at ingestion from the «Ficha Artículo» rail in the full-text payload — _BuscarArticulo answers -1 for our fichas, so the rail is the only mapping. `page` = PDF whose primary text is a page range; the chip appends #page=<first page>. excerpt (#176, #256): from/to line markers bounding the portion an entry claims, after PDF or SINALEVI HTML extraction; ingestion fails loudly if a marker is missing or ambiguous. `none` = the document root is the deepest honest link, with the reason in that entry's notes. imagesAudited (#177): for entries carrying an IMAGE AUDIT note, every SINALEVI image src or PDF page/object identity a human looked at in that audit — ingestion logs a quiet receipt while the payload stays inside this set, and the full warning naming new identities the moment a re-crawl adds one.",
   "retiredDocKeys": [
     "ley-9635",
     "reglamento-titulo-iv-9635",
@@ -131,6 +131,30 @@
         "deepLink": "none"
       },
       "notes": "Deep link none (#134): the ficha's artículo rail labels both «Artículo N» and its transitorio as «artículo número N», and all four of this norma's numbers are claimed twice — no anchor can resolve unambiguously, so chips keep the vigente-text root. Audit table: docs/research/corpus-viability.md §4.1."
+    },
+    {
+      "doc_key": "ccss-faq",
+      "title": "CCSS — Preguntas frecuentes",
+      "norma": null,
+      "source": {
+        "kind": "html",
+        "extractor": "ccss-faq-modals",
+        "url": "https://www.ccss.sa.cr/preguntas-frecuentes",
+        "deepLink": "none"
+      },
+      "notes": "Official procedural FAQ. The source-specific extractor keeps one question/modal pair per chunk and only the categories Cobros, Seguro voluntario and Trabajador Independiente; the live crawl audited 2026-09-03 contains 86 matching rows (39 + 23 + 24). The fetch uses a browser User-Agent and ingestion fails before replacing rows if fewer than 25 relevant questions remain; each re-crawl logs the change from the cached count. IMAGE ANSWERS: the contribution-rate answer includes assets/img/faq/av_tv_2026.png, and payment dates by first surname letter include assets/images/faq/fechas_aseg_vol.jpg. Their image URLs are preserved in the chunks, but current rate figures continue to come from ccss-escala-salud and ccss-escala-ivm, not the FAQ image. Deep link none (#134): the page's modal ids are UI targets, not durable URL anchors."
+    },
+    {
+      "doc_key": "ccss-reglamento-ti",
+      "title": "Reglamento para el Aseguramiento Contributivo de los Trabajadores Independientes",
+      "norma": "Acuerdo de Junta Directiva, sesión 9257",
+      "source": {
+        "kind": "sinalevi",
+        "idFichaNorma": 97007,
+        "deepLink": "articulo"
+      },
+      "effective_date": "2022-05-23",
+      "notes": "SINALEVI ficha 97007, acuerdo adoptado el 2022-05-05 en sesión 9257. CCSS aprobó una propuesta de reforma el 2025-04-10, pero su publicación no está confirmada; la ingesta resuelve y registra la versión vigente de SINALEVI en cada rastreo en vez de suponer que la propuesta entró en vigor. Verificado 2026-09-03: versión 2, idVersionNorma 138264."
     },
     {
       "doc_key": "ccss-bmc",
