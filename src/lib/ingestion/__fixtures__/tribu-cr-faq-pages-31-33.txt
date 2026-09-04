@@ -1,0 +1,128 @@
+29. ¿Qué pasa una persona trata de agregar un registro especial y no cumple con los
+requisitos?
+Si intenta agregar un registro especial en la declaración de modificación de datos del sistema TRIBU-
+CR (OVI) y no cumple con los requisitos necesarios, el sistema mostrará un mensaje de advertencia.
+Este mensaje informará que no es posible incluir el registro especial porque todavía falta cumplir con
+alguna condición o información obligatoria. No podrá continuar con esa selección hasta que cumpla
+los requisitos indicados.
+
+
+
+30. ¿Qué pasos se deben seguir para entrar a la Oficina Virtual y revisar la información
+antes de desinscribirse?
+Para revisar la información y comenzar el proceso de desinscripción, primero debe ingresar a la Oficina
+Virtual con el usuario y contraseña. Una vez dentro, debe dirigirse a la parte superior de la pantalla
+donde aparece el nombre y debe hacer clic. Ahí selecciona la opción “Mis datos”, donde podrá ver la
+información actualizada como nombre completo, cédula, correo, teléfono, dirección, actividad
+económica y el estado en el sistema.
+
+
+
+31. ¿Dónde se hace la solicitud para desinscribirse del sistema TRIBU-CR?
+Para solicitar su desinscripción del sistema TRIBU-CR, primero debe ingresar a la Oficina Virtual con su
+usuario y contraseña. Luego, hacer clic en el nombre en la parte superior de la pantalla y seleccionar la
+opción “Mis datos”. En esa sección encontrará el botón o enlace para “Solicitar desinscripción”.
+
+
+
+32. ¿Cómo está estructurada la declaración de desinscripción en el sistema TRIBU-CR?
+La declaración de desinscripción en el sistema TRIBU-CR está organizada en diferentes apartados o
+secciones. En la parte izquierda de la pantalla verá una barra de navegación que le muestra el recorrido
+que va haciendo por cada paso del formulario, lo que le permite avanzar fácilmente o volver a las
+secciones anteriores si necesita corregir o revisar algo.
+
+
+
+33. ¿Se pueden modificar los datos que aparecen en la declaración de desinscripción en
+TRIBU-CR?
+Sí, se pueden modificar todos los campos de la declaración de desinscripción. El sistema carga
+automáticamente la información más reciente, pero si hay algo que necesite actualización, se puede
+editar directamente antes de enviar el formulario.
+
+
+
+
+31
+34. ¿Qué tipo de información aparece en los campos de la declaración de desinscripción?
+Al completar la declaración de desinscripción, el sistema le mostrará campos con información personal
+y tributaria. Por ejemplo, verá la dirección completa, correo electrónico, número de teléfono, la actividad
+económica registrada y el estado tributario actual. Estos datos vienen precargados, pero se pueden
+revisar y corregir si es necesario antes de continuar con el trámite.
+
+
+
+35. ¿Qué se debe hacer en la sección “Motivo de la desinscripción” dentro del sistema
+TRIBU-CR?
+En la sección “Motivo de la desinscripción” se van a encontrar dos campos obligatorios que se deben
+completar para continuar con el trámite. El primero es indicar el motivo por el cual solicita la
+desinscripción, y el segundo es la fecha en la que finalizó las actividades económicas. Se debe asegurar
+de ingresar la información correctamente para avanzar al siguiente paso.
+
+
+
+36. ¿Qué opciones se pueden elegir como motivo cuando se solicita la desinscripción del
+sistema?
+Al solicitar la desinscripción en TRIBU-CR, se verá un campo desplegable llamado “Motivo”. Allí se
+mostrarán distintas opciones para seleccionar y estas pueden variar dependiendo del tipo de persona
+(física o jurídica) y el módulo que esté utilizando. Se debe elegir la opción que mejor describa la razón
+por la que deja de estar inscrito, para que el trámite se procese correctamente.
+
+
+
+37. ¿Cuáles son los motivos que puede elegir una persona física y quiere desinscribirse
+desde la Oficina Virtual?
+Si es una persona física haciendo la declaración de desinscripción desde la Oficina Virtual, el sistema le
+mostrará una lista de motivos disponibles para seleccionar. Entre ellos están: Cierre del negocio, Otros
+y Transformada. Debe elegir el que mejor se ajuste a la situación actual para continuar con el trámite
+correctamente.
+
+
+
+38. ¿Qué fecha se debe poner en el campo “Fin de actividades” cuando se haga la
+desinscripción en TRIBU-CR?
+En el campo “Fecha de fin de actividades” se debe ingresar el día exacto en que finaliza las actividades
+económicas. Se debe asegurar de escribir la fecha con el formato correcto: día/mes/año (por ejemplo:
+15/08/2025). Esta información es clave para que el proceso de desinscripción se registre
+adecuadamente.
+
+
+32
+39. ¿Se puede ingresar una fecha futura cuando se llena la desinscripción en TRIBU-CR?
+No, no se permite poner una fecha futura en la declaración de desinscripción. Se debe indicar el día
+exacto en que realmente finaliza las actividades económicas, es decir, una fecha que ya haya ocurrido.
+Esto garantiza que el trámite se procese correctamente con base en la situación real.
+
+
+
+40. ¿Qué procedimiento se debe seguir al seleccionar "Otros" como motivo de
+desinscripción en TRIBU-CR?
+Al elegir la opción "Otros" en el campo de motivo de desinscripción, el sistema habilitará
+automáticamente un campo de texto libre donde deberá describir de manera clara, específica y
+detallada los fundamentos de su solicitud, información que será esencial para que la Dirección General
+de Tributación pueda evaluar, procesar y resolver su trámite de acuerdo con los procedimientos
+establecidos.
+
+
+
+41. ¿Qué se tienen que si selecciono “Transformada” como motivo al desinscribirse en
+TRIBU-CR?
+Si se elige la opción “Transformada” como motivo de desinscripción en el sistema TRIBU-CR, se va a
+habilitar automáticamente un campo adicional. En ese espacio debe ingresar el número de
+identificación de la persona o entidad que continuará con la actividad económica, es decir, quien toma
+el lugar de la inscripción original. Esto es fundamental para dar seguimiento correcto al trámite.
+
+
+
+42. ¿En qué casos una persona física puede usar la opción “Transformada” al desinscribirse
+en TRIBU-CR?
+La opción “Transformada” se utiliza cuando una persona física cambia su documento de identificación.
+Por ejemplo, si pasó de tener un NITE a un DIMEX, o de un DIMEX a una cédula nacional iniciada en 8, ya
+sea por procesos de naturalización u homologación. Actualmente, esta funcionalidad está en
+desarrollo, por lo que es posible que algunas opciones aún no estén habilitadas completamente en el
+sistema.
+
+
+
+
+33
+

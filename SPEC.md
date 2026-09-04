@@ -231,7 +231,7 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
 
 ## 9. Eval & quality gates
 
-- **Eval set:** 25±5 hand-written Q&As seeded from appendix A + corpus reading; stored in-repo
+- **Eval set:** 30±5 hand-written Q&As seeded from appendix A + corpus reading; stored in-repo
   (`eval/dataset.jsonl`) with expected source docs/artículos per question. A case may carry
   `history` (#132): its question is a follow-up, and both eval suites condense it first, so the
   expected targets are the retrieval the _standalone_ question must produce.
@@ -291,7 +291,7 @@ MCP server (phase-2) · peer question collection (post-launch) · Renta Global D
 4. ¿Cuánto pago a la CCSS como trabajador independiente y cómo se calcula la base?
 5. ¿Me pueden cobrar retroactivo si nunca me inscribí en la CCSS?
 6. ¿Cómo emito factura electrónica y qué cambió con v4.4 / TRIBU-CR?
-7. ¿Qué pasa si dejo de trabajar independiente — desinscripción D-140 y consecuencias?
+7. Dejé de trabajar por mi cuenta, ¿cómo me salgo de Hacienda?
 8. ¿Cómo calculo renta como persona física con actividad lucrativa — aplica la deducción automática del 25%?
 9. ¿Régimen simplificado o tradicional siendo programador? (RTS excluye profesionales liberales)
 10. ¿Con TRIBU-CR, cambió el procedimiento para declarar/pagar? ¿Dónde entro ahora?

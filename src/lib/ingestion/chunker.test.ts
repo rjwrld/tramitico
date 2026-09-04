@@ -2,7 +2,12 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { htmlToParagraphs, textToParagraphs } from "./extract";
-import { assertChunksCarryContent, chunkDocument, type Chunk } from "./chunker";
+import {
+  assertChunksCarryContent,
+  chunkDocument,
+  chunkQuestions,
+  type Chunk,
+} from "./chunker";
 
 const SAMPLES = path.resolve(__dirname, "../../../docs/corpus-samples");
 
@@ -71,6 +76,104 @@ describe("chunkDocument — Ley 10.363 (small, article-structured)", () => {
     const paths = new Set(chunks.flatMap((c) => c.path));
     expect(paths).toContain("CAPÍTULO I TRABAJADORES INDEPENDIENTES");
     expect(paths).toContain("CAPÍTULO II DISPOSICIONES TRANSITORIAS");
+  });
+});
+
+describe("chunkQuestions — TRIBU-CR FAQ", () => {
+  const fixture = textToParagraphs(
+    readFileSync(
+      path.resolve(__dirname, "__fixtures__/tribu-cr-faq-pages-31-33.txt"),
+      "utf8",
+    ),
+  );
+  // These three source pages start mid-section, so the preceding printed
+  // section heading is supplied as the first paragraph of the fixture input.
+  const chunks = chunkQuestions(
+    "tribu-cr-faq",
+    "Preguntas y respuestas TRIBU-CR y la OVi",
+    ["Declaraciones y Pagos", ...fixture],
+    14,
+  );
+
+  it("makes each printed question one chunk under its section", () => {
+    expect(chunks).toHaveLength(14);
+    expect(chunks.map((chunk) => chunk.articulo)).toEqual(
+      Array.from(
+        { length: 14 },
+        (_, index) => `Declaraciones del RUT · ${index + 29}`,
+      ),
+    );
+    expect(
+      chunks.every((chunk) => chunk.path[0] === "Declaraciones del RUT"),
+    ).toBe(true);
+  });
+
+  it("keeps the heading and answer together without leaking adjacent answers", () => {
+    const question31 = chunks.find(
+      (chunk) => chunk.articulo === "Declaraciones del RUT · 31",
+    );
+    expect(question31?.content).toContain(
+      "¿Dónde se hace la solicitud para desinscribirse",
+    );
+    expect(question31?.content).toContain("Solicitar desinscripción");
+    expect(question31?.content).not.toContain("barra de navegación");
+  });
+
+  it("removes page furniture fused to a question boundary", () => {
+    const question34 = chunks.find(
+      (chunk) => chunk.articulo === "Declaraciones del RUT · 34",
+    );
+    expect(question34?.content).toMatch(/\] 34\. ¿Qué tipo/);
+    expect(question34?.content).not.toMatch(/\] 31 34\./);
+  });
+
+  it("fails loudly below the configured question-count floor", () => {
+    expect(() =>
+      chunkQuestions(
+        "tribu-cr-faq",
+        "Preguntas y respuestas TRIBU-CR y la OVi",
+        ["Declaraciones y Pagos", ...fixture],
+        150,
+      ),
+    ).toThrow(/found 14 question headings; expected at least 150/);
+  });
+
+  it("infers the source's one omitted number only across a confirmed gap", () => {
+    const malformed = chunkQuestions(
+      "tribu-cr-faq",
+      "FAQ",
+      [
+        "Declaraciones y Pagos",
+        "5. ¿Cuáles campos son obligatorios? Todos los no optativos.",
+        "¿Cómo se valida el correo? Se genera un código.",
+        "7. ¿Cómo elijo notificaciones? En el formulario.",
+      ],
+      3,
+    );
+    expect(malformed.map((chunk) => chunk.articulo)).toEqual([
+      "Declaraciones del RUT · 5",
+      "Declaraciones del RUT · 6",
+      "Declaraciones del RUT · 7",
+    ]);
+  });
+
+  it("flushes the previous question before an inline page-numbered section", () => {
+    const boundary = chunkQuestions(
+      "tribu-cr-faq",
+      "FAQ",
+      [
+        "Consulta Integral Hacendaria (CIH) vista OVi",
+        "28. ¿Qué es una acreditación? Es un permiso.",
+        "23 Cuenta Integral Tributaria 1. ¿Puedo ver mis deudas? Sí.",
+        "2. ¿Se migraron los créditos? No todos.",
+      ],
+      3,
+    );
+    expect(boundary.map((chunk) => chunk.articulo)).toEqual([
+      "Consulta Integral Hacendaria (CIH) vista OVi · 28",
+      "Cuenta Integral Tributaria · 1",
+      "Cuenta Integral Tributaria · 2",
+    ]);
   });
 });
 

@@ -24,7 +24,7 @@ export const SEED_PROMPTS = [
   "¿Cuánto pago a la CCSS como trabajador independiente y cómo se calcula la base?",
   "¿Me pueden cobrar retroactivo si nunca me inscribí en la CCSS?",
   "¿Cómo emito factura electrónica y qué cambió con v4.4 / TRIBU-CR?",
-  "¿Qué pasa si dejo de trabajar independiente — desinscripción D-140 y consecuencias?",
+  "Dejé de trabajar por mi cuenta, ¿cómo me salgo de Hacienda?",
   "¿Cómo calculo renta como persona física con actividad lucrativa — aplica la deducción automática del 25%?",
   "¿Régimen simplificado o tradicional siendo programador? (RTS excluye profesionales liberales)",
   "¿Con TRIBU-CR, cambió el procedimiento para declarar/pagar? ¿Dónde entro ahora?",

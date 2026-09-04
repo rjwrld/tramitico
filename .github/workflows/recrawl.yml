@@ -43,7 +43,9 @@ jobs:
             echo "EMBEDDINGS_PROVIDER is unset or 'stub' — refusing to write stub embeddings." >&2
             exit 1
           fi
-      - name: pnpm ingest
+      # The ingestion log includes a loud manifest-vs-fetched SHA-256 warning
+      # for silently republished sources such as the TRIBU-CR FAQ (#257).
+      - name: pnpm ingest (including upstream hash checks)
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

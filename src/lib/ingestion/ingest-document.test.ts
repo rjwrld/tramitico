@@ -105,6 +105,30 @@ describe("ingestDocument", () => {
     expect(calls).toEqual([]);
   });
 
+  it("refuses a FAQ below its question-count floor before writing", async () => {
+    const { client, calls } = fakeClient();
+    const embedder = fakeEmbedder();
+
+    await expect(
+      ingestDocument(
+        { client, embedder },
+        {
+          ...doc,
+          doc_key: "tribu-cr-faq",
+          chunking: { questions: { minimum: 3 } },
+        },
+        [
+          "Declaraciones y Pagos",
+          "1. ¿Primera pregunta? Primera respuesta.",
+          "2. ¿Segunda pregunta? Segunda respuesta.",
+        ],
+      ),
+    ).rejects.toThrow(/found 2 question headings; expected at least 3/);
+
+    expect(calls).toEqual([]);
+    expect(embedder.embed).not.toHaveBeenCalled();
+  });
+
   it("writes identity, then chunks, then the freshness stamp", async () => {
     const { client, calls, identities, stamps, rpcArgs } = fakeClient();
     const embedder = fakeEmbedder();

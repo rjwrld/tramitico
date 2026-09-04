@@ -57,6 +57,7 @@ export const SHORT_NAME_TOKENS: Record<string, string> = {
   disposiciones: "Disposiciones",
   escala: "Escala",
   export: "Export",
+  faq: "FAQ",
   ley: "Ley",
   reglamento: "Reglamento",
   renta: "Renta",
