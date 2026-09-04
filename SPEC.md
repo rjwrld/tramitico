@@ -13,10 +13,36 @@
 
 ## 1. What ships
 
-A RAG assistant for Costa Rican independent developers answering tax & trámite questions in
-plain Spanish, with every answer **cited to the official document and artículo** it came from.
-It retrieves and cites; it never rules. Chat UI seeded with the top-10 pain questions, public
-ask with rate limits, sign-in for history, groundedness eval in CI, deployed on Vercel.
+A RAG assistant for people operating in Costa Rica as natural persons with independent lucrative
+activity: freelancers, professionals and technicians who provide services, and micro-entrepreneurs
+without a company. Software developers and adjacent knowledge workers are the first beta cohort,
+not the product boundary. The measured expansion audience is salaried people with side activity,
+people starting or closing an activity, and platform earners whose questions share the same
+Hacienda/CCSS source base. Societies, employers, customs/importers, free-zone businesses, employee
+labor-rights cases, municipalities/patentes, INS, Registro Nacional, and immigration are excluded
+from the beta. Nationality is irrelevant; the boundary follows the person's activity and
+obligations in Costa Rica.
+
+**Beta promise (canonical product copy):** «Tramitico responde en español llano las preguntas
+frecuentes de una persona física que trabaja por cuenta propia en Costa Rica sobre Hacienda y
+CCSS, con cada afirmación citada al artículo oficial vigente, y dice claramente cuándo no puede
+responder.» It provides the applicable general rule, conditions that can change the answer, and
+concrete next steps when official guidance supports them. It retrieves and cites; it never rules.
+
+**Non-promise:**
+
+- No cubre toda la ley tributaria ni «cualquier trámite del Estado».
+- No calcula su impuesto ni su cuota exacta con sus datos; da la regla, la escala y un ejemplo
+  cuando la fuente lo permite.
+- No sustituye a un contador ni a Hacienda/CCSS: no emite determinaciones personalizadas.
+- No presenta declaraciones ni opera en TRIBU-CR/SICERE.
+- No garantiza cobertura de sociedades, patronos, aduanas, MTSS ni municipalidades.
+- Fuera de las familias Tier 1 publicadas, una respuesta es «mejor esfuerzo citado» o una
+  abstención.
+
+The chat UI carries the Tier 1 seed prompts, public ask with rate limits, sign-in for history, the
+quality gates in §9, and deployment on Vercel. This contract is recorded in
+[ADR 0015](docs/adr/0015-coverage-tiers-and-required-claims.md).
 
 ## 2. Locked decisions (index)
 
@@ -25,7 +51,7 @@ ask with rate limits, sign-in for history, groundedness eval in CI, deployed on 
 | Name     | **Tramitico** (tramitico.com purchase in progress)                                                                                                                                           | [#8](https://github.com/rjwrld/tramitico/issues/8)   |
 | Corpus   | ~14 official docs, Hacienda + CCSS; MTSS gap stated as fact                                                                                                                                  | [#13](https://github.com/rjwrld/tramitico/issues/13) |
 | Chunking | Por-artículo + context header; hybrid retrieval                                                                                                                                              | [#4](https://github.com/rjwrld/tramitico/issues/4)   |
-| UI       | Chat + top-10 pain questions as one-click prompts                                                                                                                                            | [#9](https://github.com/rjwrld/tramitico/issues/9)   |
+| UI       | Chat + one one-click prompt per Tier 1 family ([#264](https://github.com/rjwrld/tramitico/issues/264))                                                                                       | [#9](https://github.com/rjwrld/tramitico/issues/9)   |
 | Auth     | Public ask (rate-limited); sign-in → history + higher limits                                                                                                                                 | [#10](https://github.com/rjwrld/tramitico/issues/10) |
 | Language | ES corpus/answers **and app chrome** ([ADR 0013](docs/adr/0013-spanish-chrome.md)); EN README, demo                                                                                          | [#11](https://github.com/rjwrld/tramitico/issues/11) |
 | Eval set | ~20–30 hand-written Q&As; peer questions post-launch                                                                                                                                         | [#12](https://github.com/rjwrld/tramitico/issues/12) |
@@ -72,11 +98,32 @@ Título I duplicated `ley-iva`, its Título II elided unchanged provisions, and 
 were out-of-scope retrieval noise. `ley-renta` sits beside `reglamento-renta`; the former owns the
 substantive tax rules and the latter their application.
 
-Amended by [#258](https://github.com/rjwrld/tramitico/issues/258): **two docs added, count 19 →
-21** — `ccss-faq`, the official CCSS question/modal page filtered to Cobros, Seguro voluntario
+Amended by [#256](https://github.com/rjwrld/tramitico/issues/256): **two docs removed, count 19 →
+17** — `reglamento-titulo-iv-9635` (Regla Fiscal, not renta) and `dgt-export-servicios`
+(port/vessel services, not professional-service exports). `ccss-bmc` is narrowed to Acuerdos
+Segundo–Cuarto, excluding its stale raster-table note, and `disposiciones-v44` is narrowed to its
+operative artículos and transitorios, excluding certificates, XML examples, and API/OAuth annex
+noise.
+
+Amended by [#257](https://github.com/rjwrld/tramitico/issues/257): **one doc added, count 17 →
+18** — `tribu-cr-faq`, Hacienda's official «Preguntas y respuestas TRIBU-CR y la OVi», chunked
+by question to supply current registration, modification, and deregistration steps.
+
+Amended by [#258](https://github.com/rjwrld/tramitico/issues/258): **two docs added, count 18 →
+20** — `ccss-faq`, the official CCSS question/modal page filtered to Cobros, Seguro voluntario
 and Trabajador Independiente, and `ccss-reglamento-ti`, the vigente SINALEVI regulation for
 independent-worker affiliation and contribution. The FAQ supplies the procedural text absent
 from the normative corpus; rates continue to come from the CCSS actas, not its image table.
+
+Amended by [#259](https://github.com/rjwrld/tramitico/issues/259): **two docs added, count 20 →
+22** — `cnpt`, restricted to the seven articles needed for basic registration, filing, payment,
+interest, and voluntary-compliance consequences, and `salario-base-2026`, the current primary
+input for fines denominated in salarios base. The code is deliberately not ingested wholesale.
+
+Amended by [#260](https://github.com/rjwrld/tramitico/issues/260): `tribu-cr-res-0011-2025`
+replaces the stale `tribu-cr-guia` press release one-for-one, and `ccss-prescripcion` is added, so
+the count grows **22 → 23**. The resolution owns TRIBU-CR's 2025-10-06 cutover; the CCSS microsite
+adds the current steps for requesting prescription of debts.
 
 Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3)):
 
@@ -102,9 +149,12 @@ Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3))
 - **CABYS:** reference data, not prose — ingest a **curated subset of developer-relevant codes**
   as a structured mini-doc (curated during Week 1 ingestion); full-catalog search is out of scope.
 - Numeric figures (brackets, BMC) come **only from primary decrees** — aggregators disagreed.
-- Every doc records `effective_date` + `fetched_at`; annual decree churn (tramos, BMC) is covered
-  by re-running ingestion — **quarterly re-crawl** is the maintenance contract, automated as
-  `.github/workflows/recrawl.yml` ([ADR 0010](docs/adr/0010-cli-ingestion-authoritative.md)).
+- Every doc records `effective_date` + `fetched_at`; `effective_date` is mandatory for a source
+  carrying a figure or deadline, and `annualChurn` marks sources that must belong to the current
+  fiscal period. Annual-churn sources are re-verified for each period; every other source is
+  re-verified by the **quarterly re-crawl**, automated as `.github/workflows/recrawl.yml`
+  ([ADR 0010](docs/adr/0010-cli-ingestion-authoritative.md),
+  [ADR 0016](docs/adr/0016-source-freshness-policy.md)).
 
 ## 4. Ingestion & chunking
 
@@ -223,7 +273,7 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
 
 ## 8. UI
 
-- Landing = chat, with the **top-10 pain questions** (appendix A) as one-click seeded prompts.
+- Landing = chat, with **one prompt per Tier 1 family** (appendix A) as one-click seeds.
 - **Components: shadcn/ui; chat scaffolding from Vercel AI Elements** (shadcn-based registry —
   streaming message list + sources primitives that become the citation chips). Owned code, themeable.
 - **Visual identity comes from DESIGN.md** (authored pre-build); the Week-2 UI prototype session
@@ -244,21 +294,37 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
 
 ## 9. Eval & quality gates
 
-- **Eval set:** 25–40 hand-written Q&As seeded from appendix A + corpus reading; stored in-repo
-  (`eval/dataset.jsonl`) with expected source docs/artículos per question. The band was 30±5 until
-  the #254 corpus issues began opening Tier 1 families the corpus could not previously answer —
-  each one adds its cases here (#259 added the two sanctions cases) — and #261 replaces the band
-  outright with the held-out Tier 1/Tier 2/abstention set. A case may carry
-  `history` (#132): its question is a follow-up, and both eval suites condense it first, so the
-  expected targets are the retrieval the _standalone_ question must produce.
-- **Groundedness judge in CI:** LLM-as-judge — "is this answer supported by the retrieved
-  chunks?" **Gate: ≥ 90% pass**, blocking (starting threshold per #14; ratchet later, never
-  lower). Judge runs at temperature 0; any failed item is re-judged twice more and the majority
-  verdict stands — absorbs judge flakiness at n≈25 without loosening the gate. The judge model
-  is pinned independently of `ANSWER_MODEL` —
-  **[ADR 0007](docs/adr/0007-groundedness-judge-model.md)**.
-- Also asserted: retrieval hit-rate (expected artículo in top-k) — catches chunking/retrieval
-  regressions separately from generation.
+- **Eval sets:** the existing corpus-derived dataset remains a retrieval regression suite. A
+  separate held-out set from demand evidence—not from corpus wording—covers every Tier 1 family
+  with literal, colloquial, and follow-up variants, plus Tier 2 and abstention/adversarial cases.
+  Every Tier 1 case declares `requiredClaims`, `requiredSteps` when procedural, expected sources,
+  freshness inputs, and `blocking: true`. A case may carry `history` (#132); both eval suites
+  condense it first, so targets describe retrieval for the standalone question.
+- **Retrieval:** every expected source/article must be present in the answer pool. A satisfiable
+  Tier 1 case that takes the weak-retrieval decline is a failure.
+- **Groundedness:** every material claim must be supported by a retrieved chunk. The pinned
+  temperature-0 judge uses a majority of three for flagged answers
+  ([ADR 0007](docs/adr/0007-groundedness-judge-model.md)). The existing global gate remains
+  **≥90%**, and no individually blocking Tier 1 case may fail.
+- **Adequacy:** an eligible answer must contain every required claim and required procedural step;
+  numeric and date claims also get deterministic checks against the official input. Every Tier 1
+  case must pass individually. Tier 2 uses the same evidence standard but is not part of the
+  advertised coverage promise.
+- **Citations:** the eval harness applies the runtime citation invariant from
+  [ADR 0011](docs/adr/0011-runtime-citation-invariant.md). Every marker must resolve to a retrieved
+  chunk, and required numeric/deadline claims must point to the expected document. A run may ship
+  no uncited answer.
+- **Freshness:** a source carrying a figure or deadline must have `effective_date`; a source marked
+  `annualChurn` must be current for the fiscal period. All other sources must be inside the
+  quarterly verification window. See [ADR 0016](docs/adr/0016-source-freshness-policy.md).
+- **Abstention:** held-out cases cover missing/stale evidence, false premises, personalized exact
+  calculations, and other institutions. Passing means declining without an invented figure and
+  naming the correct official/professional route. Tier 1 false declines are zero.
+- **Threshold policy:** every Tier 1 case is individually blocking across retrieval, groundedness,
+  adequacy, citations, freshness, and abstention behavior; a strong aggregate cannot hide a red
+  case. New numeric thresholds are fixed only after the single authorized baseline on the
+  resulting corpus (#267), then ratcheted upward and never relaxed to make a regression pass
+  ([ADR 0015](docs/adr/0015-coverage-tiers-and-required-claims.md)).
 - Standard pipeline: Vitest unit, Playwright e2e, 7-step CI on GitHub Actions, deploy on Vercel.
 
 ## 10. Done bar (from #14)
@@ -297,17 +363,27 @@ Full tax-law coverage · payments · multi-tenant · realtime · EN answers · f
 MCP server (phase-2) · peer question collection (post-launch) · Renta Global Dual reform
 (pending bill — watch item, not law).
 
+Societies, employers/patronos, customs/imports, free-zone matters, employee labor rights,
+municipalities/patentes, INS, Registro Nacional, professional associations, banks, MEIC, and
+immigration are not beta coverage. They are **routed, not covered**: the deterministic decline
+names the appropriate institution and official URL, while the corpus and prompt encode none of
+that institution's substantive rules. Promotion to Tier 2 requires both direct-user demand and a
+content-free routing-category signal; see [ADR 0017](docs/adr/0017-other-institutions-are-routed.md).
+
 ---
 
-## Appendix A — Top-10 pain questions (seed prompts + eval seed)
+## Appendix A — Tier 1 seed prompts
 
-1. ¿Tengo que inscribirme en Hacienda si facturo a clientes en el extranjero?
-2. ¿Debo cobrar IVA en facturas a clientes fuera de Costa Rica?
-3. ¿Cuál código CABYS uso para desarrollo de software?
-4. ¿Cuánto pago a la CCSS como trabajador independiente y cómo se calcula la base?
-5. ¿Me pueden cobrar retroactivo si nunca me inscribí en la CCSS?
-6. ¿Cómo emito factura electrónica y qué cambió con v4.4 / TRIBU-CR?
-7. Dejé de trabajar por mi cuenta, ¿cómo me salgo de Hacienda?
-8. ¿Cómo calculo renta como persona física con actividad lucrativa — aplica la deducción automática del 25%?
-9. ¿Régimen simplificado o tradicional siendo programador? (RTS excluye profesionales liberales)
-10. ¿Con TRIBU-CR, cambió el procedimiento para declarar/pagar? ¿Dónde entro ahora?
+One prompt represents each published Tier 1 family. Their UI implementation and interaction tests
+belong to [#264](https://github.com/rjwrld/tramitico/issues/264); the held-out variants belong to
+[#261](https://github.com/rjwrld/tramitico/issues/261).
+
+1. Empecé a trabajar por mi cuenta, ¿tengo que inscribirme en Hacienda y dónde lo hago?
+2. ¿Estoy obligado a asegurarme en la CCSS como trabajador independiente y cómo me afilio?
+3. ¿Cómo emito mi primera factura electrónica y cuál CABYS debo usar?
+4. ¿Debo cobrar IVA a un cliente en el extranjero y cuándo presento la declaración mensual?
+5. ¿Cómo calculo la renta de mi actividad y cuáles deducciones puedo aplicar en 2026?
+6. ¿Cuánto pago a la CCSS como trabajador independiente y qué pasa si también soy asalariado?
+7. Nunca me inscribí en la CCSS, ¿me pueden cobrar retroactivo y cómo pido la prescripción?
+8. Dejé de trabajar por mi cuenta, ¿cómo me desinscribo de Hacienda y de la CCSS?
+9. ¿Qué multas e intereses aplican si me inscribí o declaré tarde?

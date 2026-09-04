@@ -87,3 +87,12 @@ Issue #37 originally reserved the name "ADR 0003" and its thread later renamed t
 "ADR 0004"; both slots were taken by the time of writing
 ([0003 — embedding provider](0003-embedding-provider.md),
 [0004 — citation rendering](0004-citation-rendering.md)), so this document is ADR 0005.
+
+## Amendment (2026-09-04) — the corpus sheds known lexical noise (#256)
+
+The conditional AND→OR decision is unchanged. Its ranked results are corpus-dependent, however,
+and #256 removed Regla Fiscal and port-services entries while excluding certificate, XML, API,
+OAuth, and stale CCSS-note text. The relaxed OR branch can no longer rank those chunks, so the
+lexical leg's candidate distribution has changed. No quality gain is claimed until the authorized
+post-corpus baseline (#267) measures hit-rate case by case; any tuning must use that result and keep
+the strict-AND invariant above.

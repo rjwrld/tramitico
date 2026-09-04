@@ -22,6 +22,12 @@ feature, not by pretending the model is an authority.
 **Target user:** me and my peers — CR freelance/independent developers. A named, reachable user
 group, which means real feedback and possibly real traction.
 
+> **Audience amendment (2026-09-04, [#265](https://github.com/rjwrld/tramitico/issues/265)):**
+> developers remain the first reachable cohort, but the product audience is natural persons with
+> independent lucrative activity in Costa Rica. Salaried people with side activity, people
+> starting or closing an activity, and platform earners are a measured expansion audience. The
+> boundary follows a person's legal circumstances, not profession or nationality.
+
 ## 2. Why this project (the portfolio logic)
 
 This is planned as the **portfolio flagship**. It exists to close two specific gaps at once:
@@ -83,7 +89,12 @@ Revisit only if target job posts demand explicit FE/BE separation.
 **OUT (binding — scope creep is the #2 risk):**
 
 - Full tax-law coverage · payments/subscriptions · multi-tenant · realtime · English translation
-  (stretch goal at most) · fine-tuning · MCP server (phase-2, below)
+  (stretch goal at most) · fine-tuning · MCP server (phase-2, below) · societies/companies ·
+  employers/patronos · customs/imports · municipal permits/patentes · INS coverage
+
+> **Routing annotation (2026-09-04, [#265](https://github.com/rjwrld/tramitico/issues/265)):**
+> those additional institutions and legal categories are routed, not covered: Tramitico declines
+> and points to the appropriate official institution without adding their rules to the corpus.
 
 **Estimated effort:** ~3 focused weeks.
 Wk 1 — foundation: scaffold, auth, schema + pgvector, corpus curation, ingestion, basic retrieval.
