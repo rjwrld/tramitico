@@ -103,7 +103,11 @@ interface ManifestDoc {
      * a page-ranged PDF) or `none` (document root is the deepest honest link).
      */
     deepLink: DeepLinkKind;
-    /** Audited SHA-256 for an official PDF that is silently republished. */
+    /**
+     * Audited SHA-256 for an official PDF that is silently republished — both
+     * PDF kinds honour it. `extract` refuses it on the kinds that fetch no
+     * PDF, rather than accept a hash it would never check.
+     */
     sha256?: string;
     /** `sinalevi` only: artículo number → viewer id, harvested at ingestion. */
     articulos?: Record<string, number>;
@@ -296,6 +300,25 @@ function pdfToText(doc: ManifestDoc, pdf: Buffer): string {
   }
 }
 
+/**
+ * Report an audited PDF against its manifest hash (#259 follow-up).
+ *
+ * Both PDF kinds need this and neither owns it: `hacienda-pdf` had the only
+ * call, so a `sha256` on a plain `pdf` entry — an Imprenta Nacional alcance or
+ * a CCSS acta, exactly the documents that get silently republished — was
+ * accepted by the manifest type and then never checked. A shared helper is
+ * what stops the two branches drifting again.
+ *
+ * A mismatch warns rather than fails: the hash records what a human audited,
+ * and a republication is a go-look, not proof the new bytes are wrong.
+ */
+function reportPdfHash(doc: ManifestDoc, pdf: Buffer): void {
+  if (!doc.source.sha256) return;
+  const notice = pdfHashNotice(doc.doc_key, pdf, doc.source.sha256);
+  if (notice.level === "warn") console.warn(`  ⚠ ${notice.message}`);
+  else console.log(`  ${notice.message}`);
+}
+
 type ExtractedContent =
   { kind: "paragraphs"; value: string[] } | { kind: "chunks"; value: Chunk[] };
 
@@ -307,6 +330,15 @@ async function extract(doc: ManifestDoc): Promise<ExtractedContent | null> {
   if (doc.source.keepArticulos && doc.source.kind !== "sinalevi") {
     throw new Error(
       `${doc.doc_key}: source.keepArticulos is sinalevi-only, but this entry is "${doc.source.kind}"`,
+    );
+  }
+  if (
+    doc.source.sha256 &&
+    doc.source.kind !== "pdf" &&
+    doc.source.kind !== "hacienda-pdf"
+  ) {
+    throw new Error(
+      `${doc.doc_key}: source.sha256 needs a PDF to hash, but this entry is "${doc.source.kind}"`,
     );
   }
   switch (doc.source.kind) {
@@ -410,11 +442,7 @@ async function extract(doc: ManifestDoc): Promise<ExtractedContent | null> {
     }
     case "hacienda-pdf": {
       const pdf = await fetchHaciendaPdf(doc.source.url!);
-      if (doc.source.sha256) {
-        const notice = pdfHashNotice(doc.doc_key, pdf, doc.source.sha256);
-        if (notice.level === "warn") console.warn(`  ⚠ ${notice.message}`);
-        else console.log(`  ${notice.message}`);
-      }
+      reportPdfHash(doc, pdf);
       return {
         kind: "paragraphs",
         value: textToParagraphs(pdfToText(doc, pdf), {
@@ -430,6 +458,9 @@ async function extract(doc: ManifestDoc): Promise<ExtractedContent | null> {
         { url: doc.source.url!, member: doc.source.member },
         CACHE,
       );
+      // After the zip member is extracted, so the hash covers the bytes this
+      // entry actually ingests rather than the archive they arrived in.
+      reportPdfHash(doc, pdf);
       if (doc.source.pages) {
         console.log(`  ${doc.doc_key}: pages ${doc.source.pages}`);
       }
