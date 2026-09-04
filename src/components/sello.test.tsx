@@ -151,7 +151,6 @@ describe("docShortName covers the manifest", () => {
       "reglamento-iva-bienes-capital": "Reglamento IVA Bienes Capital",
       "reglamento-iva-retencion-tarjetas": "Reglamento IVA Retención Tarjetas",
       "ley-renta": "Ley Renta",
-      "reglamento-titulo-iv-9635": "Reglamento Título IV 9635",
       "reglamento-renta": "Reglamento Renta",
       "tramos-renta-2026": "Tramos Renta 2026",
       "ley-10363": "Ley 10363",
@@ -162,7 +161,6 @@ describe("docShortName covers the manifest", () => {
       "reglamento-rts": "Reglamento RTS",
       "reglamento-comprobantes": "Reglamento Comprobantes",
       "disposiciones-v44": "Disposiciones v4.4",
-      "dgt-export-servicios": "DGT Export Servicios",
       "tribu-cr-guia": "TRIBU CR Guía",
       "cabys-dev": "CABYS Dev",
     });

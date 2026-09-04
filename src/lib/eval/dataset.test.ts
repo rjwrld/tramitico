@@ -209,12 +209,16 @@ describe("eval/dataset.jsonl", () => {
       readFileSync(path.join(process.cwd(), "corpus", "manifest.json"), "utf8"),
     ) as {
       retiredDocKeys?: string[];
+      retirementNotes?: Record<string, string>;
       documents: { doc_key: string }[];
     };
     const retired = new Set(manifest.retiredDocKeys ?? []);
     const active = new Set(manifest.documents.map((doc) => doc.doc_key));
 
     expect([...retired].filter((docKey) => active.has(docKey))).toEqual([]);
+    expect(Object.keys(manifest.retirementNotes ?? {}).sort()).toEqual(
+      [...retired].sort(),
+    );
     for (const evalCase of cases) {
       for (const target of evalCase.expected) {
         expect(

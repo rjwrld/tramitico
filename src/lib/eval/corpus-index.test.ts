@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import {
   buildCorpusIndex,
+  CORPUS_INDEX_PATH,
   parseCorpusIndex,
   serializeCorpusIndex,
 } from "./corpus-index";
@@ -106,5 +108,20 @@ describe("parseCorpusIndex", () => {
     ],
   ])("rejects %s", (json, message) => {
     expect(() => parseCorpusIndex(json)).toThrow(message);
+  });
+});
+
+describe("the committed document set (#256)", () => {
+  const committed = parseCorpusIndex(readFileSync(CORPUS_INDEX_PATH, "utf8"));
+  const docKeys = new Set(committed.entries.map((entry) => entry.docKey));
+
+  it("has no target for the retired Regla Fiscal or port-services entries", () => {
+    expect(docKeys.has("reglamento-titulo-iv-9635")).toBe(false);
+    expect(docKeys.has("dgt-export-servicios")).toBe(false);
+  });
+
+  it("keeps the two excerpted documents", () => {
+    expect(docKeys.has("ccss-bmc")).toBe(true);
+    expect(docKeys.has("disposiciones-v44")).toBe(true);
   });
 });
