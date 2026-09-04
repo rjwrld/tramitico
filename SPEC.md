@@ -225,8 +225,8 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   through the same groundedness gate as a cost/quality comparison (portfolio material either way).
   Via Vercel AI SDK, streaming. System prompt constrains
   answers to retrieved chunks; when retrieval is empty/weak, the answer says so and links the
-  agency instead of guessing. MTSS questions get the encoded fact: the Labor Code mostly does
-  not apply to independents.
+  agency the question belongs to instead of guessing (routed by institution since #264, §8).
+  MTSS questions get the encoded fact: the Labor Code mostly does not apply to independents.
 - **Citations:** every answer renders the chunks used as `Documento · Artículo` chips linking to
   the official source URL, each captioned with the date the corpus fetched that document
   (_consultado el …_, #135). Groundedness is visible, not claimed — and so is how current it is.
@@ -273,7 +273,17 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
 
 ## 8. UI
 
-- Landing = chat, with **one prompt per Tier 1 family** (appendix A) as one-click seeds.
+- Landing = chat, with the **Tier 1 seed questions** (appendix A — one per validated family, #264)
+  as one-click seeded prompts. The empty state states the **scope and the non-promise** in two
+  lines before the first ask (#254 Part A §A2): Hacienda + CCSS for personas físicas que trabajan
+  por cuenta propia; no personalised calculation, sociedades, or other institutions.
+- **Honest decline, routed by institution (#264, #254 Q1–Q3):** when retrieval is weak, a
+  deterministic keyword classifier (`src/lib/routing.ts`, no model call) reads the condensed
+  question and the decline names the institution it belongs to and its official URL — Hacienda,
+  CCSS, INS, municipalidad, Registro Nacional, colegio profesional, banco, MEIC, migración, MTSS
+  — from one table the prompt's rule 6 also lists and the quarterly re-crawl verifies. The
+  category rides on the per-ask telemetry event as `routedCategory`, the content-free counter
+  Tier 2 promotion is decided against; the question never does.
 - **Components: shadcn/ui; chat scaffolding from Vercel AI Elements** (shadcn-based registry —
   streaming message list + sources primitives that become the citation chips). Owned code, themeable.
 - **Visual identity comes from DESIGN.md** (authored pre-build); the Week-2 UI prototype session
@@ -372,18 +382,23 @@ content-free routing-category signal; see [ADR 0017](docs/adr/0017-other-institu
 
 ---
 
-## Appendix A — Tier 1 seed prompts
+## Appendix A — Tier 1 seed questions (seed prompts + eval seed)
 
-One prompt represents each published Tier 1 family. Their UI implementation and interaction tests
-belong to [#264](https://github.com/rjwrld/tramitico/issues/264); the held-out variants belong to
+One per Tier 1 family of the validated taxonomy (#254 Part B §B3), in user vocabulary
+(#264). Each is answerable from the corpus to the trust contract today. The former top-10
+list (retired 2026-09-04) named a retired form (D-140), a source that had not landed (the
+25 % deduction) and two unrelated changes in one prompt (v4.4 / TRIBU-CR); dataset cases
+keep those questions under `demand:` / `corpus` provenance where they remain valid eval
+targets. Their UI implementation and interaction tests belong to
+[#264](https://github.com/rjwrld/tramitico/issues/264); the held-out variants belong to
 [#261](https://github.com/rjwrld/tramitico/issues/261).
 
-1. Empecé a trabajar por mi cuenta, ¿tengo que inscribirme en Hacienda y dónde lo hago?
-2. ¿Estoy obligado a asegurarme en la CCSS como trabajador independiente y cómo me afilio?
-3. ¿Cómo emito mi primera factura electrónica y cuál CABYS debo usar?
-4. ¿Debo cobrar IVA a un cliente en el extranjero y cuándo presento la declaración mensual?
-5. ¿Cómo calculo la renta de mi actividad y cuáles deducciones puedo aplicar en 2026?
-6. ¿Cuánto pago a la CCSS como trabajador independiente y qué pasa si también soy asalariado?
-7. Nunca me inscribí en la CCSS, ¿me pueden cobrar retroactivo y cómo pido la prescripción?
-8. Dejé de trabajar por mi cuenta, ¿cómo me desinscribo de Hacienda y de la CCSS?
-9. ¿Qué multas e intereses aplican si me inscribí o declaré tarde?
+1. T1-A — ¿Tengo que inscribirme en Hacienda si facturo a clientes en el extranjero?
+2. T1-B — ¿Estoy obligado a asegurarme en la Caja si gano poco?
+3. T1-C — ¿Cómo emito mi primera factura electrónica y qué código CABYS uso?
+4. T1-D — ¿Debo cobrar IVA en facturas a clientes fuera de Costa Rica?
+5. T1-E — ¿Cómo calculo el impuesto sobre la renta como persona física con actividad lucrativa y qué gastos puedo deducir?
+6. T1-F — ¿Cuánto pago a la CCSS como trabajador independiente y cómo se calcula la base?
+7. T1-G — ¿Me pueden cobrar retroactivo si nunca me inscribí en la CCSS?
+8. T1-H — Dejé de trabajar por mi cuenta, ¿cómo me salgo de Hacienda?
+9. T1-I — Me inscribí un año tarde, ¿qué me pasa?

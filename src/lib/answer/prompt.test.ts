@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
+import { declineAnswer, ROUTING } from "../routing";
 import {
   ANSWER_SYSTEM_PROMPT,
   buildUserPrompt,
+  CCSS_URL,
   CITATION_RETRY_NOTE,
   formatChunks,
+  HACIENDA_URL,
   WEAK_RETRIEVAL_ANSWER,
 } from "./prompt";
 
@@ -159,6 +162,41 @@ describe("WEAK_RETRIEVAL_ANSWER", () => {
     expect(WEAK_RETRIEVAL_ANSWER).toContain("https://www.ccss.sa.cr");
     // No apology theater (DESIGN §9).
     expect(WEAK_RETRIEVAL_ANSWER).not.toMatch(/lo sentimos|disculp/i);
+  });
+
+  it("is the general variant of the routed decline (#264)", () => {
+    expect(WEAK_RETRIEVAL_ANSWER).toBe(declineAnswer("general"));
+  });
+});
+
+describe("rule 6 and the routing table (#264)", () => {
+  it("takes the two agency URLs from the table", () => {
+    expect(HACIENDA_URL).toBe("https://www.hacienda.go.cr");
+    expect(CCSS_URL).toBe("https://www.ccss.sa.cr");
+  });
+
+  it("lists every institution and URL in the table, and only those", () => {
+    for (const entry of ROUTING) {
+      expect(ANSWER_SYSTEM_PROMPT).toContain(
+        `${entry.institution}: ${entry.url}`,
+      );
+    }
+    // Every URL the prompt can print is one the re-crawl verifies.
+    const urls = ANSWER_SYSTEM_PROMPT.match(/https?:\/\/[^\s;,)]+/g) ?? [];
+    const known = new Set(ROUTING.map((entry) => entry.url));
+    for (const url of urls) {
+      expect(known.has(url.replace(/\.$/, ""))).toBe(true);
+    }
+  });
+
+  it("tells the model an out-of-scope institution is out of scope, not unknown", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /fuera de lo que cubre este asistente/,
+    );
+    // Rule 5 (MTSS) is untouched: still an encoded fact, not a routing.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /5\. Si la pregunta trata de derechos laborales del MTSS/,
+    );
   });
 });
 

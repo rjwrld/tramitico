@@ -41,6 +41,30 @@ describe("privacy page", () => {
     expect(text).toContain("por cada consulta");
   });
 
+  it("says the log carries the routing category of a decline, never the question (#264)", () => {
+    render(<PrivacyPage />);
+    const text = document.body.textContent ?? "";
+
+    expect(text).toContain("a qué institución se le remitió");
+    expect(text).toContain("una categoría de una lista fija");
+    // Every category in the table is named, so the list on the page is the
+    // list in the code.
+    for (const name of [
+      "Hacienda",
+      "CCSS",
+      "INS",
+      "municipalidad",
+      "Registro Nacional",
+      "colegio profesional",
+      "banco",
+      "MEIC",
+      "migración",
+      "MTSS",
+    ]) {
+      expect(text).toContain(name);
+    }
+  });
+
   it("says what a follow-up sends and what it stores (#132)", () => {
     // Multi-turn added no subprocessor, but it changed what one of them
     // receives and what a history row holds — both are claims this page

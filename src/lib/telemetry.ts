@@ -34,6 +34,7 @@
  */
 
 import { describeError } from "./log-redaction";
+import type { RoutedCategory } from "./routing";
 
 /**
  * The stable prefix a log query matches on. Changing it silently breaks the
@@ -101,6 +102,16 @@ export interface AskEvent {
   citationFailure: boolean;
   quotaHit: boolean;
   abort: AskAbort | null;
+  /**
+   * Which institution the honest decline was routed to (#264) — a value from
+   * `routing.ts`'s closed set, or `null` on every ask that was not a
+   * weak-retrieval decline. Non-null exactly when retrieval was weak, so a
+   * count by category over the non-null lines is the content-free counter of
+   * declines by routing category the decision record on #254 asks for. The
+   * category is derived from the question by a keyword table; the question
+   * itself never rides here.
+   */
+  routedCategory: RoutedCategory | null;
 }
 
 /**
@@ -131,6 +142,7 @@ interface AskFacts {
   quotaHit: boolean;
   providerError: string | null;
   abort: AskAbort | null;
+  routedCategory: RoutedCategory | null;
 }
 
 /**
@@ -187,6 +199,8 @@ export interface AskTelemetry {
    * and the first is the one that says what actually ended it.
    */
   aborted: (reason: AskAbort) => void;
+  /** The honest decline on weak retrieval was routed to `category` (#264). */
+  routed: (category: RoutedCategory) => void;
   /** Writes the event, once. Further calls are no-ops. */
   emit: () => void;
 }
@@ -205,6 +219,7 @@ export function createAskTelemetry(now: () => number = Date.now): AskTelemetry {
     quotaHit: false,
     providerError: null,
     abort: null,
+    routedCategory: null,
   };
   let emitted = false;
   return {
@@ -232,6 +247,9 @@ export function createAskTelemetry(now: () => number = Date.now): AskTelemetry {
     aborted: (reason: AskAbort) => {
       facts.abort ??= reason;
     },
+    routed: (category: RoutedCategory) => {
+      facts.routedCategory = category;
+    },
     emit: () => {
       if (emitted) return;
       emitted = true;
@@ -243,6 +261,7 @@ export function createAskTelemetry(now: () => number = Date.now): AskTelemetry {
         citationFailure: facts.citationFailure,
         quotaHit: facts.quotaHit,
         abort: facts.abort,
+        routedCategory: facts.routedCategory,
       });
     },
   };

@@ -23,6 +23,21 @@ function hiddenOnPhone(): HTMLElement[] {
     .filter((li) => li.classList.contains("hidden"));
 }
 
+describe("SEED_PROMPTS (#264)", () => {
+  it("carries one seed per Tier 1 family", () => {
+    expect(SEED_PROMPTS).toHaveLength(9);
+    expect(new Set(SEED_PROMPTS).size).toBe(9);
+  });
+
+  it("names nothing retired, unlanded or mixed — the #264 acceptance list", () => {
+    for (const seed of SEED_PROMPTS) {
+      expect(seed).not.toContain("D-140");
+      expect(seed).not.toContain("v4.4 / TRIBU-CR");
+      expect(seed).not.toContain("deducción automática del 25");
+    }
+  });
+});
+
 describe("SeedPrompts", () => {
   it("renders every seeded question as a button, in SPEC order", () => {
     render(<SeedPrompts onSelect={() => {}} />);

@@ -7,16 +7,22 @@ import {
   render,
   screen,
 } from "@testing-library/react";
-import { AnswerBlock, DISCLAIMER } from "@/components/chat/answer-block";
+import {
+  AnswerBlock,
+  DISCLAIMER,
+  ROUTED_LINKS_LABEL,
+} from "@/components/chat/answer-block";
 import {
   CITATIONS_PART_ID,
   DEGRADED_PART_ID,
   DEGRADED_SEARCH_NOTE,
   MARKERS_PART_ID,
+  ROUTED_PART_ID,
   STATUS_PART_ID,
   type AskUIMessage,
 } from "@/lib/answer/contract";
 import type { Citation } from "@/lib/retrieval";
+import { declineAnswer, type RoutedCategory } from "@/lib/routing";
 
 afterEach(cleanup);
 
@@ -233,6 +239,60 @@ describe("AnswerBlock degraded-search label (#127)", () => {
   it("waits for prose — there is nothing to qualify before the first delta", () => {
     render(<AnswerBlock message={degraded("")} busy />);
     expect(screen.queryByText(DEGRADED_SEARCH_NOTE)).toBeNull();
+  });
+});
+
+describe("AnswerBlock routed decline (#264)", () => {
+  /** The route's decline: the `data-routed` part, then the text, no citations. */
+  function decline(category: RoutedCategory): AskUIMessage {
+    return {
+      id: "a1",
+      role: "assistant",
+      parts: [
+        { type: "data-routed", id: ROUTED_PART_ID, data: { category } },
+        { type: "text", text: declineAnswer(category) },
+      ],
+    };
+  }
+
+  it("renders the routed institution and its link from the table", () => {
+    render(<AnswerBlock message={decline("municipal")} />);
+
+    const link = screen.getByRole("link", {
+      name: "la municipalidad de su cantón",
+    });
+    expect(link.getAttribute("href")).toBe("https://www.ifam.go.cr");
+    expect(link.getAttribute("rel")).toContain("noopener");
+    expect(
+      document.querySelector('[data-slot="routed-links"]')?.textContent,
+    ).toContain(ROUTED_LINKS_LABEL);
+    // The prose says where the reader is being sent, in words.
+    expect(screen.getByText(/fuera de lo que cubro/)).not.toBeNull();
+  });
+
+  it("links both in-scope institutions on the general decline", () => {
+    render(<AnswerBlock message={decline("general")} />);
+
+    expect(
+      screen
+        .getByRole("link", { name: "Ministerio de Hacienda" })
+        .getAttribute("href"),
+    ).toBe("https://www.hacienda.go.cr");
+    expect(
+      screen.getByRole("link", { name: "CCSS" }).getAttribute("href"),
+    ).toBe("https://www.ccss.sa.cr");
+  });
+
+  it("stamps no sello under a decline — it cites nothing", () => {
+    render(<AnswerBlock message={decline("ins")} />);
+    // The decline's own «- INS: url» bullet is a list item; a sello is not.
+    expect(document.querySelectorAll('[data-slot="sello"]')).toHaveLength(0);
+    expect(screen.getByText(DISCLAIMER)).not.toBeNull();
+  });
+
+  it("renders no link row on an ordinary answer", () => {
+    render(<AnswerBlock message={answer("La tarifa es 13% [1].")} />);
+    expect(document.querySelector('[data-slot="routed-links"]')).toBeNull();
   });
 });
 

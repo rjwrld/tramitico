@@ -17,7 +17,9 @@
  *   which pipeline stage is running, under the same snapshot rule (#71), and
  *   `data-degraded` marks an answer retrieved without its vector leg (#127).
  *   `data-unsaved` marks a delivered answer that never reached the signed-in
- *   caller's history (#139).
+ *   caller's history (#139). `data-routed` names the institution an honest
+ *   decline was routed to (#264), so the client can render the link from
+ *   the routing table rather than from the text.
  * - Non-OK responses carry a JSON body `{ error, message }` where `message`
  *   is user-facing Spanish (the 429 carries the rate-limit nudge from #24).
  *   The AI SDK transport throws the raw body text; `askErrorMessage`
@@ -28,6 +30,7 @@
  */
 import type { UIMessage } from "ai";
 import type { Citation } from "@/lib/retrieval";
+import type { RoutedCategory } from "@/lib/routing";
 
 /**
  * One completed exchange the client may send back with a follow-up (#132).
@@ -142,6 +145,15 @@ export type AskDataParts = {
    * saves never carry the part at all.
    */
   unsaved: boolean;
+  /**
+   * The routing category of an honest decline (#264): which institution the
+   * decline sent the reader to. Written once, before the decline's text, and
+   * only on the weak-retrieval path. The client resolves it against
+   * `routing.ts` to render the institution and its link — the URL comes from
+   * code, never from the streamed text, which keeps SPEC §8's "no URL is
+   * ever derived from model text" true of the decline too.
+   */
+  routed: { category: RoutedCategory };
 };
 
 export type AskUIMessage = UIMessage<never, AskDataParts>;
@@ -157,6 +169,9 @@ export const DEGRADED_PART_ID = "degraded";
 
 /** Stable `data-unsaved` part id — written at most once per answer (#139). */
 export const UNSAVED_PART_ID = "unsaved";
+
+/** Stable `data-routed` part id — written at most once per decline (#264). */
+export const ROUTED_PART_ID = "routed";
 
 /**
  * Stable `data-status` part id. Same idempotency bargain ADR 0004 struck for
@@ -252,6 +267,15 @@ export function unsavedFrom(message: AskUIMessage): boolean {
   let latest = false;
   for (const part of message.parts) {
     if (part.type === "data-unsaved") latest = part.data;
+  }
+  return latest;
+}
+
+/** Which institution this decline was routed to (#264); null on an answer. */
+export function routedFrom(message: AskUIMessage): RoutedCategory | null {
+  let latest: RoutedCategory | null = null;
+  for (const part of message.parts) {
+    if (part.type === "data-routed") latest = part.data.category;
   }
   return latest;
 }

@@ -59,6 +59,16 @@
  * `onFinish`, or on the pre-stream returns that never get one; see
  * `telemetry.ts` for what may and may not appear in it.
  *
+ * Institution routing (#264, decision record on #254): a weak-retrieval
+ * decline no longer points everyone at hacienda.go.cr. `classifyRouting` — a
+ * keyword table, no model call — reads the condensed question and names the
+ * institution it belongs to; the decline text names it and its official
+ * URL, a `data-routed` part lets the client link it from the table, and the
+ * category rides on the telemetry event as `routedCategory`, the content-free
+ * counter that decides Tier 2 promotion. The #131 fail-closed decline is not
+ * routed: retrieval was strong there, and the classifier is a scope
+ * decision, not a substitute for a model that could not cite.
+ *
  * Stop/retry (#74, audit F-11): `request.signal` is threaded into `streamText`
  * as `abortSignal`, so a client-side `stop()` (chat.tsx) cancels the paid
  * Anthropic call once generation has started — the issue's named target for
@@ -92,6 +102,7 @@ import {
   DEGRADED_PART_ID,
   MARKERS_PART_ID,
   RETRIEVAL_FAILED_MESSAGE,
+  ROUTED_PART_ID,
   STATUS_PART_ID,
   UNSAVED_PART_ID,
   boundTurns,
@@ -125,6 +136,11 @@ import {
 } from "@/lib/answer/prompt";
 import { RERANK_POOL, rerankChunks } from "@/lib/answer/rerank";
 import { getUserId } from "@/lib/answer/user";
+import {
+  classifyRouting,
+  declineAnswer,
+  type RoutedCategory,
+} from "@/lib/routing";
 import {
   checkRateLimit,
   NO_REFUND,
@@ -388,15 +404,29 @@ function answerFailed(
  * have nothing we can stand behind, said plainly, with the official sources to
  * go to instead. It carries no citations by design, which is exactly why the
  * invariant does not run on it (#131 req. 4).
+ *
+ * Only the first caller routes (#264): it passes the category the classifier
+ * chose, the decline names that institution, and a `data-routed` part goes
+ * out ahead of the text so the client can link it. The fail-closed caller
+ * passes nothing and gets the general text — the pre-#264 decline.
  */
 async function streamHonestDecline(
   writer: Writer,
   asked: AskedQuestion,
   userId: string | null,
+  routed: RoutedCategory | null = null,
 ): Promise<void> {
   const id = "fallback";
+  const text = routed === null ? WEAK_RETRIEVAL_ANSWER : declineAnswer(routed);
+  if (routed !== null) {
+    writer.write({
+      type: "data-routed",
+      id: ROUTED_PART_ID,
+      data: { category: routed },
+    });
+  }
   writer.write({ type: "text-start", id });
-  writer.write({ type: "text-delta", id, delta: WEAK_RETRIEVAL_ANSWER });
+  writer.write({ type: "text-delta", id, delta: text });
   writer.write({ type: "text-end", id });
   if (userId) {
     // The decline is a delivered answer, so it is saved and labeled like one
@@ -408,7 +438,7 @@ async function streamHonestDecline(
       userId,
       question: asked.question,
       condensedQuestion: asked.condensed,
-      answer: WEAK_RETRIEVAL_ANSWER,
+      answer: text,
       citations: [],
     });
   }
@@ -665,7 +695,11 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     if (retrieval.isWeak) {
-      await streamHonestDecline(writer, asked, userId);
+      // #264: the one place the classifier runs. On the condensed question,
+      // so a follow-up («¿y la patente?») is routed on what it resolved to.
+      const routed = classifyRouting(asked.query);
+      telemetry.routed(routed);
+      await streamHonestDecline(writer, asked, userId, routed);
       return;
     }
 
