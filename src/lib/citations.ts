@@ -13,6 +13,8 @@ export interface Citation {
   norma: string | null;
   articulo: string | null;
   url: string | null;
+  /** ISO date the cited rule or figure took effect (#262). */
+  effectiveAt?: string | null;
   /**
    * ISO timestamp the corpus last fetched the document (#135), printed under
    * the stamp as "consultado el …". Optional, not nullable-required: rows
@@ -42,6 +44,9 @@ export function isCitation(value: unknown): value is Citation {
     (typeof v.norma === "string" || v.norma === null) &&
     (typeof v.articulo === "string" || v.articulo === null) &&
     (typeof v.url === "string" || v.url === null) &&
+    (typeof v.effectiveAt === "string" ||
+      v.effectiveAt === null ||
+      v.effectiveAt === undefined) &&
     (typeof v.fetchedAt === "string" ||
       v.fetchedAt === null ||
       v.fetchedAt === undefined)

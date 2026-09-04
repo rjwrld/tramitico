@@ -168,9 +168,8 @@ const MONTHS_ES = [
 
 /**
  * `consultado el 6 ago 2026` — how current the corpus's copy of a document is
- * (#135). This is the only freshness fact we actually have: `effective_date`
- * is unpopulated and structured vigencia extraction is post-launch (#121), so
- * a source with no `fetched_at` gets no caption rather than an invented one.
+ * (#135). A source with no `fetched_at` gets no consultation caption rather
+ * than an invented one; its separate effective date is formatted below.
  * The month table is spelled out instead of delegated to `Intl` because
  * abbreviated Spanish months drift between ICU versions («ago» vs «ago.»),
  * and this string sits in the trust surface. The date itself is read on the
@@ -187,6 +186,27 @@ export function fetchedLabel(
   const cr = new Date(parsed.getTime() - CR_UTC_OFFSET_MS);
   const month = MONTHS_ES[cr.getUTCMonth()];
   return `consultado el ${cr.getUTCDate()} ${month} ${cr.getUTCFullYear()}`;
+}
+
+/** `vigente desde 1 ene 2026` — the source's declared date of effect. */
+export function effectiveLabel(
+  effectiveAt: string | null | undefined,
+): string | null {
+  const match = effectiveAt?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  const [, yearText, monthText, dayText] = match;
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  if (
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    return null;
+  }
+  return `vigente desde ${day} ${MONTHS_ES[month - 1]} ${year}`;
 }
 
 /**
@@ -228,7 +248,9 @@ export function SelloRow({
       )}
     >
       {citations.map((citation, i) => {
+        const vigente = effectiveLabel(citation.effectiveAt);
         const consultado = fetchedLabel(citation.fetchedAt);
+        const dateCaption = [vigente, consultado].filter(Boolean).join(" · ");
         return (
           <li
             key={`${citation.docKey} ${citation.articulo ?? ""}`}
@@ -236,12 +258,12 @@ export function SelloRow({
             className="flex scroll-mt-24 flex-col items-start gap-1 rounded-[3px] target:outline-2 target:outline-offset-2 target:outline-ring"
           >
             <Sello citation={citation} />
-            {consultado && (
+            {dateCaption && (
               // The stamp's anatomy is fixed (DESIGN §5) — the date is a
               // caption under it, in the 11px mono meta slot, never inside
               // the chip.
               <span className="px-[1px] font-mono text-[0.6875rem] text-muted-foreground">
-                {consultado}
+                {dateCaption}
               </span>
             )}
           </li>

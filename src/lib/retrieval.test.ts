@@ -254,6 +254,7 @@ const ROW: SearchChunksRow = {
   part: 0,
   content: "[Ley del Trabajador Independiente > ARTÍCULO 2] La prescripción…",
   source: { kind: "sinalevi", idFichaNorma: 99349, idVersionNorma: 135825 },
+  effective_date: "2026-01-01",
   fetched_at: "2026-08-06T15:04:05+00:00",
   score: rrfScore(1) + rrfScore(1),
   vector_rank: 1,
@@ -270,6 +271,7 @@ const CHUNK: RetrievedChunk = {
   part: ROW.part,
   content: ROW.content,
   source: ROW.source,
+  effectiveAt: ROW.effective_date,
   fetchedAt: ROW.fetched_at,
   score: ROW.score,
   vectorRank: ROW.vector_rank,
@@ -284,6 +286,7 @@ describe("toCitation", () => {
       norma: "Ley 10363",
       articulo: "ARTÍCULO 2",
       url: "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=99349&param2=&param3=1&param4=",
+      effectiveAt: "2026-01-01",
       // The chip's "consultado el …" caption (#135) rides along from the
       // document row, so live answers carry it without a second query.
       fetchedAt: "2026-08-06T15:04:05+00:00",
@@ -319,6 +322,7 @@ const CANONICAL_CITATION: Citation = {
   norma: "Ley 10363",
   articulo: "ARTÍCULO 2",
   url: "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=99349&param2=&param3=1&param4=",
+  effectiveAt: "2026-01-01",
   fetchedAt: "2026-08-06T15:04:05+00:00",
 };
 
@@ -353,6 +357,15 @@ describe("isCitation", () => {
 
   it("rejects a wrong-typed fetch date", () => {
     expect(isCitation({ ...CANONICAL_CITATION, fetchedAt: 1754492645 })).toBe(
+      false,
+    );
+  });
+
+  it("accepts an effective date when present and rejects the wrong type", () => {
+    expect(isCitation(CANONICAL_CITATION)).toBe(true);
+    expect(isCitation({ ...CANONICAL_CITATION, effectiveAt: null })).toBe(true);
+    expect(isCitation(omit(CANONICAL_CITATION, "effectiveAt"))).toBe(true);
+    expect(isCitation({ ...CANONICAL_CITATION, effectiveAt: 20260101 })).toBe(
       false,
     );
   });

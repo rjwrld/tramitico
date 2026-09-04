@@ -11,6 +11,7 @@ import {
   Sello,
   SelloRow,
   docShortName,
+  effectiveLabel,
   fetchedLabel,
   selloLabel,
 } from "@/components/sello";
@@ -30,6 +31,7 @@ const CHUNK: RetrievedChunk = {
   part: 1,
   content: "…",
   source: {},
+  effectiveAt: "2026-01-01",
   score: 0.1,
   vectorRank: 1,
   lexicalRank: 1,
@@ -42,6 +44,7 @@ const reglamentoIva: Citation = {
   norma: "Decreto Ejecutivo 41779",
   articulo: "Artículo 11",
   url: "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=88953&param2=&param3=1&param4=",
+  effectiveAt: "2026-01-01",
   fetchedAt: "2026-08-06T15:04:05Z",
 };
 
@@ -204,6 +207,18 @@ describe("fetchedLabel", () => {
   });
 });
 
+describe("effectiveLabel", () => {
+  it("prints a date-only vigencia without shifting it across time zones", () => {
+    expect(effectiveLabel("2026-01-01")).toBe("vigente desde 1 ene 2026");
+  });
+
+  it("has nothing to say when no valid effective date is available", () => {
+    expect(effectiveLabel(null)).toBeNull();
+    expect(effectiveLabel(undefined)).toBeNull();
+    expect(effectiveLabel("2026-02-31")).toBeNull();
+  });
+});
+
 describe("Sello", () => {
   it("is itself the link to the official source at the cited artículo", () => {
     render(<Sello citation={reglamentoIva} />);
@@ -303,7 +318,7 @@ describe("SelloRow", () => {
     expect(screen.getByRole("listitem").id).toBe("");
   });
 
-  it("captions every stamp with the date its source was consulted (#135)", () => {
+  it("captions every stamp with its effective and consultation dates", () => {
     render(
       <SelloRow
         citations={[
@@ -319,8 +334,8 @@ describe("SelloRow", () => {
     );
     expect(screen.getAllByRole("listitem").map((li) => li.textContent)).toEqual(
       [
-        "Reglamento IVA · Art. 11consultado el 6 ago 2026",
-        "Ley IVA · Art. 8consultado el 4 ago 2026",
+        "Reglamento IVA · Art. 11vigente desde 1 ene 2026 · consultado el 6 ago 2026",
+        "Ley IVA · Art. 8vigente desde 1 ene 2026 · consultado el 4 ago 2026",
       ],
     );
   });
@@ -330,6 +345,7 @@ describe("SelloRow", () => {
     // date prints no date — nothing is invented to fill the slot.
     const legacy: Citation = { ...reglamentoIva };
     delete legacy.fetchedAt;
+    delete legacy.effectiveAt;
     render(<SelloRow citations={[legacy]} />);
     expect(screen.getByRole("listitem").textContent).toBe(
       "Reglamento IVA · Art. 11",

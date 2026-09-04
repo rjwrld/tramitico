@@ -42,7 +42,7 @@ describe("QAView", () => {
     );
   });
 
-  it("captions a saved source with the date it was consulted, and leaves pre-#135 rows uncaptioned", () => {
+  it("captions a saved source with both dates and leaves legacy rows uncaptioned", () => {
     render(
       <QAView
         item={{
@@ -54,6 +54,7 @@ describe("QAView", () => {
               norma: null,
               articulo: "Artículo 11",
               url: null,
+              effectiveAt: "2026-01-01",
               fetchedAt: "2026-08-06T15:04:05Z",
             },
             // Saved before #135: no fetchedAt key at all. It must survive the
@@ -72,7 +73,10 @@ describe("QAView", () => {
     );
 
     expect(screen.getAllByRole("listitem").map((li) => li.textContent)).toEqual(
-      ["Reglamento IVA · Art. 11consultado el 6 ago 2026", "Ley 9635 · Art. 4"],
+      [
+        "Reglamento IVA · Art. 11vigente desde 1 ene 2026 · consultado el 6 ago 2026",
+        "Ley 9635 · Art. 4",
+      ],
     );
   });
 

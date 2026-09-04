@@ -120,6 +120,12 @@ interface ManifestDoc {
   };
   /** ISO date the document's text takes effect (SPEC §3 provenance). */
   effective_date?: string;
+  /** True when this entry carries a numeric figure that requires a date. */
+  carriesFigures?: boolean;
+  /** True when the source must be replaced or re-verified each fiscal year. */
+  annualChurn?: boolean;
+  /** Current fiscal year verified for an unchanged, older effective date. */
+  verifiedForFiscalYear?: number;
   /** Source-gated arithmetic made available to answer assembly (#263). */
   derivedFigures?: DerivedFigure[];
   /** Chunking overrides for documents with no artículo structure of their own. */

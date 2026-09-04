@@ -65,16 +65,20 @@ function answer(
 }
 
 describe("AnswerBlock", () => {
-  it("captions each streamed source with the date it was consulted (#135)", () => {
+  it("captions each streamed source with its effective and consultation dates", () => {
     render(
       <AnswerBlock
         message={answer("La tarifa es 13% [1].", [
-          { ...citation, fetchedAt: "2026-08-06T15:04:05Z" },
+          {
+            ...citation,
+            effectiveAt: "2026-01-01",
+            fetchedAt: "2026-08-06T15:04:05Z",
+          },
         ])}
       />,
     );
     expect(screen.getByRole("listitem").textContent).toBe(
-      "Reglamento IVA · Art. 11consultado el 6 ago 2026",
+      "Reglamento IVA · Art. 11vigente desde 1 ene 2026 · consultado el 6 ago 2026",
     );
   });
 

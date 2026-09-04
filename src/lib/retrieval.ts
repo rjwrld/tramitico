@@ -103,6 +103,8 @@ export interface SearchChunksRow {
   part: number;
   content: string;
   source: DocumentSource;
+  /** `documents.effective_date` — when the cited rule or figure took effect. */
+  effective_date: string | null;
   /** `documents.fetched_at` — when the corpus last pulled this document. */
   fetched_at: string | null;
   score: number;
@@ -148,12 +150,14 @@ export interface RetrievedChunk {
   part: number;
   content: string;
   source: DocumentSource;
+  /** ISO date the document's cited rule or figure took effect (#262). */
+  effectiveAt?: string | null;
   /**
    * ISO timestamp the corpus last fetched this document (`documents.
    * fetched_at`), null for a document ingested before the column was
    * stamped. It rides along to the citation chip, which prints it as
-   * "consultado el …" (#135) — the honest freshness signal we do have, as
-   * opposed to `effective_date`, which is unpopulated and post-launch (#121).
+   * "consultado el …" (#135), beside the document's effective date when one
+   * is declared (#262).
    */
   fetchedAt: string | null;
   /** RRF score; comparable across chunks of one query, not across queries. */
@@ -327,6 +331,9 @@ export function toCitation(chunk: RetrievedChunk): Citation {
     norma: chunk.norma,
     articulo: chunk.articulo,
     url: citationUrl(chunk.source, chunk.articulo),
+    ...(chunk.effectiveAt !== undefined
+      ? { effectiveAt: chunk.effectiveAt }
+      : {}),
     fetchedAt: chunk.fetchedAt,
   };
 }
@@ -342,6 +349,7 @@ function toChunk(row: SearchChunksRow): RetrievedChunk {
     part: row.part,
     content: row.content,
     source: row.source ?? {},
+    effectiveAt: row.effective_date ?? null,
     fetchedAt: row.fetched_at ?? null,
     score: row.score,
     vectorRank: row.vector_rank ?? null,

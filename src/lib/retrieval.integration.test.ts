@@ -91,6 +91,7 @@ describeDb("retrieval degraded fallback (integration)", () => {
           title: "Fixture de búsqueda degradada",
           norma: "Ley 0000",
           source: { kind: "unresolved" },
+          effective_date: "2026-01-01",
         },
         { onConflict: "doc_key" },
       )
@@ -134,6 +135,11 @@ describeDb("retrieval degraded fallback (integration)", () => {
     const mine = result.chunks.filter((c) => c.docKey === DOC_KEY);
     expect(mine).toHaveLength(1);
     expect(mine[0].content).toBe(CONTENT);
+    expect(mine[0].effectiveAt).toBe("2026-01-01");
+    expect(
+      result.citations.find((citation) => citation.docKey === DOC_KEY)
+        ?.effectiveAt,
+    ).toBe("2026-01-01");
     // Lexical-only, from the database's own side: the fixture ranked in the
     // lexical leg and in no vector leg at all.
     expect(mine[0].lexicalRank).not.toBeNull();
