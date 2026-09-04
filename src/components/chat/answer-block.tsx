@@ -41,6 +41,15 @@ import { prefersReducedMotion } from "@/lib/utils";
 export const DISCLAIMER =
   "No es asesoría legal ni contable — verifique con Hacienda.";
 
+/**
+ * The disclaimer under a routed decline (#264). The standard line says
+ * «verifique con Hacienda», which contradicts a decline that just sent the
+ * reader to the INS or their municipalidad; this one points at whatever the
+ * decline named.
+ */
+export const ROUTED_DISCLAIMER =
+  "No es asesoría legal ni contable — verifique con la institución indicada.";
+
 /** Lead-in of the routed decline's link row (#264): one link, or several. */
 export const ROUTED_LINKS_LABEL = "Fuente oficial:";
 export const ROUTED_LINKS_LABEL_PLURAL = "Fuentes oficiales:";
@@ -274,7 +283,9 @@ export function AnswerBlock({
         <RoutedLinks category={routed} />
       )}
       {revealDone && text !== "" && (
-        <p className="text-xs text-muted-foreground italic">{DISCLAIMER}</p>
+        <p className="text-xs text-muted-foreground italic">
+          {routed === null ? DISCLAIMER : ROUTED_DISCLAIMER}
+        </p>
       )}
       <AskStatus state={statusState} />
     </div>

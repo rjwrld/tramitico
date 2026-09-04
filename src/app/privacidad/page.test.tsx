@@ -45,6 +45,7 @@ describe("privacy page", () => {
     render(<PrivacyPage />);
     const text = document.body.textContent ?? "";
 
+    expect(text).toContain("Cuando no se encontró base oficial");
     expect(text).toContain("a qué institución se le remitió");
     expect(text).toContain("una categoría de una lista fija");
     // Every category in the table is named, so the list on the page is the

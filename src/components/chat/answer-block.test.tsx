@@ -10,6 +10,7 @@ import {
 import {
   AnswerBlock,
   DISCLAIMER,
+  ROUTED_DISCLAIMER,
   ROUTED_LINKS_LABEL,
   ROUTED_LINKS_LABEL_PLURAL,
 } from "@/components/chat/answer-block";
@@ -291,7 +292,12 @@ describe("AnswerBlock routed decline (#264)", () => {
     render(<AnswerBlock message={decline("ins")} />);
     // The decline's own «- INS: url» bullet is a list item; a sello is not.
     expect(document.querySelectorAll('[data-slot="sello"]')).toHaveLength(0);
-    expect(screen.getByText(DISCLAIMER)).not.toBeNull();
+  });
+
+  it("points the disclaimer at the institution it named, not at Hacienda", () => {
+    render(<AnswerBlock message={decline("ins")} />);
+    expect(screen.getByText(ROUTED_DISCLAIMER)).not.toBeNull();
+    expect(screen.queryByText(DISCLAIMER)).toBeNull();
   });
 
   it("renders no link row on an ordinary answer", () => {

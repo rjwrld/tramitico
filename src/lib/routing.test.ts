@@ -5,6 +5,7 @@ import {
   DECLINE_OPENING,
   declineAnswer,
   GENERAL_ROUTING,
+  MTSS_FACT,
   normaliseQuestion,
   ROUTING,
   ROUTING_CATEGORIES,
@@ -170,6 +171,21 @@ describe("declineAnswer", () => {
     );
     expect(text).not.toContain("hacienda.go.cr");
     expect(text).not.toContain("ccss.sa.cr");
+  });
+
+  it("states rule 5's fact on the MTSS decline, and only there", () => {
+    const text = declineAnswer("mtss");
+    expect(text).toContain(MTSS_FACT);
+    expect(text).toContain(
+      "- Ministerio de Trabajo y Seguridad Social (MTSS): https://www.mtss.go.cr",
+    );
+    // The fact precedes the link: what the law says, then where to go.
+    expect(text.indexOf(MTSS_FACT)).toBeLessThan(
+      text.indexOf("https://www.mtss.go.cr"),
+    );
+    for (const other of ROUTING_CATEGORIES.filter((c) => c !== "mtss")) {
+      expect(declineAnswer(other)).not.toContain("Código de Trabajo");
+    }
   });
 
   it("carries no apology and no markdown link syntax (DESIGN §9, ADR 0008)", () => {

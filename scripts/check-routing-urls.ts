@@ -10,14 +10,17 @@
  * "not 200 from a script" and "moved" are different things:
  *
  * - `ok` — answered 200.
- * - `warning` — reachable, but not for *this* client. A 403 from Cloudflare
- *   is the portal's WAF refusing a non-browser (migracion.go.cr on
- *   2026-09-04); a TLS chain missing its intermediate is a server
- *   misconfiguration every browser papers over by fetching the issuer
- *   itself (meic.go.cr, same day). Both are printed, neither fails the
- *   step: a reader's browser gets the page.
- * - `failure` — anything else: DNS gone, 404, 5xx, a timeout. That is what a
- *   moved or dead portal looks like, and it fails the re-crawl.
+ * - `warning` — reachable, but not for *this* client, and *known* to be so
+ *   for that portal (`KNOWN_WARNINGS`). A 403 from Cloudflare is the WAF
+ *   refusing a non-browser (migracion.go.cr on 2026-09-04); a TLS chain
+ *   missing its intermediate is a server misconfiguration every browser
+ *   papers over by fetching the issuer itself (meic.go.cr, same day). Both
+ *   are printed, neither fails the step: a reader's browser gets the page.
+ * - `failure` — anything else: DNS gone, 404, 5xx, a timeout — and either
+ *   of the two conditions above on a portal not listed for it, so a new WAF
+ *   policy or a chain regression elsewhere is not quietly waved through.
+ *   That is what a moved or dead portal looks like, and it fails the
+ *   re-crawl.
  *
  * `checkRoutingUrls` is the pure part (a `fetch` in, a report out) so the
  * unit lane can pin the verdicts without the network; the CLI at the bottom
@@ -52,6 +55,20 @@ export type Fetcher = (
 }>;
 
 const TIMEOUT_MS = 15_000;
+
+type KnownWarning = "cloudflare-403" | "incomplete-chain";
+
+/**
+ * The portals allowed to answer short of 200, and how. Adding an entry is a
+ * decision that the portal still serves readers — check it in a browser
+ * first — and removing one is what to do when it starts answering 200.
+ */
+export const KNOWN_WARNINGS: Partial<
+  Record<RoutingEntry["category"], KnownWarning>
+> = {
+  migracion: "cloudflare-403",
+  meic: "incomplete-chain",
+};
 
 /**
  * OpenSSL's codes for "the chain stops before a root I trust" — an
@@ -92,21 +109,28 @@ async function verdictFor(
     }
     const server = response.headers.get("server")?.toLowerCase() ?? "";
     if (response.status === 403 && server.includes("cloudflare")) {
-      return {
-        ...base,
-        outcome: "warning",
-        detail: "403 from Cloudflare — the WAF refuses non-browser clients",
-      };
+      const detail =
+        "403 from Cloudflare — the WAF refuses non-browser clients";
+      return KNOWN_WARNINGS[entry.category] === "cloudflare-403"
+        ? { ...base, outcome: "warning", detail }
+        : {
+            ...base,
+            outcome: "failure",
+            detail: `${detail} (not expected here)`,
+          };
     }
     return { ...base, outcome: "failure", detail: String(response.status) };
   } catch (error) {
     const code = errorCode(error);
     if (INCOMPLETE_CHAIN_CODES.has(code)) {
-      return {
-        ...base,
-        outcome: "warning",
-        detail: `${code} — the server sends an incomplete certificate chain`,
-      };
+      const detail = `${code} — the server sends an incomplete certificate chain`;
+      return KNOWN_WARNINGS[entry.category] === "incomplete-chain"
+        ? { ...base, outcome: "warning", detail }
+        : {
+            ...base,
+            outcome: "failure",
+            detail: `${detail} (not expected here)`,
+          };
     }
     return { ...base, outcome: "failure", detail: code };
   }

@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { ROUTING } from "../src/lib/routing";
+import { ROUTING, routingEntry } from "../src/lib/routing";
 import {
   checkRoutingUrls,
   formatReport,
+  KNOWN_WARNINGS,
   type Fetcher,
 } from "./check-routing-urls";
 
@@ -68,8 +69,9 @@ describe("checkRoutingUrls (#264)", () => {
     ]);
   });
 
-  it("warns, not fails, on a Cloudflare 403 — the WAF, not a moved portal", async () => {
-    const [blocked] = ROUTING;
+  it("warns, not fails, on a Cloudflare 403 from the portal known for it", async () => {
+    const blocked = routingEntry("migracion");
+    expect(KNOWN_WARNINGS.migracion).toBe("cloudflare-403");
     const report = await checkRoutingUrls(
       fetcherFrom({
         ...ALL_OK,
@@ -77,8 +79,21 @@ describe("checkRoutingUrls (#264)", () => {
       }),
     );
     expect(report.failures).toEqual([]);
-    expect(report.warnings.map((v) => v.category)).toEqual([blocked.category]);
+    expect(report.warnings.map((v) => v.category)).toEqual(["migracion"]);
     expect(report.warnings[0].detail).toContain("Cloudflare");
+  });
+
+  it("fails a Cloudflare 403 on any other portal — a new WAF policy is news", async () => {
+    const other = routingEntry("hacienda");
+    const report = await checkRoutingUrls(
+      fetcherFrom({
+        ...ALL_OK,
+        [other.url]: { status: 403, server: "cloudflare" },
+      }),
+    );
+    expect(report.warnings).toEqual([]);
+    expect(report.failures.map((v) => v.category)).toEqual(["hacienda"]);
+    expect(report.failures[0].detail).toContain("not expected here");
   });
 
   it("still fails a 403 that is not Cloudflare's", async () => {
@@ -94,8 +109,9 @@ describe("checkRoutingUrls (#264)", () => {
     ]);
   });
 
-  it("warns, not fails, on an incomplete certificate chain", async () => {
-    const [chain] = ROUTING;
+  it("warns, not fails, on an incomplete certificate chain from the portal known for it", async () => {
+    const chain = routingEntry("meic");
+    expect(KNOWN_WARNINGS.meic).toBe("incomplete-chain");
     const report = await checkRoutingUrls(
       fetcherFrom({
         ...ALL_OK,
@@ -105,9 +121,24 @@ describe("checkRoutingUrls (#264)", () => {
       }),
     );
     expect(report.failures).toEqual([]);
+    expect(report.warnings.map((v) => v.category)).toEqual(["meic"]);
     expect(report.warnings[0].detail).toContain(
       "UNABLE_TO_VERIFY_LEAF_SIGNATURE",
     );
+  });
+
+  it("fails an incomplete chain on any other portal — a regression, not a known quirk", async () => {
+    const other = routingEntry("ccss");
+    const report = await checkRoutingUrls(
+      fetcherFrom({
+        ...ALL_OK,
+        [other.url]: {
+          throws: { cause: { code: "UNABLE_TO_VERIFY_LEAF_SIGNATURE" } },
+        },
+      }),
+    );
+    expect(report.warnings).toEqual([]);
+    expect(report.failures.map((v) => v.category)).toEqual(["ccss"]);
   });
 
   it("fails every other TLS error — an expired certificate is a dead door", async () => {
@@ -138,16 +169,16 @@ describe("checkRoutingUrls (#264)", () => {
       fetcherFrom({
         ...ALL_OK,
         [first.url]: 503,
-        [second.url]: { status: 403, server: "cloudflare" },
+        [routingEntry("migracion").url]: { status: 403, server: "cloudflare" },
       }),
     );
     const lines = formatReport(report).split("\n");
     expect(lines).toHaveLength(ROUTING.length);
     expect(lines[0]).toMatch(new RegExp(`^FAIL ${first.category}.*→ 503$`));
-    expect(lines[1]).toMatch(
-      new RegExp(`^WARN ${second.category}.*Cloudflare`),
+    expect(lines.find((l) => l.includes("migracion"))).toMatch(
+      /^WARN migracion.*Cloudflare/,
     );
-    expect(lines[2]).toMatch(/^ok {3}/);
-    expect(lines[2]).not.toContain("→");
+    expect(lines[1]).toMatch(new RegExp(`^ok {3}${second.category}`));
+    expect(lines[1]).not.toContain("→");
   });
 });

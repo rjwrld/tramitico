@@ -374,6 +374,18 @@ export const SCOPE_PHRASE =
   "Hacienda y la CCSS para personas físicas que trabajan por cuenta propia";
 
 /**
+ * Rule 5 of the answer prompt, as the deterministic decline states it: the
+ * one encoded fact the product carries (#254 Q4). The model path says it
+ * from the prompt; the weak-retrieval path has no model, so the `mtss`
+ * decline says it here. Same fact, no citation — it is a limit of the law,
+ * not of this assistant.
+ */
+export const MTSS_FACT =
+  "El Código de Trabajo en general no aplica a quienes trabajan por cuenta " +
+  "propia: los derechos laborales del MTSS (aguinaldo, cesantía, vacaciones, " +
+  "jornada) son de las personas asalariadas.";
+
+/**
  * The deterministic decline for a routing category: what happened, then
  * where to go (DESIGN §9 — no apologies). Streamed verbatim by the route
  * without a model call, so it can carry no citation and cannot guess.
@@ -382,7 +394,7 @@ export const SCOPE_PHRASE =
  * - `general` — the pre-#264 text, both institutions listed.
  * - `hacienda` / `ccss` — in scope, no basis found: the one institution.
  * - anything else — out of scope: says so, names the scope, links the
- *   institution.
+ *   institution. `mtss` adds rule 5's fact ahead of the link.
  */
 export function declineAnswer(category: RoutedCategory): string {
   const entries = routingEntriesFor(category);
@@ -402,10 +414,12 @@ export function declineAnswer(category: RoutedCategory): string {
     );
   }
   const { institution } = entries[0];
+  const fact = category === "mtss" ? `${MTSS_FACT}\n\n` : "";
   return (
     `${DECLINE_OPENING}\n\n` +
     `Por el tema, la pregunta parece corresponder a ${institution}, ` +
     `que está fuera de lo que cubro: ${SCOPE_PHRASE}.\n\n` +
+    fact +
     `Puede consultar directamente la fuente oficial:\n\n${links}`
   );
 }

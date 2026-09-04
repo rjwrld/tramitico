@@ -69,7 +69,7 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           printf '%s\n\n%s\n\n%s\n' \
-            'The scheduled corpus re-crawl failed — either `pnpm check:routing` (a routing-table URL in `src/lib/routing.ts` no longer answers 200, so the honest decline links a dead page) or `pnpm ingest` (the corpus keeps its previous version of whatever did not ingest, so answers keep citing stale text). The run log says which.' \
+            'The scheduled corpus re-crawl failed; the run log names the step. If it was `pnpm check:routing`, a routing-table URL in `src/lib/routing.ts` no longer serves its front door and the honest decline links a dead page. If it was `pnpm ingest`, the corpus keeps its previous version of whatever did not ingest, so answers keep citing stale text. An earlier step (install, poppler, the embedding-provider guard) means nothing ran at all.' \
             'Contract: [SPEC §3](../blob/main/SPEC.md) (quarterly re-crawl) · [ADR 0010](../blob/main/docs/adr/0010-cli-ingestion-authoritative.md).' \
             "Run log: $RUN_URL" > body.md
           # needs-triage, not build: this is an operational failure a human
