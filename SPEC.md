@@ -234,7 +234,7 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   system-calculated block. The model may quote that block, but prompt rule 3 remains unchanged:
   the model never performs, estimates or updates arithmetic itself. Results use Costa Rican
   formatting (`¢`, dot thousands, comma decimals), and their markers produce the same source
-  sellos and persisted citations as ordinary supported prose — **[ADR 0015](docs/adr/0018-derived-figures-by-code.md)**.
+  sellos and persisted citations as ordinary supported prose — **[ADR 0018](docs/adr/0018-derived-figures-by-code.md)**.
 - **Citations:** every answer renders the chunks used as `Documento · Artículo` chips linking to
   the official source URL, each captioned with the date the corpus fetched that document
   (_consultado el …_, #135). Groundedness is visible, not claimed — and so is how current it is.
