@@ -13,6 +13,7 @@
  */
 import type { RetrievedChunk } from "../retrieval";
 import { declineAnswer, ROUTING, routingEntry } from "../routing";
+import type { ResolvedDerivedFigure } from "./derived";
 
 export const HACIENDA_URL = routingEntry("hacienda").url;
 export const CCSS_URL = routingEntry("ccss").url;
@@ -79,13 +80,47 @@ export const CITATION_RETRY_NOTE =
   "responder la pregunta cumpliendo esa regla. Si los documentos no " +
   "respaldan una respuesta, aplique la regla 6.";
 
+function joinSpanish(items: readonly string[]): string {
+  if (items.length < 2) return items[0] ?? "";
+  return `${items.slice(0, -1).join(", ")} y ${items.at(-1)}`;
+}
+
+/** A clearly non-official block whose markers point only to its official inputs. */
+export function formatDerivedFigures(
+  figures: readonly ResolvedDerivedFigure[],
+): string {
+  const markers = [
+    ...new Set(figures.flatMap((figure) => figure.citationMarkers)),
+  ].map((marker) => `[${marker}]`);
+  const lines = figures.map((figure) => {
+    const citations = figure.citationMarkers
+      .map((marker) => `[${marker}]`)
+      .join("");
+    return `- ${figure.label}: ${figure.formattedValue} (${figure.formattedFormula}) ${citations}`;
+  });
+  return (
+    `Cifras derivadas (calculadas por el sistema a partir de ${joinSpanish(markers)}):\n` +
+    "Puede citar estos resultados tal como aparecen; no los recalcule ni los actualice.\n" +
+    lines.join("\n")
+  );
+}
+
 export function buildUserPrompt(
   question: string,
   chunks: readonly RetrievedChunk[],
-  { citationRetry = false }: { citationRetry?: boolean } = {},
+  {
+    citationRetry = false,
+    derivedFigures = [],
+  }: {
+    citationRetry?: boolean;
+    derivedFigures?: readonly ResolvedDerivedFigure[];
+  } = {},
 ): string {
-  const base =
+  let base =
     `Pregunta:\n${question}\n\n` +
     `Documentos oficiales (cite por número):\n\n${formatChunks(chunks)}`;
+  if (derivedFigures.length > 0) {
+    base += `\n\n${formatDerivedFigures(derivedFigures)}`;
+  }
   return citationRetry ? `${base}\n\n${CITATION_RETRY_NOTE}` : base;
 }

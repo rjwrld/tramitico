@@ -37,6 +37,7 @@ import {
   ingestDocument,
 } from "../src/lib/ingestion/ingest-document";
 import { createEmbedder } from "../src/lib/ingestion/embedder";
+import type { DerivedFigure } from "../src/lib/answer/derived";
 import {
   type ExcerptSpec,
   excerptSlices,
@@ -119,6 +120,8 @@ interface ManifestDoc {
   };
   /** ISO date the document's text takes effect (SPEC §3 provenance). */
   effective_date?: string;
+  /** Source-gated arithmetic made available to answer assembly (#263). */
+  derivedFigures?: DerivedFigure[];
   /** Chunking overrides for documents with no artículo structure of their own. */
   chunking?: ChunkOptions;
   /**

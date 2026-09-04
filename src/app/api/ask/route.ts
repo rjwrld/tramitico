@@ -121,6 +121,11 @@ import {
   validateCitations,
 } from "@/lib/answer/invariant";
 import { condenseQuestion } from "@/lib/answer/condense";
+import {
+  incompletelyCitedDerivedFigures,
+  resolveDerivedFigures,
+  type ResolvedDerivedFigure,
+} from "@/lib/answer/derived";
 import { startAskDeadline } from "@/lib/answer/deadline";
 import { getAnswerModel } from "@/lib/answer/model";
 import { describeError } from "@/lib/log-redaction";
@@ -473,6 +478,7 @@ async function streamHonestDecline(
 async function generateAnswer(
   question: string,
   chunks: readonly RetrievedChunk[],
+  derivedFigures: readonly ResolvedDerivedFigure[],
   signal: AbortSignal,
   attempt: number,
 ): Promise<string> {
@@ -485,7 +491,10 @@ async function generateAnswer(
   const result = streamText({
     model: getAnswerModel(),
     system: ANSWER_SYSTEM_PROMPT,
-    prompt: buildUserPrompt(question, chunks, { citationRetry: attempt > 1 }),
+    prompt: buildUserPrompt(question, chunks, {
+      citationRetry: attempt > 1,
+      derivedFigures,
+    }),
     abortSignal: signal,
     onError: ({ error }) => {
       failure ??= error;
@@ -706,6 +715,7 @@ export async function POST(request: Request): Promise<Response> {
     // Rerank is still "buscando" — the stage flips only when the model does.
     const chunks = await rerankChunks(asked.query, retrieval.chunks);
     if (cutShort()) return;
+    const derivedFigures = resolveDerivedFigures(chunks);
     writeStatus(writer, "redactando");
 
     // The client's signal and our deadline, composed: either one cancels
@@ -727,6 +737,7 @@ export async function POST(request: Request): Promise<Response> {
         text = await generateAnswer(
           asked.query,
           chunks,
+          derivedFigures,
           generationSignal,
           attempt,
         );
@@ -755,15 +766,25 @@ export async function POST(request: Request): Promise<Response> {
       // that holds the label on screen long enough to be legible.
       writeStatus(writer, "verificando");
       const verdict = validateCitations(text, chunks.length);
-      if (verdict.ok) {
+      const incompleteDerived = verdict.ok
+        ? incompletelyCitedDerivedFigures(text, derivedFigures)
+        : [];
+      if (verdict.ok && incompleteDerived.length === 0) {
         answer = text;
         break;
       }
-      recordCitationFailure({
-        violation: verdict.violation,
-        attempt,
-        unresolved: verdict.unresolved,
-      });
+      if (verdict.ok) {
+        recordCitationFailure({
+          violation: "incomplete_derived_markers",
+          attempt,
+        });
+      } else {
+        recordCitationFailure({
+          violation: verdict.violation,
+          attempt,
+          unresolved: verdict.unresolved,
+        });
+      }
       telemetry.citationFailure();
     }
 

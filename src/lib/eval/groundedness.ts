@@ -11,7 +11,8 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { generateText, type LanguageModel } from "ai";
 import type { RetrievedChunk } from "../retrieval";
-import { formatChunks } from "../answer/prompt";
+import type { ResolvedDerivedFigure } from "../answer/derived";
+import { formatChunks, formatDerivedFigures } from "../answer/prompt";
 
 /**
  * Blocking gate: ≥90% of eval cases must pass the judge (starting threshold
@@ -43,12 +44,12 @@ export interface JudgeVerdict {
   reason: string;
 }
 
-export const JUDGE_SYSTEM_PROMPT = `You are a strict groundedness judge for a Costa Rican tax/trámite assistant. You are given a user question, the numbered official fragments the assistant was allowed to use, and the assistant's answer (in Spanish).
+export const JUDGE_SYSTEM_PROMPT = `You are a strict groundedness judge for a Costa Rican tax/trámite assistant. You are given a user question, the numbered official fragments and any system-calculated figures the assistant was allowed to use, and the assistant's answer (in Spanish).
 
 Decide only one thing: is every factual claim in the answer supported by the provided fragments?
 
 Rules:
-- Every fact, figure, monto, porcentaje, tramo, plazo, or legal requirement stated in the answer must appear in the fragments. Paraphrase is fine; invention, extrapolation, or arithmetic the fragments don't contain is not.
+- Every fact, figure, monto, porcentaje, tramo, plazo, or legal requirement stated in the answer must appear in the fragments or in the system-calculated figures. Paraphrase is fine; invention, extrapolation, or arithmetic not present in that material is not.
 - Citation markers like [n] must reference provided fragment numbers, and the cited fragment must actually support the adjacent claim.
 - An answer that honestly declines — saying it finds no official basis and referring the user to Hacienda or the CCSS — is grounded: it makes no unsupported claims.
 - The stock statement that the Código de Trabajo generally does not apply to independent workers is an encoded product fact and does not require fragment support.
@@ -62,10 +63,15 @@ export function buildJudgePrompt(
   question: string,
   chunks: readonly RetrievedChunk[],
   answer: string,
+  derivedFigures: readonly ResolvedDerivedFigure[] = [],
 ): string {
+  const derived =
+    derivedFigures.length === 0
+      ? ""
+      : `\n\n${formatDerivedFigures(derivedFigures)}`;
   return (
     `Pregunta:\n${question}\n\n` +
-    `Fragmentos oficiales provistos:\n\n${formatChunks(chunks)}\n\n` +
+    `Fragmentos oficiales provistos:\n\n${formatChunks(chunks)}${derived}\n\n` +
     `Respuesta del asistente:\n${answer}`
   );
 }
@@ -116,13 +122,19 @@ export type JudgeOnce = (
   question: string,
   chunks: readonly RetrievedChunk[],
   answer: string,
+  derivedFigures?: readonly ResolvedDerivedFigure[],
 ) => Promise<JudgeVerdict>;
 
-const realJudgeOnce: JudgeOnce = async (question, chunks, answer) => {
+const realJudgeOnce: JudgeOnce = async (
+  question,
+  chunks,
+  answer,
+  derivedFigures = [],
+) => {
   const { text } = await generateText({
     model: getJudgeModel(),
     system: JUDGE_SYSTEM_PROMPT,
-    prompt: buildJudgePrompt(question, chunks, answer),
+    prompt: buildJudgePrompt(question, chunks, answer, derivedFigures),
     temperature: JUDGE_TEMPERATURE,
   });
   return parseJudgeVerdict(text);
@@ -140,13 +152,14 @@ export async function judgeAnswer(
   chunks: readonly RetrievedChunk[],
   answer: string,
   judgeOnce: JudgeOnce = realJudgeOnce,
+  derivedFigures: readonly ResolvedDerivedFigure[] = [],
 ): Promise<{ verdict: Verdict; verdicts: Verdict[]; reason: string }> {
-  const first = await judgeOnce(question, chunks, answer);
+  const first = await judgeOnce(question, chunks, answer, derivedFigures);
   const verdicts: Verdict[] = [first.verdict];
   let reason = first.reason;
   if (first.verdict === "fail") {
     for (let i = 0; i < REJUDGE_COUNT; i++) {
-      const again = await judgeOnce(question, chunks, answer);
+      const again = await judgeOnce(question, chunks, answer, derivedFigures);
       verdicts.push(again.verdict);
       if (again.verdict === "fail") reason = again.reason;
     }

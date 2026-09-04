@@ -81,6 +81,7 @@ describe("the citation-validation-failure counter (#131 req. 3)", () => {
     expect(citationFailures()).toEqual({
       no_markers: 0,
       unresolved_markers: 0,
+      incomplete_derived_markers: 0,
     });
   });
 
@@ -93,6 +94,7 @@ describe("the citation-validation-failure counter (#131 req. 3)", () => {
     expect(citationFailures()).toEqual({
       no_markers: 2,
       unresolved_markers: 1,
+      incomplete_derived_markers: 0,
     });
   });
 

@@ -227,6 +227,14 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   answers to retrieved chunks; when retrieval is empty/weak, the answer says so and links the
   agency the question belongs to instead of guessing (routed by institution since #264, §8).
   MTSS questions get the encoded fact: the Labor Code mostly does not apply to independents.
+- **Derived figures (#263):** a manifest entry may declare a formula over named, numeric inputs,
+  with the `docKey` and artículo that state each input. After rerank and before answer assembly,
+  code evaluates a figure only when every declared input is among the final retrieved chunks and
+  appends the result, formula and those chunks' existing `[n]` markers in a clearly labelled
+  system-calculated block. The model may quote that block, but prompt rule 3 remains unchanged:
+  the model never performs, estimates or updates arithmetic itself. Results use Costa Rican
+  formatting (`¢`, dot thousands, comma decimals), and their markers produce the same source
+  sellos and persisted citations as ordinary supported prose — **[ADR 0015](docs/adr/0018-derived-figures-by-code.md)**.
 - **Citations:** every answer renders the chunks used as `Documento · Artículo` chips linking to
   the official source URL, each captioned with the date the corpus fetched that document
   (_consultado el …_, #135). Groundedness is visible, not claimed — and so is how current it is.

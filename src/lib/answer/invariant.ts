@@ -9,11 +9,12 @@
  * a marker no seal backs, which turns a hallucinated source into a bare
  * uncited claim rather than a visible defect.
  *
- * This module is the check that makes the contract real at runtime. It is
- * deliberately narrow: presence and resolvability of markers, nothing about
- * whether the cited chunk actually supports the claim. Per-claim support stays
- * an eval-time concern (`src/lib/eval/`) — it needs a judge model, which this
- * cannot afford on the request path.
+ * This module is the base check that makes the contract real at runtime:
+ * presence and resolvability of markers. Per-claim support normally stays an
+ * eval-time concern (`src/lib/eval/`) because it needs a judge model. The one
+ * deterministic exception is a derived figure: answer assembly knows its
+ * exact input markers and separately refuses to publish the quoted result when
+ * one is absent.
  */
 import { citationMarkers } from "./citations";
 
@@ -24,8 +25,11 @@ import { citationMarkers } from "./citations";
  *   answer whose only markers are all dangling: it cites nothing *real*.
  * - `unresolved_markers` — at least one usable citation, but also a marker
  *   pointing outside the retrieval set.
+ * - `incomplete_derived_markers` — a system-calculated figure was quoted
+ *   without every marker for the inputs used to calculate it.
  */
-export type CitationViolation = "no_markers" | "unresolved_markers";
+export type CitationViolation =
+  "no_markers" | "unresolved_markers" | "incomplete_derived_markers";
 
 export type CitationVerdict =
   | { ok: true }
@@ -80,6 +84,7 @@ export type CitationFailureCounts = Record<CitationViolation, number>;
 const counts: CitationFailureCounts = {
   no_markers: 0,
   unresolved_markers: 0,
+  incomplete_derived_markers: 0,
 };
 
 /** Snapshot of the tally. A copy — callers cannot write through it. */
@@ -91,6 +96,7 @@ export function citationFailures(): CitationFailureCounts {
 export function resetCitationFailures(): void {
   counts.no_markers = 0;
   counts.unresolved_markers = 0;
+  counts.incomplete_derived_markers = 0;
 }
 
 export interface CitationFailure {

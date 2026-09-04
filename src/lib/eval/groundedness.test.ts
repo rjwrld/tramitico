@@ -6,6 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
+import type { ResolvedDerivedFigure } from "../answer/derived";
 import {
   buildJudgePrompt,
   GROUNDEDNESS_GATE,
@@ -32,6 +33,18 @@ const chunk = (over: Partial<RetrievedChunk> = {}): RetrievedChunk => ({
   lexicalRank: null,
   ...over,
 });
+
+const derivedFigure: ResolvedDerivedFigure = {
+  id: "bmc-ivm-2026",
+  label: "Base mínima contributiva de IVM 2026",
+  formula: "factor * salary",
+  decimals: 0,
+  inputs: [],
+  value: 324_590,
+  formattedValue: "¢324.590",
+  formattedFormula: "0,87 × ¢373.092,30",
+  citationMarkers: [1, 2],
+};
 
 describe("parseJudgeVerdict", () => {
   it("parses a bare JSON verdict", () => {
@@ -102,6 +115,19 @@ describe("buildJudgePrompt", () => {
     expect(prompt).toContain("[1] Ley del IVA — Artículo 8 (Ley 6826)");
     expect(prompt).toContain("Los servicios exportados");
     expect(prompt).toContain("No, la exportación de servicios no está sujeta");
+  });
+
+  it("includes the system-calculated evidence the answer model saw", () => {
+    const prompt = buildJudgePrompt(
+      "¿Cuánto pago?",
+      [chunk(), chunk()],
+      "La base es ¢324.590 [1][2].",
+      [derivedFigure],
+    );
+
+    expect(prompt).toContain("Cifras derivadas");
+    expect(prompt).toContain("¢324.590");
+    expect(prompt).toContain("[1][2]");
   });
 });
 
