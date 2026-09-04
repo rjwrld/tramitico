@@ -159,7 +159,7 @@ describe("parseDataset coverage contract (#261)", () => {
     );
   });
 
-  it("lets an abstention case carry no expected target, and requires abstainIf", () => {
+  it("lets an abstention case carry no expected target, and requires abstainIf and routeTo", () => {
     const [only] = parseDataset(line(ABSTAIN));
     expect(only.expected).toEqual([]);
     expect(only.blocking).toBe(false);
@@ -167,6 +167,10 @@ describe("parseDataset coverage contract (#261)", () => {
     expect(() =>
       parseDataset(line({ ...ABSTAIN, abstainIf: undefined })),
     ).toThrow(/abstainIf/);
+    // Both halves of the verdict: declining into a dead end is still a fail.
+    expect(() =>
+      parseDataset(line({ ...ABSTAIN, routeTo: undefined })),
+    ).toThrow(/routeTo/);
     expect(() =>
       parseDataset(line({ ...ABSTAIN, expected: CASE.expected })),
     ).toThrow(/no expected targets/);

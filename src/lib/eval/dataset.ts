@@ -324,8 +324,16 @@ export function parseDataset(jsonl: string): EvalCase[] {
         throw new Error(`${where}: a tier 1 case is always blocking`);
       }
     }
-    if (tier === "abstain" && abstainIf === undefined) {
-      throw new Error(`${where}: an abstention case needs abstainIf`);
+    if (tier === "abstain") {
+      if (abstainIf === undefined) {
+        throw new Error(`${where}: an abstention case needs abstainIf`);
+      }
+      // Both halves, because the verdict has both: an abstention passes only
+      // when it declined *and* routed, and without a named destination the
+      // judge has nothing to check the routing against.
+      if (routeTo === undefined) {
+        throw new Error(`${where}: an abstention case needs routeTo`);
+      }
     }
 
     cases.push({

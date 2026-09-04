@@ -248,7 +248,9 @@ case also carries its place in the coverage contract of the #254 map:
 - `abstainIf` — the condition that obliges a decline. **Required on an
   abstention case**, where it is what the abstention judge checks; optional
   elsewhere, where it documents the edge the case does not cover.
-- `routeTo` — the institution or professional an abstention must name.
+- `routeTo` — the institution or professional an abstention must name. Also
+  **required on an abstention case**: the verdict has two halves, and without a
+  named destination there is nothing to check the routing against.
 - `freshness` — docKeys whose figures the answer depends on: the ones a decree
   cycle invalidates.
 
