@@ -29,7 +29,10 @@ jobs:
       # --prod is gated: build-time tooling is not attacker-reachable at
       # runtime, and moderate/low findings are accepted risk recorded on #121 —
       # an acceptance that expires 2026-11-12, when this level gets revisited.
-      - run: pnpm audit --prod --audit-level=high
+      # Registry availability is not a property of this commit. pnpm's
+      # purpose-built CI flag keeps registry errors non-blocking while a
+      # completed audit still fails on high/critical advisories.
+      - run: pnpm audit --prod --audit-level=high --ignore-registry-errors
       - run: pnpm lint
       - run: pnpm typecheck
       # Unit tests only — no database, no API keys, nothing to skip (#129).
