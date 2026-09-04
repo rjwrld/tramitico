@@ -158,6 +158,7 @@ describe("docShortName covers the manifest", () => {
       "ccss-escala-ivm": "CCSS Escala IVM",
       "ccss-escala-salud": "CCSS Escala Salud",
       "ccss-faq": "CCSS FAQ",
+      "ccss-prescripcion": "CCSS Prescripción",
       "ccss-reglamento-ti": "CCSS Reglamento TI",
       cnpt: "CNPT",
       "salario-base-2026": "Salario Base 2026",
@@ -166,7 +167,7 @@ describe("docShortName covers the manifest", () => {
       "reglamento-comprobantes": "Reglamento Comprobantes",
       "disposiciones-v44": "Disposiciones v4.4",
       "tribu-cr-faq": "TRIBU CR FAQ",
-      "tribu-cr-guia": "TRIBU CR Guía",
+      "tribu-cr-res-0011-2025": "TRIBU CR Res. 0011 2025",
       "cabys-dev": "CABYS Dev",
     });
   });

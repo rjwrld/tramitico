@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-04T06:50:02.633Z",
-  "chunkCount": 834,
+  "generatedAt": "2026-09-04T17:02:10.282Z",
+  "chunkCount": 871,
   "entries": [
     {
       "docKey": "cabys-dev",
@@ -629,6 +629,181 @@
       "docKey": "ccss-faq",
       "articulo": "Si soy extranjero, ¿puedo formalizar un acuerdo de pago con mi cédula de residencia vencida?",
       "path": ["Cobros"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿A partir de que fecha empieza a regir la Ley 10363?",
+      "path": ["Preguntas frecuentes"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Al presentar la solicitud de prescripción en sede administrativa, mi condición con la CCSS queda “al día”?",
+      "path": ["Preguntas frecuentes"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Al tener un proceso de cobro judicial ya presentado, la prescripción se debe solicitar a nivel administrativo o a nivel judicial?",
+      "path": ["Preguntas frecuentes"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Cómo se solicita la prescripción?",
+      "path": ["Guía"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Cuál es el plazo de prescripción de las deudas pendientes por un Trabajador Independiente?",
+      "path": ["Preguntas frecuentes"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Cuáles conceptos quedan excluidos de la prescripción en sede administrativa?",
+      "path": ["Preguntas frecuentes"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Cuáles son los actos que interrumpen el proceso de prescripción en sede administrativa?",
+      "path": ["Preguntas frecuentes"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Cuáles son los conceptos que estando pendientes de pago le aplica la prescripción en sede administrativa?",
+      "path": ["Preguntas frecuentes"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Cuáles son los plazos de la prescripción conforme la Ley?",
+      "path": ["Guía"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Cuáles son los requisitos para presentar una solicitud de prescripción en sede administrativa?",
+      "path": ["Preguntas frecuentes"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Cuántas veces puede un deudor solicitar la prescripción en sede administrativa?",
+      "path": ["Preguntas frecuentes"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Dónde presento la solicitud?",
+      "path": ["Guía"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Dónde se pueden atender sus dudas?",
+      "path": ["Guía"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿El proceso de prescripción en sede administrativa se aplica de forma automática?",
+      "path": ["Preguntas frecuentes"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿En qué momento puedo solicitar la prescripción de las deudas?",
+      "path": ["Guía"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Existe fecha límite para presentar la (s) solicitud (es) de prescripción en sede administrativa?",
+      "path": ["Preguntas frecuentes"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Existe un medio para las consultas?",
+      "path": ["Preguntas frecuentes"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿La prescripción aplica para patronos y asegurados voluntarios?",
+      "path": ["Preguntas frecuentes"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Puedo pedir la prescripción para una persona fallecida?",
+      "path": ["Preguntas frecuentes"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Se puede hacer arreglo de pago después de la prescripción?",
+      "path": ["Preguntas frecuentes"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Si me notifican un cierre de negocios, pero presenté la solicitud de prescripción, el proceso de cierre continua o se suspende?",
+      "path": ["Preguntas frecuentes"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Si se tiene un convenio de pago formalizado, ¿Puedo presentar la solicitud de prescripción?",
+      "path": ["Preguntas frecuentes"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Sí tengo un acuerdo de pago puedo solicitar la prescripción?",
+      "path": ["Preguntas frecuentes"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración?",
+      "path": ["Preguntas frecuentes"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-prescripcion",
+      "articulo": "Estoy moroso y presento una solicitud de prescripción, sin embargo, requiero recibir atención médica como trabajador independiente o la de algún beneficiario del seguro, ¿Me cobran los servicios médicos?",
+      "path": ["Preguntas frecuentes"],
       "chunks": 1,
       "parts": 1
     },
@@ -6368,8 +6543,85 @@
       "parts": 1
     },
     {
-      "docKey": "tribu-cr-guia",
-      "articulo": null,
+      "docKey": "tribu-cr-res-0011-2025",
+      "articulo": "Artículo 1",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0011-2025",
+      "articulo": "Artículo 2",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0011-2025",
+      "articulo": "Artículo 3",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0011-2025",
+      "articulo": "Artículo 4",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0011-2025",
+      "articulo": "Artículo 5",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0011-2025",
+      "articulo": "Artículo 6",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0011-2025",
+      "articulo": "Artículo 7",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0011-2025",
+      "articulo": "Artículo 8",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0011-2025",
+      "articulo": "Preámbulo",
+      "path": [],
+      "chunks": 2,
+      "parts": 2
+    },
+    {
+      "docKey": "tribu-cr-res-0011-2025",
+      "articulo": "Transitorio II",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0011-2025",
+      "articulo": "Transitorio III",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0011-2025",
+      "articulo": "Transitorio IV",
       "path": [],
       "chunks": 1,
       "parts": 1

@@ -3,12 +3,14 @@
   "retiredDocKeys": [
     "ley-9635",
     "reglamento-titulo-iv-9635",
-    "dgt-export-servicios"
+    "dgt-export-servicios",
+    "tribu-cr-guia"
   ],
   "retirementNotes": {
     "ley-9635": "Retired by #268 after consolidated Ley 7092 replaced its incomplete renta excerpt and Ley IVA duplication.",
     "reglamento-titulo-iv-9635": "Retired by #256: this is the Regla Fiscal regulation for non-financial public-sector spending, not renta; 0/47 audited chunks mentioned impuesto sobre la renta/utilidades and 27/47 said regla fiscal. No eval target referenced it.",
-    "dgt-export-servicios": "Retired by #256: MH-DGT-RES-0017-2023 enumerates port and vessel-attention services tied to goods exports, not professional-service exports. #111 had already removed it as an eval target."
+    "dgt-export-servicios": "Retired by #256: MH-DGT-RES-0017-2023 enumerates port and vessel-attention services tied to goods exports, not professional-service exports. #111 had already removed it as an eval target.",
+    "tribu-cr-guia": "Retired by #260: press release CP-39-2025 announced a 2025-08-04 launch that did not occur. The vigente SINALEVI text of MH-DGT-RES-0011-2025 now owns the rollout rules and the 2025-10-06 effective date."
   },
   "documents": [
     {
@@ -179,6 +181,18 @@
         "deepLink": "none"
       },
       "notes": "Official procedural FAQ. The source-specific extractor keeps one question/modal pair per chunk and only the categories Cobros, Seguro voluntario and Trabajador Independiente; the live crawl audited 2026-09-03 contains 86 matching rows (39 + 23 + 24). The fetch uses a browser User-Agent and ingestion fails before replacing rows if fewer than 25 relevant questions remain; each re-crawl logs the change from the cached count. IMAGE ANSWERS: the contribution-rate answer includes assets/img/faq/av_tv_2026.png, and payment dates by first surname letter include assets/images/faq/fechas_aseg_vol.jpg. Their image URLs are preserved in the chunks, but current rate figures continue to come from ccss-escala-salud and ccss-escala-ivm, not the FAQ image. Deep link none (#134): the page's modal ids are UI targets, not durable URL anchors."
+    },
+    {
+      "doc_key": "ccss-prescripcion",
+      "title": "CCSS — Prescripción de deudas de trabajadores independientes",
+      "norma": null,
+      "source": {
+        "kind": "html",
+        "extractor": "ccss-prescripcion-headings",
+        "url": "https://www.ccss.sa.cr/web/prescripcion/",
+        "deepLink": "none"
+      },
+      "notes": "Official CCSS procedure microsite, verified 2026-09-04. The heading extractor keeps the explanatory guide and each accordion FAQ as separate citable chunks, merging the duplicate responsive rendering of «¿Cómo se solicita la prescripción?». It covers the 4/10-year rule, the exceptional 24-month period from the law's 2023-05-08 effective date, the note and required data for Inspección, the cobros@ccss.sa.cr route, and the 20-business-day decision period for debts in collection. Deep link none (#260): the tabs and accordions use UI-only fragment targets rather than durable document anchors."
     },
     {
       "doc_key": "ccss-reglamento-ti",
@@ -379,15 +393,16 @@
       "notes": "Official procedural FAQ for the current TRIBU-CR/OVi flows. Pages 1–8 are the index and are excluded; pages 9–43 contain the answers. Questions are chunked individually under their section; the broad printed heading «Declaraciones y Pagos» is given the specific corpus identity «Declaraciones del RUT», including questions 31–47 for desinscripción. Hacienda publishes this PDF without a printed date and may replace it at the same URL: SHA-256 audited 2026-09-03 is 422dce862c0676cd63dd181db227f04dd4cb33f2364ca59da5b95124e0b1daf9; ingestion logs a warning when the fetched bytes differ. Deep link page (#134): chips land on page 9, the first ingested page; the source has no stable per-question anchors. The PDF metadata says it was created 2025-10-05, and the body describes the 2025 TRIBU-CR rollout. IMAGE AUDIT (#150): 35 substantial images are the decorative full-page background, repeated once on every ingested page. The remaining substantial image, p29-obj404-0, is an OVi alert screenshot whose substance is repeated in the surrounding selectable answer (annual RUT update required; click «Aceptar» to enter the form). Repeated «Clic aquí para volver al inicio» artwork falls below the substantial-image floor and is navigation, not answer content. All substantive FAQ text is selectable and extracted with pdftotext."
     },
     {
-      "doc_key": "tribu-cr-guia",
-      "title": "TRIBU-CR — comunicado y guía oficial de transición",
-      "norma": "CP-39-2025",
+      "doc_key": "tribu-cr-res-0011-2025",
+      "title": "Resolución General para la deshabilitación de plataformas tributarias e implementación de TRIBU-CR",
+      "norma": "MH-DGT-RES-0011-2025",
       "source": {
-        "kind": "hacienda-pdf",
-        "url": "https://www.hacienda.go.cr/docs/CP39-2025.pdf",
-        "deepLink": "none"
+        "kind": "sinalevi",
+        "idFichaNorma": 104789,
+        "deepLink": "articulo"
       },
-      "notes": "All declarations exclusively via TRIBU-CR since 2025-10-06 (Res. MH-DGT-RES-0011-2025). Deep link none (#134): a whole-file PDF (comunicado, no artículo structure) with no page metadata to anchor. SURVEY (#199): single-column prose throughout — no two-column block, nothing to lift. Not flagged. SURVEY (#203): no stacked formula — the guía is prose and bullets about the TRIBU-CR migration, with no arithmetic laid out on the page. Not flagged."
+      "effective_date": "2025-10-06",
+      "notes": "Canonical rollout source replacing the stale CP-39-2025 press release (#260). SINALEVI ficha 104789 resolves the vigente text, including the later reforms that rescheduled the cutover: TRIBU-CR became the exclusive system on 2025-10-06, while ATV, TRAVI, EDDI-7, Declara7, DeclaraWeb and the legacy consultation systems were disabled under the resolution and its transitorios. The effective_date records the operational fecha de rige required by this corpus rather than the original resolution's publication date. Deep link articulo (#134): the vigente ficha exposes stable anchors for artículos 5–8; other chunks honestly fall back to the document root when SINALEVI's rail has no unambiguous anchor."
     },
     {
       "doc_key": "cabys-dev",

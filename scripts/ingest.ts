@@ -28,6 +28,11 @@ import {
   fetchCcssFaq,
 } from "../src/lib/ingestion/ccss-faq";
 import {
+  extractCcssPrescripcionChunks,
+  fetchCcssPrescripcion,
+  headingCountMessage,
+} from "../src/lib/ingestion/ccss-prescripcion";
+import {
   ingestChunks,
   ingestDocument,
 } from "../src/lib/ingestion/ingest-document";
@@ -64,7 +69,7 @@ interface ManifestDoc {
     idFichaNorma?: number;
     url?: string;
     /** `html` only: the source-specific structured extractor to run. */
-    extractor?: "ccss-faq-modals";
+    extractor?: "ccss-faq-modals" | "ccss-prescripcion-headings";
     /** `pdf` only: file inside the zip at `url`, when the PDF is zipped. */
     member?: string;
     /**
@@ -411,31 +416,46 @@ async function extract(doc: ManifestDoc): Promise<ExtractedContent | null> {
       }
     }
     case "html": {
-      if (doc.source.extractor !== "ccss-faq-modals") {
+      if (
+        doc.source.extractor !== "ccss-faq-modals" &&
+        doc.source.extractor !== "ccss-prescripcion-headings"
+      ) {
         throw new Error(
           `${doc.doc_key}: unknown HTML extractor "${doc.source.extractor ?? "missing"}"`,
         );
       }
       const url = doc.source.url!;
       const cachePath = path.join(CACHE, `${doc.doc_key}.html`);
-      const html = await fetchCcssFaq(url);
-      const chunks = extractCcssFaqChunks(doc.doc_key, doc.title, html, url);
+      const prescription =
+        doc.source.extractor === "ccss-prescripcion-headings";
+      const html = prescription
+        ? await fetchCcssPrescripcion(url)
+        : await fetchCcssFaq(url);
+      const extractChunks = (source: string, minimum?: number) =>
+        prescription
+          ? extractCcssPrescripcionChunks(
+              doc.doc_key,
+              doc.title,
+              source,
+              url,
+              minimum,
+            )
+          : extractCcssFaqChunks(doc.doc_key, doc.title, source, url, minimum);
+      const chunks = extractChunks(html);
       let previous: number | undefined;
       if (existsSync(cachePath)) {
         try {
-          previous = extractCcssFaqChunks(
-            doc.doc_key,
-            doc.title,
-            readFileSync(cachePath, "utf8"),
-            url,
-            1,
-          ).length;
+          previous = extractChunks(readFileSync(cachePath, "utf8"), 1).length;
         } catch {
           // A stale/unreadable cache is not a trustworthy comparison point.
         }
       }
       console.log(
-        `  ${doc.doc_key}: ${faqCountMessage(chunks.length, previous)}`,
+        `  ${doc.doc_key}: ${
+          prescription
+            ? headingCountMessage(chunks.length, previous)
+            : faqCountMessage(chunks.length, previous)
+        }`,
       );
       writeFileSync(cachePath, html);
       return { kind: "chunks", value: chunks };
