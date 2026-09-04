@@ -36,6 +36,7 @@ import {
   chunkMatchesTarget,
   DATASET_PATH,
   parseDataset,
+  retrievalCases,
   type EvalCase,
 } from "./dataset";
 
@@ -84,7 +85,12 @@ interface CaseResult {
 }
 
 describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
-  const cases = parseDataset(readFileSync(DATASET_PATH, "utf8"));
+  // An abstention case has no correct source by construction (#261), so it
+  // has nothing to hit and *should* trip the weak-retrieval fallback — the
+  // opposite of what every assertion below says. It is judged in its own lane.
+  const cases = retrievalCases(
+    parseDataset(readFileSync(DATASET_PATH, "utf8")),
+  );
   const results: CaseResult[] = [];
   const rerankMode = process.env.RERANK || "voyage";
 

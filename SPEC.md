@@ -335,6 +335,21 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   case. New numeric thresholds are fixed only after the single authorized baseline on the
   resulting corpus (#267), then ratcheted upward and never relaxed to make a regression pass
   ([ADR 0015](docs/adr/0015-coverage-tiers-and-required-claims.md)).
+- **Adequacy gate (#130/#261):** groundedness passes a supported-but-incomplete answer, so a
+  second, independent question is asked of every case that declares them — are all
+  `requiredClaims` and `requiredSteps` present? Claims that are figures or dates are checked
+  deterministically (the string appears, with a citation marker in its sentence); the rest go to
+  the pinned judge with the same re-judge/majority orchestration. **Tier 1 is blocking per case
+  (100%)**, Tier 2 gates on ≥ 80% — a strong average must never hide a red Tier 1 case. A
+  weak-retrieval decline on a case that declares required claims is an adequacy failure.
+- **Coverage contract in the dataset:** each case carries `tier` (1 / 2 / `abstain`), `family`
+  (T1-A…T1-I on tier 1), `requiredClaims` (≤5), `requiredSteps`, `abstainIf`, `routeTo` and
+  `freshness`. Tier 1 cases are `blocking` by construction. Abstention cases carry no `expected`
+  targets — no correct source exists — and are judged on whether they declined and routed to the
+  right institution, with no invented figure.
+- **Citation invariant at eval time (#168):** the harness runs the runtime `validateCitations`
+  over every generated answer, asserts it on blocking cases and reports the rest; the
+  recovery-rate threshold waits on the #195 baseline.
 - Standard pipeline: Vitest unit, Playwright e2e, 7-step CI on GitHub Actions, deploy on Vercel.
 
 ## 10. Done bar (from #14)
