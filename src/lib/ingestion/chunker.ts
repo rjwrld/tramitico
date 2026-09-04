@@ -13,12 +13,44 @@ export interface Chunk {
   content: string;
 }
 
+// A número's suffix is part of its identity: "Artículo 31 quinquies" is a
+// different artículo from "Artículo 31", and a suffix the pattern does not
+// know is not dropped into an unlabelled chunk — the trailing delimiter class
+// eats it and the chunk goes out wearing its neighbour's citation (#274).
+// Costa Rican practice runs the ordinals past `ter` (`quáter`, spelled
+// unaccented in some fichas, then `quinquies`, `sexies`, `septies`) and also
+// uses letter suffixes ("ARTICULO 66-B" … "66-CH", where CH is one letter of
+// the Spanish alphabet). The letter must not be a caption's first word
+// ("Artículo 8-Exenciones" is artículo 8), so it may not be followed by more
+// letters.
+const ORDINAL_LOWER = "bis|ter|qu[áa]ter|quinquies|sexies|septies";
+const ORDINAL_UPPER = "BIS|TER|QU[ÁA]TER|QUINQUIES|SEXIES|SEPTIES";
+const LETTER_SUFFIX = "\\s*-[A-Z]{1,2}(?![A-Za-zÁÉÍÓÚÑÜáéíóúñü])";
+const artNumber = (ordinals: string) =>
+  `\\s+\\d+(?:${LETTER_SUFFIX}|\\s*(?:${ordinals}))?`;
 // Case-sensitive on the first letter: article headings are capitalized
 // ("Artículo 11.-" / "ARTÍCULO 2-"), while quoted reform references inside a
 // paragraph ("...según el artículo 304 del decreto...") are not — the first
 // ingestion run showed those create false boundaries if matched.
-const ART_RE =
-  /^(ART[ÍI]CULO\s+\d+(?:\s*(?:BIS|TER))?|Art[íi]culo\s+\d+(?:\s*(?:bis|ter))?|TRANSITORIO\s+[IVXLCDM\d]+|Transitorio\s+[IVXLCDM\d]+)\b[ .°\-–—]*/;
+//
+// For TRANSITORIO case is not enough — the #237 lesson, which that issue only
+// applied to TÍTULO/CAPÍTULO/SECCIÓN. Extraction wraps sentences, so prose can
+// open a line with a capitalized reference ("Transitorio IX de la Ley No.
+// 9635. Para estos efectos…") and open a false boundary. A real heading is
+// structural: the ordinal is followed by a delimiter. Artículos keep the
+// looser rule — their número is a digit run, which prose does not open a line
+// with the way a roman numeral reference does.
+const TRANSITORIO_DELIMITER = "(?=[ .°\\-–—]*[.°\\-–—])";
+const ART_RE = new RegExp(
+  "^(" +
+    [
+      `ART[ÍI]CULO${artNumber(ORDINAL_UPPER)}`,
+      `Art[íi]culo${artNumber(ORDINAL_LOWER)}`,
+      `TRANSITORIO\\s+[IVXLCDM\\d]+(?:\\s+(?:${ORDINAL_UPPER}))?${TRANSITORIO_DELIMITER}`,
+      `Transitorio\\s+[IVXLCDM\\d]+(?:\\s+(?:${ORDINAL_LOWER}))?${TRANSITORIO_DELIMITER}`,
+    ].join("|") +
+    ")\\b[ .°\\-–—]*",
+);
 // Same first-letter case rule as ART_RE: real headings are capitalized
 // ("SECCIÓN II" / "Capítulo IV"), while in-sentence references that extraction
 // breaks onto their own line ('sección "Propuestas en consulta pública"…',
@@ -77,8 +109,14 @@ function isHeadingLine(p: string): boolean {
 // ADR 0003). Pre-split at inline headings; unlike ART_RE, a delimiter after
 // the number is REQUIRED so mid-sentence references ("el Artículo 8 de esta
 // ley") don't split — real inline headings always carry one ("Artículo 8-").
-const INLINE_ART_RE =
-  /(?<!^)(?=(?:ART[ÍI]CULO|Art[íi]culo)\s+\d+(?:\s*(?:bis|ter|BIS|TER))?\s*[.\-–—°]|(?:TRANSITORIO|Transitorio)\s+[IVXLCDM\d]+\s*[.\-–—°])/;
+const INLINE_ART_RE = new RegExp(
+  "(?<!^)(?=" +
+    [
+      `(?:ART[ÍI]CULO|Art[íi]culo)${artNumber(`${ORDINAL_LOWER}|${ORDINAL_UPPER}`)}\\s*[.\\-–—°]`,
+      `(?:TRANSITORIO|Transitorio)\\s+[IVXLCDM\\d]+(?:\\s+(?:${ORDINAL_LOWER}|${ORDINAL_UPPER}))?\\s*[.\\-–—°]`,
+    ].join("|") +
+    ")",
+);
 
 function splitInlineHeadings(paragraph: string): string[] {
   return paragraph
@@ -92,6 +130,10 @@ function splitInlineHeadings(paragraph: string): string[] {
 // IMPUESTO" each arrive as separate extracted paragraphs, so neither ART_RE
 // nor HDR_LINE_RE ever sees a whole heading. Rejoin those fragments first.
 const FRAG_ART_WORD_RE = /^(ART[ÍI]CULO|Art[íi]culo|TRANSITORIO|Transitorio)$/;
+// The same markup also breaks a número from its ordinal suffix — ley 7092's
+// "Artículo 64" / "bis.—Obligación de informar…" — and the halves label the
+// chunk with the base número, the #274 defect by a different road.
+const FRAG_ORDINAL_RE = new RegExp(`^(?:${ORDINAL_LOWER}|${ORDINAL_UPPER})\\b`);
 const FRAG_HDR_WORD_RE = new RegExp(`^(?:${HDR_WORD})$`);
 const FRAG_NUM_START_RE = /^(\d|[IVXLCDM]+\b)/;
 
@@ -110,12 +152,26 @@ function isSentenceLike(line: string): boolean {
   return LOWERCASE_RE.test(line) && /[.:;]/.test(line);
 }
 
+/** Whether `label` is a whole paragraph carrying nothing but an artículo
+ * label, so a following ordinal suffix belongs to it rather than to prose. */
+function awaitsOrdinal(label: string, next: string | undefined): boolean {
+  if (next === undefined || !FRAG_ORDINAL_RE.test(next)) return false;
+  const m = label.match(ART_RE);
+  return m !== null && m[0].length === label.length;
+}
+
 export function normalizeFragments(paragraphs: string[]): string[] {
   const out: string[] = [];
   for (let i = 0; i < paragraphs.length; i++) {
     let p = paragraphs[i];
     const next = paragraphs[i + 1];
     if (FRAG_ART_WORD_RE.test(p) && next && FRAG_NUM_START_RE.test(next)) {
+      p = `${p} ${paragraphs[++i]}`;
+      if (awaitsOrdinal(p, paragraphs[i + 1])) p = `${p} ${paragraphs[++i]}`;
+      out.push(p);
+      continue;
+    }
+    if (awaitsOrdinal(p, next)) {
       p = `${p} ${paragraphs[++i]}`;
       out.push(p);
       continue;
