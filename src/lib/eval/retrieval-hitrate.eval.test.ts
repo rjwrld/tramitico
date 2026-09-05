@@ -39,6 +39,7 @@ import {
   retrievalCases,
   type EvalCase,
 } from "./dataset";
+import { formatExposureTally, tallyByExposure } from "./exposure";
 
 /**
  * Hit-rate gate (expected artículo in answer top-k). Baseline measured
@@ -137,6 +138,16 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
           (r.condensed === null ? "" : `\n        ↳ ${r.condensed}`),
       );
     }
+    console.log(
+      formatExposureTally(
+        "hit-rate",
+        tallyByExposure(
+          results,
+          (r) => r.evalCase,
+          (r) => r.hit,
+        ),
+      ),
+    );
     // Serial on purpose: each distinct question is one Voyage embed (plus
     // one rerank call), and the keyless tier is 3 requests/min.
   }, 2_700_000);

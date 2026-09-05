@@ -61,6 +61,7 @@ import {
   retrievalCases,
   type EvalCase,
 } from "./dataset";
+import { formatExposureTally, tallyByExposure } from "./exposure";
 import {
   GROUNDEDNESS_GATE,
   judgeAnswer,
@@ -241,6 +242,17 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
       );
     }
 
+    console.log(
+      formatExposureTally(
+        "groundedness",
+        tallyByExposure(
+          results,
+          (r) => r.evalCase,
+          (r) => r.verdict === "pass",
+        ),
+      ),
+    );
+
     const judgedForAdequacy = results.filter((r) => r.adequacy !== null);
     console.log(
       `\nadequacy (#130): ` +
@@ -254,6 +266,17 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
           (adequacyFailed(r) ? `  — missing: ${adequacyReason(r)}` : ""),
       );
     }
+
+    console.log(
+      formatExposureTally(
+        "adequacy",
+        tallyByExposure(
+          judgedForAdequacy,
+          (r) => r.evalCase,
+          (r) => !adequacyFailed(r),
+        ),
+      ),
+    );
 
     const violations = results.filter(
       (r) => r.citations !== null && !r.citations.ok,
