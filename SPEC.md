@@ -233,7 +233,8 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   to absent, so it can only add candidates; a rewrite that fails, times out or is switched off
   (`EXPAND=off`) leaves the search exactly as it was. Corroboration still requires a leg that
   ran on the reader's own question, so the weak-retrieval decline cannot be satisfied by a
-  passage the model wrote —
+  passage the model wrote. The reranker scores against the question **and** its expansion, for
+  the same reason the legs do —
   **[ADR 0019](docs/adr/0019-query-expansion-legs.md)**.
 - **Answer assembly:** Claude **Sonnet by default, model as env var** — Week 3 runs Haiku 4.5
   through the same groundedness gate as a cost/quality comparison (portfolio material either way).

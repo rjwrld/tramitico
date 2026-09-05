@@ -49,10 +49,16 @@ import { formatExposureTally, tallyByExposure } from "./exposure";
  * a silently disabled reranker still fails. Ratchet up, never down.
  *
  * The 2026 baseline (#267, 73 cases on the beta corpus) measured 63/73 with
- * rerank and 52/73 fused-only — under this gate, and left here on purpose:
- * the ten misses are classified in #286 (fused pool) and #287 (rerank cut),
- * and the gate is what keeps them from being forgotten. eval/README.md has
- * the per-case table and the ratchet rule.
+ * rerank and 52/73 fused-only — under this gate, and left there on purpose:
+ * the ten misses were classified in #286 (fused pool) and #287 (rerank cut),
+ * and the gate is what kept them from being forgotten.
+ *
+ * #286's expansion legs took it to **68/73 (93.2 %)**, over this gate for the
+ * first time since the baseline, on two identical runs. The gate still does
+ * not move: the ratchet sets a threshold at the measured rate minus one case
+ * (0.91) and never below the previous value, so 0.92 stands. Two blocking
+ * cases still miss, so the suite stays red — which is the point of the
+ * per-case blocking rule. eval/README.md has the per-case table.
  */
 export const HIT_RATE_GATE = 0.92;
 
@@ -114,7 +120,9 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
         matchCount: RERANK_POOL,
         embedder,
       });
-      const topK = await rerankChunks(query, retrieval.chunks);
+      const topK = await rerankChunks(query, retrieval.chunks, {
+        expansion: retrieval.expansion,
+      });
       const inPool = (chunk: RetrievedChunk) =>
         evalCase.expected.some((t) => chunkMatchesTarget(chunk, t));
       const poolIndex = retrieval.chunks.findIndex(inPool);

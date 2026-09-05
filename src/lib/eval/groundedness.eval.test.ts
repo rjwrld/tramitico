@@ -199,7 +199,9 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
         continue;
       }
 
-      const chunks = await rerankChunks(query, retrieval.chunks);
+      const chunks = await rerankChunks(query, retrieval.chunks, {
+        expansion: retrieval.expansion,
+      });
       const derivedFigures = resolveDerivedFigures(chunks);
       const { text: answer } = await generateText({
         model: getAnswerModel(),

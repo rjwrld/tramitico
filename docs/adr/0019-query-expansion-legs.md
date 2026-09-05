@@ -57,6 +57,15 @@ document, wrong artículo" shape (four of the six have the right document in the
 five). It cannot reach CNPT artículo 78, whose neighbourhood is nowhere near the pool, so the
 blocking Tier 1 case would stay red.
 
+**The reranker scores against the question and its expansion.** A pool rank is
+not a hit, and `rerank-2.5-lite` reads the same question the fused legs read,
+so it has the same register gap: a target moved from pool 24 to pool 5 and
+still missed. `rerankQuery` composes the two. Both, not the expansion alone —
+the rewrite is a probe, the question is what the reader asked, and dropping it
+costs a case the reader's own words carry. This is the one place where #286's
+fix reaches into what #287 owns, and it is here because leaving it out would
+have shipped a Tier 1 regression.
+
 **Corroboration needs at least one leg that ran on the reader's own question.** A chunk is
 corroborated when a similarity leg and a word-matching leg both surfaced it, and the
 expansion's legs count towards those two modes — they are the same two modes asked in the
@@ -90,5 +99,13 @@ tripping `isWeak` and stop reaching the honest decline of #21.
   inventory.
 - **Measured, over the 61 single-turn retrieval cases:** target inside the pool of 40, 57 → 59;
   inside the fused top-8, 44 → 53; 30 improved, 21 held, 10 worsened, worst regression four
-  ranks, none pushed out of the pool. The hit-rate gate itself is unchanged at 0.92 and is
-  measured only by an authorized eval run.
+  ranks, none pushed out of the pool.
+- **Measured in the eval lane (2026-09-05, two identical runs):** hit-rate **63/73 → 68/73**
+  (86.3 % → 93.2 %), blocking misses 4 → 2, first-exposure 25/32 → 27/32, corpus-derived
+  32/34 → 34/34. `HIT_RATE_GATE` does not move: the ratchet rule never lowers a threshold and
+  the measured rate minus one case is below the current 0.92.
+- **One Tier 1 regression, written down rather than tuned away.**
+  `ho-cliente-espana-lleva-iva` misses from pool rank 3: the expansion for a question naming a
+  foreign country drifts into that country's law, and the rerank query carries the drift. A
+  prompt rule against it was measured and reverted — it did not recover the case and flipped a
+  different one. eval/README.md holds the detail; the next work on the expansion prompt owns it.

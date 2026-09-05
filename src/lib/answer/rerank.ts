@@ -29,6 +29,34 @@ interface VoyageRerankResponse {
 
 export interface RerankOptions {
   fetchImpl?: typeof fetch;
+  /**
+   * The corpus-register rewrite retrieval ran on (#286), when there was one.
+   * It is appended to the reranker's query rather than replacing it.
+   *
+   * The reranker reads the same question the fused legs read, so it has the
+   * same register problem, and #286 found it the hard way: putting
+   * `ho-desde-cuanta-plata-caja`'s target at pool rank 5 instead of 24 did
+   * not make it a hit, because the reranker still scored «desde cuánta plata
+   * al mes lo obligan a uno a pagar Caja» against artículos that say «base
+   * mínima contributiva». Reranking on the question *and* its expansion
+   * recovers that case and two more that were already being cut.
+   *
+   * Both, not the expansion alone: the rewrite is a probe, the question is
+   * what the reader actually asked, and dropping it costs a case
+   * (`ho-donde-inscribo-ya-no-atv`) that the question's own words carry.
+   */
+  expansion?: string | null;
+}
+
+/**
+ * What the reranker scores against: the question, plus its expansion when
+ * retrieval produced one.
+ */
+export function rerankQuery(
+  question: string,
+  expansion?: string | null,
+): string {
+  return expansion ? `${question} ${expansion}` : question;
 }
 
 export async function rerankChunks(
@@ -45,6 +73,7 @@ export async function rerankChunks(
   if (!key) return fused;
 
   const fetchImpl = options.fetchImpl ?? fetch;
+  const query = rerankQuery(question, options.expansion);
   try {
     const res = await fetchImpl("https://api.voyageai.com/v1/rerank", {
       method: "POST",
@@ -54,7 +83,7 @@ export async function rerankChunks(
       },
       body: JSON.stringify({
         model: "rerank-2.5-lite",
-        query: question,
+        query,
         documents: chunks.map((chunk) => chunk.content),
         top_k: ANSWER_TOP_K,
       }),

@@ -713,7 +713,9 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     // Rerank is still "buscando" — the stage flips only when the model does.
-    const chunks = await rerankChunks(asked.query, retrieval.chunks);
+    const chunks = await rerankChunks(asked.query, retrieval.chunks, {
+      expansion: retrieval.expansion,
+    });
     if (cutShort()) return;
     const derivedFigures = resolveDerivedFigures(chunks);
     writeStatus(writer, "redactando");

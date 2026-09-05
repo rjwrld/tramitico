@@ -290,38 +290,68 @@ Two are not fixed, and the honest reasons differ:
   the README rule forbids editing a case to match retrieval — so it is
   recorded here and left for the case's own review.
 
-**One measured hit, one measured cut.** Outside the eval lane, with
-`RERANK=voyage`, the two Tier 1 cases were run through `retrieve` →
-`rerankChunks` → `caseHit` once each:
+**The reranker had the same problem, and it had to be fixed here.** Putting a
+target in the pool is not putting it in the top-8, and the reranker scores the
+_question_ against the chunks — so it carries the register gap the legs just
+closed. Measured: `ho-desde-cuanta-plata-caja` moved from pool 24 to pool 5
+and still missed, because `rerank-2.5-lite` was still matching «desde cuánta
+plata al mes lo obligan a uno a pagar Caja» against artículos that say «base
+mínima contributiva». `rerankChunks` therefore scores against the question
+**and** its expansion (`rerankQuery`, rerank.ts). Both, not the expansion
+alone: the rewrite is a probe and the question is what the reader asked, and
+dropping the question costs a case the reader's own words carry.
 
-- `inscripcion-tardia-sancion` **hits**, at reranked #2 (`cnpt` Artículo 78).
-  Pool rank 23 → top-8: the reranker did the half this issue does not do.
-- `ho-rebajar-25-sin-facturas` **misses**, from pool rank 4. The reranker
-  drops `ley-renta` ARTICULO 8 out of the top-8 entirely. Retrieval's half is
-  done — 31 → 4 — and what remains is a pool-to-top-8 cut, which is #287's
-  cause, not this one's.
+**The measured result (eval lane, 2026-09-05).** Two runs of
+`retrieval-hitrate.eval.test.ts`, `RERANK=voyage`, `EXPAND=on`, on the same
+871-chunk corpus as the baseline, ~192 s each. Both returned the identical
+number and the identical five misses, so this is stable, not a draw:
 
-That is one non-gate run of two cases, not a hit-rate measurement: the gate is
-still the authorized eval run, and the acceptance box for it stays unticked
-here.
+| Run                                         | Hit-rate           | Blocking misses |
+| ------------------------------------------- | ------------------ | --------------- |
+| #267 baseline                               | 63/73 (86.3 %)     | 4               |
+| expansion legs, reranker on the question    | 65/73 (89.0 %)     | 3               |
+| **expansion legs + expansion-aware rerank** | **68/73 (93.2 %)** | **2**           |
 
-**The honest fallback still fires.** The expansion legs raise a risk worth
-naming: a model writes a corpus-register passage for _any_ question, so if its
-two legs could corroborate each other, an out-of-scope ask would stop tripping
-`isWeak` and stop reaching the decline of #21. Corroboration therefore requires
-at least one leg that ran on the reader's own question (`isCorroborated`,
-retrieval.ts). Corroboration is still looser than v4 in one direction — a chunk the question
-found in one mode and the expansion in the other now counts — so `isWeak` can
-go false where it was true, never the reverse. Measured on the nine abstention
-cases with and without the expansion: `isWeak` is identical in all nine (false
-in both, so those questions were already being handled on the model route
-rather than by the weak-retrieval short-circuit, which is what #290 is about).
+By exposure: first-exposure 27/32 (was 25/32), promoted 7/7 (was 6/7),
+corpus-derived 34/34 (was 32/34).
 
-**Cost.** One Haiku call and a second embed per ask. Observed end-to-end
-`retrieve` wall time on this corpus was ~1.8–2.8 s with expansion, against a
-`EXPAND_TIMEOUT_MS` of 3 s — one timeout was observed in ~20 calls, which the
-fallback absorbs (the ask searches the question alone and `ask: expansion
-failed` counts it).
+Six cases gained, one lost:
+
+| Case                              | Tier             | Change                   |
+| --------------------------------- | ---------------- | ------------------------ |
+| `inscripcion-tardia-sancion`      | 1 T1-I coloquial | MISS → **hit** (pool 23) |
+| `ho-rebajar-25-sin-facturas`      | 1 T1-E literal   | MISS → **hit** (pool 4)  |
+| `ho-factura-electronica-o-recibo` | 1 T1-C coloquial | MISS → **hit** (pool 2)  |
+| `tribu-cr-declarar-pagar`         | 2                | MISS → hit (pool 31)     |
+| `ccss-asalariado-followup`        | 2                | MISS → hit (pool 4)      |
+| `ho-t2-compu-cara-iva`            | 2                | MISS → hit (pool 7)      |
+| `ho-cliente-espana-lleva-iva`     | 1 T1-D literal   | hit → **MISS** (pool 3)  |
+
+**Both of #286's Tier 1 cases hit**, which is this issue's acceptance line.
+The hit-rate is above `HIT_RATE_GATE` for the first time since the baseline,
+and the gate does **not** move: the ratchet rule sets a threshold at the
+measured rate minus one case (67/73 → 0.91), never below its previous value,
+so 0.92 stands.
+
+**The one regression, and what causes it.** `ho-cliente-espana-lleva-iva`
+(«Le cobro a un cliente en España…») now misses from pool rank 3. The pool is
+fine; the rerank query is not. The expansion for that question drifts into
+foreign law — «otro Estado miembro de la Unión Europea», «lugar de
+suministro», «servicios electrónicos» — because the question names a country,
+and appending that to the rerank query pulls the reranker away from the Costa
+Rican artículos sitting at pool 3. It is a general failure shape, not a
+one-off: a question naming a foreign country, currency or platform can make
+the model write that country's rules. One prompt rule aimed at it («escriba
+siempre normativa de Costa Rica; el país que menciona la pregunta es un dato
+del caso, no la ley aplicable») was written and **measured and reverted**: it
+did not recover the case and it flipped a different one, which is the
+signature of tuning against individual cases rather than fixing a mechanism.
+It is written down here instead, as the next piece of work on the expansion
+prompt.
+
+**Two blocking cases remain**, and neither is #286's:
+`ho-donde-inscribo-ya-no-atv` (a `seguimiento` case — it fails on the
+condensation, and its pool rank 7 has not moved) and the regression above.
 
 Reproduce any of this with `pnpm pool-dump <case id> …`, which prints the top
 of the fused pool with all four leg ranks (`--no-expansion` for the v4 pool).

@@ -122,7 +122,9 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
         // Retrieval found something for a question with no correct source.
         // The decline now has to come from rule 6 of the answer prompt, which
         // is exactly the case worth measuring.
-        const chunks = await rerankChunks(query, retrieval.chunks);
+        const chunks = await rerankChunks(query, retrieval.chunks, {
+          expansion: retrieval.expansion,
+        });
         answer = (
           await generateText({
             model: getAnswerModel(),
