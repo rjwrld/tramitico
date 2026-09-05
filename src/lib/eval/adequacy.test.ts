@@ -139,6 +139,66 @@ describe("checkLiteral", () => {
     });
   });
 
+  /**
+   * #289, second harness defect, caught by a smoke run: prompt rule 10
+   * explicitly permits tables "cuando los datos sean realmente tabulares,
+   * como tramos, plazos o montos", and the escala answers use them. A table
+   * row ends in a newline, and the window ended at the first newline, so a
+   * figure in a cell could never be scored as cited however the answer cited
+   * the table — the prompt asked for tables and the check forbade them. The
+   * window now runs to the end of the table block for a figure inside one.
+   */
+  it("lets a table's citation vouch for a figure in its rows (#289)", () => {
+    const answer = [
+      "La escala del IVM es la siguiente:",
+      "",
+      "| Categoría | Nivel de ingreso | Afiliado |",
+      "|---|---|---|",
+      "| 1 | Hasta 0.87 SM | 4.16% |",
+      "| 3 | De 2 SM a menos de 4 SM | 7.53% |",
+      "",
+      "Estos porcentajes rigen a partir del 1 de enero de 2026 [6].",
+    ].join("\n");
+    expect(checkLiteral(answer, ["7,53 %", "7,53%"])).toEqual({
+      found: true,
+      cited: true,
+    });
+    // A mid-table row, not just the last one.
+    expect(checkLiteral(answer, ["4,16 %", "4,16%"]).cited).toBe(true);
+  });
+
+  it("does not let a table vouch for a figure outside it (#289)", () => {
+    // The widening is scoped to figures *in* a table. A bare paragraph before
+    // a cited table is still an uncited paragraph.
+    const answer = [
+      "La cuota de Salud es 2.89% y no la respalda nada.",
+      "",
+      "| Categoría | Afiliado |",
+      "|---|---|",
+      "| 1 | 4.16% |",
+      "",
+      "Fuente de la tabla [6].",
+    ].join("\n");
+    expect(checkLiteral(answer, ["2,89 %", "2,89%"])).toEqual({
+      found: true,
+      cited: false,
+    });
+  });
+
+  it("still refuses a table that cites nothing at all (#289)", () => {
+    const answer = [
+      "| Categoría | Afiliado |",
+      "|---|---|",
+      "| 3 | 7.53% |",
+      "",
+      "Confirme el dato con la CCSS.",
+    ].join("\n");
+    expect(checkLiteral(answer, ["7,53 %", "7,53%"])).toEqual({
+      found: true,
+      cited: false,
+    });
+  });
+
   it("leaves a sentence-ending period a sentence end (#289)", () => {
     // The separator rewrite must not touch the "." that closes a sentence,
     // or the citation window would run past it and a later marker would

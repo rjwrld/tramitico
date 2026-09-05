@@ -143,6 +143,51 @@ export interface LiteralCheck {
   cited: boolean;
 }
 
+/** A markdown table row, as prompt rule 10 permits the answer to write one. */
+const TABLE_ROW = /^\s*\|/;
+
+/**
+ * The citation window for a figure whose line is a table row: the rest of the
+ * table, plus the sentence that closes it.
+ *
+ * Rule 10 tells the answer to use a table «cuando los datos sean realmente
+ * tabulares, como tramos, plazos o montos» — precisely the figures this check
+ * scores — and an answer that does so cites the table around it, not inside
+ * every cell. Since a row ends in a newline and `SENTENCE_END` stops there, a
+ * figure in a cell could never be scored as cited however well the answer
+ * cited its table: the prompt asked for tables and the check forbade them
+ * (#289, found by a smoke run on `ho-800-mil-que-porcentaje-caja`).
+ *
+ * The widening is scoped to figures *inside* a table. A figure in ordinary
+ * prose keeps the sentence window, so a cited table cannot vouch for the
+ * uncited paragraph above it.
+ */
+function tableWindow(rest: string): string | null {
+  const lines = rest.split("\n");
+  // lines[0] is the tail of the row the match sits on; the row itself began
+  // before the match, so the caller has already established it is a table row.
+  let i = 1;
+  while (i < lines.length && TABLE_ROW.test(lines[i]!)) i += 1;
+  // …then the closing prose, up to its first sentence end: an answer captions
+  // its table immediately, and anything further is a different claim. The
+  // blank line between table and caption is a paragraph break, not distance —
+  // step over it, but only it.
+  while (i < lines.length && lines[i]!.trim() === "") i += 1;
+  const after = lines.slice(i).join("\n");
+  const end = after.search(SENTENCE_END);
+  return (
+    lines.slice(0, i).join("\n") +
+    "\n" +
+    (end === -1 ? after : after.slice(0, end))
+  );
+}
+
+/** Whether the line `index` falls on is a markdown table row. */
+function onTableRow(haystack: string, index: number): boolean {
+  const lineStart = haystack.lastIndexOf("\n", index - 1) + 1;
+  return TABLE_ROW.test(haystack.slice(lineStart, index));
+}
+
 /**
  * Whether any occurrence of any variant is followed, before the end of its
  * sentence, by a citation marker.
@@ -150,7 +195,8 @@ export interface LiteralCheck {
  * The window is the sentence, not the whole answer, because an answer-wide
  * search would let a citation on an unrelated paragraph vouch for a figure
  * that carries none — which is precisely the shape #131 exists to stop from
- * shipping and #261 req. 3 exists to stop from scoring.
+ * shipping and #261 req. 3 exists to stop from scoring. The one exception is
+ * a figure in a table row; see `tableWindow`.
  */
 export function checkLiteral(
   answer: string,
@@ -165,6 +211,13 @@ export function checkLiteral(
     for (const match of haystack.matchAll(pattern)) {
       found = true;
       const rest = haystack.slice(match.index + match[0].length);
+      if (onTableRow(haystack, match.index)) {
+        const window = tableWindow(rest);
+        if (window !== null && CITATION_MARKER.test(window)) {
+          return { found: true, cited: true };
+        }
+        continue;
+      }
       const end = rest.search(SENTENCE_END);
       const window = end === -1 ? rest : rest.slice(0, end);
       if (CITATION_MARKER.test(window)) return { found: true, cited: true };

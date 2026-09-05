@@ -663,6 +663,24 @@ runtime check over every generated answer and prints the violations. Until the
 rest, because a number nobody has measured is not a gate; #267 measured **0
 violations over 73 answers**, so it is now asserted on every case.
 
+### A figure in a table, and its citation (#289)
+
+Prompt rule 10 tells the answer to use a markdown table «cuando los datos sean
+realmente tabulares, como tramos, plazos o montos» — exactly the figures
+`checkLiteral` scores — and an answer that does so cites the table around it,
+not inside every cell. A table row ends in a newline and the citation window
+stopped at the first newline, so a figure in a cell could **never** be scored
+as cited, however well the answer cited its table: the prompt asked for tables
+and the check forbade them. A smoke run on `ho-800-mil-que-porcentaje-caja`
+caught it — the model printed the whole IVM escala as a table with `[6]` in the
+caption beneath.
+
+The window for a figure whose line is a table row now runs to the end of the
+table plus its closing sentence. The widening is scoped to figures _inside_ a
+table: a figure in ordinary prose keeps the sentence window, so a cited table
+cannot vouch for the uncited paragraph above it, and a table nothing cites
+still scores uncited.
+
 ### The run transcript (#289)
 
 The 2026 baseline printed, for every inadequate case, the requirements the
