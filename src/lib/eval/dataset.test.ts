@@ -124,6 +124,36 @@ describe("parseDataset coverage contract (#261)", () => {
     );
   });
 
+  it("defaults heldOut to false and carries it when set", () => {
+    expect(parseDataset(line(CASE))[0].heldOut).toBe(false);
+    expect(parseDataset(line(CASE))[0].variant).toBeUndefined();
+    const [held] = parseDataset(
+      line({ ...TIER1, heldOut: true, variant: "coloquial" }),
+    );
+    expect(held.heldOut).toBe(true);
+    expect(held.variant).toBe("coloquial");
+  });
+
+  it("makes a held-out tier 1 case name its variant", () => {
+    // The three-variant grid is the coverage claim (#261 req. 4); a case that
+    // does not say which shape it is cannot be counted into it.
+    expect(() => parseDataset(line({ ...TIER1, heldOut: true }))).toThrow(
+      /variant/,
+    );
+    // …and a corpus-derived tier 1 case is not part of that grid, so it may
+    // carry no variant at all.
+    expect(parseDataset(line(TIER1))[0].variant).toBeUndefined();
+  });
+
+  it("rejects an unknown variant or a non-boolean heldOut", () => {
+    expect(() =>
+      parseDataset(line({ ...TIER1, heldOut: true, variant: "parafrasis" })),
+    ).toThrow(/variant/);
+    expect(() => parseDataset(line({ ...CASE, heldOut: "true" }))).toThrow(
+      /heldOut must be a boolean/,
+    );
+  });
+
   it("rejects an unknown tier or family", () => {
     expect(() => parseDataset(line({ ...CASE, tier: 3 }))).toThrow(/tier/);
     expect(() => parseDataset(line({ ...TIER1, family: "T1-Z" }))).toThrow(
@@ -298,9 +328,14 @@ describe("caseHit", () => {
 describe("eval/dataset.jsonl", () => {
   const cases = parseDataset(readFileSync(DATASET_PATH, "utf8"));
 
-  it("holds 25–45 cases (SPEC §9)", () => {
-    expect(cases.length).toBeGreaterThanOrEqual(25);
-    expect(cases.length).toBeLessThanOrEqual(45);
+  it("keeps the corpus-derived regression suite at 25–45 cases (SPEC §9)", () => {
+    // The band was on the whole file until #261 part B landed the held-out
+    // set beside it. It still describes the thing it was written about — the
+    // corpus-derived retrieval regression suite — and the held-out set has a
+    // composition of its own (held-out.test.ts), not a size band.
+    const corpusDerived = cases.filter((c) => !c.heldOut);
+    expect(corpusDerived.length).toBeGreaterThanOrEqual(25);
+    expect(corpusDerived.length).toBeLessThanOrEqual(45);
   });
 
   it("carries the #132 condensation cases, each with its turns", () => {

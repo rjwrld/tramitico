@@ -95,6 +95,9 @@ const CASE: EvalCase = {
   expected: [{ docKey: "ccss-escala-salud" }],
   blocking: true,
   tier: 1,
+  // Not a held-out case: a hand-written fixture for the judge, so it
+  // carries no variant and must not claim membership in the set.
+  heldOut: false,
   family: "T1-F",
   requiredClaims: [
     {
