@@ -215,9 +215,9 @@ prefix ends) and **coverage-ordering the lexical leg** before its top-50 cut
 ≈ 0.012 and cannot beat a chunk two legs found at rank 40, which is RRF
 working as designed). A hand-written expansion, by contrast, moved every one
 of the six targets to the top of the vector leg — which is what made query
-expansion the fix (#286 asks for one of chunk shape, query expansion or
-lexical weighting; the first two of those three are what the measurements
-above rule out).
+expansion the fix: of the three the issue allows — chunk shape, query
+expansion, lexical weighting — the measurements above rule out chunk shape
+and lexical weighting, and expansion is what is left standing.
 
 | Case                         | Best target, vector rank       | Cause                                                                        |
 | ---------------------------- | ------------------------------ | ---------------------------------------------------------------------------- |
@@ -237,6 +237,13 @@ equal weight, one k. The question's legs are computed exactly as v4 computed
 them, so an expansion can only add candidates: both expansion arguments
 default to null and reproduce v4 row for row, which is what `EXPAND=off` and
 every keyless lane get.
+
+**Exposure, stated plainly.** The #267 baseline is published, which is what
+lifts the held-out embargo («nobody consults these cases while tuning
+retrieval… until the #267 baseline is published»), so these six were visible
+while the rewrite prompt was written. The 61-case table below is therefore
+**in-sample for the six** and out-of-sample for the other 55; the six are
+marked in the per-case list, and the aggregate is worth reading as the 55.
 
 **What it measured, and what it did not.** The fused pool is not the hit-rate
 gate — only an authorized eval run measures that — so what is claimed here is
@@ -264,11 +271,12 @@ half and it is measured only in the eval lane.
 
 Two are not fixed, and the honest reasons differ:
 
-- `ho-t2-credito-iva-compras` sits just outside (its target was at 39 under an
-  earlier draft of the rewrite prompt and at 41-ish under the one that
-  shipped). It is a pool-edge case, and the change that cost it is the one
-  that bought the blocking Tier 1 case: the rule that stops the model from
-  silently disambiguating a question the reader left ambiguous.
+- `ho-t2-credito-iva-compras` is outside the pool of 40 (the dump cannot say
+  by how much — outside is all it measures). It reached rank 39 under an
+  earlier draft of the rewrite prompt, so it is a pool-edge case, and the
+  change that cost it is the one that bought the blocking Tier 1 case: the
+  rule that stops the model from silently disambiguating a question the
+  reader left ambiguous.
 - `ho-t2-constancia-al-dia` is not reached at all. The expansion names the
   trámite correctly («certificación de cumplimiento de obligaciones
   tributarias») and the corpus's answer is a TRIBU-CR FAQ entry that calls it
@@ -277,6 +285,39 @@ Two are not fixed, and the honest reasons differ:
   the case's expected targets. Naming targets is not this issue's business —
   the README rule forbids editing a case to match retrieval — so it is
   recorded here and left for the case's own review.
+
+**One measured hit, one measured cut.** Outside the eval lane, with
+`RERANK=voyage`, the two Tier 1 cases were run through `retrieve` →
+`rerankChunks` → `caseHit` once each:
+
+- `inscripcion-tardia-sancion` **hits**, at reranked #2 (`cnpt` Artículo 78).
+  Pool rank 23 → top-8: the reranker did the half this issue does not do.
+- `ho-rebajar-25-sin-facturas` **misses**, from pool rank 4. The reranker
+  drops `ley-renta` ARTICULO 8 out of the top-8 entirely. Retrieval's half is
+  done — 31 → 4 — and what remains is a pool-to-top-8 cut, which is #287's
+  cause, not this one's.
+
+That is one non-gate run of two cases, not a hit-rate measurement: the gate is
+still the authorized eval run, and the acceptance box for it stays unticked
+here.
+
+**The honest fallback still fires.** The expansion legs raise a risk worth
+naming: a model writes a corpus-register passage for _any_ question, so if its
+two legs could corroborate each other, an out-of-scope ask would stop tripping
+`isWeak` and stop reaching the decline of #21. Corroboration therefore requires
+at least one leg that ran on the reader's own question (`isCorroborated`,
+retrieval.ts). Corroboration is still looser than v4 in one direction — a chunk the question
+found in one mode and the expansion in the other now counts — so `isWeak` can
+go false where it was true, never the reverse. Measured on the nine abstention
+cases with and without the expansion: `isWeak` is identical in all nine (false
+in both, so those questions were already being handled on the model route
+rather than by the weak-retrieval short-circuit, which is what #290 is about).
+
+**Cost.** One Haiku call and a second embed per ask. Observed end-to-end
+`retrieve` wall time on this corpus was ~1.8–2.8 s with expansion, against a
+`EXPAND_TIMEOUT_MS` of 3 s — one timeout was observed in ~20 calls, which the
+fallback absorbs (the ask searches the question alone and `ask: expansion
+failed` counts it).
 
 Reproduce any of this with `pnpm pool-dump <case id> …`, which prints the top
 of the fused pool with all four leg ranks (`--no-expansion` for the v4 pool).

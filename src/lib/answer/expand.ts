@@ -43,7 +43,7 @@
  */
 import { generateText } from "ai";
 import manifest from "../../../corpus/manifest.json";
-import { getCondenseModel } from "./model";
+import { getExpandModel } from "./model";
 import { describeError } from "../log-redaction";
 
 /**
@@ -161,14 +161,19 @@ export function cleanExpansion(raw: string): string {
 }
 
 /**
- * `EXPAND=off` opts out, mirroring `RERANK=off` (rerank.ts) — and read the
- * same way, with `||` rather than `??`, because CI interpolates an unset
- * `vars.EXPAND` as "" and that must still mean "default on". It is what makes
- * the fused-only baseline measurable and what keeps a lane that has an
- * Anthropic key but wants v4's search from paying for a call.
+ * Whether an ask expands at all — the one place that decides, so `retrieve`
+ * does not carry a second copy of the policy.
+ *
+ * `EXPAND=off` opts out, mirroring `RERANK=off` (rerank.ts) and read the same
+ * way, with `||` rather than `??`, because CI interpolates an unset
+ * `vars.EXPAND` as "" and that must still mean "default on". No Anthropic key
+ * is the other way out, and it is what the integration, e2e and pgTAP lanes —
+ * which run with no secrets — rely on to get the two-leg contract without a
+ * failed call and its warning on every ask.
  */
 export function expansionEnabled(): boolean {
-  return (process.env.EXPAND || "on") !== "off";
+  if ((process.env.EXPAND || "on") === "off") return false;
+  return Boolean(process.env.ANTHROPIC_API_KEY);
 }
 
 export interface ExpandOptions {
@@ -196,7 +201,7 @@ export async function expandQuery(
   let text: string;
   try {
     const result = await generateText({
-      model: getCondenseModel(),
+      model: getExpandModel(),
       system: EXPAND_SYSTEM_PROMPT,
       prompt: buildExpandPrompt(trimmed),
       temperature: 0,

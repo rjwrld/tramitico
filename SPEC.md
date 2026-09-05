@@ -225,6 +225,16 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   back to the literal question, so multi-turn can degrade an answer and can never fail an ask.
   History stores what the reader typed, with the rewrite in `condensed_question` beside it —
   **[ADR 0012](docs/adr/0012-multi-turn-question-condensation.md)**.
+- **Query expansion (#286, amends this section):** retrieval searches on the standalone
+  question **and on its corpus-register expansion**. A small model call rewrites the question
+  into the vocabulary of the documents — grounded in the corpus's own titles — and
+  `search_chunks` runs the identical hybrid pair over the rewrite, fused into the same RRF sum
+  as the question's own two legs. The question's legs are unchanged and the expansion defaults
+  to absent, so it can only add candidates; a rewrite that fails, times out or is switched off
+  (`EXPAND=off`) leaves the search exactly as it was. Corroboration still requires a leg that
+  ran on the reader's own question, so the weak-retrieval decline cannot be satisfied by a
+  passage the model wrote —
+  **[ADR 0019](docs/adr/0019-query-expansion-legs.md)**.
 - **Answer assembly:** Claude **Sonnet by default, model as env var** — Week 3 runs Haiku 4.5
   through the same groundedness gate as a cost/quality comparison (portfolio material either way).
   Via Vercel AI SDK, streaming. System prompt constrains
@@ -403,7 +413,9 @@ MCP server **not** required to feature — it gates only the "builds MCP servers
 2. Citation rendering format (chips vs footnotes) — **[ADR 0004](docs/adr/0004-citation-rendering.md)**: sello chips, cumulative `data-citations` snapshots.
 3. Anything that overturns a spec default — record, don't silently drift. Also
    **[ADR 0012](docs/adr/0012-multi-turn-question-condensation.md)**, multi-turn by question
-   condensation, which amends §5's single-question framing and §6's request body. First instance:
+   condensation, which amends §5's single-question framing and §6's request body, and
+   **[ADR 0019](docs/adr/0019-query-expansion-legs.md)**, the query-expansion legs, which
+   amend §5's account of what retrieval searches on. First instance:
    **[ADR 0005](docs/adr/0005-lexical-and-or-fallback.md)**, the lexical leg's AND→OR tsquery
    fallback in `search_chunks`; also
    **[ADR 0008](docs/adr/0008-answer-markdown-rendering.md)**, the answer-prose markdown subset

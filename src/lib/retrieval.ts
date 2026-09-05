@@ -237,11 +237,20 @@ export interface RetrieveOptions {
 
 /**
  * A chunk is corroborated when a similarity leg and a word-matching leg both
- * surfaced it. Since #286 there are two of each — the question's own pair and
- * the pair run over its corpus-register expansion — and either side of a pair
- * counts: the expansion is the same two retrieval modes asked in the corpus's
- * words, not a third mode, and a chunk both of them found is corroborated in
- * exactly the sense #21 meant. A chunk only one mode ever saw still is not. `isWeak` — no returned chunk corroborated — is what #21 turns into the
+ * surfaced it, **and at least one of those legs ran on the reader's own
+ * question**. Since #286 there are two of each — the question's own pair and
+ * the pair run over its corpus-register expansion — and the expansion's legs
+ * count towards the two modes, because they are the same two modes asked in
+ * the corpus's words rather than a third mode.
+ *
+ * The raw-leg requirement is what keeps the honest fallback honest. The
+ * expansion is a passage a model wrote for this question, and it writes one
+ * for *any* question, including one the corpus cannot answer; its lexical leg
+ * then matches the words the model chose and its vector leg matches the
+ * meaning of that same text. Two views of one invented passage are not two
+ * independent witnesses, so an expansion-only pair must not be able to say
+ * "corroborated" — that is exactly how an out-of-scope question would stop
+ * tripping `isWeak` and stop reaching the decline #21 built. `isWeak` — no returned chunk corroborated — is what #21 turns into the
  * honest fallback (say so and link the agency) instead of answering from
  * single-leg hits. Until #51 this was inferred from a score threshold
  * (2/(k + LEG_LIMIT)); coverage-scaled fallback contributions broke that
@@ -255,11 +264,13 @@ export function isCorroborated(chunk: {
   expansionVectorRank?: number | null;
   expansionLexicalRank?: number | null;
 }): boolean {
-  const bySimilarity =
-    chunk.vectorRank !== null || (chunk.expansionVectorRank ?? null) !== null;
-  const byWords =
-    chunk.lexicalRank !== null || (chunk.expansionLexicalRank ?? null) !== null;
-  return bySimilarity && byWords;
+  const expansionVector = chunk.expansionVectorRank ?? null;
+  const expansionLexical = chunk.expansionLexicalRank ?? null;
+  const bySimilarity = chunk.vectorRank !== null || expansionVector !== null;
+  const byWords = chunk.lexicalRank !== null || expansionLexical !== null;
+  const fromTheQuestion =
+    chunk.vectorRank !== null || chunk.lexicalRank !== null;
+  return bySimilarity && byWords && fromTheQuestion;
 }
 
 /** Score one leg contributes to an id ranked `rank` (1-based). */
@@ -439,15 +450,13 @@ export function createRetrievalClient(): RetrievalRpcClient {
 }
 
 /**
- * The production expander, or `null` when `EXPAND=off` or no Anthropic key is
- * configured — which is how the integration and e2e lanes, which run with no
- * secrets, get the two-leg contract without a failed call and its warning on
- * every ask, and how `EXPAND=off` measures the search v4 performed.
+ * The production expander, or `null` when expansion is switched off or has no
+ * provider — `expansionEnabled` owns that decision (expand.ts), and this asks
+ * it rather than re-deciding, so there is one answer to "does this ask
+ * expand?" and it lives beside the call it gates.
  */
 function defaultExpander(): QueryExpander | null {
-  if (!expansionEnabled()) return null;
-  if (!process.env.ANTHROPIC_API_KEY) return null;
-  return { expand: (query) => expandQuery(query) };
+  return expansionEnabled() ? { expand: (query) => expandQuery(query) } : null;
 }
 
 /**

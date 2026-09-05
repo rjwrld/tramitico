@@ -19,8 +19,8 @@
 -- literal question already found on its own strength.
 --
 -- Both expansion arguments default to null, which reproduces v4 row for row.
--- That is the contract every caller without a model relies on: the ingestion
--- integration suites, `RERANK=off`, and the ask path whenever expansion fails.
+-- That is the contract every caller without a model relies on: the integration
+-- suites, `EXPAND=off`, and the ask path whenever expansion fails.
 
 set search_path = '';
 

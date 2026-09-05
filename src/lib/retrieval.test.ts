@@ -677,10 +677,13 @@ describe("retrieve", () => {
       });
     });
 
-    it("counts either leg of a pair towards corroboration", () => {
+    it("counts either leg of a pair, but never the expansion alone", () => {
       // The expansion is the same two retrieval modes asked in the corpus's
       // words, so similarity-plus-words is still the test — one mode twice
-      // is still one mode.
+      // is still one mode. What it cannot do is corroborate on its own: both
+      // of its legs read one passage a model wrote for this question, and it
+      // writes one for any question, so an expansion-only pair would tell an
+      // out-of-scope ask that the corpus corroborates it.
       expect(
         isCorroborated({
           vectorRank: null,
@@ -688,7 +691,7 @@ describe("retrieve", () => {
           expansionVectorRank: 1,
           expansionLexicalRank: 1,
         }),
-      ).toBe(true);
+      ).toBe(false);
       expect(
         isCorroborated({
           vectorRank: 3,

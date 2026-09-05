@@ -188,9 +188,11 @@ describe("no log line can carry the question (#136 req. 1)", () => {
       embedQuery: async () => [0, 0, 0],
       embed: async () => [],
     };
-    const error = await retrieve(SENTINEL, { client, embedder }).catch(
-      (e: unknown) => e as Error,
-    );
+    const error = await retrieve(SENTINEL, {
+      client,
+      embedder,
+      expander: null,
+    }).catch((e: unknown) => e as Error);
     // What the ask route logs for a `retrieval_failed`.
     console.error(`ask: retrieval failed: ${describeError(error)}`);
     expect(lines).toEqual(["ask: retrieval failed: SearchChunksError<Object>"]);

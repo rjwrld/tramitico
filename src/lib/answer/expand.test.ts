@@ -11,7 +11,7 @@
 import { MockLanguageModelV4 } from "ai/test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("./model", () => ({ getCondenseModel: vi.fn() }));
+vi.mock("./model", () => ({ getExpandModel: vi.fn() }));
 
 import manifest from "../../../corpus/manifest.json";
 import {
@@ -25,7 +25,7 @@ import {
   MAX_EXPANSION_LENGTH,
   resetExpandFailures,
 } from "./expand";
-import { getCondenseModel } from "./model";
+import { getExpandModel } from "./model";
 
 const QUESTION = "Me inscribí un año tarde, ¿qué me pasa?";
 const EXPANSION =
@@ -44,7 +44,7 @@ function mockExpander(text: string): MockLanguageModelV4 {
       warnings: [],
     }),
   });
-  vi.mocked(getCondenseModel).mockReturnValue(model);
+  vi.mocked(getExpandModel).mockReturnValue(model);
   return model;
 }
 
@@ -54,18 +54,23 @@ function failingExpander(error: unknown): MockLanguageModelV4 {
       throw error;
     },
   });
-  vi.mocked(getCondenseModel).mockReturnValue(model);
+  vi.mocked(getExpandModel).mockReturnValue(model);
   return model;
 }
 
 beforeEach(() => {
   resetExpandFailures();
+  // `expansionEnabled` needs a provider, and the unit lane has none: without
+  // this every case below would take the switched-off path and assert
+  // nothing (#129's failure mode in miniature).
+  vi.stubEnv("ANTHROPIC_API_KEY", "test-key");
   vi.spyOn(console, "warn").mockImplementation(() => {});
 });
 
 afterEach(() => {
+  vi.unstubAllEnvs();
   vi.restoreAllMocks();
-  vi.mocked(getCondenseModel).mockReset();
+  vi.mocked(getExpandModel).mockReset();
   resetExpandFailures();
 });
 
@@ -76,6 +81,26 @@ describe("the rewrite", () => {
     expect(await expandQuery(QUESTION)).toBe(EXPANSION);
     expect(model.doGenerateCalls).toHaveLength(1);
     expect(JSON.stringify(model.doGenerateCalls[0].prompt)).toContain(QUESTION);
+    expect(expandFailures()).toEqual({ timeout: 0, error: 0, unusable: 0 });
+  });
+
+  it("makes no call when expansion is switched off", async () => {
+    const model = mockExpander(EXPANSION);
+    vi.stubEnv("EXPAND", "off");
+
+    expect(await expandQuery(QUESTION)).toBeNull();
+    expect(model.doGenerateCalls).toHaveLength(0);
+    // Switched off is not failed: `EXPAND=off` is a measurement, not an
+    // incident, so it counts nothing and logs nothing.
+    expect(expandFailures()).toEqual({ timeout: 0, error: 0, unusable: 0 });
+  });
+
+  it("makes no call with no provider configured", async () => {
+    const model = mockExpander(EXPANSION);
+    vi.stubEnv("ANTHROPIC_API_KEY", "");
+
+    expect(await expandQuery(QUESTION)).toBeNull();
+    expect(model.doGenerateCalls).toHaveLength(0);
     expect(expandFailures()).toEqual({ timeout: 0, error: 0, unusable: 0 });
   });
 

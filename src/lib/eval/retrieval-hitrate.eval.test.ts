@@ -27,6 +27,7 @@
 import { readFileSync } from "node:fs";
 import { beforeAll, expect, it } from "vitest";
 import { condenseQuestion } from "../answer/condense";
+import { expansionEnabled } from "../answer/expand";
 import { rerankChunks, RERANK_POOL } from "../answer/rerank";
 import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
@@ -80,6 +81,8 @@ interface CaseResult {
   isWeak: boolean;
   /** The standalone question a condensation case was run on (#132); null otherwise. */
   condensed: string | null;
+  /** The corpus-register rewrite the expansion legs ran on (#286); null when none. */
+  expansion: string | null;
 }
 
 describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
@@ -91,6 +94,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
   );
   const results: CaseResult[] = [];
   const rerankMode = process.env.RERANK || "voyage";
+  const expandMode = expansionEnabled() ? "on" : "off";
 
   beforeAll(async () => {
     // Constructed here, not in the describe body: `describe.skip` still runs
@@ -121,18 +125,24 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
         topScore: retrieval.topScore,
         isWeak: retrieval.isWeak,
         condensed,
+        expansion: retrieval.expansion,
       });
     }
     const hits = results.filter((r) => r.hit).length;
     console.log(
-      `\nretrieval hit-rate (rerank=${rerankMode}): ${hits}/${results.length}`,
+      `\nretrieval hit-rate (rerank=${rerankMode}, expand=${expandMode}): ` +
+        `${hits}/${results.length}`,
     );
     for (const r of results) {
       console.log(
         `  ${r.hit ? "hit " : "MISS"}  pool#${r.poolRank ?? "—"}  top=${r.topScore.toFixed(4)}  ${r.evalCase.id}` +
           // A missed condensation case is usually a bad rewrite rather than a
           // retrieval regression, and the rewrite is the only way to tell.
-          (r.condensed === null ? "" : `\n        ↳ ${r.condensed}`),
+          (r.condensed === null ? "" : `\n        ↳ ${r.condensed}`) +
+          // And which search actually ran (#286): a miss whose expansion
+          // names the wrong materia is a rewrite problem, not a corpus one,
+          // and the transcript is where eval/README.md reads that from.
+          (r.expansion === null ? "" : `\n        ⤳ ${r.expansion}`),
       );
     }
     console.log(
