@@ -448,6 +448,9 @@ describe("POST /api/ask", () => {
 
   it("pins a derived figure's input back in when the top-8 cut it (#287)", async () => {
     vi.stubEnv("RERANK", "off");
+    // The pin is opt-in until the authorized run measures it (#287); this is
+    // the pipeline that run will measure.
+    vi.stubEnv("PIN_DERIVED_INPUTS", "on");
     allowRateLimit();
     // The 2026 baseline's F1 shape: the escala survives the cut, the salary
     // decree it multiplies sits just past it, and without the pin the answer

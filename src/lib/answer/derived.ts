@@ -362,16 +362,26 @@ export function incompletelyCitedDerivedFigures(
  * Appending, never replacing: dropping the marginal chunk to make room could
  * un-hit a case the rerank got right, while an append can only add. Citation
  * markers are 1-based positions in the final list, so the existing numbering
- * is untouched. `PIN_DERIVED_INPUTS=off` opts out for a measured comparison.
+ * is untouched.
+ *
+ * **Off by default.** #287 asked for options «to measure, not guess», and an
+ * append is still a change to what the answer model reads: the check is
+ * source identity, not question relevance, so a salary artículo that survived
+ * an unrelated question drags its figure's siblings in with it. The append
+ * cannot move a citation marker, but it can move an answer. So the pin waits
+ * for the authorized run that measures it — `PIN_DERIVED_INPUTS=on` turns it
+ * on for that run, and a measured result is what makes it the default.
  */
 export function pinDerivedFigureInputs(
   answerSet: readonly RetrievedChunk[],
   pool: readonly RetrievedChunk[],
   figures: readonly DerivedFigure[] = DERIVED_FIGURES,
 ): RetrievedChunk[] {
-  // `||`, not `??`: an unset variable interpolated as "" must mean "default
-  // on", the same reading rerank.ts gives RERANK.
-  if ((process.env.PIN_DERIVED_INPUTS || "on") !== "on") return [...answerSet];
+  // Unset or interpolated empty both mean off: only an explicit
+  // PIN_DERIVED_INPUTS=on opts in, which is the opposite reading rerank.ts
+  // gives RERANK and deliberately so — RERANK=voyage was measured, this is
+  // what the next authorized run measures.
+  if (process.env.PIN_DERIVED_INPUTS !== "on") return [...answerSet];
 
   const pinned = [...answerSet];
   for (const figure of figures) {

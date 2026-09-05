@@ -166,7 +166,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
     const hits = results.filter((r) => r.hit).length;
     console.log(
       `\nretrieval hit-rate (rerank=${rerankMode} ${process.env.RERANK_MODEL || RERANK_MODEL}, pool ${RERANK_POOL} → top ${topKSize}, ` +
-        `pin=${process.env.PIN_DERIVED_INPUTS || "on"}): ${hits}/${results.length}`,
+        `pin=${process.env.PIN_DERIVED_INPUTS === "on" ? "on" : "off"}): ${hits}/${results.length}`,
     );
     for (const r of results) {
       console.log(

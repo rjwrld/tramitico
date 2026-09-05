@@ -77,7 +77,10 @@
  * corpus can complete the figure. It appends and never substitutes, so the
  * answer set the rerank chose is intact and the citation numbering the prompt
  * hands the model is unchanged; the pinned chunk is an ordinary source, cited
- * and validated like the rest.
+ * and validated like the rest. It is off until `PIN_DERIVED_INPUTS=on`: an
+ * append still changes what the model reads, and #287 asked for options to
+ * measure rather than guess, so the authorized run decides whether this
+ * becomes the pipeline of record.
  *
  * Stop/retry (#74, audit F-11): `request.signal` is threaded into `streamText`
  * as `abortSignal`, so a client-side `stop()` (chat.tsx) cancels the paid

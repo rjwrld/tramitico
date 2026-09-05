@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
 import {
   DERIVED_FIGURES,
@@ -258,6 +258,10 @@ describe("incompletelyCitedDerivedFigures", () => {
 });
 
 describe("pinDerivedFigureInputs", () => {
+  beforeEach(() => {
+    // Off unless asked for (#287): every case below is the opted-in pipeline.
+    vi.stubEnv("PIN_DERIVED_INPUTS", "on");
+  });
   afterEach(() => {
     vi.unstubAllEnvs();
   });
@@ -322,17 +326,14 @@ describe("pinDerivedFigureInputs", () => {
     expect(pinned).toEqual([escala, salud, salarios]);
   });
 
-  it("opts out under PIN_DERIVED_INPUTS=off, for a measured comparison", () => {
-    vi.stubEnv("PIN_DERIVED_INPUTS", "off");
-    expect(
-      pinDerivedFigureInputs([escala], [escala, salarios], [BMC_IVM]),
-    ).toEqual([escala]);
-  });
-
-  it("pins by default when the variable is unset or interpolated empty", () => {
-    vi.stubEnv("PIN_DERIVED_INPUTS", "");
-    expect(
-      pinDerivedFigureInputs([escala], [escala, salarios], [BMC_IVM]),
-    ).toEqual([escala, salarios]);
+  it("pins nothing until PIN_DERIVED_INPUTS=on asks for it (#287)", () => {
+    // Unset, empty and off are one answer: the pipeline of record, which does
+    // not pin until an authorized run has measured that it should.
+    for (const value of ["", "off", "true", "1"]) {
+      vi.stubEnv("PIN_DERIVED_INPUTS", value);
+      expect(
+        pinDerivedFigureInputs([escala], [escala, salarios], [BMC_IVM]),
+      ).toEqual([escala]);
+    }
   });
 });

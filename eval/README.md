@@ -75,11 +75,13 @@ read at call time and all defaulting to the pipeline of record:
 | `PIN_DERIVED_INPUTS` | `on`              | `off` removes the pin that completes a resolvable derived figure |
 
 Changing one changes the ask pipeline, not just the eval, so a run that moves
-a knob says so in its header line. `RERANK_MODEL` and `ANSWER_TOP_K` keep
-their defaults until a measured run earns a change; the pin ships **on**
-without one because it is deterministic and append-only — it completes a
-figure whose inputs the corpus already states and can never displace a chunk
-the reranker chose — and `off` is there for the comparison.
+a knob says so in its header line, and all three keep their defaults until a
+measured run earns the change. That includes the pin: it is deterministic and
+append-only, which makes it safe to measure rather than already measured — it
+matches on source identity, not on question relevance, so it can add context
+to an answer that never asked for the figure. Measure it on both sides of an
+otherwise fixed run before it becomes the default
+([ADR 0018](../docs/adr/0018-derived-figures-by-code.md)).
 
 For every case that missed with its target inside the fused pool, the run
 prints the target's reranked rank, the answer set it lost to, and the chunk
