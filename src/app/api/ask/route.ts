@@ -123,6 +123,7 @@ import {
 import { condenseQuestion } from "@/lib/answer/condense";
 import {
   incompletelyCitedDerivedFigures,
+  pinDerivedFigureInputs,
   resolveDerivedFigures,
   type ResolvedDerivedFigure,
 } from "@/lib/answer/derived";
@@ -713,7 +714,14 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     // Rerank is still "buscando" — the stage flips only when the model does.
-    const chunks = await rerankChunks(asked.query, retrieval.chunks);
+    // #287: the rerank cut can strand a derived figure by dropping one of its
+    // inputs while its sibling survives, and the figure is then unprintable.
+    // Pinning the missing input back in from the pool the reranker just read
+    // is an append, so nothing the rerank chose is displaced.
+    const chunks = pinDerivedFigureInputs(
+      await rerankChunks(asked.query, retrieval.chunks),
+      retrieval.chunks,
+    );
     if (cutShort()) return;
     const derivedFigures = resolveDerivedFigures(chunks);
     writeStatus(writer, "redactando");

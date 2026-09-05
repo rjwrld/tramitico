@@ -339,3 +339,52 @@ export function incompletelyCitedDerivedFigures(
   }
   return figures.map((figure) => figure.id).filter((id) => incomplete.has(id));
 }
+
+/**
+ * Complete a derived figure whose siblings survived the top-8 cut (#287).
+ *
+ * A figure is arithmetic over *every* one of its inputs, so losing one chunk
+ * to the rerank loses the whole figure: `ccss-cuanto-pago-base` retrieved
+ * `ccss-escala-ivm` «Artículo 4°, sesión 9570» and lost `salarios-minimos`
+ * «Artículo 1» between the pool and the answer set, and the answer could not
+ * print the IVM base at all. When at least one input is already in the answer
+ * set and the missing ones are in the fused pool the reranker just read, they
+ * are appended — the figure is resolvable, and the reader is owed it.
+ *
+ * Appending, never replacing: dropping the marginal chunk to make room could
+ * un-hit a case the rerank got right, while an append can only add. Citation
+ * markers are 1-based positions in the final list, so the existing numbering
+ * is untouched. `PIN_DERIVED_INPUTS=off` opts out for a measured comparison.
+ */
+export function pinDerivedFigureInputs(
+  answerSet: readonly RetrievedChunk[],
+  pool: readonly RetrievedChunk[],
+  figures: readonly DerivedFigure[] = DERIVED_FIGURES,
+): RetrievedChunk[] {
+  // `||`, not `??`: an unset variable interpolated as "" must mean "default
+  // on", the same reading rerank.ts gives RERANK.
+  if ((process.env.PIN_DERIVED_INPUTS || "on") !== "on") return [...answerSet];
+
+  const matches = (chunk: RetrievedChunk, input: DerivedFigureInput) =>
+    chunk.docKey === input.docKey && chunk.articulo === input.articulo;
+
+  const pinned = [...answerSet];
+  for (const figure of figures) {
+    const missing = figure.inputs.filter(
+      (input) => !pinned.some((chunk) => matches(chunk, input)),
+    );
+    // Nothing missing: already resolvable. Nothing present: not this
+    // question's figure, and pinning both halves would invent a claim.
+    if (missing.length === 0 || missing.length === figure.inputs.length)
+      continue;
+
+    const found = missing.map((input) =>
+      pool.find((chunk) => matches(chunk, input)),
+    );
+    if (found.some((chunk) => chunk === undefined)) continue;
+    for (const chunk of found) {
+      if (chunk !== undefined && !pinned.includes(chunk)) pinned.push(chunk);
+    }
+  }
+  return pinned;
+}

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
 import {
   DERIVED_FIGURES,
@@ -6,6 +6,7 @@ import {
   formatCostaRicanColones,
   incompletelyCitedDerivedFigures,
   parseDerivedFigures,
+  pinDerivedFigureInputs,
   resolveDerivedFigures,
   type DerivedFigure,
   type ResolvedDerivedFigure,
@@ -253,5 +254,85 @@ describe("incompletelyCitedDerivedFigures", () => {
         equalAmounts,
       ),
     ).toEqual(["articulo-79"]);
+  });
+});
+
+describe("pinDerivedFigureInputs", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  const escala = chunk("ccss-escala-ivm", "Artículo 4°, sesión 9570");
+  const salarios = chunk("salarios-minimos", "Artículo 1");
+  const other = chunk("ley-iva", "Artículo 10");
+
+  it("appends the input the rerank cut when its sibling survived (#287)", () => {
+    const pinned = pinDerivedFigureInputs(
+      [other, escala],
+      [other, escala, salarios],
+      [BMC_IVM],
+    );
+    expect(pinned).toEqual([other, escala, salarios]);
+    // Appending, not replacing: the figure resolves and the markers the
+    // surviving chunks already had keep their positions.
+    expect(resolveDerivedFigures(pinned, [BMC_IVM])[0].citationMarkers).toEqual(
+      [2, 3],
+    );
+  });
+
+  it("leaves the answer set alone when no input survived the cut", () => {
+    const answerSet = [other];
+    expect(
+      pinDerivedFigureInputs(answerSet, [other, escala, salarios], [BMC_IVM]),
+    ).toEqual(answerSet);
+  });
+
+  it("leaves the answer set alone when the missing input is not in the pool", () => {
+    expect(
+      pinDerivedFigureInputs([escala], [escala, other], [BMC_IVM]),
+    ).toEqual([escala]);
+  });
+
+  it("adds nothing when every input is already there", () => {
+    const answerSet = [escala, salarios];
+    expect(pinDerivedFigureInputs(answerSet, answerSet, [BMC_IVM])).toEqual(
+      answerSet,
+    );
+  });
+
+  it("never duplicates a chunk two figures both need", () => {
+    const salud = chunk("ccss-escala-salud", "Artículo 30°, sesión 8999");
+    const bmcSem: DerivedFigure = {
+      ...BMC_IVM,
+      id: "bmc-sem-2026",
+      inputs: [
+        {
+          ...BMC_IVM.inputs[0],
+          docKey: "ccss-escala-salud",
+          articulo: "Artículo 30°, sesión 8999",
+        },
+        BMC_IVM.inputs[1],
+      ],
+    };
+    const pinned = pinDerivedFigureInputs(
+      [escala, salud],
+      [escala, salud, salarios],
+      [BMC_IVM, bmcSem],
+    );
+    expect(pinned).toEqual([escala, salud, salarios]);
+  });
+
+  it("opts out under PIN_DERIVED_INPUTS=off, for a measured comparison", () => {
+    vi.stubEnv("PIN_DERIVED_INPUTS", "off");
+    expect(
+      pinDerivedFigureInputs([escala], [escala, salarios], [BMC_IVM]),
+    ).toEqual([escala]);
+  });
+
+  it("pins by default when the variable is unset or interpolated empty", () => {
+    vi.stubEnv("PIN_DERIVED_INPUTS", "");
+    expect(
+      pinDerivedFigureInputs([escala], [escala, salarios], [BMC_IVM]),
+    ).toEqual([escala, salarios]);
   });
 });

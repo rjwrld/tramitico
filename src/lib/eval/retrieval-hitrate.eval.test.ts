@@ -23,11 +23,26 @@
  *
  * Reranking defaults on (#25 validated the lift); RERANK=off measures the
  * fused-only baseline.
+ *
+ * #287 adds the knobs a measured run needs instead of a guess — `RERANK_MODEL`
+ * (a reranker with different Spanish legal recall), `ANSWER_TOP_K` (a larger
+ * answer set) and `PIN_DERIVED_INPUTS=off` (the derived-input pin removed) —
+ * and prints, for every miss whose target did reach the fused pool, the rank
+ * the reranker gave it, the answer set that beat it, and the chunk holding
+ * the last surviving place.
  */
 import { readFileSync } from "node:fs";
 import { beforeAll, expect, it } from "vitest";
 import { condenseQuestion } from "../answer/condense";
-import { rerankChunks, RERANK_POOL } from "../answer/rerank";
+import { pinDerivedFigureInputs } from "../answer/derived";
+import {
+  answerSetFromOrder,
+  answerTopK,
+  RERANK_MODEL,
+  RERANK_POOL,
+  rerankOrder,
+  type RerankedChunk,
+} from "../answer/rerank";
 import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import { retrieve, type RetrievedChunk } from "../retrieval";
@@ -71,11 +86,21 @@ const describeEval = integrationSuite({
   [REAL_EMBEDDINGS]: realEmbedderConfigured(),
 });
 
+function describeChunk(chunk: RetrievedChunk): string {
+  return `${chunk.docKey} · ${chunk.articulo ?? "—"}`;
+}
+
 interface CaseResult {
   evalCase: EvalCase;
   hit: boolean;
   /** 1-based rank of the first expected chunk in the fused pool; null = not in pool. */
   poolRank: number | null;
+  /** Same, in the reranked order; null when nothing reranked (RERANK=off, no key). */
+  rerankRank: number | null;
+  /** The reranked answer set, kept for the #287 displacement report on a miss. */
+  answerSet: RetrievedChunk[];
+  /** The chunk that took the last answer-set place a missed target wanted. */
+  displacedBy: RerankedChunk | null;
   topScore: number;
   isWeak: boolean;
   /** The standalone question a condensation case was run on (#132); null otherwise. */
@@ -91,6 +116,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
   );
   const results: CaseResult[] = [];
   const rerankMode = process.env.RERANK || "voyage";
+  const topKSize = answerTopK();
 
   beforeAll(async () => {
     // Constructed here, not in the describe body: `describe.skip` still runs
@@ -110,14 +136,28 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
         matchCount: RERANK_POOL,
         embedder,
       });
-      const topK = await rerankChunks(query, retrieval.chunks);
+      const order = await rerankOrder(query, retrieval.chunks);
+      // The route's exact sequence: rerank cut, then #287's derived-input pin.
+      const topK = pinDerivedFigureInputs(
+        answerSetFromOrder(order, retrieval.chunks),
+        retrieval.chunks,
+      );
       const inPool = (chunk: RetrievedChunk) =>
         evalCase.expected.some((t) => chunkMatchesTarget(chunk, t));
       const poolIndex = retrieval.chunks.findIndex(inPool);
+      const rerankIndex =
+        order === null ? -1 : order.findIndex((r) => inPool(r.chunk));
+      // Requirement 1 of #287: the marginal survivor — the chunk holding the
+      // last answer-set place — is what a target ranked below it lost to.
+      const marginal = order === null ? undefined : order[topKSize - 1];
       results.push({
         evalCase,
         hit: caseHit(topK, evalCase.expected),
         poolRank: poolIndex === -1 ? null : poolIndex + 1,
+        rerankRank: rerankIndex === -1 ? null : rerankIndex + 1,
+        answerSet: topK,
+        displacedBy:
+          marginal !== undefined && rerankIndex >= topKSize ? marginal : null,
         topScore: retrieval.topScore,
         isWeak: retrieval.isWeak,
         condensed,
@@ -125,7 +165,8 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
     }
     const hits = results.filter((r) => r.hit).length;
     console.log(
-      `\nretrieval hit-rate (rerank=${rerankMode}): ${hits}/${results.length}`,
+      `\nretrieval hit-rate (rerank=${rerankMode} ${process.env.RERANK_MODEL || RERANK_MODEL}, pool ${RERANK_POOL} → top ${topKSize}, ` +
+        `pin=${process.env.PIN_DERIVED_INPUTS || "on"}): ${hits}/${results.length}`,
     );
     for (const r of results) {
       console.log(
@@ -134,6 +175,21 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
           // retrieval regression, and the rewrite is the only way to tell.
           (r.condensed === null ? "" : `\n        ↳ ${r.condensed}`),
       );
+    }
+    // #287: a target that reached the pool and still missed was cut by the
+    // rerank, and the report has to say by what — the reranked order the case
+    // actually produced, and the chunk holding the last surviving place.
+    for (const r of results.filter((r) => !r.hit && r.poolRank !== null)) {
+      console.log(`\n  cut between pool and top-${topKSize}: ${r.evalCase.id}`);
+      console.log(
+        `    target reranked #${r.rerankRank ?? "—"} (pool #${r.poolRank})` +
+          (r.displacedBy === null
+            ? ""
+            : `, displaced by ${describeChunk(r.displacedBy.chunk)} (score ${r.displacedBy.score.toFixed(4)})`),
+      );
+      r.answerSet.forEach((chunk, index) => {
+        console.log(`    #${index + 1} ${describeChunk(chunk)}`);
+      });
     }
     console.log(
       formatExposureTally(

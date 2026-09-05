@@ -65,6 +65,23 @@ pnpm vitest run src/lib/eval/retrieval-hitrate.eval.test.ts
 `RERANK=off` measures the fused-only baseline; the per-case table (pool rank,
 top score) prints with the run.
 
+Three knobs exist so the #287 options are measured rather than argued, all
+read at call time and all defaulting to the pipeline of record:
+
+| Variable             | Default           | What it changes                                                  |
+| -------------------- | ----------------- | ---------------------------------------------------------------- |
+| `RERANK_MODEL`       | `rerank-2.5-lite` | the Voyage reranker asked for                                    |
+| `ANSWER_TOP_K`       | `8`               | how many reranked chunks reach the answer prompt                 |
+| `PIN_DERIVED_INPUTS` | `on`              | `off` removes the pin that completes a resolvable derived figure |
+
+Changing one changes the ask pipeline, not just the eval, so a run that moves
+a knob says so in its header line — and only a measured run may make a knob
+the new default.
+
+For every case that missed with its target inside the fused pool, the run
+prints the target's reranked rank, the answer set it lost to, and the chunk
+holding the last surviving place (#287 requirement 1).
+
 ## The 2026 baseline (#267)
 
 > **Measured 2026-09-05 (02:55–03:23 UTC), one authorized local run, on the
