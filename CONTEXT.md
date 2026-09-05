@@ -25,9 +25,16 @@ linking the spec section or ADR that owns the definition. Created lazily per
 - **Sello snapshot** — a cumulative `data-citations` stream part carrying the deduped citations
   in order of use; the UI renders the latest snapshot as sello chips.
   [ADR 0004](docs/adr/0004-citation-rendering.md).
-- **Corroboration** — a chunk surfacing in both retrieval legs (vector and lexical), which
-  preserves its fused score under coverage-scaled fallback fusion (`isCorroborated` in
-  `src/lib/retrieval.ts`). [ADR 0006](docs/adr/0006-coverage-scaled-fallback-fusion.md).
+- **Corroboration** — a chunk surfacing in a similarity leg and a word-matching leg, at least
+  one of which ran on the reader's own question. Since the expansion legs there are two legs of
+  each kind, and either one counts towards its kind; an expansion-only pair does not
+  corroborate, because both of its legs read one passage a model wrote (`isCorroborated` in
+  `src/lib/retrieval.ts`). [ADR 0006](docs/adr/0006-coverage-scaled-fallback-fusion.md),
+  [ADR 0019](docs/adr/0019-query-expansion-legs.md).
+- **Expansion** — the reader's question rewritten into the vocabulary of the corpus, used only
+  as a search probe: it is never stored and never reaches the reader. Its own vector and lexical
+  legs join the same fusion as the question's, so it can add candidates but never remove them
+  (`src/lib/answer/expand.ts`). [ADR 0019](docs/adr/0019-query-expansion-legs.md).
 - **Signing-key mode** — whether Supabase Auth signs access tokens symmetrically (HS256, one
   shared secret) or asymmetrically (ES256/RS256, published JWKS). It decides what `getClaims()`
   costs and trusts: with asymmetric keys it verifies the signature locally and never asks the
