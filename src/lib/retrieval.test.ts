@@ -458,6 +458,19 @@ function fakeClient(
 }
 
 describe("retrieve", () => {
+  // The unit lane must not reach a provider, and `retrieve`'s default
+  // expander (#286) would whenever an Anthropic key happens to be in the
+  // environment — which it is for anyone who sourced `.env.local` before
+  // `pnpm test`. Cases that want expansion pass their own `expander` and are
+  // unaffected by the switch.
+  beforeEach(() => {
+    vi.stubEnv("EXPAND", "off");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("passes the embedded query and match count to the RPC", async () => {
     let seen: Record<string, unknown> | undefined;
     await retrieve("¿me cobran retroactivo?", {

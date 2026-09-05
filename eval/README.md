@@ -242,8 +242,12 @@ every keyless lane get.
 lifts the held-out embargo («nobody consults these cases while tuning
 retrieval… until the #267 baseline is published»), so these six were visible
 while the rewrite prompt was written. The 61-case table below is therefore
-**in-sample for the six** and out-of-sample for the other 55; the six are
-marked in the per-case list, and the aggregate is worth reading as the 55.
+**in-sample for the six** and out-of-sample for the other 55; the aggregate is
+worth reading as the 55. Concretely: the rule that stops the model from
+silently disambiguating a question the reader left ambiguous — and its list of
+trámites that exist at both institutions — was written with
+`inscripcion-tardia-sancion` and `ho-t2-constancia-al-dia` in view. It moved
+the first into the pool and did not move the second at all.
 
 **What it measured, and what it did not.** The fused pool is not the hit-rate
 gate — only an authorized eval run measures that — so what is claimed here is
