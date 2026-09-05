@@ -47,10 +47,10 @@ instead of a size (see below). One JSON object per line:
 
 The assertion lives in `src/lib/eval/retrieval-hitrate.eval.test.ts`
 (loader/matcher in `src/lib/eval/dataset.ts`). It runs each question through
-the production retrieval path — fused pool of 30, Voyage rerank, top-8 — and
-gates on hit-rate, the blocking canary, and the weak-retrieval threshold. It is
-env-gated: skipped without `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` and real
-embeddings; CI runs it once those secrets exist (see `.github/workflows/ci.yml`).
+the production retrieval path — a fused pool of `RERANK_POOL` (40 since #51),
+Voyage rerank, the answer top-k — and gates on hit-rate, the blocking canary,
+and the weak-retrieval threshold. It is env-gated: skipped without
+`SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` and real embeddings; CI runs it once those secrets exist (see `.github/workflows/ci.yml`).
 
 Run locally:
 
