@@ -143,7 +143,16 @@ export interface LiteralCheck {
   cited: boolean;
 }
 
-/** A markdown table row, as prompt rule 10 permits the answer to write one. */
+/**
+ * A markdown table row, in the form prompt rule 10 dictates — «tablas simples
+ * con barras verticales (| columna | columna |)». Markdown's pipe-less variant
+ * ("Tramo | Tarifa") is deliberately not matched: recognising a row by "has a
+ * pipe in it" would let a prose sentence carrying one borrow a citation from
+ * elsewhere, and for this check the two errors are not symmetric — missing a
+ * cited figure fails loudly and gets read, while vouching for an uncited one
+ * passes silently, which is the whole thing #131 and #261 req. 3 exist to
+ * prevent. `adequacy.test.ts` pins the limit.
+ */
 const TABLE_ROW = /^\s*\|/;
 
 /**

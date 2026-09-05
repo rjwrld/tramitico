@@ -31,12 +31,26 @@ import type { Verdict } from "./groundedness";
 /** Where a run writes its transcript unless `EVAL_TRANSCRIPT_DIR` says otherwise. */
 export const DEFAULT_TRANSCRIPT_DIR = "eval/transcripts";
 
-/** A chunk as the prompt presented it: its marker, and what it was. */
+/**
+ * A chunk as the prompt presented it: its marker, what it was, and what it
+ * said.
+ *
+ * The text is here because the question this file exists to answer — was the
+ * requirement's support in front of the model at all? — cannot be answered
+ * from identifiers. `docKey` + `articulo` does not even identify a chunk: a
+ * long artículo is split into parts that share both, so only `chunkId` tells
+ * two of them apart. Carrying the content is what makes a transcript readable
+ * without the corpus database beside it, which is the re-run req. 1 exists to
+ * avoid.
+ */
 export interface TranscriptChunk {
   /** 1-based, the `[n]` the answer cites. */
   marker: number;
+  chunkId: string;
   docKey: string;
   articulo: string | null;
+  /** Verbatim, as `formatChunks` put it in the prompt. */
+  content: string;
 }
 
 export interface TranscriptRow {
@@ -97,8 +111,10 @@ export function transcriptRow({
     answer,
     chunks: chunks.map((chunk, i) => ({
       marker: i + 1,
+      chunkId: chunk.chunkId,
       docKey: chunk.docKey,
       articulo: chunk.articulo,
+      content: chunk.content,
     })),
     derivedFigures: derivedFigures.map((figure) => ({
       id: figure.id,
@@ -130,6 +146,16 @@ export function transcriptFilename(answerModel: string, now: Date): string {
   return `groundedness-${model}-${stamp}.jsonl`;
 }
 
+/**
+ * Writes the transcript and returns the path.
+ *
+ * `wx` rather than the default `w`: the stamp carries no fractional seconds,
+ * so two runs of one model landing in the same second would resolve to one
+ * name, and the second `writeFileSync` would truncate the first away. This is
+ * the product of a run that costs real money and half an hour — losing one to
+ * a name collision is not a trade worth taking, so a taken name gets a
+ * suffix instead.
+ */
 export function writeTranscript(
   rows: readonly TranscriptRow[],
   {
@@ -139,7 +165,18 @@ export function writeTranscript(
   }: { dir?: string; answerModel: string; now?: Date },
 ): string {
   mkdirSync(dir, { recursive: true });
-  const file = path.join(dir, transcriptFilename(answerModel, now));
-  writeFileSync(file, serializeTranscript(rows));
-  return file;
+  const name = transcriptFilename(answerModel, now);
+  const body = serializeTranscript(rows);
+  for (let attempt = 0; ; attempt += 1) {
+    const file = path.join(
+      dir,
+      attempt === 0 ? name : name.replace(/\.jsonl$/, `-${attempt + 1}.jsonl`),
+    );
+    try {
+      writeFileSync(file, body, { flag: "wx" });
+      return file;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+    }
+  }
 }

@@ -78,9 +78,48 @@ describe("transcriptRow", () => {
    */
   it("numbers the chunks the way the prompt did, so [n] indexes into them", () => {
     expect(ROW.chunks).toEqual([
-      { marker: 1, docKey: "tramos-renta-2026", articulo: "Artículo 1" },
-      { marker: 2, docKey: "ley-renta", articulo: "Artículo 1" },
+      {
+        marker: 1,
+        chunkId: "c1",
+        docKey: "tramos-renta-2026",
+        articulo: "Artículo 1",
+        content: "…",
+      },
+      {
+        marker: 2,
+        chunkId: "c2",
+        docKey: "ley-renta",
+        articulo: "Artículo 1",
+        content: "…",
+      },
     ]);
+  });
+
+  /**
+   * `docKey` + `articulo` does not identify a chunk — a long artículo is
+   * chunked into parts that share both — and the question the transcript
+   * exists to answer is whether the text a requirement needed was in the
+   * prompt at all. Without the content that is unanswerable offline, which
+   * is the re-run this file exists to avoid.
+   */
+  it("keeps each chunk's id and text, so a requirement can be looked for in it", () => {
+    const row = transcriptRow({
+      evalCase: CASE,
+      query: CASE.question,
+      answer: "…",
+      chunks: [
+        chunk({ chunkId: "a", part: 0, content: "primera parte del artículo" }),
+        chunk({ chunkId: "b", part: 1, content: "segunda parte del artículo" }),
+      ],
+      derivedFigures: [],
+      groundedness: { verdict: "pass", verdicts: ["pass"], reason: "" },
+      citations: { ok: true },
+      adequacy: null,
+    });
+    // Same docKey and articulo on both: only the id and the text tell them
+    // apart.
+    expect(row.chunks.map((c) => c.chunkId)).toEqual(["a", "b"]);
+    expect(row.chunks[1]!.content).toBe("segunda parte del artículo");
   });
 
   it("keeps a weak-retrieval decline, which has no chunks and no citations", () => {
@@ -140,6 +179,26 @@ describe("transcriptFilename", () => {
 });
 
 describe("writeTranscript", () => {
+  /**
+   * The transcript is the product of a run that costs real money and half an
+   * hour. Two runs landing in the same second — the stamp has no fractional
+   * part — must not leave one of them silently truncated by the other.
+   */
+  it("never overwrites an earlier transcript for the same instant", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "tx-"));
+    const at = { dir, answerModel: "m", now: new Date("2026-09-05T02:55:03Z") };
+    const first = writeTranscript([ROW], at);
+    const second = writeTranscript([{ ...ROW, id: "otro-caso" }], at);
+
+    expect(second).not.toBe(first);
+    expect(JSON.parse(readFileSync(first, "utf8").trim()).id).toBe(
+      "ho-minimo-renta-2026",
+    );
+    expect(JSON.parse(readFileSync(second, "utf8").trim()).id).toBe(
+      "otro-caso",
+    );
+  });
+
   it("creates the directory and returns the path it wrote", () => {
     const dir = path.join(mkdtempSync(path.join(tmpdir(), "tx-")), "nested");
     const written = writeTranscript([ROW], {

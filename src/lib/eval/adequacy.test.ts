@@ -199,6 +199,34 @@ describe("checkLiteral", () => {
     });
   });
 
+  /**
+   * Scope, pinned deliberately rather than left to chance: `TABLE_ROW` matches
+   * the form prompt rule 10 dictates — «tablas simples con barras verticales
+   * (| columna | columna |)» — and markdown's pipe-less variant is not
+   * widened for.
+   *
+   * Recognising a row by "contains a pipe" would let a prose sentence that
+   * happens to carry one borrow a citation from further down the answer. For
+   * an eval-integrity check the two errors are not symmetric: missing a cited
+   * figure fails loudly and gets investigated, while vouching for an uncited
+   * one passes silently and is exactly what #131 and #261 req. 3 exist to
+   * prevent. So the check stays narrow, and if the answer model ever starts
+   * writing pipe-less tables, this test is where that shows up.
+   */
+  it("does not widen for a table without outer pipes (#289 scope)", () => {
+    const answer = [
+      "Tramo | Tarifa",
+      "--- | ---",
+      "1 | 7.53%",
+      "",
+      "Fuente [6].",
+    ].join("\n");
+    expect(checkLiteral(answer, ["7,53 %", "7,53%"])).toEqual({
+      found: true,
+      cited: false,
+    });
+  });
+
   it("leaves a sentence-ending period a sentence end (#289)", () => {
     // The separator rewrite must not touch the "." that closes a sentence,
     // or the citation window would run past it and a later marker would
