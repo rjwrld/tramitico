@@ -27,7 +27,7 @@ linking the spec section or ADR that owns the definition. Created lazily per
   [ADR 0004](docs/adr/0004-citation-rendering.md).
 - **Corroboration** — a chunk surfacing in a similarity leg and a word-matching leg, at least
   one of which ran on the reader's own question. Since the expansion legs there are two legs of
-  each kind, and either one counts towards its kind; an expansion-only pair does not
+  each kind, and either one counts towards its kind, but an expansion-only pair does not
   corroborate, because both of its legs read one passage a model wrote (`isCorroborated` in
   `src/lib/retrieval.ts`). [ADR 0006](docs/adr/0006-coverage-scaled-fallback-fusion.md),
   [ADR 0019](docs/adr/0019-query-expansion-legs.md).
