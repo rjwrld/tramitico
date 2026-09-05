@@ -256,9 +256,11 @@ register of the corpus, grounded in the corpus's own document titles
 pair over the rewrite — its embedding on a vector leg, its text on a lexical
 leg — fused into the same RRF sum as the question's own two legs. Four legs,
 equal weight, one k. The question's legs are computed exactly as v4 computed
-them, so an expansion can only add candidates: both expansion arguments
-default to null and reproduce v4 row for row, which is what `EXPAND=off` and
-every keyless lane get.
+them, and every chunk they find stays a candidate. That is narrower than "the
+expansion cannot hurt": it shares the RRF sum, so it changes the fused order —
+the table below measures by how much. The byte-for-byte guarantee is the null
+one: both expansion arguments default to absent and reproduce v4 row for row,
+which is what `EXPAND=off` and every keyless lane get.
 
 **Exposure, stated plainly.** The #267 baseline is published, which is what
 lifts the held-out embargo («nobody consults these cases while tuning
@@ -283,7 +285,7 @@ baseline corpus, with `--no-expansion` as the control:
 | cases that improved / held / worsened  | —                  | 30 / 21 / 10          |
 
 No case left the pool, and the worst single regression is four ranks
-(`ho-trabajitos-por-mi-cuenta`, 3 → 7): the "can only add" property holds
+(`ho-trabajitos-por-mi-cuenta`, 3 → 7): the candidate-set property holds
 empirically, and the small negative moves are other chunks gaining an
 expansion contribution, not the question's own legs changing. The fused top-8
 column is the one that predicts a hit without the reranker, and it is where
@@ -429,6 +431,15 @@ Reproduce any of this with `pnpm pool-dump <case id> …`, which prints the top
 of the fused pool with all four leg ranks (`--no-expansion` for the v4 pool).
 
 ### Retrieval, groundedness and adequacy, per case
+
+> **This table is the #267 baseline's, and it stays that way.** It records what
+> the 2026-09-05 baseline run measured, which is what the follow-up issues were
+> written against — so `inscripcion-tardia-sancion` and
+> `ho-rebajar-25-sin-facturas` read MISS here and `ho-cliente-espana-lleva-iva`
+> reads hit, all three of which #286 later changed. Every later run is a
+> section of its own with its own numbers; overwriting this one would erase the
+> measurement the issues cite. The current state is «The six pool misses,
+> diagnosed and answered (#286)» above.
 
 | Case                                       | Tier               | Exposure | Hit (rerank) | Pool # | Hit (fused) | Groundedness          | Adequacy |
 | ------------------------------------------ | ------------------ | -------- | ------------ | ------ | ----------- | --------------------- | -------- |

@@ -15,8 +15,9 @@
 -- a vector leg on its embedding, a lexical leg on its text, fused into the
 -- same RRF sum as the raw question's two legs. Four legs, equal weight, one
 -- k. The raw legs are computed exactly as v4 computed them, so an expansion
--- can only add candidates to the pool; it never removes or reorders what the
--- literal question already found on its own strength.
+-- adds candidates to the pool without removing any: a chunk the question's own
+-- legs found is still a candidate. It does share the RRF sum, so the fused
+-- *order* is not preserved — only a null expansion reproduces v4 exactly.
 --
 -- Both expansion arguments default to null, which reproduces v4 row for row.
 -- That is the contract every caller without a model relies on: the integration

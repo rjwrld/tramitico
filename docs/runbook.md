@@ -64,10 +64,11 @@ said, which points at the prompt or the model rather than at availability.
 
 `ask: expansion failed` (#286) reads the same way and is the same class of event, with one
 difference in blast radius: expansion runs on **every** ask, not only follow-ups, so a
-provider problem shows up here first and at full volume. The ask is still answered and still
-grounded — the search falls back to the question's own two legs, which is what it did before
-#286 — so this is a search-quality signal, not an availability one. `EXPAND=off` turns the
-call off entirely if it ever needs to be shed.
+provider problem shows up here first and at full volume. It is not itself an outage: retrieval
+continues on the question's own two legs, which is the search this product ran before #286, so
+the ask proceeds down the ordinary path. That path can still find little and decline, or fail
+later in answer generation — this line says only that the search was the pre-expansion one.
+`EXPAND=off` turns the call off entirely if it ever needs to be shed.
 
 | Prefix                                | From                                | Carries                                     |
 | ------------------------------------- | ----------------------------------- | ------------------------------------------- |

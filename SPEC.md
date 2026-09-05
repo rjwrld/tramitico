@@ -229,9 +229,10 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   question **and on its corpus-register expansion**. A small model call rewrites the question
   into the vocabulary of the documents — grounded in the corpus's own titles — and
   `search_chunks` runs the identical hybrid pair over the rewrite, fused into the same RRF sum
-  as the question's own two legs. The question's legs are unchanged and the expansion defaults
-  to absent, so it can only add candidates; a rewrite that fails, times out or is switched off
-  (`EXPAND=off`) leaves the search exactly as it was. Corroboration still requires a leg that
+  as the question's own two legs. The question's legs are unchanged and every chunk they find
+  stays a candidate, but the expansion contributes to the same sum, so it does change the fused
+  order; a rewrite that fails, times out or is switched off (`EXPAND=off`) leaves the search
+  exactly as it was, and that is where the byte-for-byte guarantee lives. Corroboration still requires a leg that
   ran on the reader's own question, so the weak-retrieval decline cannot be satisfied by a
   passage the model wrote. The reranker scores against the question **and** its expansion, for
   the same reason the legs do —

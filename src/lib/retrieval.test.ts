@@ -690,6 +690,39 @@ describe("retrieve", () => {
       });
     });
 
+    it("stays weak on the degraded path when only the expansion matched", async () => {
+      // The same hole as corroboration, on the path where corroboration is
+      // not available: the question's embed failed, so its vector leg never
+      // ran, and the pool can be filled entirely by chunks a model-written
+      // passage found. "Not empty" would clear the honest decline of #21 on
+      // the strength of the expansion alone; "the reader's own words matched
+      // something" is what lexical-only can still honestly say.
+      const expansionOnly: SearchChunksRow = {
+        ...ROW,
+        vector_rank: null,
+        lexical_rank: null,
+        expansion_lexical_rank: 1,
+      };
+      const degraded = await retrieve("iva", {
+        client: fakeClient([expansionOnly]),
+        embedder: failingEmbedder(new Error("voyage 503")),
+        expander: { expand: async () => "expansión" },
+      });
+      expect(degraded.isDegraded).toBe(true);
+      expect(degraded.chunks).toHaveLength(1);
+      expect(degraded.isWeak).toBe(true);
+
+      // And a degraded ask the question's own words *did* match is not weak,
+      // which is the whole point of #127's fallback.
+      const answered = await retrieve("iva", {
+        client: fakeClient([{ ...ROW, vector_rank: null, lexical_rank: 3 }]),
+        embedder: failingEmbedder(new Error("voyage 503")),
+        expander: { expand: async () => "expansión" },
+      });
+      expect(answered.isDegraded).toBe(true);
+      expect(answered.isWeak).toBe(false);
+    });
+
     it("counts either leg of a pair, but never the expansion alone", () => {
       // The expansion is the same two retrieval modes asked in the corpus's
       // words, so similarity-plus-words is still the test — one mode twice

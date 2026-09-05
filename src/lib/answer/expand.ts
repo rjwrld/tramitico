@@ -30,9 +30,12 @@
  *    a failed ask is a regression. Nothing here throws at its caller.
  * 2. **Its cost is flat and small.** One bounded call on the smallest model,
  *    output capped, no corpus and no history in the prompt.
- * 3. **It can only add.** The expansion is a *fourth and fifth* contribution
- *    to the fusion, never a replacement for the question's own legs, so a bad
- *    expansion cannot displace what the literal question already found.
+ * 3. **It only ever adds candidates.** The expansion is a *fourth and fifth*
+ *    contribution to the fusion, never a replacement for the question's own
+ *    legs, so nothing the literal question found leaves the candidate set. It
+ *    does share the RRF sum, so a bad expansion can still push a good chunk
+ *    down the fused order — bounded, not impossible, and measured at up to
+ *    four ranks over the 61 single-turn cases.
  *
  * Unlike condensation this runs on every ask, including the first turn: a
  * single-turn question is exactly the case the six misses came from. That is

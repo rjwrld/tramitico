@@ -30,17 +30,26 @@ export const DEFAULT_ANSWER_MODEL = "claude-sonnet-5";
  */
 export const DEFAULT_CONDENSE_MODEL = "claude-haiku-4-5";
 
+/**
+ * `||`, not `??`, in all three — the same reading `rerank.ts` gives `RERANK`.
+ * `eval.yml` passes these as `${{ vars.X }}`, which interpolates an unset
+ * repository variable as the **empty string**, and `??` would hand that
+ * straight to `createAnthropic`, which sends `"model": ""` to Anthropic and
+ * gets an error back. For the expansion that error is silent: `expandQuery`
+ * catches it, returns null, and the run quietly measures the two-leg search
+ * while its transcript says `expand=on`.
+ */
 export function getAnswerModel(): LanguageModel {
   const anthropic = createAnthropic();
-  return anthropic(process.env.ANSWER_MODEL ?? DEFAULT_ANSWER_MODEL);
+  return anthropic(process.env.ANSWER_MODEL || DEFAULT_ANSWER_MODEL);
 }
 
 export function getCondenseModel(): LanguageModel {
   const anthropic = createAnthropic();
-  return anthropic(process.env.CONDENSE_MODEL ?? DEFAULT_CONDENSE_MODEL);
+  return anthropic(process.env.CONDENSE_MODEL || DEFAULT_CONDENSE_MODEL);
 }
 
 export function getExpandModel(): LanguageModel {
   const anthropic = createAnthropic();
-  return anthropic(process.env.EXPAND_MODEL ?? DEFAULT_CONDENSE_MODEL);
+  return anthropic(process.env.EXPAND_MODEL || DEFAULT_CONDENSE_MODEL);
 }

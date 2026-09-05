@@ -474,19 +474,27 @@ const realAdequacyJudgeOnce: AdequacyJudgeOnce = async (
 ) => {
   let last: unknown;
   for (let attempt = 0; attempt <= MALFORMED_RETRIES; attempt++) {
-    const { object } = await generateObject({
-      model: getJudgeModel(),
-      schema: ADEQUACY_REPORT_SCHEMA,
-      system: ADEQUACY_SYSTEM_PROMPT,
-      prompt: buildAdequacyPrompt(question, requirements, answer),
-      temperature: JUDGE_TEMPERATURE,
-    });
-    // Back through the parser on purpose: the schema settles the *syntax*,
-    // and the parser is what still refuses a report that skips, repeats or
-    // invents an index — the check that stops four answers about five
-    // requirements being read as four passes and a silence.
-    const text = JSON.stringify(object);
+    // The call is *inside* the try, not in front of it: `generateObject`
+    // rejects with `AI_NoObjectGeneratedError` when the provider cannot meet
+    // the schema, and a rejection outside the loop would leave the run
+    // exactly as fragile as the throw this retry exists to absorb.
+    // Declared out here so the catch can log a report that parsed as JSON
+    // and failed the index checks; a rejection from `generateObject` never
+    // gets that far and leaves it empty.
+    let text = "";
     try {
+      const { object } = await generateObject({
+        model: getJudgeModel(),
+        schema: ADEQUACY_REPORT_SCHEMA,
+        system: ADEQUACY_SYSTEM_PROMPT,
+        prompt: buildAdequacyPrompt(question, requirements, answer),
+        temperature: JUDGE_TEMPERATURE,
+      });
+      // Back through the parser on purpose: the schema settles the *syntax*,
+      // and the parser is what still refuses a report that skips, repeats or
+      // invents an index — the check that stops four answers about five
+      // requirements being read as four passes and a silence.
+      text = JSON.stringify(object);
       return parseAdequacyReport(text, requirements.length);
     } catch (error) {
       last = error;
@@ -494,7 +502,8 @@ const realAdequacyJudgeOnce: AdequacyJudgeOnce = async (
       // thing a rerun needs is what the judge actually said.
       console.warn(
         `eval: adequacy judge output unreadable (attempt ${attempt + 1} of ` +
-          `${MALFORMED_RETRIES + 1}) — ${(error as Error).message}\n${text}`,
+          `${MALFORMED_RETRIES + 1}) — ${(error as Error).message}` +
+          (text === "" ? "" : `\n${text}`),
       );
     }
   }

@@ -551,12 +551,19 @@ export async function retrieve(
     citations,
     topScore,
     // Corroboration needs two legs, so on the degraded path it is not a
-    // signal that is available to us — every chunk has a null `vectorRank`
-    // and the structural test would decline every single degraded ask,
-    // turning the fallback #127 asks for into a dead end. Weakness there is
-    // the only honest thing lexical-only can still say: the query matched
-    // nothing at all.
-    isWeak: isDegraded ? chunks.length === 0 : !chunks.some(isCorroborated),
+    // signal that is available to us — the question's `vectorRank` is null on
+    // every chunk and the structural test would decline every single degraded
+    // ask, turning the fallback #127 asks for into a dead end. Weakness there
+    // is the only honest thing lexical-only can still say: **the reader's own
+    // words** matched nothing at all. Since #286 that has to be said in those
+    // terms rather than as `chunks.length === 0`: the expansion's legs can
+    // fill a pool on a degraded ask all by themselves — its embed is a
+    // separate call and may well have succeeded — and a pool made only of
+    // chunks a model-written passage found is exactly what must not clear the
+    // honest decline.
+    isWeak: isDegraded
+      ? !chunks.some((chunk) => chunk.lexicalRank !== null)
+      : !chunks.some(isCorroborated),
     isDegraded,
     expansion,
   };

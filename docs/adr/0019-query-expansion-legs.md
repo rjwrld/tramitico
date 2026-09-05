@@ -44,9 +44,12 @@ what makes this a query-side problem with a query-side fix.
    the text — fused into the same RRF sum as the question's own two legs. Four legs, equal
    weight, one k.
 3. The question's two legs are computed exactly as v4 computed them, and both expansion
-   arguments default to null, which reproduces v4 row for row. An expansion can therefore only
-   add candidates to the pool; it can never remove or reorder what the literal question found
-   on its own strength.
+   arguments default to null — a null, failed or disabled expansion reproduces v4 row for row.
+   That is the guarantee, and it is narrower than "the expansion cannot hurt": an enabled
+   expansion contributes to the _same_ RRF sum, so it adds candidates without removing any, but
+   it does change the fused order. Measured over the 61 single-turn cases, 30 improved, 21 held
+   and 10 worsened by up to four ranks, none of them out of the pool. What cannot happen is a
+   chunk the question's own legs found dropping out of the candidate set.
 
 **Rejected: replacing the vector leg with the expansion's.** Simpler and one leg cheaper, but
 it makes a bad rewrite able to destroy a search that used to work. The whole reason this is
