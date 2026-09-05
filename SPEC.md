@@ -155,6 +155,10 @@ Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3))
   re-verified by the **quarterly re-crawl**, automated as `.github/workflows/recrawl.yml`
   ([ADR 0010](docs/adr/0010-cli-ingestion-authoritative.md),
   [ADR 0016](docs/adr/0016-source-freshness-policy.md)).
+  The current annual set is tramos, salario base, salarios mínimos, both CCSS escalas, and the
+  retained CCSS BMC adjustment mechanism. An unchanged source whose legal start predates the
+  current period keeps that true `effective_date` and records the annual check in
+  `verifiedForFiscalYear`.
 
 ## 4. Ingestion & chunking
 
@@ -236,11 +240,12 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   formatting (`¢`, dot thousands, comma decimals), and their markers produce the same source
   sellos and persisted citations as ordinary supported prose — **[ADR 0018](docs/adr/0018-derived-figures-by-code.md)**.
 - **Citations:** every answer renders the chunks used as `Documento · Artículo` chips linking to
-  the official source URL, each captioned with the date the corpus fetched that document
-  (_consultado el …_, #135). Groundedness is visible, not claimed — and so is how current it is.
+  the official source URL, each captioned with the date the source took effect when declared
+  (_vigente desde …_, #262) and the date the corpus fetched it (_consultado el …_, #135).
+  Groundedness is visible, not claimed — and so is how current it is.
   When two retrieved sources disagree on a figure or date, the answer states the discrepancy and
-  cites both (#135); deciding which one is vigente needs structured `effective_date` extraction,
-  which is post-launch (#121).
+  cites both (#135); `effective_date` makes the declared vigencia visible but does not authorize
+  the model to resolve a substantive conflict on recency alone.
 - **Disclaimer** on every answer: not legal/accounting advice — verify with Hacienda/CCSS.
 
 ## 6. API surface (route handlers)

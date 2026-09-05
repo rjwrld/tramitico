@@ -146,6 +146,28 @@ queries need no quoting. Q3, Q4, Q6, Q8 and Q9 match on JSON fragments; if the s
 ever mangles the punctuation, fall back to the bare token (`degraded`, `gte_30s`) plus
 `tramitico.event`.
 
+### 2.2 Annual corpus churn (November–January)
+
+Start the annual pass when the first next-period decree appears in November; finish it before the
+new fiscal year can serve an answer. The manifest vigencia test turns red on 1 January while any
+`annualChurn` entry still names the prior year, so a missed pass blocks release.
+
+1. Check the new renta tramos, MTSS salarios mínimos, Poder Judicial salario base, both CCSS
+   contribution scales, and the retained CCSS BMC adjustment mechanism against their official
+   sources. For IVM, do a full re-verification before the current scale expires on 2028-12-31.
+2. Update each changed entry's URL/member/pages, `doc_key` when it carries a year,
+   `effective_date`, audit hash, notes, and derived-figure inputs. When an older rule remains
+   unchanged, preserve its true `effective_date` and advance `verifiedForFiscalYear`. Keep
+   `carriesFigures` and `annualChurn` explicit.
+3. Run `pnpm exec vitest run --project unit src/lib/ingestion/manifest-vigencia.test.ts` before
+   ingestion. A stale entry is a source-review task; do not move its date merely to make the test
+   green.
+4. Run `pnpm ingest` for the reviewed annual entries. Commit the resulting
+   `eval/corpus-index.json`, then run the unit, integration, pgTAP, and local browser lanes before
+   release.
+5. Query `documents` for the annual keys and verify their `effective_date` and `fetched_at`; open
+   one live answer and one history answer to confirm both sello dates render.
+
 ---
 
 ## 3. Alerts to create (#29 provisioning step)

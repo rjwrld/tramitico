@@ -164,10 +164,11 @@ The most crafted object in the product. Anatomy:
 Everything else on screen defers to it: answers are quiet ink prose; the sellos are where the eye
 lands.
 
-**Fetch caption.** Under each stamp, the date the corpus consulted that document: _consultado el 6
+**Date caption.** Under each stamp, the source's declared vigencia and the date the corpus
+consulted it: _vigente desde 1 ene 2026 · consultado el 6
 ago 2026_ — Geist Mono 11px, `--muted-foreground`, lowercase, no rule, no link. The stamp's own
 anatomy does not change; freshness is a footnote to the source, not part of the source's name. A
-document with no recorded fetch date gets no caption — the slot is never filled with a guess.
+document with neither date gets no caption — the slot is never filled with a guess.
 
 **Inline reference.** A claim carries its source as a superscript numeral at the end of the
 clause — Geist Mono, tabular numerals, `--sello`, no underline, hover ground `--sello-bg`.

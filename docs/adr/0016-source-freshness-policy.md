@@ -17,6 +17,9 @@ them; an answer grounded in that stale text would still pass a conventional cita
 source carrying a figure or deadline; it is distinct from `fetched_at`, which records observation.
 The manifest marks period-bound sources with `annualChurn`. Those sources must be re-verified for
 each fiscal period and must belong to the current period before they can satisfy a Tier 1 case.
+When a still-current rule took effect in an earlier year, its `effective_date` remains the legal
+start date and `verifiedForFiscalYear` records the current annual check; overwriting vigencia with
+the check date would publish a false source claim.
 Every other source is re-verified inside the existing quarterly re-crawl window, with its vigente
 version resolved again rather than inferred from an unchanged URL.
 
