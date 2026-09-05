@@ -87,13 +87,47 @@ const SENTENCE_END = /[.;:!?](?=\s|$)|\n/;
 const CITATION_MARKER = /\[\d+\]/;
 
 /**
- * Answers and dataset literals both spell figures with whatever space the
- * source used — "13 %" arrives with U+00A0 as often as with a plain space —
- * so both sides are normalized before they meet. Nothing else is touched:
- * digits, currency signs and separators must match as written.
+ * A "." or "," standing *between two digits* — the decimal or thousands
+ * separator inside a figure, never the period that ends a sentence.
+ */
+const FIGURE_SEPARATOR = /(?<=\d)[.,](?=\d)/g;
+
+/**
+ * Answers and dataset literals both spell figures with whatever the source
+ * used, so both sides are normalized before they meet. Two normalizations,
+ * one rule — a figure is the digits, not the typography around them:
+ *
+ * - Spaces: "13 %" arrives with U+00A0 as often as with a plain space.
+ * - Separators (#289): the CCSS actas print every rate with a period
+ *   ("2.89%", "0.9295 SM", "6.24%") and prompt rule 3 forbids the model from
+ *   rewriting a figure it was handed, so an answer quoting the acta faithfully
+ *   could never match a dataset literal written the Spanish way with a comma.
+ *   That is a transcription check, not an adequacy one, and it marked five
+ *   satisfiable claims "absent" in the 2026 baseline.
+ *
+ * Nothing else is touched: digits, currency signs and word order must match as
+ * written, and a period that is not between digits stays a sentence end — the
+ * citation window depends on it.
+ *
+ * The known limit, stated because a deterministic check is only worth what it
+ * is trusted for: collapsing the two characters also erases which one meant
+ * *decimal* and which meant *thousands*, so "1.234" and "1,234" — 1234 and one
+ * point two three four — normalize alike. Widening a check always widens what
+ * it accepts, and here that is a deliberate trade: a literal whose separator
+ * is followed by exactly three digits ("¢462.200") now also matches the same
+ * digits grouped the other way ("¢462,200"), which in a Costa Rican answer is
+ * that figure mistyped rather than a different one. The narrower reading — the
+ * one that would make the two genuinely different values — is not a reading
+ * this corpus produces. If a case ever needs to tell 1.234 from 1,234, this
+ * must learn the two roles apart before its verdict means anything.
  */
 function normalizeSpaces(text: string): string {
   return text.replace(/[   ]/g, " ");
+}
+
+/** …and the separator collapse on top, for the two sides of a literal check. */
+function normalizeFigures(text: string): string {
+  return normalizeSpaces(text).replace(FIGURE_SEPARATOR, ".");
 }
 
 function escapeRegExp(text: string): string {
@@ -110,27 +144,89 @@ export interface LiteralCheck {
 }
 
 /**
+ * A markdown table row, in the form prompt rule 10 dictates — «tablas simples
+ * con barras verticales (| columna | columna |)». Markdown's pipe-less variant
+ * ("Tramo | Tarifa") is deliberately not matched: recognising a row by "has a
+ * pipe in it" would let a prose sentence carrying one borrow a citation from
+ * elsewhere, and for this check the two errors are not symmetric — missing a
+ * cited figure fails loudly and gets read, while vouching for an uncited one
+ * passes silently, which is the whole thing #131 and #261 req. 3 exist to
+ * prevent. `adequacy.test.ts` pins the limit.
+ */
+const TABLE_ROW = /^\s*\|/;
+
+/**
+ * The citation window for a figure whose line is a table row: the rest of the
+ * table, plus the sentence that closes it.
+ *
+ * Rule 10 tells the answer to use a table «cuando los datos sean realmente
+ * tabulares, como tramos, plazos o montos» — precisely the figures this check
+ * scores — and an answer that does so cites the table around it, not inside
+ * every cell. Since a row ends in a newline and `SENTENCE_END` stops there, a
+ * figure in a cell could never be scored as cited however well the answer
+ * cited its table: the prompt asked for tables and the check forbade them
+ * (#289, found by a smoke run on `ho-800-mil-que-porcentaje-caja`).
+ *
+ * The widening is scoped to figures *inside* a table. A figure in ordinary
+ * prose keeps the sentence window, so a cited table cannot vouch for the
+ * uncited paragraph above it.
+ */
+function tableWindow(rest: string): string {
+  const lines = rest.split("\n");
+  // lines[0] is the tail of the row the match sits on; the row itself began
+  // before the match, so the caller has already established it is a table row.
+  let i = 1;
+  while (i < lines.length && TABLE_ROW.test(lines[i]!)) i += 1;
+  // …then the closing prose, up to its first sentence end: an answer captions
+  // its table immediately, and anything further is a different claim. The
+  // blank lines between table and caption are a paragraph break rather than
+  // distance, so they are stepped over — what bounds the window is the first
+  // sentence after the table, not how much whitespace precedes it.
+  while (i < lines.length && lines[i]!.trim() === "") i += 1;
+  const after = lines.slice(i).join("\n");
+  const end = after.search(SENTENCE_END);
+  return (
+    lines.slice(0, i).join("\n") +
+    "\n" +
+    (end === -1 ? after : after.slice(0, end))
+  );
+}
+
+/** Whether the line `index` falls on is a markdown table row. */
+function onTableRow(haystack: string, index: number): boolean {
+  const lineStart = haystack.lastIndexOf("\n", index - 1) + 1;
+  return TABLE_ROW.test(haystack.slice(lineStart, index));
+}
+
+/**
  * Whether any occurrence of any variant is followed, before the end of its
  * sentence, by a citation marker.
  *
  * The window is the sentence, not the whole answer, because an answer-wide
  * search would let a citation on an unrelated paragraph vouch for a figure
  * that carries none — which is precisely the shape #131 exists to stop from
- * shipping and #261 req. 3 exists to stop from scoring.
+ * shipping and #261 req. 3 exists to stop from scoring. The one exception is
+ * a figure in a table row; see `tableWindow`.
  */
 export function checkLiteral(
   answer: string,
   variants: readonly string[],
 ): { found: boolean; cited: boolean } {
-  const haystack = normalizeSpaces(answer);
+  const haystack = normalizeFigures(answer);
   let found = false;
   for (const variant of variants) {
-    const needle = normalizeSpaces(variant);
+    const needle = normalizeFigures(variant);
     if (needle === "") continue;
     const pattern = new RegExp(escapeRegExp(needle), "gi");
     for (const match of haystack.matchAll(pattern)) {
       found = true;
       const rest = haystack.slice(match.index + match[0].length);
+      if (onTableRow(haystack, match.index)) {
+        if (CITATION_MARKER.test(tableWindow(rest))) {
+          return { found: true, cited: true };
+        }
+        continue;
+      }
       const end = rest.search(SENTENCE_END);
       const window = end === -1 ? rest : rest.slice(0, end);
       if (CITATION_MARKER.test(window)) return { found: true, cited: true };

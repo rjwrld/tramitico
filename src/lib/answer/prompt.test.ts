@@ -129,6 +129,30 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     expect(ANSWER_SYSTEM_PROMPT).toContain("ccss.sa.cr");
   });
 
+  /**
+   * #289: the 2026 baseline scored Tier 1 adequacy 2/27 while groundedness
+   * passed 70/73 on the same answers — supported and incomplete. Most of what
+   * was missing was `requiredSteps` (where to file, what to do once the
+   * deadline has passed) and scope claims («es una alternativa, no un
+   * añadido»), and the prompt asked for neither: rule 8 said «qué aplica y
+   * qué hacer» and stopped there. PRODUCT.md's purpose names three parts —
+   * the rule, the conditions that change it, and supported next steps — so
+   * rule 8 now names all three.
+   */
+  it("asks for the rule, its conditions and the next step (#289)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/condiciones/i);
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/paso siguiente|pasos siguientes/i);
+    // A step is a place and a plazo, not "hay que hacer un trámite".
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/dónde/i);
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/plazo/i);
+  });
+
+  it("keeps the new actionability rule inside the sources (#289 vs rule 1)", () => {
+    // Asking for steps the documents do not carry would buy adequacy with
+    // invention — the one trade this prompt may never make.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/no lo invente/i);
+  });
+
   it("speaks of documentos oficiales, never of RAG-internal material (#75)", () => {
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/documentos oficiales/i);
     expect(ANSWER_SYSTEM_PROMPT).not.toMatch(/fragmento|chunk/i);

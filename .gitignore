@@ -53,3 +53,8 @@ corpus/cache/
 # playwright artifacts
 /test-results/
 /playwright-report/
+
+# eval run transcripts (#289) — a measured run's answers, written by
+# groundedness.eval.test.ts for the next classification read. Reporting
+# output, not a committed artifact; eval.yml uploads them per run.
+/eval/transcripts/

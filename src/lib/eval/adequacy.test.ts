@@ -110,6 +110,131 @@ describe("checkLiteral", () => {
       true,
     );
   });
+
+  /**
+   * #289: the CCSS actas write every rate with a period — "2.89%", "0.9295
+   * SM", "6.24%" — and prompt rule 3 forbids the model from rewriting a
+   * figure it was given. The dataset writes the same rates the Spanish way,
+   * with a comma. A separator-sensitive check therefore scored transcription,
+   * not adequacy, and marked five satisfiable claims "absent" in the 2026
+   * baseline. Digits still have to match; only the separator between them is
+   * read as the same character on both sides.
+   */
+  it("reads a decimal separator the same on both sides (#289)", () => {
+    expect(checkLiteral("La cuota es 2.89% [1].", ["2,89 %", "2,89%"])).toEqual(
+      { found: true, cited: true },
+    );
+    expect(
+      checkLiteral("La base mínima es 0,9295 SM [3].", ["0.9295 SM"]).cited,
+    ).toBe(true);
+    expect(
+      checkLiteral("El salario base es ¢462,200 [5].", ["¢462.200"]).cited,
+    ).toBe(true);
+  });
+
+  it("still refuses a different figure (#289 does not blur digits)", () => {
+    expect(checkLiteral("La cuota es 2.98% [1].", ["2,89 %"])).toEqual({
+      found: false,
+      cited: false,
+    });
+  });
+
+  /**
+   * #289, second harness defect, caught by a smoke run: prompt rule 10
+   * explicitly permits tables "cuando los datos sean realmente tabulares,
+   * como tramos, plazos o montos", and the escala answers use them. A table
+   * row ends in a newline, and the window ended at the first newline, so a
+   * figure in a cell could never be scored as cited however the answer cited
+   * the table — the prompt asked for tables and the check forbade them. The
+   * window now runs to the end of the table block for a figure inside one.
+   */
+  it("lets a table's citation vouch for a figure in its rows (#289)", () => {
+    const answer = [
+      "La escala del IVM es la siguiente:",
+      "",
+      "| Categoría | Nivel de ingreso | Afiliado |",
+      "|---|---|---|",
+      "| 1 | Hasta 0.87 SM | 4.16% |",
+      "| 3 | De 2 SM a menos de 4 SM | 7.53% |",
+      "",
+      "Estos porcentajes rigen a partir del 1 de enero de 2026 [6].",
+    ].join("\n");
+    expect(checkLiteral(answer, ["7,53 %", "7,53%"])).toEqual({
+      found: true,
+      cited: true,
+    });
+    // A mid-table row, not just the last one.
+    expect(checkLiteral(answer, ["4,16 %", "4,16%"]).cited).toBe(true);
+  });
+
+  it("does not let a table vouch for a figure outside it (#289)", () => {
+    // The widening is scoped to figures *in* a table. A bare paragraph before
+    // a cited table is still an uncited paragraph.
+    const answer = [
+      "La cuota de Salud es 2.89% y no la respalda nada.",
+      "",
+      "| Categoría | Afiliado |",
+      "|---|---|",
+      "| 1 | 4.16% |",
+      "",
+      "Fuente de la tabla [6].",
+    ].join("\n");
+    expect(checkLiteral(answer, ["2,89 %", "2,89%"])).toEqual({
+      found: true,
+      cited: false,
+    });
+  });
+
+  it("still refuses a table that cites nothing at all (#289)", () => {
+    const answer = [
+      "| Categoría | Afiliado |",
+      "|---|---|",
+      "| 3 | 7.53% |",
+      "",
+      "Confirme el dato con la CCSS.",
+    ].join("\n");
+    expect(checkLiteral(answer, ["7,53 %", "7,53%"])).toEqual({
+      found: true,
+      cited: false,
+    });
+  });
+
+  /**
+   * Scope, pinned deliberately rather than left to chance: `TABLE_ROW` matches
+   * the form prompt rule 10 dictates — «tablas simples con barras verticales
+   * (| columna | columna |)» — and markdown's pipe-less variant is not
+   * widened for.
+   *
+   * Recognising a row by "contains a pipe" would let a prose sentence that
+   * happens to carry one borrow a citation from further down the answer. For
+   * an eval-integrity check the two errors are not symmetric: missing a cited
+   * figure fails loudly and gets investigated, while vouching for an uncited
+   * one passes silently and is exactly what #131 and #261 req. 3 exist to
+   * prevent. So the check stays narrow, and if the answer model ever starts
+   * writing pipe-less tables, this test is where that shows up.
+   */
+  it("does not widen for a table without outer pipes (#289 scope)", () => {
+    const answer = [
+      "Tramo | Tarifa",
+      "--- | ---",
+      "1 | 7.53%",
+      "",
+      "Fuente [6].",
+    ].join("\n");
+    expect(checkLiteral(answer, ["7,53 %", "7,53%"])).toEqual({
+      found: true,
+      cited: false,
+    });
+  });
+
+  it("leaves a sentence-ending period a sentence end (#289)", () => {
+    // The separator rewrite must not touch the "." that closes a sentence,
+    // or the citation window would run past it and a later marker would
+    // vouch for an uncited figure.
+    expect(
+      checkLiteral("La cuota es 2,89 %. Se paga mensualmente [1].", ["2,89 %"]),
+    ).toEqual({ found: true, cited: false });
+  });
 });
 
 describe("checkLiterals", () => {

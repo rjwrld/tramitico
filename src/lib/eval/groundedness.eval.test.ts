@@ -44,7 +44,7 @@ import {
 import { rerankChunks, RERANK_POOL } from "../answer/rerank";
 import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
-import { retrieve } from "../retrieval";
+import { retrieve, type RetrievedChunk } from "../retrieval";
 import { validateCitations, type CitationVerdict } from "../answer/invariant";
 import {
   ADEQUACY_TIER2_GATE,
@@ -62,6 +62,7 @@ import {
   type EvalCase,
 } from "./dataset";
 import { formatExposureTally, tallyByExposure } from "./exposure";
+import { transcriptRow, writeTranscript } from "./transcript";
 import {
   GROUNDEDNESS_GATE,
   judgeAnswer,
@@ -84,6 +85,12 @@ const answerModelId = process.env.ANSWER_MODEL ?? DEFAULT_ANSWER_MODEL;
 
 interface CaseResult {
   evalCase: EvalCase;
+  /** The standalone question the pipeline ran (#132) — the case's own, unless
+   * it carries `history`. */
+  query: string;
+  /** The chunks the prompt numbered, so a transcript row can resolve `[n]`.
+   * Empty on a weak-retrieval decline, which makes no model call. */
+  chunks: readonly RetrievedChunk[];
   verdict: Verdict;
   /** One entry per judge call: 1 normally, 1 + REJUDGE_COUNT after a fail. */
   verdicts: Verdict[];
@@ -175,6 +182,8 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
       if (retrieval.isWeak) {
         results.push({
           evalCase,
+          query,
+          chunks: [],
           verdict: "pass",
           verdicts: [],
           reason: "weak-retrieval fallback (no model call)",
@@ -214,6 +223,8 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
         evalCase.requiredSteps !== undefined;
       results.push({
         evalCase,
+        query,
+        chunks,
         ...judged,
         answer,
         derivedFigures,
@@ -227,6 +238,44 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
             }
           : null,
       });
+    }
+
+    // #289 req. 1: the run leaves its answers behind. The printed table says
+    // *which* requirements were missing and can never say why — the answer and
+    // the numbered chunk list are what separate «the answer omitted it» from
+    // «the fragment was not in the top-8» from «the requirement over-specifies
+    // what the corpus carries». Reporting only: nothing below reads the file,
+    // and a write failure must not turn a measured run into a red one.
+    try {
+      const transcript = writeTranscript(
+        results.map((r) =>
+          transcriptRow({
+            evalCase: r.evalCase,
+            query: r.query,
+            answer: r.answer,
+            chunks: r.chunks,
+            derivedFigures: r.derivedFigures,
+            groundedness: {
+              verdict: r.verdict,
+              verdicts: r.verdicts,
+              reason: r.reason,
+            },
+            citations: r.citations,
+            adequacy:
+              r.adequacy === null
+                ? null
+                : {
+                    verdict: r.adequacy.verdict,
+                    missing: r.adequacy.missing,
+                    literals: r.adequacy.literals,
+                  },
+          }),
+        ),
+        { answerModel: answerModelId },
+      );
+      console.log(`\ntranscript (#289): ${transcript}`);
+    } catch (error) {
+      console.log(`\ntranscript (#289): not written — ${String(error)}`);
     }
 
     const passes = results.filter((r) => r.verdict === "pass").length;
