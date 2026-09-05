@@ -35,6 +35,7 @@ import { readFileSync } from "node:fs";
 import { beforeAll, expect, it } from "vitest";
 import { condenseQuestion } from "../answer/condense";
 import { pinDerivedFigureInputs } from "../answer/derived";
+import { expansionEnabled } from "../answer/expand";
 import {
   answerSetFromOrder,
   answerTopK,
@@ -63,10 +64,16 @@ import { formatExposureTally, tallyByExposure } from "./exposure";
  * a silently disabled reranker still fails. Ratchet up, never down.
  *
  * The 2026 baseline (#267, 73 cases on the beta corpus) measured 63/73 with
- * rerank and 52/73 fused-only — under this gate, and left here on purpose:
- * the ten misses are classified in #286 (fused pool) and #287 (rerank cut),
- * and the gate is what keeps them from being forgotten. eval/README.md has
- * the per-case table and the ratchet rule.
+ * rerank and 52/73 fused-only — under this gate, and left there on purpose:
+ * the ten misses were classified in #286 (fused pool) and #287 (rerank cut),
+ * and the gate is what kept them from being forgotten.
+ *
+ * #286's expansion legs took it to **68/73 (93.2 %)**, over this gate for the
+ * first time since the baseline, on two identical runs. The gate still does
+ * not move: the ratchet sets a threshold at the measured rate minus one case
+ * (0.91) and never below the previous value, so 0.92 stands. Two blocking
+ * cases still miss, so the suite stays red — which is the point of the
+ * per-case blocking rule. eval/README.md has the per-case table.
  */
 export const HIT_RATE_GATE = 0.92;
 
@@ -105,6 +112,8 @@ interface CaseResult {
   isWeak: boolean;
   /** The standalone question a condensation case was run on (#132); null otherwise. */
   condensed: string | null;
+  /** The corpus-register rewrite the expansion legs ran on (#286); null when none. */
+  expansion: string | null;
 }
 
 describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
@@ -116,6 +125,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
   );
   const results: CaseResult[] = [];
   const rerankMode = process.env.RERANK || "voyage";
+  const expandMode = expansionEnabled() ? "on" : "off";
   const topKSize = answerTopK();
 
   beforeAll(async () => {
@@ -136,7 +146,9 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
         matchCount: RERANK_POOL,
         embedder,
       });
-      const order = await rerankOrder(query, retrieval.chunks);
+      const order = await rerankOrder(query, retrieval.chunks, {
+        expansion: retrieval.expansion,
+      });
       // The route's exact sequence: rerank cut, then #287's derived-input pin.
       const topK = pinDerivedFigureInputs(
         answerSetFromOrder(order, retrieval.chunks),
@@ -161,11 +173,13 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
         topScore: retrieval.topScore,
         isWeak: retrieval.isWeak,
         condensed,
+        expansion: retrieval.expansion,
       });
     }
     const hits = results.filter((r) => r.hit).length;
     console.log(
       `\nretrieval hit-rate (rerank=${rerankMode} ${process.env.RERANK_MODEL || RERANK_MODEL}, pool ${RERANK_POOL} → top ${topKSize}, ` +
+        `expand=${expandMode}, ` +
         `pin=${process.env.PIN_DERIVED_INPUTS === "on" ? "on" : "off"}): ${hits}/${results.length}`,
     );
     for (const r of results) {
@@ -173,7 +187,11 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
         `  ${r.hit ? "hit " : "MISS"}  pool#${r.poolRank ?? "—"}  top=${r.topScore.toFixed(4)}  ${r.evalCase.id}` +
           // A missed condensation case is usually a bad rewrite rather than a
           // retrieval regression, and the rewrite is the only way to tell.
-          (r.condensed === null ? "" : `\n        ↳ ${r.condensed}`),
+          (r.condensed === null ? "" : `\n        ↳ ${r.condensed}`) +
+          // And which search actually ran (#286): a miss whose expansion
+          // names the wrong materia is a rewrite problem, not a corpus one,
+          // and the transcript is where eval/README.md reads that from.
+          (r.expansion === null ? "" : `\n        ⤳ ${r.expansion}`),
       );
     }
     // #287: a target that reached the pool and still missed was cut by the

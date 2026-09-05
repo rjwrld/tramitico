@@ -7,24 +7,24 @@ original scope (its §5 OUT-list is binding).
 
 ## Map
 
-| Path                                                   | What it is                                                                                      |
-| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
-| `src/app/api/ask/route.ts`                             | the ask pipeline: rate-limit → retrieve → rerank → answer → persist                             |
-| `src/lib/retrieval.ts`                                 | hybrid search (vector + lexical, RRF); chunks → citations                                       |
-| `src/lib/answer/`                                      | prompt, model call, condensation (#132), rerank, citation contract, persistence                 |
-| `src/lib/rate-limit.ts`                                | daily quota via RPC; refunds on system failure                                                  |
-| `src/lib/routing.ts` + `scripts/check-routing-urls.ts` | institution table + keyword classifier behind the routed decline; URLs verified by the re-crawl |
-| `src/lib/ingestion/` + `scripts/ingest.ts`             | corpus fetch → extract → chunk → embed, CLI-driven                                              |
-| `corpus/manifest.json`                                 | which official docs are ingested, and from where                                                |
-| `src/lib/eval/` + `eval/dataset.jsonl`                 | release gates: groundedness, hit-rate, conflicting sources                                      |
-| `eval/corpus-index.json`                               | committed corpus coverage dump; makes the satisfiability census a per-PR unit test              |
-| `src/components/`                                      | `chat/`, `history/`, `auth/`, `ui/` (Base UI), `sello.tsx` (source seals)                       |
-| `src/lib/supabase/` + `src/proxy.ts`                   | browser/server/service clients; auth session proxy                                              |
-| `src/app/privacidad/` + `src/lib/log-redaction.ts`     | the privacy page; `describeError` — the one log-safe way to put an error in a log               |
-| `src/lib/telemetry.ts` + `docs/runbook.md`             | the content-free per-ask event; what to watch, and when to roll back                            |
-| `supabase/migrations/`                                 | schema, applied to the shared local stack                                                       |
-| `supabase/tests/`                                      | pgTAP: the SQL-level least-privilege guard (`pnpm test:db`)                                     |
-| `e2e/`                                                 | Playwright on placeholder env; `*.local.spec.ts` via `playwright.local.config.ts`               |
+| Path                                                   | What it is                                                                                              |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `src/app/api/ask/route.ts`                             | the ask pipeline: rate-limit → retrieve → rerank → answer → persist                                     |
+| `src/lib/retrieval.ts`                                 | hybrid search (vector + lexical, RRF); chunks → citations                                               |
+| `src/lib/answer/`                                      | prompt, model call, condensation (#132), query expansion (#286), rerank, citation contract, persistence |
+| `src/lib/rate-limit.ts`                                | daily quota via RPC; refunds on system failure                                                          |
+| `src/lib/routing.ts` + `scripts/check-routing-urls.ts` | institution table + keyword classifier behind the routed decline; URLs verified by the re-crawl         |
+| `src/lib/ingestion/` + `scripts/ingest.ts`             | corpus fetch → extract → chunk → embed, CLI-driven                                                      |
+| `corpus/manifest.json`                                 | which official docs are ingested, and from where                                                        |
+| `src/lib/eval/` + `eval/dataset.jsonl`                 | release gates: groundedness, hit-rate, conflicting sources                                              |
+| `eval/corpus-index.json`                               | committed corpus coverage dump; makes the satisfiability census a per-PR unit test                      |
+| `src/components/`                                      | `chat/`, `history/`, `auth/`, `ui/` (Base UI), `sello.tsx` (source seals)                               |
+| `src/lib/supabase/` + `src/proxy.ts`                   | browser/server/service clients; auth session proxy                                                      |
+| `src/app/privacidad/` + `src/lib/log-redaction.ts`     | the privacy page; `describeError` — the one log-safe way to put an error in a log                       |
+| `src/lib/telemetry.ts` + `docs/runbook.md`             | the content-free per-ask event; what to watch, and when to roll back                                    |
+| `supabase/migrations/`                                 | schema, applied to the shared local stack                                                               |
+| `supabase/tests/`                                      | pgTAP: the SQL-level least-privilege guard (`pnpm test:db`)                                             |
+| `e2e/`                                                 | Playwright on placeholder env; `*.local.spec.ts` via `playwright.local.config.ts`                       |
 
 `/privacidad` names the subprocessors a question actually passes through (#136), so adding or
 removing one MUST update that page in the same change — the page is a claim about the code.

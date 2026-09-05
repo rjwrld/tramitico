@@ -731,8 +731,12 @@ export async function POST(request: Request): Promise<Response> {
     // inputs while its sibling survives, and the figure is then unprintable.
     // Pinning the missing input back in from the pool the reranker just read
     // is an append, so nothing the rerank chose is displaced.
+    // #286: the reranker scores the question *and* its corpus-register
+    // expansion, for the same reason the fused legs do.
     const chunks = pinDerivedFigureInputs(
-      await rerankChunks(asked.query, retrieval.chunks),
+      await rerankChunks(asked.query, retrieval.chunks, {
+        expansion: retrieval.expansion,
+      }),
       retrieval.chunks,
     );
     if (cutShort()) return;

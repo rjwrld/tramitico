@@ -20,6 +20,7 @@ import { createEmbedder, type Embedder } from "./ingestion/embedder";
 import { serviceClient } from "./supabase/service";
 import { isCitation, parseCitations, type Citation } from "./citations";
 import { recordDegradedRetrieval } from "./retrieval-degraded";
+import { expandQuery, expansionEnabled } from "./answer/expand";
 
 /**
  * What the `search_chunks` RPC rejecting looks like to a caller. Used to read
@@ -112,6 +113,10 @@ export interface SearchChunksRow {
   vector_rank: number | null;
   /** 1-based rank in the lexical leg; null when that leg missed the chunk. */
   lexical_rank: number | null;
+  /** 1-based rank in the expansion's vector leg; null when it missed (#286). */
+  expansion_vector_rank: number | null;
+  /** 1-based rank in the expansion's lexical leg; null when it missed (#286). */
+  expansion_lexical_rank: number | null;
 }
 
 export interface SearchChunksArgs {
@@ -124,6 +129,15 @@ export interface SearchChunksArgs {
    */
   query_embedding: string | null;
   match_count: number;
+  /**
+   * The question rewritten into the register of the corpus (#286), or null
+   * for the two-leg contract v4 had. Feeds the expansion lexical leg. Both
+   * expansion arguments are optional on the wire — omitting them is what a
+   * caller with no model does, and the SQL defaults them to null.
+   */
+  expansion_text?: string | null;
+  /** pgvector literal for `expansion_text`; null disables its vector leg. */
+  expansion_embedding?: string | null;
 }
 
 /**
@@ -166,6 +180,13 @@ export interface RetrievedChunk {
   vectorRank: number | null;
   /** 1-based rank in the lexical leg; null when that leg missed the chunk. */
   lexicalRank: number | null;
+  /**
+   * 1-based rank in the expansion's vector leg (#286); null when that leg
+   * missed the chunk, and absent when the retrieval ran no expansion at all.
+   */
+  expansionVectorRank?: number | null;
+  /** 1-based rank in the expansion's lexical leg; null when it missed (#286). */
+  expansionLexicalRank?: number | null;
 }
 
 export interface RetrievalResult {
@@ -184,17 +205,52 @@ export interface RetrievalResult {
    * it on the wire so the reader is told rather than quietly served less.
    */
   isDegraded: boolean;
+  /**
+   * The corpus-register rewrite the expansion legs ran on (#286), or null
+   * when there was none: no model configured, a failed or unusable rewrite,
+   * or a caller that opted out. Null means this retrieval is exactly the
+   * two-leg search v4 performed.
+   */
+  expansion: string | null;
+}
+
+/**
+ * Rewrites a question into the register of the corpus (#286). The seam exists
+ * so tests can supply a rewrite without a model call, and so a caller can pass
+ * `null` to opt out of expansion entirely.
+ */
+export interface QueryExpander {
+  expand(query: string): Promise<string | null>;
 }
 
 export interface RetrieveOptions {
   matchCount?: number;
   client?: RetrievalRpcClient;
   embedder?: Embedder;
+  /**
+   * Expansion seam (#286). Omit for the production expander, which is skipped
+   * when no Anthropic key is configured; pass `null` to search the literal
+   * question only.
+   */
+  expander?: QueryExpander | null;
 }
 
 /**
- * A chunk is corroborated when both the vector and the lexical leg surfaced
- * it. `isWeak` — no returned chunk corroborated — is what #21 turns into the
+ * A chunk is corroborated when a similarity leg and a word-matching leg both
+ * surfaced it, **and at least one of those legs ran on the reader's own
+ * question**. Since #286 there are two of each — the question's own pair and
+ * the pair run over its corpus-register expansion — and the expansion's legs
+ * count towards the two modes, because they are the same two modes asked in
+ * the corpus's words rather than a third mode.
+ *
+ * The raw-leg requirement is what keeps the honest fallback honest. The
+ * expansion is a passage a model wrote for this question, and it writes one
+ * for *any* question, including one the corpus cannot answer; its lexical leg
+ * then matches the words the model chose and its vector leg matches the
+ * meaning of that same text. Two views of one invented passage are not two
+ * independent witnesses, so an expansion-only pair must not be able to say
+ * "corroborated" — that is exactly how an out-of-scope question would stop
+ * tripping `isWeak` and stop reaching the decline #21 built. `isWeak` — no returned chunk corroborated — is what #21 turns into the
  * honest fallback (say so and link the agency) instead of answering from
  * single-leg hits. Until #51 this was inferred from a score threshold
  * (2/(k + LEG_LIMIT)); coverage-scaled fallback contributions broke that
@@ -205,8 +261,16 @@ export interface RetrieveOptions {
 export function isCorroborated(chunk: {
   vectorRank: number | null;
   lexicalRank: number | null;
+  expansionVectorRank?: number | null;
+  expansionLexicalRank?: number | null;
 }): boolean {
-  return chunk.vectorRank !== null && chunk.lexicalRank !== null;
+  const expansionVector = chunk.expansionVectorRank ?? null;
+  const expansionLexical = chunk.expansionLexicalRank ?? null;
+  const bySimilarity = chunk.vectorRank !== null || expansionVector !== null;
+  const byWords = chunk.lexicalRank !== null || expansionLexical !== null;
+  const fromTheQuestion =
+    chunk.vectorRank !== null || chunk.lexicalRank !== null;
+  return bySimilarity && byWords && fromTheQuestion;
 }
 
 /** Score one leg contributes to an id ranked `rank` (1-based). */
@@ -354,6 +418,8 @@ function toChunk(row: SearchChunksRow): RetrievedChunk {
     score: row.score,
     vectorRank: row.vector_rank ?? null,
     lexicalRank: row.lexical_rank ?? null,
+    expansionVectorRank: row.expansion_vector_rank ?? null,
+    expansionLexicalRank: row.expansion_lexical_rank ?? null,
   };
 }
 
@@ -383,6 +449,35 @@ export function createRetrievalClient(): RetrievalRpcClient {
   return asRetrievalClient(serviceClient());
 }
 
+/**
+ * The production expander, or `null` when expansion is switched off or has no
+ * provider — `expansionEnabled` owns that decision (expand.ts), and this asks
+ * it rather than re-deciding, so there is one answer to "does this ask
+ * expand?" and it lives beside the call it gates.
+ */
+function defaultExpander(): QueryExpander | null {
+  return expansionEnabled() ? { expand: (query) => expandQuery(query) } : null;
+}
+
+/**
+ * One embed attempt, `null` instead of a throw. `countDegradation` is what
+ * separates the question's embed — whose failure is the #127 degradation the
+ * reader is told about — from the expansion's, which costs the search only a
+ * leg it did not have before #286.
+ */
+async function embedOrNull(
+  embedder: Embedder,
+  text: string,
+  countDegradation = true,
+): Promise<number[] | null> {
+  try {
+    return await embedder.embedQuery(text);
+  } catch (error) {
+    if (countDegradation) recordDegradedRetrieval(error);
+    return null;
+  }
+}
+
 export async function retrieve(
   query: string,
   options: RetrieveOptions = {},
@@ -396,11 +491,14 @@ export async function retrieve(
       topScore: 0,
       isWeak: true,
       isDegraded: false,
+      expansion: null,
     };
   }
 
   const embedder = options.embedder ?? createEmbedder();
   const client = options.client ?? createRetrievalClient();
+  const expander =
+    options.expander === undefined ? defaultExpander() : options.expander;
 
   // #127: the ask path does not get to die because the embedding provider is
   // down. `embedQuery` is one attempt on a ~5 s budget; when it does not come
@@ -408,18 +506,29 @@ export async function retrieve(
   // (`query_embedding: null`) rather than propagating the failure into
   // `retrieval_failed`. Counting happens here, at the one place that knows a
   // degradation happened at all.
-  let embedding: number[] | null = null;
-  try {
-    embedding = await embedder.embedQuery(trimmed);
-  } catch (error) {
-    recordDegradedRetrieval(error);
-  }
+  //
+  // The expansion (#286) is asked for alongside that embed rather than in
+  // front of it: the two calls go to different providers and neither needs
+  // the other's answer, so the reader waits for the slower one, not for both.
+  const [embedding, expansion] = await Promise.all([
+    embedOrNull(embedder, trimmed),
+    expander === null ? Promise.resolve(null) : expander.expand(trimmed),
+  ]);
   const isDegraded = embedding === null;
+
+  // An expansion whose embedding fails is not a degradation — the question's
+  // own legs are untouched — so it simply keeps its lexical leg and loses its
+  // vector one, exactly as `query_embedding: null` does for the question.
+  const expansionEmbedding =
+    expansion === null ? null : await embedOrNull(embedder, expansion, false);
 
   const { data, error } = await client.rpc("search_chunks", {
     query_text: trimmed,
     query_embedding: embedding === null ? null : JSON.stringify(embedding),
     match_count: options.matchCount ?? DEFAULT_MATCH_COUNT,
+    expansion_text: expansion,
+    expansion_embedding:
+      expansionEmbedding === null ? null : JSON.stringify(expansionEmbedding),
   });
   if (error) {
     throw new SearchChunksError(error);
@@ -442,12 +551,20 @@ export async function retrieve(
     citations,
     topScore,
     // Corroboration needs two legs, so on the degraded path it is not a
-    // signal that is available to us — every chunk has a null `vectorRank`
-    // and the structural test would decline every single degraded ask,
-    // turning the fallback #127 asks for into a dead end. Weakness there is
-    // the only honest thing lexical-only can still say: the query matched
-    // nothing at all.
-    isWeak: isDegraded ? chunks.length === 0 : !chunks.some(isCorroborated),
+    // signal that is available to us — the question's `vectorRank` is null on
+    // every chunk and the structural test would decline every single degraded
+    // ask, turning the fallback #127 asks for into a dead end. Weakness there
+    // is the only honest thing lexical-only can still say: **the reader's own
+    // words** matched nothing at all. Since #286 that has to be said in those
+    // terms rather than as `chunks.length === 0`: the expansion's legs can
+    // fill a pool on a degraded ask all by themselves — its embed is a
+    // separate call and may well have succeeded — and a pool made only of
+    // chunks a model-written passage found is exactly what must not clear the
+    // honest decline.
+    isWeak: isDegraded
+      ? !chunks.some((chunk) => chunk.lexicalRank !== null)
+      : !chunks.some(isCorroborated),
     isDegraded,
+    expansion,
   };
 }

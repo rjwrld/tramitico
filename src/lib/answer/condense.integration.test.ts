@@ -182,6 +182,11 @@ describeDb("condensed follow-up retrieval (integration)", () => {
     const result = await retrieve(query, {
       client,
       embedder: deadEmbedder(),
+      // Condensation only (#132). The expansion legs (#286) are a second
+      // rewrite on the same seam, and letting them run here would answer the
+      // control case — "the raw follow-up finds nothing" — with the
+      // expansion's rewrite instead of the condensation's.
+      expander: null,
     });
     return result.chunks;
   };

@@ -36,7 +36,7 @@ select cmp_ok(
     join pg_namespace n on n.oid = p.pronamespace
     cross join lateral unnest(p.proconfig) as cfg
     where n.nspname = 'public'
-      and p.oid = 'public.search_chunks(text, extensions.vector, int)'::regprocedure
+      and p.oid = 'public.search_chunks(text, extensions.vector, int, text, extensions.vector)'::regprocedure
       and cfg like 'hnsw.ef_search=%'
   ),
   '>', 50,

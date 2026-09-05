@@ -43,8 +43,12 @@ jobs:
       EMBEDDINGS_PROVIDER: ${{ vars.EMBEDDINGS_PROVIDER }}
       VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
       RERANK: ${{ vars.RERANK }}
+      # Empty is "on" (expand.ts reads it with ||, like RERANK): the eval lane
+      # measures the search production performs, expansion legs included.
+      EXPAND: ${{ vars.EXPAND }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       ANSWER_MODEL: ${{ vars.ANSWER_MODEL }}
+      EXPAND_MODEL: ${{ vars.EXPAND_MODEL }}
     steps:
       # Fail in seconds rather than after an install and a 90-minute
       # groundedness timeout, and name every missing variable at once. Mirrors

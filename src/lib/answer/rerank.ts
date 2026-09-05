@@ -14,6 +14,13 @@
  * name the rank a missed target actually reached and which chunk displaced
  * it (#287 requirement 1), and the answer top-k becomes a knob
  * (`ANSWER_TOP_K`) that a measured run can move without touching the code.
+ *
+ * And since #286 the query it scores against is the question *plus* its
+ * corpus-register expansion. The reranker reads the same question the fused
+ * legs read, so it had the same register gap: a target moved from pool 24 to
+ * pool 5 and still missed, because «desde cuánta plata al mes lo obligan a
+ * uno a pagar Caja» does not look like «base mínima contributiva» to
+ * `rerank-2.5-lite` either.
  */
 import type { RetrievedChunk } from "../retrieval";
 
@@ -40,6 +47,34 @@ interface VoyageRerankResponse {
 
 export interface RerankOptions {
   fetchImpl?: typeof fetch;
+  /**
+   * The corpus-register rewrite retrieval ran on (#286), when there was one.
+   * It is appended to the reranker's query rather than replacing it.
+   *
+   * The reranker reads the same question the fused legs read, so it has the
+   * same register problem, and #286 found it the hard way: putting
+   * `ho-desde-cuanta-plata-caja`'s target at pool rank 5 instead of 24 did
+   * not make it a hit, because the reranker still scored «desde cuánta plata
+   * al mes lo obligan a uno a pagar Caja» against artículos that say «base
+   * mínima contributiva». Reranking on the question *and* its expansion
+   * recovers that case and two more that were already being cut.
+   *
+   * Both, not the expansion alone: the rewrite is a probe, the question is
+   * what the reader actually asked, and dropping it costs a case
+   * (`ho-donde-inscribo-ya-no-atv`) that the question's own words carry.
+   */
+  expansion?: string | null;
+}
+
+/**
+ * What the reranker scores against: the question, plus its expansion when
+ * retrieval produced one.
+ */
+export function rerankQuery(
+  question: string,
+  expansion?: string | null,
+): string {
+  return expansion ? `${question} ${expansion}` : question;
 }
 
 /** One reranked pool member: the chunk, Voyage's score, its 1-based rank. */
@@ -85,6 +120,7 @@ export async function rerankOrder(
   if (!key) return null;
 
   const fetchImpl = options.fetchImpl ?? fetch;
+  const query = rerankQuery(question, options.expansion);
   try {
     const res = await fetchImpl("https://api.voyageai.com/v1/rerank", {
       method: "POST",
@@ -94,7 +130,7 @@ export async function rerankOrder(
       },
       body: JSON.stringify({
         model: rerankModel(),
-        query: question,
+        query,
         documents: chunks.map((chunk) => chunk.content),
       }),
       signal: AbortSignal.timeout(RERANK_TIMEOUT_MS),

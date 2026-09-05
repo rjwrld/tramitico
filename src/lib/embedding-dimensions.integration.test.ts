@@ -108,6 +108,10 @@ describeDb("stub embeddings against chunks.embedding (integration)", () => {
     const result = await retrieve("quetzalito", {
       client,
       embedder: createEmbedder("stub"),
+      // Dimensions only. The expansion legs (#286) would put a paid model
+      // call in a suite that runs on the no-secrets CI lane and would embed
+      // a second text through the stub for no assertion.
+      expander: null,
     });
 
     // Not degraded: the stub always produces a vector, so the RPC really did

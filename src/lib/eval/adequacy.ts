@@ -32,7 +32,8 @@
  * so without this the honest fallback would be a way to score full marks on a
  * question the product promised to answer.
  */
-import { generateText } from "ai";
+import { generateObject, generateText } from "ai";
+import { z } from "zod";
 import {
   getJudgeModel,
   JUDGE_TEMPERATURE,
@@ -310,16 +311,51 @@ export interface RequirementVerdict {
  * that answered about four of five requirements must not be read as four
  * passes and a silence.
  */
+/**
+ * The first balanced `{…}` in `text`, or null.
+ *
+ * A greedy `/\{[\s\S]*\}/` runs to the *last* brace in the response, so a
+ * judge that prints its object and then a sentence containing a brace hands
+ * the parser the object plus that prose, and `JSON.parse` fails on text that
+ * had a perfectly good object at the front of it. Counting depth — and
+ * skipping braces inside strings, where a `reason` may quote one — takes the
+ * object and stops.
+ */
+export function firstJsonObject(text: string): string | null {
+  const start = text.indexOf("{");
+  if (start === -1) return null;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (inString) {
+      if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') inString = true;
+    else if (ch === "{") depth++;
+    else if (ch === "}" && --depth === 0) return text.slice(start, i + 1);
+  }
+  return null;
+}
+
 export function parseAdequacyReport(
   text: string,
   count: number,
 ): RequirementVerdict[] {
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) {
+  const object = firstJsonObject(text);
+  if (object === null) {
     throw new Error(
       `adequacy judge output has no JSON object: ${text.slice(0, 200)}`,
     );
   }
+  const match = [object];
   let raw: unknown;
   try {
     raw = JSON.parse(match[0]);
@@ -397,18 +433,81 @@ export type AdequacyJudgeOnce = (
   answer: string,
 ) => Promise<RequirementVerdict[]>;
 
+/**
+ * The report's shape, handed to the provider rather than asked for in prose.
+ *
+ * The judge is run at temperature 0, so an unreadable reply is not bad luck
+ * to be retried away — it is the same reply every time. Observed 2026-09-05:
+ * three identical attempts, each closing `items` with `}` instead of `]`.
+ * Constraining the output removes that whole class; `MALFORMED_RETRIES`
+ * stays as the net under the semantic checks the schema cannot express.
+ */
+export const ADEQUACY_REPORT_SCHEMA = z.object({
+  items: z.array(
+    z.object({
+      index: z.number().int(),
+      present: z.boolean(),
+      reason: z.string(),
+    }),
+  ),
+});
+
+/**
+ * How many times one judge call is re-asked when its *output* cannot be read.
+ *
+ * A judgement that does not parse is not a verdict, and until this existed it
+ * was worse than that: `parseAdequacyReport` threw, the throw left
+ * `judgeAdequacy`, left the suite's `beforeAll`, and skipped every test in
+ * the file. One unlucky response therefore destroyed a whole paid run —
+ * observed 2026-09-05, 222 s of answers lost to a single report that broke at
+ * character 798. Re-asking is what the judge already does for a *failing*
+ * verdict (`REJUDGE_COUNT`); this is the same move for an unreadable one, and
+ * it keeps the strictness of the parser: a report that skips or invents an
+ * index is still rejected, it is just rejected without taking the run with it.
+ */
+export const MALFORMED_RETRIES = 2;
+
 const realAdequacyJudgeOnce: AdequacyJudgeOnce = async (
   question,
   requirements,
   answer,
 ) => {
-  const { text } = await generateText({
-    model: getJudgeModel(),
-    system: ADEQUACY_SYSTEM_PROMPT,
-    prompt: buildAdequacyPrompt(question, requirements, answer),
-    temperature: JUDGE_TEMPERATURE,
-  });
-  return parseAdequacyReport(text, requirements.length);
+  let last: unknown;
+  for (let attempt = 0; attempt <= MALFORMED_RETRIES; attempt++) {
+    // The call is *inside* the try, not in front of it: `generateObject`
+    // rejects with `AI_NoObjectGeneratedError` when the provider cannot meet
+    // the schema, and a rejection outside the loop would leave the run
+    // exactly as fragile as the throw this retry exists to absorb.
+    // Declared out here so the catch can log a report that parsed as JSON
+    // and failed the index checks; a rejection from `generateObject` never
+    // gets that far and leaves it empty.
+    let text = "";
+    try {
+      const { object } = await generateObject({
+        model: getJudgeModel(),
+        schema: ADEQUACY_REPORT_SCHEMA,
+        system: ADEQUACY_SYSTEM_PROMPT,
+        prompt: buildAdequacyPrompt(question, requirements, answer),
+        temperature: JUDGE_TEMPERATURE,
+      });
+      // Back through the parser on purpose: the schema settles the *syntax*,
+      // and the parser is what still refuses a report that skips, repeats or
+      // invents an index — the check that stops four answers about five
+      // requirements being read as four passes and a silence.
+      text = JSON.stringify(object);
+      return parseAdequacyReport(text, requirements.length);
+    } catch (error) {
+      last = error;
+      // The whole response, not the parser's 200-character preview: the one
+      // thing a rerun needs is what the judge actually said.
+      console.warn(
+        `eval: adequacy judge output unreadable (attempt ${attempt + 1} of ` +
+          `${MALFORMED_RETRIES + 1}) — ${(error as Error).message}` +
+          (text === "" ? "" : `\n${text}`),
+      );
+    }
+  }
+  throw last;
 };
 
 /**

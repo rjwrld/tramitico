@@ -259,6 +259,8 @@ const ROW: SearchChunksRow = {
   score: rrfScore(1) + rrfScore(1),
   vector_rank: 1,
   lexical_rank: 1,
+  expansion_vector_rank: null,
+  expansion_lexical_rank: null,
 };
 
 const CHUNK: RetrievedChunk = {
@@ -456,6 +458,19 @@ function fakeClient(
 }
 
 describe("retrieve", () => {
+  // The unit lane must not reach a provider, and `retrieve`'s default
+  // expander (#286) would whenever an Anthropic key happens to be in the
+  // environment — which it is for anyone who sourced `.env.local` before
+  // `pnpm test`. Cases that want expansion pass their own `expander` and are
+  // unaffected by the switch.
+  beforeEach(() => {
+    vi.stubEnv("EXPAND", "off");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("passes the embedded query and match count to the RPC", async () => {
     let seen: Record<string, unknown> | undefined;
     await retrieve("¿me cobran retroactivo?", {
@@ -469,6 +484,9 @@ describe("retrieve", () => {
       query_text: "¿me cobran retroactivo?",
       query_embedding: "[0.5,0.5,0.5]",
       match_count: 5,
+      // No expander configured: the v4 two-leg contract, on the wire (#286).
+      expansion_text: null,
+      expansion_embedding: null,
     });
   });
 
@@ -587,6 +605,157 @@ describe("retrieve", () => {
    * `query_embedding` goes to the RPC as `null` — is the whole contract here,
    * since that is what makes `search_chunks` run lexical-only.
    */
+  describe("the expansion legs (#286)", () => {
+    it("sends the rewrite and its embedding beside the question's", async () => {
+      let seen: Record<string, unknown> | undefined;
+      const result = await retrieve("Me inscribí un año tarde, ¿qué me pasa?", {
+        client: fakeClient([ROW], (args) => {
+          seen = args;
+        }),
+        embedder: fakeEmbedder(),
+        expander: {
+          expand: async () => "Omisión de la declaración de inscripción",
+        },
+      });
+
+      expect(seen).toMatchObject({
+        query_text: "Me inscribí un año tarde, ¿qué me pasa?",
+        query_embedding: "[0.5,0.5,0.5]",
+        expansion_text: "Omisión de la declaración de inscripción",
+        expansion_embedding: "[0.5,0.5,0.5]",
+      });
+      // Reported, so a caller can say which search actually ran.
+      expect(result.expansion).toBe("Omisión de la declaración de inscripción");
+    });
+
+    it("searches the question alone when the expander declines", async () => {
+      let seen: Record<string, unknown> | undefined;
+      const result = await retrieve("iva", {
+        client: fakeClient([ROW], (args) => {
+          seen = args;
+        }),
+        embedder: fakeEmbedder(),
+        expander: { expand: async () => null },
+      });
+
+      expect(seen).toMatchObject({
+        expansion_text: null,
+        expansion_embedding: null,
+      });
+      expect(result.expansion).toBeNull();
+    });
+
+    it("keeps the expansion's lexical leg when its embed fails", async () => {
+      // An expansion the embedder cannot vectorise is not a degradation: the
+      // question's own legs are untouched, so the reader is not told that the
+      // search was thinner than usual — it was thicker than v4's.
+      let seen: Record<string, unknown> | undefined;
+      const embedder: Embedder = {
+        ...fakeEmbedder(),
+        embedQuery: async (text) => {
+          if (text === "expansión") throw new Error("voyage 500");
+          return [0.5, 0.5, 0.5];
+        },
+      };
+
+      const result = await retrieve("iva", {
+        client: fakeClient([ROW], (args) => {
+          seen = args;
+        }),
+        embedder,
+        expander: { expand: async () => "expansión" },
+      });
+
+      expect(seen).toMatchObject({
+        query_embedding: "[0.5,0.5,0.5]",
+        expansion_text: "expansión",
+        expansion_embedding: null,
+      });
+      expect(result.isDegraded).toBe(false);
+    });
+
+    it("makes no call at all when the caller opts out", async () => {
+      let seen: Record<string, unknown> | undefined;
+      await retrieve("iva", {
+        client: fakeClient([ROW], (args) => {
+          seen = args;
+        }),
+        embedder: fakeEmbedder(),
+        expander: null,
+      });
+
+      expect(seen).toMatchObject({
+        expansion_text: null,
+        expansion_embedding: null,
+      });
+    });
+
+    it("stays weak on the degraded path when only the expansion matched", async () => {
+      // The same hole as corroboration, on the path where corroboration is
+      // not available: the question's embed failed, so its vector leg never
+      // ran, and the pool can be filled entirely by chunks a model-written
+      // passage found. "Not empty" would clear the honest decline of #21 on
+      // the strength of the expansion alone; "the reader's own words matched
+      // something" is what lexical-only can still honestly say.
+      const expansionOnly: SearchChunksRow = {
+        ...ROW,
+        vector_rank: null,
+        lexical_rank: null,
+        expansion_lexical_rank: 1,
+      };
+      const degraded = await retrieve("iva", {
+        client: fakeClient([expansionOnly]),
+        embedder: failingEmbedder(new Error("voyage 503")),
+        expander: { expand: async () => "expansión" },
+      });
+      expect(degraded.isDegraded).toBe(true);
+      expect(degraded.chunks).toHaveLength(1);
+      expect(degraded.isWeak).toBe(true);
+
+      // And a degraded ask the question's own words *did* match is not weak,
+      // which is the whole point of #127's fallback.
+      const answered = await retrieve("iva", {
+        client: fakeClient([{ ...ROW, vector_rank: null, lexical_rank: 3 }]),
+        embedder: failingEmbedder(new Error("voyage 503")),
+        expander: { expand: async () => "expansión" },
+      });
+      expect(answered.isDegraded).toBe(true);
+      expect(answered.isWeak).toBe(false);
+    });
+
+    it("counts either leg of a pair, but never the expansion alone", () => {
+      // The expansion is the same two retrieval modes asked in the corpus's
+      // words, so similarity-plus-words is still the test — one mode twice
+      // is still one mode. What it cannot do is corroborate on its own: both
+      // of its legs read one passage a model wrote for this question, and it
+      // writes one for any question, so an expansion-only pair would tell an
+      // out-of-scope ask that the corpus corroborates it.
+      expect(
+        isCorroborated({
+          vectorRank: null,
+          lexicalRank: null,
+          expansionVectorRank: 1,
+          expansionLexicalRank: 1,
+        }),
+      ).toBe(false);
+      expect(
+        isCorroborated({
+          vectorRank: 3,
+          lexicalRank: null,
+          expansionLexicalRank: 9,
+        }),
+      ).toBe(true);
+      expect(
+        isCorroborated({
+          vectorRank: 3,
+          lexicalRank: null,
+          expansionVectorRank: 1,
+          expansionLexicalRank: null,
+        }),
+      ).toBe(false);
+    });
+  });
+
   describe("degraded (lexical-only) fallback", () => {
     const embedFailure = new Error("Voyage embeddings: HTTP 503");
 
@@ -611,6 +780,8 @@ describe("retrieve", () => {
       expect(seen).toEqual({
         query_text: "¿me cobran retroactivo?",
         query_embedding: null,
+        expansion_text: null,
+        expansion_embedding: null,
         match_count: DEFAULT_MATCH_COUNT,
       });
       expect(result.isDegraded).toBe(true);

@@ -44,7 +44,7 @@ const SUBPROCESSORS = [
   },
   {
     name: "Anthropic",
-    role: "Redacción de la respuesta. Recibe su pregunta junto con los fragmentos oficiales recuperados. Cuando usted repregunta sobre lo mismo, recibe además los últimos intercambios de esa conversación, para convertir la repregunta en una pregunta completa.",
+    role: "Redacción de la respuesta. Recibe su pregunta junto con los fragmentos oficiales recuperados. Recibe además su pregunta sola, antes de buscar, para reescribirla con los términos de la normativa y así encontrar el documento aunque usted no use sus palabras. Y cuando usted repregunta sobre lo mismo, recibe los últimos intercambios de esa conversación, para convertir la repregunta en una pregunta completa.",
   },
   {
     name: "Voyage AI",

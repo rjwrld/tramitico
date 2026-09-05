@@ -7,6 +7,7 @@ import {
   answerTopK,
   rerankChunks,
   rerankOrder,
+  rerankQuery,
 } from "./rerank";
 
 function chunk(id: number): RetrievedChunk {
@@ -149,6 +150,47 @@ describe("rerankChunks", () => {
     const result = await rerankChunks("pregunta", POOL, { fetchImpl });
     expect(result).toEqual(POOL.slice(0, 8));
     expect(fetchImpl).not.toHaveBeenCalled();
+  });
+});
+
+describe("the rerank query (#286)", () => {
+  it("appends the expansion, and keeps the question", () => {
+    expect(
+      rerankQuery("¿desde cuánta plata?", "base mínima contributiva"),
+    ).toBe("¿desde cuánta plata? base mínima contributiva");
+  });
+
+  it("is the question alone when there is no expansion", () => {
+    expect(rerankQuery("¿desde cuánta plata?")).toBe("¿desde cuánta plata?");
+    expect(rerankQuery("¿desde cuánta plata?", null)).toBe(
+      "¿desde cuánta plata?",
+    );
+    expect(rerankQuery("¿desde cuánta plata?", "")).toBe(
+      "¿desde cuánta plata?",
+    );
+  });
+
+  it("sends that composed query to Voyage", async () => {
+    let sent: string | undefined;
+    const fetchImpl = (async (_url: string, init: RequestInit) => {
+      sent = JSON.parse(init.body as string).query;
+      return new Response(
+        JSON.stringify({ data: [{ index: 0, relevance_score: 1 }] }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }) as unknown as typeof fetch;
+
+    vi.stubEnv("RERANK", "voyage");
+    vi.stubEnv("VOYAGE_API_KEY", "test-key");
+    await rerankChunks("pregunta", [chunk(1)], {
+      fetchImpl,
+      expansion: "términos oficiales",
+    });
+
+    expect(sent).toBe("pregunta términos oficiales");
   });
 });
 

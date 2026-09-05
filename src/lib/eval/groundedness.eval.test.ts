@@ -201,7 +201,9 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
       }
 
       const chunks = pinDerivedFigureInputs(
-        await rerankChunks(query, retrieval.chunks),
+        await rerankChunks(query, retrieval.chunks, {
+          expansion: retrieval.expansion,
+        }),
         retrieval.chunks,
       );
       const derivedFigures = resolveDerivedFigures(chunks);

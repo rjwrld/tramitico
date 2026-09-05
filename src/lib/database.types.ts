@@ -184,6 +184,8 @@ export type Database = {
       };
       search_chunks: {
         Args: {
+          expansion_embedding?: string;
+          expansion_text?: string;
           match_count?: number;
           query_embedding: string;
           query_text: string;
@@ -195,6 +197,8 @@ export type Database = {
           doc_key: string;
           doc_title: string;
           effective_date: string | null;
+          expansion_lexical_rank: number;
+          expansion_vector_rank: number;
           fetched_at: string;
           lexical_rank: number;
           norma: string;
