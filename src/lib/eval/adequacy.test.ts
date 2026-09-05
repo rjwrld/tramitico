@@ -26,7 +26,9 @@ const CASE: EvalCase = {
   expected: [{ docKey: "ley-iva", articulo: "Artículo 10" }],
   blocking: true,
   tier: 1,
-  heldOut: true,
+  // Not a held-out case: a hand-written fixture for the judge, so it
+  // carries no variant and must not claim membership in the set.
+  heldOut: false,
   family: "T1-D",
   requiredClaims: [
     { claim: "la tarifa general es 13 %", literal: ["13 %", "13%"] },

@@ -58,6 +58,45 @@ describe("the held-out set (#261 part B)", () => {
   });
 });
 
+/**
+ * The seven cases #258/#259/#260 had already put in the dataset before this
+ * issue promoted them into the set. Flagging a case `heldOut` cannot undo the
+ * exposure it already had — the retrieval suite has been running them — so
+ * they are *members* of the held-out set but not *first exposures* of it, and
+ * #267 has to report the two groups separately or its held-out number will
+ * claim more than it measured.
+ *
+ * `seed` is what tells them apart: a case written for this set carries
+ * `held-out:<family>`, a promoted one keeps the provenance of the issue that
+ * wrote it. Pinning the list here means the distinction survives someone
+ * later editing a seed without knowing what it was load-bearing for.
+ */
+const PROMOTED = [
+  "ccss-cese-actividad",
+  "ccss-obligacion-ingreso-bajo",
+  "ccss-pedir-prescripcion-cuotas",
+  "ccss-ventana-prescripcion-24-meses",
+  "desinscripcion-dejar-actividad",
+  "inscripcion-tardia-sancion",
+  "multa-iva-no-declarado",
+];
+
+describe("first exposure vs. promoted membership (#261 part B)", () => {
+  const promoted = heldOut
+    .filter((c) => !c.seed.startsWith("held-out:"))
+    .map((c) => c.id)
+    .sort();
+
+  it("keeps the promoted cases identifiable by their original seed", () => {
+    expect(promoted).toEqual(PROMOTED);
+  });
+
+  it("leaves the rest genuinely unseen before this set", () => {
+    // 48 members, 7 of them promoted: 41 questions no eval run has scored.
+    expect(heldOut.length - promoted.length).toBeGreaterThanOrEqual(41);
+  });
+});
+
 describe("every held-out Tier 1 case carries what makes it checkable", () => {
   it("is blocking, with a family and at most five required claims", () => {
     for (const c of tier1) {

@@ -369,7 +369,16 @@ Seven of the 27 Tier 1 cases were already in the file: the corpus issues that
 unblocked this one (#258, #259, #260) added them from the same §B8 list, one
 of them saying so in as many words. #261 part B promoted those in place rather
 than writing near-duplicates, since a second copy of the same question would
-have doubled the paid eval spend to measure the same thing twice:
+have doubled the paid eval spend to measure the same thing twice.
+
+**A flag cannot undo exposure.** Those seven have been in the retrieval suite
+since the issues that wrote them, so they are members of the held-out set but
+not first exposures of it, and a single held-out number over all 48 would claim
+more than it measured. They stay identifiable by `seed` — a case written for
+this set carries `held-out:<family>`, a promoted one keeps its original
+provenance — and the split is pinned in `held-out.test.ts` so an edit cannot
+quietly erase it. **#267 must report the two groups separately.** The 41 cases
+that are first exposures are the ones that carry the argument:
 
 | Case                                 | Family / variant | Added by |
 | ------------------------------------ | ---------------- | -------- |
