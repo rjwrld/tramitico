@@ -322,11 +322,14 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   with literal, colloquial, and follow-up variants, plus Tier 2 and abstention/adversarial cases.
   Every Tier 1 case declares `requiredClaims`, `requiredSteps` when procedural, expected sources,
   freshness inputs, and `blocking: true`. A case may carry `history` (#132); both eval suites
-  condense it first, so targets describe retrieval for the standalone question. Until part B
-  lands, `eval/dataset.jsonl` holds 25–45 cases; the 40 ceiling became 45 when #264's T1-C seed
-  («mi primera factura electrónica … CABYS») had no case and the cap, not the corpus, stood in
-  the way — retiring a `corpus` case to fit it would have traded measured coverage for
-  bookkeeping on a band #261 retires anyway.
+  condense it first, so targets describe retrieval for the standalone question. Since #261 part B
+  the held-out set lives in `eval/dataset.jsonl` beside the corpus-derived suite, marked
+  `heldOut`, and is **48 cases**: nine Tier 1 families × three `variant`s (literal, colloquial,
+  follow-up) — exactly one of each — plus 12 Tier 2 and 9 abstention cases. Its composition is
+  the coverage claim, so it is asserted rather than banded
+  (`src/lib/eval/held-out.test.ts`); the 25–45 band now describes only the corpus-derived half it
+  was written for. Held out means held out: no one consults these cases while tuning retrieval,
+  chunking or the prompt until the #267 baseline is published.
 - **Retrieval:** every expected source/article must be present in the answer pool. A satisfiable
   Tier 1 case that takes the weak-retrieval decline is a failure.
 - **Groundedness:** every material claim must be supported by a retrieved chunk. The pinned

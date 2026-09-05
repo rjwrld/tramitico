@@ -95,6 +95,7 @@ const CASE: EvalCase = {
   expected: [{ docKey: "ccss-escala-salud" }],
   blocking: true,
   tier: 1,
+  heldOut: true,
   family: "T1-F",
   requiredClaims: [
     {

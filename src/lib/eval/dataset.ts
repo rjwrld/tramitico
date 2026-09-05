@@ -23,6 +23,12 @@
  * between the two and passes an answer that is supported but incomplete
  * (#130), which is exactly why the contract needs its own field here and its
  * own judge in `adequacy.ts`.
+ *
+ * Part B of #261 then filled that contract in: `heldOut` marks the 48 cases
+ * written from the demand vocabulary of #254 Part B §B8 rather than from
+ * corpus wording, and `variant` records which of the three shapes — literal,
+ * colloquial, follow-up — a Tier 1 case is. The corpus-derived cases stay
+ * where they are, as the retrieval regression suite they always were.
  */
 import path from "node:path";
 import type { ConversationTurn } from "../answer/contract";
@@ -67,6 +73,17 @@ export const FAMILIES = [
 export type Family = (typeof FAMILIES)[number];
 
 /**
+ * The three shapes every Tier 1 family is asked in (#261 req. 4, #254 §A5).
+ * The point of the trio is that they fail differently: `literal` is the
+ * question as the family names it, `coloquial` is the same need in the
+ * vocabulary the demand research recorded ("meterme en Hacienda"), and
+ * `seguimiento` is a follow-up that only makes sense after a previous turn,
+ * so it exercises condensation (#132) rather than retrieval alone.
+ */
+export const VARIANTS = ["literal", "coloquial", "seguimiento"] as const;
+export type Variant = (typeof VARIANTS)[number];
+
+/**
  * One thing the answer must say. Written short and verifiable, because a
  * judge reads it one at a time: "la tarifa general del IVA es 13 %", not "the
  * answer explains IVA".
@@ -92,8 +109,8 @@ export interface EvalCase {
   id: string;
   /**
    * Provenance: "appendix-a:<n>" (a SPEC Appendix A seed, numbered by Tier 1
-   * family since #264), "demand:<family>" (the demand taxonomy of #254) or
-   * "corpus".
+   * family since #264), "demand:<family>" (the demand taxonomy of #254),
+   * "held-out:<family>" (#261 Part B) or "corpus".
    */
   seed: string;
   question: string;
@@ -114,6 +131,18 @@ export interface EvalCase {
   blocking: boolean;
   /** Coverage tier; defaults to 2, the tier that promises nothing. */
   tier: Tier;
+  /**
+   * Membership in the held-out set of #261 req. 4: 27 Tier 1 cases (nine
+   * families x three variants), 12 Tier 2 and 9 abstention cases, written
+   * from the demand vocabulary of #254 Part B rather than from corpus
+   * wording. The flag exists because the discipline it records is not
+   * visible in a question: a held-out case is one nobody may consult while
+   * tuning retrieval until the #267 baseline is published, and a set nobody
+   * can enumerate is a set nobody can hold out.
+   */
+  heldOut: boolean;
+  /** Which of the three shapes this is. Required on a held-out tier 1 case. */
+  variant?: Variant;
   /** Tier 1 family. Required on tier 1, absent elsewhere. */
   family?: Family;
   /** What the answer must contain (≤5). Required on tier 1. */
@@ -143,6 +172,11 @@ export function retrievalCases(cases: readonly EvalCase[]): EvalCase[] {
   return cases.filter((evalCase) => evalCase.tier !== "abstain");
 }
 
+/** The held-out set (#261 req. 4), across all three tiers. */
+export function heldOutCases(cases: readonly EvalCase[]): EvalCase[] {
+  return cases.filter((evalCase) => evalCase.heldOut);
+}
+
 /** Cases the abstention judge runs. */
 export function abstentionCases(cases: readonly EvalCase[]): EvalCase[] {
   return cases.filter((evalCase) => evalCase.tier === "abstain");
@@ -163,6 +197,14 @@ function parseFamily(where: string, raw: unknown): Family | undefined {
     throw new Error(`${where}: family must be one of ${FAMILIES.join(", ")}`);
   }
   return raw as Family;
+}
+
+function parseVariant(where: string, raw: unknown): Variant | undefined {
+  if (raw === undefined) return undefined;
+  if (typeof raw !== "string" || !VARIANTS.includes(raw as Variant)) {
+    throw new Error(`${where}: variant must be one of ${VARIANTS.join(", ")}`);
+  }
+  return raw as Variant;
 }
 
 function parseOptionalString(where: string, raw: unknown): string | undefined {
@@ -278,6 +320,8 @@ export function parseDataset(jsonl: string): EvalCase[] {
       }
     }
     const coverage = entry as {
+      heldOut?: unknown;
+      variant?: unknown;
       family?: unknown;
       requiredClaims?: unknown;
       requiredSteps?: unknown;
@@ -286,6 +330,14 @@ export function parseDataset(jsonl: string): EvalCase[] {
       freshness?: unknown;
     };
     const family = parseFamily(where, coverage.family);
+    const variant = parseVariant(where, coverage.variant);
+    if (
+      coverage.heldOut !== undefined &&
+      typeof coverage.heldOut !== "boolean"
+    ) {
+      throw new Error(`${where}: heldOut must be a boolean`);
+    }
+    const heldOut = (coverage.heldOut as boolean | undefined) ?? false;
     const requiredClaims = parseRequiredClaims(where, coverage.requiredClaims);
     const requiredSteps = parseStringList(
       `${where}: requiredSteps`,
@@ -323,6 +375,14 @@ export function parseDataset(jsonl: string): EvalCase[] {
       if (entry.blocking === false) {
         throw new Error(`${where}: a tier 1 case is always blocking`);
       }
+      // The three variants are the coverage claim itself (#261 req. 4): a
+      // family measured only in its own words has not been shown to survive
+      // the words a reader uses.
+      if (heldOut && variant === undefined) {
+        throw new Error(
+          `${where}: a held-out tier 1 case needs a variant (${VARIANTS.join(", ")})`,
+        );
+      }
     }
     if (tier === "abstain") {
       if (abstainIf === undefined) {
@@ -347,6 +407,8 @@ export function parseDataset(jsonl: string): EvalCase[] {
       // Tier 1 is blocking by definition; anything else opts in.
       blocking: entry.blocking ?? tier === 1,
       tier,
+      heldOut,
+      ...(variant === undefined ? {} : { variant }),
       ...(family === undefined ? {} : { family }),
       ...(requiredClaims === undefined ? {} : { requiredClaims }),
       ...(requiredSteps === undefined ? {} : { requiredSteps }),

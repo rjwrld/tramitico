@@ -1,9 +1,11 @@
 # Eval dataset (SPEC §9, issues #25/#26)
 
 `dataset.jsonl` holds the hand-written eval questions — Appendix A's nine Tier 1
-seeds (#264) plus demand- and corpus-derived ones — each with the source
-docs/artículos a correct retrieval must surface. SPEC §9 caps it at 45 until
-#261's held-out set replaces the band. One JSON object per line:
+seeds (#264), the corpus-derived regression suite, and since #261 part B the
+48-case **held-out set** written from demand evidence — each with the source
+docs/artículos a correct retrieval must surface. SPEC §9's 25–45 band now
+describes the corpus-derived half only; the held-out set has a composition
+instead of a size (see below). One JSON object per line:
 
 ```json
 {
@@ -28,7 +30,8 @@ docs/artículos a correct retrieval must surface. SPEC §9 caps it at 45 until
   across Títulos of one norma.
 - `blocking` — the case fails the eval on its own, regardless of hit-rate.
   The canary from ADR 0003 is the one blocking case.
-- `seed` — provenance: `appendix-a:<n>` (SPEC Appendix A) or `corpus`.
+- `seed` — provenance: `appendix-a:<n>` (SPEC Appendix A), `demand:<family>`,
+  `held-out:<family>` (#261 part B) or `corpus`.
 - `history` — optional, and what makes a case a **condensation case** (#132,
   [ADR 0012](../docs/adr/0012-multi-turn-question-condensation.md)): a
   non-empty list of `{ question, answer }` turns preceding this one. Both eval
@@ -254,6 +257,10 @@ case also carries its place in the coverage contract of the #254 map:
   named destination there is nothing to check the routing against.
 - `freshness` — docKeys whose figures the answer depends on: the ones a decree
   cycle invalidates.
+- `heldOut` — membership in the held-out set of #261 part B, and `variant` —
+  which of `literal` / `coloquial` / `seguimiento` a Tier 1 case is. Both are
+  in the schema for the same reason: a discipline nobody can enumerate is a
+  discipline nobody keeps. See the next section.
 
 An abstention case is the one kind with **no `expected` targets** — the point
 is that no correct source exists — so the retrieval and groundedness lanes skip
@@ -310,9 +317,87 @@ anyway, rule 6 of the answer prompt. Gate: correct abstention ≥ 90 %
 answer with no fragments behind it that prints a colón amount or a percentage
 made it up.
 
-Until the held-out abstention cases land, the suite fails on an empty set
-rather than passing vacuously — the #129 rule that a check asserting nothing is
-worse than a red one.
+The nine held-out abstention cases landed with #261 part B, so the set is no
+longer empty; the assertion that it is non-empty stays, because a check
+asserting nothing is worse than a red one (#129).
+
+### The held-out set (#261 part B, #254 §A5/§B8)
+
+`expected` proves retrieval and `requiredClaims` proves adequacy, but both are
+answers to questions **the author wrote after reading the corpus**. A suite
+built that way measures whether the pipeline can find what its author already
+knew was there. The held-out set is the other half: 48 cases written from the
+demand evidence of #254 Part B — the words people actually type, «meterme en
+Hacienda», «desde cuánta plata», «trabajitos por mi cuenta» — with targets
+verified afterwards, and only for satisfiability.
+
+`heldOut: true` marks them. The composition is fixed and asserted in
+`src/lib/eval/held-out.test.ts`:
+
+| Block   | Count | What it is                                                                   |
+| ------- | ----- | ---------------------------------------------------------------------------- |
+| Tier 1  | 27    | the nine families × `literal`, `coloquial`, `seguimiento` — exactly one each |
+| Tier 2  | 12    | the adjacent questions of §B8, same evidence standard, no promise            |
+| Abstain | 9     | out of scope, false premise, nonexistent figure, other institution           |
+
+The three variants are the coverage claim itself. A family measured only in
+its own vocabulary has not been shown to survive a reader's: `literal` is the
+family's own question, `coloquial` the same need in demand vocabulary, and
+`seguimiento` a follow-up that carries `history`, so it fails on condensation
+(#132) rather than on retrieval. The grid is asserted as an **exact** set, not
+a floor — a tenth variant of one family would quietly make the per-case
+blocking rule mean something different for that family than for the other
+eight.
+
+Two rules the set follows that are not visible in a case:
+
+- **Held out means held out.** Nobody consults these cases while tuning
+  retrieval, chunking or the prompt, until the #267 baseline is published.
+  That is why the flag exists at all: a set nobody can enumerate is a set
+  nobody can hold out.
+- **A claim the corpus cannot support is not a claim.** Where §B4 asks for
+  something the ingested excerpt does not carry — the crédito-fiscal effect of
+  a tiquete, whether a pending debt blocks desinscripción — the edge is
+  written into `abstainIf` instead of into `requiredClaims`. `abstainIf` on a
+  Tier 1 case documents what the case does _not_ cover; inventing a required
+  claim nothing can satisfy would just make the gate red forever and teach
+  nobody anything.
+
+Seven of the 27 Tier 1 cases were already in the file: the corpus issues that
+unblocked this one (#258, #259, #260) added them from the same §B8 list, one
+of them saying so in as many words. #261 part B promoted those in place rather
+than writing near-duplicates, since a second copy of the same question would
+have doubled the paid eval spend to measure the same thing twice:
+
+| Case                                 | Family / variant | Added by |
+| ------------------------------------ | ---------------- | -------- |
+| `ccss-obligacion-ingreso-bajo`       | T1-B literal     | #258     |
+| `ccss-cese-actividad`                | T1-H seguimiento | #258     |
+| `ccss-pedir-prescripcion-cuotas`     | T1-G coloquial   | #260     |
+| `ccss-ventana-prescripcion-24-meses` | T1-G seguimiento | #260     |
+| `desinscripcion-dejar-actividad`     | T1-H literal     | #264     |
+| `multa-iva-no-declarado`             | T1-I literal     | #259     |
+| `inscripcion-tardia-sancion`         | T1-I coloquial   | #259     |
+
+The other 41 cases are new here. The corpus-vocabulary cases that ask the same
+questions in the corpus's own words (`iva-clientes-fuera-cr`,
+`ccss-asalariado-y-freelance`, `renta-tramos-2026` and the rest) stay exactly
+where they are: they are the retrieval regression suite, and retiring them to
+save eval spend would trade measured coverage for a smaller bill.
+
+One §B8 proposal did not survive verification. The Tier 2 «D-270» case has no
+official source in the corpus, and a case whose target no chunk can satisfy
+fails the satisfiability lane by construction — so that slot went to
+«¿Cómo saco la constancia de que estoy al día con Hacienda?», the same §B4
+Tier 2 need (TRIBU-CR situación tributaria) with a source behind it.
+
+Two abstention cases are expected to expose a real gap rather than pass:
+«¿Cuánto debería cobrar por hora…?» and «¿Qué contador me recomienda?» match
+no institution keyword in `classifyRouting`, so today they take the default
+decline and route to Hacienda and the CCSS — which is not where either reader
+should be sent. Their `routeTo` names the honest destination anyway. Writing
+the destination the product currently produces would have made the case pass
+by describing the bug.
 
 ### The citation invariant, at eval time (#168)
 

@@ -14,6 +14,7 @@ const evalCase = (id: string, expected: EvalCase["expected"]): EvalCase => ({
   expected,
   blocking: false,
   tier: 2,
+  heldOut: false,
 });
 
 describe("censusTargets", () => {
