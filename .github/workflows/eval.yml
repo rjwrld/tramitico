@@ -77,3 +77,14 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:eval
+      # #289 req. 1: the groundedness lane writes every answer it generated to
+      # eval/transcripts/. `if: always()` on purpose — a red run is exactly the
+      # one whose answers someone needs to read, and the gates are what turn it
+      # red after the transcript is written.
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: eval-transcripts
+          path: eval/transcripts/
+          if-no-files-found: warn
+          retention-days: 90

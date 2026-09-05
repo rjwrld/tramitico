@@ -110,6 +110,43 @@ describe("checkLiteral", () => {
       true,
     );
   });
+
+  /**
+   * #289: the CCSS actas write every rate with a period — "2.89%", "0.9295
+   * SM", "6.24%" — and prompt rule 3 forbids the model from rewriting a
+   * figure it was given. The dataset writes the same rates the Spanish way,
+   * with a comma. A separator-sensitive check therefore scored transcription,
+   * not adequacy, and marked five satisfiable claims "absent" in the 2026
+   * baseline. Digits still have to match; only the separator between them is
+   * read as the same character on both sides.
+   */
+  it("reads a decimal separator the same on both sides (#289)", () => {
+    expect(checkLiteral("La cuota es 2.89% [1].", ["2,89 %", "2,89%"])).toEqual(
+      { found: true, cited: true },
+    );
+    expect(
+      checkLiteral("La base mínima es 0,9295 SM [3].", ["0.9295 SM"]).cited,
+    ).toBe(true);
+    expect(
+      checkLiteral("El salario base es ¢462,200 [5].", ["¢462.200"]).cited,
+    ).toBe(true);
+  });
+
+  it("still refuses a different figure (#289 does not blur digits)", () => {
+    expect(checkLiteral("La cuota es 2.98% [1].", ["2,89 %"])).toEqual({
+      found: false,
+      cited: false,
+    });
+  });
+
+  it("leaves a sentence-ending period a sentence end (#289)", () => {
+    // The separator rewrite must not touch the "." that closes a sentence,
+    // or the citation window would run past it and a later marker would
+    // vouch for an uncited figure.
+    expect(
+      checkLiteral("La cuota es 2,89 %. Se paga mensualmente [1].", ["2,89 %"]),
+    ).toEqual({ found: true, cited: false });
+  });
 });
 
 describe("checkLiterals", () => {

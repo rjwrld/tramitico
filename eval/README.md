@@ -137,10 +137,10 @@ Abstention's nine cases are all first-exposure.
 - **Adequacy is the red that matters.** Tier 1 scores 2/27. Groundedness
   passed 70 of the same answers, which is exactly the gap #130 predicted:
   supported but incomplete. Most missing items are `requiredSteps` and scope
-  claims, four are deterministic-lane figure misses; the answers themselves
-  are not persisted by the harness, so the split between «the answer omitted
-  it» and «the requirement over-specifies what the corpus supports» is the
-  first step of #289.
+  claims, four are deterministic-lane figure misses. The answers were not
+  persisted by the harness at the time, which is what #289 fixed first (the
+  run transcript below); five of the figure misses turned out to be the
+  comma-vs-period defect in `checkLiteral`, not omissions at all.
 - **Abstention routes badly on sociedades.** Two of the three failures should
   route to Registro Nacional; the third rejected a false premise and named no
   institution (#290). The two `figureMentions` flags are cited corpus figures
@@ -662,6 +662,42 @@ runtime check over every generated answer and prints the violations. Until the
 2026 baseline it was asserted on blocking cases only and reported for the
 rest, because a number nobody has measured is not a gate; #267 measured **0
 violations over 73 answers**, so it is now asserted on every case.
+
+### The run transcript (#289)
+
+The 2026 baseline printed, for every inadequate case, the requirements the
+judge did not find — and that table can never say _why_ one is missing. The
+three causes look identical in it: the answer omitted something the fragments
+carried, the fragment carrying it was never in the top-8, or the requirement
+over-specifies what the corpus supports («a claim the corpus cannot support is
+not a claim»). Classifying #267's 29 adequacy failures therefore meant paying
+for a second run.
+
+So `groundedness.eval.test.ts` now writes one JSONL row per case to
+`eval/transcripts/groundedness-<answer model>-<instant>.jsonl` — the condensed
+query, the answer, the chunk list **numbered as the prompt numbered it** (so a
+`[n]` in the answer indexes straight into it), the derived figures, and all
+three verdicts with their missing requirements. `EVAL_TRANSCRIPT_DIR`
+overrides the directory.
+
+It is reporting only: no gate reads it, a write failure is logged rather than
+raised, and the directory is gitignored. `eval.yml` uploads it as the
+`eval-transcripts` artifact with `if: always()` — a red run is exactly the one
+whose answers someone needs to read.
+
+### The decimal separator, on both sides of a literal check (#289)
+
+The CCSS actas print every rate with a period — `2.89%`, `6.24%`, `0.9295 SM`
+— and prompt rule 3 forbids the model from rewriting a figure it was handed.
+The dataset writes the same rates the Spanish way, with a comma. Until #289
+`checkLiteral` compared them character for character, so an answer quoting the
+acta faithfully scored **absent** on a claim the corpus fully supports: five
+of them in the 2026 baseline, across `ho-minimo-caja-independiente-2026` and
+`ho-800-mil-que-porcentaje-caja`. That measured transcription, not adequacy.
+A `.` or `,` standing between two digits is now normalized on both sides,
+exactly as the non-breaking space already was. Digits still have to match, and
+a period that is not between digits stays a sentence end — the citation window
+depends on it.
 
 ## Adversarial conflicting-sources case (issue #135)
 

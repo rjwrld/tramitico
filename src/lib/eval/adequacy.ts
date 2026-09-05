@@ -87,13 +87,35 @@ const SENTENCE_END = /[.;:!?](?=\s|$)|\n/;
 const CITATION_MARKER = /\[\d+\]/;
 
 /**
- * Answers and dataset literals both spell figures with whatever space the
- * source used — "13 %" arrives with U+00A0 as often as with a plain space —
- * so both sides are normalized before they meet. Nothing else is touched:
- * digits, currency signs and separators must match as written.
+ * A "." or "," standing *between two digits* — the decimal or thousands
+ * separator inside a figure, never the period that ends a sentence.
+ */
+const FIGURE_SEPARATOR = /(?<=\d)[.,](?=\d)/g;
+
+/**
+ * Answers and dataset literals both spell figures with whatever the source
+ * used, so both sides are normalized before they meet. Two normalizations,
+ * one rule — a figure is the digits, not the typography around them:
+ *
+ * - Spaces: "13 %" arrives with U+00A0 as often as with a plain space.
+ * - Separators (#289): the CCSS actas print every rate with a period
+ *   ("2.89%", "0.9295 SM", "6.24%") and prompt rule 3 forbids the model from
+ *   rewriting a figure it was handed, so an answer quoting the acta faithfully
+ *   could never match a dataset literal written the Spanish way with a comma.
+ *   That is a transcription check, not an adequacy one, and it marked five
+ *   satisfiable claims "absent" in the 2026 baseline.
+ *
+ * Nothing else is touched: digits, currency signs and word order must match as
+ * written, and a period that is not between digits stays a sentence end — the
+ * citation window depends on it.
  */
 function normalizeSpaces(text: string): string {
   return text.replace(/[   ]/g, " ");
+}
+
+/** …and the separator collapse on top, for the two sides of a literal check. */
+function normalizeFigures(text: string): string {
+  return normalizeSpaces(text).replace(FIGURE_SEPARATOR, ".");
 }
 
 function escapeRegExp(text: string): string {
@@ -122,10 +144,10 @@ export function checkLiteral(
   answer: string,
   variants: readonly string[],
 ): { found: boolean; cited: boolean } {
-  const haystack = normalizeSpaces(answer);
+  const haystack = normalizeFigures(answer);
   let found = false;
   for (const variant of variants) {
-    const needle = normalizeSpaces(variant);
+    const needle = normalizeFigures(variant);
     if (needle === "") continue;
     const pattern = new RegExp(escapeRegExp(needle), "gi");
     for (const match of haystack.matchAll(pattern)) {
