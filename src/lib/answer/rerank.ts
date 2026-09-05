@@ -6,6 +6,21 @@
  * hit-rate 19→25 of 25); `RERANK=off` opts out. Any rerank failure —
  * missing key, HTTP error, timeout — falls back to the fused order.
  * Reranking must never fail the ask.
+ *
+ * Since #287 the Voyage call asks for the *whole* pool in rank order rather
+ * than only its top 8, and the cut to the answer set happens here. Voyage
+ * scores every document either way — `top_k` only truncates the response —
+ * so this costs one identical call and buys two things: the eval harness can
+ * name the rank a missed target actually reached and which chunk displaced
+ * it (#287 requirement 1), and the answer top-k becomes a knob
+ * (`ANSWER_TOP_K`) that a measured run can move without touching the code.
+ *
+ * And since #286 the query it scores against is the question *plus* its
+ * corpus-register expansion. The reranker reads the same question the fused
+ * legs read, so it had the same register gap: a target moved from pool 24 to
+ * pool 5 and still missed, because «desde cuánta plata al mes lo obligan a
+ * uno a pagar Caja» does not look like «base mínima contributiva» to
+ * `rerank-2.5-lite` either.
  */
 import type { RetrievedChunk } from "../retrieval";
 
@@ -19,6 +34,9 @@ export const RERANK_POOL = 40;
 
 /** Chunks handed to the answer model (SPEC §5: top-k ≈ 8). */
 export const ANSWER_TOP_K = 8;
+
+/** Rerank model of record; `RERANK_MODEL` swaps it for a measured run (#287). */
+export const RERANK_MODEL = "rerank-2.5-lite";
 
 /** Reranking adds latency before the first token — keep it bounded. */
 const RERANK_TIMEOUT_MS = 3_000;
@@ -59,18 +77,47 @@ export function rerankQuery(
   return expansion ? `${question} ${expansion}` : question;
 }
 
-export async function rerankChunks(
+/** One reranked pool member: the chunk, Voyage's score, its 1-based rank. */
+export interface RerankedChunk {
+  chunk: RetrievedChunk;
+  score: number;
+  rank: number;
+}
+
+/**
+ * How many chunks reach the answer prompt. `ANSWER_TOP_K` in the environment
+ * overrides the constant for a measured run (#287 option 1); anything that is
+ * not a positive integer is ignored rather than trusted.
+ */
+export function answerTopK(): number {
+  const raw = process.env.ANSWER_TOP_K;
+  if (!raw) return ANSWER_TOP_K;
+  const parsed = Number(raw);
+  if (!Number.isInteger(parsed) || parsed < 1) return ANSWER_TOP_K;
+  return parsed;
+}
+
+/** The model Voyage is asked for; empty or unset means the model of record. */
+function rerankModel(): string {
+  return process.env.RERANK_MODEL || RERANK_MODEL;
+}
+
+/**
+ * The whole pool in Voyage's order, or `null` when the rerank did not happen —
+ * opted out, unkeyed, or failed. `null` is not an error: every caller falls
+ * back to the fused order, which is the policy this module exists to keep.
+ */
+export async function rerankOrder(
   question: string,
   chunks: readonly RetrievedChunk[],
   options: RerankOptions = {},
-): Promise<RetrievedChunk[]> {
-  const fused = chunks.slice(0, ANSWER_TOP_K);
+): Promise<RerankedChunk[] | null> {
   // `||`, not `??`: CI interpolates an unset `vars.RERANK` as "", which must
   // mean "default on" — only an explicit RERANK=off opts out.
-  if ((process.env.RERANK || "voyage") !== "voyage") return fused;
+  if ((process.env.RERANK || "voyage") !== "voyage") return null;
 
   const key = process.env.VOYAGE_API_KEY;
-  if (!key) return fused;
+  if (!key) return null;
 
   const fetchImpl = options.fetchImpl ?? fetch;
   const query = rerankQuery(question, options.expansion);
@@ -82,21 +129,47 @@ export async function rerankChunks(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "rerank-2.5-lite",
+        model: rerankModel(),
         query,
         documents: chunks.map((chunk) => chunk.content),
-        top_k: ANSWER_TOP_K,
       }),
       signal: AbortSignal.timeout(RERANK_TIMEOUT_MS),
     });
-    if (!res.ok) return fused;
+    if (!res.ok) return null;
     const json = (await res.json()) as VoyageRerankResponse;
-    const reranked = json.data
-      .map(({ index }) => chunks[index])
-      .filter((chunk): chunk is RetrievedChunk => chunk !== undefined)
-      .slice(0, ANSWER_TOP_K);
-    return reranked.length > 0 ? reranked : fused;
+    const order = json.data.flatMap(({ index, relevance_score }, position) => {
+      const chunk = chunks[index];
+      return chunk === undefined
+        ? []
+        : [{ chunk, score: relevance_score, rank: position + 1 }];
+    });
+    return order.length > 0 ? order : null;
   } catch {
-    return fused;
+    return null;
   }
+}
+
+/**
+ * The answer set: the reranked order cut to the answer top-k, or the fused
+ * head when there is no reranked order. The one place the cut is made, so the
+ * eval harness and the route agree by construction.
+ */
+export function answerSetFromOrder(
+  order: readonly RerankedChunk[] | null,
+  fused: readonly RetrievedChunk[],
+): RetrievedChunk[] {
+  const topK = answerTopK();
+  if (order === null) return fused.slice(0, topK);
+  return order.slice(0, topK).map(({ chunk }) => chunk);
+}
+
+export async function rerankChunks(
+  question: string,
+  chunks: readonly RetrievedChunk[],
+  options: RerankOptions = {},
+): Promise<RetrievedChunk[]> {
+  return answerSetFromOrder(
+    await rerankOrder(question, chunks, options),
+    chunks,
+  );
 }

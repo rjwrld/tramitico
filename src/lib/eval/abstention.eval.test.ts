@@ -36,6 +36,7 @@ import {
   buildUserPrompt,
   WEAK_RETRIEVAL_ANSWER,
 } from "../answer/prompt";
+import { pinDerivedFigureInputs } from "../answer/derived";
 import { rerankChunks, RERANK_POOL } from "../answer/rerank";
 import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
 import { retrieve } from "../retrieval";
@@ -122,9 +123,12 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
         // Retrieval found something for a question with no correct source.
         // The decline now has to come from rule 6 of the answer prompt, which
         // is exactly the case worth measuring.
-        const chunks = await rerankChunks(query, retrieval.chunks, {
-          expansion: retrieval.expansion,
-        });
+        const chunks = pinDerivedFigureInputs(
+          await rerankChunks(query, retrieval.chunks, {
+            expansion: retrieval.expansion,
+          }),
+          retrieval.chunks,
+        );
         answer = (
           await generateText({
             model: getAnswerModel(),

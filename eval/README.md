@@ -47,10 +47,10 @@ instead of a size (see below). One JSON object per line:
 
 The assertion lives in `src/lib/eval/retrieval-hitrate.eval.test.ts`
 (loader/matcher in `src/lib/eval/dataset.ts`). It runs each question through
-the production retrieval path — fused pool of 30, Voyage rerank, top-8 — and
-gates on hit-rate, the blocking canary, and the weak-retrieval threshold. It is
-env-gated: skipped without `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` and real
-embeddings; CI runs it once those secrets exist (see `.github/workflows/ci.yml`).
+the production retrieval path — a fused pool of `RERANK_POOL` (40 since #51),
+Voyage rerank, the answer top-k — and gates on hit-rate, the blocking canary,
+and the weak-retrieval threshold. It is env-gated: skipped without
+`SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` and real embeddings; CI runs it once those secrets exist (see `.github/workflows/ci.yml`).
 
 Run locally:
 
@@ -73,6 +73,28 @@ For a single case, `pnpm pool-dump <case id> …` prints the top of the fused
 pool with every leg's rank and the expansion that produced it — the diagnostic
 #286 was written with, and the cheapest way to tell a chunk problem from a
 register problem (one embed per case, no answer model).
+
+Three knobs exist so the #287 options are measured rather than argued, all
+read at call time and all defaulting to the pipeline of record:
+
+| Variable             | Default           | What it changes                                                      |
+| -------------------- | ----------------- | -------------------------------------------------------------------- |
+| `RERANK_MODEL`       | `rerank-2.5-lite` | the Voyage reranker asked for                                        |
+| `ANSWER_TOP_K`       | `8`               | how many reranked chunks reach the answer prompt                     |
+| `PIN_DERIVED_INPUTS` | `off`             | `on` completes a derived figure whose sibling input survived the cut |
+
+Changing one changes the ask pipeline, not just the eval, so a run that moves
+a knob says so in its header line, and all three keep their defaults until a
+measured run earns the change. That includes the pin: it is deterministic and
+append-only, which makes it safe to measure rather than already measured — it
+matches on source identity, not on question relevance, so it can add context
+to an answer that never asked for the figure. Measure it on both sides of an
+otherwise fixed run before it becomes the default
+([ADR 0018](../docs/adr/0018-derived-figures-by-code.md)).
+
+For every case that missed with its target inside the fused pool, the run
+prints the target's reranked rank, the answer set it lost to, and the chunk
+holding the last surviving place (#287 requirement 1).
 
 ## The 2026 baseline (#267)
 
