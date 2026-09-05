@@ -80,6 +80,7 @@ function retrievalResult(
     topScore: chunks[0].score,
     isWeak: false,
     isDegraded: false,
+    expansion: null,
     ...overrides,
   };
 }

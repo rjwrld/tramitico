@@ -123,7 +123,7 @@ select isnt_empty(
 select ok(
   has_function_privilege(
     'service_role',
-    'public.search_chunks(text, extensions.vector, int)'::regprocedure,
+    'public.search_chunks(text, extensions.vector, int, text, extensions.vector)'::regprocedure,
     'execute'),
   'service_role can execute search_chunks (the /api/ask retrieval path)'
 );

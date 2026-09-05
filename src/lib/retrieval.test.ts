@@ -259,6 +259,8 @@ const ROW: SearchChunksRow = {
   score: rrfScore(1) + rrfScore(1),
   vector_rank: 1,
   lexical_rank: 1,
+  expansion_vector_rank: null,
+  expansion_lexical_rank: null,
 };
 
 const CHUNK: RetrievedChunk = {
@@ -469,6 +471,9 @@ describe("retrieve", () => {
       query_text: "¿me cobran retroactivo?",
       query_embedding: "[0.5,0.5,0.5]",
       match_count: 5,
+      // No expander configured: the v4 two-leg contract, on the wire (#286).
+      expansion_text: null,
+      expansion_embedding: null,
     });
   });
 
@@ -587,6 +592,121 @@ describe("retrieve", () => {
    * `query_embedding` goes to the RPC as `null` — is the whole contract here,
    * since that is what makes `search_chunks` run lexical-only.
    */
+  describe("the expansion legs (#286)", () => {
+    it("sends the rewrite and its embedding beside the question's", async () => {
+      let seen: Record<string, unknown> | undefined;
+      const result = await retrieve("Me inscribí un año tarde, ¿qué me pasa?", {
+        client: fakeClient([ROW], (args) => {
+          seen = args;
+        }),
+        embedder: fakeEmbedder(),
+        expander: {
+          expand: async () => "Omisión de la declaración de inscripción",
+        },
+      });
+
+      expect(seen).toMatchObject({
+        query_text: "Me inscribí un año tarde, ¿qué me pasa?",
+        query_embedding: "[0.5,0.5,0.5]",
+        expansion_text: "Omisión de la declaración de inscripción",
+        expansion_embedding: "[0.5,0.5,0.5]",
+      });
+      // Reported, so a caller can say which search actually ran.
+      expect(result.expansion).toBe("Omisión de la declaración de inscripción");
+    });
+
+    it("searches the question alone when the expander declines", async () => {
+      let seen: Record<string, unknown> | undefined;
+      const result = await retrieve("iva", {
+        client: fakeClient([ROW], (args) => {
+          seen = args;
+        }),
+        embedder: fakeEmbedder(),
+        expander: { expand: async () => null },
+      });
+
+      expect(seen).toMatchObject({
+        expansion_text: null,
+        expansion_embedding: null,
+      });
+      expect(result.expansion).toBeNull();
+    });
+
+    it("keeps the expansion's lexical leg when its embed fails", async () => {
+      // An expansion the embedder cannot vectorise is not a degradation: the
+      // question's own legs are untouched, so the reader is not told that the
+      // search was thinner than usual — it was thicker than v4's.
+      let seen: Record<string, unknown> | undefined;
+      const embedder: Embedder = {
+        ...fakeEmbedder(),
+        embedQuery: async (text) => {
+          if (text === "expansión") throw new Error("voyage 500");
+          return [0.5, 0.5, 0.5];
+        },
+      };
+
+      const result = await retrieve("iva", {
+        client: fakeClient([ROW], (args) => {
+          seen = args;
+        }),
+        embedder,
+        expander: { expand: async () => "expansión" },
+      });
+
+      expect(seen).toMatchObject({
+        query_embedding: "[0.5,0.5,0.5]",
+        expansion_text: "expansión",
+        expansion_embedding: null,
+      });
+      expect(result.isDegraded).toBe(false);
+    });
+
+    it("makes no call at all when the caller opts out", async () => {
+      let seen: Record<string, unknown> | undefined;
+      await retrieve("iva", {
+        client: fakeClient([ROW], (args) => {
+          seen = args;
+        }),
+        embedder: fakeEmbedder(),
+        expander: null,
+      });
+
+      expect(seen).toMatchObject({
+        expansion_text: null,
+        expansion_embedding: null,
+      });
+    });
+
+    it("counts either leg of a pair towards corroboration", () => {
+      // The expansion is the same two retrieval modes asked in the corpus's
+      // words, so similarity-plus-words is still the test — one mode twice
+      // is still one mode.
+      expect(
+        isCorroborated({
+          vectorRank: null,
+          lexicalRank: null,
+          expansionVectorRank: 1,
+          expansionLexicalRank: 1,
+        }),
+      ).toBe(true);
+      expect(
+        isCorroborated({
+          vectorRank: 3,
+          lexicalRank: null,
+          expansionLexicalRank: 9,
+        }),
+      ).toBe(true);
+      expect(
+        isCorroborated({
+          vectorRank: 3,
+          lexicalRank: null,
+          expansionVectorRank: 1,
+          expansionLexicalRank: null,
+        }),
+      ).toBe(false);
+    });
+  });
+
   describe("degraded (lexical-only) fallback", () => {
     const embedFailure = new Error("Voyage embeddings: HTTP 503");
 
@@ -611,6 +731,8 @@ describe("retrieve", () => {
       expect(seen).toEqual({
         query_text: "¿me cobran retroactivo?",
         query_embedding: null,
+        expansion_text: null,
+        expansion_embedding: null,
         match_count: DEFAULT_MATCH_COUNT,
       });
       expect(result.isDegraded).toBe(true);

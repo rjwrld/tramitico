@@ -63,7 +63,16 @@ pnpm vitest run src/lib/eval/retrieval-hitrate.eval.test.ts
 ```
 
 `RERANK=off` measures the fused-only baseline; the per-case table (pool rank,
-top score) prints with the run.
+top score) prints with the run. Since #286 the retrieval a case runs is also
+the _expanded_ one — a Haiku rewrite of the question into corpus register,
+fused as two further legs — so a run without `ANTHROPIC_API_KEY` measures a
+different search than a run with one. `EXPAND=off` opts out explicitly, and is
+what to set when comparing against a pre-#286 number.
+
+For a single case, `pnpm pool-dump <case id> …` prints the top of the fused
+pool with every leg's rank and the expansion that produced it — the diagnostic
+#286 was written with, and the cheapest way to tell a chunk problem from a
+register problem (one embed per case, no answer model).
 
 ## The 2026 baseline (#267)
 
@@ -177,6 +186,100 @@ measurement over it — it is never lowered to meet the number.
 | adequacy / actionability          | 25 Tier 1 + 4 Tier 2                 | #289  |
 | abstention routing + harness      | 3 routing + 2 figure false positives | #290  |
 | eval maintenance (stale fixtures) | 4 in `retrieval.eval.test.ts`        | #291  |
+
+### The six pool misses, diagnosed and answered (#286)
+
+The six retrieval misses of the table above — the ones whose expected artículo
+never entered the fused pool of 40 — have one cause, measured three ways on
+the same corpus the baseline ran on:
+
+1. **The chunks are healthy.** Embed each expected chunk's own opening
+   sentence and ask the corpus for it: 19 of the 20 come back at vector rank
+   1 (the twentieth, `ley-renta` ARTICULO 2 #0, at rank 2, behind a
+   near-identical `ley-iva` Artículo 4). No extraction defect, no heading-path
+   defect, no missing embedding.
+2. **The lexical switch is not holding anything back.** All six questions
+   already take `search_chunks`'s OR-fallback branch — no chunk in the corpus
+   matches the strict conjunction — so the strict/loose decision of #51 is not
+   what is excluding the target.
+3. **What fails is register.** A reader writes «me inscribí un año tarde»; the
+   artículo says «omisión de la declaración de inscripción». The Spanish
+   snowball stemmer cannot bridge those (`inscrib` vs `inscripcion` — not even
+   a shared prefix, so prefix matching does not rescue it either), and the
+   vector leg puts that artículo at rank 96 of 871.
+
+Two candidate fixes were measured and rejected on the evidence: **prefix
+expansion** of the fallback lexemes (dead — the stems diverge before the
+prefix ends) and **coverage-ordering the lexical leg** before its top-50 cut
+(moves the target's fused rank by ≤ 3; a chunk one leg found at rank 20 scores
+≈ 0.012 and cannot beat a chunk two legs found at rank 40, which is RRF
+working as designed). A hand-written expansion, by contrast, moved every one
+of the six targets to the top of the vector leg — which is what made query
+expansion the fix (#286 asks for one of chunk shape, query expansion or
+lexical weighting; the first two of those three are what the measurements
+above rule out).
+
+| Case                         | Best target, vector rank       | Cause                                                                        |
+| ---------------------------- | ------------------------------ | ---------------------------------------------------------------------------- |
+| `inscripcion-tardia-sancion` | 96, no lexical match           | «inscribí» vs «declaración de inscripción»; nothing in CNPT 78 shares a stem |
+| `ho-t2-constancia-al-dia`    | 122                            | «constancia … al día» vs «consulta pública de situación tributaria»          |
+| `tribu-cr-declarar-pagar`    | 53                             | right document at pool 1/2 (Preámbulo, Art. 8), wrong artículo               |
+| `ho-t2-credito-iva-compras`  | 51 — one place outside the leg | «me lo puedo rebajar» vs «crédito fiscal»                                    |
+| `ho-t2-payoneer`             | 38                             | plataforma de pago vs «renta de fuente costarricense»                        |
+| `ho-rebajar-25-sin-facturas` | 23                             | «rebajar sin facturas» vs «deducción única … sin necesidad de prueba»        |
+
+**The fix, and what it does.** `expand.ts` rewrites the question into the
+register of the corpus, grounded in the corpus's own document titles
+(`corpus/manifest.json`), and `search_chunks` v5 runs the identical hybrid
+pair over the rewrite — its embedding on a vector leg, its text on a lexical
+leg — fused into the same RRF sum as the question's own two legs. Four legs,
+equal weight, one k. The question's legs are computed exactly as v4 computed
+them, so an expansion can only add candidates: both expansion arguments
+default to null and reproduce v4 row for row, which is what `EXPAND=off` and
+every keyless lane get.
+
+**What it measured, and what it did not.** The fused pool is not the hit-rate
+gate — only an authorized eval run measures that — so what is claimed here is
+the pool, over the 61 single-turn retrieval cases of the dataset, on the
+baseline corpus, with `--no-expansion` as the control:
+
+| Measure                                | v4 (question only) | v5 (+ expansion legs) |
+| -------------------------------------- | ------------------ | --------------------- |
+| expected target inside the pool of 40  | 57 / 61            | **59 / 61**           |
+| expected target inside the fused top-8 | 44 / 61            | **53 / 61**           |
+| cases that improved / held / worsened  | —                  | 30 / 21 / 10          |
+
+No case left the pool, and the worst single regression is four ranks
+(`ho-trabajitos-por-mi-cuenta`, 3 → 7): the "can only add" property holds
+empirically, and the small negative moves are other chunks gaining an
+expansion contribution, not the question's own legs changing. The fused top-8
+column is the one that predicts a hit without the reranker, and it is where
+the mechanism shows: +9.
+
+Of the six, four now reach the pool — `ho-rebajar-25-sin-facturas` at 4 (was
+31), `ho-t2-payoneer` at 14 (was 40), `inscripcion-tardia-sancion` at 23 (was
+outside), `tribu-cr-declarar-pagar` at 31 (was outside). **Both Tier 1 cases
+are in the pool; neither is claimed as a hit here** — that is the reranker's
+half and it is measured only in the eval lane.
+
+Two are not fixed, and the honest reasons differ:
+
+- `ho-t2-credito-iva-compras` sits just outside (its target was at 39 under an
+  earlier draft of the rewrite prompt and at 41-ish under the one that
+  shipped). It is a pool-edge case, and the change that cost it is the one
+  that bought the blocking Tier 1 case: the rule that stops the model from
+  silently disambiguating a question the reader left ambiguous.
+- `ho-t2-constancia-al-dia` is not reached at all. The expansion names the
+  trámite correctly («certificación de cumplimiento de obligaciones
+  tributarias») and the corpus's answer is a TRIBU-CR FAQ entry that calls it
+  «consulta pública de situación tributaria»; the FAQ entry that _does_ use
+  the reader's words («¿Qué significa el estado "al día"?», · 7) is not one of
+  the case's expected targets. Naming targets is not this issue's business —
+  the README rule forbids editing a case to match retrieval — so it is
+  recorded here and left for the case's own review.
+
+Reproduce any of this with `pnpm pool-dump <case id> …`, which prints the top
+of the fused pool with all four leg ranks (`--no-expansion` for the v4 pool).
 
 ### Retrieval, groundedness and adequacy, per case
 

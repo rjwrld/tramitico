@@ -22,6 +22,7 @@
     "format:check": "prettier --check .",
     "ingest": "tsx scripts/ingest.ts",
     "check:routing": "tsx scripts/check-routing-urls.ts",
+    "pool-dump": "tsx scripts/pool-dump.ts",
     "icons": "tsx scripts/generate-icons.ts"
   },
   "dependencies": {
