@@ -7,6 +7,7 @@ import {
   checkLiterals,
   declineAdequacy,
   figureMentions,
+  firstJsonObject,
   judgeAbstention,
   judgeAdequacy,
   judgedRequirements,
@@ -525,5 +526,32 @@ describe("figureMentions", () => {
     expect(
       figureMentions("Consulte el artículo 5; resuelven en 20 días hábiles."),
     ).toEqual([]);
+  });
+});
+
+describe("finding the judge's object in what it actually said (#286 harness)", () => {
+  const report = '{"items":[{"index":1,"present":true,"reason":"ok"}]}';
+
+  it("stops at the object's own closing brace, not the last one in the reply", () => {
+    // The defect this exists for: a greedy /\{[\s\S]*\}/ runs to the last
+    // brace in the response, so one trailing sentence with a brace in it made
+    // `JSON.parse` fail on a reply whose object was perfectly good — and the
+    // throw took a whole paid eval run with it.
+    const withProse = `${report}\n\nNota: el criterio {2} no aplica.`;
+    expect(firstJsonObject(withProse)).toBe(report);
+    expect(parseAdequacyReport(withProse, 1)).toEqual([
+      { index: 1, present: true, reason: "ok" },
+    ]);
+  });
+
+  it("ignores braces inside a reason string", () => {
+    const quoted =
+      '{"items":[{"index":1,"present":false,"reason":"dice \\"{}\\" y nada más"}]}';
+    expect(firstJsonObject(`prefacio ${quoted} epílogo }`)).toBe(quoted);
+  });
+
+  it("tolerates fences and surrounding prose, as before", () => {
+    expect(firstJsonObject("```json\n" + report + "\n```")).toBe(report);
+    expect(firstJsonObject("no hay objeto aquí")).toBeNull();
   });
 });

@@ -310,16 +310,51 @@ export interface RequirementVerdict {
  * that answered about four of five requirements must not be read as four
  * passes and a silence.
  */
+/**
+ * The first balanced `{…}` in `text`, or null.
+ *
+ * A greedy `/\{[\s\S]*\}/` runs to the *last* brace in the response, so a
+ * judge that prints its object and then a sentence containing a brace hands
+ * the parser the object plus that prose, and `JSON.parse` fails on text that
+ * had a perfectly good object at the front of it. Counting depth — and
+ * skipping braces inside strings, where a `reason` may quote one — takes the
+ * object and stops.
+ */
+export function firstJsonObject(text: string): string | null {
+  const start = text.indexOf("{");
+  if (start === -1) return null;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (inString) {
+      if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') inString = true;
+    else if (ch === "{") depth++;
+    else if (ch === "}" && --depth === 0) return text.slice(start, i + 1);
+  }
+  return null;
+}
+
 export function parseAdequacyReport(
   text: string,
   count: number,
 ): RequirementVerdict[] {
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) {
+  const object = firstJsonObject(text);
+  if (object === null) {
     throw new Error(
       `adequacy judge output has no JSON object: ${text.slice(0, 200)}`,
     );
   }
+  const match = [object];
   let raw: unknown;
   try {
     raw = JSON.parse(match[0]);
@@ -397,18 +432,47 @@ export type AdequacyJudgeOnce = (
   answer: string,
 ) => Promise<RequirementVerdict[]>;
 
+/**
+ * How many times one judge call is re-asked when its *output* cannot be read.
+ *
+ * A judgement that does not parse is not a verdict, and until this existed it
+ * was worse than that: `parseAdequacyReport` threw, the throw left
+ * `judgeAdequacy`, left the suite's `beforeAll`, and skipped every test in
+ * the file. One unlucky response therefore destroyed a whole paid run —
+ * observed 2026-09-05, 222 s of answers lost to a single report that broke at
+ * character 798. Re-asking is what the judge already does for a *failing*
+ * verdict (`REJUDGE_COUNT`); this is the same move for an unreadable one, and
+ * it keeps the strictness of the parser: a report that skips or invents an
+ * index is still rejected, it is just rejected without taking the run with it.
+ */
+export const MALFORMED_RETRIES = 2;
+
 const realAdequacyJudgeOnce: AdequacyJudgeOnce = async (
   question,
   requirements,
   answer,
 ) => {
-  const { text } = await generateText({
-    model: getJudgeModel(),
-    system: ADEQUACY_SYSTEM_PROMPT,
-    prompt: buildAdequacyPrompt(question, requirements, answer),
-    temperature: JUDGE_TEMPERATURE,
-  });
-  return parseAdequacyReport(text, requirements.length);
+  let last: unknown;
+  for (let attempt = 0; attempt <= MALFORMED_RETRIES; attempt++) {
+    const { text } = await generateText({
+      model: getJudgeModel(),
+      system: ADEQUACY_SYSTEM_PROMPT,
+      prompt: buildAdequacyPrompt(question, requirements, answer),
+      temperature: JUDGE_TEMPERATURE,
+    });
+    try {
+      return parseAdequacyReport(text, requirements.length);
+    } catch (error) {
+      last = error;
+      // The whole response, not the parser's 200-character preview: the one
+      // thing a rerun needs is what the judge actually said.
+      console.warn(
+        `eval: adequacy judge output unreadable (attempt ${attempt + 1} of ` +
+          `${MALFORMED_RETRIES + 1}) — ${(error as Error).message}\n${text}`,
+      );
+    }
+  }
+  throw last;
 };
 
 /**
