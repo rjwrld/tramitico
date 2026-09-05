@@ -32,6 +32,7 @@ import { beforeAll, expect, it } from "vitest";
 import { condenseQuestion } from "../answer/condense";
 import {
   incompletelyCitedDerivedFigures,
+  pinDerivedFigureInputs,
   resolveDerivedFigures,
   type ResolvedDerivedFigure,
 } from "../answer/derived";
@@ -199,7 +200,10 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
         continue;
       }
 
-      const chunks = await rerankChunks(query, retrieval.chunks);
+      const chunks = pinDerivedFigureInputs(
+        await rerankChunks(query, retrieval.chunks),
+        retrieval.chunks,
+      );
       const derivedFigures = resolveDerivedFigures(chunks);
       const { text: answer } = await generateText({
         model: getAnswerModel(),

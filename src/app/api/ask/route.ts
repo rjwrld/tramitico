@@ -69,6 +69,19 @@
  * routed: retrieval was strong there, and the classifier is a scope
  * decision, not a substitute for a model that could not cite.
  *
+ * Derived figures survive the cut (#287). A figure is arithmetic over every
+ * one of its inputs, so a rerank that keeps `ccss-escala-ivm` and drops the
+ * `salarios-minimos` artículo it multiplies does not weaken the answer — it
+ * deletes the figure. `pinDerivedFigureInputs` appends the missing inputs
+ * from the pool the reranker just read whenever a sibling survived and the
+ * corpus can complete the figure. It appends and never substitutes, so the
+ * answer set the rerank chose is intact and the citation numbering the prompt
+ * hands the model is unchanged; the pinned chunk is an ordinary source, cited
+ * and validated like the rest. It is off until `PIN_DERIVED_INPUTS=on`: an
+ * append still changes what the model reads, and #287 asked for options to
+ * measure rather than guess, so the authorized run decides whether this
+ * becomes the pipeline of record.
+ *
  * Stop/retry (#74, audit F-11): `request.signal` is threaded into `streamText`
  * as `abortSignal`, so a client-side `stop()` (chat.tsx) cancels the paid
  * Anthropic call once generation has started — the issue's named target for
@@ -123,6 +136,7 @@ import {
 import { condenseQuestion } from "@/lib/answer/condense";
 import {
   incompletelyCitedDerivedFigures,
+  pinDerivedFigureInputs,
   resolveDerivedFigures,
   type ResolvedDerivedFigure,
 } from "@/lib/answer/derived";
@@ -713,7 +727,14 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     // Rerank is still "buscando" — the stage flips only when the model does.
-    const chunks = await rerankChunks(asked.query, retrieval.chunks);
+    // #287: the rerank cut can strand a derived figure by dropping one of its
+    // inputs while its sibling survives, and the figure is then unprintable.
+    // Pinning the missing input back in from the pool the reranker just read
+    // is an append, so nothing the rerank chose is displaced.
+    const chunks = pinDerivedFigureInputs(
+      await rerankChunks(asked.query, retrieval.chunks),
+      retrieval.chunks,
+    );
     if (cutShort()) return;
     const derivedFigures = resolveDerivedFigures(chunks);
     writeStatus(writer, "redactando");

@@ -248,6 +248,17 @@ export function parseDerivedFigures(value: unknown): DerivedFigure[] {
 export const DERIVED_FIGURES: readonly DerivedFigure[] =
   parseDerivedFigures(manifest);
 
+/**
+ * Whether this chunk is the audited source of that input — the declared
+ * artículo of the declared document, never merely the right document.
+ */
+function statesInput(
+  chunk: RetrievedChunk,
+  input: DerivedFigureInput,
+): boolean {
+  return chunk.docKey === input.docKey && chunk.articulo === input.articulo;
+}
+
 /** Resolve figures against the exact chunks that will be numbered in the prompt. */
 export function resolveDerivedFigures(
   chunks: readonly RetrievedChunk[],
@@ -255,10 +266,7 @@ export function resolveDerivedFigures(
 ): ResolvedDerivedFigure[] {
   return figures.flatMap((figure) => {
     const positions = figure.inputs.map((input) =>
-      chunks.findIndex(
-        (chunk) =>
-          chunk.docKey === input.docKey && chunk.articulo === input.articulo,
-      ),
+      chunks.findIndex((chunk) => statesInput(chunk, input)),
     );
     if (positions.some((position) => position < 0)) return [];
 
@@ -338,4 +346,72 @@ export function incompletelyCitedDerivedFigures(
     }
   }
   return figures.map((figure) => figure.id).filter((id) => incomplete.has(id));
+}
+
+/**
+ * Complete a derived figure whose siblings survived the top-8 cut (#287).
+ *
+ * A figure is arithmetic over *every* one of its inputs, so losing one chunk
+ * to the rerank loses the whole figure: `ccss-cuanto-pago-base` retrieved
+ * `ccss-escala-ivm` «Artículo 4°, sesión 9570» and lost `salarios-minimos`
+ * «Artículo 1» between the pool and the answer set, and the answer could not
+ * print the IVM base at all. When at least one input is already in the answer
+ * set and the missing ones are in the fused pool the reranker just read, they
+ * are appended — the figure is resolvable, and the reader is owed it.
+ *
+ * Appending, never replacing: dropping the marginal chunk to make room could
+ * un-hit a case the rerank got right, while an append can only add. Citation
+ * markers are 1-based positions in the final list, so the existing numbering
+ * is untouched.
+ *
+ * **Off by default.** #287 asked for options «to measure, not guess», and an
+ * append is still a change to what the answer model reads: the check is
+ * source identity, not question relevance, so a salary artículo that survived
+ * an unrelated question drags its figure's siblings in with it. The append
+ * cannot move a citation marker, but it can move an answer. So the pin waits
+ * for the authorized run that measures it — `PIN_DERIVED_INPUTS=on` turns it
+ * on for that run, and a measured result is what makes it the default.
+ */
+export function pinDerivedFigureInputs(
+  answerSet: readonly RetrievedChunk[],
+  pool: readonly RetrievedChunk[],
+  figures: readonly DerivedFigure[] = DERIVED_FIGURES,
+): RetrievedChunk[] {
+  // Unset or interpolated empty both mean off: only an explicit
+  // PIN_DERIVED_INPUTS=on opts in, which is the opposite reading rerank.ts
+  // gives RERANK and deliberately so — RERANK=voyage was measured, this is
+  // what the next authorized run measures.
+  if (process.env.PIN_DERIVED_INPUTS !== "on") return [...answerSet];
+
+  const pinned = [...answerSet];
+  for (const figure of figures) {
+    // Eligibility is judged against what the *rerank* returned, never against
+    // what an earlier figure pinned: two figures can share an input, and
+    // reading `pinned` here would let figure [A, B] pull in B and figure
+    // [B, C] then ride on it — pinning C for a figure the rerank never
+    // reached at all. One append may not become a chain.
+    const survived = figure.inputs.some((input) =>
+      answerSet.some((chunk) => statesInput(chunk, input)),
+    );
+    // Nothing present: not this question's figure, and pinning every half
+    // would invent a claim.
+    if (!survived) continue;
+
+    // `pinned`, not `answerSet`: a shared input another figure already
+    // appended is present, and appending it twice is the one thing this must
+    // not do.
+    const missing = figure.inputs.filter(
+      (input) => !pinned.some((chunk) => statesInput(chunk, input)),
+    );
+    if (missing.length === 0) continue;
+
+    const found = missing.map((input) =>
+      pool.find((chunk) => statesInput(chunk, input)),
+    );
+    if (found.some((chunk) => chunk === undefined)) continue;
+    for (const chunk of found) {
+      if (chunk !== undefined && !pinned.includes(chunk)) pinned.push(chunk);
+    }
+  }
+  return pinned;
 }
