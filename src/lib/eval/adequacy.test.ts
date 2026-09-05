@@ -529,6 +529,20 @@ describe("figureMentions", () => {
   });
 });
 
+describe("the report schema (#286 harness)", () => {
+  it("describes exactly the three fields the parser then checks", () => {
+    const ok = ADEQUACY_REPORT_SCHEMA.safeParse({
+      items: [{ index: 1, present: true, reason: "ok" }],
+    });
+    expect(ok.success).toBe(true);
+    // Syntax is the schema's job; the index rules stay the parser's.
+    expect(
+      ADEQUACY_REPORT_SCHEMA.safeParse({ items: [{ index: 1.5 }] }).success,
+    ).toBe(false);
+    expect(ADEQUACY_REPORT_SCHEMA.safeParse({}).success).toBe(false);
+  });
+});
+
 describe("finding the judge's object in what it actually said (#286 harness)", () => {
   const report = '{"items":[{"index":1,"present":true,"reason":"ok"}]}';
 

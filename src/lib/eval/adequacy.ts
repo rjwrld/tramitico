@@ -32,7 +32,8 @@
  * so without this the honest fallback would be a way to score full marks on a
  * question the product promised to answer.
  */
-import { generateText } from "ai";
+import { generateObject, generateText } from "ai";
+import { z } from "zod";
 import {
   getJudgeModel,
   JUDGE_TEMPERATURE,
@@ -433,6 +434,25 @@ export type AdequacyJudgeOnce = (
 ) => Promise<RequirementVerdict[]>;
 
 /**
+ * The report's shape, handed to the provider rather than asked for in prose.
+ *
+ * The judge is run at temperature 0, so an unreadable reply is not bad luck
+ * to be retried away — it is the same reply every time. Observed 2026-09-05:
+ * three identical attempts, each closing `items` with `}` instead of `]`.
+ * Constraining the output removes that whole class; `MALFORMED_RETRIES`
+ * stays as the net under the semantic checks the schema cannot express.
+ */
+export const ADEQUACY_REPORT_SCHEMA = z.object({
+  items: z.array(
+    z.object({
+      index: z.number().int(),
+      present: z.boolean(),
+      reason: z.string(),
+    }),
+  ),
+});
+
+/**
  * How many times one judge call is re-asked when its *output* cannot be read.
  *
  * A judgement that does not parse is not a verdict, and until this existed it
@@ -454,12 +474,18 @@ const realAdequacyJudgeOnce: AdequacyJudgeOnce = async (
 ) => {
   let last: unknown;
   for (let attempt = 0; attempt <= MALFORMED_RETRIES; attempt++) {
-    const { text } = await generateText({
+    const { object } = await generateObject({
       model: getJudgeModel(),
+      schema: ADEQUACY_REPORT_SCHEMA,
       system: ADEQUACY_SYSTEM_PROMPT,
       prompt: buildAdequacyPrompt(question, requirements, answer),
       temperature: JUDGE_TEMPERATURE,
     });
+    // Back through the parser on purpose: the schema settles the *syntax*,
+    // and the parser is what still refuses a report that skips, repeats or
+    // invents an index — the check that stops four answers about five
+    // requirements being read as four passes and a silence.
+    const text = JSON.stringify(object);
     try {
       return parseAdequacyReport(text, requirements.length);
     } catch (error) {
