@@ -375,6 +375,12 @@ prompt.
 `ho-donde-inscribo-ya-no-atv` (a `seguimiento` case — it fails on the
 condensation, and its pool rank 7 has not moved) and the regression above.
 
+**Re-measured again after #287 merged in**, since that change touches the same
+reranker: `68/73`, the same five misses, exposure unchanged — #287's knobs are
+default-neutral (`rerank-2.5-lite`, pool 40 → top 8, `pin=off`), so the two
+changes compose without interacting. The transcript line now names all of
+them: `rerank=voyage rerank-2.5-lite, pool 40 → top 8, expand=on, pin=off`.
+
 **The other lanes, re-measured too.** The change moves the top-8 for most
 cases, which is the input every other lane reads, so groundedness and adequacy
 were re-run on it (2026-09-05, 1 964 s, answer `claude-sonnet-5`, judge
