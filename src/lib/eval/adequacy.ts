@@ -162,7 +162,7 @@ const TABLE_ROW = /^\s*\|/;
  * prose keeps the sentence window, so a cited table cannot vouch for the
  * uncited paragraph above it.
  */
-function tableWindow(rest: string): string | null {
+function tableWindow(rest: string): string {
   const lines = rest.split("\n");
   // lines[0] is the tail of the row the match sits on; the row itself began
   // before the match, so the caller has already established it is a table row.
@@ -170,8 +170,9 @@ function tableWindow(rest: string): string | null {
   while (i < lines.length && TABLE_ROW.test(lines[i]!)) i += 1;
   // …then the closing prose, up to its first sentence end: an answer captions
   // its table immediately, and anything further is a different claim. The
-  // blank line between table and caption is a paragraph break, not distance —
-  // step over it, but only it.
+  // blank lines between table and caption are a paragraph break rather than
+  // distance, so they are stepped over — what bounds the window is the first
+  // sentence after the table, not how much whitespace precedes it.
   while (i < lines.length && lines[i]!.trim() === "") i += 1;
   const after = lines.slice(i).join("\n");
   const end = after.search(SENTENCE_END);
@@ -212,8 +213,7 @@ export function checkLiteral(
       found = true;
       const rest = haystack.slice(match.index + match[0].length);
       if (onTableRow(haystack, match.index)) {
-        const window = tableWindow(rest);
-        if (window !== null && CITATION_MARKER.test(window)) {
+        if (CITATION_MARKER.test(tableWindow(rest))) {
           return { found: true, cited: true };
         }
         continue;
