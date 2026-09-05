@@ -15,10 +15,13 @@ import type { ResolvedDerivedFigure } from "../answer/derived";
 import { formatChunks, formatDerivedFigures } from "../answer/prompt";
 
 /**
- * Blocking gate: ≥90% of eval cases must pass the judge (starting threshold
- * per #14). Ratchet up as the pipeline improves — never lower.
+ * Blocking gate. Started at ≥90% (#14); the 2026 baseline (#267) measured
+ * 70/73 on the beta corpus and set this one case of headroom below it, per
+ * the ratchet rule in eval/README.md: measured rate minus one case, rounded
+ * down, never below the previous value. Ratchet up as the pipeline improves —
+ * never lower.
  */
-export const GROUNDEDNESS_GATE = 0.9;
+export const GROUNDEDNESS_GATE = 0.94;
 
 /**
  * The judge is pinned, not ANSWER_MODEL: the Sonnet-vs-Haiku comparison only

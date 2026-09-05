@@ -39,21 +39,19 @@ import {
   retrievalCases,
   type EvalCase,
 } from "./dataset";
+import { formatExposureTally, tallyByExposure } from "./exposure";
 
 /**
- * Hit-rate gate (expected artículo in answer top-k). Baseline measured
- * 2026-08-06 on the 793-chunk voyage-3 corpus: 25/25 reranked (the default),
- * 19/25 fused-only. Gate sits below the reranked score to absorb single-case
- * embedding jitter, and above the fused-only score so CI still catches a
- * silently disabled reranker. Ratchet up, never down.
+ * Hit-rate gate (expected artículo in answer top-k). Set 2026-08-06 on the
+ * 793-chunk corpus (25/25 reranked, 19/25 fused-only): below the reranked
+ * score to absorb single-case embedding jitter, above the fused-only score so
+ * a silently disabled reranker still fails. Ratchet up, never down.
  *
- * Five cases have never been measured against this gate — the three #132
- * condensation ones and the two #176 formula ones — because the lane runs on
- * demand and neither branch ran it. At 30 cases the gate needs 28 hits, so
- * the headroom is two misses, and five unmeasured cases can spend it: the
- * first real run should either confirm they hit or say why they do not,
- * before anyone reads a dip here as a retrieval regression. The #176 pair
- * also grows the corpus past the 793 chunks the baseline was measured on.
+ * The 2026 baseline (#267, 73 cases on the beta corpus) measured 63/73 with
+ * rerank and 52/73 fused-only — under this gate, and left here on purpose:
+ * the ten misses are classified in #286 (fused pool) and #287 (rerank cut),
+ * and the gate is what keeps them from being forgotten. eval/README.md has
+ * the per-case table and the ratchet rule.
  */
 export const HIT_RATE_GATE = 0.92;
 
@@ -137,6 +135,16 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
           (r.condensed === null ? "" : `\n        ↳ ${r.condensed}`),
       );
     }
+    console.log(
+      formatExposureTally(
+        "hit-rate",
+        tallyByExposure(
+          results,
+          (r) => r.evalCase,
+          (r) => r.hit,
+        ),
+      ),
+    );
     // Serial on purpose: each distinct question is one Voyage embed (plus
     // one rerank call), and the keyless tier is 3 requests/min.
   }, 2_700_000);

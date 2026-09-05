@@ -65,6 +65,249 @@ pnpm vitest run src/lib/eval/retrieval-hitrate.eval.test.ts
 `RERANK=off` measures the fused-only baseline; the per-case table (pool rank,
 top score) prints with the run.
 
+## The 2026 baseline (#267)
+
+> **Measured 2026-09-05 (02:55–03:23 UTC), one authorized local run, on the
+> beta corpus: 23 documents / 871 chunks / 0 missing embeddings, the corpus
+> `eval/corpus-index.json` describes (dump of 2026-09-04, real-table census
+> 3/3 PASS).** Answer `claude-sonnet-5`, judge `claude-sonnet-4-5`
+> (temperature 0), embeddings `voyage-3`, rerank `rerank-2.5-lite` (pool 40 →
+> top 8), condensation via `getCondenseModel()`. Every suite ran once, in
+> series, with `--disableConsoleIntercept`; no suite was re-run. Raw logs are
+> the session's; the tables below are transcribed from them.
+
+This is the number #195 was waiting for, and #254's «baseline to keep»: it
+describes the corpus the beta ships with, after the #269–#276 corpus changes
+and the #278/#284 contract. It is also the first execution of the adequacy
+gate, the abstention lane, the held-out set, the three #187 condensation cases
+and the two adversarial suites inside one measured session.
+
+| Suite                                         | Result                                                      | Gate                         | Wall-clock |
+| --------------------------------------------- | ----------------------------------------------------------- | ---------------------------- | ---------- |
+| satisfiability census (real table)            | 3/3, index in sync                                          | PASS                         | <1s        |
+| retrieval hit-rate, `RERANK=voyage` (default) | **63/73 (86.3 %)**, 4 blocking Tier 1 misses, 0 weak        | **FAIL** (≥ 92 %)            | 58s        |
+| retrieval hit-rate, `RERANK=off` (fused only) | 52/73 (71.2 %) — informational                              | —                            | 33s        |
+| groundedness                                  | **70/73 (95.9 %)**, all three failures unanimous            | PASS (≥ 90 % → now ≥ 94 %)   | 1443s      |
+| adequacy, Tier 1 (per case)                   | **2/27**                                                    | **FAIL**                     | (same run) |
+| adequacy, Tier 2                              | 9/13 (69.2 %)                                               | **FAIL** (≥ 80 %)            | (same run) |
+| citation invariant (#168)                     | 0 violations / 73 answers                                   | PASS → now asserted on all   | (same run) |
+| F1 derived figures (`ccss-cuanto-pago-base`)  | `bmc-ivm-2026` input not in top-8                           | **FAIL**                     | (same run) |
+| abstention                                    | **4/7 gated** (+2 reported-only, both pass); 2 figure flags | **FAIL** (≥ 90 %, 0 figures) | 124s       |
+| conflicting sources (#135)                    | pass                                                        | PASS                         | 7s         |
+| amending law (#182)                           | pass                                                        | PASS                         | 11s        |
+| adequacy fixture                              | pass (incomplete fails, complete passes)                    | PASS                         | 15s        |
+| `retrieval.eval.test.ts`                      | 9 pass / 4 fail / 1 skip — stale fixtures                   | FAIL (maintenance, #291)     | 3s         |
+
+Paid wall-clock: **1,794s (≈30 min)** across the suites that spend. Cost is an
+estimate — the harness does not count tokens, and the exact figure is in the
+Anthropic and Voyage consoles for that window: roughly 73 Sonnet 5 answers,
+~80 Sonnet 4.5 groundedness judgements (3 failures re-judged twice), ~190
+single-requirement adequacy judgements, 9 abstention judgements plus
+re-judges, and ~180 Voyage embeds and 80 reranks — on the order of **US$8–12**
+in Anthropic spend and cents in Voyage.
+
+### By exposure (#261 part B)
+
+The held-out set has seven promoted members that the retrieval suite had
+already scored, so every lane tallies three groups; the first-exposure column
+is the coverage claim.
+
+| Lane                               | first-exposure (32) | promoted (7) | corpus-derived (34) |
+| ---------------------------------- | ------------------- | ------------ | ------------------- |
+| hit-rate, rerank                   | 25/32               | 6/7          | 32/34               |
+| hit-rate, fused only               | 20/32               | 4/7          | 28/34               |
+| groundedness                       | 31/32               | 7/7          | 32/34               |
+| adequacy (cases with requirements) | 10/32               | 1/7          | 0/1                 |
+
+Abstention's nine cases are all first-exposure.
+
+### What the numbers say
+
+- **Groundedness held and ratcheted.** 70/73 with three unanimous failures;
+  the gate moves from 0.90 to **0.94** (measured rate minus one case, rounded
+  down — the ratchet rule below). The #182 rule 4 fix held:
+  `iva-tarifas-reducidas` passed in the first judgement and
+  `tribu-cr-declarar-pagar`, unstable in #157, passed too; both `notes` are
+  rewritten against this result (#195 §A).
+- **Retrieval is the first red.** Ten misses with rerank on: six with the
+  target outside or deep in the fused pool (#286) and four cut between the
+  pool and the top-8 (#287). Two of each are Tier 1. The reranker is worth
+  eleven cases over the fused baseline, so `RERANK=off` remains a diagnostic,
+  not an option.
+- **Adequacy is the red that matters.** Tier 1 scores 2/27. Groundedness
+  passed 70 of the same answers, which is exactly the gap #130 predicted:
+  supported but incomplete. Most missing items are `requiredSteps` and scope
+  claims, four are deterministic-lane figure misses; the answers themselves
+  are not persisted by the harness, so the split between «the answer omitted
+  it» and «the requirement over-specifies what the corpus supports» is the
+  first step of #289.
+- **Abstention routes badly on sociedades.** Two of the three failures should
+  route to Registro Nacional; the third rejected a false premise and named no
+  institution (#290). The two `figureMentions` flags are cited corpus figures
+  quoted while declining — a harness false positive on the model route, fixed
+  in the same issue.
+- **#187:** `exportacion-comprobante-followup` and `renta-plazo-followup` hit
+  and passed; `ccss-asalariado-followup` was rewritten correctly and still
+  missed (fused rank 20, cut by rerank) and failed groundedness 3/3 — **not
+  promoted** to blocking. A gate is armed on a measured hit.
+- **#168:** 0 citation violations over 73 answers, so the invariant is now
+  asserted on every case, not only the blocking ones.
+- **No gate was lowered.** Hit-rate (0.92), Tier 2 adequacy (0.80) and
+  abstention (0.90) stay where they were and stay red until their follow-ups
+  land; Tier 1 is per-case blocking by construction (the parser refuses a
+  Tier 1 case without `blocking: true`). The weekly `eval.yml` cron will be
+  red until then — that is the pressure, not a defect.
+
+### The ratchet rule
+
+A threshold is set from a measured run as **the measured pass rate minus one
+case, rounded down to two decimals, never below its previous value**. A gate
+set exactly at the measured rate turns one flaky case into a red week; one
+case of headroom is what the majority-of-three judge cannot absorb. A gate
+above the measured rate stays where it is until the follow-ups bring the
+measurement over it — it is never lowered to meet the number.
+
+### Follow-ups, by cause
+
+| Cause                             | Cases                                | Issue |
+| --------------------------------- | ------------------------------------ | ----- |
+| retrieval (outside/deep pool)     | 6 (2 Tier 1)                         | #286  |
+| rerank (pool → top-8 cut)         | 4 (2 Tier 1) + F1 derived input      | #287  |
+| generation / citation             | 3 groundedness (1 Tier 1)            | #288  |
+| adequacy / actionability          | 25 Tier 1 + 4 Tier 2                 | #289  |
+| abstention routing + harness      | 3 routing + 2 figure false positives | #290  |
+| eval maintenance (stale fixtures) | 4 in `retrieval.eval.test.ts`        | #291  |
+
+### Retrieval, groundedness and adequacy, per case
+
+| Case                                       | Tier               | Exposure | Hit (rerank) | Pool # | Hit (fused) | Groundedness          | Adequacy |
+| ------------------------------------------ | ------------------ | -------- | ------------ | ------ | ----------- | --------------------- | -------- |
+| `inscripcion-hacienda-clientes-extranjero` | 2                  | corpus   | hit          | 2      | hit         | pass                  | —        |
+| `iva-clientes-fuera-cr`                    | 2                  | corpus   | hit          | 12     | MISS        | pass                  | —        |
+| `cabys-desarrollo-software`                | 2                  | corpus   | hit          | 1      | hit         | pass                  | —        |
+| `ccss-cuanto-pago-base`                    | 2                  | corpus   | hit          | 4      | hit         | pass                  | —        |
+| `ccss-cobro-retroactivo`                   | 2                  | corpus   | hit          | 2      | hit         | pass                  | —        |
+| `ccss-pedir-prescripcion-cuotas`           | 1 T1-G coloquial   | promoted | hit          | 1      | hit         | pass                  | FAIL     |
+| `ccss-ventana-prescripcion-24-meses`       | 1 T1-G seguimiento | promoted | hit          | 1      | hit         | pass                  | FAIL     |
+| `ccss-obligacion-ingreso-bajo`             | 1 T1-B literal     | promoted | hit          | 2      | hit         | pass                  | FAIL     |
+| `ccss-asalariado-y-freelance`              | 2                  | corpus   | hit          | 1      | hit         | pass                  | —        |
+| `ccss-cese-actividad`                      | 1 T1-H seguimiento | promoted | hit          | 8      | hit         | pass                  | pass     |
+| `ccss-arreglo-pago`                        | 2                  | corpus   | hit          | 1      | hit         | pass                  | —        |
+| `ccss-suspension-seguro-ti`                | 2                  | corpus   | hit          | 4      | hit         | pass                  | —        |
+| `factura-electronica-v44`                  | 2                  | corpus   | hit          | 2      | hit         | pass                  | —        |
+| `desinscripcion-dejar-actividad`           | 1 T1-H literal     | promoted | hit          | 23     | MISS        | pass                  | FAIL     |
+| `renta-persona-fisica-deduccion`           | 2                  | corpus   | hit          | 1      | hit         | pass                  | —        |
+| `regimen-simplificado-programador`         | 2                  | corpus   | hit          | 1      | hit         | pass                  | —        |
+| `tribu-cr-declarar-pagar`                  | 2                  | corpus   | MISS         | —      | MISS        | pass                  | FAIL     |
+| `iva-servicios-extranjero-comprados`       | 2                  | corpus   | hit          | 1      | hit         | pass                  | —        |
+| `iva-credito-fiscal-compras`               | 2                  | corpus   | hit          | 11     | MISS        | FAIL [fail/fail/fail] | —        |
+| `iva-declaracion-mensual`                  | 2                  | corpus   | hit          | 5      | hit         | pass                  | —        |
+| `iva-tarifa-general`                       | 2                  | corpus   | hit          | 37     | MISS        | pass                  | —        |
+| `iva-tarifas-reducidas`                    | 2                  | corpus   | hit          | 3      | hit         | pass                  | —        |
+| `iva-momento-hecho-generador`              | 2                  | corpus   | hit          | 1      | hit         | pass                  | —        |
+| `renta-bruta-que-incluye`                  | 2                  | corpus   | hit          | 5      | hit         | pass                  | —        |
+| `renta-tramos-2026`                        | 2                  | corpus   | hit          | 1      | hit         | pass                  | —        |
+| `renta-declaracion-plazo`                  | 2                  | corpus   | hit          | 2      | hit         | pass                  | —        |
+| `renta-pagos-parciales-retenciones`        | 2                  | corpus   | hit          | 16     | MISS        | pass                  | —        |
+| `renta-salario-y-actividad`                | 2                  | corpus   | hit          | 4      | hit         | pass                  | —        |
+| `comprobantes-plazo-conservacion`          | 2                  | corpus   | hit          | 1      | hit         | pass                  | —        |
+| `comprobantes-factura-vs-tiquete`          | 2                  | corpus   | hit          | 1      | hit         | pass                  | —        |
+| `exportacion-servicios-comprobante`        | 2                  | corpus   | hit          | 2      | hit         | pass                  | —        |
+| `iva-facturas-en-dolares`                  | 2                  | corpus   | hit          | 8      | hit         | pass                  | —        |
+| `ccss-asalariado-followup`                 | 2                  | corpus   | MISS         | 20     | MISS        | FAIL [fail/fail/fail] | —        |
+| `exportacion-comprobante-followup`         | 2                  | corpus   | hit          | 3      | hit         | pass                  | —        |
+| `renta-plazo-followup`                     | 2                  | corpus   | hit          | 1      | hit         | pass                  | —        |
+| `iva-ajuste-bien-de-capital`               | 2                  | corpus   | hit          | 3      | hit         | pass                  | —        |
+| `iva-retencion-tarjetas-porcentaje`        | 2                  | corpus   | hit          | 1      | hit         | pass                  | —        |
+| `inscripcion-tribu-cr`                     | 2                  | corpus   | hit          | 4      | hit         | pass                  | —        |
+| `multa-iva-no-declarado`                   | 1 T1-I literal     | promoted | hit          | 15     | MISS        | pass                  | FAIL     |
+| `inscripcion-tardia-sancion`               | 1 T1-I coloquial   | promoted | MISS         | —      | MISS        | pass                  | FAIL     |
+| `factura-primera-cabys`                    | 2                  | corpus   | hit          | 4      | hit         | pass                  | —        |
+| `ho-hacienda-solo-cliente-eeuu`            | 1 T1-A literal     | first    | hit          | 2      | hit         | FAIL [fail/fail/fail] | FAIL     |
+| `ho-trabajitos-por-mi-cuenta`              | 1 T1-A coloquial   | first    | hit          | 3      | hit         | pass                  | FAIL     |
+| `ho-donde-inscribo-ya-no-atv`              | 1 T1-A seguimiento | first    | MISS         | 16     | MISS        | pass                  | FAIL     |
+| `ho-desde-cuanta-plata-caja`               | 1 T1-B coloquial   | first    | hit          | 24     | MISS        | pass                  | FAIL     |
+| `ho-donde-me-afilio-caja`                  | 1 T1-B seguimiento | first    | hit          | 1      | hit         | pass                  | FAIL     |
+| `ho-tiquete-en-vez-de-factura`             | 1 T1-C literal     | first    | hit          | 1      | hit         | pass                  | FAIL     |
+| `ho-factura-electronica-o-recibo`          | 1 T1-C coloquial   | first    | MISS         | 5      | hit         | pass                  | FAIL     |
+| `ho-cabys-paginas-web`                     | 1 T1-C seguimiento | first    | hit          | 1      | hit         | pass                  | FAIL     |
+| `ho-cliente-espana-lleva-iva`              | 1 T1-D literal     | first    | hit          | 9      | MISS        | pass                  | FAIL     |
+| `ho-iva-en-cero-sin-facturar`              | 1 T1-D coloquial   | first    | hit          | 1      | hit         | pass                  | FAIL     |
+| `ho-hasta-que-dia-tengo-iva`               | 1 T1-D seguimiento | first    | hit          | 1      | hit         | pass                  | FAIL     |
+| `ho-rebajar-25-sin-facturas`               | 1 T1-E literal     | first    | MISS         | 31     | MISS        | pass                  | FAIL     |
+| `ho-minimo-renta-2026`                     | 1 T1-E coloquial   | first    | hit          | 2      | hit         | pass                  | FAIL     |
+| `ho-ademas-tengo-salario`                  | 1 T1-E seguimiento | first    | hit          | 1      | hit         | pass                  | FAIL     |
+| `ho-minimo-caja-independiente-2026`        | 1 T1-F literal     | first    | hit          | 1      | hit         | pass                  | FAIL     |
+| `ho-800-mil-que-porcentaje-caja`           | 1 T1-F coloquial   | first    | hit          | 2      | hit         | pass [fail/pass/pass] | FAIL     |
+| `ho-tambien-asegurado-por-patrono`         | 1 T1-F seguimiento | first    | hit          | 17     | MISS        | pass                  | FAIL     |
+| `ho-cobrar-8-anos-atras-caja`              | 1 T1-G literal     | first    | hit          | 2      | hit         | pass                  | pass     |
+| `ho-desinscribir-debiendo-declaraciones`   | 1 T1-H coloquial   | first    | hit          | 15     | MISS        | pass                  | FAIL     |
+| `ho-rebajar-multa-si-pago-ya`              | 1 T1-I seguimiento | first    | hit          | 11     | MISS        | pass                  | FAIL     |
+| `ho-t2-credito-iva-compras`                | 2                  | first    | MISS         | —      | MISS        | pass                  | pass     |
+| `ho-t2-hosting-extranjero`                 | 2                  | first    | hit          | 6      | hit         | pass                  | pass     |
+| `ho-t2-retencion-tarjetas`                 | 2                  | first    | hit          | 2      | hit         | pass                  | pass     |
+| `ho-t2-compu-cara-iva`                     | 2                  | first    | MISS         | 12     | MISS        | pass                  | FAIL     |
+| `ho-t2-tipo-de-cambio`                     | 2                  | first    | hit          | 6      | hit         | pass                  | pass     |
+| `ho-t2-panaderia-simplificado`             | 2                  | first    | hit          | 1      | hit         | pass                  | pass     |
+| `ho-t2-arreglo-pago-caja`                  | 2                  | first    | hit          | 9      | MISS        | pass                  | pass     |
+| `ho-t2-salir-del-pais-seguro`              | 2                  | first    | hit          | 1      | hit         | pass                  | FAIL     |
+| `ho-t2-pensionado-con-actividad`           | 2                  | first    | hit          | 4      | hit         | pass                  | pass     |
+| `ho-t2-autorizar-contador`                 | 2                  | first    | hit          | 1      | hit         | pass                  | pass     |
+| `ho-t2-constancia-al-dia`                  | 2                  | first    | MISS         | —      | MISS        | pass                  | FAIL     |
+| `ho-t2-payoneer`                           | 2                  | first    | MISS         | 40     | MISS        | pass                  | pass     |
+
+### Groundedness failures (judge reason)
+
+- `iva-credito-fiscal-compras` — The answer cites fragment [1] twice but fragment [1] only discusses the simplified regime prohibition, not the general vinculación requirements stated in the second citation.
+- `ccss-asalariado-followup` — The answer states that fragments do not detail the exact percentage or the current Base Mínima Contributiva amount, but fragments [6] and [7] explicitly provide this information including an image with the contribution table.
+- `ho-hacienda-solo-cliente-eeuu` — The answer claims that the obligation to register arises because the person 'exercises the lucrative activity in Costa Rica,' but the fragments do not establish that invoicing a U.S. client from Costa Rica automatically constitutes a Costa Rican-source activity subject to registration; the fragments define contributors and source rules but do not support the blanket assertion that this scenario triggers Hacienda obligations.
+
+### Adequacy failures (missing requirements)
+
+- `ccss-pedir-prescripcion-cuotas` — En cobro, la Administración dispone de 20 días hábiles desde el siguiente día hábil a la recepción para resolver; en verificación, la solicitud se atiende dentro del informe o de la resolución del recurso, según la fase.; El canal correcto según la fase del caso — la unidad o sucursal financiera si está en verificación, cobros@ccss.sa.cr si ya está en cobro — y el plazo en que la Administración resuelve.
+- `ccss-ventana-prescripcion-24-meses` — Para una persona trabajadora independiente no inscrita que no se regularizó dentro de esa ventana, vuelve a aplicar el plazo de diez años; la CCSS además debe analizar si hubo actos que interrumpieran la prescripción.
+- `ccss-obligacion-ingreso-bajo` — Toda persona trabajadora independiente está obligada a asegurarse ante la CCSS; la obligación no depende de superar un umbral de ingresos.; La obligatoriedad está en la Ley Constitutiva de la CCSS y en el Reglamento para el aseguramiento de los trabajadores independientes, no en una decisión voluntaria de la persona.; Quien tiene muy escasa capacidad contributiva se ubica en la categoría 1 de la escala, que es exclusiva de trabajadores independientes y asegurados voluntarios.; Dónde se hace la afiliación y qué se declara: el ingreso de referencia, en la sucursal de la CCSS que corresponda a la zona de adscripción.; La cuota se calcula sobre un ingreso de referencia que no baja de la base mínima contributiva, fijada en 0,9295 salarios mínimos para el Seguro de Salud. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent)
+- `desinscripcion-dejar-actividad` — Al cesar la actividad económica hay que desinscribirse del Registro de Contribuyentes; no basta con dejar de facturar.; Mientras la persona siga inscrita conserva sus obligaciones de declarar, y omitir una declaración se sanciona aunque no haya habido ingresos.; Al desinscribirse del IVA hay que liquidar el impuesto sobre las existencias de bienes y los bienes afectos que queden, salvo que opere la continuidad del negocio.
+- `tribu-cr-declarar-pagar` — Los formularios, instructivos y procedimientos aplicables son los que publique la Dirección General de Tributación para los módulos de TRIBU-CR.
+- `multa-iva-no-declarado` — La sanción se reduce si se subsana antes de que la Administración Tributaria actúe (CNPT artículo 88).; Cómo regularizar: presentar las declaraciones omitidas y pagar en TRIBU-CR, y que hacerlo antes de cualquier actuación de la Administración rebaja la sanción.; El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent)
+- `inscripcion-tardia-sancion` — Subsanar de forma espontánea, antes de cualquier actuación de la Administración, rebaja la sanción en un setenta y cinco por ciento (75 %), u ochenta por ciento (80 %) si se autoliquida y paga en ese momento (CNPT artículo 88).; Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.; Omitir la declaración de inscripción se sanciona con el cincuenta por ciento (50 %) de un salario base por cada mes o fracción de mes de atraso (CNPT artículo 78). (50 % | 50% | cincuenta por ciento: absent); La sanción total no puede superar el equivalente a tres salarios base (CNPT artículo 78). (tres salarios base | 3 salarios base: absent); El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent)
+- `ho-hacienda-solo-cliente-eeuu` — Toda persona física que inicie una actividad lucrativa debe inscribirse en el registro de contribuyentes al iniciarla, aunque todos sus clientes estén en el extranjero.; Facturar sólo a clientes del exterior no exime de inscribirse: aunque el servicio llegue a calificar como exportación exenta —lo que depende de que se consuma fuera de Costa Rica—, estar exento no es lo mismo que no ser contribuyente.; Quien no solicita la inscripción puede ser inscrito de oficio por la Administración Tributaria.; La inscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, como declaración de inscripción del Registro Único Tributario.; Omitir la declaración de inscripción se sanciona con el cincuenta por ciento (50 %) de un salario base por cada mes o fracción de atraso. (50 % | 50% | cincuenta por ciento: absent)
+- `ho-trabajitos-por-mi-cuenta` — Los dos trámites que siguen: la declaración de inscripción del RUT en la Oficina Virtual de TRIBU-CR y la afiliación como trabajador independiente en la CCSS.
+- `ho-donde-inscribo-ya-no-atv` — El usuario de la Oficina Virtual es el número de identificación de la persona: cédula, DIMEX o NITE.; Una persona física nacional puede inscribirse por la Oficina Virtual si es mayor de 18 años, figura como «vivo» en el sistema y su estado tributario es «No inscrito», «Desinscrito» o «Desinscrito de oficio».
+- `ho-desde-cuanta-plata-caja` — No hay un piso de ingresos por debajo del cual la persona quede fuera: toda persona trabajadora independiente está obligada a asegurarse.; Cómo se declara el ingreso de referencia y dónde se paga la cuota.; Lo que sí tiene un piso es la base de cálculo: la base mínima contributiva del Seguro de Salud es 0,9295 salarios mínimos. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent); La base mínima contributiva del Seguro de IVM es 0,87 salarios mínimos. (0,87 SM | 0,87 salarios mínimos | 0.87 SM: absent); El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico, ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent)
+- `ho-donde-me-afilio-caja` — En el trámite se declara el ingreso de referencia sobre el que se calculará la cuota.; La cuota se paga mensualmente, dentro de la fecha que corresponde según la primera letra del primer apellido.
+- `ho-tiquete-en-vez-de-factura` — Quien emite comprobantes electrónicos debe estar inscrito en el Registro Único Tributario y tener registrado un correo electrónico válido ante la Administración Tributaria.
+- `ho-factura-electronica-o-recibo` — Las excepciones a la obligación de emitir comprobantes electrónicos son las del artículo 8 y no alcanzan a una persona física que vende bienes o presta servicios gravados con IVA.; Con qué emitir: el facturador gratuito de Hacienda o un proveedor de sistemas de comprobantes electrónicos.; Los comprobantes electrónicos y sus documentos asociados deben almacenarse y conservarse por un plazo de cinco años. (cinco años | 5 años: absent)
+- `ho-cabys-paginas-web` — Cada línea de detalle del comprobante lleva su código CABYS.
+- `ho-cliente-espana-lleva-iva` — Que el cliente sea extranjero no basta por sí solo: lo que decide es dónde se consume o utiliza el servicio.; La operación exenta se documenta igual, con el comprobante electrónico que corresponda.; El hecho generador ocurre al facturar o al prestar el servicio, el acto que se realice primero, no cuando el cliente paga.; Qué comprobante emitir y qué conservar como prueba de que el servicio se consumió fuera del país.; Si el servicio se consume en Costa Rica, la tarifa general del impuesto es del 13 %. (13 % | 13% | trece por ciento: absent)
+- `ho-iva-en-cero-sin-facturar` — Dónde se presenta la declaración hoy y qué pasa si ya venció el plazo.; Omitir la declaración dentro del plazo legal se sanciona con una multa del cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent)
+- `ho-hasta-que-dia-tengo-iva` — Qué hacer si la fecha ya pasó.
+- `ho-rebajar-25-sin-facturas` — Es una alternativa, no un añadido: se toma la deducción única o se deducen los gastos reales con comprobante, no ambas.; La deducción única fue incorporada por la Ley 10818 del 13 de noviembre de 2025, así que rige para los períodos que esa reforma alcanza.; Dónde se aplica la opción al presentar la declaración anual.; Sí: la ley permite acogerse a una deducción única, sin necesidad de prueba alguna, del veinticinco por ciento (25 %) de los ingresos brutos de la actividad. (25 % | 25% | veinticinco por ciento: present but uncited)
+- `ho-minimo-renta-2026` — Los tramos son anuales y se aplican sobre la renta neta, no sobre los ingresos brutos.; El período del impuesto va del 1 de enero al 31 de diciembre.; Dónde se consultan los tramos vigentes cuando cambia el decreto anual.; Para personas físicas con actividad lucrativa, las rentas de hasta ¢6.244.000,00 anuales no están sujetas al impuesto en el período fiscal 2026. (¢6.244.000 | 6.244.000: present but uncited)
+- `ho-ademas-tengo-salario` — El salario y la actividad lucrativa tributan por escalas distintas: el salario por la escala mensual de rentas del trabajo y la actividad por la escala anual de personas físicas con actividad lucrativa.; Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.; Qué se declara en la declaración anual cuando hay salario y actividad, y cómo se tratan las retenciones ya soportadas.; Los pagos parciales: cuándo se pagan y que puede pedirse su rebaja cuando la renta del período va a ser menor.; La declaración anual y el pago vencen dentro de los dos meses y quince días naturales siguientes al cierre del período. (dos meses y quince días | 2 meses y 15 días: absent)
+- `ho-minimo-caja-independiente-2026` — El monto en colones es una derivación de esas cifras y debe presentarse como tal, no como un dato tomado de una fuente.; Cómo se declara y se actualiza el ingreso de referencia sobre el que se aplican esos porcentajes.; El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico: ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent); La base mínima contributiva es 0,9295 salarios mínimos en el Seguro de Salud y 0,87 salarios mínimos en el de IVM. (0,9295 SM | 0,9295 salarios mínimos: absent); En la categoría 1 de la escala, la cuota del afiliado es del 2,89 % en el Seguro de Salud. (2,89 % | 2,89%: absent); En la categoría 1 de la escala, la cuota del afiliado es del 4,16 % en el Seguro de IVM a partir del 1 de enero de 2026. (4,16 % | 4,16%: absent)
+- `ho-800-mil-que-porcentaje-caja` — La base de cálculo es el ingreso de referencia declarado ante la CCSS, no el ingreso bruto facturado.; Cómo se modifica el ingreso de referencia cuando los ingresos varían.; Un ingreso de ¢800.000 supera dos salarios mínimos, así que cae en la categoría 3 (de 2 SM a menos de 4 SM), cuya cuota de afiliado es del 6,24 % en el Seguro de Salud. (6,24 % | 6,24%: absent); En esa misma categoría la cuota del afiliado en el Seguro de IVM es del 7,53 %. (7,53 % | 7,53%: absent)
+- `ho-tambien-asegurado-por-patrono` — Cada condición se calcula sobre su propia base: el salario por la planilla del patrono y la actividad por el ingreso de referencia declarado.; Qué hay que hacer ante la CCSS para quedar registrado en las dos condiciones.
+- `ho-desinscribir-debiendo-declaraciones` — Desinscribirse no borra las obligaciones ya devengadas: las declaraciones pendientes siguen debiéndose y se sancionan igual.; Mientras la persona siga inscrita, la obligación de declarar continúa aunque ya no facture.; El orden recomendado: presentar lo pendiente y después solicitar la desinscripción indicando el motivo y la fecha de cese.; Cada declaración omitida dentro del plazo legal se sanciona con el cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent)
+- `ho-rebajar-multa-si-pago-ya` — Cómo se regulariza: presentar lo omitido y pagar en TRIBU-CR antes de cualquier actuación de la Administración.; Subsanar de forma espontánea, sin que medie actuación de la Administración, rebaja la sanción en un setenta y cinco por ciento (75 %). (75 % | 75% | setenta y cinco por ciento: present but uncited)
+- `ho-t2-compu-cara-iva` — El crédito de IVA de un bien de capital se ajusta a lo largo de varios períodos, no se acredita íntegramente en el mes de la compra.
+- `ho-t2-salir-del-pais-seguro` — La suspensión del seguro de trabajador independiente se hace a solicitud de la persona y no ocurre de forma automática.
+- `ho-t2-constancia-al-dia` — La situación tributaria se consulta en la OVi pública de TRIBU-CR, sin necesidad de usuario.
+
+### Abstention, per case
+
+| Case                           | Route | Verdict                | Note                                                           |
+| ------------------------------ | ----- | ---------------------- | -------------------------------------------------------------- |
+| `ho-abs-cuanto-cobro-la-hora`  | model | pass (not gated, #285) |                                                                |
+| `ho-abs-me-conviene-sociedad`  | model | FAIL [3/3]             | answered; no Registro Nacional route                           |
+| `ho-abs-aguinaldo-freelancer`  | model | pass                   |                                                                |
+| `ho-abs-iva-2027`              | model | pass                   | figure flag: 4 %, 2 %, 1 %, 0,5 % — cited current rates (#290) |
+| `ho-abs-devs-exentos-renta`    | model | FAIL [3/3]             | premise rejected; Hacienda not named                           |
+| `ho-abs-patente-municipal`     | model | pass                   |                                                                |
+| `ho-abs-calculo-personalizado` | model | pass                   | figure flag: the 2026 tramos and rates — cited (#290)          |
+| `ho-abs-sociedad-inactiva`     | model | FAIL [3/3]             | answered; routed to Hacienda instead of Registro Nacional      |
+| `ho-abs-recomendar-contador`   | model | pass (not gated, #285) |                                                                |
+
 ## Satisfiability guard (issues #111, #163)
 
 The guard asserts every expected target is satisfiable by at least one ingested
@@ -109,9 +352,9 @@ model (`ANSWER_MODEL`, default Sonnet) with the production system prompt —
 and asks an LLM judge at temperature 0: _is this answer supported by the
 retrieved chunks?_ A failed item is re-judged twice more and the majority
 verdict stands, absorbing judge flakiness at n≈25 without loosening the gate.
-**Blocking gate: ≥90% pass** (`GROUNDEDNESS_GATE` in
-`src/lib/eval/groundedness.ts`), starting threshold per #14 — ratchet up,
-never down.
+**Blocking gate: ≥94% pass** (`GROUNDEDNESS_GATE` in
+`src/lib/eval/groundedness.ts`) — started at 90% per #14, ratcheted by the 2026
+baseline (#267, 70/73); ratchet up, never down.
 
 The judge is pinned (`JUDGE_MODEL`, Sonnet 4.5 — it accepts temperature 0,
 which Sonnet 5 rejects; [ADR 0007](../docs/adr/0007-groundedness-judge-model.md))
@@ -415,10 +658,10 @@ by describing the bug.
 The harness used to bypass `validateCitations` entirely: an answer citing
 nothing — which `/api/ask` retries and then refuses to ship (#131) — could
 score a groundedness pass here. `groundedness.eval.test.ts` now runs the same
-runtime check over every generated answer and prints the violations. It is
-**asserted on blocking cases** and reported for the rest: #254 §A3 sets no
-recovery-rate threshold until #195 measures a baseline, and a number nobody has
-measured is not a gate.
+runtime check over every generated answer and prints the violations. Until the
+2026 baseline it was asserted on blocking cases only and reported for the
+rest, because a number nobody has measured is not a gate; #267 measured **0
+violations over 73 answers**, so it is now asserted on every case.
 
 ## Adversarial conflicting-sources case (issue #135)
 
