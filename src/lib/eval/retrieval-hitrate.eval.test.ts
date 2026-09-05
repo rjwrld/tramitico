@@ -188,7 +188,11 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
             : `, displaced by ${describeChunk(r.displacedBy.chunk)} (score ${r.displacedBy.score.toFixed(4)})`),
       );
       r.answerSet.forEach((chunk, index) => {
-        console.log(`    #${index + 1} ${describeChunk(chunk)}`);
+        // Past the cut are #287's pinned derived inputs, which the reranker
+        // did not choose — the issue asked for the reranked top-k, so they
+        // are named as what they are rather than counted into it.
+        const label = index < topKSize ? `#${index + 1}` : "pinned";
+        console.log(`    ${label} ${describeChunk(chunk)}`);
       });
     }
     console.log(

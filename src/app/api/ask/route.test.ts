@@ -446,6 +446,45 @@ describe("POST /api/ask", () => {
     expect(prompt).toContain("[2][3]");
   });
 
+  it("pins a derived figure's input back in when the top-8 cut it (#287)", async () => {
+    vi.stubEnv("RERANK", "off");
+    allowRateLimit();
+    // The 2026 baseline's F1 shape: the escala survives the cut, the salary
+    // decree it multiplies sits just past it, and without the pin the answer
+    // cannot print the IVM base at all.
+    vi.mocked(retrieve).mockResolvedValue(
+      retrievalResult({
+        chunks: [
+          chunk(1, {
+            docKey: "ccss-escala-ivm",
+            articulo: "Artículo 4°, sesión 9570",
+          }),
+          ...Array.from({ length: 7 }, (_, i) => chunk(i + 2)),
+          chunk(9, { docKey: "salarios-minimos", articulo: "Artículo 1" }),
+        ],
+      }),
+    );
+    const model = mockModel("La base mínima es ¢324.590 [1][9].");
+
+    const events = await readEvents(
+      await POST(askRequest({ question: "¿Cuánto pago a la CCSS?" })),
+    );
+
+    const prompt = JSON.stringify(model.doStreamCalls[0].prompt);
+    // The pinned chunk is source [9] — a ninth entry, appended, so [1]–[8]
+    // still number the chunks the rerank chose.
+    expect(prompt).toContain("[9] Documento 9");
+    expect(prompt).toContain("Base mínima contributiva de IVM 2026");
+    expect(prompt).toContain("[1][9]");
+    // The pinned chunk is a citable source like any other: one attempt, no
+    // fail-closed decline, and [9] resolves in the shipped snapshot.
+    expect(model.doStreamCalls).toHaveLength(1);
+    expect(streamedText(events)).toBe("La base mínima es ¢324.590 [1][9]. ");
+    const citations = events.filter((e) => e.type === "data-citations").at(-1)!
+      .data as { docKey: string }[];
+    expect(citations.map((c) => c.docKey)).toContain("salarios-minimos");
+  });
+
   it("omits each BMC prompt figure when one of its inputs is missing", async () => {
     const ivm = chunk(1, {
       docKey: "ccss-escala-ivm",

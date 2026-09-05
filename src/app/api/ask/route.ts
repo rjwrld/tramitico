@@ -69,6 +69,16 @@
  * routed: retrieval was strong there, and the classifier is a scope
  * decision, not a substitute for a model that could not cite.
  *
+ * Derived figures survive the cut (#287). A figure is arithmetic over every
+ * one of its inputs, so a rerank that keeps `ccss-escala-ivm` and drops the
+ * `salarios-minimos` artículo it multiplies does not weaken the answer — it
+ * deletes the figure. `pinDerivedFigureInputs` appends the missing inputs
+ * from the pool the reranker just read whenever a sibling survived and the
+ * corpus can complete the figure. It appends and never substitutes, so the
+ * answer set the rerank chose is intact and the citation numbering the prompt
+ * hands the model is unchanged; the pinned chunk is an ordinary source, cited
+ * and validated like the rest.
+ *
  * Stop/retry (#74, audit F-11): `request.signal` is threaded into `streamText`
  * as `abortSignal`, so a client-side `stop()` (chat.tsx) cancels the paid
  * Anthropic call once generation has started — the issue's named target for
