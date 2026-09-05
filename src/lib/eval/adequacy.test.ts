@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { EvalCase } from "./dataset";
 import {
+  ADEQUACY_REPORT_SCHEMA,
   buildAbstentionPrompt,
   buildAdequacyPrompt,
   checkLiteral,
