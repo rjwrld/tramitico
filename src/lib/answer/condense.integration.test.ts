@@ -15,6 +15,20 @@
  * construction — the fixture's `embedding` stays null and the embedder is
  * dead, so a passing assertion here cannot be the vector leg in disguise.
  *
+ * The fixture's vocabulary is invented on purpose (#279). This lane's
+ * contract is a migrated, *empty* database, but Orca worktrees share one
+ * corpus-carrying stack — and against hundreds of real chunks a fixture
+ * written in CCSS vocabulary loses the fused ranking to the documents it is
+ * imitating and falls out of the returned set. Every content lexeme of the two queries
+ * below appears in CONTENT, and each query carries at least one word
+ * (`zorbaluce`, `frunobulax`) that no Spanish document contains — so
+ * `search_chunks` takes its strict AND branch and the fixture is the only
+ * chunk that can match, on an empty stack and a full one alike. That is also
+ * why the questions ask "¿Qué …?" rather than "¿Cómo …?": `qué` is a Spanish
+ * stopword and `cómo` is not, so the latter would put a lexeme in the query
+ * that CONTENT does not carry and drop the whole thing back onto the
+ * corpus-sensitive OR-fallback branch.
+ *
  * Env-gated (#129): skipped locally unless SUPABASE_URL and
  * SUPABASE_SERVICE_ROLE_KEY are set; on CI a missing one fails.
  *
@@ -56,36 +70,42 @@ const describeDb = integrationSuite(
 const DOC_KEY = "__test-condensed-followup__";
 
 /**
- * The CCSS half of the acceptance case, in the vocabulary a condensed
- * question would carry and the bare follow-up would not.
+ * The document the follow-up is about, written in a vocabulary no real
+ * document shares: `zorbaluce` (the regime) and `frunobulax` (the entity)
+ * are what keep the assertions below independent of what else is ingested.
+ * Its wording is the superset of both questions' content words.
  */
 const CONTENT =
-  "El trabajador independiente asegurado por cuenta propia cotiza a la Caja " +
-  "Costarricense de Seguro Social sobre sus ingresos netos declarados.";
+  "El contribuyente zorbaluce que además es asalariado cotiza ante la " +
+  "entidad frunobulax sobre sus ingresos declarados.";
 
 /** The turn before it — this is what makes the follow-up resolvable. */
 const HISTORY = [
   {
-    question: "¿Cómo cotizo a la CCSS como trabajador independiente?",
-    answer: "Se asegura por cuenta propia y cotiza sobre sus ingresos netos.",
+    question: "¿Qué cotiza un contribuyente zorbaluce?",
+    answer: "Cotiza ante la entidad frunobulax sobre sus ingresos declarados.",
   },
 ];
 
 /**
  * A standalone first turn, in the fixture's own vocabulary — the control for
- * "single-turn behavior is unchanged". Written out rather than reusing the
- * history turn above, whose "CCSS" abbreviation the fixture's prose spells in
- * full and the lexical leg therefore cannot match.
+ * "single-turn behavior is unchanged". Deliberately the same words as the
+ * history turn above: both have to be a question the fixture answers, and
+ * there is only one such question that stays inside CONTENT's vocabulary.
  */
-const FIRST_TURN =
-  "¿Cómo cotiza un trabajador independiente asegurado por cuenta propia?";
+const FIRST_TURN = HISTORY[0].question;
 
-/** Meaningless on its own: no noun in it belongs to any document. */
-const FOLLOW_UP = "¿y si también soy asalariado?";
+/**
+ * Meaningless on its own — and, unlike the fixture's own words, `caso` is
+ * ordinary legal Spanish that real documents do use. That is the point: the
+ * raw follow-up must retrieve *something else* on a corpus-carrying stack and
+ * still never the fixture.
+ */
+const FOLLOW_UP = "¿y en ese caso?";
 
 const STANDALONE =
-  "¿Cómo cotiza a la Caja Costarricense de Seguro Social un trabajador " +
-  "independiente asegurado por cuenta propia que además es asalariado?";
+  "¿Qué cotiza ante la entidad frunobulax un contribuyente zorbaluce que " +
+  "además es asalariado?";
 
 /** The outage that forces the lexical leg — no vector, in any budget. */
 function deadEmbedder(): Embedder {
@@ -158,20 +178,27 @@ describeDb("condensed follow-up retrieval (integration)", () => {
     vi.restoreAllMocks();
   });
 
-  const found = async (query: string) => {
+  const retrieved = async (query: string) => {
     const result = await retrieve(query, {
       client,
       embedder: deadEmbedder(),
     });
-    return result.chunks.filter((c) => c.docKey === DOC_KEY);
+    return result.chunks;
   };
+
+  const found = async (query: string) =>
+    (await retrieved(query)).filter((c) => c.docKey === DOC_KEY);
 
   it("retrieves the antecedent's document from the condensed question", async () => {
     const { query, condensed } = await condenseQuestion(FOLLOW_UP, HISTORY);
 
     expect(condensed).toBe(STANDALONE);
-    const chunks = await found(query);
-    expect(chunks).toHaveLength(1);
+    // Unfiltered on purpose: the fixture is not merely *among* the results,
+    // it is the whole result. That is the corpus-independence claim this
+    // suite makes, so it is the thing asserted — a `docKey` filter here
+    // would pass just as happily on the OR-fallback branch that #279 was.
+    const chunks = await retrieved(query);
+    expect(chunks.map((c) => c.docKey)).toEqual([DOC_KEY]);
     expect(chunks[0].content).toBe(CONTENT);
   });
 
@@ -189,6 +216,6 @@ describeDb("condensed follow-up retrieval (integration)", () => {
     // single-turn ask has always produced.
     expect(condensed).toBeNull();
     expect(query).toBe(FIRST_TURN);
-    expect(await found(query)).toHaveLength(1);
+    expect((await retrieved(query)).map((c) => c.docKey)).toEqual([DOC_KEY]);
   });
 });

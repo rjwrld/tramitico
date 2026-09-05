@@ -46,6 +46,12 @@ just been migrated and holds no rows? Yes → `*.integration.test.ts`. No → `*
 Directory does not decide — `src/lib/retrieval.eval.test.ts` sits beside the module it
 covers.
 
+An integration suite must also pass against a database that holds _more_ than its own
+fixtures: CI's stack is empty, but Orca worktrees share one carrying the ingested corpus.
+A retrieval fixture therefore needs a word no real document contains, so it wins
+`search_chunks`'s strict AND branch outright rather than competing with the whole corpus
+for a place in the fused top-8 (#279).
+
 The per-PR census of `eval/dataset.jsonl` is the one suite that straddles that
 question by carrying its answer: `eval/corpus-index.json` is a committed dump of
 the coverage in `public.chunks`, rewritten by `pnpm ingest` on every run, so a
