@@ -353,6 +353,50 @@ prompt.
 `ho-donde-inscribo-ya-no-atv` (a `seguimiento` case — it fails on the
 condensation, and its pool rank 7 has not moved) and the regression above.
 
+**The other lanes, re-measured too.** The change moves the top-8 for most
+cases, which is the input every other lane reads, so groundedness and adequacy
+were re-run on it (2026-09-05, 1 964 s, answer `claude-sonnet-5`, judge
+`claude-sonnet-4-5`):
+
+| Lane                         | #267 baseline  | now                | Gate            |
+| ---------------------------- | -------------- | ------------------ | --------------- |
+| groundedness                 | 70/73 (95.9 %) | **69/73 (94.5 %)** | PASS (≥ 0.94)   |
+| adequacy (cases with claims) | 11/40          | **11/40**          | FAIL, unchanged |
+| citation invariant (#168)    | 0 violations   | **1** violation    | FAIL, new       |
+| F1 derived figures           | FAIL           | FAIL               | unchanged       |
+
+Groundedness holds over its gate with one case of the two-case headroom spent,
+and the gate does not move — the ratchet raises a threshold from a measured
+run, and this run measured lower than the one that set it. By exposure:
+first-exposure 29/32 (was 31/32), promoted 6/7 (was 7/7), corpus-derived 34/34
+(was 32/34). The failing set turned over completely — the baseline's three
+(`ho-hacienda-solo-cliente-eeuu`, `iva-credito-fiscal-compras`,
+`ccss-asalariado-followup`) all pass now, and four different cases fail
+(`multa-iva-no-declarado`, `ho-trabajitos-por-mi-cuenta`,
+`ho-cliente-espana-lleva-iva`, `ho-minimo-caja-independiente-2026`). One of
+those is #296's regression showing up in a second lane, which is what a worse
+retrieval looks like downstream.
+
+**Adequacy did not move at all: 11/40, the same total as the baseline.** That
+is the #130 gap doing exactly what it is supposed to — retrieval finding the
+right artículo does not make an answer state the required claim. It stays
+#289's work, and this run is evidence that better retrieval alone will not
+close it.
+
+**One new citation violation:** `factura-primera-cabys`, `unresolved_markers`.
+The baseline shipped 0 over 73 answers. The runtime invariant (#168) would
+refuse that answer rather than ship it, so it is not a reader-facing defect,
+but it is a regression against a clean sheet and belongs to #288.
+
+**A harness defect had to be fixed before any of this could be measured.** Two
+runs crashed in `beforeAll` — 222 s and 1 048 s of paid answers lost — because
+one adequacy judge report failed to parse and the throw took the whole suite
+with it. The judge closes `items` with `}` instead of `]`, identically on every
+attempt, since it runs at temperature 0. It now answers into a Zod schema
+(`generateObject`), `parseAdequacyReport` still enforces the index rules the
+schema cannot express, and an unreadable report is retried and logged in full
+instead of ending the run.
+
 Reproduce any of this with `pnpm pool-dump <case id> …`, which prints the top
 of the fused pool with all four leg ranks (`--no-expansion` for the v4 pool).
 
