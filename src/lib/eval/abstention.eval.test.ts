@@ -174,7 +174,10 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
   it("still carries every case the routing gap excuses (#285)", () => {
     // Checked against the dataset, not against the run: an exclusion that
     // silently stops matching anything would shrink the gated set without
-    // saying so.
+    // saying so. `cases` is already `abstentionCases(...)`, so presence here
+    // *is* the invariant — a case that stopped being `tier: "abstain"` has
+    // left this list, and `parseDataset` refuses an abstention case that
+    // carries `expected` targets or lacks `abstainIf`/`routeTo`.
     const ids = new Set(cases.map((evalCase) => evalCase.id));
     const stale = UNROUTED_BY_DESIGN.filter((id) => !ids.has(id));
     expect(
