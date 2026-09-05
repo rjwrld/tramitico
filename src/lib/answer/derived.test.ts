@@ -304,6 +304,33 @@ describe("pinDerivedFigureInputs", () => {
     );
   });
 
+  it("does not let one figure's pinned input qualify the next (#295 review)", () => {
+    // Two figures sharing `salarios-minimos`: the first is eligible and pins
+    // it, the second has nothing of its own in the answer set. Judging
+    // eligibility on the growing list would chain one append into another.
+    const escalaSalud = chunk("ccss-escala-salud", "Artículo 30°, sesión 8999");
+    const bmcSem: DerivedFigure = {
+      ...BMC_IVM,
+      id: "bmc-sem-2026",
+      inputs: [
+        BMC_IVM.inputs[1],
+        {
+          ...BMC_IVM.inputs[0],
+          docKey: "ccss-escala-salud",
+          articulo: "Artículo 30°, sesión 8999",
+        },
+      ],
+    };
+
+    expect(
+      pinDerivedFigureInputs(
+        [escala],
+        [escala, salarios, escalaSalud],
+        [BMC_IVM, bmcSem],
+      ),
+    ).toEqual([escala, salarios]);
+  });
+
   it("never duplicates a chunk two figures both need", () => {
     const salud = chunk("ccss-escala-salud", "Artículo 30°, sesión 8999");
     const bmcSem: DerivedFigure = {

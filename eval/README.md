@@ -68,11 +68,11 @@ top score) prints with the run.
 Three knobs exist so the #287 options are measured rather than argued, all
 read at call time and all defaulting to the pipeline of record:
 
-| Variable             | Default           | What it changes                                                  |
-| -------------------- | ----------------- | ---------------------------------------------------------------- |
-| `RERANK_MODEL`       | `rerank-2.5-lite` | the Voyage reranker asked for                                    |
-| `ANSWER_TOP_K`       | `8`               | how many reranked chunks reach the answer prompt                 |
-| `PIN_DERIVED_INPUTS` | `on`              | `off` removes the pin that completes a resolvable derived figure |
+| Variable             | Default           | What it changes                                                      |
+| -------------------- | ----------------- | -------------------------------------------------------------------- |
+| `RERANK_MODEL`       | `rerank-2.5-lite` | the Voyage reranker asked for                                        |
+| `ANSWER_TOP_K`       | `8`               | how many reranked chunks reach the answer prompt                     |
+| `PIN_DERIVED_INPUTS` | `off`             | `on` completes a derived figure whose sibling input survived the cut |
 
 Changing one changes the ask pipeline, not just the eval, so a run that moves
 a knob says so in its header line, and all three keep their defaults until a

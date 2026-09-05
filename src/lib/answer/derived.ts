@@ -385,13 +385,25 @@ export function pinDerivedFigureInputs(
 
   const pinned = [...answerSet];
   for (const figure of figures) {
+    // Eligibility is judged against what the *rerank* returned, never against
+    // what an earlier figure pinned: two figures can share an input, and
+    // reading `pinned` here would let figure [A, B] pull in B and figure
+    // [B, C] then ride on it — pinning C for a figure the rerank never
+    // reached at all. One append may not become a chain.
+    const survived = figure.inputs.some((input) =>
+      answerSet.some((chunk) => statesInput(chunk, input)),
+    );
+    // Nothing present: not this question's figure, and pinning every half
+    // would invent a claim.
+    if (!survived) continue;
+
+    // `pinned`, not `answerSet`: a shared input another figure already
+    // appended is present, and appending it twice is the one thing this must
+    // not do.
     const missing = figure.inputs.filter(
       (input) => !pinned.some((chunk) => statesInput(chunk, input)),
     );
-    // Nothing missing: already resolvable. Nothing present: not this
-    // question's figure, and pinning both halves would invent a claim.
-    if (missing.length === 0 || missing.length === figure.inputs.length)
-      continue;
+    if (missing.length === 0) continue;
 
     const found = missing.map((input) =>
       pool.find((chunk) => statesInput(chunk, input)),
