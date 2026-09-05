@@ -108,6 +108,18 @@ const FIGURE_SEPARATOR = /(?<=\d)[.,](?=\d)/g;
  * Nothing else is touched: digits, currency signs and word order must match as
  * written, and a period that is not between digits stays a sentence end — the
  * citation window depends on it.
+ *
+ * The known limit, stated because a deterministic check is only worth what it
+ * is trusted for: collapsing the two characters also erases which one meant
+ * *decimal* and which meant *thousands*, so "1.234" and "1,234" — 1234 and one
+ * point two three four — normalize alike. Widening a check always widens what
+ * it accepts, and here that is a deliberate trade: a literal whose separator
+ * is followed by exactly three digits ("¢462.200") now also matches the same
+ * digits grouped the other way ("¢462,200"), which in a Costa Rican answer is
+ * that figure mistyped rather than a different one. The narrower reading — the
+ * one that would make the two genuinely different values — is not a reading
+ * this corpus produces. If a case ever needs to tell 1.234 from 1,234, this
+ * must learn the two roles apart before its verdict means anything.
  */
 function normalizeSpaces(text: string): string {
   return text.replace(/[   ]/g, " ");
