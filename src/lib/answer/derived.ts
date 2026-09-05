@@ -248,6 +248,17 @@ export function parseDerivedFigures(value: unknown): DerivedFigure[] {
 export const DERIVED_FIGURES: readonly DerivedFigure[] =
   parseDerivedFigures(manifest);
 
+/**
+ * Whether this chunk is the audited source of that input — the declared
+ * artículo of the declared document, never merely the right document.
+ */
+function statesInput(
+  chunk: RetrievedChunk,
+  input: DerivedFigureInput,
+): boolean {
+  return chunk.docKey === input.docKey && chunk.articulo === input.articulo;
+}
+
 /** Resolve figures against the exact chunks that will be numbered in the prompt. */
 export function resolveDerivedFigures(
   chunks: readonly RetrievedChunk[],
@@ -255,10 +266,7 @@ export function resolveDerivedFigures(
 ): ResolvedDerivedFigure[] {
   return figures.flatMap((figure) => {
     const positions = figure.inputs.map((input) =>
-      chunks.findIndex(
-        (chunk) =>
-          chunk.docKey === input.docKey && chunk.articulo === input.articulo,
-      ),
+      chunks.findIndex((chunk) => statesInput(chunk, input)),
     );
     if (positions.some((position) => position < 0)) return [];
 
@@ -365,13 +373,10 @@ export function pinDerivedFigureInputs(
   // on", the same reading rerank.ts gives RERANK.
   if ((process.env.PIN_DERIVED_INPUTS || "on") !== "on") return [...answerSet];
 
-  const matches = (chunk: RetrievedChunk, input: DerivedFigureInput) =>
-    chunk.docKey === input.docKey && chunk.articulo === input.articulo;
-
   const pinned = [...answerSet];
   for (const figure of figures) {
     const missing = figure.inputs.filter(
-      (input) => !pinned.some((chunk) => matches(chunk, input)),
+      (input) => !pinned.some((chunk) => statesInput(chunk, input)),
     );
     // Nothing missing: already resolvable. Nothing present: not this
     // question's figure, and pinning both halves would invent a claim.
@@ -379,7 +384,7 @@ export function pinDerivedFigureInputs(
       continue;
 
     const found = missing.map((input) =>
-      pool.find((chunk) => matches(chunk, input)),
+      pool.find((chunk) => statesInput(chunk, input)),
     );
     if (found.some((chunk) => chunk === undefined)) continue;
     for (const chunk of found) {
