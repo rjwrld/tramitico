@@ -194,7 +194,7 @@ export type Database = {
           content: string;
           doc_key: string;
           doc_title: string;
-          effective_date: string;
+          effective_date: string | null;
           fetched_at: string;
           lexical_rank: number;
           norma: string;
