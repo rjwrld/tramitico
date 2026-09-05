@@ -321,11 +321,11 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
     ).toBeGreaterThanOrEqual(ADEQUACY_TIER2_GATE);
   });
 
-  it("ships no blocking answer the runtime citation invariant would refuse", () => {
-    // Reported for every case above; asserted only on the blocking ones until
-    // #195 measures a baseline for the rest (#254 §A3: no threshold yet).
+  it("ships no answer the runtime citation invariant would refuse", () => {
+    // The 2026 baseline (#267) measured 0 violations over all 73 answers, so
+    // the threshold the #195 backlog was waiting for is zero, on every case —
+    // not only the blocking ones it was asserted on until then.
     const failed = results
-      .filter((r) => r.evalCase.blocking)
       .filter((r) => r.citations !== null && !r.citations.ok)
       .map(
         (r) =>
