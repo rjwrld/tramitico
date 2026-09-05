@@ -331,8 +331,9 @@ demand evidence of #254 Part B — the words people actually type, «meterme en
 Hacienda», «desde cuánta plata», «trabajitos por mi cuenta» — with targets
 verified afterwards, and only for satisfiability.
 
-`heldOut: true` marks them. The composition is fixed and asserted in
-`src/lib/eval/held-out.test.ts`:
+`heldOut: true` marks them. The composition is asserted in
+`src/lib/eval/held-out.test.ts` — the Tier 1 grid exactly, the other two blocks
+as floors:
 
 | Block   | Count | What it is                                                                   |
 | ------- | ----- | ---------------------------------------------------------------------------- |
@@ -344,10 +345,11 @@ The three variants are the coverage claim itself. A family measured only in
 its own vocabulary has not been shown to survive a reader's: `literal` is the
 family's own question, `coloquial` the same need in demand vocabulary, and
 `seguimiento` a follow-up that carries `history`, so it fails on condensation
-(#132) rather than on retrieval. The grid is asserted as an **exact** set, not
-a floor — a tenth variant of one family would quietly make the per-case
-blocking rule mean something different for that family than for the other
-eight.
+(#132) rather than on retrieval. The Tier 1 grid is asserted as an **exact**
+set while Tier 2 and abstention are floors, and the asymmetry is the point: a
+further Tier 2 topic or abstention case only widens what is measured, but a
+second variant of one family would quietly make the per-case blocking rule
+mean something different for that family than for the other eight.
 
 Two rules the set follows that are not visible in a case:
 

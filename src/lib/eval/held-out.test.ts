@@ -11,13 +11,16 @@
  * nobody has.
  *
  * The numbers come from §B8: nine families × three variants, twelve Tier 2
- * cases, nine abstention cases. They are a floor for the tiers that may grow
- * and an exact count for the Tier 1 grid, which may not: a tenth variant of
- * one family would make the per-family blocking rule mean something different
- * for that family than for the other eight.
+ * cases, nine abstention cases. Only the Tier 1 grid is pinned exactly; Tier 2
+ * and abstention are floors, and the asymmetry is deliberate. A tenth Tier 2
+ * topic or abstention case only widens what is measured, but a second
+ * `coloquial` variant of one family would make "every Tier 1 case is
+ * individually blocking" mean something different for that family than for
+ * the other eight — so that grid is the one number that may not drift.
  */
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { figureMentions } from "./adequacy";
 import { CORPUS_INDEX_PATH, parseCorpusIndex } from "./corpus-index";
 import {
   abstentionCases,
@@ -49,7 +52,7 @@ describe("the held-out set (#261 part B)", () => {
     expect(grid).toEqual(expected);
   });
 
-  it("carries twelve Tier 2 and nine abstention cases", () => {
+  it("carries at least the twelve Tier 2 and nine abstention cases", () => {
     expect(tier2.length).toBeGreaterThanOrEqual(12);
     expect(abstain.length).toBeGreaterThanOrEqual(9);
   });
@@ -130,9 +133,11 @@ describe("the held-out abstention block", () => {
   it("seeds no figure in the question itself", () => {
     // `figureMentions` counts every colón amount and percentage in the answer
     // as invented. A question that hands the model a figure invites it to
-    // echo one back, which would fail the case for the wrong reason.
+    // echo one back, which would fail the case for the wrong reason — so the
+    // check runs the *same* detector over the question, rather than a second
+    // regex that could drift away from it.
     for (const c of abstain) {
-      expect(c.question, c.id).not.toMatch(/(?:¢|₡)\s?\d|\d\s?%/);
+      expect(figureMentions(c.question), c.id).toEqual([]);
     }
   });
 });

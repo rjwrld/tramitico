@@ -325,10 +325,12 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   condense it first, so targets describe retrieval for the standalone question. Since #261 part B
   the held-out set lives in `eval/dataset.jsonl` beside the corpus-derived suite, marked
   `heldOut`, and is **48 cases**: nine Tier 1 families × three `variant`s (literal, colloquial,
-  follow-up) — exactly one of each — plus 12 Tier 2 and 9 abstention cases. Its composition is
-  the coverage claim, so it is asserted rather than banded
-  (`src/lib/eval/held-out.test.ts`); the 25–45 band now describes only the corpus-derived half it
-  was written for. Held out means held out: no one consults these cases while tuning retrieval,
+  follow-up) — exactly one of each — plus at least 12 Tier 2 and 9 abstention cases. Only the
+  Tier 1 grid is pinned exactly (`src/lib/eval/held-out.test.ts`): the other two blocks may grow,
+  since a further Tier 2 or abstention case only widens what is measured, whereas a second
+  variant of one family would make per-case blocking mean something different for that family
+  than for the other eight. The 25–45 band now describes only the corpus-derived half it was
+  written for. Held out means held out: no one consults these cases while tuning retrieval,
   chunking or the prompt until the #267 baseline is published.
 - **Retrieval:** every expected source/article must be present in the answer pool. A satisfiable
   Tier 1 case that takes the weak-retrieval decline is a failure.
