@@ -178,20 +178,27 @@ describeDb("condensed follow-up retrieval (integration)", () => {
     vi.restoreAllMocks();
   });
 
-  const found = async (query: string) => {
+  const retrieved = async (query: string) => {
     const result = await retrieve(query, {
       client,
       embedder: deadEmbedder(),
     });
-    return result.chunks.filter((c) => c.docKey === DOC_KEY);
+    return result.chunks;
   };
+
+  const found = async (query: string) =>
+    (await retrieved(query)).filter((c) => c.docKey === DOC_KEY);
 
   it("retrieves the antecedent's document from the condensed question", async () => {
     const { query, condensed } = await condenseQuestion(FOLLOW_UP, HISTORY);
 
     expect(condensed).toBe(STANDALONE);
-    const chunks = await found(query);
-    expect(chunks).toHaveLength(1);
+    // Unfiltered on purpose: the fixture is not merely *among* the results,
+    // it is the whole result. That is the corpus-independence claim this
+    // suite makes, so it is the thing asserted — a `docKey` filter here
+    // would pass just as happily on the OR-fallback branch that #279 was.
+    const chunks = await retrieved(query);
+    expect(chunks.map((c) => c.docKey)).toEqual([DOC_KEY]);
     expect(chunks[0].content).toBe(CONTENT);
   });
 
@@ -209,6 +216,6 @@ describeDb("condensed follow-up retrieval (integration)", () => {
     // single-turn ask has always produced.
     expect(condensed).toBeNull();
     expect(query).toBe(FIRST_TURN);
-    expect(await found(query)).toHaveLength(1);
+    expect((await retrieved(query)).map((c) => c.docKey)).toEqual([DOC_KEY]);
   });
 });
