@@ -63,6 +63,12 @@ import {
   type EvalCase,
 } from "./dataset";
 import { formatExposureTally, tallyByExposure } from "./exposure";
+import {
+  selectCases,
+  subsetGateFailure,
+  subsetSpec,
+  SUBSET_ENV,
+} from "./subset";
 import { transcriptRow, writeTranscript } from "./transcript";
 import {
   GROUNDEDNESS_GATE,
@@ -152,12 +158,38 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
   // Abstention cases have no correct source and must not be answered at all;
   // they are judged in their own lane (`abstention.eval.test.ts`), not by a
   // judge asking whether their answer was supported.
-  const cases = retrievalCases(
+  const allCases = retrievalCases(
     parseDataset(readFileSync(DATASET_PATH, "utf8")),
   );
+  // #289: `EVAL_CASES` scopes the run to the cases someone named, so the
+  // transcript that settles a classification costs cents instead of the whole
+  // dataset. Read here and *asserted on* below — a scoped run measures no rate
+  // and every gate says so rather than passing on a handful of cases.
+  const subset = subsetSpec();
   const results: CaseResult[] = [];
 
+  /**
+   * The first line of every gate below. A scoped run answers a different
+   * question from the one the gate asks, and #129's rule applies: a required
+   * check that silently asserts nothing is the failure mode it exists to
+   * prevent, so it fails, naming the scope, rather than passing on a handful
+   * of cases.
+   */
+  function assertFullRun(): void {
+    if (subset !== null) throw new Error(subsetGateFailure(subset));
+  }
+
   beforeAll(async () => {
+    // Before any paid call: an id that names no case is a typo that would
+    // otherwise buy an empty table.
+    const cases = selectCases(allCases, subset);
+    if (subset !== null) {
+      console.log(
+        `\n${SUBSET_ENV}: ${cases.length}/${allCases.length} case(s) — ` +
+          `${cases.map((c) => c.id).join(", ")}. Gates will fail: a subset ` +
+          `run is a transcript read, not a measurement.`,
+      );
+    }
     // Constructed here, not in the describe body: `describe.skip` still runs
     // its callback, so a constructor that throws without the environment
     // would crash the file on the gate's skip path (#129).
@@ -277,7 +309,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
                   },
           }),
         ),
-        { answerModel: answerModelId },
+        { answerModel: answerModelId, subset: subset !== null },
       );
       console.log(`\ntranscript (#289): ${transcript}`);
     } catch (error) {
@@ -353,6 +385,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
   }, 5_400_000);
 
   it("every tier 1 case states all of its required claims and steps", () => {
+    assertFullRun();
     const failed = results
       .filter((r) => r.evalCase.tier === 1 && adequacyFailed(r))
       .map((r) => `${r.evalCase.id} (${adequacyReason(r)})`);
@@ -362,6 +395,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
   });
 
   it(`at least ${ADEQUACY_TIER2_GATE * 100}% of tier 2 cases with required claims are adequate`, () => {
+    assertFullRun();
     const tier2 = results.filter(
       (r) => r.evalCase.tier === 2 && r.adequacy !== null,
     );
@@ -377,6 +411,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
   });
 
   it("ships no answer the runtime citation invariant would refuse", () => {
+    assertFullRun();
     // The 2026 baseline (#267) measured 0 violations over all 73 answers, so
     // the threshold the #195 backlog was waiting for is zero, on every case —
     // not only the blocking ones it was asserted on until then.
@@ -390,6 +425,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
   });
 
   it(`at least ${GROUNDEDNESS_GATE * 100}% of answers are supported by their retrieved chunks`, () => {
+    assertFullRun();
     const failed = results
       .filter((r) => r.verdict === "fail")
       .map((r) => `${r.evalCase.id} (${r.reason})`);
@@ -400,7 +436,36 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
     ).toBeGreaterThanOrEqual(GROUNDEDNESS_GATE);
   });
 
+  it("ships no answer whose derived figures are incompletely cited", () => {
+    assertFullRun();
+    // The deterministic owner of "a derived figure must be presented as a
+    // derivation" (#263/#281). `route.ts` refuses such an answer at runtime —
+    // one retry, then the honest decline — so an eval that never asked the
+    // question was measuring less than production enforces. #289's A3 moved
+    // the property here out of `ho-minimo-caja-independiente-2026`'s
+    // `requiredClaims`, where it was a prose requirement put to a judge that
+    // `ADEQUACY_SYSTEM_PROMPT` tells to score *presence*: it could only ever
+    // have been answered by accident. Every case that resolves a figure, not
+    // just F1.
+    const failed = results
+      .filter((r) => r.derivedFigures.length > 0)
+      .flatMap((r) => {
+        const incomplete = incompletelyCitedDerivedFigures(
+          r.answer,
+          r.derivedFigures,
+        );
+        return incomplete.length === 0
+          ? []
+          : [`${r.evalCase.id} (${incomplete.join(", ")})`];
+      });
+    expect(
+      failed,
+      `derived figures presented without their inputs: ${failed.join("; ")}`,
+    ).toEqual([]);
+  });
+
   it("answers F1 with both BMC figures and citations to every input", () => {
+    assertFullRun();
     const result = results.find(
       ({ evalCase }) => evalCase.id === "ccss-cuanto-pago-base",
     );

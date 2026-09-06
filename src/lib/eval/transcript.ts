@@ -133,17 +133,25 @@ export function serializeTranscript(rows: readonly TranscriptRow[]): string {
 }
 
 /**
- * `groundedness-<answer model>-<instant>.jsonl`. The instant is what keeps two
- * runs of the same model from overwriting each other — comparing a run against
- * the previous one is the point of keeping them.
+ * `groundedness-<answer model>[-subset]-<instant>.jsonl`. The instant is what
+ * keeps two runs of the same model from overwriting each other — comparing a
+ * run against the previous one is the point of keeping them.
+ *
+ * `subset` is there for the same reason (#289): a run scoped by `EVAL_CASES`
+ * covers the cases someone named and says nothing about the rest, so the file
+ * it leaves behind must not read, a week later, as the full run it sits beside.
  */
-export function transcriptFilename(answerModel: string, now: Date): string {
+export function transcriptFilename(
+  answerModel: string,
+  now: Date,
+  { subset = false }: { subset?: boolean } = {},
+): string {
   const stamp = now
     .toISOString()
     .replace(/[-:]/g, "")
     .replace(/\.\d+Z$/, "Z");
   const model = answerModel.replace(/[^A-Za-z0-9._-]+/g, "-");
-  return `groundedness-${model}-${stamp}.jsonl`;
+  return `groundedness-${model}${subset ? "-subset" : ""}-${stamp}.jsonl`;
 }
 
 /**
@@ -162,10 +170,11 @@ export function writeTranscript(
     dir = process.env.EVAL_TRANSCRIPT_DIR ?? DEFAULT_TRANSCRIPT_DIR,
     answerModel,
     now = new Date(),
-  }: { dir?: string; answerModel: string; now?: Date },
+    subset = false,
+  }: { dir?: string; answerModel: string; now?: Date; subset?: boolean },
 ): string {
   mkdirSync(dir, { recursive: true });
-  const name = transcriptFilename(answerModel, now);
+  const name = transcriptFilename(answerModel, now, { subset });
   const body = serializeTranscript(rows);
   for (let attempt = 0; ; attempt += 1) {
     const file = path.join(
