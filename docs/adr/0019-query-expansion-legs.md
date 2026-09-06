@@ -60,14 +60,26 @@ document, wrong artículo" shape (four of the six have the right document in the
 five). It cannot reach CNPT artículo 78, whose neighbourhood is nowhere near the pool, so the
 blocking Tier 1 case would stay red.
 
-**The reranker scores against the question and its expansion.** A pool rank is
-not a hit, and `rerank-2.5-lite` reads the same question the fused legs read,
-so it has the same register gap: a target moved from pool 24 to pool 5 and
-still missed. `rerankQuery` composes the two. Both, not the expansion alone —
-the rewrite is a probe, the question is what the reader asked, and dropping it
-costs a case the reader's own words carry. This is the one place where #286's
-fix reaches into what #287 owns, and it is here because leaving it out would
-have shipped a Tier 1 regression.
+**The reranker reads the question and its expansion — as two queries, not one
+string.** A pool rank is not a hit, and `rerank-2.5-lite` reads the same
+question the fused legs read, so it has the same register gap: a target moved
+from pool 24 to pool 5 and still missed. Both readings, not the expansion
+alone — the rewrite is a probe, the question is what the reader asked, and
+dropping it costs a case the reader's own words carry. This is the one place
+where #286's fix reaches into what #287 owns, and it is here because leaving
+it out would have shipped a Tier 1 regression.
+
+#286 composed them by concatenation, and that shipped a Tier 1 regression of
+its own: one string is one reading, so an expansion that drifts into another
+country's law is _inside_ the query, and the Costa Rican artículo the reader
+needed fell from reranked #3 to #10. **#296 scores the two separately and
+keeps the higher score per chunk** (`fuseByMaxScore`, rerank.ts) — two Voyage
+calls in parallel under the one timeout. That gives the rerank side the bound
+the fused side already had: the expansion can only raise a chunk's score,
+never lower it. Measured over all 73 retrieval cases, 68/73 → **70/73**, two
+gained, none lost. RRF over the two orders, their mean, and a
+question-weighted blend were each measured too and each lost a case that
+concatenation held; max was the only variant with no regression.
 
 **Corroboration needs at least one leg that ran on the reader's own question.** A chunk is
 corroborated when a similarity leg and a word-matching leg both surfaced it, and the
@@ -107,8 +119,15 @@ tripping `isWeak` and stop reaching the honest decline of #21.
   (86.3 % → 93.2 %), blocking misses 4 → 2, first-exposure 25/32 → 27/32, corpus-derived
   32/34 → 34/34. `HIT_RATE_GATE` does not move: the ratchet rule never lowers a threshold and
   the measured rate minus one case is below the current 0.92.
-- **One Tier 1 regression, written down rather than tuned away.**
-  `ho-cliente-espana-lleva-iva` misses from pool rank 3: the expansion for a question naming a
-  foreign country drifts into that country's law, and the rerank query carries the drift. A
-  prompt rule against it was measured and reverted — it did not recover the case and flipped a
-  different one. eval/README.md holds the detail; the next work on the expansion prompt owns it.
+- **One Tier 1 regression, written down rather than tuned away — and then fixed by #296 without
+  touching the prompt.** `ho-cliente-espana-lleva-iva` missed from pool rank 3: the expansion
+  for a question naming a foreign country drifts into that country's law, and the concatenated
+  rerank query carried the drift. A prompt rule against it was measured and reverted — it did
+  not recover the case and flipped a different one. The cause was the composition, not the
+  rewrite: scoring the two readings separately and fusing by max recovers that case _and_
+  `ho-donde-inscribo-ya-no-atv`, with no case lost, and leaves the drifting expansion exactly
+  as it is. eval/README.md holds both measurements.
+- **Reranking costs two Voyage calls per ask when there is an expansion** (#296), over the same
+  40 documents. They run concurrently under the one `RERANK_TIMEOUT_MS`, so the reader waits for
+  the slower call rather than the sum; the spend is what doubles, not the latency. `EXPAND=off`
+  sheds the second call along with the second pair of legs.

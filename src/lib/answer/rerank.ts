@@ -15,12 +15,39 @@
  * it (#287 requirement 1), and the answer top-k becomes a knob
  * (`ANSWER_TOP_K`) that a measured run can move without touching the code.
  *
- * And since #286 the query it scores against is the question *plus* its
- * corpus-register expansion. The reranker reads the same question the fused
- * legs read, so it had the same register gap: a target moved from pool 24 to
- * pool 5 and still missed, because «desde cuánta plata al mes lo obligan a
- * uno a pagar Caja» does not look like «base mínima contributiva» to
- * `rerank-2.5-lite` either.
+ * And since #286 the rerank reads the corpus-register expansion as well as
+ * the question. The reranker reads the same question the fused legs read, so
+ * it had the same register gap: a target moved from pool 24 to pool 5 and
+ * still missed, because «desde cuánta plata al mes lo obligan a uno a pagar
+ * Caja» does not look like «base mínima contributiva» to `rerank-2.5-lite`
+ * either.
+ *
+ * #286 read both by **concatenating** them into one query string, and #296
+ * measured what that costs. One string is one reading, and the reranker
+ * scores it as one: a question that names a foreign country («Le cobro a un
+ * cliente en España…») draws an expansion written in European VAT doctrine,
+ * and once that vocabulary is inside the query the Costa Rican artículo the
+ * reader needed fell from reranked #3 to #10 — a Tier 1 miss caused by text
+ * no reader wrote. The shape is general: a foreign country, a foreign
+ * currency or an international platform can all pull the rewrite into another
+ * jurisdiction's rules, and the corpus is Costa Rican and only Costa Rican.
+ *
+ * So the two queries are scored **separately and fused by the higher score**
+ * (`fuseByMaxScore`). Two Voyage calls run in parallel under the one timeout,
+ * and a chunk keeps the best relevance either reading gave it. That restores,
+ * on the rerank side, the bound the expansion legs already have on the fused
+ * side (expand.ts, property 3): the expansion can only ever raise a chunk's
+ * score, never lower it. It is a bound, not immunity — a competitor the
+ * expansion lifts can still cross above a chunk whose own score never moved —
+ * but a bad rewrite can no longer drag the question's own best answer down
+ * with it.
+ *
+ * Measured over all 73 retrieval cases, not the one case that motivated it
+ * (#296 requirement 2): 68/73 concatenated → **70/73 fused by max**, two
+ * cases gained, none lost, and both remaining blocking misses recovered.
+ * eval/README.md carries the variant table — RRF over the two orders, their
+ * mean, and a question-weighted blend were all measured too, and each of them
+ * lost a case that concatenation held.
  */
 import type { RetrievedChunk } from "../retrieval";
 
@@ -49,32 +76,82 @@ export interface RerankOptions {
   fetchImpl?: typeof fetch;
   /**
    * The corpus-register rewrite retrieval ran on (#286), when there was one.
-   * It is appended to the reranker's query rather than replacing it.
+   * It becomes a **second rerank query** scored beside the question, not text
+   * appended to it (#296).
    *
    * The reranker reads the same question the fused legs read, so it has the
    * same register problem, and #286 found it the hard way: putting
    * `ho-desde-cuanta-plata-caja`'s target at pool rank 5 instead of 24 did
    * not make it a hit, because the reranker still scored «desde cuánta plata
    * al mes lo obligan a uno a pagar Caja» against artículos that say «base
-   * mínima contributiva». Reranking on the question *and* its expansion
+   * mínima contributiva». Letting the reranker read the expansion too
    * recovers that case and two more that were already being cut.
    *
-   * Both, not the expansion alone: the rewrite is a probe, the question is
-   * what the reader actually asked, and dropping it costs a case
-   * (`ho-donde-inscribo-ya-no-atv`) that the question's own words carry.
+   * Both readings, never the expansion alone: the rewrite is a probe, the
+   * question is what the reader actually asked, and scoring only the rewrite
+   * costs a case (`ho-donde-me-afilio-caja`) that the question's own words
+   * carry. Two separate calls rather than one concatenated query, because a
+   * concatenation is a single reading and a rewrite that drifts into another
+   * country's law takes the reader's own question down with it — see the
+   * module header and #296.
    */
   expansion?: string | null;
 }
 
 /**
- * What the reranker scores against: the question, plus its expansion when
- * retrieval produced one.
+ * The rerank queries, in the order their scores are fused: always the
+ * question, then its expansion when retrieval produced one.
  */
-export function rerankQuery(
+export function rerankQueries(
   question: string,
   expansion?: string | null,
-): string {
-  return expansion ? `${question} ${expansion}` : question;
+): string[] {
+  return expansion ? [question, expansion] : [question];
+}
+
+/**
+ * One Voyage query's verdict on the pool: its scored pool indices, in the
+ * order Voyage returned them (best first).
+ */
+export type QueryVerdict = readonly { index: number; score: number }[];
+
+/**
+ * Pool indices, best first, scored by the highest relevance any query gave
+ * them (#296).
+ *
+ * `verdicts[0]` is the question's, and it breaks ties: first by the place
+ * Voyage gave the chunk in *that* reading — Voyage's own order carries more
+ * than the rounded score does, and a chunk it never returned there sorts last
+ * — and then by pool position, so the result is fully determined the way
+ * `fuseRrf`'s explicit sort is. A chunk the expansion merely matched as well
+ * therefore never outranks one the reader's own words ranked higher.
+ *
+ * A chunk missing from a reading simply did not come back from it. That is
+ * not evidence against the chunk: it scores nothing there and keeps whatever
+ * the other reading gave it.
+ */
+export function fuseByMaxScore(
+  verdicts: readonly (QueryVerdict | null)[],
+): { index: number; score: number }[] {
+  const best = new Map<number, number>();
+  for (const verdict of verdicts) {
+    for (const { index, score } of verdict ?? []) {
+      best.set(index, Math.max(best.get(index) ?? -Infinity, score));
+    }
+  }
+  const questionRank = new Map<number, number>();
+  (verdicts[0] ?? []).forEach(({ index }, position) => {
+    questionRank.set(index, position);
+  });
+  const asked = (index: number) => questionRank.get(index) ?? Infinity;
+  return [...best]
+    .map(([index, score]) => ({ index, score }))
+    .sort(
+      (a, b) =>
+        b.score - a.score ||
+        asked(a.index) - asked(b.index) ||
+        a.index - b.index,
+    );
 }
 
 /** One reranked pool member: the chunk, Voyage's score, its 1-based rank. */
@@ -103,9 +180,51 @@ function rerankModel(): string {
 }
 
 /**
+ * One Voyage rerank call, as a map of pool index → relevance score, or `null`
+ * when it did not produce one. Never throws: a rejected call is one reading
+ * lost, not a failed ask.
+ */
+async function scorePool(
+  query: string,
+  chunks: readonly RetrievedChunk[],
+  key: string,
+  fetchImpl: typeof fetch,
+  signal: AbortSignal,
+): Promise<QueryVerdict | null> {
+  try {
+    const res = await fetchImpl("https://api.voyageai.com/v1/rerank", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: rerankModel(),
+        query,
+        documents: chunks.map((chunk) => chunk.content),
+      }),
+      signal,
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as VoyageRerankResponse;
+    const verdict = json.data.flatMap(({ index, relevance_score }) =>
+      chunks[index] === undefined ? [] : [{ index, score: relevance_score }],
+    );
+    return verdict.length > 0 ? verdict : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * The whole pool in Voyage's order, or `null` when the rerank did not happen —
  * opted out, unkeyed, or failed. `null` is not an error: every caller falls
  * back to the fused order, which is the policy this module exists to keep.
+ *
+ * With an expansion this makes two calls, in parallel under the one timeout,
+ * and fuses them by the higher score (#296). The degradation is the same
+ * policy one call down: both readings back → fused; one back → that reading
+ * alone, which is still better than the fused order; neither → `null`.
  */
 export async function rerankOrder(
   question: string,
@@ -120,33 +239,23 @@ export async function rerankOrder(
   if (!key) return null;
 
   const fetchImpl = options.fetchImpl ?? fetch;
-  const query = rerankQuery(question, options.expansion);
-  try {
-    const res = await fetchImpl("https://api.voyageai.com/v1/rerank", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: rerankModel(),
-        query,
-        documents: chunks.map((chunk) => chunk.content),
-      }),
-      signal: AbortSignal.timeout(RERANK_TIMEOUT_MS),
-    });
-    if (!res.ok) return null;
-    const json = (await res.json()) as VoyageRerankResponse;
-    const order = json.data.flatMap(({ index, relevance_score }, position) => {
-      const chunk = chunks[index];
-      return chunk === undefined
-        ? []
-        : [{ chunk, score: relevance_score, rank: position + 1 }];
-    });
-    return order.length > 0 ? order : null;
-  } catch {
-    return null;
-  }
+  // One deadline for both calls: they run concurrently, so the reader waits
+  // for the slower one and not for the sum.
+  const signal = AbortSignal.timeout(RERANK_TIMEOUT_MS);
+  const scored = await Promise.all(
+    rerankQueries(question, options.expansion).map((query) =>
+      scorePool(query, chunks, key, fetchImpl, signal),
+    ),
+  );
+  if (scored.every((scores) => scores === null)) return null;
+  // Passed with the question's slot intact, `null` and all: `fuseByMaxScore`
+  // reads position 0 as the question's for its tiebreak, and a call that did
+  // not come back must not silently promote the expansion into that slot.
+  const order = fuseByMaxScore(scored).flatMap(({ index, score }, position) => {
+    const chunk = chunks[index];
+    return chunk === undefined ? [] : [{ chunk, score, rank: position + 1 }];
+  });
+  return order.length > 0 ? order : null;
 }
 
 /**

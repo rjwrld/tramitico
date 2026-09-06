@@ -69,11 +69,18 @@ import { formatExposureTally, tallyByExposure } from "./exposure";
  * and the gate is what kept them from being forgotten.
  *
  * #286's expansion legs took it to **68/73 (93.2 %)**, over this gate for the
- * first time since the baseline, on two identical runs. The gate still does
- * not move: the ratchet sets a threshold at the measured rate minus one case
- * (0.91) and never below the previous value, so 0.92 stands. Two blocking
- * cases still miss, so the suite stays red — which is the point of the
- * per-case blocking rule. eval/README.md has the per-case table.
+ * first time since the baseline, on two identical runs, with two blocking
+ * cases still missing. #296 recomposed the rerank query — the question and its
+ * expansion scored as two Voyage queries and fused by the higher score rather
+ * than concatenated — and took it to **70/73 (95.9 %)** with **no blocking
+ * miss left**, so this suite is green for the first time since the baseline.
+ *
+ * The gate still does not move, and here that is a deliberate choice rather
+ * than the ratchet's: the ratchet rule would set 0.94 from a 70/73 run, and
+ * #296 requirement 4 pins it at 0.92 instead — the three remaining misses are
+ * Tier 2 and two of them never reach the pool, so raising the floor would
+ * spend headroom on a lane whose next fix is a corpus one, not a retrieval
+ * one. eval/README.md has the per-case table.
  */
 export const HIT_RATE_GATE = 0.92;
 

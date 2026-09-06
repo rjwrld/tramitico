@@ -321,9 +321,11 @@ closed. Measured: `ho-desde-cuanta-plata-caja` moved from pool 24 to pool 5
 and still missed, because `rerank-2.5-lite` was still matching «desde cuánta
 plata al mes lo obligan a uno a pagar Caja» against artículos that say «base
 mínima contributiva». `rerankChunks` therefore scores against the question
-**and** its expansion (`rerankQuery`, rerank.ts). Both, not the expansion
-alone: the rewrite is a probe and the question is what the reader asked, and
-dropping the question costs a case the reader's own words carry.
+**and** its expansion (rerank.ts). Both, not the expansion alone: the rewrite
+is a probe and the question is what the reader asked, and dropping the
+question costs a case the reader's own words carry. (#286 composed the two by
+concatenating them into one query; #296 replaced that with two queries fused
+by the higher score — see «The rerank query, recomposed» below.)
 
 **The measured result (eval lane, 2026-09-05).** Two runs of
 `retrieval-hitrate.eval.test.ts`, `RERANK=voyage`, `EXPAND=on`, on the same
@@ -371,11 +373,15 @@ del caso, no la ley aplicable») was written and **measured and reverted**: it
 did not recover the case and it flipped a different one, which is the
 signature of tuning against individual cases rather than fixing a mechanism.
 It is written down here instead, as the next piece of work on the expansion
-prompt.
+prompt. **#296 fixed it, and not in the prompt** — the drift is real and is
+still there, but it is _appending_ the drift to the rerank query that made it
+cost a case; see «The rerank query, recomposed» below.
 
 **Two blocking cases remain**, and neither is #286's:
-`ho-donde-inscribo-ya-no-atv` (a `seguimiento` case — it fails on the
-condensation, and its pool rank 7 has not moved) and the regression above.
+`ho-donde-inscribo-ya-no-atv` (a `seguimiento` case whose pool rank 7 has not
+moved) and the regression above. Both were **recovered by #296**, which also
+corrects the reading recorded here: `ho-donde-inscribo-ya-no-atv` was not
+failing on its condensation — it was being cut by the rerank.
 
 **Re-measured again after #287 merged in**, since that change touches the same
 reranker: `68/73`, the same five misses, exposure unchanged — #287's knobs are
@@ -429,6 +435,108 @@ instead of ending the run.
 
 Reproduce any of this with `pnpm pool-dump <case id> …`, which prints the top
 of the fused pool with all four leg ranks (`--no-expansion` for the v4 pool).
+
+## The rerank query, recomposed (#296)
+
+#286 shipped one Tier 1 regression and wrote it down rather than tuning it
+away: `ho-cliente-espana-lleva-iva` («Le cobro a un cliente en **España** por
+un sistema que él usa allá, ¿va con IVA?») missed from pool rank 3. This is
+that issue's answer, and the answer is **not in the expansion prompt**.
+
+**The diagnosis: composition, not the rewrite (#296 requirement 1).** The
+expansion for that question does drift into European VAT doctrine — «otro
+Estado miembro de la Unión Europea», «lugar de suministro», «servicios
+electrónicos» — but the drift only costs the case because #286 handed the
+reranker `question + " " + expansion` as **one string**. One string is one
+reading. Scoring the same pool against each query separately says so exactly:
+
+| Rerank query         | Rank of `ley-iva` Art. 3 | Answer top-8 |
+| -------------------- | ------------------------ | ------------ |
+| the question alone   | **3**                    | hit          |
+| the expansion alone  | 10                       | MISS         |
+| the two concatenated | 10                       | MISS         |
+
+Concatenated, the top-8 is `reglamento-iva` 46 / 10 / 49, `ley-iva` 1,
+`reglamento-iva` 47 / 25, `ley-iva` 4 / 30 — the target is displaced by
+`reglamento-iva` Art. 49 and Art. 25, the two chunks the foreign-law
+vocabulary lifts. The reader's own words never stopped ranking the right
+artículo third; the query stopped being the reader's own words.
+
+**Measured on the whole dataset, not the case (#296 requirement 2 and 3).**
+Every composition was scored from **one** data collection: per case, condense
+→ `retrieve` (pool 40) → three Voyage calls (question, expansion, concatenated),
+dumped raw. Every variant below is then computed offline from those three
+orders, so nine variants cost three calls per case rather than nine runs. The
+baseline reproduces #286 exactly — 68/73 with the identical five misses, and
+65/73 for the pre-#286 question-only rerank — which is what says the fresh
+expansions did not drift.
+
+| Rerank composition                       | Hits      | Gained                     | Lost                                                                        |
+| ---------------------------------------- | --------- | -------------------------- | --------------------------------------------------------------------------- |
+| question + expansion concatenated (#286) | 68/73     | —                          | —                                                                           |
+| question alone (pre-#286)                | 65/73     | espana                     | asalariado-followup, desde-cuanta-plata, factura-electronica, t2-compu-cara |
+| expansion alone                          | 68/73     | donde-inscribo             | donde-me-afilio                                                             |
+| RRF(question, expansion)                 | 69/73     | donde-inscribo, espana     | factura-electronica                                                         |
+| RRF(question×2, expansion)               | 68/73     | donde-inscribo, espana     | factura-electronica, t2-compu-cara                                          |
+| RRF(question, expansion, concatenated)   | 69/73     | espana                     | —                                                                           |
+| mean of the two scores                   | 69/73     | donde-inscribo, espana     | factura-electronica                                                         |
+| 0.7 × question + 0.3 × expansion         | 68/73     | donde-inscribo, espana     | asalariado-followup, factura-electronica                                    |
+| **max of the two scores**                | **70/73** | **donde-inscribo, espana** | **—**                                                                       |
+
+**The criterion is "lost nothing", not "scored highest".** Two variants lose
+no case; max is the one of those two with a mechanism behind it rather than an
+arithmetic accident. Scoring the two readings separately and keeping the
+higher score per chunk gives the rerank the same bound the expansion legs
+already have on the fused side (expand.ts property 3): **the expansion can
+only ever raise a chunk's score, never lower it.** It is a bound, not
+immunity — a chunk the expansion lifts can still cross above one whose own
+score never moved — but the reader's own best answer can no longer be dragged
+down by a passage no reader wrote, which is the failure #296 exists to remove.
+That it also recovers `ho-donde-inscribo-ya-no-atv`, a case nobody was aiming
+at, is the evidence that it is a mechanism and not a tuning.
+
+Shipped as `fuseByMaxScore` (rerank.ts): two Voyage calls, run concurrently
+under the one `RERANK_TIMEOUT_MS`, ties broken by the question's own Voyage
+order and then by pool position. Both back → fused; one back → that reading
+alone; neither → the fused order, unchanged policy. No expansion → one call,
+byte-identical to before. The cost is **two rerank calls per ask instead of
+one**, over the same 40 documents; the latency is the slower call, not the sum.
+
+**The eval lane confirms it (#296 acceptance).** Two runs of
+`retrieval-hitrate.eval.test.ts` on the same 871-chunk corpus, `RERANK=voyage`,
+`EXPAND=on`, ~193 s each, both **70/73 (95.9 %)** with the identical three
+misses — the offline scorer's prediction, case for case:
+
+| Run                                      | Hit-rate           | Blocking misses |
+| ---------------------------------------- | ------------------ | --------------- |
+| #267 baseline                            | 63/73 (86.3 %)     | 4               |
+| #286 expansion legs, concatenated rerank | 68/73 (93.2 %)     | 2               |
+| **#296 rerank fused by max score**       | **70/73 (95.9 %)** | **0**           |
+
+By exposure: first-exposure **29/32** (was 27/32), promoted 7/7, corpus-derived
+34/34. `ho-cliente-espana-lleva-iva` hits from pool 3 and
+`ho-donde-inscribo-ya-no-atv` from pool 7, so **the blocking-cases assertion
+passes for the first time since the 2026 baseline** — and the README's earlier
+reading of `ho-donde-inscribo-ya-no-atv` as a condensation failure was wrong:
+its condensation was fine and its rerank was not.
+
+The three remaining misses are all Tier 2 and none of them is a rerank
+problem: `ho-t2-credito-iva-compras` and `ho-t2-constancia-al-dia` never reach
+the pool of 40 (diagnosed above, unchanged), and `ho-t2-payoneer` reranks #15
+from pool #14, displaced by `ley-iva` Art. 30 at 0.5313.
+
+**`HIT_RATE_GATE` stays at 0.92** (#296 requirement 4). The ratchet rule would
+allow 0.94 from a 70/73 run; the issue pins it, and pinning is right here —
+the remaining headroom belongs to three Tier 2 cases whose next fix is a
+corpus or dataset one, not a retrieval one.
+
+**Exposure, stated plainly.** All 73 retrieval cases were visible while the
+composition was chosen, so "max" is the best of nine variants measured
+in-sample. What limits the overfitting is the shape of the choice: the variants
+are compositions of two fixed rerank calls, not prompt text tuned per case, and
+max was selected for losing nothing rather than for winning most. There is no
+out-of-sample check available — the held-out set (#261) is 39 retrieval cases
+that are already inside these 73 — and that is a gap, not a claim.
 
 ### Retrieval, groundedness and adequacy, per case
 
