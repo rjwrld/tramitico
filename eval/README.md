@@ -531,6 +531,40 @@ allow 0.94 from a 70/73 run; the issue pins it, and pinning is right here —
 the remaining headroom belongs to three Tier 2 cases whose next fix is a
 corpus or dataset one, not a retrieval one.
 
+**The other lanes, re-measured on the new top-8.** The change moves the
+reranked order for far more cases than the two that flipped, and that order is
+the input every other lane reads, so groundedness, adequacy and the citation
+invariant were re-run on it (2026-09-05, answer `claude-sonnet-5`, judge
+`claude-sonnet-4-5`). None of them regressed and two recovered:
+
+| Lane                         | #267 baseline  | #286           | #296 (this change) | Gate            |
+| ---------------------------- | -------------- | -------------- | ------------------ | --------------- |
+| groundedness                 | 70/73 (95.9 %) | 69/73 (94.5 %) | **69/73 (94.5 %)** | PASS (≥ 0.94)   |
+| adequacy (cases with claims) | 11/40          | 11/40          | **14/40**          | FAIL, +3        |
+| citation invariant (#168)    | 0 violations   | 1 violation    | **0 violations**   | PASS, recovered |
+| F1 derived figures           | FAIL           | FAIL           | FAIL               | unchanged       |
+
+Groundedness holds exactly where #286 left it — 94.5 %, over the gate, by
+exposure first-exposure 29/32, promoted 6/7, corpus-derived 34/34 — so the
+better retrieval was not bought with a worse answer. The gate does not move:
+the ratchet raises a threshold from a measured run, and this run matched rather
+than beat the one that set it.
+
+Two things did get better without being aimed at. **Adequacy moves for the
+first time since the baseline**, 11/40 → 14/40; #286 recorded that better
+retrieval alone would not close the #130 gap, and three cases say that is not
+quite the whole story, though 14/40 is still a failing lane and still #289's
+work. And **the citation violation #286 introduced is gone**
+(`factura-primera-cabys`, `unresolved_markers`), back to the baseline's clean
+sheet — that one belonged to #288 and no longer needs to.
+
+> Provenance, since it matters for how much this is worth: this measurement
+> was not planned. A misplaced `--disable-console-intercept` swallowed the
+> file path on the second hit-rate run and executed the whole eval project
+> instead. The numbers are real and are reported here whichever way they came
+> out; the point of saying so is that they are one run, not the two the
+> hit-rate figures above rest on.
+
 **Exposure, stated plainly.** All 73 retrieval cases were visible while the
 composition was chosen, so "max" is the best of nine variants measured
 in-sample. What limits the overfitting is the shape of the choice: the variants
