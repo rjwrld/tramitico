@@ -87,7 +87,9 @@ export interface RerankOptions {
    * mínima contributiva». Letting the reranker read the expansion too
    * recovers that case and two more that were already being cut.
    *
-   * Both readings, never the expansion alone: the rewrite is a probe, the
+   * Both readings, never the expansion alone by choice — only when the
+   * question's own call failed, which the degradation path below prefers to
+   * losing the rerank entirely. The rewrite is a probe, the
    * question is what the reader actually asked, and scoring only the rewrite
    * costs a case (`ho-donde-me-afilio-caja`) that the question's own words
    * carry. Two separate calls rather than one concatenated query, because a
@@ -119,12 +121,18 @@ export type QueryVerdict = readonly { index: number; score: number }[];
  * Pool indices, best first, scored by the highest relevance any query gave
  * them (#296).
  *
- * `verdicts[0]` is the question's, and it breaks ties: first by the place
- * Voyage gave the chunk in *that* reading — Voyage's own order carries more
- * than the rounded score does, and a chunk it never returned there sorts last
- * — and then by pool position, so the result is fully determined the way
- * `fuseRrf`'s explicit sort is. A chunk the expansion merely matched as well
- * therefore never outranks one the reader's own words ranked higher.
+ * Ties break on the **first reading that came back** — `verdicts[0]`, the
+ * question's, whenever its own call succeeded: first by the place Voyage gave
+ * the chunk in that reading (Voyage's own order carries more than the rounded
+ * score does, and a chunk it never returned there sorts last), and then by
+ * pool position, so the result is fully determined the way `fuseRrf`'s
+ * explicit sort is. A chunk the expansion merely matched as well therefore
+ * never outranks one the reader's own words ranked higher.
+ *
+ * "First that came back", not "verdicts[0]", is the load-bearing wording: when
+ * the question's call fails and only the expansion's survives, the surviving
+ * reading's own Voyage order is what the caller is told it gets, so reading a
+ * `null` slot here would silently downgrade that to pool order.
  *
  * A chunk missing from a reading simply did not come back from it. That is
  * not evidence against the chunk: it scores nothing there and keeps whatever
@@ -139,11 +147,13 @@ export function fuseByMaxScore(
       best.set(index, Math.max(best.get(index) ?? -Infinity, score));
     }
   }
-  const questionRank = new Map<number, number>();
-  (verdicts[0] ?? []).forEach(({ index }, position) => {
-    questionRank.set(index, position);
-  });
-  const asked = (index: number) => questionRank.get(index) ?? Infinity;
+  const rank = new Map<number, number>();
+  (verdicts.find((verdict) => verdict !== null) ?? []).forEach(
+    ({ index }, position) => {
+      rank.set(index, position);
+    },
+  );
+  const asked = (index: number) => rank.get(index) ?? Infinity;
   return [...best]
     .map(([index, score]) => ({ index, score }))
     .sort(
@@ -207,8 +217,19 @@ async function scorePool(
     });
     if (!res.ok) return null;
     const json = (await res.json()) as VoyageRerankResponse;
+    // The response is typed, not trusted. `chunks[index]` alone is not enough
+    // of a check: `chunks["0"]` is defined too, and a string index is a
+    // *different* Map key from the number in `fuseByMaxScore` — one response
+    // carrying both would enter the same chunk twice and push a real
+    // candidate out of the answer set. A non-finite score would poison the
+    // sort the same way, so both are checked before a verdict exists.
     const verdict = json.data.flatMap(({ index, relevance_score }) =>
-      chunks[index] === undefined ? [] : [{ index, score: relevance_score }],
+      Number.isInteger(index) &&
+      index >= 0 &&
+      index < chunks.length &&
+      Number.isFinite(relevance_score)
+        ? [{ index, score: relevance_score }]
+        : [],
     );
     return verdict.length > 0 ? verdict : null;
   } catch {

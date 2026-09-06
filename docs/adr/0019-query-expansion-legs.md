@@ -79,7 +79,9 @@ the fused side already had: the expansion can only raise a chunk's score,
 never lower it. Measured over all 73 retrieval cases, 68/73 → **70/73**, two
 gained, none lost. RRF over the two orders, their mean, and a
 question-weighted blend were each measured too and each lost a case that
-concatenation held; max was the only variant with no regression.
+concatenation held. RRF over all three orders (question, expansion,
+concatenation) also lost nothing, at 69/73 and three Voyage calls per ask; max
+is the variant that loses nothing on two.
 
 **Corroboration needs at least one leg that ran on the reader's own question.** A chunk is
 corroborated when a similarity leg and a word-matching leg both surfaced it, and the

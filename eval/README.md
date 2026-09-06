@@ -325,7 +325,7 @@ mínima contributiva». `rerankChunks` therefore scores against the question
 is a probe and the question is what the reader asked, and dropping the
 question costs a case the reader's own words carry. (#286 composed the two by
 concatenating them into one query; #296 replaced that with two queries fused
-by the higher score — see «The rerank query, recomposed» below.)
+by the higher score — see «The rerank query, recomposed (#296)» below.)
 
 **The measured result (eval lane, 2026-09-05).** Two runs of
 `retrieval-hitrate.eval.test.ts`, `RERANK=voyage`, `EXPAND=on`, on the same
@@ -375,7 +375,7 @@ signature of tuning against individual cases rather than fixing a mechanism.
 It is written down here instead, as the next piece of work on the expansion
 prompt. **#296 fixed it, and not in the prompt** — the drift is real and is
 still there, but it is _appending_ the drift to the rerank query that made it
-cost a case; see «The rerank query, recomposed» below.
+cost a case; see «The rerank query, recomposed (#296)» below.
 
 **Two blocking cases remain**, and neither is #286's:
 `ho-donde-inscribo-ya-no-atv` (a `seguimiento` case whose pool rank 7 has not
@@ -436,7 +436,7 @@ instead of ending the run.
 Reproduce any of this with `pnpm pool-dump <case id> …`, which prints the top
 of the fused pool with all four leg ranks (`--no-expansion` for the v4 pool).
 
-## The rerank query, recomposed (#296)
+### The rerank query, recomposed (#296)
 
 #286 shipped one Tier 1 regression and wrote it down rather than tuning it
 away: `ho-cliente-espana-lleva-iva` («Le cobro a un cliente en **España** por
@@ -483,9 +483,10 @@ expansions did not drift.
 | 0.7 × question + 0.3 × expansion         | 68/73     | donde-inscribo, espana     | asalariado-followup, factura-electronica                                    |
 | **max of the two scores**                | **70/73** | **donde-inscribo, espana** | **—**                                                                       |
 
-**The criterion is "lost nothing", not "scored highest".** Two variants lose
-no case; max is the one of those two with a mechanism behind it rather than an
-arithmetic accident. Scoring the two readings separately and keeping the
+**The criterion is "lost nothing", not "scored highest".** Two variants lose no
+case — max, and RRF over all three orders. Max is the one of the two that costs
+two Voyage calls rather than three, and the one with a mechanism behind it
+rather than a fusion that happens to come out clean. Scoring the two readings separately and keeping the
 higher score per chunk gives the rerank the same bound the expansion legs
 already have on the fused side (expand.ts property 3): **the expansion can
 only ever raise a chunk's score, never lower it.** It is a bound, not

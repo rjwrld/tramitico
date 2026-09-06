@@ -179,10 +179,14 @@ describe("the rerank queries (#286, recomposed in #296)", () => {
 
   it("sends each one to Voyage as its own query, over the same documents", async () => {
     const sent: string[] = [];
+    const documentsSent: string[][] = [];
     const fetchImpl = (async (_url: string, init: RequestInit) => {
       const body = JSON.parse(init.body as string);
       sent.push(body.query);
-      expect(body.documents).toEqual(["contenido 1"]);
+      // Collected, not asserted here: an assertion inside the mock throws
+      // inside `scorePool`'s try/catch, which swallows it and returns null —
+      // a dead assertion that passes on any value.
+      documentsSent.push(body.documents);
       return new Response(
         JSON.stringify({ data: [{ index: 0, relevance_score: 1 }] }),
         { status: 200, headers: { "Content-Type": "application/json" } },
@@ -197,6 +201,7 @@ describe("the rerank queries (#286, recomposed in #296)", () => {
     });
 
     expect(sent).toEqual(["pregunta", "términos oficiales"]);
+    expect(documentsSent).toEqual([["contenido 1"], ["contenido 1"]]);
   });
 
   it("makes one call, not two, when there is no expansion", async () => {
@@ -260,6 +265,21 @@ describe("fuseByMaxScore (#296)", () => {
     expect(
       fuseByMaxScore([tied([2]), tied([0, 1, 2])]).map((r) => r.index),
     ).toEqual([2, 0, 1]);
+  });
+
+  it("keeps the surviving reading's own order when the question's call failed", () => {
+    // The degradation policy promises "that reading alone", so its Voyage
+    // order has to break the ties — not the pool position.
+    expect(
+      fuseByMaxScore([
+        null,
+        [
+          { index: 1, score: 0.5 },
+          { index: 0, score: 0.5 },
+          { index: 2, score: 0.9 },
+        ],
+      ]).map((r) => r.index),
+    ).toEqual([2, 1, 0]);
   });
 
   it("tolerates a reading that failed, from either side", () => {
@@ -399,6 +419,32 @@ describe("rerankOrder", () => {
         expansion: "términos oficiales",
       }),
     ).toBeNull();
+  });
+
+  it("drops a result Voyage could not have meant (CodeRabbit, #299)", async () => {
+    vi.stubEnv("RERANK", "voyage");
+    vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+    const fetchImpl = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: [
+            { index: 0, relevance_score: 0.9 },
+            // A string index passes a bare `chunks[index]` check and is a
+            // different Map key from the number: left in, chunk 0 would enter
+            // the order twice and push a real candidate out of the top-k.
+            { index: "0", relevance_score: 0.8 },
+            { index: 1.5, relevance_score: 0.7 },
+            { index: -1, relevance_score: 0.7 },
+            { index: 99, relevance_score: 0.7 },
+            { index: 2, relevance_score: Number.NaN },
+            { index: 1, relevance_score: 0.6 },
+          ],
+        }),
+        { status: 200 },
+      ),
+    );
+    const order = await rerankOrder("pregunta", POOL, { fetchImpl });
+    expect(order?.map((r) => r.chunk.chunkId)).toEqual(["c1", "c2"]);
   });
 
   it("returns null — never throws — when the rerank does not happen", async () => {
