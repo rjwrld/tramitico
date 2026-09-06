@@ -535,7 +535,8 @@ corpus or dataset one, not a retrieval one.
 reranked order for far more cases than the two that flipped, and that order is
 the input every other lane reads, so groundedness, adequacy and the citation
 invariant were re-run on it (2026-09-05, answer `claude-sonnet-5`, judge
-`claude-sonnet-4-5`). None of them regressed and two recovered:
+`claude-sonnet-4-5`). None of them regressed; one recovered to PASS and one
+improved without reaching its gate:
 
 | Lane                         | #267 baseline  | #286           | #296 (this change) | Gate            |
 | ---------------------------- | -------------- | -------------- | ------------------ | --------------- |
