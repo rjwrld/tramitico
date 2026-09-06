@@ -6,8 +6,9 @@ import {
   RERANK_POOL,
   answerTopK,
   rerankChunks,
+  fuseByMaxScore,
   rerankOrder,
-  rerankQuery,
+  rerankQueries,
 } from "./rerank";
 
 function chunk(id: number): RetrievedChunk {
@@ -153,33 +154,42 @@ describe("rerankChunks", () => {
   });
 });
 
-describe("the rerank query (#286)", () => {
-  it("appends the expansion, and keeps the question", () => {
+describe("the rerank queries (#286, recomposed in #296)", () => {
+  beforeEach(() => {
+    vi.unstubAllEnvs();
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  it("is the question, then its expansion — two readings, never one string", () => {
     expect(
-      rerankQuery("¿desde cuánta plata?", "base mínima contributiva"),
-    ).toBe("¿desde cuánta plata? base mínima contributiva");
+      rerankQueries("¿desde cuánta plata?", "base mínima contributiva"),
+    ).toEqual(["¿desde cuánta plata?", "base mínima contributiva"]);
   });
 
   it("is the question alone when there is no expansion", () => {
-    expect(rerankQuery("¿desde cuánta plata?")).toBe("¿desde cuánta plata?");
-    expect(rerankQuery("¿desde cuánta plata?", null)).toBe(
-      "¿desde cuánta plata?",
-    );
-    expect(rerankQuery("¿desde cuánta plata?", "")).toBe(
-      "¿desde cuánta plata?",
-    );
+    for (const expansion of [undefined, null, ""]) {
+      expect(rerankQueries("¿desde cuánta plata?", expansion)).toEqual([
+        "¿desde cuánta plata?",
+      ]);
+    }
   });
 
-  it("sends that composed query to Voyage", async () => {
-    let sent: string | undefined;
+  it("sends each one to Voyage as its own query, over the same documents", async () => {
+    const sent: string[] = [];
+    const documentsSent: string[][] = [];
     const fetchImpl = (async (_url: string, init: RequestInit) => {
-      sent = JSON.parse(init.body as string).query;
+      const body = JSON.parse(init.body as string);
+      sent.push(body.query);
+      // Collected, not asserted here: an assertion inside the mock throws
+      // inside `scorePool`'s try/catch, which swallows it and returns null —
+      // a dead assertion that passes on any value.
+      documentsSent.push(body.documents);
       return new Response(
         JSON.stringify({ data: [{ index: 0, relevance_score: 1 }] }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        },
+        { status: 200, headers: { "Content-Type": "application/json" } },
       );
     }) as unknown as typeof fetch;
 
@@ -190,7 +200,96 @@ describe("the rerank query (#286)", () => {
       expansion: "términos oficiales",
     });
 
-    expect(sent).toBe("pregunta términos oficiales");
+    expect(sent).toEqual(["pregunta", "términos oficiales"]);
+    expect(documentsSent).toEqual([["contenido 1"], ["contenido 1"]]);
+  });
+
+  it("makes one call, not two, when there is no expansion", async () => {
+    vi.stubEnv("RERANK", "voyage");
+    vi.stubEnv("VOYAGE_API_KEY", "test-key");
+    const fetchImpl = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({ data: [{ index: 0, relevance_score: 1 }] }),
+        {
+          status: 200,
+        },
+      ),
+    );
+    await rerankChunks("pregunta", [chunk(1)], { fetchImpl });
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("fuseByMaxScore (#296)", () => {
+  /** Voyage's shape: scored pool indices, best first. */
+  const question = [
+    { index: 0, score: 0.9 },
+    { index: 2, score: 0.5 },
+    { index: 1, score: 0.2 },
+  ];
+
+  it("keeps the best score either reading gave a chunk", () => {
+    // Chunk 1 is what the expansion is for: the question barely scores it and
+    // the corpus-register rewrite recognises it.
+    const expansion = [
+      { index: 1, score: 0.95 },
+      { index: 2, score: 0.4 },
+      { index: 0, score: 0.1 },
+    ];
+    expect(fuseByMaxScore([question, expansion])).toEqual([
+      { index: 1, score: 0.95 },
+      { index: 0, score: 0.9 },
+      { index: 2, score: 0.5 },
+    ]);
+  });
+
+  it("never lowers a chunk below the score the question alone gave it", () => {
+    // The whole point of #296: a rewrite that drifted into another country's
+    // law scores everything badly and takes nothing down with it.
+    const drifted = [0, 1, 2].map((index) => ({ index, score: 0.01 }));
+    const asked = new Map(question.map((r) => [r.index, r.score]));
+    for (const { index, score } of fuseByMaxScore([question, drifted])) {
+      expect(score).toBeGreaterThanOrEqual(asked.get(index) ?? 0);
+    }
+  });
+
+  it("breaks a tie on the question's own order, then on pool position", () => {
+    // Every chunk ties at 0.7, so only the tiebreak decides.
+    const tied = (indices: number[]) =>
+      indices.map((index) => ({ index, score: 0.7 }));
+    expect(
+      fuseByMaxScore([tied([2, 0, 1]), tied([0, 1, 2])]).map((r) => r.index),
+    ).toEqual([2, 0, 1]);
+    // A chunk the question never returned sorts behind the ones it did, and
+    // pool position settles the rest.
+    expect(
+      fuseByMaxScore([tied([2]), tied([0, 1, 2])]).map((r) => r.index),
+    ).toEqual([2, 0, 1]);
+  });
+
+  it("keeps the surviving reading's own order when the question's call failed", () => {
+    // The degradation policy promises "that reading alone", so its Voyage
+    // order has to break the ties — not the pool position.
+    expect(
+      fuseByMaxScore([
+        null,
+        [
+          { index: 1, score: 0.5 },
+          { index: 0, score: 0.5 },
+          { index: 2, score: 0.9 },
+        ],
+      ]).map((r) => r.index),
+    ).toEqual([2, 1, 0]);
+  });
+
+  it("tolerates a reading that failed, from either side", () => {
+    expect(fuseByMaxScore([question, null]).map((r) => r.index)).toEqual([
+      0, 2, 1,
+    ]);
+    expect(fuseByMaxScore([null, question]).map((r) => r.index)).toEqual([
+      0, 2, 1,
+    ]);
+    expect(fuseByMaxScore([null, null])).toEqual([]);
   });
 });
 
@@ -277,6 +376,75 @@ describe("rerankOrder", () => {
     expect(JSON.parse(fetchImpl.mock.calls[0][1].body).model).toBe(
       RERANK_MODEL,
     );
+  });
+
+  it("falls back to the reading that came back when the other one failed (#296)", async () => {
+    vi.stubEnv("RERANK", "voyage");
+    vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+    // The question's call fails; the expansion's answers. One reading is
+    // still a better order than the fused one, so the rerank must not be lost.
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(new Response("nope", { status: 500 }))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            data: [
+              { index: 5, relevance_score: 0.9 },
+              { index: 2, relevance_score: 0.4 },
+            ],
+          }),
+          { status: 200 },
+        ),
+      );
+    const order = await rerankOrder("pregunta", POOL, {
+      fetchImpl,
+      expansion: "términos oficiales",
+    });
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(order?.map((r) => [r.chunk.chunkId, r.rank])).toEqual([
+      ["c6", 1],
+      ["c3", 2],
+    ]);
+  });
+
+  it("returns null when both readings fail (#296)", async () => {
+    vi.stubEnv("RERANK", "voyage");
+    vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+    expect(
+      await rerankOrder("pregunta", POOL, {
+        fetchImpl: vi
+          .fn()
+          .mockResolvedValue(new Response("nope", { status: 500 })),
+        expansion: "términos oficiales",
+      }),
+    ).toBeNull();
+  });
+
+  it("drops a result Voyage could not have meant (CodeRabbit, #299)", async () => {
+    vi.stubEnv("RERANK", "voyage");
+    vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+    const fetchImpl = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: [
+            { index: 0, relevance_score: 0.9 },
+            // A string index passes a bare `chunks[index]` check and is a
+            // different Map key from the number: left in, chunk 0 would enter
+            // the order twice and push a real candidate out of the top-k.
+            { index: "0", relevance_score: 0.8 },
+            { index: 1.5, relevance_score: 0.7 },
+            { index: -1, relevance_score: 0.7 },
+            { index: 99, relevance_score: 0.7 },
+            { index: 2, relevance_score: Number.NaN },
+            { index: 1, relevance_score: 0.6 },
+          ],
+        }),
+        { status: 200 },
+      ),
+    );
+    const order = await rerankOrder("pregunta", POOL, { fetchImpl });
+    expect(order?.map((r) => r.chunk.chunkId)).toEqual(["c1", "c2"]);
   });
 
   it("returns null — never throws — when the rerank does not happen", async () => {
