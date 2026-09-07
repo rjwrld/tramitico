@@ -176,6 +176,14 @@ describe("transcriptFilename", () => {
       ),
     ).toBe("groundedness-anthropic-claude-sonnet-5-20260905T025503Z.jsonl");
   });
+
+  it("marks a subset run, so it cannot be read as the full one beside it", () => {
+    expect(
+      transcriptFilename("claude-sonnet-5", new Date("2026-09-05T02:55:03Z"), {
+        subset: true,
+      }),
+    ).toBe("groundedness-claude-sonnet-5-subset-20260905T025503Z.jsonl");
+  });
 });
 
 describe("writeTranscript", () => {

@@ -1108,6 +1108,111 @@ raised, and the directory is gitignored. `eval.yml` uploads it as the
 `eval-transcripts` artifact with `if: always()` — a red run is exactly the one
 whose answers someone needs to read.
 
+### `EVAL_CASES` — the cheap read (#289)
+
+The transcript is only half of what makes a classification affordable; the
+other half is not paying for 73 answers to read four. `EVAL_CASES` takes a
+comma-separated list of case ids and scopes the run to them:
+
+```
+EVAL_CASES=ho-donde-me-afilio-caja,ho-hasta-que-dia-tengo-iva \
+  pnpm vitest run src/lib/eval/groundedness.eval.test.ts
+```
+
+Same production answer path, same judges, same transcript — for cents instead
+of ~US$10 and half an hour. It exists because the 2026 baseline was classified
+twice from the printed table alone and was wrong both times in the same way:
+`caseHit` is true when _any one_ expected target matches, and the missing
+requirement usually lives in a different chunk, so "retrieval hit" was read as
+"the fragment was in front of the model" when it was not. The correction came
+from a four-case run costing cents whose script was never committed, and was
+therefore gone by the time the next session needed it.
+
+What a subset run must never be is a cheap route to a green gate — a rate over
+73 cases cannot be read off six of them, and "tier 1 27/27" from a subset is
+worse than no number. Two things prevent it, both loud:
+
+- **every gate fails** while `EVAL_CASES` is set, naming the scope. That is
+  #129's rule applied to a paid lane: a required check that silently asserts
+  nothing is the failure mode the gate exists to prevent. The per-case tables
+  and the transcript still print — they are the point of the run.
+- **the transcript filename carries `subset`**
+  (`groundedness-<model>-subset-<instant>.jsonl`), so a scoped file cannot be
+  mistaken a week later for the full run it sits beside.
+
+An id that matches no case throws **before the first paid call**: a typo that
+silently selected zero cases would print an empty table and spend the money
+anyway.
+
+### The six-case read, and what it corrected (#289)
+
+The first thing `EVAL_CASES` bought: six Tier 1 cases through the production
+answer path on the post-#286/#287/#296 retrieval, and a transcript to read.
+Five that had failed for reasons the printed table could not tell apart, plus
+the one the earlier smoke run had flipped to pass.
+
+| Case                                     | Adequacy | Where the missing requirement lives                                                                                        | In the top-8?                                      |
+| ---------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `ho-hasta-que-dia-tengo-iva`             | **pass** | —                                                                                                                          | —                                                  |
+| `ho-trabajitos-por-mi-cuenta`            | fail     | `tribu-cr-faq` RUT ·1–7, `reglamento-renta` art. 27                                                                        | no — all eight chunks were CCSS                    |
+| `ccss-pedir-prescripcion-cuotas`         | fail     | `ccss-prescripcion` «¿…en cuanto tiempo resuelve la Administración?» — the 20 días hábiles, verbatim                       | no (three _other_ `ccss-prescripcion` chunks were) |
+| `ho-donde-me-afilio-caja`                | fail     | `ccss-faq` «¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente?» — «según la primera letra de su apellido» | no (five _other_ `ccss-faq` chunks were)           |
+| `ho-desinscribir-debiendo-declaraciones` | fail     | `cnpt` arts. 78/79 — the 50 % salario base                                                                                 | no                                                 |
+| `ho-800-mil-que-porcentaje-caja`         | fail     | `ccss-reglamento-ti` art. 10 (cuotas sobre ingresos **netos**) and art. 12 (ajuste, primeros 3 días hábiles del mes)       | no (arts. 1, 6 and 15 were)                        |
+
+**Every one of the five failures is retrieval, and not one is an answer
+omission.** In each case the missing fact is in the corpus, was absent from the
+top-8, and the answer behaved correctly on what it was handed —
+`ho-desinscribir-debiendo-declaraciones` declined outright rather than invent
+the sanction it was never shown, which is prompt rule 8's subordination clause
+working as written.
+
+The shape is the same every time and it is worth naming, because it is what
+made the first classification wrong: **the right _document_ was retrieved and
+the wrong _chunk_ of it.** Three `ccss-prescripcion` chunks and not the fourth;
+five `ccss-faq` chunks and not the sixth; three `ccss-reglamento-ti` artículos
+and not the two that answer the question. `caseHit` is true when any one
+expected target matches, so all of these read as "retrieval hit" in the
+baseline table — which is exactly why #267's 19 "answer omission" cases were a
+guess. Five of those 19 have now been read; **five for five, the cause is
+retrieval.** The remaining 14 are still unread, and one more `EVAL_CASES=` over
+them settles it.
+
+The literal checks are the counter-example that makes the read trustworthy. On
+`ho-800-mil-que-porcentaje-caja` all four figures now score **present and
+cited** — the separator fix and the table-cell citation window, both landed
+blind in #294, are confirmed working against a real answer. It is also the
+limit of a deterministic check, stated so nobody counts the case as closer than
+it is: `6,24 %` passed on a table the answer dumped in full while the prose
+underneath says it _cannot_ place ¢800.000 in a category, because
+`salarios-minimos` was not retrieved either. The figure was printed and cited;
+the claim was never made.
+
+**A corpus defect surfaced on the way**, contributing to that same case but not
+the cause of it. Its top-8 spent **two of eight slots** on one `ccss-faq`
+entry — «¿Cuál es el porcentaje de cotización … y cómo se determina el ingreso
+de referencia?», ingested twice under two section paths — whose body is a source
+line, a nota explicativa and a link to `av_tv_2026.png`. **The answer is an
+image.** Four `ccss-faq` bodies are image-only in this way and four are
+near-duplicates across sections; both are ingestion work, filed separately.
+
+### Presentation is not presence: A3 moved to the deterministic owner (#289)
+
+`ho-minimo-caja-independiente-2026` carried a fifth required claim — «el monto
+en colones es una derivación de esas cifras y debe presentarse como tal, no
+como un dato tomado de una fuente». It asks about **presentation**, and
+`ADEQUACY_SYSTEM_PROMPT` tells the judge to score **presence** ("does the
+answer actually state it?"), so the requirement could only ever be met by
+accident.
+
+The property is real and already has a deterministic owner:
+`incompletelyCitedDerivedFigures` (#263/#281), which `/api/ask` enforces at
+runtime — one retry, then the honest decline. The claim is therefore removed
+from the case and the eval asks the question directly instead, over **every**
+answer that resolved a derived figure rather than only F1: "ships no answer
+whose derived figures are incompletely cited". The eval now enforces what
+production already refused to ship.
+
 ### The decimal separator, on both sides of a literal check (#289)
 
 The CCSS actas print every rate with a period — `2.89%`, `6.24%`, `0.9295 SM`
