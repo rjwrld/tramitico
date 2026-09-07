@@ -74,17 +74,18 @@ pool with every leg's rank and the expansion that produced it — the diagnostic
 #286 was written with, and the cheapest way to tell a chunk problem from a
 register problem (one embed per case, no answer model).
 
-Three knobs exist so the #287 options are measured rather than argued, all
-read at call time and all defaulting to the pipeline of record:
+Four knobs exist so the #287 and #303 options are measured rather than
+argued, all read at call time and all defaulting to the pipeline of record:
 
 | Variable             | Default           | What it changes                                                      |
 | -------------------- | ----------------- | -------------------------------------------------------------------- |
 | `RERANK_MODEL`       | `rerank-2.5-lite` | the Voyage reranker asked for                                        |
 | `ANSWER_TOP_K`       | `8`               | how many reranked chunks reach the answer prompt                     |
+| `ANSWER_DOC_CAP`     | `off`             | at most _n_ chunks per document in the answer set, backfilled (#303) |
 | `PIN_DERIVED_INPUTS` | `off`             | `on` completes a derived figure whose sibling input survived the cut |
 
 Changing one changes the ask pipeline, not just the eval, so a run that moves
-a knob says so in its header line, and all three keep their defaults until a
+a knob says so in its header line, and all four keep their defaults until a
 measured run earns the change. That includes the pin: it is deterministic and
 append-only, which makes it safe to measure rather than already measured — it
 matches on source identity, not on question relevance, so it can add context
@@ -1226,6 +1227,98 @@ A `.` or `,` standing between two digits is now normalized on both sides,
 exactly as the non-breaking space already was. Digits still have to match, and
 a period that is not between digits stays a sentence end — the citation window
 depends on it.
+
+### The right document, the wrong chunk — measured (#303)
+
+The six-case read above settled that five Tier 1 adequacy failures were
+retrieval, and named the shape: the right document, the wrong chunk of it.
+#303 turned that into a hypothesis — the reranker lets one FAQ page take five
+of eight places with its most question-_like_ entries while the entry that
+answers the required step ranks 9th to 15th — and three candidate fixes,
+cheapest first: a per-document cap with backfill, a step-shaped expansion leg,
+and `ANSWER_TOP_K` 8 → 10. The rule was measure, don't argue, and the
+measurement did not confirm the hypothesis.
+
+**The cap.** `ANSWER_DOC_CAP=n` keeps at most _n_ chunks of one `docKey` in
+the answer set while other documents can still fill it, in rank order, and
+backfills from the deferred chunks when they cannot — one long artículo split
+in parts, alone in the pool, still fills the set. It is a pure post-rerank
+filter in `answerSetFromOrder`, so the route and both harnesses cut the same
+way, and `rerank.test.ts` pins it. Since #303 `EVAL_CASES` scopes
+`retrieval-hitrate.eval.test.ts` too, with the same gates-fail-on-subset rule,
+so a retrieval knob can be read on the cases it was written for.
+
+On the six cases — the first row is #300's read above, the other two are
+new `subset` transcripts in `eval/transcripts/`:
+
+| Run                       | Hit-rate | Adequacy | What moved                                                |
+| ------------------------- | -------- | -------- | --------------------------------------------------------- |
+| top 8, cap off (pipeline) | 6/6      | 1/6      | —                                                         |
+| top 8, cap 3              | 6/6      | 1/6      | nothing that a judge could see                            |
+| top 10, cap off           | 6/6      | 2/6      | `ccss-pedir-prescripcion-cuotas` passes; F's "base" claim |
+
+The reason the cap moved nothing is in the full reranked orders, which the
+hit-rate run prints only for a miss and `caseHit` never sees. Where the chunk
+that carries the missing requirement actually sat:
+
+| Case                                     | Chunk that carries it                                    | Reranked rank       | What cap 3 did                                     |
+| ---------------------------------------- | -------------------------------------------------------- | ------------------- | -------------------------------------------------- |
+| `ccss-pedir-prescripcion-cuotas`         | `ccss-prescripcion` «¿…en cuanto tiempo resuelve…?»      | **#9**              | nothing — the top-8 held 3 / 3 / 2, nothing over   |
+| `ho-donde-me-afilio-caja`                | `ccss-faq` «¿Cuándo me corresponde pagar…?»              | **not in the 40**   | nothing                                            |
+| `ho-800-mil-que-porcentaje-caja`         | `ccss-reglamento-ti` art. 10 · art. 12                   | **#10** · not in 40 | pushed art. 10 _out_ — its document's fourth chunk |
+| `ho-desinscribir-debiendo-declaraciones` | `cnpt` arts. 78/79                                       | **not in the 40**   | nothing                                            |
+| `ho-trabajitos-por-mi-cuenta`            | `tribu-cr-faq` RUT · `reglamento-renta` 27 · `ley-iva` 5 | #30 · #13 · #12     | let 27 and 5 in; neither names the RUT step        |
+
+Three of five are **pool** misses, not cut misses: the chunk was never among
+the 40 the reranker read. Those are step-shaped claims — when to pay, what the
+sanction is, how to adjust a declared figure — semantically far from the
+question that was asked, which is why neither the question's legs nor the
+corpus-register rewrite reach them. One is a top-k miss at #9, which the cap
+cannot touch and top 10 reaches. One the cap made worse.
+
+**The step-shaped leg** was prototyped before being built into
+`search_chunks`: the expansion model was asked, in a separate call, to write
+the official text answering "the step the reader will need next", and that
+probe was retrieved on alone. Haiku either rewrote the question again or
+copied the prompt's worked example verbatim, and the probe's own pool carried
+the needed chunk at ranks 6–32 or not at all. Not viable as one leg on the
+current model, so it was not built; the prompt and the numbers are in the
+#303 thread.
+
+**The 14 unread Tier 1 cases** — the rest of #267's "answer omission" rows —
+were then read on the pipeline of record (top 8, cap off):
+groundedness 13/14, adequacy **2/14** (`ccss-ventana-prescripcion-24-meses`,
+`ho-tambien-asegurado-por-patrono`). The missing requirements of the twelve,
+located in each case's reranked order:
+
+| Where the carrying chunk sat       | Requirements | Cases (examples)                                                                                                                                                              |
+| ---------------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **in the top-8** — answer omission | 12           | `ho-tiquete-en-vez-de-factura` art. 9 at #4; `ho-rebajar-multa-si-pago-ya` art. 88 at #1; `ho-minimo-caja-independiente-2026` 0,9295 and 2,89 % at #4                         |
+| **ranks 9–12** — top-k miss        | 3            | `ho-desde-cuanta-plata-caja` 0,87 SM at #10; `ho-tiquete-en-vez-de-factura` RUT at #10; `ho-minimo-caja-independiente-2026` ¢373.092,30 at #11                                |
+| **ranks 13–40** — deep in the pool | 5            | `ho-cliente-espana-lleva-iva` exención at #17; `ho-ademas-tengo-salario` pagos parciales at #25                                                                               |
+| **not in the 40** — pool miss      | 6            | `cnpt` 79 for `desinscripcion-dejar-actividad` and `ho-iva-en-cero-sin-facturar`; `cnpt` 88 for `multa-iva-no-declarado`; the TRIBU-CR step for `ho-rebajar-multa-si-pago-ya` |
+
+So #289's "five for five, the cause is retrieval" was true of the five it read
+and is not the rule. Of the 41 missing requirements on the twelve, 18 are the
+answer **not stating a claim whose chunk it was handed**; of the 23 that are
+retrieval, 20 are pool depth — 12 deep in the 40, 8 absent from it — and only
+3 are the cut between #8 and #12. The per-document cap addresses none of the
+three buckets. What the numbers point at instead, in order:
+
+1. `ANSWER_TOP_K=10` is the one knob that gained a case on the six and reaches
+   three more requirements on the fourteen; it costs prompt length on every
+   ask and is the leading candidate for the authorized full run.
+2. The pool misses are all step-shaped claims the dataset requires of a
+   complete answer and the question never asks for. Reaching them needs a leg
+   that searches for the step, and the prototype says the current expansion
+   model cannot write one unaided; a catalogue of steps per `family` written
+   by hand, not by a model, is the next thing to measure.
+3. The answer omissions are the #130 answer side — prompt, not retrieval —
+   and are out of #303's scope.
+
+Tier 1 stays per-case blocking and `ADEQUACY_TIER2_GATE` stays 0.8. The
+cap ships off; `ANSWER_DOC_CAP` is there for the full run to measure beside
+`ANSWER_TOP_K`, which is the comparison this read could not afford.
 
 ## Adversarial conflicting-sources case (issue #135)
 

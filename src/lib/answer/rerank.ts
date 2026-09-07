@@ -62,6 +62,29 @@ export const RERANK_POOL = 40;
 /** Chunks handed to the answer model (SPEC §5: top-k ≈ 8). */
 export const ANSWER_TOP_K = 8;
 
+/**
+ * At most this many chunks of one document in the answer set, while chunks
+ * of other documents remain to fill it (#303). `Infinity` is "no cap", and
+ * it is the default because the cap was measured and did not earn one.
+ *
+ * The hypothesis it was built for: the reranker scores each chunk against
+ * the query on its own, so a document with many title-similar chunks — an
+ * FAQ page above all — could take five of the eight places with its most
+ * question-*like* entries while the entry that answers the required step
+ * ranked 9th to 15th. The six-case read (#289) had found "the right
+ * document, the wrong chunk" in five of five Tier 1 adequacy failures.
+ *
+ * What the full reranked orders then showed (#303, eval/README.md): in three
+ * of those five the needed chunk was **not in the pool of 40 at all**, in one
+ * it sat at #9 with nothing over the cap above it, and in the last the cap
+ * pushed the needed artículo *down* — it was its document's fourth chunk. On
+ * the six cases the cap moved hit-rate 6/6 → 6/6 and adequacy 1/6 → 1/6; on
+ * the same six `ANSWER_TOP_K=10` moved adequacy to 2/6. So the mechanism
+ * stays, pinned and switchable by `ANSWER_DOC_CAP`, for the authorized full
+ * run to measure beside the top-k; the default is the pipeline of record.
+ */
+export const ANSWER_DOC_CAP = Infinity;
+
 /** Rerank model of record; `RERANK_MODEL` swaps it for a measured run (#287). */
 export const RERANK_MODEL = "rerank-2.5-lite";
 
@@ -184,6 +207,54 @@ export function answerTopK(): number {
   return parsed;
 }
 
+/**
+ * How many chunks of one document may reach the answer prompt. `ANSWER_DOC_CAP`
+ * in the environment sets a cap for a measured run; `off`, unset and empty
+ * all mean the default (no cap), and anything else that is not a positive
+ * integer is ignored rather than trusted.
+ */
+export function answerDocCap(): number {
+  const raw = process.env.ANSWER_DOC_CAP;
+  if (!raw) return ANSWER_DOC_CAP;
+  if (raw === "off") return Infinity;
+  const parsed = Number(raw);
+  if (!Number.isInteger(parsed) || parsed < 1) return ANSWER_DOC_CAP;
+  return parsed;
+}
+
+/**
+ * The first `topK` of `order` with no more than `cap` chunks per document,
+ * while other documents can still fill the set (#303).
+ *
+ * One pass in rank order: a chunk is taken while its document is under the
+ * cap and deferred otherwise. Places the pass leaves open are then filled
+ * from the deferred chunks, again in rank order — so one long artículo split
+ * in parts, alone in the pool, still fills the set, and the cap is a
+ * preference for breadth rather than a hole in the answer set. Survivors
+ * keep their reranked order among themselves: the cap drops, it never
+ * reorders.
+ */
+export function capPerDocument<T extends { chunk: RetrievedChunk }>(
+  order: readonly T[],
+  topK: number,
+  cap: number,
+): T[] {
+  const taken: T[] = [];
+  const deferred: T[] = [];
+  const perDoc = new Map<string, number>();
+  for (const entry of order) {
+    if (taken.length >= topK) break;
+    const seen = perDoc.get(entry.chunk.docKey) ?? 0;
+    if (seen < cap) {
+      perDoc.set(entry.chunk.docKey, seen + 1);
+      taken.push(entry);
+    } else {
+      deferred.push(entry);
+    }
+  }
+  return taken.concat(deferred.slice(0, topK - taken.length));
+}
+
 /** The model Voyage is asked for; empty or unset means the model of record. */
 function rerankModel(): string {
   return process.env.RERANK_MODEL || RERANK_MODEL;
@@ -280,17 +351,20 @@ export async function rerankOrder(
 }
 
 /**
- * The answer set: the reranked order cut to the answer top-k, or the fused
- * head when there is no reranked order. The one place the cut is made, so the
- * eval harness and the route agree by construction.
+ * The answer set: the reranked order cut to the answer top-k under the
+ * per-document cap, or the fused order cut the same way when there is no
+ * reranked order. The one place the cut is made, so the eval harness and the
+ * route agree by construction — and the cap applies to whichever order is
+ * being cut, since the fused head has the same FAQ-page shape (#303).
  */
 export function answerSetFromOrder(
   order: readonly RerankedChunk[] | null,
   fused: readonly RetrievedChunk[],
 ): RetrievedChunk[] {
   const topK = answerTopK();
-  if (order === null) return fused.slice(0, topK);
-  return order.slice(0, topK).map(({ chunk }) => chunk);
+  const cap = answerDocCap();
+  const ranked = order ?? fused.map((chunk) => ({ chunk }));
+  return capPerDocument(ranked, topK, cap).map(({ chunk }) => chunk);
 }
 
 export async function rerankChunks(

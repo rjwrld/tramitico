@@ -1,10 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
 import {
+  ANSWER_DOC_CAP,
   ANSWER_TOP_K,
   RERANK_MODEL,
   RERANK_POOL,
+  type RerankedChunk,
+  answerDocCap,
+  answerSetFromOrder,
   answerTopK,
+  capPerDocument,
   rerankChunks,
   fuseByMaxScore,
   rerankOrder,
@@ -466,5 +471,140 @@ describe("rerankOrder", () => {
         fetchImpl: vi.fn().mockRejectedValue(new Error("aborted")),
       }),
     ).toBeNull();
+  });
+});
+
+describe("the per-document cap (#303)", () => {
+  beforeEach(() => {
+    vi.unstubAllEnvs();
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  /** A chunk of document `doc`, ranked by its position in the list. */
+  function of(doc: string, id: number): RetrievedChunk {
+    return { ...chunk(id), docKey: doc };
+  }
+  const ranked = (chunks: RetrievedChunk[]): RerankedChunk[] =>
+    chunks.map((c, i) => ({ chunk: c, score: 1 - i / 100, rank: i + 1 }));
+
+  it("is off by default — measured on six cases and it earned no change", () => {
+    expect(ANSWER_DOC_CAP).toBe(Infinity);
+    expect(answerDocCap()).toBe(Infinity);
+    vi.stubEnv("ANSWER_DOC_CAP", "");
+    expect(answerDocCap()).toBe(Infinity);
+  });
+
+  it("reads ANSWER_DOC_CAP from the environment; `off` is the default", () => {
+    vi.stubEnv("ANSWER_DOC_CAP", "2");
+    expect(answerDocCap()).toBe(2);
+    vi.stubEnv("ANSWER_DOC_CAP", "off");
+    expect(answerDocCap()).toBe(Infinity);
+  });
+
+  it("ignores a value that is not a positive integer", () => {
+    for (const value of ["0", "-1", "1.5", "tres"]) {
+      vi.stubEnv("ANSWER_DOC_CAP", value);
+      expect(answerDocCap()).toBe(ANSWER_DOC_CAP);
+    }
+  });
+
+  it("keeps no more than n chunks per docKey in the top-k when others are available", () => {
+    // Five ccss-faq chunks in the top-8, the sixth document's chunk at #9 —
+    // the ho-donde-me-afilio-caja shape from the six-case read.
+    const order = ranked([
+      of("ccss-faq", 1),
+      of("ccss-faq", 2),
+      of("ccss-reglamento-ti", 3),
+      of("ccss-faq", 4),
+      of("ccss-faq", 5),
+      of("ccss-faq", 6),
+      of("cnpt", 7),
+      of("ley-renta", 8),
+      of("ccss-prescripcion", 9),
+      of("ley-iva", 10),
+      of("ccss-faq", 11),
+    ]);
+    const cut = capPerDocument(order, 8, 3).map(({ chunk }) => chunk.chunkId);
+    // c5, c6 and c11 are ccss-faq's fourth, fifth and sixth; c9 and c10 —
+    // other documents, ranked below them — take the places they would have.
+    expect(cut).toEqual(["c1", "c2", "c3", "c4", "c7", "c8", "c9", "c10"]);
+  });
+
+  it("keeps the reranked order among the survivors — the cap drops, never reorders", () => {
+    const order = ranked([
+      of("a", 1),
+      of("a", 2),
+      of("a", 3),
+      of("a", 4),
+      of("b", 5),
+    ]);
+    const cut = capPerDocument(order, 3, 2).map(({ chunk }) => chunk.chunkId);
+    expect(cut).toEqual(["c1", "c2", "c5"]);
+  });
+
+  it("backfills with the capped document's own chunks when no other document can fill the set", () => {
+    // One long artículo split in parts, and nothing else in the pool: the
+    // cap must not leave the answer set short.
+    const order = ranked([of("a", 1), of("a", 2), of("a", 3), of("a", 4)]);
+    const cut = capPerDocument(order, 3, 2).map(({ chunk }) => chunk.chunkId);
+    expect(cut).toEqual(["c1", "c2", "c3"]);
+  });
+
+  it("backfills in rank order, across documents", () => {
+    const order = ranked([
+      of("a", 1),
+      of("a", 2),
+      of("b", 3),
+      of("b", 4),
+      of("a", 5),
+      of("b", 6),
+    ]);
+    // Cap 1 keeps c1 and c3; two more places go to the next-ranked deferred
+    // chunks, c2 then c4 — not to a's second before b's second by document.
+    const cut = capPerDocument(order, 4, 1).map(({ chunk }) => chunk.chunkId);
+    expect(cut).toEqual(["c1", "c3", "c2", "c4"]);
+  });
+
+  it("is the identity below the cap", () => {
+    const order = ranked([of("a", 1), of("b", 2), of("a", 3)]);
+    expect(capPerDocument(order, 8, 3)).toEqual(order);
+  });
+
+  it("applies to the reranked answer set through answerSetFromOrder when set", () => {
+    const order = ranked([
+      of("a", 1),
+      of("a", 2),
+      of("a", 3),
+      of("a", 4),
+      of("b", 5),
+    ]);
+    vi.stubEnv("ANSWER_TOP_K", "4");
+    expect(
+      answerSetFromOrder(
+        order,
+        order.map(({ chunk }) => chunk),
+      ).map((c) => c.chunkId),
+    ).toEqual(["c1", "c2", "c3", "c4"]);
+    vi.stubEnv("ANSWER_DOC_CAP", "3");
+    expect(
+      answerSetFromOrder(
+        order,
+        order.map(({ chunk }) => chunk),
+      ).map((c) => c.chunkId),
+    ).toEqual(["c1", "c2", "c3", "c5"]);
+  });
+
+  it("applies to the fused fallback too — the cut is one place, whichever order it cuts", () => {
+    vi.stubEnv("ANSWER_TOP_K", "4");
+    vi.stubEnv("ANSWER_DOC_CAP", "3");
+    const fused = [of("a", 1), of("a", 2), of("a", 3), of("a", 4), of("b", 5)];
+    expect(answerSetFromOrder(null, fused).map((c) => c.chunkId)).toEqual([
+      "c1",
+      "c2",
+      "c3",
+      "c5",
+    ]);
   });
 });
