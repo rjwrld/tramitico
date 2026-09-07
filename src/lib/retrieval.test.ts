@@ -723,13 +723,14 @@ describe("retrieve", () => {
       expect(answered.isWeak).toBe(false);
     });
 
-    it("counts either leg of a pair, but never the expansion alone", () => {
-      // The expansion is the same two retrieval modes asked in the corpus's
-      // words, so similarity-plus-words is still the test — one mode twice
-      // is still one mode. What it cannot do is corroborate on its own: both
-      // of its legs read one passage a model wrote for this question, and it
-      // writes one for any question, so an expansion-only pair would tell an
-      // out-of-scope ask that the corpus corroborates it.
+    it("needs the reader's own words to match; the expansion never flips it (#307)", () => {
+      // The lexical leg is the only one that can miss: the vector leg ranks
+      // the whole corpus for any string, and the expansion is a passage a
+      // model wrote for this question — it writes one for any question, in
+      // the corpus's register, so its legs match real chunks even for
+      // gibberish. #286 let raw-vector + expansion-lexical corroborate, and
+      // a nonsense question stopped tripping isWeak. Now: raw lexical, plus
+      // similarity from either the question or its expansion.
       expect(
         isCorroborated({
           vectorRank: null,
@@ -738,19 +739,41 @@ describe("retrieve", () => {
           expansionLexicalRank: 1,
         }),
       ).toBe(false);
+      // The #307 case: raw vector always hits, expansion lexical matched the
+      // model's refusal. Not corroborated.
       expect(
         isCorroborated({
           vectorRank: 3,
           lexicalRank: null,
-          expansionLexicalRank: 9,
+          expansionVectorRank: 8,
+          expansionLexicalRank: 4,
         }),
-      ).toBe(true);
+      ).toBe(false);
       expect(
         isCorroborated({
           vectorRank: 3,
           lexicalRank: null,
           expansionVectorRank: 1,
           expansionLexicalRank: null,
+        }),
+      ).toBe(false);
+      // The reader's words matched and the expansion's embedding found it:
+      // two independent witnesses, corroborated.
+      expect(
+        isCorroborated({
+          vectorRank: null,
+          lexicalRank: 5,
+          expansionVectorRank: 2,
+          expansionLexicalRank: null,
+        }),
+      ).toBe(true);
+      // Words alone, from either register, are not enough.
+      expect(
+        isCorroborated({
+          vectorRank: null,
+          lexicalRank: 5,
+          expansionVectorRank: null,
+          expansionLexicalRank: 2,
         }),
       ).toBe(false);
     });
