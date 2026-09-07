@@ -212,6 +212,9 @@ describe("the rerank queries (#286, recomposed in #296)", () => {
   it("makes one call per sentence, in the same batch as the question's (#304)", async () => {
     vi.stubEnv("RERANK", "voyage");
     vi.stubEnv("VOYAGE_API_KEY", "test-key");
+    // Pinned: a shell that exported STEPS_RERANK=off would make this pass
+    // on one call and prove nothing.
+    vi.stubEnv("STEPS_RERANK", "pin");
     const sent: string[] = [];
     const fetchImpl = (async (_url: string, init: RequestInit) => {
       sent.push(JSON.parse(init.body as string).query);
@@ -315,6 +318,7 @@ describe("the step catalogue at the rerank (#304)", () => {
   const pool = [chunk(1), chunk(2), chunk(3)];
 
   it("reads STEPS_RERANK, defaulting to the constant", () => {
+    vi.stubEnv("STEPS_RERANK", "");
     expect(stepRerankMode()).toBe(STEP_RERANK_MODE);
     for (const mode of ["pin", "max", "off"] as const) {
       vi.stubEnv("STEPS_RERANK", mode);
