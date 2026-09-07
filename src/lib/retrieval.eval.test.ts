@@ -85,17 +85,64 @@ async function embed(query: string): Promise<string> {
 const PRESCRIPCION = "prescripción retroactivo CCSS";
 const TRAMOS = "tramos renta persona física";
 
+/**
+ * The prescripción rule — four years, ten for the never-inscribed — has two
+ * official statements in the corpus: the law itself (Ley 10363, ARTÍCULO 2,
+ * restated by TRANSITORIO II) and the CCSS procedure microsite #272 ingested,
+ * whose every chunk is the Caja's own page about prescribing a trabajador
+ * independiente's debt. Since #272 the microsite outranks the law for the
+ * question above — arguably the better source, being the rule *and* the
+ * trámite — and the 2026 baseline (#267) turned this file red for anchoring on
+ * the law alone.
+ *
+ * Which statement ranks first is not a product guarantee; that one of them
+ * reaches the reader is. So the fixtures below accept either (#291): the
+ * corpus can re-rank between them, or gain or lose one of them, without
+ * turning the lane red — this suite runs only in eval.yml, so a fixture only
+ * the corpus lane sees must assert something the corpus can drift under
+ * safely. A third official statement of the rule joins this list, not a new
+ * assertion.
+ */
+const PRESCRIPCION_SOURCES = [
+  {
+    docKey: "ley-10363",
+    articulo: /^(ARTÍCULO 2|TRANSITORIO II)$/,
+    norma: "Ley 10363",
+    url: /^https:\/\/sinalevi\.go\.cr\/ResultadosNormativa\/Informacion\?param1=99349/,
+  },
+  {
+    docKey: "ccss-prescripcion",
+    articulo: /./,
+    norma: null,
+    url: /^https:\/\/www\.ccss\.sa\.cr\/web\/prescripcion\//,
+  },
+] as const;
+
+/** A search row or a citation: the two shapes the fixtures below label. */
+type LabelledRow = {
+  doc_key?: string | null;
+  docKey?: string;
+  articulo: string | null;
+};
+
+function statesPrescripcion(row: LabelledRow): boolean {
+  return PRESCRIPCION_SOURCES.some(
+    (s) =>
+      s.docKey === (row.docKey ?? row.doc_key) &&
+      s.articulo.test(row.articulo ?? ""),
+  );
+}
+
+/** Failure-message label: what the ranking actually held. */
+function label(rows: LabelledRow[]): string {
+  return rows.map((r) => `${r.docKey ?? r.doc_key} ${r.articulo}`).join(" | ");
+}
+
 describeDb("search_chunks against the ingested corpus", () => {
-  it("puts Ley 10.363 ARTÍCULO 2 in the top 3 for the prescripción question", async () => {
+  it("puts an official statement of the prescripción rule in the top 3", async () => {
     const rows = await searchChunks(PRESCRIPCION, await embed(PRESCRIPCION));
     const top3 = rows.slice(0, 3);
-    expect(
-      top3.some(
-        (r) =>
-          r.doc_key === "ley-10363" &&
-          /ART[ÍI]CULO 2\b/i.test(r.articulo ?? ""),
-      ),
-    ).toBe(true);
+    expect(top3.some(statesPrescripcion), label(top3)).toBe(true);
   });
 
   it("puts the tramos decree in the top 3 for the renta question", async () => {
@@ -165,7 +212,13 @@ describeDb("search_chunks against the ingested corpus", () => {
 
   it("keeps working as a lexical-only search when there is no embedding", async () => {
     const rows = await searchChunks(PRESCRIPCION, null, 3);
-    expect(rows[0].doc_key).toBe("ley-10363");
+    expect(rows.length).toBeGreaterThan(0);
+    // No embedding, no vector leg: every row is a lexical hit and nothing else.
+    for (const r of rows) {
+      expect(r.vector_rank).toBeNull();
+      expect(r.lexical_rank).not.toBeNull();
+    }
+    expect(statesPrescripcion(rows[0]), label([rows[0]])).toBe(true);
   });
 
   // A "fusion ranks the target no worse than either leg alone" test lived
@@ -257,17 +310,20 @@ describeDb("search_chunks against the ingested corpus", () => {
 
 describeDb("retrieve", () => {
   it("returns typed chunks and citations that link to the official source", async () => {
-    const result = await retrieve(PRESCRIPCION);
+    // The literal question only: the production expander is a model call
+    // (#286), and a citation-shape check should not move with a rewrite.
+    const result = await retrieve(PRESCRIPCION, { expander: null });
     expect(result.query).toBe(PRESCRIPCION);
     expect(result.chunks.length).toBeGreaterThan(0);
     expect(result.chunks.length).toBeLessThanOrEqual(DEFAULT_MATCH_COUNT);
 
-    const cited = result.citations.find((c) => c.docKey === "ley-10363");
-    expect(cited).toBeDefined();
-    expect(cited!.norma).toBe("Ley 10363");
-    expect(cited!.url).toMatch(
-      /^https:\/\/sinalevi\.go\.cr\/ResultadosNormativa\/Informacion\?param1=99349/,
-    );
+    const cited = result.citations.find(statesPrescripcion);
+    expect(cited, label(result.citations)).toBeDefined();
+    const source = PRESCRIPCION_SOURCES.find(
+      (s) => s.docKey === cited!.docKey,
+    )!;
+    expect(cited!.norma).toBe(source.norma);
+    expect(cited!.url).toMatch(source.url);
     // Freshness reaches the chip through the citation itself (#135).
     expect(new Date(cited!.fetchedAt!).getTime()).not.toBeNaN();
     // One citation per artículo — parts of the same artículo collapse.
