@@ -4,6 +4,33 @@ Date: 2026-09-05 · Status: accepted · Amends [SPEC §5](../../SPEC.md) ·
 Context: issue [#286](https://github.com/rjwrld/tramitico/issues/286), follow-up of the 2026
 baseline [#267](https://github.com/rjwrld/tramitico/issues/267)
 
+## Amendment (2026-09-07, issue [#307](https://github.com/rjwrld/tramitico/issues/307))
+
+The corroboration paragraph below ("Corroboration needs at least one leg that ran on the
+reader's own question") described a rule that did not hold. It required that _some_ raw leg
+surface the chunk, and the raw vector leg always does: nearest-neighbour search ranks the whole
+corpus for any string. So the only clause that could fail was "by words", and the expansion's
+lexical leg satisfied it for free. Measured on the ingested corpus, the expander answers
+`zzzq wqxrt` with a refusal written in the corpus's register («términos tributarios», «seguridad
+social», «normativa costarricense»); that refusal's lexical leg matches real chunks, raw-vector
+plus expansion-lexical read as corroborated, and the nonsense question stopped tripping `isWeak`
+and reaching the honest decline of #21.
+
+The rule now names the one leg that can miss. A chunk is corroborated when **the question's own
+lexical leg** surfaced it, and a similarity leg — the question's or the expansion's — did too.
+The guarantee this buys is one-directional: a question that shares not one lexeme with the
+corpus is weak whether expansion is off or on. The expansion still helps in the other
+direction, which is what #286 built it for: a chunk the reader's words matched but the
+question's own vector leg missed may take its similarity witness from the expansion's vector
+leg. The expansion can move `isWeak` towards answering, never towards declining.
+
+Options 2 (detect a refusal in the expander) and 3 (require the expansion's lexical hit on the
+strict AND branch) were not taken: the first depends on the model's wording and leaves the
+rule itself wrong, the second needs a migration for a weaker guarantee. Measured once in the
+eval lane: the `retrieval.eval.test.ts` nonsense fixture that #291 left red passes; the
+hit-rate suite flags no dataset question weak, the six #286 cases included; abstention is
+unchanged in shape from #290, every case on the model route before and after.
+
 ## Context
 
 The 2026 baseline left six retrieval misses whose expected artículo never entered the fused

@@ -236,21 +236,29 @@ export interface RetrieveOptions {
 }
 
 /**
- * A chunk is corroborated when a similarity leg and a word-matching leg both
- * surfaced it, **and at least one of those legs ran on the reader's own
- * question**. Since #286 there are two of each — the question's own pair and
- * the pair run over its corpus-register expansion — and the expansion's legs
- * count towards the two modes, because they are the same two modes asked in
- * the corpus's words rather than a third mode.
+ * A chunk is corroborated when **the reader's own words matched it** — the
+ * question's lexical leg surfaced it — and a similarity leg did too, whether
+ * that leg ran on the question or on its corpus-register expansion (#286).
  *
- * The raw-leg requirement is what keeps the honest fallback honest. The
- * expansion is a passage a model wrote for this question, and it writes one
- * for *any* question, including one the corpus cannot answer; its lexical leg
- * then matches the words the model chose and its vector leg matches the
- * meaning of that same text. Two views of one invented passage are not two
- * independent witnesses, so an expansion-only pair must not be able to say
- * "corroborated" — that is exactly how an out-of-scope question would stop
- * tripping `isWeak` and stop reaching the decline #21 built. `isWeak` — no returned chunk corroborated — is what #21 turns into the
+ * The lexical leg is the only witness that can miss. Nearest-neighbour search
+ * ranks the whole corpus for any string, so the vector leg surfaces *some*
+ * chunk for gibberish, and the expansion is a passage a model wrote for this
+ * question, which it writes for any question — including one the corpus
+ * cannot answer, when it writes a refusal in the corpus's own register
+ * («términos tributarios», «normativa»). #286 required only that one raw leg
+ * be present, and the raw vector leg always was; the expansion's lexical leg
+ * then supplied "by words" for free, and a nonsense question stopped tripping
+ * `isWeak` (#307). So the rule now names the discriminating leg. What that
+ * guarantees is one-directional: a question that shares not one lexeme with
+ * the corpus is weak whether expansion is off or on, because nothing the
+ * expansion finds can stand in for the reader's words. In the other direction
+ * the expansion still helps — a chunk the reader's words did match, but the
+ * question's own vector leg missed, may take its similarity witness from the
+ * expansion's vector leg. That is the #286 register gap, and it is the one
+ * place the expansion can still move `isWeak`: towards answering, never
+ * towards declining.
+ *
+ * `isWeak` — no returned chunk corroborated — is what #21 turns into the
  * honest fallback (say so and link the agency) instead of answering from
  * single-leg hits. Until #51 this was inferred from a score threshold
  * (2/(k + LEG_LIMIT)); coverage-scaled fallback contributions broke that
@@ -264,13 +272,10 @@ export function isCorroborated(chunk: {
   expansionVectorRank?: number | null;
   expansionLexicalRank?: number | null;
 }): boolean {
-  const expansionVector = chunk.expansionVectorRank ?? null;
-  const expansionLexical = chunk.expansionLexicalRank ?? null;
-  const bySimilarity = chunk.vectorRank !== null || expansionVector !== null;
-  const byWords = chunk.lexicalRank !== null || expansionLexical !== null;
-  const fromTheQuestion =
-    chunk.vectorRank !== null || chunk.lexicalRank !== null;
-  return bySimilarity && byWords && fromTheQuestion;
+  const bySimilarity =
+    chunk.vectorRank !== null || (chunk.expansionVectorRank ?? null) !== null;
+  const byTheReadersWords = chunk.lexicalRank !== null;
+  return bySimilarity && byTheReadersWords;
 }
 
 /** Score one leg contributes to an id ranked `rank` (1-based). */
