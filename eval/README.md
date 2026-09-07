@@ -186,8 +186,8 @@ Abstention's nine cases are all first-exposure.
 - **No gate was lowered.** Hit-rate (0.92), Tier 2 adequacy (0.80) and
   abstention (0.90) stay where they were and stay red until their follow-ups
   land; Tier 1 is per-case blocking by construction (the parser refuses a
-  Tier 1 case without `blocking: true`). The weekly `eval.yml` cron will be
-  red until then — that is the pressure, not a defect.
+  Tier 1 case without `blocking: true`). The `eval.yml` lane, run on demand,
+  will be red until then — that is the pressure, not a defect.
 
 ### The ratchet rule
 

@@ -62,7 +62,7 @@ export const ABSTENTION_GATE = 0.9;
  *
  * They are therefore reported, not gated. Two failures out of nine put the
  * ceiling at 77.8 %, under the 90 % gate, so counting them would leave this
- * suite permanently red on a weekly workflow and teach nobody anything new
+ * suite permanently red on every on-demand run and teach nobody anything new
  * after the first run. The exclusion is by id and asserted below — a case
  * that gets renamed or dropped makes this list red rather than quietly
  * shrinking the thing being measured, which is the #129 rule applied to an

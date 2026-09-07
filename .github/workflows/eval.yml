@@ -5,24 +5,27 @@ name: Eval
 # These suites need what a per-PR lane cannot have: a database carrying the
 # *ingested corpus*, a paid embeddings provider and an Anthropic key. Running
 # them on every PR would spend real API money on docs-only changes (audit F-26)
-# and would still need a hosted project to point at. So they run here, on a
-# cadence, with secrets.
+# and would still need a hosted project to point at. So they run here, on
+# demand, with secrets.
 #
 # The #129 contract holds in this lane too: the suites fail — naming the
 # missing variable — rather than skipping, and the preflight below says so
 # before spending an install on it. A check that skips its own assertions is a
 # check that proves nothing.
 #
-# Weekly, plus on demand (#212). The corpus changes quarterly (recrawl.yml) and
-# the answer model does not change on a schedule at all, so this is a regression
-# tripwire rather than a per-change gate — a week is the right cadence for it,
-# and it is the cadence CLAUDE.md documents. The preflight below is what keeps a
-# scheduled run honest before #29 provisions the corpus database and the
-# secrets: it fails in seconds, naming every missing variable, instead of
-# spending an install and a 90-minute timeout on a lane that cannot pass.
+# On demand only, until the beta is live (#212). One full run costs ≈US$8–12 in
+# Anthropic + Voyage — measured in the 2026 baseline (#267) — so a weekly cron
+# would run ≈US$40/month for a regression tripwire against an answer model
+# that does not change on a schedule at all, and the corpus itself only
+# changes quarterly (recrawl.yml). The PR gates already run on every change to
+# the code these suites read, so a schedule would be buying coverage nothing
+# here moves fast enough to need. Re-adding one later is a single line under
+# `on:`; monthly (`0 5 1 * *`) is the recommended first step when the time
+# comes. The preflight below is what keeps a dispatched run honest before #29
+# provisions the corpus database and the secrets: it fails in seconds, naming
+# every missing variable, instead of spending an install and a 90-minute
+# timeout on a lane that cannot pass.
 on:
-  schedule:
-    - cron: "0 5 * * 1" # 05:00 UTC Mondays
   workflow_dispatch:
 
 jobs:
