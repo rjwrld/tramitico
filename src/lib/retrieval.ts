@@ -248,10 +248,15 @@ export interface RetrieveOptions {
  * («términos tributarios», «normativa»). #286 required only that one raw leg
  * be present, and the raw vector leg always was; the expansion's lexical leg
  * then supplied "by words" for free, and a nonsense question stopped tripping
- * `isWeak` (#307). So the rule now names the discriminating leg: the
- * expansion legs add candidates and reorder the fusion, but they can never
- * flip `isWeak` — with expansion off or on, a question that shares not one
- * lexeme with the corpus is weak, and one that does is judged as before #286.
+ * `isWeak` (#307). So the rule now names the discriminating leg. What that
+ * guarantees is one-directional: a question that shares not one lexeme with
+ * the corpus is weak whether expansion is off or on, because nothing the
+ * expansion finds can stand in for the reader's words. In the other direction
+ * the expansion still helps — a chunk the reader's words did match, but the
+ * question's own vector leg missed, may take its similarity witness from the
+ * expansion's vector leg. That is the #286 register gap, and it is the one
+ * place the expansion can still move `isWeak`: towards answering, never
+ * towards declining.
  *
  * `isWeak` — no returned chunk corroborated — is what #21 turns into the
  * honest fallback (say so and link the agency) instead of answering from
