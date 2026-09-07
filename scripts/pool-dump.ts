@@ -19,7 +19,9 @@
  *
  * With ANTHROPIC_API_KEY set the expansion legs (#286) run too, and the
  * rewrite is printed above the pool; without it the dump is the v4 two-leg
- * search, which is also what `--no-expansion` forces.
+ * search, which is also what `--no-expansion` forces. The step catalogue's
+ * legs (#304) run whenever the question classifies to a family, and
+ * `--no-steps` switches them off — `sv`/`sl` are their ranks.
  */
 import { readFileSync } from "node:fs";
 import { RERANK_POOL } from "../src/lib/answer/rerank";
@@ -58,7 +60,7 @@ function dumpCase(evalCase: EvalCase, chunks: RetrievedChunk[]): void {
     `pool rank del primer objetivo (de ${RERANK_POOL}): ` +
       (poolIndex === -1 ? "fuera del pool" : String(poolIndex + 1)),
   );
-  console.log(`  #   v    l   xv   xl   score  chunk`);
+  console.log(`  #   v    l   xv   xl   sv   sl   score  chunk`);
   for (const [i, chunk] of chunks.slice(0, SHOWN).entries()) {
     const hit = evalCase.expected.some((t) => chunkMatchesTarget(chunk, t));
     console.log(
@@ -68,6 +70,8 @@ function dumpCase(evalCase: EvalCase, chunks: RetrievedChunk[]): void {
           chunk.lexicalRank,
           chunk.expansionVectorRank,
           chunk.expansionLexicalRank,
+          chunk.stepVectorRank,
+          chunk.stepLexicalRank,
         ]
           .map((rank) => leg(rank).padStart(4))
           .join(" ") +
@@ -79,10 +83,11 @@ function dumpCase(evalCase: EvalCase, chunks: RetrievedChunk[]): void {
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const noExpansion = args.includes("--no-expansion");
+  const noSteps = args.includes("--no-steps");
   const ids = args.filter((arg) => !arg.startsWith("--"));
   if (ids.length === 0) {
     console.error(
-      "usage: pnpm pool-dump [--no-expansion] <case id> [<case id> …]",
+      "usage: pnpm pool-dump [--no-expansion] [--no-steps] <case id> [<case id> …]",
     );
     process.exit(2);
   }
@@ -103,8 +108,10 @@ async function main(): Promise<void> {
       matchCount: RERANK_POOL,
       embedder,
       ...(noExpansion ? { expander: null } : {}),
+      ...(noSteps ? { steps: null } : {}),
     });
     if (result.expansion) console.log(`\nexpansión: ${result.expansion}`);
+    if (result.steps) console.log(`catálogo (#304): ${result.steps.family}`);
     dumpCase(evalCase, result.chunks);
   }
 }

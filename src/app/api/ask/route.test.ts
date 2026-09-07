@@ -81,6 +81,7 @@ function retrievalResult(
     isWeak: false,
     isDegraded: false,
     expansion: null,
+    steps: null,
     ...overrides,
   };
 }

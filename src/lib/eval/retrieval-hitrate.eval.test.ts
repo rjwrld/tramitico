@@ -36,13 +36,15 @@ import { beforeAll, expect, it } from "vitest";
 import { condenseQuestion } from "../answer/condense";
 import { pinDerivedFigureInputs } from "../answer/derived";
 import { expansionEnabled } from "../answer/expand";
+import { STEP_CATALOGUE, stepsEnabled } from "../answer/steps";
 import {
   answerDocCap,
   answerSetFromOrder,
   answerTopK,
   RERANK_MODEL,
   RERANK_POOL,
-  rerankOrder,
+  rerankReadings,
+  stepRerankMode,
   type RerankedChunk,
 } from "../answer/rerank";
 import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
@@ -128,6 +130,21 @@ interface CaseResult {
   condensed: string | null;
   /** The corpus-register rewrite the expansion legs ran on (#286); null when none. */
   expansion: string | null;
+  /** The family the step catalogue classified the query to (#304); null when none. */
+  stepFamily: string | null;
+  /**
+   * Every expected target's place in the fused pool and the reranked order
+   * (#304): `caseHit` is true when any one target matches, so a required
+   * step's chunk can be absent while the case reads as a hit, and this is
+   * where that absence is printed.
+   */
+  targets: {
+    target: string;
+    poolRank: number | null;
+    rerankRank: number | null;
+    /** In the answer set's top-k, appended past it, or not in it at all. */
+    place: "top" | "pinned" | "cut";
+  }[];
 }
 
 describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
@@ -145,6 +162,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
   const results: CaseResult[] = [];
   const rerankMode = process.env.RERANK || "voyage";
   const expandMode = expansionEnabled() ? "on" : "off";
+  const stepsMode = stepsEnabled() ? `on(${stepRerankMode()})` : "off";
   const topKSize = answerTopK();
   const docCap = answerDocCap();
 
@@ -180,12 +198,15 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
         matchCount: RERANK_POOL,
         embedder,
       });
-      const order = await rerankOrder(query, retrieval.chunks, {
+      const outcome = await rerankReadings(query, retrieval.chunks, {
         expansion: retrieval.expansion,
+        steps: retrieval.steps?.sentences ?? null,
       });
-      // The route's exact sequence: rerank cut, then #287's derived-input pin.
+      const order = outcome?.order ?? null;
+      // The route's exact sequence: rerank cut with the step picks appended
+      // (#304), then #287's derived-input pin.
       const topK = pinDerivedFigureInputs(
-        answerSetFromOrder(order, retrieval.chunks),
+        answerSetFromOrder(order, retrieval.chunks, outcome?.stepPicks ?? []),
         retrieval.chunks,
       );
       const inPool = (chunk: RetrievedChunk) =>
@@ -193,6 +214,50 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
       const poolIndex = retrieval.chunks.findIndex(inPool);
       const rerankIndex =
         order === null ? -1 : order.findIndex((r) => inPool(r.chunk));
+      const rankOf = (index: number) => (index === -1 ? null : index + 1);
+      // The dataset's targets, then the catalogue's own `reaches` for the
+      // family the query classified to (#304): the chunk a required step
+      // needs is often not in `expected` at all (art. 12 for the F case),
+      // and the acceptance question is whether *that* chunk reached the
+      // pool and the model.
+      const family = retrieval.steps?.family;
+      const reaches =
+        family === undefined
+          ? []
+          : STEP_CATALOGUE[family].reaches.map((entry) => {
+              // First separator only: a FAQ entry's articulo carries its own
+              // (`Registro Único Tributario (RUT) · 1`).
+              const at = entry.indexOf(" · ");
+              const docKey = at === -1 ? entry : entry.slice(0, at);
+              const articulo = at === -1 ? undefined : entry.slice(at + 3);
+              return {
+                docKey,
+                ...(articulo === undefined ? {} : { articulo }),
+                fromCatalogue: true,
+              };
+            });
+      const targets = [...evalCase.expected, ...reaches].map((target) => {
+        const inAnswer = topK.findIndex((c) => chunkMatchesTarget(c, target));
+        return {
+          target:
+            `${target.docKey} · ${target.articulo ?? "*"}` +
+            ("fromCatalogue" in target ? " (catálogo)" : ""),
+          poolRank: rankOf(
+            retrieval.chunks.findIndex((c) => chunkMatchesTarget(c, target)),
+          ),
+          rerankRank:
+            order === null
+              ? null
+              : rankOf(
+                  order.findIndex((r) => chunkMatchesTarget(r.chunk, target)),
+                ),
+          place: (inAnswer === -1
+            ? "cut"
+            : inAnswer < topKSize
+              ? "top"
+              : "pinned") as "top" | "pinned" | "cut",
+        };
+      });
       // Requirement 1 of #287: the marginal survivor — the chunk holding the
       // last answer-set place — is what a target ranked below it lost to.
       const marginal = order === null ? undefined : order[topKSize - 1];
@@ -208,12 +273,14 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
         isWeak: retrieval.isWeak,
         condensed,
         expansion: retrieval.expansion,
+        stepFamily: retrieval.steps?.family ?? null,
+        targets,
       });
     }
     const hits = results.filter((r) => r.hit).length;
     console.log(
       `\nretrieval hit-rate (rerank=${rerankMode} ${process.env.RERANK_MODEL || RERANK_MODEL}, pool ${RERANK_POOL} → top ${topKSize}, ` +
-        `cap=${docCap === Infinity ? "off" : docCap}/doc, expand=${expandMode}, ` +
+        `cap=${docCap === Infinity ? "off" : docCap}/doc, expand=${expandMode}, steps=${stepsMode}, ` +
         `pin=${process.env.PIN_DERIVED_INPUTS === "on" ? "on" : "off"}): ${hits}/${results.length}`,
     );
     for (const r of results) {
@@ -225,7 +292,21 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
           // And which search actually ran (#286): a miss whose expansion
           // names the wrong materia is a rewrite problem, not a corpus one,
           // and the transcript is where eval/README.md reads that from.
-          (r.expansion === null ? "" : `\n        ⤳ ${r.expansion}`),
+          (r.expansion === null ? "" : `\n        ⤳ ${r.expansion}`) +
+          // #304: which catalogue family the query classified to — beside
+          // the dataset's own, so a misclassified follow-up is visible —
+          // and every target's pool and reranked rank, because a required
+          // step's chunk can be missing from the pool while the case hits.
+          `\n        ⊕ steps=${r.stepFamily ?? "—"}` +
+          (r.evalCase.family === undefined
+            ? ""
+            : ` (dataset ${r.evalCase.family})`) +
+          r.targets
+            .map(
+              (t) =>
+                `\n          pool#${String(t.poolRank ?? "—").padEnd(2)} rr#${String(t.rerankRank ?? "—").padEnd(2)} ${t.place.padEnd(6)} ${t.target}`,
+            )
+            .join(""),
       );
     }
     // #287: a target that reached the pool and still missed was cut by the

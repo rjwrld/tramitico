@@ -189,6 +189,8 @@ export type Database = {
           match_count?: number;
           query_embedding: string;
           query_text: string;
+          step_embeddings?: string[];
+          step_texts?: string[];
         };
         Returns: {
           articulo: string;
@@ -206,6 +208,8 @@ export type Database = {
           path: string[];
           score: number;
           source: Json;
+          step_lexical_rank: number;
+          step_vector_rank: number;
           vector_rank: number;
         }[];
       };

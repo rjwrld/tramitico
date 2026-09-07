@@ -235,6 +235,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
       const chunks = pinDerivedFigureInputs(
         await rerankChunks(query, retrieval.chunks, {
           expansion: retrieval.expansion,
+          steps: retrieval.steps?.sentences ?? null,
         }),
         retrieval.chunks,
       );

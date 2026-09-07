@@ -85,6 +85,31 @@ export const ANSWER_TOP_K = 8;
  */
 export const ANSWER_DOC_CAP = Infinity;
 
+/**
+ * How the step catalogue's sentences (#304) reach the answer set, once the
+ * reranker has scored the pool against each of them:
+ *
+ * - `pin` — the question's readings decide the order and the cut exactly as
+ *   before, and the best chunk of each sentence's reading is then **appended
+ *   past the cut** when it is not already in the set, the way #287 pins a
+ *   derived figure's missing input. Nothing the reranker chose for the
+ *   question is displaced; the prompt grows by at most one chunk per
+ *   sentence, only on an ask that classified to a family.
+ * - `max` — the sentences are readings like the expansion's, fused by the
+ *   higher score (#296). Measured first, and what it does is in
+ *   eval/README.md: the step chunks reach #1–#2, and the question's own
+ *   chunks move down to make room — the F case's escala chunks from
+ *   reranked #3/#4 to #8/#9, the H case's reglamento-renta 27 from #7 to
+ *   #21. A required step in front of the model at the price of the claim
+ *   the question was about is not a trade the adequacy gate can take.
+ * - `off` — the sentences are not scored; the catalogue only fills the pool.
+ *
+ * `STEPS_RERANK` in the environment overrides the constant for a measured run.
+ */
+export type StepRerankMode = "pin" | "max" | "off";
+
+export const STEP_RERANK_MODE: StepRerankMode = "pin";
+
 /** Rerank model of record; `RERANK_MODEL` swaps it for a measured run (#287). */
 export const RERANK_MODEL = "rerank-2.5-lite";
 
@@ -121,17 +146,30 @@ export interface RerankOptions {
    * module header and #296.
    */
   expansion?: string | null;
+  /**
+   * The step catalogue's sentences retrieval ran on (#304), when it ran a
+   * probe. Each becomes one more rerank query fused by max, for the reason
+   * the legs search them one by one: the reranker reads «¿dónde me afilio?»
+   * and cannot see that «cuándo se paga» is part of a complete answer, so
+   * the step chunk the catalogue carried into the pool would be scored
+   * against the question alone and cut. Scored against its own sentence, it
+   * keeps the relevance that sentence gives it — and, by the same bound as
+   * the expansion, never loses any the question gave it.
+   */
+  steps?: readonly string[] | null;
 }
 
 /**
  * The rerank queries, in the order their scores are fused: always the
- * question, then its expansion when retrieval produced one.
+ * question, then its expansion when retrieval produced one, then the step
+ * catalogue's sentences when it ran a probe (#304).
  */
 export function rerankQueries(
   question: string,
   expansion?: string | null,
+  steps?: readonly string[] | null,
 ): string[] {
-  return expansion ? [question, expansion] : [question];
+  return [question, ...(expansion ? [expansion] : []), ...(steps ?? [])];
 }
 
 /**
@@ -192,6 +230,14 @@ export interface RerankedChunk {
   chunk: RetrievedChunk;
   score: number;
   rank: number;
+}
+
+/** The step-rerank mode in force; anything unrecognised is the constant. */
+export function stepRerankMode(): StepRerankMode {
+  const raw = process.env.STEPS_RERANK;
+  return raw === "pin" || raw === "max" || raw === "off"
+    ? raw
+    : STEP_RERANK_MODE;
 }
 
 /**
@@ -308,21 +354,41 @@ async function scorePool(
   }
 }
 
+/** What the reranker decided: the order to cut, and what to pin past it. */
+export interface RerankOutcome {
+  /**
+   * The whole pool in Voyage's order — the question's readings fused by the
+   * higher score, and the step sentences' too under `STEPS_RERANK=max`.
+   */
+  order: RerankedChunk[];
+  /**
+   * Under `pin` (#304): the best chunk of each sentence's reading, in
+   * sentence order and without repeats, carrying that reading's score and
+   * the rank `order` gave it. Empty in the other modes and with no probe.
+   */
+  stepPicks: RerankedChunk[];
+}
+
 /**
  * The whole pool in Voyage's order, or `null` when the rerank did not happen —
  * opted out, unkeyed, or failed. `null` is not an error: every caller falls
  * back to the fused order, which is the policy this module exists to keep.
  *
  * With an expansion this makes two calls, in parallel under the one timeout,
- * and fuses them by the higher score (#296). The degradation is the same
- * policy one call down: both readings back → fused; one back → that reading
- * alone, which is still better than the fused order; neither → `null`.
+ * and fuses them by the higher score (#296); a step probe adds one call per
+ * sentence to the same batch (#304), read as `stepRerankMode` says. The
+ * degradation is the same policy one call down: every reading back → fused;
+ * some back → those alone, which is still better than the fused order;
+ * none → `null`. Under `pin`, a batch where only sentence readings came
+ * back falls back to fusing those — one reading of the pool is still better
+ * than none, and the picks are then empty because there is no question
+ * order to pin them past.
  */
-export async function rerankOrder(
+export async function rerankReadings(
   question: string,
   chunks: readonly RetrievedChunk[],
   options: RerankOptions = {},
-): Promise<RerankedChunk[] | null> {
+): Promise<RerankOutcome | null> {
   // `||`, not `??`: CI interpolates an unset `vars.RERANK` as "", which must
   // mean "default on" — only an explicit RERANK=off opts out.
   if ((process.env.RERANK || "voyage") !== "voyage") return null;
@@ -330,41 +396,99 @@ export async function rerankOrder(
   const key = process.env.VOYAGE_API_KEY;
   if (!key) return null;
 
+  const mode = stepRerankMode();
+  const sentences = mode === "off" ? [] : (options.steps ?? []);
   const fetchImpl = options.fetchImpl ?? fetch;
-  // One deadline for both calls: they run concurrently, so the reader waits
-  // for the slower one and not for the sum.
+  // One deadline for every call: they run concurrently, so the reader waits
+  // for the slowest one and not for the sum.
   const signal = AbortSignal.timeout(RERANK_TIMEOUT_MS);
   const scored = await Promise.all(
-    rerankQueries(question, options.expansion).map((query) =>
+    rerankQueries(question, options.expansion, sentences).map((query) =>
       scorePool(query, chunks, key, fetchImpl, signal),
     ),
   );
   if (scored.every((scores) => scores === null)) return null;
+
+  const questionReadings = scored.slice(0, scored.length - sentences.length);
+  const stepReadings = scored.slice(scored.length - sentences.length);
+  const pinning =
+    mode === "pin" && questionReadings.some((reading) => reading !== null);
   // Passed with the question's slot intact, `null` and all: `fuseByMaxScore`
   // reads position 0 as the question's for its tiebreak, and a call that did
   // not come back must not silently promote the expansion into that slot.
-  const order = fuseByMaxScore(scored).flatMap(({ index, score }, position) => {
+  const fused = fuseByMaxScore(pinning ? questionReadings : scored);
+  const byIndex = new Map<number, RerankedChunk>();
+  const order = fused.flatMap(({ index, score }, position) => {
     const chunk = chunks[index];
-    return chunk === undefined ? [] : [{ chunk, score, rank: position + 1 }];
+    if (chunk === undefined) return [];
+    const entry = { chunk, score, rank: position + 1 };
+    byIndex.set(index, entry);
+    return [entry];
   });
-  return order.length > 0 ? order : null;
+  if (order.length === 0) return null;
+
+  const stepPicks: RerankedChunk[] = [];
+  if (pinning) {
+    const picked = new Set<number>();
+    for (const reading of stepReadings) {
+      // Voyage returns best first, but the pick is by score, not position —
+      // the verdict is typed, not trusted (`scorePool`).
+      const best = (reading ?? []).reduce<{
+        index: number;
+        score: number;
+      } | null>(
+        (top, entry) => (top === null || entry.score > top.score ? entry : top),
+        null,
+      );
+      if (best === null || picked.has(best.index)) continue;
+      picked.add(best.index);
+      const inOrder = byIndex.get(best.index);
+      const chunk = chunks[best.index];
+      if (inOrder !== undefined) {
+        stepPicks.push({ ...inOrder, score: best.score });
+      } else if (chunk !== undefined) {
+        stepPicks.push({ chunk, score: best.score, rank: order.length + 1 });
+      }
+    }
+  }
+  return { order, stepPicks };
+}
+
+/** `rerankReadings`' order alone — the pre-#304 shape, kept for its callers. */
+export async function rerankOrder(
+  question: string,
+  chunks: readonly RetrievedChunk[],
+  options: RerankOptions = {},
+): Promise<RerankedChunk[] | null> {
+  return (await rerankReadings(question, chunks, options))?.order ?? null;
 }
 
 /**
  * The answer set: the reranked order cut to the answer top-k under the
  * per-document cap, or the fused order cut the same way when there is no
- * reranked order. The one place the cut is made, so the eval harness and the
- * route agree by construction — and the cap applies to whichever order is
- * being cut, since the fused head has the same FAQ-page shape (#303).
+ * reranked order — then the step picks (#304) appended past the cut, each
+ * once, when the cut did not already take them. The one place the cut is
+ * made, so the eval harness and the route agree by construction — and the
+ * cap applies to whichever order is being cut, since the fused head has the
+ * same FAQ-page shape (#303). A pick is an append, like #287's derived
+ * inputs: nothing the cut chose is displaced.
  */
 export function answerSetFromOrder(
   order: readonly RerankedChunk[] | null,
   fused: readonly RetrievedChunk[],
+  stepPicks: readonly RerankedChunk[] = [],
 ): RetrievedChunk[] {
   const topK = answerTopK();
   const cap = answerDocCap();
   const ranked = order ?? fused.map((chunk) => ({ chunk }));
-  return capPerDocument(ranked, topK, cap).map(({ chunk }) => chunk);
+  const cut = capPerDocument(ranked, topK, cap).map(({ chunk }) => chunk);
+  const taken = new Set(cut.map((chunk) => chunk.chunkId));
+  for (const { chunk } of stepPicks) {
+    if (taken.has(chunk.chunkId)) continue;
+    taken.add(chunk.chunkId);
+    cut.push(chunk);
+  }
+  return cut;
 }
 
 export async function rerankChunks(
@@ -372,8 +496,10 @@ export async function rerankChunks(
   chunks: readonly RetrievedChunk[],
   options: RerankOptions = {},
 ): Promise<RetrievedChunk[]> {
+  const outcome = await rerankReadings(question, chunks, options);
   return answerSetFromOrder(
-    await rerankOrder(question, chunks, options),
+    outcome?.order ?? null,
     chunks,
+    outcome?.stepPicks ?? [],
   );
 }

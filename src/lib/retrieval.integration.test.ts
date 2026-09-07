@@ -73,6 +73,18 @@ const EXPANSION_CONTENT =
   `El ${EXPANSION_TOKEN} tributario se liquida ante la Administración ` +
   "Tributaria dentro del plazo del reglamento.";
 
+/**
+ * The step-catalogue fixture (#304), the #286 shape: an invented word no
+ * reader types and no document holds, so a chunk that comes back for it came
+ * back through the *catalogue's* lexical leg — and each sentence is its own
+ * probe, so the token sits in the second sentence, where a concatenated
+ * probe's strict AND branch would never have found it alone.
+ */
+const STEP_TOKEN = "quirlobante";
+const STEP_CONTENT =
+  `La cuota ${STEP_TOKEN} se cancela ante la sucursal correspondiente ` +
+  "dentro del plazo que fije la institución.";
+
 /** The outage this whole path exists for: no vector, ever, in any budget. */
 function deadEmbedder(): Embedder {
   const down = () => {
@@ -129,6 +141,13 @@ describeDb("retrieval degraded fallback (integration)", () => {
         path: ["Fixture"],
         part: 0,
         content: EXPANSION_CONTENT,
+      },
+      {
+        document_id: documentId,
+        articulo: "ARTÍCULO 3",
+        path: ["Fixture"],
+        part: 0,
+        content: STEP_CONTENT,
       },
     ]);
     if (inserted.error) throw new Error(inserted.error.message);
@@ -203,6 +222,38 @@ describeDb("retrieval degraded fallback (integration)", () => {
     expect(result.expansion).toBe(`El ${EXPANSION_TOKEN} tributario`);
     // The expansion's failed embed is not the reader's degradation: only the
     // question's embed is counted, and it failed exactly once.
+    expect(degradedRetrievals()).toEqual({ timeout: 0, error: 1 });
+  });
+
+  it("finds through the catalogue's lexical leg what the question and the expansion miss (#304)", async () => {
+    const result = await retrieve("¿y esto cómo se paga?", {
+      client,
+      embedder: deadEmbedder(),
+      expander: null,
+      // The probe the classifier would name, minus the classifier: the
+      // RPC's half of the six-leg contract is what is under test, and the
+      // token sits in the *second* sentence so a leg that searched the
+      // sentences as one text could not have found it by strict AND.
+      steps: {
+        probe: () => ({
+          family: "T1-B",
+          sentences: [
+            "La afiliación se tramita en la sucursal.",
+            `La cuota ${STEP_TOKEN} se cancela ante la sucursal correspondiente.`,
+          ],
+        }),
+      },
+    });
+
+    const mine = result.chunks.find((c) => c.content === STEP_CONTENT);
+    expect(mine).toBeDefined();
+    expect(mine!.stepLexicalRank).not.toBeNull();
+    expect(mine!.stepVectorRank).toBeNull();
+    expect(mine!.lexicalRank).toBeNull();
+    expect(mine!.vectorRank).toBeNull();
+    expect(result.steps?.family).toBe("T1-B");
+    // The catalogue is no witness: a pool it filled alone is still weak on
+    // the degraded path, and the sentences' failed embeds are not counted.
     expect(degradedRetrievals()).toEqual({ timeout: 0, error: 1 });
   });
 

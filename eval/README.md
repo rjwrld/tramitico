@@ -1320,6 +1320,120 @@ Tier 1 stays per-case blocking and `ADEQUACY_TIER2_GATE` stays 0.8. The
 cap ships off; `ANSWER_DOC_CAP` is there for the full run to measure beside
 `ANSWER_TOP_K`, which is the comparison this read could not afford.
 
+### The pool misses are step-shaped — a hand-written step catalogue per family (#304)
+
+#303 left the pool misses named and unaddressed: of the 23 retrieval-caused
+missing requirements on the nineteen Tier 1 rows, 20 were pool depth, and the
+chunks absent from the 40 all carry a **step** a complete answer needs and the
+question never asks for — when to pay, what the sanction is, how to adjust a
+declared figure. Nothing in the question points at them, so neither its own
+legs nor its corpus-register rewrite find them, and #303's prototype showed the
+expansion model cannot be asked to guess them either.
+
+The steps are not open-ended: the dataset's nine Tier 1 families name them, and
+a family's steps are the same whichever of its questions is asked. So they are
+written by hand — `eval/step-catalogue.json`, two or three sentences per family
+in the corpus's own register, beside the cases they were written for and the
+chunks they are meant to reach — and `src/lib/answer/steps.ts` does two
+deterministic things with them: `classifyFamily`, a keyword table over the
+condensed question in the `classifyRouting` shape (no model, no cost, `null`
+when nothing in the question names a family), and the probe `retrieve` then
+runs. `pnpm pool-dump` prints the family and the two new leg ranks (`sv`/`sl`);
+`--no-steps` switches them off, as `STEPS=off` does everywhere.
+
+**Three things the measurement decided**, in the order it decided them:
+
+1. **One probe per sentence, not one text.** Step 1 of the issue — `retrieve`
+   on the catalogue text alone, expander off — carried «¿Cuándo me corresponde
+   pagar…?» at pool #17 and `cnpt` art. 79 not at all when the three sentences
+   were one string; each sentence alone carried its chunk at **vector rank 1**.
+   So `search_chunks` v6 takes `step_texts[]`/`step_embeddings[]` and searches
+   them one by one: each sentence's own 50 nearest chunks and 50 best lexical
+   matches, interleaved by **best rank in any sentence's list** into one leg
+   pair of 50 — a catalogue of three sentences weighs what one expansion
+   weighs. Not "nearest by distance across sentences": distances are not
+   comparable between sentences, and the first cut that merged them that way
+   still left `cnpt` 79 outside the leg behind one sentence's fifty nearest.
+2. **Each sentence in the words of its chunk, one step per sentence.** The
+   first draft's `cnpt` 79 sentence carried a second clause («las
+   declaraciones pendientes se presentan antes de la desinscripción»), fell to
+   the lexical OR branch, lost that chunk to longer artículos, and reached the
+   fused pool at **#49** on its vector leg alone. Rewritten to mirror art. 79,
+   it wins the strict AND branch (lexical rank 1) and enters the pool at #14.
+3. **Pinned past the cut, not fused by max.** The issue asked for the probe as
+   one more rerank query fused by max (#296), and that was measured first on
+   the #303 six (`STEPS_RERANK=max`): the step chunks reach reranked #1–#3, and
+   the question's own chunks move down to make room — the F case's escala
+   chunks from #3/#4 to **#8/#9**, the H case's `reglamento-renta` 27 from #7
+   to **#21**, the A case's `ley-iva` 5 from #14 to #19. A required step in
+   front of the model at the price of the claim the question was about is not
+   a trade the adequacy gate can take. So the default is **`pin`**: the
+   question's readings decide the order and the cut exactly as before, and the
+   best chunk of each sentence's reading is appended past it when the cut did
+   not already take it — the #287 shape, one append per sentence, only on an
+   ask that classified to a family. `STEPS_RERANK=max|off` keep the other two
+   measurable. The catalogue's legs are no witness to corroboration either
+   (`isCorroborated`, #307): the probe is the same text for every question in
+   the family, so it can fill a pool and never move `isWeak`.
+
+On the #303 six, `EVAL_CASES` hit-rate runs (`steps=off` is the pipeline of
+record; the `pin` and `max` rows share one pool, so the pool ranks are one
+column):
+
+| Case                                     | Chunk that carries the missing requirement          | Pool, steps off | Pool, steps on | Reranked, off → pin   | Reranked, max |
+| ---------------------------------------- | --------------------------------------------------- | --------------- | -------------- | --------------------- | ------------- |
+| `ccss-pedir-prescripcion-cuotas`         | `ccss-prescripcion` «¿…en cuanto tiempo resuelve…?» | #26             | **#3**         | #9 → **#8, top**      | #2            |
+|                                          | `ccss-prescripcion` «¿Dónde presento la solicitud?» | #31             | **#4**         | #15 → #15, **pinned** | #1            |
+| `ho-donde-me-afilio-caja`                | `ccss-faq` «¿Cuándo me corresponde pagar…?»         | not in the 40   | **#10**        | — → #39, **pinned**   | #3            |
+| `ho-desinscribir-debiendo-declaraciones` | `cnpt` art. 79                                      | not in the 40   | **#14**        | — → #39, **pinned**   | — (pool #49)  |
+|                                          | `tribu-cr-faq` RUT · 43                             | not in the 40   | **#10**        | — → #28, **pinned**   | #8            |
+| `ho-800-mil-que-porcentaje-caja`         | `ccss-escala-salud` / `ccss-escala-ivm` (the claim) | #8 / #1         | #6 / #1        | #3 / #4 → **#3 / #4** | #8 / **#9**   |
+| `ho-trabajitos-por-mi-cuenta`            | `ley-iva` 5 · `reglamento-renta` 27                 | #8 · #24        | #11 · #24      | #14 · #15 → #14 · #15 | #19 · #20     |
+| `ho-hasta-que-dia-tengo-iva`             | `ley-iva` 27 · `reglamento-iva` 40                  | #1 · #3         | #1 · #2        | #2 · #1 → #2 · #1     | #1 · #2       |
+
+Hit-rate 6/6 → 6/6 in every mode. Under `pin` not one question-side reranked
+rank moved except the G case's #9 → #8 (a pool change the reranker read), and
+every chunk the issue named as a pool miss is now in front of the model. The
+`max` column's pool ranks are those of a run before the catalogue was tightened
+(item 2), which is why its `cnpt` 79 reads #49.
+
+The same six through the answer path (`EVAL_CASES`, transcript
+`groundedness-claude-sonnet-5-subset-20260907T162517Z.jsonl`): groundedness
+6/6, adequacy **2/6** — against 1/6 on the pipeline of record and 2/6 with
+`ANSWER_TOP_K=10` (#303). `ccss-pedir-prescripcion-cuotas` passes: the 20 días
+hábiles chunk is in the top-8 and «¿Dónde presento…?» is pinned behind it.
+The four that still fail now fail on the **answer side**: the transcript shows
+«¿Cuándo me corresponde pagar…?» and art. 10 handed to the B answer, arts.
+10 and 12 and the patrono FAQ to the F answer, `cnpt` 79, RUT · 43 and the
+CCSS cese FAQ to the H answer, RUT · 1 and `cnpt` 78 to the A answer — and the
+missing requirements are the model not stating what it was handed (the B
+payment date, the F adjustment, H's «mientras siga inscrita»), which is #130's
+prompt matter and not this issue's. What #304 set out to do — the step chunk
+in the pool and in front of the model — holds on every case it named.
+
+**The whole dataset**, hit-rate only (`retrieval-hitrate.eval.test.ts`, no
+subset, `steps=on(pin)`): **71/73**, every gate green — against 70/73 at #296.
+The two misses are the Tier 2 corpus cases #296 left (`ho-t2-constancia-al-dia`
+never reaches the pool; `ho-t2-payoneer` is cut at pool #14); the third #296
+miss is recovered. That is the hit-rate half of "unchanged or better" on the
+full set; the authorized groundedness run is still the user's to spend.
+
+The `STEPS_RERANK=max` reading is also why the classifier is conservative:
+every ask that classifies pays one rerank call per sentence and up to three
+more chunks of prompt, so a family is named by what is _specific_ to it and a
+question naming nothing specific gets no probe rather than a guessed one.
+`steps.test.ts` pins the catalogue's shape (every family, two or three
+sentences, cases that exist and carry that family, `reaches` entries the
+committed corpus index holds) and the classifier on every single-turn Tier 1
+question; follow-ups classify on their condensed form, which the hit-rate run
+prints beside the dataset's family (`⊕ steps=T1-B (dataset T1-B)`) with every
+target's pool rank, reranked rank and place — `top`, `pinned` or `cut` — since
+`caseHit` alone cannot say whether a required step's chunk was in front of the
+model. The targets printed are the dataset's `expected` **and** the classified
+family's catalogue `reaches` (marked `(catálogo)`), because the chunk a required
+step needs is often in neither `expected` nor `requiredSteps` by name — art. 12
+for the F case — and this line is where its rank is read.
+
 ## Adversarial conflicting-sources case (issue #135)
 
 `src/lib/eval/conflicting-sources.eval.test.ts` is the one case that

@@ -24,7 +24,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(3);
+select plan(4);
 
 -- 1. The function pins hnsw.ef_search, and above LEG_LIMIT. proconfig is the
 --    source of truth for `alter function ... set`; a future migration that
@@ -36,7 +36,7 @@ select cmp_ok(
     join pg_namespace n on n.oid = p.pronamespace
     cross join lateral unnest(p.proconfig) as cfg
     where n.nspname = 'public'
-      and p.oid = 'public.search_chunks(text, extensions.vector, int, text, extensions.vector)'::regprocedure
+      and p.oid = 'public.search_chunks(text, extensions.vector, int, text, extensions.vector, text[], text[])'::regprocedure
       and cfg like 'hnsw.ef_search=%'
   ),
   '>', 50,
@@ -94,6 +94,40 @@ select is(
   ),
   50::bigint,
   'vector leg returns all 50 LEG_LIMIT candidates through chunks_embedding_hnsw'
+);
+
+-- 2b. The step catalogue's vector leg (#304) is one ordered LIMIT per
+--     sentence in its own subquery, so it takes the same index path: two
+--     sentences near two clusters, forced through the index, still yield
+--     the full LEG_LIMIT of step-ranked candidates. Empty sentence texts
+--     keep the step lexical leg out of the fusion the way the empty
+--     query_text does above: a placeholder word can match a real corpus
+--     (`x` is a roman numeral in half the leyes) and outrank the leg.
+select is(
+  (
+    select count(*)
+    from public.search_chunks(
+      '',
+      null,
+      60,
+      null,
+      null,
+      array['', ''],
+      (
+        select array_agg(
+          (
+            select array_agg(sc.center[i] + 0.05 * (random() - 0.5))
+            from generate_series(1, 1024) as i
+          )::extensions.vector(1024)::text
+        )
+        from seed_centers sc
+        where sc.cid in (1, 2)
+      )
+    ) r
+    where r.step_vector_rank is not null
+  ),
+  50::bigint,
+  'step vector leg returns all 50 LEG_LIMIT candidates through chunks_embedding_hnsw'
 );
 
 -- 3. The cleanup delete inside rate_limit_increment

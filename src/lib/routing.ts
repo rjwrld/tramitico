@@ -306,7 +306,13 @@ function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function patternsFor(keywords: readonly string[]): readonly RegExp[] {
+/**
+ * Whole-word patterns for a keyword list, to test against
+ * `normaliseQuestion`'s output. Shared with the step catalogue's family
+ * classifier (answer/steps.ts, #304), which reads a question by the same
+ * rules this table does.
+ */
+export function wordPatterns(keywords: readonly string[]): readonly RegExp[] {
   return keywords.map(
     // Word boundaries on ASCII: `normaliseQuestion` has already folded the
     // diacritics away, so `\b` behaves for Spanish here.
@@ -324,7 +330,7 @@ function mapCategories<T>(
   return Object.fromEntries(entries) as Record<RoutingCategory, T>;
 }
 
-const PATTERNS = mapCategories((category) => patternsFor(KEYWORDS[category]));
+const PATTERNS = mapCategories((category) => wordPatterns(KEYWORDS[category]));
 
 /** Lower case, diacritics stripped, whitespace collapsed. */
 export function normaliseQuestion(question: string): string {

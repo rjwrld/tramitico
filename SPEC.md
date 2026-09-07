@@ -239,6 +239,18 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   scores are fused by the higher one, so a rewrite that drifts into another jurisdiction's
   law can no longer pull the reader's own best answer down —
   **[ADR 0019](docs/adr/0019-query-expansion-legs.md)**.
+- **Step catalogue (#304, amends this section):** retrieval also searches for the _step_ a
+  complete answer needs and the question never asks for — when to pay, what the sanction is,
+  how to adjust a declared figure. A hand-written catalogue per Tier 1 family
+  (`eval/step-catalogue.json`, two or three sentences in the corpus's register, each in the
+  words of the chunk it reaches) is keyed by a keyword classifier over the condensed question,
+  no model call; `search_chunks` runs one more hybrid pair over the sentences **one by one**,
+  interleaved by best rank per sentence into one leg pair of the same weight as the expansion's.
+  A question naming no family, or `STEPS=off`, leaves the search exactly as it was. The
+  catalogue's legs never witness corroboration. At the rerank each sentence is its own query,
+  and by default the best chunk per sentence is **pinned past the cut** rather than fused into
+  the order, so nothing the question's own readings chose is displaced —
+  **[ADR 0020](docs/adr/0020-step-catalogue-legs.md)**.
 - **Answer assembly:** Claude **Sonnet by default, model as env var** — Week 3 runs Haiku 4.5
   through the same groundedness gate as a cost/quality comparison (portfolio material either way).
   Via Vercel AI SDK, streaming. System prompt constrains

@@ -1,0 +1,162 @@
+{
+  "$comment": "Hand-written step catalogue per Tier 1 family (#304). Each family carries two or three sentences naming the *step* a complete answer needs and the question never asks for — where to go, when to pay, what the sanction is, how to adjust a figure. Each sentence is written in the words of the one chunk it is meant to reach, one step per sentence and no second clause: `search_chunks` searches the sentences one by one (src/lib/answer/steps.ts), and a sentence that mirrors its chunk wins the lexical leg's strict AND branch outright, while a sentence that also says something else falls to the OR branch and loses that chunk to longer ones (the first draft carried `cnpt` art. 79 at fused #49 for exactly that reason). `cases` names the dataset rows each entry was written for and `reaches` the chunks it is meant to carry into the pool. Verified against public.chunks, not written from memory: every figure below is in the chunk it names.",
+  "families": {
+    "T1-A": {
+      "steps": [
+        "Una persona física puede presentar la declaración de inscripción en el Registro Tributario mediante la Oficina Virtual de TRIBU-CR, con su cédula de identidad, el DIMEX o el NITE.",
+        "Todo trabajador independiente, costarricense o extranjero que resida en el país, debe cumplir sus obligaciones de afiliación y contribución con el Seguro de Salud y el Seguro de Invalidez, Vejez y Muerte de la CCSS.",
+        "Quienes omitan presentar la declaración de inscripción, desinscripción o modificación deberán liquidar y pagar una sanción equivalente al cincuenta por ciento (50%) de un salario base por cada mes o fracción de mes."
+      ],
+      "cases": [
+        "ho-trabajitos-por-mi-cuenta",
+        "ho-hacienda-solo-cliente-eeuu",
+        "ho-donde-inscribo-ya-no-atv"
+      ],
+      "reaches": [
+        "tribu-cr-faq · Registro Único Tributario (RUT) · 1",
+        "tribu-cr-faq · Registro Único Tributario (RUT) · 2",
+        "ccss-reglamento-ti · Artículo 1",
+        "cnpt · Artículo 78"
+      ]
+    },
+    "T1-B": {
+      "steps": [
+        "El trámite de afiliación como trabajador independiente se realiza en la sucursal de la CCSS más cercana, acorde a la zona de adscripción del centro de trabajo.",
+        "Las cuotas del seguro de trabajador independiente se cancelan desde el primer día del mes hasta la fecha que corresponda, según la primera letra del apellido.",
+        "El monto de las cuotas que deben pagar los trabajadores independientes se calcula sobre los ingresos netos que perciban: el ingreso bruto menos los gastos propios de la actividad económica."
+      ],
+      "cases": [
+        "ho-desde-cuanta-plata-caja",
+        "ccss-obligacion-ingreso-bajo",
+        "ho-donde-me-afilio-caja"
+      ],
+      "reaches": [
+        "ccss-faq · ¿Dónde me corresponde realizar el trámite de afiliación?",
+        "ccss-faq · ¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente?",
+        "ccss-reglamento-ti · Artículo 10"
+      ]
+    },
+    "T1-C": {
+      "steps": [
+        "El emisor receptor electrónico debe estar inscrito en el Registro Único Tributario, tener registrado un correo electrónico válido ante la Administración Tributaria y disponer de un sistema para la emisión y recepción de comprobantes electrónicos.",
+        "Los comprobantes electrónicos autorizados por la Administración Tributaria son la factura electrónica, la factura electrónica de compra, la factura electrónica de exportación, el tiquete electrónico y el recibo electrónico de pago.",
+        "Los códigos CABYS relevantes para desarrollo de software y TI: paquete de software de herramientas de desarrollo y lenguajes de programación, servicios de consultoría en software y licenciamiento de uso de programas informáticos."
+      ],
+      "cases": [
+        "ho-factura-electronica-o-recibo",
+        "ho-tiquete-en-vez-de-factura",
+        "ho-cabys-paginas-web"
+      ],
+      "reaches": [
+        "reglamento-comprobantes · Artículo 4",
+        "reglamento-comprobantes · Artículo 9",
+        "cabys-dev"
+      ]
+    },
+    "T1-D": {
+      "steps": [
+        "Los contribuyentes deben liquidar el impuesto a más tardar el decimoquinto día natural de cada mes mediante declaración jurada, y la obligación de presentar la declaración subsiste aun cuando no se pague el impuesto.",
+        "Los sujetos pasivos que omitan presentar las declaraciones de autoliquidación de obligaciones tributarias dentro del plazo legal establecido tendrán una multa equivalente al cincuenta por ciento (50%) del salario base.",
+        "Está exenta del impuesto la prestación de servicios por contribuyentes del impuesto cuando sean consumidos fuera del territorio nacional, y se documenta con factura electrónica de exportación."
+      ],
+      "cases": [
+        "ho-iva-en-cero-sin-facturar",
+        "ho-cliente-espana-lleva-iva",
+        "ho-hasta-que-dia-tengo-iva"
+      ],
+      "reaches": [
+        "ley-iva · Artículo 27",
+        "reglamento-iva · Artículo 40",
+        "cnpt · Artículo 79",
+        "reglamento-iva · Artículo 11"
+      ]
+    },
+    "T1-E": {
+      "steps": [
+        "Los contribuyentes del impuesto sobre las utilidades deberán presentar una declaración jurada de autoliquidación del impuesto y pagar la respectiva deuda tributaria dentro de los dos meses y quince días naturales siguientes al cierre del período fiscal.",
+        "Los contribuyentes están obligados a efectuar pagos parciales a cuenta del impuesto de cada período fiscal, calculados sobre el impuesto determinado en el año inmediato anterior o el promedio de los tres últimos períodos fiscales.",
+        "Tramos del impuesto sobre la renta para el período fiscal: las rentas de hasta el monto mensual exento no están sujetas al impuesto, y sobre el exceso aplica la tasa de impuesto de cada tramo."
+      ],
+      "cases": [
+        "ho-minimo-renta-2026",
+        "ho-rebajar-25-sin-facturas",
+        "ho-ademas-tengo-salario"
+      ],
+      "reaches": [
+        "reglamento-renta · Artículo 28",
+        "ley-renta · ARTICULO 22",
+        "tramos-renta-2026"
+      ]
+    },
+    "T1-F": {
+      "steps": [
+        "El monto de las cuotas que deben pagar los trabajadores independientes se calculará sobre los ingresos netos que perciban: el ingreso bruto menos los gastos propios para la operación de la actividad económica.",
+        "El trabajador independiente gestionará el ajuste del ingreso sobre el cual se calcularán sus contribuciones a los seguros sociales en los primeros 3 días hábiles del mes, de forma presencial en las oficinas o mediante las plataformas tecnológicas que la institución habilite.",
+        "Una persona asegurada por su patrono que además realiza actividad económica por cuenta propia debe cotizar a la seguridad social tanto como trabajador independiente como trabajador asalariado."
+      ],
+      "cases": [
+        "ho-800-mil-que-porcentaje-caja",
+        "ho-minimo-caja-independiente-2026",
+        "ho-tambien-asegurado-por-patrono"
+      ],
+      "reaches": [
+        "ccss-reglamento-ti · Artículo 10",
+        "ccss-reglamento-ti · Artículo 12",
+        "ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?"
+      ]
+    },
+    "T1-G": {
+      "steps": [
+        "La solicitud de prescripción se presenta por escrito ante la unidad o sucursal financiera de la CCSS a cargo del procedimiento de verificación de obligaciones, o en la cuenta de correo cobros@ccss.sa.cr cuando la deuda está en proceso de cobro.",
+        "El plazo otorgado a la Administración para resolver la prescripción en sede administrativa es de 20 días hábiles, contados a partir del siguiente día hábil de recibida la solicitud.",
+        "El trabajador independiente puede solicitar la prescripción en cualquier fase del procedimiento de verificación de obligaciones o cuando la deuda está en proceso de cobro."
+      ],
+      "cases": [
+        "ccss-pedir-prescripcion-cuotas",
+        "ho-cobrar-8-anos-atras-caja",
+        "ccss-ventana-prescripcion-24-meses"
+      ],
+      "reaches": [
+        "ccss-prescripcion · ¿Dónde presento la solicitud?",
+        "ccss-prescripcion · ¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración?",
+        "ccss-prescripcion · ¿En qué momento puedo solicitar la prescripción de las deudas?"
+      ]
+    },
+    "T1-H": {
+      "steps": [
+        "Para solicitar la desinscripción del sistema TRIBU-CR se ingresa a la Oficina Virtual, en «Mis datos» se selecciona «Solicitar desinscripción» y, con «Cierre de negocio» como motivo, se completa la fecha de fin de actividades económicas.",
+        "Los sujetos pasivos que omitan presentar las declaraciones de autoliquidación de obligaciones tributarias dentro del plazo legal establecido tendrán una multa equivalente al cincuenta por ciento (50%) del salario base.",
+        "En caso de que el trabajador independiente suspenda la actividad generadora de ingresos, debe comunicarlo de forma inmediata a la sucursal donde se afilió para la suspensión de la facturación, demostrando que cesó la actividad económica propia."
+      ],
+      "cases": [
+        "ho-desinscribir-debiendo-declaraciones",
+        "desinscripcion-dejar-actividad",
+        "ccss-cese-actividad"
+      ],
+      "reaches": [
+        "tribu-cr-faq · Declaraciones del RUT · 31",
+        "tribu-cr-faq · Declaraciones del RUT · 43",
+        "cnpt · Artículo 79",
+        "ccss-faq · ¿Qué debo hacer si dejo de trabajar de forma Independiente?",
+        "ccss-faq · ¿Se puede suspender el seguro de trabajador independiente?"
+      ]
+    },
+    "T1-I": {
+      "steps": [
+        "Las sanciones se reducirán cuando el infractor subsane de forma espontánea su incumplimiento sin que medie ninguna actuación de la Administración, y la reducción es mayor si autoliquida y paga la sanción en el momento de subsanar el incumplimiento.",
+        "Las declaraciones omitidas y la declaración de inscripción se presentan en la Oficina Virtual de TRIBU-CR, donde también se autoliquida y paga la sanción.",
+        "Quienes omitan presentar la declaración de inscripción deberán liquidar y pagar una sanción del cincuenta por ciento (50%) de un salario base por cada mes o fracción de mes, y quienes omitan presentar las declaraciones tributarias tendrán una multa del cincuenta por ciento (50%) del salario base."
+      ],
+      "cases": [
+        "inscripcion-tardia-sancion",
+        "multa-iva-no-declarado",
+        "ho-rebajar-multa-si-pago-ya"
+      ],
+      "reaches": [
+        "cnpt · Artículo 88",
+        "cnpt · Artículo 78",
+        "cnpt · Artículo 79"
+      ]
+    }
+  }
+}
