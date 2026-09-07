@@ -37,6 +37,7 @@ import { condenseQuestion } from "../answer/condense";
 import { pinDerivedFigureInputs } from "../answer/derived";
 import { expansionEnabled } from "../answer/expand";
 import {
+  answerDocCap,
   answerSetFromOrder,
   answerTopK,
   RERANK_MODEL,
@@ -56,6 +57,12 @@ import {
   type EvalCase,
 } from "./dataset";
 import { formatExposureTally, tallyByExposure } from "./exposure";
+import {
+  selectCases,
+  SUBSET_ENV,
+  subsetGateFailure,
+  subsetSpec,
+} from "./subset";
 
 /**
  * Hit-rate gate (expected artículo in answer top-k). Set 2026-08-06 on the
@@ -127,15 +134,35 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
   // An abstention case has no correct source by construction (#261), so it
   // has nothing to hit and *should* trip the weak-retrieval fallback — the
   // opposite of what every assertion below says. It is judged in its own lane.
-  const cases = retrievalCases(
+  const allCases = retrievalCases(
     parseDataset(readFileSync(DATASET_PATH, "utf8")),
   );
+  // #303: `EVAL_CASES` scopes this suite the way it scopes groundedness
+  // (#289), so a retrieval knob can be read on the cases it was written for
+  // before the whole dataset is spent on it. Same rule: every gate below
+  // fails while a subset is selected, naming it.
+  const subset = subsetSpec();
   const results: CaseResult[] = [];
   const rerankMode = process.env.RERANK || "voyage";
   const expandMode = expansionEnabled() ? "on" : "off";
   const topKSize = answerTopK();
+  const docCap = answerDocCap();
+
+  function assertFullRun(): void {
+    if (subset !== null) throw new Error(subsetGateFailure(subset));
+  }
 
   beforeAll(async () => {
+    // Before any paid call: an id that names no case is a typo that would
+    // otherwise buy an empty table.
+    const cases = selectCases(allCases, subset);
+    if (subset !== null) {
+      console.log(
+        `\n${SUBSET_ENV}: ${cases.length}/${allCases.length} case(s) — ` +
+          `${cases.map((c) => c.id).join(", ")}. Gates will fail: a subset ` +
+          `run is a transcript read, not a measurement.`,
+      );
+    }
     // Constructed here, not in the describe body: `describe.skip` still runs
     // its callback, so a constructor that throws without the environment
     // would crash the file on the gate's skip path (#129).
@@ -186,7 +213,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
     const hits = results.filter((r) => r.hit).length;
     console.log(
       `\nretrieval hit-rate (rerank=${rerankMode} ${process.env.RERANK_MODEL || RERANK_MODEL}, pool ${RERANK_POOL} → top ${topKSize}, ` +
-        `expand=${expandMode}, ` +
+        `cap=${docCap === Infinity ? "off" : docCap}/doc, expand=${expandMode}, ` +
         `pin=${process.env.PIN_DERIVED_INPUTS === "on" ? "on" : "off"}): ${hits}/${results.length}`,
     );
     for (const r of results) {
@@ -235,6 +262,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
   }, 2_700_000);
 
   it("finds every blocking case's artículo in the answer top-k", () => {
+    assertFullRun();
     const failed = results
       .filter((r) => r.evalCase.blocking && !r.hit)
       .map((r) => r.evalCase.id);
@@ -244,11 +272,13 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
   });
 
   it(`hits at least ${HIT_RATE_GATE * 100}% of expected artículos in the answer top-k`, () => {
+    assertFullRun();
     const hits = results.filter((r) => r.hit).length;
     expect(hits / results.length).toBeGreaterThanOrEqual(HIT_RATE_GATE);
   });
 
   it("never trips the weak-retrieval fallback on a legitimate question", () => {
+    assertFullRun();
     // Corroboration referee (#25 charter, isCorroborated in retrieval.ts):
     // every eval question is answerable from the corpus, so none may be
     // "weak".
