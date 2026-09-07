@@ -1232,7 +1232,7 @@ depends on it.
 
 The six-case read above settled that five Tier 1 adequacy failures were
 retrieval, and named the shape: the right document, the wrong chunk of it.
-#303 turned that into a hypothesis — the reranker lets one FAQ page take five
+Issue #303 turned that into a hypothesis — the reranker lets one FAQ page take five
 of eight places with its most question-_like_ entries while the entry that
 answers the required step ranks 9th to 15th — and three candidate fixes,
 cheapest first: a per-document cap with backfill, a step-shaped expansion leg,
@@ -1283,7 +1283,7 @@ probe was retrieved on alone. Haiku either rewrote the question again or
 copied the prompt's worked example verbatim, and the probe's own pool carried
 the needed chunk at ranks 6–32 or not at all. Not viable as one leg on the
 current model, so it was not built; the prompt and the numbers are in the
-#303 thread.
+thread of #303.
 
 **The 14 unread Tier 1 cases** — the rest of #267's "answer omission" rows —
 were then read on the pipeline of record (top 8, cap off):

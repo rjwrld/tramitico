@@ -491,7 +491,8 @@ describe("the per-document cap (#303)", () => {
 
   it("is off by default — measured on six cases and it earned no change", () => {
     expect(ANSWER_DOC_CAP).toBe(Infinity);
-    expect(answerDocCap()).toBe(Infinity);
+    // Stubbed before the first read: a shell that exports ANSWER_DOC_CAP for
+    // a measured run must not leak into the test of the default.
     vi.stubEnv("ANSWER_DOC_CAP", "");
     expect(answerDocCap()).toBe(Infinity);
   });
