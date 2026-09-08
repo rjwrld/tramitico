@@ -21,6 +21,7 @@ import { serviceClient } from "./supabase/service";
 import { isCitation, parseCitations, type Citation } from "./citations";
 import { recordDegradedRetrieval } from "./retrieval-degraded";
 import { expandQuery, expansionEnabled } from "./answer/expand";
+import { stepProbe, stepsEnabled, type StepProbe } from "./answer/steps";
 
 /**
  * What the `search_chunks` RPC rejecting looks like to a caller. Used to read
@@ -117,6 +118,13 @@ export interface SearchChunksRow {
   expansion_vector_rank: number | null;
   /** 1-based rank in the expansion's lexical leg; null when it missed (#286). */
   expansion_lexical_rank: number | null;
+  /**
+   * 1-based rank in the step catalogue's vector leg (#304), by the nearest
+   * sentence; null when it missed, absent from a v5 row.
+   */
+  step_vector_rank?: number | null;
+  /** 1-based rank in the step catalogue's lexical leg, by the best sentence. */
+  step_lexical_rank?: number | null;
 }
 
 export interface SearchChunksArgs {
@@ -138,6 +146,19 @@ export interface SearchChunksArgs {
   expansion_text?: string | null;
   /** pgvector literal for `expansion_text`; null disables its vector leg. */
   expansion_embedding?: string | null;
+  /**
+   * The step catalogue's sentences (#304), one probe each, or null for the
+   * four-leg contract v5 had. Feeds the step lexical leg, ranked by the best
+   * sentence.
+   */
+  step_texts?: string[] | null;
+  /**
+   * One pgvector literal per sentence, in the same order, or null in the slot
+   * of a sentence whose embed failed — that sentence keeps its lexical leg
+   * and loses its vector one, as `expansion_embedding: null` does for the
+   * expansion. Null altogether disables the step vector leg.
+   */
+  step_embeddings?: (string | null)[] | null;
 }
 
 /**
@@ -187,6 +208,14 @@ export interface RetrievedChunk {
   expansionVectorRank?: number | null;
   /** 1-based rank in the expansion's lexical leg; null when it missed (#286). */
   expansionLexicalRank?: number | null;
+  /**
+   * 1-based rank in the step catalogue's vector leg (#304) — the chunk's
+   * distance to its nearest catalogue sentence; null when that leg missed
+   * it, and absent when the retrieval ran no catalogue at all.
+   */
+  stepVectorRank?: number | null;
+  /** 1-based rank in the step catalogue's lexical leg; null when it missed. */
+  stepLexicalRank?: number | null;
 }
 
 export interface RetrievalResult {
@@ -212,6 +241,12 @@ export interface RetrievalResult {
    * two-leg search v4 performed.
    */
   expansion: string | null;
+  /**
+   * The step catalogue probe the step legs ran on (#304) — the family the
+   * question classified to and its sentences — or null when there was none:
+   * the question named no family, `STEPS=off`, or a caller that opted out.
+   */
+  steps: StepProbe | null;
 }
 
 /**
@@ -221,6 +256,16 @@ export interface RetrievalResult {
  */
 export interface QueryExpander {
   expand(query: string): Promise<string | null>;
+}
+
+/**
+ * The step-catalogue seam (#304): names the family's probe for a question,
+ * or `null` when the question belongs to none. Deterministic in production
+ * (`stepProbe`); the seam exists so tests can hand in a probe without the
+ * classifier, and so a caller can pass `null` to opt out.
+ */
+export interface StepCatalogue {
+  probe(query: string): StepProbe | null;
 }
 
 export interface RetrieveOptions {
@@ -233,6 +278,11 @@ export interface RetrieveOptions {
    * question only.
    */
   expander?: QueryExpander | null;
+  /**
+   * Step-catalogue seam (#304). Omit for the production catalogue, which is
+   * skipped under `STEPS=off`; pass `null` to search without it.
+   */
+  steps?: StepCatalogue | null;
 }
 
 /**
@@ -257,6 +307,13 @@ export interface RetrieveOptions {
  * expansion's vector leg. That is the #286 register gap, and it is the one
  * place the expansion can still move `isWeak`: towards answering, never
  * towards declining.
+ *
+ * The step catalogue's legs (#304) are not a witness on either side. The
+ * probe is the same hand-written text for every question in a family, so a
+ * chunk it found says nothing about *this* question's words, and a
+ * similarity witness that any question in the family would supply is not a
+ * similarity to what the reader asked. The catalogue can fill a pool; it
+ * cannot move `isWeak`.
  *
  * `isWeak` — no returned chunk corroborated — is what #21 turns into the
  * honest fallback (say so and link the agency) instead of answering from
@@ -425,6 +482,8 @@ function toChunk(row: SearchChunksRow): RetrievedChunk {
     lexicalRank: row.lexical_rank ?? null,
     expansionVectorRank: row.expansion_vector_rank ?? null,
     expansionLexicalRank: row.expansion_lexical_rank ?? null,
+    stepVectorRank: row.step_vector_rank ?? null,
+    stepLexicalRank: row.step_lexical_rank ?? null,
   };
 }
 
@@ -464,6 +523,11 @@ function defaultExpander(): QueryExpander | null {
   return expansionEnabled() ? { expand: (query) => expandQuery(query) } : null;
 }
 
+/** The production catalogue, or `null` under `STEPS=off` (steps.ts owns it). */
+function defaultStepCatalogue(): StepCatalogue | null {
+  return stepsEnabled() ? { probe: (query) => stepProbe(query) } : null;
+}
+
 /**
  * One embed attempt, `null` instead of a throw. `countDegradation` is what
  * separates the question's embed — whose failure is the #127 degradation the
@@ -497,6 +561,7 @@ export async function retrieve(
       isWeak: true,
       isDegraded: false,
       expansion: null,
+      steps: null,
     };
   }
 
@@ -504,6 +569,12 @@ export async function retrieve(
   const client = options.client ?? createRetrievalClient();
   const expander =
     options.expander === undefined ? defaultExpander() : options.expander;
+  const catalogue =
+    options.steps === undefined ? defaultStepCatalogue() : options.steps;
+  // Free and synchronous: a keyword table over the question (#304). It is
+  // decided before any provider is called so its sentences can be embedded
+  // in the same wait as the question.
+  const steps = catalogue === null ? null : catalogue.probe(trimmed);
 
   // #127: the ask path does not get to die because the embedding provider is
   // down. `embedQuery` is one attempt on a ~5 s budget; when it does not come
@@ -515,9 +586,21 @@ export async function retrieve(
   // The expansion (#286) is asked for alongside that embed rather than in
   // front of it: the two calls go to different providers and neither needs
   // the other's answer, so the reader waits for the slower one, not for both.
-  const [embedding, expansion] = await Promise.all([
+  //
+  // The catalogue's sentences (#304) embed in the same wait: they are known
+  // before anything is called, and each is one more request to the same
+  // provider. A sentence whose embed fails keeps its lexical leg, like the
+  // expansion's, and is not counted as the reader's degradation either.
+  const [embedding, expansion, stepEmbeddings] = await Promise.all([
     embedOrNull(embedder, trimmed),
     expander === null ? Promise.resolve(null) : expander.expand(trimmed),
+    steps === null
+      ? Promise.resolve(null)
+      : Promise.all(
+          steps.sentences.map((sentence) =>
+            embedOrNull(embedder, sentence, false),
+          ),
+        ),
   ]);
   const isDegraded = embedding === null;
 
@@ -534,6 +617,13 @@ export async function retrieve(
     expansion_text: expansion,
     expansion_embedding:
       expansionEmbedding === null ? null : JSON.stringify(expansionEmbedding),
+    step_texts: steps === null ? null : steps.sentences,
+    step_embeddings:
+      stepEmbeddings === null
+        ? null
+        : stepEmbeddings.map((vector) =>
+            vector === null ? null : JSON.stringify(vector),
+          ),
   });
   if (error) {
     throw new SearchChunksError(error);
@@ -571,5 +661,6 @@ export async function retrieve(
       : !chunks.some(isCorroborated),
     isDegraded,
     expansion,
+    steps,
   };
 }

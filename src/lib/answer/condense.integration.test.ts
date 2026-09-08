@@ -185,8 +185,12 @@ describeDb("condensed follow-up retrieval (integration)", () => {
       // Condensation only (#132). The expansion legs (#286) are a second
       // rewrite on the same seam, and letting them run here would answer the
       // control case — "the raw follow-up finds nothing" — with the
-      // expansion's rewrite instead of the condensation's.
+      // expansion's rewrite instead of the condensation's. The step
+      // catalogue (#304) is the same kind of second search — a standalone
+      // question naming «renta» draws that family's legs over the whole
+      // corpus — so it is switched off here too.
       expander: null,
+      steps: null,
     });
     return result.chunks;
   };

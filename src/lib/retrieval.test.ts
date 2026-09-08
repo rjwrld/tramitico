@@ -465,6 +465,11 @@ describe("retrieve", () => {
   // unaffected by the switch.
   beforeEach(() => {
     vi.stubEnv("EXPAND", "off");
+    // Same for the step catalogue (#304): its classifier is free and runs
+    // by default, so a question that names a family would put sentences on
+    // the wire in every test below. Cases that want it pass their own
+    // `steps`.
+    vi.stubEnv("STEPS", "off");
   });
 
   afterEach(() => {
@@ -487,6 +492,9 @@ describe("retrieve", () => {
       // No expander configured: the v4 two-leg contract, on the wire (#286).
       expansion_text: null,
       expansion_embedding: null,
+      // And no catalogue (#304): v5's four-leg contract, on the wire.
+      step_texts: null,
+      step_embeddings: null,
     });
   });
 
@@ -605,6 +613,147 @@ describe("retrieve", () => {
    * `query_embedding` goes to the RPC as `null` — is the whole contract here,
    * since that is what makes `search_chunks` run lexical-only.
    */
+  describe("the step catalogue legs (#304)", () => {
+    const probe = {
+      family: "T1-B" as const,
+      sentences: ["Dónde se afilia.", "Cuándo se paga la cuota."],
+    };
+
+    it("sends each sentence and its embedding beside the question's", async () => {
+      let seen: Record<string, unknown> | undefined;
+      const result = await retrieve("¿Y dónde me afilio?", {
+        client: fakeClient([ROW], (args) => {
+          seen = args;
+        }),
+        embedder: fakeEmbedder(),
+        steps: { probe: () => probe },
+      });
+
+      expect(seen).toMatchObject({
+        query_text: "¿Y dónde me afilio?",
+        query_embedding: "[0.5,0.5,0.5]",
+        step_texts: ["Dónde se afilia.", "Cuándo se paga la cuota."],
+        step_embeddings: ["[0.5,0.5,0.5]", "[0.5,0.5,0.5]"],
+      });
+      // Reported, so the rerank can score the sentences and the harness can
+      // print the family.
+      expect(result.steps).toEqual(probe);
+    });
+
+    it("runs the production classifier by default and none under STEPS=off", async () => {
+      vi.stubEnv("STEPS", "");
+      let seen: Record<string, unknown> | undefined;
+      const on = await retrieve(
+        "¿Me puedo desinscribir si debo declaraciones?",
+        {
+          client: fakeClient([ROW], (args) => {
+            seen = args;
+          }),
+          embedder: fakeEmbedder(),
+        },
+      );
+      expect(on.steps?.family).toBe("T1-H");
+      expect(seen?.step_texts).toEqual(on.steps?.sentences);
+
+      vi.stubEnv("STEPS", "off");
+      const off = await retrieve(
+        "¿Me puedo desinscribir si debo declaraciones?",
+        {
+          client: fakeClient([ROW], (args) => {
+            seen = args;
+          }),
+          embedder: fakeEmbedder(),
+        },
+      );
+      expect(off.steps).toBeNull();
+      expect(seen).toMatchObject({ step_texts: null, step_embeddings: null });
+    });
+
+    it("searches without a catalogue when the question names no family", async () => {
+      let seen: Record<string, unknown> | undefined;
+      const result = await retrieve("iva", {
+        client: fakeClient([ROW], (args) => {
+          seen = args;
+        }),
+        embedder: fakeEmbedder(),
+        steps: { probe: () => null },
+      });
+      expect(seen).toMatchObject({ step_texts: null, step_embeddings: null });
+      expect(result.steps).toBeNull();
+    });
+
+    it("keeps a sentence's lexical leg when its embed fails, and is not degraded", async () => {
+      let seen: Record<string, unknown> | undefined;
+      const embedder: Embedder = {
+        ...fakeEmbedder(),
+        embedQuery: async (text) => {
+          if (text === "Cuándo se paga la cuota.")
+            throw new Error("voyage 500");
+          return [0.5, 0.5, 0.5];
+        },
+      };
+      const result = await retrieve("¿Y dónde me afilio?", {
+        client: fakeClient([ROW], (args) => {
+          seen = args;
+        }),
+        embedder,
+        steps: { probe: () => probe },
+      });
+      expect(seen).toMatchObject({
+        query_embedding: "[0.5,0.5,0.5]",
+        step_texts: ["Dónde se afilia.", "Cuándo se paga la cuota."],
+        // The slot stays, null, so texts and embeddings line up by index.
+        step_embeddings: ["[0.5,0.5,0.5]", null],
+      });
+      expect(result.isDegraded).toBe(false);
+      expect(degradedRetrievals()).toEqual({ timeout: 0, error: 0 });
+    });
+
+    it("maps the step ranks onto the chunk", async () => {
+      const result = await retrieve("¿Y dónde me afilio?", {
+        client: fakeClient([
+          { ...ROW, step_vector_rank: 2, step_lexical_rank: null },
+        ]),
+        embedder: fakeEmbedder(),
+        steps: { probe: () => probe },
+      });
+      expect(result.chunks[0]).toMatchObject({
+        stepVectorRank: 2,
+        stepLexicalRank: null,
+      });
+    });
+
+    it("never lets the catalogue witness corroboration", async () => {
+      // A chunk only the catalogue found — by both of its legs — is the
+      // probe's match, not the reader's: the probe is the same text for
+      // every question in the family (#307's rule, applied to #304).
+      const catalogueOnly: SearchChunksRow = {
+        ...ROW,
+        vector_rank: null,
+        lexical_rank: null,
+        step_vector_rank: 1,
+        step_lexical_rank: 1,
+      };
+      const result = await retrieve("¿Y dónde me afilio?", {
+        client: fakeClient([catalogueOnly]),
+        embedder: fakeEmbedder(),
+        steps: { probe: () => probe },
+      });
+      expect(result.chunks).toHaveLength(1);
+      expect(result.isWeak).toBe(true);
+
+      // Nor on the degraded path, where "the reader's own words matched"
+      // is the whole test.
+      const degraded = await retrieve("¿Y dónde me afilio?", {
+        client: fakeClient([catalogueOnly]),
+        embedder: failingEmbedder(new Error("voyage 503")),
+        steps: { probe: () => probe },
+      });
+      expect(degraded.isDegraded).toBe(true);
+      expect(degraded.isWeak).toBe(true);
+    });
+  });
+
   describe("the expansion legs (#286)", () => {
     it("sends the rewrite and its embedding beside the question's", async () => {
       let seen: Record<string, unknown> | undefined;
@@ -805,6 +954,8 @@ describe("retrieve", () => {
         query_embedding: null,
         expansion_text: null,
         expansion_embedding: null,
+        step_texts: null,
+        step_embeddings: null,
         match_count: DEFAULT_MATCH_COUNT,
       });
       expect(result.isDegraded).toBe(true);

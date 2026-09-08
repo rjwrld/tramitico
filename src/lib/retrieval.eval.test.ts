@@ -170,6 +170,8 @@ describeDb("search_chunks against the ingested corpus", () => {
       "path",
       "score",
       "source",
+      "step_lexical_rank",
+      "step_vector_rank",
       "vector_rank",
     ]);
     expect(Array.isArray(row.path)).toBe(true);

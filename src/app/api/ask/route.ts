@@ -732,10 +732,12 @@ export async function POST(request: Request): Promise<Response> {
     // Pinning the missing input back in from the pool the reranker just read
     // is an append, so nothing the rerank chose is displaced.
     // #286: the reranker scores the question *and* its corpus-register
-    // expansion, for the same reason the fused legs do.
+    // expansion, for the same reason the fused legs do — and, since #304,
+    // the step catalogue's sentences when retrieval ran a probe.
     const chunks = pinDerivedFigureInputs(
       await rerankChunks(asked.query, retrieval.chunks, {
         expansion: retrieval.expansion,
+        steps: retrieval.steps?.sentences ?? null,
       }),
       retrieval.chunks,
     );

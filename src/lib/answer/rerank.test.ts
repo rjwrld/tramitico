@@ -14,6 +14,9 @@ import {
   fuseByMaxScore,
   rerankOrder,
   rerankQueries,
+  rerankReadings,
+  STEP_RERANK_MODE,
+  stepRerankMode,
 } from "./rerank";
 
 function chunk(id: number): RetrievedChunk {
@@ -182,6 +185,51 @@ describe("the rerank queries (#286, recomposed in #296)", () => {
     }
   });
 
+  it("adds the step catalogue's sentences after the expansion, one query each (#304)", () => {
+    expect(
+      rerankQueries("¿y dónde me afilio?", "trámite de afiliación", [
+        "Dónde se afilia.",
+        "Cuándo se paga la cuota.",
+      ]),
+    ).toEqual([
+      "¿y dónde me afilio?",
+      "trámite de afiliación",
+      "Dónde se afilia.",
+      "Cuándo se paga la cuota.",
+    ]);
+    // The question is always first — the tiebreak in `fuseByMaxScore`
+    // reads slot 0 as the reader's own reading.
+    expect(
+      rerankQueries("¿y dónde me afilio?", null, ["Dónde se afilia."]),
+    ).toEqual(["¿y dónde me afilio?", "Dónde se afilia."]);
+    for (const steps of [undefined, null, []]) {
+      expect(rerankQueries("¿y dónde me afilio?", null, steps)).toEqual([
+        "¿y dónde me afilio?",
+      ]);
+    }
+  });
+
+  it("makes one call per sentence, in the same batch as the question's (#304)", async () => {
+    vi.stubEnv("RERANK", "voyage");
+    vi.stubEnv("VOYAGE_API_KEY", "test-key");
+    // Pinned: a shell that exported STEPS_RERANK=off would make this pass
+    // on one call and prove nothing.
+    vi.stubEnv("STEPS_RERANK", "pin");
+    const sent: string[] = [];
+    const fetchImpl = (async (_url: string, init: RequestInit) => {
+      sent.push(JSON.parse(init.body as string).query);
+      return new Response(
+        JSON.stringify({ data: [{ index: 0, relevance_score: 1 }] }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    }) as unknown as typeof fetch;
+    await rerankChunks("pregunta", [chunk(1)], {
+      fetchImpl,
+      steps: ["paso uno", "paso dos"],
+    });
+    expect(sent).toEqual(["pregunta", "paso uno", "paso dos"]);
+  });
+
   it("sends each one to Voyage as its own query, over the same documents", async () => {
     const sent: string[] = [];
     const documentsSent: string[][] = [];
@@ -222,6 +270,183 @@ describe("the rerank queries (#286, recomposed in #296)", () => {
     );
     await rerankChunks("pregunta", [chunk(1)], { fetchImpl });
     expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("the step catalogue at the rerank (#304)", () => {
+  beforeEach(() => {
+    vi.unstubAllEnvs();
+    vi.stubEnv("RERANK", "voyage");
+    vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  /**
+   * Voyage, scripted per query: the question ranks c1 > c2 > c3, sentence
+   * one ranks c3 best, sentence two ranks c2 best — a step chunk the cut
+   * would drop, and one it already keeps.
+   */
+  function scripted(): typeof fetch {
+    const verdicts: Record<
+      string,
+      { index: number; relevance_score: number }[]
+    > = {
+      pregunta: [
+        { index: 0, relevance_score: 0.9 },
+        { index: 1, relevance_score: 0.8 },
+        { index: 2, relevance_score: 0.1 },
+      ],
+      "paso uno": [
+        { index: 2, relevance_score: 0.95 },
+        { index: 0, relevance_score: 0.2 },
+      ],
+      "paso dos": [
+        { index: 1, relevance_score: 0.7 },
+        { index: 2, relevance_score: 0.6 },
+      ],
+    };
+    return (async (_url: string, init: RequestInit) => {
+      const { query } = JSON.parse(init.body as string);
+      return new Response(JSON.stringify({ data: verdicts[query] ?? [] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }) as unknown as typeof fetch;
+  }
+  const pool = [chunk(1), chunk(2), chunk(3)];
+
+  it("reads STEPS_RERANK, defaulting to the constant", () => {
+    vi.stubEnv("STEPS_RERANK", "");
+    expect(stepRerankMode()).toBe(STEP_RERANK_MODE);
+    for (const mode of ["pin", "max", "off"] as const) {
+      vi.stubEnv("STEPS_RERANK", mode);
+      expect(stepRerankMode()).toBe(mode);
+    }
+    vi.stubEnv("STEPS_RERANK", "sideways");
+    expect(stepRerankMode()).toBe(STEP_RERANK_MODE);
+  });
+
+  it("pin: keeps the question's order and appends each sentence's best chunk past the cut", async () => {
+    vi.stubEnv("STEPS_RERANK", "pin");
+    vi.stubEnv("ANSWER_TOP_K", "2");
+    const outcome = await rerankReadings("pregunta", pool, {
+      fetchImpl: scripted(),
+      steps: ["paso uno", "paso dos"],
+    });
+    // The order is the question's alone — c3 stays last despite 0.95.
+    expect(outcome?.order.map((r) => r.chunk.chunkId)).toEqual([
+      "c1",
+      "c2",
+      "c3",
+    ]);
+    // One pick per sentence, scored by that sentence's reading, ranked by
+    // the question's order.
+    expect(
+      outcome?.stepPicks.map((r) => [r.chunk.chunkId, r.score, r.rank]),
+    ).toEqual([
+      ["c3", 0.95, 3],
+      ["c2", 0.7, 2],
+    ]);
+    // The cut is c1, c2; c3 is appended; c2 is already in and not repeated.
+    expect(
+      answerSetFromOrder(outcome!.order, pool, outcome!.stepPicks).map(
+        (c) => c.chunkId,
+      ),
+    ).toEqual(["c1", "c2", "c3"]);
+    expect(
+      (
+        await rerankChunks("pregunta", pool, {
+          fetchImpl: scripted(),
+          steps: ["paso uno", "paso dos"],
+        })
+      ).map((c) => c.chunkId),
+    ).toEqual(["c1", "c2", "c3"]);
+  });
+
+  it("pin: never pins one chunk twice when two sentences agree", async () => {
+    vi.stubEnv("STEPS_RERANK", "pin");
+    vi.stubEnv("ANSWER_TOP_K", "1");
+    const outcome = await rerankReadings("pregunta", pool, {
+      fetchImpl: scripted(),
+      steps: ["paso uno", "paso uno"],
+    });
+    expect(outcome?.stepPicks.map((r) => r.chunk.chunkId)).toEqual(["c3"]);
+  });
+
+  it("max: folds the sentences into the fused order and pins nothing", async () => {
+    vi.stubEnv("STEPS_RERANK", "max");
+    const outcome = await rerankReadings("pregunta", pool, {
+      fetchImpl: scripted(),
+      steps: ["paso uno", "paso dos"],
+    });
+    expect(outcome?.order.map((r) => r.chunk.chunkId)).toEqual([
+      "c3",
+      "c1",
+      "c2",
+    ]);
+    expect(outcome?.stepPicks).toEqual([]);
+  });
+
+  it("off: does not score the sentences at all", async () => {
+    vi.stubEnv("STEPS_RERANK", "off");
+    const sent: string[] = [];
+    const fetchImpl = (async (_url: string, init: RequestInit) => {
+      sent.push(JSON.parse(init.body as string).query);
+      return new Response(
+        JSON.stringify({ data: [{ index: 0, relevance_score: 1 }] }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    }) as unknown as typeof fetch;
+    const outcome = await rerankReadings("pregunta", pool, {
+      fetchImpl,
+      expansion: "términos oficiales",
+      steps: ["paso uno", "paso dos"],
+    });
+    expect(sent).toEqual(["pregunta", "términos oficiales"]);
+    expect(outcome?.stepPicks).toEqual([]);
+  });
+
+  it("pin: falls back to the sentence readings when the question's fail, and pins nothing", async () => {
+    vi.stubEnv("STEPS_RERANK", "pin");
+    const fetchImpl = (async (_url: string, init: RequestInit) => {
+      const { query } = JSON.parse(init.body as string);
+      if (query === "pregunta") return new Response("nope", { status: 500 });
+      return new Response(
+        JSON.stringify({ data: [{ index: 2, relevance_score: 0.95 }] }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    }) as unknown as typeof fetch;
+    const outcome = await rerankReadings("pregunta", pool, {
+      fetchImpl,
+      steps: ["paso uno"],
+    });
+    expect(outcome?.order.map((r) => r.chunk.chunkId)).toEqual(["c3"]);
+    expect(outcome?.stepPicks).toEqual([]);
+  });
+
+  it("answerSetFromOrder appends picks after the per-document cap, each once", () => {
+    vi.stubEnv("ANSWER_TOP_K", "2");
+    const order = [chunk(1), chunk(2), chunk(3), chunk(4)].map((c, i) => ({
+      chunk: c,
+      score: 1 - i / 10,
+      rank: i + 1,
+    }));
+    const picks = [order[3], order[0], order[3]];
+    expect(answerSetFromOrder(order, [], picks).map((c) => c.chunkId)).toEqual([
+      "c1",
+      "c2",
+      "c4",
+    ]);
+    // And with no rerank at all, the fused cut plus the picks.
+    expect(
+      answerSetFromOrder(
+        null,
+        order.map((r) => r.chunk),
+        [order[2]],
+      ).map((c) => c.chunkId),
+    ).toEqual(["c1", "c2", "c3"]);
   });
 });
 
