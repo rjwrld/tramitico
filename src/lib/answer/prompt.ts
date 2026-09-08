@@ -97,6 +97,12 @@ function joinSpanish(items: readonly string[]): string {
  * the Salud escala — and `route.ts` refuses an answer that is otherwise
  * correct, spending a retry or an unnecessary decline on a rule it never
  * told the model about (#312).
+ *
+ * The rule is written for *any* number of figures in one sentence, not the
+ * two that motivated it: this function formats however many resolved figures
+ * it is handed, and `incompletelyCitedDerivedFigures` checks each of them
+ * against the same paragraph, so a three-figure sentence fails exactly the
+ * same way.
  */
 export function formatDerivedFigures(
   figures: readonly ResolvedDerivedFigure[],
@@ -114,8 +120,8 @@ export function formatDerivedFigures(
     `Cifras derivadas (calculadas por el sistema a partir de ${joinSpanish(markers)}):\n` +
     "Puede citar estos resultados tal como aparecen; no los recalcule ni los actualice.\n" +
     "La oración en que mencione una de estas cifras debe llevar todos los " +
-    "marcadores que aparecen junto a ella en esta lista; si menciona dos " +
-    "cifras en una misma oración, lleve los marcadores de ambas.\n" +
+    "marcadores que aparecen junto a ella en esta lista; si menciona varias " +
+    "cifras en una misma oración, lleve los marcadores de todas ellas.\n" +
     lines.join("\n")
   );
 }

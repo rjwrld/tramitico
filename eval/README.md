@@ -437,7 +437,9 @@ schema cannot express, and an unreadable report is retried and logged in full
 instead of ending the run.
 
 Reproduce any of this with `pnpm pool-dump <case id> …`, which prints the top
-of the fused pool with all four leg ranks (`--no-expansion` for the v4 pool).
+of the fused pool with all six leg ranks and then every expected target's own
+fused rank (`--no-expansion --no-steps` for the v4 pool, since the expansion
+and the catalogue both run by default).
 
 ### The rerank query, recomposed (#296)
 
@@ -1545,7 +1547,7 @@ the catalogue alone changes nothing the reader sees, and `PIN_DERIVED_INPUTS`
 (#287) is what carries it the rest of the way: when one input of a figure
 survived the cut, the missing ones are appended **from the fused pool the
 reranker just read** — which is exactly the pool this change fixed. That is why
-#304's run recorded the pin as unable to help: it pins from the pool, and the
+the #304 run recorded the pin as unable to help: it pins from the pool, and the
 chunk was not in it.
 
 Measured deterministically over every single-turn case in the dataset — retrieve,
@@ -1586,7 +1588,7 @@ happens.
 The F1 assertion still failed, on its last clause. The answer wrote
 
 > Para 2026, la BMC de IVM es de ¢324.590 y la BMC de Salud (SEM) es de
-> ¢346.789 [8][9].
+> ¢346.789 `[8][9]`.
 
 — two figures in one sentence, carrying the union `{8, 9}` when
 `bmc-sem-2026`'s inputs are `{4, 9}`. `incompletelyCitedDerivedFigures` refuses

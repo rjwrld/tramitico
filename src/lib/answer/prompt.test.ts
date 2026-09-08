@@ -123,7 +123,25 @@ describe("formatDerivedFigures", () => {
       { ...DERIVED_FIGURE, id: "second", citationMarkers: [2, 3] },
     ]);
     expect(block).toContain("todos los marcadores");
-    expect(block).toContain("dos cifras en una misma oración");
+    // The operative half: without it the rule reads as "cite the figure" and
+    // the model can still write two figures under one marker set.
+    expect(block).toContain("los marcadores de todas ellas");
+  });
+
+  it("states it for any number of figures in one sentence, not two", () => {
+    // `formatDerivedFigures` formats however many figures it is handed and
+    // `incompletelyCitedDerivedFigures` checks each against the same
+    // paragraph, so a rule worded for exactly two would leave a
+    // three-figure sentence failing validation with the prompt silent
+    // about it.
+    const block = formatDerivedFigures([
+      DERIVED_FIGURE,
+      { ...DERIVED_FIGURE, id: "second", citationMarkers: [2, 3] },
+      { ...DERIVED_FIGURE, id: "third", citationMarkers: [4, 5] },
+    ]);
+    expect(block).toContain("varias");
+    expect(block).not.toContain("dos cifras");
+    expect(block).toContain("a partir de [1], [2], [3], [4] y [5]");
   });
 });
 
