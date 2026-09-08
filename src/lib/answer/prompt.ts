@@ -85,7 +85,19 @@ function joinSpanish(items: readonly string[]): string {
   return `${items.slice(0, -1).join(", ")} y ${items.at(-1)}`;
 }
 
-/** A clearly non-official block whose markers point only to its official inputs. */
+/**
+ * A clearly non-official block whose markers point only to its official
+ * inputs.
+ *
+ * The last line states, in the prompt, the rule the runtime already enforces
+ * (`incompletelyCitedDerivedFigures`, #263/#281): a quoted figure's own
+ * sentence must carry *every* one of its input markers. Without it the model
+ * writes «la BMC de IVM es de ¢324.590 y la BMC de Salud es de ¢346.789
+ * [8][9]» — one sentence, two figures, the union of their markers short by
+ * the Salud escala — and `route.ts` refuses an answer that is otherwise
+ * correct, spending a retry or an unnecessary decline on a rule it never
+ * told the model about (#312).
+ */
 export function formatDerivedFigures(
   figures: readonly ResolvedDerivedFigure[],
 ): string {
@@ -101,6 +113,9 @@ export function formatDerivedFigures(
   return (
     `Cifras derivadas (calculadas por el sistema a partir de ${joinSpanish(markers)}):\n` +
     "Puede citar estos resultados tal como aparecen; no los recalcule ni los actualice.\n" +
+    "La oración en que mencione una de estas cifras debe llevar todos los " +
+    "marcadores que aparecen junto a ella en esta lista; si menciona dos " +
+    "cifras en una misma oración, lleve los marcadores de ambas.\n" +
     lines.join("\n")
   );
 }

@@ -111,6 +111,20 @@ describe("formatDerivedFigures", () => {
       ]),
     ).toContain("a partir de [1], [2] y [3]");
   });
+
+  it("states the rule the runtime enforces on a quoted figure (#312)", () => {
+    // `incompletelyCitedDerivedFigures` refuses a figure whose own sentence
+    // is short one input marker, and F1's answer lost the SEM figure to
+    // exactly that — two figures in one sentence, the union short by the
+    // Salud escala. A validator the prompt never states is a retry waiting
+    // to happen.
+    const block = formatDerivedFigures([
+      DERIVED_FIGURE,
+      { ...DERIVED_FIGURE, id: "second", citationMarkers: [2, 3] },
+    ]);
+    expect(block).toContain("todos los marcadores");
+    expect(block).toContain("dos cifras en una misma oración");
+  });
 });
 
 describe("ANSWER_SYSTEM_PROMPT", () => {

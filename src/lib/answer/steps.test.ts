@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it, afterEach, vi } from "vitest";
+import { DERIVED_FIGURES, formatCostaRicanColones } from "./derived";
 import { parseCorpusIndex, CORPUS_INDEX_PATH } from "../eval/corpus-index";
 import { DATASET_PATH, FAMILIES, parseDataset } from "../eval/dataset";
 import {
@@ -13,11 +14,14 @@ const dataset = parseDataset(readFileSync(DATASET_PATH, "utf8"));
 const corpusIndex = parseCorpusIndex(readFileSync(CORPUS_INDEX_PATH, "utf8"));
 
 describe("the step catalogue (#304)", () => {
-  it("carries two or three corpus-register sentences for every family", () => {
+  it("carries two to four corpus-register sentences for every family", () => {
+    // Four since #312: T1-B and T1-F carry, beside their three steps, the
+    // line of the salarios mínimos decree that the BMC derivation multiplies
+    // — an input the reader never names and no step sentence reached.
     for (const family of FAMILIES) {
       const { steps } = STEP_CATALOGUE[family];
       expect(steps.length, family).toBeGreaterThanOrEqual(2);
-      expect(steps.length, family).toBeLessThanOrEqual(3);
+      expect(steps.length, family).toBeLessThanOrEqual(4);
       for (const sentence of steps) {
         expect(sentence.trim(), family).toBe(sentence);
         expect(sentence.length, family).toBeGreaterThan(40);
@@ -37,6 +41,31 @@ describe("the step catalogue (#304)", () => {
         ).toBeDefined();
         expect(evalCase?.family, `${family}: ${id}`).toBe(family);
       }
+    }
+  });
+
+  it("keeps the figure it quotes equal to the audited derived-figure input (#312)", () => {
+    // The one catalogue sentence that carries a number rather than a step:
+    // T1-B and T1-F quote the salarios mínimos table line the BMC
+    // derivation multiplies. `salarios-minimos` churns annually (its
+    // manifest entry says so), and a sentence quoting last year's colones
+    // reaches nothing — the lexical leg's strict AND branch needs the
+    // chunk's own token. So the sentence is pinned to the same audited value
+    // `corpus/manifest.json` states for the input, and the annual update
+    // fails here rather than silently in a pool rank.
+    const input = DERIVED_FIGURES.flatMap((figure) => figure.inputs).find(
+      (candidate) =>
+        candidate.docKey === "salarios-minimos" &&
+        candidate.articulo === "Artículo 1",
+    );
+    expect(input, "no salarios-minimos input in the manifest").toBeDefined();
+    const formatted = formatCostaRicanColones(input!.value, input!.decimals);
+    for (const family of ["T1-B", "T1-F"] as const) {
+      const quoting = STEP_CATALOGUE[family].steps.filter((sentence) =>
+        sentence.includes("Ocupación No Calificada"),
+      );
+      expect(quoting.length, family).toBe(1);
+      expect(quoting[0], family).toContain(formatted);
     }
   });
 

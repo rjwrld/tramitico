@@ -18,7 +18,7 @@
  *
  * The steps are not open-ended, though. The dataset's nine Tier 1 families
  * already name them, and a family's steps are the same whichever of its
- * questions is asked. So they are **written by hand**, two or three sentences
+ * questions is asked. So they are **written by hand**, two to four sentences
  * per family in the corpus's own register (`eval/step-catalogue.json`,
  * beside the dataset they were written for and verified against the chunks
  * they are meant to reach), and this module does two deterministic things
@@ -46,6 +46,14 @@
  * so a probe can push a chunk down the fused order; that is the bound the
  * measurement in eval/README.md reads.
  *
+ * Since #312 one entry is not a step. A *derived* figure's input is absent
+ * from the pool for the same reason a step is — «¿cuánto pago a la CCSS?»
+ * never names the wage decree its answer multiplies — and it fails harder,
+ * because a figure is arithmetic over every one of its inputs and one missing
+ * chunk deletes it. So T1-B and T1-F carry, beside their three steps, the
+ * `salarios-minimos` table line the BMC derivation reads. That is the
+ * catalogue's shape doing what it is for; nothing here treats it specially.
+ *
  * What it deliberately does **not** do is witness corroboration: a chunk
  * found only by the catalogue's legs is not one the reader's words matched
  * (#307), and the probe is the same text for every question in the family,
@@ -58,7 +66,8 @@ import { normaliseQuestion, wordPatterns } from "../routing";
 
 /** One family's entry as committed beside the dataset. */
 export interface StepCatalogueEntry {
-  /** Two or three corpus-register sentences naming the family's steps. */
+  /** Two to four corpus-register sentences: the family's steps, and
+   * (#312) the input of a figure its answers derive. */
   steps: string[];
   /** The dataset cases the entry was written for. */
   cases: string[];

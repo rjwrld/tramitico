@@ -70,9 +70,11 @@ different search than a run with one. `EXPAND=off` opts out explicitly, and is
 what to set when comparing against a pre-#286 number.
 
 For a single case, `pnpm pool-dump <case id> …` prints the top of the fused
-pool with every leg's rank and the expansion that produced it — the diagnostic
-#286 was written with, and the cheapest way to tell a chunk problem from a
-register problem (one embed per case, no answer model).
+pool with every leg's rank and the expansion that produced it, then every
+expected target's own fused rank (#312) — the diagnostic #286 was written with,
+and the cheapest way to tell a chunk problem from a register problem (one embed
+per case, no answer model). `--pool=<n>` widens the fused depth past
+`RERANK_POOL`, which is how a target nowhere near the 40 is located at all.
 
 Four knobs exist so the #287 and #303 options are measured rather than
 argued, all read at call time and all defaulting to the pipeline of record:
@@ -1473,6 +1475,136 @@ model. The targets printed are the dataset's `expected` **and** the classified
 family's catalogue `reaches` (marked `(catálogo)`), because the chunk a required
 step needs is often in neither `expected` nor `requiredSteps` by name — art. 12
 for the F case — and this line is where its rank is read.
+
+### The derived figure's second input was never in the pool (#312)
+
+`groundedness.eval.test.ts › answers F1 with both BMC figures and citations to
+every input` failed identically under all three of #304's configurations, with
+the same message — `bmc-ivm-2026 was not resolved from the answer chunks`. Three
+runs that differ in the catalogue and in the rerank agreeing to the character is
+not a catalogue result and not a cut result: it is the **pool**. F1's answer is
+0,87 SM and 0,9295 SM × ¢373.092,30, and the ¢373.092,30 lives in one chunk —
+`salarios-minimos` art. 1, «Ocupaciones Genéricas por Mes: Trabajadores en
+Ocupación No Calificada» — which no leg of «¿Cuánto pago a la CCSS?» looks for.
+The reader asks what they pay; the decree that fixes the wage is a word they
+never say.
+
+`pnpm pool-dump` could not show that, because it printed the top of the pool and
+the rank of the **first** target found: a case whose escala sits at #6 reads
+healthy while its second input sits at #122. It now ends every case with each
+expected target's own fused rank, and `--pool=<n>` widens the fused depth past
+`RERANK_POOL` to find one nowhere near it. That is how the numbers below were
+read (`--pool=300`, one embed and one expansion per case, no rerank and no
+answer model).
+
+The fix is the #304 shape: one more catalogue sentence, written in the words of
+the chunk it must reach, added to **T1-B and T1-F** — the two families whose
+questions resolve a BMC. It is the decree's own table line, and it is a _fourth_
+sentence rather than a replacement because each of the three steps it joins
+still carries a chunk of its own; `steps.test.ts` now pins two-to-four. It is
+also the first catalogue entry that is not a step: it names the **input of a
+figure the answer derives** rather than quotes, which is the same shape of
+absence — something a complete answer needs and the question never asks for.
+
+Fused rank of `salarios-minimos` art. 1, before and after (`--pool=300`):
+
+| Case                                | Family | Before   | After   |
+| ----------------------------------- | ------ | -------- | ------- |
+| `ccss-cuanto-pago-base`             | T1-F   | **#122** | **#19** |
+| `ho-minimo-caja-independiente-2026` | T1-F   | #46      | **#11** |
+| `ho-desde-cuanta-plata-caja`        | T1-B   | #63      | **#4**  |
+| `ho-800-mil-que-porcentaje-caja`    | T1-F   | #130     | **#13** |
+| `ccss-obligacion-ingreso-bajo`      | T1-B   | #88      | **#5**  |
+
+In the 40 on every case that needs it. What it costs, over every case the
+classifier sends to T1-B or T1-F (the RRF sum is shared, so a probe can push a
+chunk down): **no expected target left the 40**. `ccss-cuanto-pago-base`'s
+`ley-10363` art. 1 fell #42 → #67, already outside it before this change;
+`ho-desde-cuanta-plata-caja`'s `ccss-reglamento-ti` art. 1 fell #10 → #23 and
+`ccss-obligacion-ingreso-bajo`'s #2 → #10, both still well inside; the escalas
+moved by one or two places either way. `iva-retencion-tarjetas-porcentaje`,
+`ho-donde-me-afilio-caja` and `ho-tambien-asegurado-por-patrono` are unmoved.
+Read those single-place moves as noise, not signal: the expansion is model
+text, so two runs of the same case differ by a place or two on their own.
+
+#### The pool is half of it: the pin is the other half
+
+Being in the 40 is not being in front of the model. The reranker reads the
+salary decree as an answer to a salary question, not to «¿cuánto pago?», and
+cuts it every time — reranked #32, #36, #38, #40 on the five cases above. So
+the catalogue alone changes nothing the reader sees, and `PIN_DERIVED_INPUTS`
+(#287) is what carries it the rest of the way: when one input of a figure
+survived the cut, the missing ones are appended **from the fused pool the
+reranker just read** — which is exactly the pool this change fixed. That is why
+#304's run recorded the pin as unable to help: it pins from the pool, and the
+chunk was not in it.
+
+Measured deterministically over every single-turn case in the dataset — retrieve,
+rerank, then resolve the figures with the pin off and on, no answer model and no
+judge, so it costs an embed and a rerank per case:
+
+| Case                                | Pin off            | Pin on                                                                    |
+| ----------------------------------- | ------------------ | ------------------------------------------------------------------------- |
+| `ccss-cuanto-pago-base`             | no figure resolves | `bmc-sem-2026`, and `bmc-ivm-2026` when `ccss-escala-ivm` holds its place |
+| `ho-minimo-caja-independiente-2026` | no figure resolves | `bmc-ivm-2026` + `bmc-sem-2026`                                           |
+| `ho-800-mil-que-porcentaje-caja`    | no figure resolves | `bmc-ivm-2026` + `bmc-sem-2026`                                           |
+| `ho-desde-cuanta-plata-caja`        | no figure resolves | `bmc-sem-2026`                                                            |
+| every other case                    | unchanged          | **unchanged — the pin never fires**                                       |
+
+That last row is the measurement ADR 0018 asked for and could not get: the risk
+it named is that the pin matches on source identity, not question relevance, so
+«an artículo that survived some unrelated question can pull its figure's
+siblings in behind it». Over the whole dataset the append fires on exactly four
+cases, all four of them cases whose `expected` already names `salarios-minimos`
+art. 1, and adds exactly one chunk to each. No unrelated answer moves.
+
+So the pin **stays off** here. The ADR's bar is groundedness, adequacy and
+abstention on an authorized full run, and no deterministic probe can read those.
+What this change buys the next such run is that the comparison is now worth
+making: before it, `PIN_DERIVED_INPUTS=on` and `off` produced the same answer
+set on F1.
+
+#### What the scoped run then found: the prompt never stated the rule
+
+`EVAL_CASES=ccss-cuanto-pago-base ho-minimo-caja-independiente-2026
+ho-desde-cuanta-plata-caja` with `PIN_DERIVED_INPUTS=on`, transcript
+`groundedness-claude-sonnet-5-subset-20260908T054807Z.jsonl`. F1 is grounded
+(`pass`), and both figures resolve: `salarios-minimos` art. 1 is chunk [9],
+`ccss-escala-ivm` [8], `ccss-escala-salud` [4]. The retrieval half of the issue
+is done — `bmc-ivm-2026 was not resolved from the answer chunks` no longer
+happens.
+
+The F1 assertion still failed, on its last clause. The answer wrote
+
+> Para 2026, la BMC de IVM es de ¢324.590 y la BMC de Salud (SEM) es de
+> ¢346.789 [8][9].
+
+— two figures in one sentence, carrying the union `{8, 9}` when
+`bmc-sem-2026`'s inputs are `{4, 9}`. `incompletelyCitedDerivedFigures` refuses
+that, and so does `route.ts` at runtime: one retry, then the honest decline. The
+model was never told. `formatDerivedFigures` said only «puede citar estos
+resultados tal como aparecen; no los recalcule», and the per-figure markers were
+sitting in the block for the model to read as decoration. It now states the rule
+the validator enforces: the sentence quoting a figure must carry all of that
+figure's markers, and a sentence quoting two must carry both sets. On the re-run
+(`…T055016Z.jsonl`) F1 is grounded and `bmc-sem-2026` comes back completely
+cited, `incompletas: []`.
+
+#### What is left, and it is not the pool
+
+`bmc-ivm-2026` needs `ccss-escala-ivm` in the answer set for the pin to consider
+the figure at all — the append is deliberately not chained (#287), so
+`salarios-minimos` arriving for the SEM figure does not make it available to the
+IVM one. And `ccss-escala-ivm` sits at reranked **#8, #9, or outside the cut
+entirely** on F1 depending on the run's expansion: it resolved on the first
+scoped run, and on the re-run it was not in the answer set at all. So F1 still
+fails intermittently, now on one chunk one place either side of `ANSWER_TOP_K`.
+
+That is a rerank-cut cause, not the pool cause this issue diagnosed, and it is
+the same knob question #303 left open (`ANSWER_TOP_K=10` bought two adequacy
+cases there). It is not decided here for the reason none of these knobs are
+decided outside a full run. It is what the next authorized run should watch on
+F1, beside the pin.
 
 ## Adversarial conflicting-sources case (issue #135)
 

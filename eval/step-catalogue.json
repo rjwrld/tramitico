@@ -1,5 +1,5 @@
 {
-  "$comment": "Hand-written step catalogue per Tier 1 family (#304). Each family carries two or three sentences naming the *step* a complete answer needs and the question never asks for — where to go, when to pay, what the sanction is, how to adjust a figure. Each sentence is written in the words of the one chunk it is meant to reach, one step per sentence and no second clause: `search_chunks` searches the sentences one by one (src/lib/answer/steps.ts), and a sentence that mirrors its chunk wins the lexical leg's strict AND branch outright, while a sentence that also says something else falls to the OR branch and loses that chunk to longer ones (the first draft carried `cnpt` art. 79 at fused #49 for exactly that reason). `cases` names the dataset rows each entry was written for and `reaches` the chunks it is meant to carry into the pool. Verified against public.chunks, not written from memory: every figure below is in the chunk it names.",
+  "$comment": "Hand-written step catalogue per Tier 1 family (#304). Each family carries two to four sentences naming what a complete answer needs and the question never asks for — where to go, when to pay, what the sanction is, how to adjust a figure, and (#312) the *input* of a figure the answer derives rather than quotes: `ccss-cuanto-pago-base`'s BMC in colones is 0,9295 SM × the salario mínimo, and the reader who asks «¿cuánto pago?» never names the decree that fixes it, so `salarios-minimos` art. 1 sat at fused #122 and the derivation could not resolve. That fourth sentence is the decree's own table line, and it is a fourth rather than a replacement because the three steps it joins each still carry a chunk of their own. Each sentence is written in the words of the one chunk it is meant to reach, one step per sentence and no second clause: `search_chunks` searches the sentences one by one (src/lib/answer/steps.ts), and a sentence that mirrors its chunk wins the lexical leg's strict AND branch outright, while a sentence that also says something else falls to the OR branch and loses that chunk to longer ones (the first draft carried `cnpt` art. 79 at fused #49 for exactly that reason). `cases` names the dataset rows each entry was written for and `reaches` the chunks it is meant to carry into the pool. Verified against public.chunks, not written from memory: every figure below is in the chunk it names.",
   "families": {
     "T1-A": {
       "steps": [
@@ -23,7 +23,8 @@
       "steps": [
         "El trámite de afiliación como trabajador independiente se realiza en la sucursal de la CCSS más cercana, acorde a la zona de adscripción del centro de trabajo.",
         "Las cuotas del seguro de trabajador independiente se cancelan desde el primer día del mes hasta la fecha que corresponda, según la primera letra del apellido.",
-        "El monto de las cuotas que deben pagar los trabajadores independientes se calcula sobre los ingresos netos que perciban: el ingreso bruto menos los gastos propios de la actividad económica."
+        "El monto de las cuotas que deben pagar los trabajadores independientes se calcula sobre los ingresos netos que perciban: el ingreso bruto menos los gastos propios de la actividad económica.",
+        "Fijar los salarios mínimos que regirán en todo el país a partir del 1° de enero del 2026, Ocupaciones Genéricas por Mes: Trabajadores en Ocupación No Calificada ¢373.092,30."
       ],
       "cases": [
         "ho-desde-cuanta-plata-caja",
@@ -33,7 +34,8 @@
       "reaches": [
         "ccss-faq · ¿Dónde me corresponde realizar el trámite de afiliación?",
         "ccss-faq · ¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente?",
-        "ccss-reglamento-ti · Artículo 10"
+        "ccss-reglamento-ti · Artículo 10",
+        "salarios-minimos · Artículo 1"
       ]
     },
     "T1-C": {
@@ -92,7 +94,8 @@
       "steps": [
         "El monto de las cuotas que deben pagar los trabajadores independientes se calculará sobre los ingresos netos que perciban: el ingreso bruto menos los gastos propios para la operación de la actividad económica.",
         "El trabajador independiente gestionará el ajuste del ingreso sobre el cual se calcularán sus contribuciones a los seguros sociales en los primeros 3 días hábiles del mes, de forma presencial en las oficinas o mediante las plataformas tecnológicas que la institución habilite.",
-        "Una persona asegurada por su patrono que además realiza actividad económica por cuenta propia debe cotizar a la seguridad social tanto como trabajador independiente como trabajador asalariado."
+        "Una persona asegurada por su patrono que además realiza actividad económica por cuenta propia debe cotizar a la seguridad social tanto como trabajador independiente como trabajador asalariado.",
+        "Fijar los salarios mínimos que regirán en todo el país a partir del 1° de enero del 2026, Ocupaciones Genéricas por Mes: Trabajadores en Ocupación No Calificada ¢373.092,30."
       ],
       "cases": [
         "ho-800-mil-que-porcentaje-caja",
@@ -102,7 +105,8 @@
       "reaches": [
         "ccss-reglamento-ti · Artículo 10",
         "ccss-reglamento-ti · Artículo 12",
-        "ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?"
+        "ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?",
+        "salarios-minimos · Artículo 1"
       ]
     },
     "T1-G": {
