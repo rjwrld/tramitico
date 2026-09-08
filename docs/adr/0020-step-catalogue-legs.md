@@ -1,4 +1,4 @@
-# ADR 0020 — The step the reader did not ask for: a hand-written catalogue per family, searched sentence by sentence and pinned past the cut
+# ADR 0020 — The step the reader did not ask for: a hand-written catalogue per family, searched sentence by sentence
 
 Date: 2026-09-07 · Status: accepted · Amends [SPEC §5](../../SPEC.md) ·
 Context: issue [#304](https://github.com/rjwrld/tramitico/issues/304), follow-up of
@@ -25,7 +25,7 @@ steps are the same whichever of its questions is asked.
 ## Decision
 
 **The steps are written by hand, per family, and searched as one more leg pair — sentence by
-sentence — and the reranker's best chunk per sentence is pinned past the cut.**
+sentence. At the rerank they fill the pool and nothing more, by default.**
 
 1. `eval/step-catalogue.json` carries, per family, two or three sentences in the corpus's own
    register, each written in the words of the one chunk it is meant to reach, one step per
@@ -48,11 +48,19 @@ sentence — and the reranker's best chunk per sentence is pinned past the cut.*
    catalogue's legs are **no witness to corroboration** ([ADR 0019](0019-query-expansion-legs.md)'s
    #307 rule, applied): the probe is the same text for every question in the family, so it can
    fill a pool and never move `isWeak`.
-5. At the rerank, each sentence is scored as its own Voyage query in the same batch, and the
-   default mode is **`pin`**: the question's readings decide the order and the cut exactly as
-   #296 left them, and the best chunk of each sentence's reading is appended past the cut when
-   the cut did not already take it — the [#287](https://github.com/rjwrld/tramitico/issues/287)
-   derived-input shape. `STEPS_RERANK=max|off` keep the alternatives measurable.
+5. At the rerank the sentences are **not scored by default** (`STEPS_RERANK=off`): the pool
+   carries the step chunks, and the question's readings decide the order and the cut exactly as
+   #296 left them. Two alternatives stay measurable behind the knob. `pin` scores each sentence
+   as its own Voyage query in the same batch and appends the best chunk of each reading past the
+   cut — the [#287](https://github.com/rjwrld/tramitico/issues/287) derived-input shape; on the
+   six it put every named step chunk in front of the model, and on the authorized full run it
+   took adequacy 15/40 → 18/40 and groundedness 71/73 → **67/73**, under the 0.94 gate: four
+   unanimous failures, mostly an answer citing the wrong fragment once ten or eleven overlapping
+   fragments were in front of it. `max` is below.
+
+**Rejected as the default: pinning past the cut.** The measurement above. A step in the prompt
+at the price of the release gate does not ship; the follow-up measures pinning one chunk, not
+three.
 
 **Rejected: the sentences as rerank queries fused by max, as the issue proposed.** Measured
 first on the #303 six: the step chunks reach reranked #1–#3, and the question's own chunks move
@@ -66,15 +74,13 @@ the numbers are in that thread.
 ## Consequences
 
 - On the #303 six, every chunk the issue named as a pool miss now enters the fused 40 (#3, #4,
-  #10, #10, #14) and reaches the model, pinned or in the top-8, with not one question-side
-  reranked rank moved except #9 → #8. Six-case adequacy 1/6 → 2/6; the four that still fail
-  fail on the answer side with the step chunk in hand (#130).
+  #10, #10, #14). Under `pin` each reached the model and six-case adequacy went 1/6 → 2/6; under
+  the shipped default the reranker decides, and the pool is where the gain is banked.
 - Full-dataset hit-rate 70/73 → **71/73**, gates green; the two misses are the Tier 2 corpus
-  cases #296 left.
-- Cost per ask that classifies: three more embeds and up to three more rerank calls, all in the
-  batches the ask already waits for, and up to three more chunks of prompt. No new
-  subprocessor and nothing new of the reader's leaves the service, so `/privacidad` is
-  unchanged.
+  cases #296 left. The authorized groundedness run's numbers are in eval/README.md.
+- Cost per ask that classifies: three more embeds in the batch the ask already waits for, and
+  no extra rerank call or prompt length by default. No new subprocessor and nothing new of the
+  reader's leaves the service, so `/privacidad` is unchanged.
 - A catalogue sentence is a claim about a chunk: a corpus change that renames or drops one is
   caught by `steps.test.ts` against `eval/corpus-index.json`, and `pnpm pool-dump` prints the
   family and the step ranks (`sv`/`sl`) for any case.

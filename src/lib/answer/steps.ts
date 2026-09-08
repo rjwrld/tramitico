@@ -34,8 +34,10 @@
  *    text carried «¿Cuándo me corresponde pagar…?» at pool #17 and `cnpt`
  *    art. 79 not at all; each sentence alone carries its chunk at vector
  *    rank 1. So the step vector leg ranks a chunk by its *nearest* sentence
- *    and the lexical leg by its best one (the v6 RPC), and the rerank scores
- *    every sentence as one more query fused by max (#296).
+ *    and the lexical leg by its best one (the v6 RPC). At the rerank the
+ *    sentences can be scored too (`STEPS_RERANK`, rerank.ts) — off by
+ *    default: the catalogue fills the pool, and the question's own readings
+ *    decide what reaches the model.
  *
  * Same properties as the expansion, for the same reasons: it can never block
  * an ask (a family that does not classify is a `null`, never a throw), it

@@ -18,7 +18,7 @@ original scope (its §5 OUT-list is binding).
 | `corpus/manifest.json`                                 | which official docs are ingested, and from where                                                                               |
 | `src/lib/eval/` + `eval/dataset.jsonl`                 | release gates: groundedness, hit-rate, conflicting sources                                                                     |
 | `eval/corpus-index.json`                               | committed corpus coverage dump; makes the satisfiability census a per-PR unit test                                             |
-| `eval/step-catalogue.json`                             | hand-written steps per Tier 1 family, one more retrieval leg pair and pinned into the answer set (#304)                        |
+| `eval/step-catalogue.json`                             | hand-written steps per Tier 1 family, searched as one more retrieval leg pair (#304)                                           |
 | `src/components/`                                      | `chat/`, `history/`, `auth/`, `ui/` (Base UI), `sello.tsx` (source seals)                                                      |
 | `src/lib/supabase/` + `src/proxy.ts`                   | browser/server/service clients; auth session proxy                                                                             |
 | `src/app/privacidad/` + `src/lib/log-redaction.ts`     | the privacy page; `describeError` — the one log-safe way to put an error in a log                                              |

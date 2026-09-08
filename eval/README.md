@@ -1367,12 +1367,13 @@ runs. `pnpm pool-dump` prints the family and the two new leg ranks (`sv`/`sl`);
    chunks from #3/#4 to **#8/#9**, the H case's `reglamento-renta` 27 from #7
    to **#21**, the A case's `ley-iva` 5 from #14 to #19. A required step in
    front of the model at the price of the claim the question was about is not
-   a trade the adequacy gate can take. So the default is **`pin`**: the
-   question's readings decide the order and the cut exactly as before, and the
-   best chunk of each sentence's reading is appended past it when the cut did
-   not already take it — the #287 shape, one append per sentence, only on an
-   ask that classified to a family. `STEPS_RERANK=max|off` keep the other two
-   measurable. The catalogue's legs are no witness to corroboration either
+   a trade the adequacy gate can take. So the six were read under **`pin`**:
+   the question's readings decide the order and the cut exactly as before, and
+   the best chunk of each sentence's reading is appended past it when the cut
+   did not already take it — the #287 shape, one append per sentence, only on
+   an ask that classified to a family. The authorized full run below then
+   decided the shipped default (`off`); `STEPS_RERANK=pin|max` stay measurable.
+   The catalogue's legs are no witness to corroboration either
    (`isCorroborated`, #307): the probe is the same text for every question in
    the family, so it can fill a pool and never move `isWeak`.
 
@@ -1415,8 +1416,47 @@ in the pool and in front of the model — holds on every case it named.
 subset, `steps=on(pin)`): **71/73**, every gate green — against 70/73 at #296.
 The two misses are the Tier 2 corpus cases #296 left (`ho-t2-constancia-al-dia`
 never reaches the pool; `ho-t2-payoneer` is cut at pool #14); the third #296
-miss is recovered. That is the hit-rate half of "unchanged or better" on the
-full set; the authorized groundedness run is still the user's to spend.
+miss is recovered.
+
+#### The authorized run, and what it decided
+
+Step 3 of the issue: the full eval lane, answer model and judge, same day,
+same corpus, three configurations. Transcripts in `eval/transcripts/`:
+`groundedness-claude-sonnet-5-20260908T004108Z.jsonl` (pin),
+`…T011235Z.jsonl` (`STEPS=off`), `…T040740Z.jsonl` (the shipped default).
+
+| Gate (73 cases)                  | `STEPS=off`  | `STEPS_RERANK=pin` | `STEPS_RERANK=off` (shipped) | Gate            |
+| -------------------------------- | ------------ | ------------------ | ---------------------------- | --------------- |
+| Hit-rate                         | 70/73 (#296) | **71/73**          | **71/73**                    | ≥ 0.92, pass    |
+| Groundedness                     | **71/73**    | 67/73              | **71/73**                    | ≥ 0.94          |
+| Adequacy, cases with claims      | 15/40        | **18/40**          | 16/40                        | Tier 1 per case |
+| Tier 1 adequate                  | 3/27         | **5/27**           | 5/27                         | 27/27, fails    |
+| Tier 2 adequate                  | pass         | pass               | pass                         | ≥ 0.8           |
+| Abstention                       | 3/7          | 3/7                | —                            | ≥ 0.9, fails    |
+| F1 (`ccss-cuanto-pago-base`) BMC | fail         | fail               | fail                         | —               |
+
+`pin` bought three adequacy cases and one hit-rate case and cost **four
+groundedness cases**, all unanimous, and with them the 0.94 gate:
+`inscripcion-tardia-sancion` cites «[81 referenciado en 5]» where [5] _is_
+art. 81; `ho-rebajar-multa-si-pago-ya` cites [7] for the 50 % sanction that
+lives in [6]; `multa-iva-no-declarado` turns three omissions into three
+separate fines the fragments do not state; `ho-trabajitos-por-mi-cuenta`
+over-reads who may affiliate voluntarily. The shape is what pinning does: ten
+or eleven fragments with overlapping content (`cnpt` 78, 79 and 81 side by
+side) and the answer mis-indexes them. Abstention and F1 are unchanged by the
+catalogue — F1 fails on both because `salarios-minimos` sits at pool #97 /
+#72 either way (`PIN_DERIVED_INPUTS` is off by default), a pre-existing miss
+this run happened to surface.
+
+So the shipped default is **`STEPS_RERANK=off`**: the catalogue fills the pool
+— every named step chunk now in the 40 — and the question's own readings
+decide what reaches the model, so the answer set is exactly what #296
+shipped in size and shape. Confirmed on its own full run: groundedness 71/73
+and hit-rate 71/73 with every gate the baseline holds, adequacy 16/40 and
+Tier 1 5/27 against the baseline's 15/40 and 3/27 — the two G cases whose
+step chunk (the 20 días hábiles) the reranker now reaches from the pool. A
+step in the prompt at the price of the release gate does not ship. The follow-up is to measure pinning **one** chunk per ask
+rather than one per sentence, with these transcripts as the baseline.
 
 The `STEPS_RERANK=max` reading is also why the classifier is conservative:
 every ask that classifies pays one rerank call per sentence and up to three

@@ -89,12 +89,21 @@ export const ANSWER_DOC_CAP = Infinity;
  * How the step catalogue's sentences (#304) reach the answer set, once the
  * reranker has scored the pool against each of them:
  *
+ * - `off` — the sentences are not scored; the catalogue only fills the pool,
+ *   and the reranker decides from the question's readings what reaches the
+ *   model. **The default**, by the authorized full run (eval/README.md):
+ *   `pin` took adequacy 15/40 → 18/40 and cost groundedness 71/73 → 67/73,
+ *   under the 0.94 gate — four unanimous failures, mostly the answer citing
+ *   the wrong fragment once ten or eleven overlapping fragments (`cnpt` 78,
+ *   79 and 81 side by side) were in front of it. A step in the prompt at the
+ *   price of the release gate does not ship.
  * - `pin` — the question's readings decide the order and the cut exactly as
  *   before, and the best chunk of each sentence's reading is then **appended
  *   past the cut** when it is not already in the set, the way #287 pins a
  *   derived figure's missing input. Nothing the reranker chose for the
  *   question is displaced; the prompt grows by at most one chunk per
- *   sentence, only on an ask that classified to a family.
+ *   sentence, only on an ask that classified to a family. Kept for the
+ *   follow-up that measures pinning one chunk instead of three.
  * - `max` — the sentences are readings like the expansion's, fused by the
  *   higher score (#296). Measured first, and what it does is in
  *   eval/README.md: the step chunks reach #1–#2, and the question's own
@@ -102,13 +111,12 @@ export const ANSWER_DOC_CAP = Infinity;
  *   reranked #3/#4 to #8/#9, the H case's reglamento-renta 27 from #7 to
  *   #21. A required step in front of the model at the price of the claim
  *   the question was about is not a trade the adequacy gate can take.
- * - `off` — the sentences are not scored; the catalogue only fills the pool.
  *
  * `STEPS_RERANK` in the environment overrides the constant for a measured run.
  */
 export type StepRerankMode = "pin" | "max" | "off";
 
-export const STEP_RERANK_MODE: StepRerankMode = "pin";
+export const STEP_RERANK_MODE: StepRerankMode = "off";
 
 /** Rerank model of record; `RERANK_MODEL` swaps it for a measured run (#287). */
 export const RERANK_MODEL = "rerank-2.5-lite";
