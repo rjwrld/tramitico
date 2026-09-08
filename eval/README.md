@@ -1606,6 +1606,54 @@ cases there). It is not decided here for the reason none of these knobs are
 decided outside a full run. It is what the next authorized run should watch on
 F1, beside the pin.
 
+##### `ANSWER_DOC_CAP` is not that knob — measured, and rejected
+
+The obvious cheap idea is to take the place from redundancy rather than buy it
+with a wider top-k. F1's eight places go four to `ccss-reglamento-ti`, three to
+`ccss-faq`, and two of those three to chunks of the _same_ FAQ artículo, while
+`ccss-escala-ivm` — the only chunk in the corpus stating 0,87 — misses the cut.
+`ANSWER_DOC_CAP` (#303) exists for exactly that shape and is still unmeasured.
+
+Measured the same deterministic way (retrieve, rerank, cap, pin, resolve; every
+single-turn case; no answer model, no judge), counting every expected target
+present in the answer set:
+
+| Cap                 | Expected targets | Derived figures |
+| ------------------- | ---------------- | --------------- |
+| off (shipped)       | **104/157**      | 7               |
+| `ANSWER_DOC_CAP=2`  | 95/157 (**−9**)  | **11**          |
+| per-artículo, cap 1 | **105/157**      | 7               |
+| per-artículo, cap 2 | 104/157          | 7               |
+
+The document cap does buy the figures and F1's second BMC. It pays nine
+expected targets for them, and the reason is that the premise was wrong: four
+`ccss-reglamento-ti` chunks are four _different artículos_ — 1, 6, 10, 15 —
+each carrying a different rule, not four copies of one. A per-document cap
+cannot tell «three artículos of one law» from «the same FAQ answer twice» and
+evicts both, which is why `multa-iva-no-declarado` (`cnpt` 78, 79 and 81) goes
+2/5 → 1/5 and `renta-salario-y-actividad` 5/5 → 4/5.
+
+Capping per _artículo_ instead — the grouping that isolates the genuine
+duplicate — costs nothing and buys nothing: +1 target, no figure. Duplicate
+artículos are rare enough that freeing their place does not reach
+`ccss-escala-ivm` at reranked #9.
+
+And the document cap did one thing worth recording on its own. Under
+`ANSWER_DOC_CAP=2`, `ho-abs-aguinaldo-freelancer` — «¿Tengo derecho a aguinaldo
+como freelancer?», an **abstention** case that must decline and route to the
+MTSS — resolved **two** BMC figures. Under the shipped config it resolves none,
+and neither does any other case outside the four that name `salarios-minimos`
+in `expected`. The cap widened document diversity, an escala reached the answer
+set, and the pin completed the arithmetic behind it. That is ADR 0018's stated
+risk arriving from an unexpected direction: the pin's safety is not a property
+of the pin alone, it is a property of the pin **and** a narrow answer set.
+Anything that widens the answer set has to be re-measured against the
+abstention lane before the pin goes on with it.
+
+So the cap is not the lever, and the remaining F1 gap stays where the paragraph
+above put it: `ANSWER_TOP_K`, on a full run, with the abstention lane read
+beside it.
+
 ## Adversarial conflicting-sources case (issue #135)
 
 `src/lib/eval/conflicting-sources.eval.test.ts` is the one case that
