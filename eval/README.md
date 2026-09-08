@@ -1423,9 +1423,18 @@ miss is recovered.
 #### The authorized run, and what it decided
 
 Step 3 of the issue: the full eval lane, answer model and judge, same day,
-same corpus, three configurations. Transcripts in `eval/transcripts/`:
+same corpus, three configurations. Transcripts were written to `eval/transcripts/`:
 `groundedness-claude-sonnet-5-20260908T004108Z.jsonl` (pin),
 `…T011235Z.jsonl` (`STEPS=off`), `…T040740Z.jsonl` (the shipped default).
+
+> **These three files no longer exist.** `eval/transcripts/` is gitignored and
+> worktree-local, and #304's worktree was removed after #310 merged, taking
+> them — and #303's `…T162517Z` — with it. The tables in this section are what
+> survives, and they are enough for a gate-level comparison; what is gone is
+> the per-case evidence, the answers themselves and the judges' reasons. Work
+> that needs to _read_ those rows (#289's answer-side omissions, #288's two
+> named failures) has to re-run — one full run, ≈US$5.50. Copy a transcript to
+> the main checkout before removing a worktree (CLAUDE.md, Worktrees).
 
 | Gate (73 cases)                  | `STEPS=off`  | `STEPS_RERANK=pin` | `STEPS_RERANK=off` (shipped) | Gate            |
 | -------------------------------- | ------------ | ------------------ | ---------------------------- | --------------- |

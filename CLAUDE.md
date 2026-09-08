@@ -98,6 +98,12 @@ carries real keys — `pnpm test:eval` spends real API money, so default to `tes
 start`/`stop` belong to the main checkout only, and a migration added on a branch reaches
 the shared db via `supabase migration up` — a deliberate step, not part of setup.
 
+`eval/transcripts/` is **gitignored and worktree-local**, so a paid run's transcript dies
+with the worktree that produced it. Copy it to the main checkout's `eval/transcripts/`
+before the worktree is removed — #304's three full-run transcripts (~US$30) were lost that
+way on 2026-09-08, and `eval/README.md` still cites them by name. A transcript filename in
+the README is not a promise the file is on disk: check, and re-run if you need the rows.
+
 ## Agent skills
 
 ### Issue tracker
