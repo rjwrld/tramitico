@@ -145,7 +145,7 @@ export interface LiteralCheck {
 }
 
 /**
- * A markdown table row, in the form prompt rule 10 dictates — «tablas simples
+ * A markdown table row, in the form prompt rule 11 dictates — «tablas simples
  * con barras verticales (| columna | columna |)». Markdown's pipe-less variant
  * ("Tramo | Tarifa") is deliberately not matched: recognising a row by "has a
  * pipe in it" would let a prose sentence carrying one borrow a citation from

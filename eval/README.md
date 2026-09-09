@@ -1075,7 +1075,7 @@ violations over 73 answers**, so it is now asserted on every case.
 
 ### A figure in a table, and its citation (#289)
 
-Prompt rule 10 tells the answer to use a markdown table «cuando los datos sean
+Prompt rule 11 (rule 10 until #289's rule 9 landed) tells the answer to use a markdown table «cuando los datos sean
 realmente tabulares, como tramos, plazos o montos» — exactly the figures
 `checkLiteral` scores — and an answer that does so cites the table around it,
 not inside every cell. A table row ends in a newline and the citation window
@@ -1664,6 +1664,109 @@ abstention lane before the pin goes on with it.
 So the cap is not the lever, and the remaining F1 gap stays where the paragraph
 above put it: `ANSWER_TOP_K`, on a full run, with the abstention lane read
 beside it.
+
+### The answer side, read and fixed: rule 9 (#289)
+
+#304's authorized run left Tier 1 at 5/27 with the shipped `STEPS_RERANK=off`,
+and its per-case transcripts died with the worktree. So the classification was
+regenerated on a scoped run — six Tier 1 cases, ≈US$0.30, the shipped
+pipeline — and read against the numbered chunk list each answer was handed.
+The six: the three families #304 named as answer-side (B, F, H) and the three
+cases #303 had placed in the «carrying chunk in the top-8» bucket (C, I, and
+F's minimum). Transcripts, both copied to the main checkout:
+`groundedness-claude-sonnet-5-subset-20260909T023212Z.jsonl` (before) and
+`…T023915Z.jsonl` (after).
+
+**Before, 16 missing requirements on 6 cases, adequacy 0/6.** Of the 16,
+**4** had their carrying chunk in front of the model and the answer did not
+state it; **12** did not (the chunk was in the pool or absent, exactly the
+#303/#304 shape). The four omissions have one shape, and it is not «no next
+step» — rule 8 fires, every answer ends with «Como paso siguiente». It is the
+answer **summarising that the document says something instead of saying it**:
+
+| Case                             | Chunk in the answer set                                                                     | What the answer wrote                                                                                               |
+| -------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `ho-tiquete-en-vez-de-factura`   | `reglamento-comprobantes` art. 9 at [4], the seven-item list                                | «ambos son comprobantes electrónicos autorizados por Hacienda [4]»                                                  |
+| `ho-rebajar-multa-si-pago-ya`    | `cnpt` art. 88 at [1] — «las sanciones de los artículos 78, 79, 81 y 83»                    | «la sanción del artículo 79» — and never that the 1 % morosidad it had just cited from art. 80 bis is _not_ reduced |
+| `ho-800-mil-que-porcentaje-caja` | both escalas, `ccss-escala-salud` [3] and `-ivm` [4], tables in full                        | «categorías desde 0.9295 SM hasta 6 SM y más» — 6,24 % and 7,53 % absent                                            |
+| `ho-donde-me-afilio-caja`        | `ccss-reglamento-ti` art. 7 at [2] — the income is declared «para el cálculo de las cuotas» | «llevando … información sobre su actividad económica e ingresos»                                                    |
+
+Rule 9 of `ANSWER_SYSTEM_PROMPT` names that: reproduce an enumeration that
+applies to the case instead of alluding to it («entre otros», «ambos»); give a
+whole escala when the reader cannot be placed in it, and say what is missing to
+place them; when a document delimits a rule, say what it covers and what it
+does not; and when a document states, about an obligation that applies, the
+base, the place or channel, the plazo, or the sanction, say it whether or not
+it was asked. It ends by subordinating itself to rule 1: a list or an escala is
+not completed with what the documents do not carry, and a base, canal, plazo or
+sanción the documents do not state is omitted or routed under rule 6, never
+inferred (that last clause was added on review, after the run below, so the
+run measured the rule without it). Old rules 9 and 10 are now
+10 and 11. Deliberately **not** a change to what reaches the model — #304
+measured `STEPS_RERANK=pin` buying three adequacy cases with four groundedness
+ones, and rule 9 asks for nothing the answer set does not already carry.
+
+**After, same six, same answer sets** (the chunk lists are identical row for
+row): **10 missing, adequacy 1/6, groundedness 6/6 → 6/6.** All four omissions
+are stated: art. 9's seven comprobantes, art. 88's four artículos with the
+morosidad expressly outside them, both escalas as cited tables (6,24 % and
+7,53 % present and cited, and the answer still says it cannot place ¢800.000
+without the salario mínimo — rule 3 holding under rule 9), the declared income
+as the base of the cuota. `ho-rebajar-multa-si-pago-ya` passes outright: its
+TRIBU-CR step, whose chunk (`tribu-cr-faq` · 60) is not in the set, was judged
+present on «presentar las declaraciones … mediante los formularios que
+establece la Administración Tributaria [3]».
+
+The ten that remain are, every one, a chunk outside the answer set on the
+shipped pipeline — #303/#304's retrieval residue, not the prompt's:
+
+| Case                                       | Missing                                                                    | Carrying chunk                                              | In the set?                                                             |
+| ------------------------------------------ | -------------------------------------------------------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------- |
+| B `ho-donde-me-afilio-caja`                | payment date by first surname                                              | `ccss-faq` «¿Cuándo me corresponde pagar…?»                 | no                                                                      |
+| C `ho-tiquete-en-vez-de-factura`           | RUT + registered e-mail                                                    | `reglamento-comprobantes` arts. 4/5                         | no                                                                      |
+| F `ho-minimo-caja-independiente-2026`      | ¢373.092,30 · how the ingreso is declared/updated                          | `salarios-minimos` art. 1 · `ccss-reglamento-ti` arts. 7/12 | no (`PIN_DERIVED_INPUTS` off, #312)                                     |
+| F `ho-800-mil-que-porcentaje-caja`         | base = ingreso de referencia · how it is modified                          | `ccss-reglamento-ti` arts. 10 · 12                          | no                                                                      |
+| H `ho-desinscribir-debiendo-declaraciones` | all four (50 %, «se sancionan igual», «mientras siga inscrita», the order) | `cnpt` 79 · `reglamento-iva` 67 · `tribu-cr-faq` · 43       | no — the answer declined the point it had no source for, as rule 8 says |
+
+What the rule costs: the six answers grew from ≈2 000 to ≈2 750 characters
+(+35 %), all of it cited substance — tables, lists, the sanction the reader
+would otherwise not be told. That is output tokens on every ask and reading
+time for the person, and the full run is where it is weighed against the
+abstention lane and groundedness over 73 cases, not here. Tier 1 stays per-case
+blocking and `ADEQUACY_TIER2_GATE` stays 0.8. What the full run should expect
+from this change: the #303 bucket of 18 «in the top-8» omissions to move, the
+23 retrieval ones not to.
+
+#### Eight more, for groundedness (#289)
+
+The six above are the cases rule 9 was written against, so their 6/6
+groundedness is not evidence that the rule holds elsewhere. Eight Tier 1/2
+cases it was **not** written against — the rest of #303's «in the top-8»
+bucket and #288's two named failures — through the same pipeline, ≈US$0.40,
+transcript `groundedness-claude-sonnet-5-subset-20260909T195513Z.jsonl`
+(copied to the main checkout): `ccss-obligacion-ingreso-bajo`,
+`multa-iva-no-declarado`, `inscripcion-tardia-sancion`,
+`ho-hacienda-solo-cliente-eeuu`, `ho-cliente-espana-lleva-iva`,
+`ho-iva-en-cero-sin-facturar`, `ho-ademas-tengo-salario`,
+`ho-t2-salir-del-pais-seguro`.
+
+**Groundedness 8/8**, including `multa-iva-no-declarado` and
+`ho-hacienda-solo-cliente-eeuu`, the two #288 owns — one run each, not a
+verdict on #288. Adequacy 0/8, 24 missing requirements, read against each
+answer's chunk list:
+
+| Bucket                                                 | Requirements | Where                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------------------------------------------ | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| carrying chunk **outside** the answer set — retrieval  | 21           | `cnpt` 88 and the ¢462.200 salario base on both T1-I cases; the export exemption and the 13 % on both T1-D; pagos parciales and «dos meses y quince días» on E; `cnpt` 79, the «¿Dónde…?» FAQ, inscripción de oficio, the TRIBU-CR step                                                                                                                                                 |
+| chunk **in** the set, answer did not state it — prompt | 2            | `ho-t2-salir-del-pais-seguro`: [7] says «la suspensión no se realiza en forma automática… debe existir una solicitud» and the answer said «tramitar la suspensión» without the «no automática»; `ho-ademas-tengo-salario`, borderline: arts. 15 and 33 in the set and used, «escalas distintas» never said                                                                              |
+| requirement **against** the corpus — dataset           | 1            | `ccss-obligacion-ingreso-bajo` requires «la obligación no depende de superar un umbral de ingresos»; `ccss-reglamento-ti` art. 1, in the set at [2], says «no se consideran asegurados obligatorios los trabajadores independientes con ingresos inferiores al monto mínimo de contribución», and the answer cited exactly that. A rewrite with the reason in `notes`, pending a ruling |
+
+So over fourteen cases, 40 missing requirements: 6 were the prompt's, 33 are
+retrieval, 1 is the dataset's. Rule 9 fixed 4 of its 6 on the cases it was
+designed on and missed 2 it was not; the two misses are the same shape as the
+four fixes (a delimiting clause the document states outright) and are the
+first thing to look at if the full run leaves Tier 1 short of what the
+retrieval residue predicts.
 
 ## Adversarial conflicting-sources case (issue #135)
 
