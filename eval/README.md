@@ -1737,6 +1737,37 @@ blocking and `ADEQUACY_TIER2_GATE` stays 0.8. What the full run should expect
 from this change: the #303 bucket of 18 «in the top-8» omissions to move, the
 23 retrieval ones not to.
 
+#### Eight more, for groundedness (#289)
+
+The six above are the cases rule 9 was written against, so their 6/6
+groundedness is not evidence that the rule holds elsewhere. Eight Tier 1/2
+cases it was **not** written against — the rest of #303's «in the top-8»
+bucket and #288's two named failures — through the same pipeline, ≈US$0.40,
+transcript `groundedness-claude-sonnet-5-subset-20260909T195513Z.jsonl`
+(copied to the main checkout): `ccss-obligacion-ingreso-bajo`,
+`multa-iva-no-declarado`, `inscripcion-tardia-sancion`,
+`ho-hacienda-solo-cliente-eeuu`, `ho-cliente-espana-lleva-iva`,
+`ho-iva-en-cero-sin-facturar`, `ho-ademas-tengo-salario`,
+`ho-t2-salir-del-pais-seguro`.
+
+**Groundedness 8/8**, including `multa-iva-no-declarado` and
+`ho-hacienda-solo-cliente-eeuu`, the two #288 owns — one run each, not a
+verdict on #288. Adequacy 0/8, 24 missing requirements, read against each
+answer's chunk list:
+
+| Bucket                                                 | Requirements | Where                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------------------------------------------ | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| carrying chunk **outside** the answer set — retrieval  | 21           | `cnpt` 88 and the ¢462.200 salario base on both T1-I cases; the export exemption and the 13 % on both T1-D; pagos parciales and «dos meses y quince días» on E; `cnpt` 79, the «¿Dónde…?» FAQ, inscripción de oficio, the TRIBU-CR step                                                                                                                                                 |
+| chunk **in** the set, answer did not state it — prompt | 2            | `ho-t2-salir-del-pais-seguro`: [7] says «la suspensión no se realiza en forma automática… debe existir una solicitud» and the answer said «tramitar la suspensión» without the «no automática»; `ho-ademas-tengo-salario`, borderline: arts. 15 and 33 in the set and used, «escalas distintas» never said                                                                              |
+| requirement **against** the corpus — dataset           | 1            | `ccss-obligacion-ingreso-bajo` requires «la obligación no depende de superar un umbral de ingresos»; `ccss-reglamento-ti` art. 1, in the set at [2], says «no se consideran asegurados obligatorios los trabajadores independientes con ingresos inferiores al monto mínimo de contribución», and the answer cited exactly that. A rewrite with the reason in `notes`, pending a ruling |
+
+So over fourteen cases, 40 missing requirements: 6 were the prompt's, 33 are
+retrieval, 1 is the dataset's. Rule 9 fixed 4 of its 6 on the cases it was
+designed on and missed 2 it was not; the two misses are the same shape as the
+four fixes (a delimiting clause the document states outright) and are the
+first thing to look at if the full run leaves Tier 1 short of what the
+retrieval residue predicts.
+
 ## Adversarial conflicting-sources case (issue #135)
 
 `src/lib/eval/conflicting-sources.eval.test.ts` is the one case that
