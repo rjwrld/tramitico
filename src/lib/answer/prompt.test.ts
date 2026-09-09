@@ -208,7 +208,9 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/a cuáles no/i);
     // Base, place, plazo, sanción — each named, none inferred.
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/sobre qué base/i);
-    expect(ANSWER_SYSTEM_PROMPT).toMatch(/sanción/i);
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/dónde o por qué medio/i);
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/en qué fecha o plazo/i);
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/con qué sanción/i);
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
       /aunque la persona no lo haya preguntado/i,
     );
