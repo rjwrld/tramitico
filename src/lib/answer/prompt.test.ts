@@ -185,6 +185,41 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/no lo invente/i);
   });
 
+  /**
+   * #289, the read after #303/#304: with the step's fragment in front of the
+   * model, the answer still summarised it — «ambos son comprobantes
+   * autorizados» for art. 9's seven-item list, «la sanción del artículo 79»
+   * for art. 88's «78, 79, 81 y 83» (and so never said the 1 % morosidad it
+   * had just cited is *not* reduced), «categorías desde 0.9295 SM hasta 6 SM
+   * y más» for an escala it was handed in full. Rule 9 asks for the substance:
+   * enumerate, delimit, and state base, place, plazo and sanción when the
+   * documents carry them — and it stays inside rule 1.
+   */
+  it("asks for the enumeration, not a summary of it (#289)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/enumera/i);
+    // The failure mode by name: a gesture at the list instead of the list.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/«entre otros»|«ambos»/);
+    // An escala the reader cannot be placed in is still given whole.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/escala completa/i);
+  });
+
+  it("asks for the limits of a rule and the four facts of an obligation (#289)", () => {
+    // Scope: what a rule covers and what it leaves out.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/a cuáles no/i);
+    // Base, place, plazo, sanción — each named, none inferred.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/sobre qué base/i);
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/sanción/i);
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /aunque la persona no lo haya preguntado/i,
+    );
+  });
+
+  it("keeps the enumeration rule inside the sources (#289 vs rule 1)", () => {
+    // The rule must say, in its own text, that it adds nothing the documents
+    // do not carry — otherwise it reads as licence to complete a list.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/no complete/i);
+  });
+
   it("speaks of documentos oficiales, never of RAG-internal material (#75)", () => {
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/documentos oficiales/i);
     expect(ANSWER_SYSTEM_PROMPT).not.toMatch(/fragmento|chunk/i);

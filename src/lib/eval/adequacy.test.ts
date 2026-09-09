@@ -142,7 +142,7 @@ describe("checkLiteral", () => {
   });
 
   /**
-   * #289, second harness defect, caught by a smoke run: prompt rule 10
+   * #289, second harness defect, caught by a smoke run: prompt rule 11
    * explicitly permits tables "cuando los datos sean realmente tabulares,
    * como tramos, plazos o montos", and the escala answers use them. A table
    * row ends in a newline, and the window ended at the first newline, so a
@@ -203,7 +203,7 @@ describe("checkLiteral", () => {
 
   /**
    * Scope, pinned deliberately rather than left to chance: `TABLE_ROW` matches
-   * the form prompt rule 10 dictates — «tablas simples con barras verticales
+   * the form prompt rule 11 dictates — «tablas simples con barras verticales
    * (| columna | columna |)» — and markdown's pipe-less variant is not
    * widened for.
    *
