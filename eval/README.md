@@ -1698,7 +1698,10 @@ place them; when a document delimits a rule, say what it covers and what it
 does not; and when a document states, about an obligation that applies, the
 base, the place or channel, the plazo, or the sanction, say it whether or not
 it was asked. It ends by subordinating itself to rule 1: a list or an escala is
-not completed with what the documents do not carry. Old rules 9 and 10 are now
+not completed with what the documents do not carry, and a base, canal, plazo or
+sanción the documents do not state is omitted or routed under rule 6, never
+inferred (that last clause was added on review, after the run below, so the
+run measured the rule without it). Old rules 9 and 10 are now
 10 and 11. Deliberately **not** a change to what reaches the model — #304
 measured `STEPS_RERANK=pin` buying three adequacy cases with four groundedness
 ones, and rule 9 asks for nothing the answer set does not already carry.

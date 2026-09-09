@@ -218,6 +218,12 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     // The rule must say, in its own text, that it adds nothing the documents
     // do not carry — otherwise it reads as licence to complete a list.
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/no complete/i);
+    // …and the clause that volunteers unasked facts is guarded by name, not
+    // only by the general subordination: a base, canal, plazo or sanción the
+    // documents do not state is omitted, never inferred.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /sanción que los documentos provistos no digan[^.]*no se afirma/i,
+    );
   });
 
   it("speaks of documentos oficiales, never of RAG-internal material (#75)", () => {
