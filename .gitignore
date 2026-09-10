@@ -58,3 +58,14 @@ corpus/cache/
 # groundedness.eval.test.ts for the next classification read. Reporting
 # output, not a committed artifact; eval.yml uploads them per run.
 /eval/transcripts/
+
+# Claude Code agent worktrees. The app's worktree isolation checks a second
+# full copy of the tree out at `.claude/worktrees/<agent-id>`, inside the repo
+# rather than beside it, so an unignored one shows up as a huge untracked
+# directory and drags its own `docs/corpus-samples` and ingestion fixtures past
+# .prettierignore — those patterns are root-anchored and do not match a nested
+# copy. Orca's worktrees are siblings of the checkout and never land here.
+.claude/worktrees/
+
+# Codex CLI local state
+.codex/
