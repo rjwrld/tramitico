@@ -25,6 +25,18 @@ validation participants raise the category unprompted, and a content-free declin
 category crosses a threshold agreed after its first month of production data. The counter records
 the routing category, never the question text. Quarterly recrawl verifies every routing URL.
 
+## Amendment (2026-09-10, [#285](https://github.com/rjwrld/tramitico/issues/285))
+
+Two questions the abstention set carries — what to charge for a service, and which professional to
+hire — have no competent institution at all: no official document fixes either, so routing them to
+Hacienda and the CCSS by default sent readers to portals that cannot answer. They get an eleventh
+category, `contadores`, whose destination is a person (a professional in accounting or business
+advice) and whose verified URL is the Colegio de Contadores Públicos de Costa Rica — the register
+of who is colegiado, not a source for an answer. The decline says so in those words and the UI
+labels the link «Registro de colegiados», because calling it an official source would contradict
+the decline itself. Everything else about the decision above holds: no corpus, no encoded rules,
+one table, the same re-crawl.
+
 ## Consequences
 
 Routing is useful abstention, not partial coverage. A link or a count does not authorize an answer

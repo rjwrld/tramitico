@@ -528,6 +528,49 @@ describe("figureMentions", () => {
       figureMentions("Consulte el artículo 5; resuelven en 20 días hábiles."),
     ).toEqual([]);
   });
+
+  describe("on the model route, with the fragments behind the answer (#290)", () => {
+    const SOURCES = ["La tarifa general del impuesto es del 13%.", "¢462.200"];
+
+    it("clears a corpus figure the answer cites while declining", () => {
+      expect(
+        figureMentions(
+          "Ninguna fuente fija la tarifa de 2027. Hoy la tarifa general es " +
+            "del 13 % [2].",
+          SOURCES,
+        ),
+      ).toEqual([]);
+    });
+
+    it("keeps a figure no fragment carries", () => {
+      expect(
+        figureMentions("En 2027 la tarifa será del 4 % [2].", SOURCES),
+      ).toEqual(["4 %"]);
+    });
+
+    it("keeps a corpus figure the answer prints without a citation", () => {
+      // Unattributable is unattributable, whatever the corpus holds: the
+      // #131/#261 rule this check shares with the literal ones.
+      expect(figureMentions("La tarifa general es del 13 %.", SOURCES)).toEqual(
+        ["13 %"],
+      );
+    });
+
+    it("clears a system-derived figure, which is in no fragment by design", () => {
+      expect(
+        figureMentions("La base mínima es de ¢346.789 [8][9].", [
+          ...SOURCES,
+          "¢346.789",
+        ]),
+      ).toEqual([]);
+    });
+
+    it("stays strict when no sources are given — the fallback route", () => {
+      expect(figureMentions("Hoy la tarifa general es del 13 % [2].")).toEqual([
+        "13 %",
+      ]);
+    });
+  });
 });
 
 describe("the report schema (#286 harness)", () => {

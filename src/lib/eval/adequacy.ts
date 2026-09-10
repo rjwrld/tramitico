@@ -675,16 +675,59 @@ export async function judgeAbstention(
  * Colón amounts and percentages in an answer — the deterministic half of the
  * abstention contract (#254 §A3: "0 respuestas con cifra inventada").
  *
- * A refusal has no fragments behind it, so any figure it prints was invented
- * by the model. Deliberately narrow: it matches money and percentages, not
+ * Deliberately narrow about *what* is a figure: money and percentages, not
  * every integer, because "artículo 5" and "20 días hábiles" are the kind of
  * thing an honest routing sentence legitimately carries.
+ *
+ * Two forms, because the abstention set has two routes and the word
+ * "invented" does not mean the same thing on both (#290):
+ *
+ * - **No `sources` — the fallback route.** The decline was streamed without a
+ *   model call and has no fragments behind it, so every figure in it was
+ *   invented, full stop. This is the strict form, and it stays strict.
+ * - **With `sources` — the model route.** The model was handed fragments, and
+ *   rule 6 asks it to state the rule that *does* exist while declining the
+ *   part that does not: «la tarifa vigente es del 13 % [2], y ninguna fuente
+ *   fija la de 2027». Quoting a corpus figure with its citation is the
+ *   contract working, not a fabrication, and counting it as one failed two
+ *   passing cases in the 2026 baseline. A figure is invented here only if it
+ *   appears in no source, or if it appears in one but the answer prints it
+ *   without a citation — an uncited figure is unattributable whatever the
+ *   corpus holds, which is the #131/#261 rule this check shares.
+ *
+ * `sources` is the text the answer was written from: the fragment contents,
+ * plus the values of any system-derived figures handed to the prompt, which
+ * are by construction in no fragment (`formatDerivedFigures`).
  */
-export function figureMentions(answer: string): string[] {
+/**
+ * `normalizeFigures`, plus the space a figure is written with but not
+ * identified by: "13 %" and "13%", "¢ 462.200" and "¢462.200". The answer
+ * takes its spacing from prompt rule 11 and the fragment takes its from the
+ * Gaceta, so a figure quoted faithfully still differs by that one character.
+ * Only used to ask "is this figure in the corpus?" — the literal checks keep
+ * the stricter comparison.
+ */
+function normalizeFigureSpacing(text: string): string {
+  return normalizeFigures(text)
+    .replace(/(\d)\s+%/g, "$1%")
+    .replace(/(¢|₡)\s+(\d)/g, "$1$2");
+}
+
+export function figureMentions(
+  answer: string,
+  sources?: readonly string[],
+): string[] {
   const text = normalizeSpaces(answer);
   const matches = [
     ...text.matchAll(/(?:¢|₡)\s?\d+(?:[.,]\d+)*/g),
     ...text.matchAll(/\d+(?:[.,]\d+)?\s?%/g),
   ].map((match) => match[0].trim());
-  return [...new Set(matches)];
+  const figures = [...new Set(matches)];
+  if (sources === undefined) return figures;
+  const corpus = sources.map(normalizeFigureSpacing);
+  return figures.filter((figure) => {
+    const needle = normalizeFigureSpacing(figure);
+    const inCorpus = corpus.some((source) => source.includes(needle));
+    return !inCorpus || !checkLiteral(answer, [figure]).cited;
+  });
 }

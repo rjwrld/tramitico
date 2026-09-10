@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
-import { declineAnswer, ROUTING } from "../routing";
+import { declineAnswer, ROUTING, routingEntry } from "../routing";
 import type { ResolvedDerivedFigure } from "./derived";
 import {
   ANSWER_SYSTEM_PROMPT,
@@ -330,6 +330,36 @@ describe("rule 6 and the routing table (#264)", () => {
     for (const url of urls) {
       expect(known.has(url.replace(/\.$/, ""))).toBe(true);
     }
+  });
+
+  it("routes a persona jurídica question even when the fragments cover it (#290)", () => {
+    // The three 2026 routing failures all reached the model with fragments in
+    // hand; rule 6 alone only bites when the fragments say nothing.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /6a\. Persona jurídica\.[\s\S]*aunque los documentos provistos hablen del tema/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toContain(
+      `remita al Registro Nacional (${routingEntry("registro-nacional").url})`,
+    );
+  });
+
+  it("sends a price or a professional question to a person, not a portal (#285)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /6b\. Precio y escogencia de un profesional\./,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toContain("no hay fuente oficial que lo fije");
+    expect(ANSWER_SYSTEM_PROMPT).toContain(routingEntry("contadores").url);
+  });
+
+  it("says that correcting a false premise does not replace routing (#290)", () => {
+    // Rule 8(b) leans toward correcting the premise; the 2026 baseline shows
+    // an answer that corrected it and then named no institution.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /6c\. Corregir no sustituye remitir\./,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toContain(
+      "Una respuesta que corrige y no remite incumple la regla 6",
+    );
   });
 
   it("tells the model an out-of-scope institution is out of scope, not unknown", () => {

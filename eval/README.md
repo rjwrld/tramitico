@@ -718,6 +718,12 @@ that are already inside these 73 — and that is a gap, not a claim.
 | `ho-abs-sociedad-inactiva`     | model | FAIL [3/3]             | answered; routed to Hacienda instead of Registro Nacional      |
 | `ho-abs-recomendar-contador`   | model | pass (not gated, #285) |                                                                |
 
+Both "(not gated, #285)" rows are historical: the routing gap they measured
+closed with the `contadores` category, and the abstention gate now counts all
+nine cases. The two `figures:` flags are historical too — on the model route
+`figureMentions` now clears a corpus figure the answer cites (#290), which is
+what both of those were.
+
 ## Satisfiability guard (issues #111, #163)
 
 The guard asserts every expected target is satisfiable by at least one ingested

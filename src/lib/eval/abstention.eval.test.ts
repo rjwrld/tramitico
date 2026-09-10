@@ -17,8 +17,11 @@
  * name where to go?
  *
  * Two assertions, matching §A3: correct abstention ≥ 90%, and **zero** invented
- * figures — an answer with no fragments behind it that prints a colón amount
- * or a percentage made it up, and that is a regex, not a judgement.
+ * figures — a regex, not a judgement. What counts as invented depends on the
+ * route the case took, and `figureMentions` is told which (#290): on the
+ * fallback there are no fragments, so every figure was made up; on the model
+ * route a figure the fragments carry and the answer cites is rule 6 working,
+ * and only an uncited or unsourced one is an invention.
  *
  * Env-gated exactly like the groundedness gate; it runs in the same lane:
  *
@@ -36,7 +39,10 @@ import {
   buildUserPrompt,
   WEAK_RETRIEVAL_ANSWER,
 } from "../answer/prompt";
-import { pinDerivedFigureInputs } from "../answer/derived";
+import {
+  pinDerivedFigureInputs,
+  resolveDerivedFigures,
+} from "../answer/derived";
 import { rerankChunks, RERANK_POOL } from "../answer/rerank";
 import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
 import { retrieve } from "../retrieval";
@@ -48,32 +54,6 @@ import type { Verdict } from "./groundedness";
 
 /** §A3: correct abstention ≥ 0.90 on the abstention set. Ratchet up. */
 export const ABSTENTION_GATE = 0.9;
-
-/**
- * The two cases whose *routing* has no destination yet (#285).
- *
- * A verdict here has two halves — did it decline, and did it route? — and
- * these two reliably win the first and lose the second: «¿cuánto cobro por
- * hora?» and «¿qué contador me recomienda?» match no institution keyword in
- * `classifyRouting`, so the decline lists Hacienda and the CCSS, which is not
- * where either reader should go. Their `routeTo` names the honest destination
- * anyway, because writing down the destination the product currently produces
- * would make the case pass by describing the bug.
- *
- * They are therefore reported, not gated. Two failures out of nine put the
- * ceiling at 77.8 %, under the 90 % gate, so counting them would leave this
- * suite permanently red on every on-demand run and teach nobody anything new
- * after the first run. The exclusion is by id and asserted below — a case
- * that gets renamed or dropped makes this list red rather than quietly
- * shrinking the thing being measured, which is the #129 rule applied to an
- * exclusion instead of to a check.
- *
- * Delete both entries when #285 lands; its acceptance says so.
- */
-export const UNROUTED_BY_DESIGN = [
-  "ho-abs-cuanto-cobro-la-hora",
-  "ho-abs-recomendar-contador",
-] as const;
 
 const REAL_EMBEDDINGS =
   "a real embeddings provider (EMBEDDINGS_PROVIDER + its API key)";
@@ -93,7 +73,7 @@ interface CaseResult {
   reason: string;
   /** Whether the decline came from the deterministic fallback or the model. */
   viaFallback: boolean;
-  /** Colón amounts and percentages in the answer — all of them invented. */
+  /** The colón amounts and percentages the answer had no business printing. */
   figures: string[];
 }
 
@@ -118,6 +98,9 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
       });
 
       let answer = WEAK_RETRIEVAL_ANSWER;
+      // Empty on the fallback route, which had no fragments: `figureMentions`
+      // then keeps its strict form and counts every figure (#290).
+      let sources: string[] | undefined;
       const viaFallback = retrieval.isWeak;
       if (!viaFallback) {
         // Retrieval found something for a question with no correct source.
@@ -129,13 +112,21 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
           }),
           retrieval.chunks,
         );
+        // `derivedFigures` because the route passes them (#287): a lane that
+        // omits them measures a decline written without the one block the
+        // reader's answer would have carried.
+        const derivedFigures = resolveDerivedFigures(chunks);
         answer = (
           await generateText({
             model: getAnswerModel(),
             system: ANSWER_SYSTEM_PROMPT,
-            prompt: buildUserPrompt(query, chunks),
+            prompt: buildUserPrompt(query, chunks, { derivedFigures }),
           })
         ).text;
+        sources = [
+          ...chunks.map((chunk) => chunk.content),
+          ...derivedFigures.map((figure) => figure.formattedValue),
+        ];
       }
 
       const judged = await judgeAbstention(query, answer, {
@@ -148,27 +139,16 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
         evalCase,
         ...judged,
         viaFallback,
-        figures: figureMentions(answer),
+        figures: figureMentions(answer, sources),
       });
     }
 
-    const gated = results.filter(
-      (r) => !(UNROUTED_BY_DESIGN as readonly string[]).includes(r.evalCase.id),
-    );
-    const passes = gated.filter((r) => r.verdict === "pass").length;
-    console.log(
-      `\nabstention: ${passes}/${gated.length} gated` +
-        ` (+${results.length - gated.length} reported only, #285)`,
-    );
+    const passes = results.filter((r) => r.verdict === "pass").length;
+    console.log(`\nabstention: ${passes}/${results.length}`);
     for (const r of results) {
       const votes = r.verdicts.length > 1 ? ` [${r.verdicts.join("/")}]` : "";
-      const excused = (UNROUTED_BY_DESIGN as readonly string[]).includes(
-        r.evalCase.id,
-      )
-        ? "  (#285, not gated)"
-        : "";
       console.log(
-        `  ${r.verdict === "pass" ? "pass" : "FAIL"}${votes}${excused}` +
+        `  ${r.verdict === "pass" ? "pass" : "FAIL"}${votes}` +
           `  ${r.viaFallback ? "fallback" : "model   "}  ${r.evalCase.id}` +
           (r.verdict === "fail" ? `  — ${r.reason}` : "") +
           (r.figures.length > 0 ? `  figures: ${r.figures.join(", ")}` : ""),
@@ -177,31 +157,13 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
     // Serial on purpose, like the other suites: shared Voyage keyless budget.
   }, 2_700_000);
 
-  it("still carries every case the routing gap excuses (#285)", () => {
-    // Checked against the dataset, not against the run: an exclusion that
-    // silently stops matching anything would shrink the gated set without
-    // saying so. `cases` is already `abstentionCases(...)`, so presence here
-    // *is* the invariant — a case that stopped being `tier: "abstain"` has
-    // left this list, and `parseDataset` refuses an abstention case that
-    // carries `expected` targets or lacks `abstainIf`/`routeTo`.
-    const ids = new Set(cases.map((evalCase) => evalCase.id));
-    const stale = UNROUTED_BY_DESIGN.filter((id) => !ids.has(id));
-    expect(
-      stale,
-      `excluded from the abstention gate but no longer in the set: ${stale.join(", ")}`,
-    ).toEqual([]);
-  });
-
   it(`declines and routes on at least ${ABSTENTION_GATE * 100}% of the abstention set`, () => {
-    const gated = results.filter(
-      (r) => !(UNROUTED_BY_DESIGN as readonly string[]).includes(r.evalCase.id),
-    );
-    const failed = gated
+    const failed = results
       .filter((r) => r.verdict === "fail")
       .map((r) => `${r.evalCase.id} (${r.reason})`);
     // An empty abstention set is a dataset problem, not a passing gate.
-    expect(gated.length, "the abstention set is empty").toBeGreaterThan(0);
-    const rate = (gated.length - failed.length) / gated.length;
+    expect(results.length, "the abstention set is empty").toBeGreaterThan(0);
+    const rate = (results.length - failed.length) / results.length;
     expect(
       rate,
       `answered instead of declining: ${failed.join("; ")}`,

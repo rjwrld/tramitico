@@ -13,6 +13,7 @@ import {
   ROUTED_DISCLAIMER,
   ROUTED_LINKS_LABEL,
   ROUTED_LINKS_LABEL_PLURAL,
+  ROUTED_LINKS_LABEL_REGISTER,
 } from "@/components/chat/answer-block";
 import {
   CITATIONS_PART_ID,
@@ -290,6 +291,20 @@ describe("AnswerBlock routed decline (#264)", () => {
     expect(
       document.querySelector('[data-slot="routed-links"]')?.textContent,
     ).toContain(ROUTED_LINKS_LABEL_PLURAL);
+  });
+
+  it("calls the contadores link a register, not a source (#285)", () => {
+    render(<AnswerBlock message={decline("contadores")} />);
+
+    const link = screen.getByRole("link", {
+      name: "el Colegio de Contadores Públicos de Costa Rica (CCPA)",
+    });
+    expect(link.getAttribute("href")).toBe("https://ccpa.or.cr");
+    const row = document.querySelector(
+      '[data-slot="routed-links"]',
+    )?.textContent;
+    expect(row).toContain(ROUTED_LINKS_LABEL_REGISTER);
+    expect(row).not.toContain(ROUTED_LINKS_LABEL);
   });
 
   it("stamps no sello under a decline — it cites nothing", () => {
