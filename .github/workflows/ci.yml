@@ -94,17 +94,25 @@ jobs:
           # Pinned: the stack this lane asserts against is part of the test
           # fixture, and a CLI auto-update is not a reason for a PR to go red.
           version: 2.105.0
-      # Only the containers the suites actually dial. Studio, storage, edge
-      # functions and analytics are wall-clock this lane never uses; if the
-      # stack ever misbehaves here, shortening this list is the first thing to
-      # try. `inbucket` (mail) came back off the list with #161: that spec
-      # signs a browser in by minting a magic link through GoTrue's admin API,
-      # and a mail stack with nowhere to deliver is not a failure mode worth
-      # discovering on someone else's PR.
+      # Only the containers the suites actually dial, named in the CLI's own
+      # vocabulary. An `-x` name the CLI does not recognise is a silent no-op:
+      # it warns and starts the container anyway, and nothing in CI reads that
+      # warning. `storage`, `functions`, `analytics` and `meta` were four such
+      # no-ops, so storage-api, logflare and postgres-meta booted on every PR
+      # while the comment here claimed they did not (#317).
+      #
+      # `mailpit` — the container #161 knew as `inbucket` — is excluded again.
+      # #161 took it off this list reasoning that a mail stack with nowhere to
+      # deliver was the worse failure mode; the reverse happened. It delivered
+      # nothing and its host port collided on a runner, which fails
+      # `supabase start`, which leaves the credential export below unrun, which
+      # takes the whole lane red (#317). Nothing here reads mail: both the
+      # browser spec and the identity-linking suite mint a token through
+      # GoTrue's admin API, the real flow minus SMTP.
       - name: Start a local Supabase stack on this PR's migrations
         run: >
           supabase start
-          -x studio,imgproxy,storage,edge-runtime,functions,analytics,vector,realtime,meta
+          -x studio,imgproxy,storage-api,edge-runtime,logflare,vector,realtime,postgres-meta,mailpit
       # The stack prints its own keys — fixed local development values, not
       # secrets. Mapped onto the names the suites read. No SUPABASE_ANON_KEY:
       # its only reader was retrieval's `grants` suite, which now runs in
