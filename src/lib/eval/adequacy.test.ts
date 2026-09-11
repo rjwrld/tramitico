@@ -516,6 +516,47 @@ describe("judgeAbstention", () => {
   });
 });
 
+describe("checkLiteral on a table whose citation precedes it (#290)", () => {
+  const ANSWER = [
+    "Los tramos vigentes para 2026 son los siguientes [3]:",
+    "",
+    "| Tramo | Tarifa |",
+    "| --- | --- |",
+    "| Hasta ¢6.244.000,00 | exento |",
+    "| Exceso | 10% |",
+    "",
+    "El período va del 1 de enero al 31 de diciembre [3].",
+  ].join("\n");
+
+  it("counts a cell figure as cited when the lead-in carries the marker", () => {
+    expect(checkLiteral(ANSWER, ["¢6.244.000,00"])).toEqual({
+      found: true,
+      cited: true,
+    });
+  });
+
+  it("does not let the lead-in vouch for prose outside the table", () => {
+    const prose = "Los tramos son los siguientes [3]:\n\nLa tarifa es 13 %.";
+    expect(checkLiteral(prose, ["13 %"])).toEqual({
+      found: true,
+      cited: false,
+    });
+  });
+
+  it("reaches no further back than the sentence that introduces the table", () => {
+    const far = [
+      "El impuesto es anual [3]. Los tramos son estos:",
+      "",
+      "| Tramo | Tarifa |",
+      "| Hasta ¢6.244.000,00 | exento |",
+    ].join("\n");
+    expect(checkLiteral(far, ["¢6.244.000,00"])).toEqual({
+      found: true,
+      cited: false,
+    });
+  });
+});
+
 describe("figureMentions", () => {
   it("finds colón amounts and percentages, deduped", () => {
     expect(
@@ -527,6 +568,49 @@ describe("figureMentions", () => {
     expect(
       figureMentions("Consulte el artículo 5; resuelven en 20 días hábiles."),
     ).toEqual([]);
+  });
+
+  describe("on the model route, with the fragments behind the answer (#290)", () => {
+    const SOURCES = ["La tarifa general del impuesto es del 13%.", "¢462.200"];
+
+    it("clears a corpus figure the answer cites while declining", () => {
+      expect(
+        figureMentions(
+          "Ninguna fuente fija la tarifa de 2027. Hoy la tarifa general es " +
+            "del 13 % [2].",
+          SOURCES,
+        ),
+      ).toEqual([]);
+    });
+
+    it("keeps a figure no fragment carries", () => {
+      expect(
+        figureMentions("En 2027 la tarifa será del 4 % [2].", SOURCES),
+      ).toEqual(["4 %"]);
+    });
+
+    it("keeps a corpus figure the answer prints without a citation", () => {
+      // Unattributable is unattributable, whatever the corpus holds: the
+      // #131/#261 rule this check shares with the literal ones.
+      expect(figureMentions("La tarifa general es del 13 %.", SOURCES)).toEqual(
+        ["13 %"],
+      );
+    });
+
+    it("clears a system-derived figure, which is in no fragment by design", () => {
+      expect(
+        figureMentions("La base mínima es de ¢346.789 [8][9].", [
+          ...SOURCES,
+          "¢346.789",
+        ]),
+      ).toEqual([]);
+    });
+
+    it("stays strict when no sources are given — the fallback route", () => {
+      expect(figureMentions("Hoy la tarifa general es del 13 % [2].")).toEqual([
+        "13 %",
+      ]);
+    });
   });
 });
 

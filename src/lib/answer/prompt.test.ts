@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
-import { declineAnswer, ROUTING } from "../routing";
+import { declineAnswer, ROUTING, routingEntry } from "../routing";
 import type { ResolvedDerivedFigure } from "./derived";
 import {
   ANSWER_SYSTEM_PROMPT,
@@ -332,13 +332,52 @@ describe("rule 6 and the routing table (#264)", () => {
     }
   });
 
+  it("routes a persona jurídica question even when the fragments cover it (#290)", () => {
+    // The three 2026 routing failures all reached the model with fragments in
+    // hand; rule 6 alone only bites when the fragments say nothing.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /6a\. Persona jurídica\.[\s\S]*aunque los documentos provistos hablen del tema/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toContain(
+      `remita al Registro Nacional (${routingEntry("registro-nacional").url})`,
+    );
+  });
+
+  it("sends a price or a professional question to a person, not a portal (#285)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /6b\. Precio y escogencia de un profesional\./,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toContain("no hay fuente oficial que lo fije");
+    expect(ANSWER_SYSTEM_PROMPT).toContain(routingEntry("contadores").url);
+    // Scoped to its own profession: «¿qué abogado me recomienda?» is a rule 6
+    // question, not a referral to the contadores' register.
+    expect(ANSWER_SYSTEM_PROMPT).toContain(
+      "Si la pregunta es por otra profesión, no la envíe ahí",
+    );
+  });
+
+  it("says that correcting a false premise does not replace routing (#290)", () => {
+    // Rule 8(b) leans toward correcting the premise; the 2026 baseline shows
+    // an answer that corrected it and then named no institution.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /6c\. Corregir no sustituye remitir\./,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toContain(
+      "Una respuesta que corrige y no remite incumple la regla 6",
+    );
+  });
+
   it("tells the model an out-of-scope institution is out of scope, not unknown", () => {
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
       /fuera de lo que cubre este asistente/,
     );
-    // Rule 5 (MTSS) is untouched: still an encoded fact, not a routing.
+    // Rule 5 (MTSS) is still an encoded fact, not a routing — stated as the
+    // limit of the law rather than as a verdict on the reader's own case.
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
       /5\. Si la pregunta trata de derechos laborales del MTSS/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toContain(
+      "no como un veredicto sobre el caso de quien pregunta",
     );
   });
 });

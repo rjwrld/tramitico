@@ -14,8 +14,9 @@
  *   for that portal (`KNOWN_WARNINGS`). A 403 from Cloudflare is the WAF
  *   refusing a non-browser (migracion.go.cr on 2026-09-04); a TLS chain
  *   missing its intermediate is a server misconfiguration every browser
- *   papers over by fetching the issuer itself (meic.go.cr, same day). Both
- *   are printed, neither fails the step: a reader's browser gets the page.
+ *   papers over by fetching the issuer itself (meic.go.cr, same day, and
+ *   ccpa.or.cr on 2026-09-10). Both are printed, neither fails the step: a
+ *   reader's browser gets the page.
  * - `failure` — anything else: DNS gone, 404, 5xx, a timeout — and either
  *   of the two conditions above on a portal not listed for it, so a new WAF
  *   policy or a chain regression elsewhere is not quietly waved through.
@@ -68,6 +69,11 @@ export const KNOWN_WARNINGS: Partial<
 > = {
   migracion: "cloudflare-403",
   meic: "incomplete-chain",
+  // ccpa.or.cr serves its leaf and the Sectigo root with no intermediate
+  // between them (openssl: "unable to verify the first certificate",
+  // 2026-09-10). Browsers and curl fetch the issuer themselves and load the
+  // page; Node's fetch does not. Same misconfiguration as meic.
+  contadores: "incomplete-chain",
 };
 
 /**

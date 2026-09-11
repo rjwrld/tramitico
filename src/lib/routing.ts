@@ -43,6 +43,7 @@ export const ROUTING_CATEGORIES = [
   "meic",
   "migracion",
   "mtss",
+  "contadores",
 ] as const;
 
 export type RoutingCategory = (typeof ROUTING_CATEGORIES)[number];
@@ -120,6 +121,16 @@ export const ROUTING: readonly RoutingEntry[] = [
     category: "mtss",
     institution: "Ministerio de Trabajo y Seguridad Social (MTSS)",
     url: "https://www.mtss.go.cr",
+  },
+  {
+    // #285. The only entry whose reader is not going to an institution: what
+    // a service is worth, and which professional to hire, are not written
+    // down in any official source, so the destination is a person — and the
+    // one verifiable address behind that person is the colegio that keeps
+    // the register of who is colegiado. `CONTADORES_FACT` says the rest.
+    category: "contadores",
+    institution: "el Colegio de Contadores Públicos de Costa Rica (CCPA)",
+    url: "https://ccpa.or.cr",
   },
 ];
 
@@ -296,6 +307,23 @@ const KEYWORDS: Record<RoutingCategory, readonly string[]> = {
     "despido",
     "horas extra",
   ],
+  // #285. Two vocabularies, one destination: naming a contador, and asking
+  // what to charge. Both are phrase-first on purpose — «contabilidad» and a
+  // bare «cobro» are Tier 1 words («¿debo llevar contabilidad?», «¿debo
+  // cobrar IVA a un cliente en el extranjero?»), and an out-of-scope hit
+  // outranks Hacienda, so a loose entry here would misroute a core question.
+  contadores: [
+    "contador",
+    "contadora",
+    "contadores",
+    "cobrar por hora",
+    "cobro por hora",
+    "tarifa por hora",
+    "precio de mercado",
+    "precios de mercado",
+    "tarifas de mercado",
+    "honorarios profesionales",
+  ],
 };
 
 const OUT_OF_SCOPE: readonly RoutingCategory[] = ROUTING_CATEGORIES.filter(
@@ -392,13 +420,28 @@ export const MTSS_FACT =
   "jornada) son de las personas asalariadas.";
 
 /**
+ * What the `contadores` decline states before its link (#285), the way the
+ * `mtss` one states rule 5's fact: the reason there is no source to cite.
+ * The price of a service and the choice of a professional are not facts an
+ * official document holds — no corpus would ever answer them — so the honest
+ * decline says that much and then names the addressee it can verify.
+ */
+export const CONTADORES_FACT =
+  "Ni la tarifa de un servicio ni la escogencia de un profesional constan en " +
+  "una fuente oficial: son decisiones que se toman con una persona " +
+  "profesional en contabilidad o en asesoría de negocios, y no hay documento " +
+  "oficial que las fije.";
+
+/**
  * The deterministic decline for a routing category: what happened, then
  * where to go (DESIGN §9 — no apologies). Streamed verbatim by the route
  * without a model call, so it can carry no citation and cannot guess.
  *
- * Three shapes:
+ * Four shapes:
  * - `general` — the pre-#264 text, both institutions listed.
  * - `hacienda` / `ccss` — in scope, no basis found: the one institution.
+ * - `contadores` — no official source can exist: says why, then the colegio
+ *   that registers the professional it sends the reader to (#285).
  * - anything else — out of scope: says so, names the scope, links the
  *   institution. `mtss` adds rule 5's fact ahead of the link.
  */
@@ -417,6 +460,17 @@ export function declineAnswer(category: RoutedCategory): string {
     return (
       `${DECLINE_OPENING}\n\n` +
       `Puede consultar directamente la fuente oficial:\n\n${links}`
+    );
+  }
+  if (category === "contadores") {
+    // The one destination that is not a competent institution: the fact comes
+    // first because it is the answer — no official source fixes a price or
+    // picks a professional — and the link is the register behind the person
+    // it sends the reader to, not a portal that would answer the question.
+    return (
+      `${DECLINE_OPENING}\n\n${CONTADORES_FACT}\n\n` +
+      `Queda fuera de lo que cubro: ${SCOPE_PHRASE}.\n\n` +
+      `Puede confirmar quién está colegiado directamente en el colegio:\n\n${links}`
     );
   }
   const { institution } = entries[0];

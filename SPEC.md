@@ -320,8 +320,8 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
 - **Honest decline, routed by institution (#264, #254 Q1–Q3):** when retrieval is weak, a
   deterministic keyword classifier (`src/lib/routing.ts`, no model call) reads the condensed
   question and the decline names the institution it belongs to and its official URL — Hacienda,
-  CCSS, INS, municipalidad, Registro Nacional, colegio profesional, banco, MEIC, migración, MTSS
-  — from one table the prompt's rule 6 also lists and the quarterly re-crawl verifies. The
+  CCSS, INS, municipalidad, Registro Nacional, colegio profesional, banco, MEIC, migración, MTSS,
+  y (#285) un profesional en contabilidad para lo que ninguna fuente oficial fija — from one table the prompt's rule 6 also lists and the quarterly re-crawl verifies. The
   category rides on the per-ask telemetry event as `routedCategory`, the content-free counter
   Tier 2 promotion is decided against; the question never does.
 - **Components: shadcn/ui; chat scaffolding from Vercel AI Elements** (shadcn-based registry —

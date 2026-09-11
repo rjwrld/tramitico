@@ -53,6 +53,13 @@ export const ROUTED_DISCLAIMER =
 /** Lead-in of the routed decline's link row (#264): one link, or several. */
 export const ROUTED_LINKS_LABEL = "Fuente oficial:";
 export const ROUTED_LINKS_LABEL_PLURAL = "Fuentes oficiales:";
+/**
+ * …except `contadores` (#285), where the link is the colegio's register of
+ * who is colegiado, not a source for an answer: that decline's whole point is
+ * that no official source fixes a price or picks a professional, and calling
+ * the link one would contradict the prose above it.
+ */
+export const ROUTED_LINKS_LABEL_REGISTER = "Registro de colegiados:";
 
 /** The reveal cadence the #169/#219 prototypes settled on. */
 const REVEAL_WORDS_PER_SECOND = 120;
@@ -298,11 +305,16 @@ export function AnswerBlock({
  * meta size as the notes around it — and `rel="noopener"` since every
  * destination is another organisation's site.
  */
+function linkLabel(category: RoutedCategory, count: number): string {
+  if (category === "contadores") return ROUTED_LINKS_LABEL_REGISTER;
+  return count > 1 ? ROUTED_LINKS_LABEL_PLURAL : ROUTED_LINKS_LABEL;
+}
+
 function RoutedLinks({ category }: { category: RoutedCategory }) {
   const entries = routingEntriesFor(category);
   return (
     <p data-slot="routed-links" className="text-xs text-muted-foreground">
-      {entries.length > 1 ? ROUTED_LINKS_LABEL_PLURAL : ROUTED_LINKS_LABEL}{" "}
+      {linkLabel(category, entries.length)}{" "}
       {entries.map((entry, index) => (
         <React.Fragment key={entry.category}>
           {index > 0 && " · "}

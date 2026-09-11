@@ -193,6 +193,35 @@ function tableWindow(rest: string): string {
   );
 }
 
+/**
+ * The sentence that introduces a table, for a figure sitting inside it.
+ *
+ * `tableWindow` looks forward, on the reading that an answer captions its
+ * table immediately after it. Spanish prose puts the caption first at least
+ * as often — «Los tramos vigentes para 2026 son los siguientes [3]:» and then
+ * the rows — and #289's own baseline recorded the consequence: the tramos of
+ * `ho-minimo-renta-2026` scored "present but uncited" against an answer that
+ * had cited its table, just on the other side. So the window for a figure in
+ * a cell is the lead-in *and* the table and its caption; a figure in ordinary
+ * prose keeps the sentence window, which is what stops a cited table from
+ * vouching for the paragraph above it.
+ */
+function tableLeadIn(haystack: string, index: number): string {
+  const before = haystack.slice(0, index).split("\n");
+  let i = before.length - 1;
+  while (i > 0 && TABLE_ROW.test(before[i - 1]!)) i -= 1;
+  // The blank line between a paragraph and the table it introduces is a
+  // paragraph break, not distance — the same step `tableWindow` makes.
+  while (i > 0 && before[i - 1]!.trim() === "") i -= 1;
+  if (i === 0) return "";
+  const lead = before[i - 1]!;
+  // Its last sentence only: an earlier sentence in the same paragraph is a
+  // different claim, and its citation does not reach the table.
+  const ends = [...lead.matchAll(/[.;:!?](?=\s)/g)];
+  const lastEnd = ends.at(-1);
+  return lastEnd === undefined ? lead : lead.slice(lastEnd.index + 1);
+}
+
 /** Whether the line `index` falls on is a markdown table row. */
 function onTableRow(haystack: string, index: number): boolean {
   const lineStart = haystack.lastIndexOf("\n", index - 1) + 1;
@@ -223,7 +252,9 @@ export function checkLiteral(
       found = true;
       const rest = haystack.slice(match.index + match[0].length);
       if (onTableRow(haystack, match.index)) {
-        if (CITATION_MARKER.test(tableWindow(rest))) {
+        const window =
+          tableLeadIn(haystack, match.index) + "\n" + tableWindow(rest);
+        if (CITATION_MARKER.test(window)) {
           return { found: true, cited: true };
         }
         continue;
@@ -675,16 +706,59 @@ export async function judgeAbstention(
  * Colón amounts and percentages in an answer — the deterministic half of the
  * abstention contract (#254 §A3: "0 respuestas con cifra inventada").
  *
- * A refusal has no fragments behind it, so any figure it prints was invented
- * by the model. Deliberately narrow: it matches money and percentages, not
+ * Deliberately narrow about *what* is a figure: money and percentages, not
  * every integer, because "artículo 5" and "20 días hábiles" are the kind of
  * thing an honest routing sentence legitimately carries.
+ *
+ * Two forms, because the abstention set has two routes and the word
+ * "invented" does not mean the same thing on both (#290):
+ *
+ * - **No `sources` — the fallback route.** The decline was streamed without a
+ *   model call and has no fragments behind it, so every figure in it was
+ *   invented, full stop. This is the strict form, and it stays strict.
+ * - **With `sources` — the model route.** The model was handed fragments, and
+ *   rule 6 asks it to state the rule that *does* exist while declining the
+ *   part that does not: «la tarifa vigente es del 13 % [2], y ninguna fuente
+ *   fija la de 2027». Quoting a corpus figure with its citation is the
+ *   contract working, not a fabrication, and counting it as one failed two
+ *   passing cases in the 2026 baseline. A figure is invented here only if it
+ *   appears in no source, or if it appears in one but the answer prints it
+ *   without a citation — an uncited figure is unattributable whatever the
+ *   corpus holds, which is the #131/#261 rule this check shares.
+ *
+ * `sources` is the text the answer was written from: the fragment contents,
+ * plus the values of any system-derived figures handed to the prompt, which
+ * are by construction in no fragment (`formatDerivedFigures`).
  */
-export function figureMentions(answer: string): string[] {
+/**
+ * `normalizeFigures`, plus the space a figure is written with but not
+ * identified by: "13 %" and "13%", "¢ 462.200" and "¢462.200". The answer
+ * takes its spacing from prompt rule 11 and the fragment takes its from the
+ * Gaceta, so a figure quoted faithfully still differs by that one character.
+ * Only used to ask "is this figure in the corpus?" — the literal checks keep
+ * the stricter comparison.
+ */
+function normalizeFigureSpacing(text: string): string {
+  return normalizeFigures(text)
+    .replace(/(\d)\s+%/g, "$1%")
+    .replace(/(¢|₡)\s+(\d)/g, "$1$2");
+}
+
+export function figureMentions(
+  answer: string,
+  sources?: readonly string[],
+): string[] {
   const text = normalizeSpaces(answer);
   const matches = [
     ...text.matchAll(/(?:¢|₡)\s?\d+(?:[.,]\d+)*/g),
     ...text.matchAll(/\d+(?:[.,]\d+)?\s?%/g),
   ].map((match) => match[0].trim());
-  return [...new Set(matches)];
+  const figures = [...new Set(matches)];
+  if (sources === undefined) return figures;
+  const corpus = sources.map(normalizeFigureSpacing);
+  return figures.filter((figure) => {
+    const needle = normalizeFigureSpacing(figure);
+    const inCorpus = corpus.some((source) => source.includes(needle));
+    return !inCorpus || !checkLiteral(answer, [figure]).cited;
+  });
 }

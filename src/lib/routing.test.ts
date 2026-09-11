@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   classifyRouting,
+  CONTADORES_FACT,
   DECLINE_OPENING,
   declineAnswer,
   GENERAL_ROUTING,
@@ -83,6 +84,8 @@ describe("classifyRouting", () => {
     ["¿Necesito DIMEX para inscribirme?", "migracion"],
     ["¿Tengo aguinaldo como freelancer?", "mtss"],
     ["¿Me toca cesantía si me despiden?", "mtss"],
+    ["¿Cuánto debería cobrar por hora como programador?", "contadores"],
+    ["¿Qué contador me recomienda?", "contadores"],
   ])("routes %s to %s", (question, category) => {
     expect(classifyRouting(question)).toBe(category);
   });
@@ -132,6 +135,11 @@ describe("classifyRouting", () => {
     expect(classifyRouting("¿Qué es la residencia fiscal para renta?")).toBe(
       "hacienda",
     );
+    // #285's list is phrase-first for the same reason: a bare «cobro» is the
+    // extranjero question above, and «contabilidad» is a Tier 1 word.
+    expect(
+      classifyRouting("¿Tengo que llevar contabilidad de mi actividad?"),
+    ).toBe("general");
   });
 });
 
@@ -171,6 +179,25 @@ describe("declineAnswer", () => {
     );
     expect(text).not.toContain("hacienda.go.cr");
     expect(text).not.toContain("ccss.sa.cr");
+  });
+
+  it("sends a price or a professional question to a person, not a portal (#285)", () => {
+    const text = declineAnswer("contadores");
+    // The fact is the answer: no official source fixes either, so the decline
+    // must not promise one.
+    expect(text).toContain(CONTADORES_FACT);
+    expect(text).toContain("profesional en contabilidad");
+    expect(text).not.toContain("la fuente oficial");
+    expect(text).toContain(SCOPE_PHRASE);
+    expect(text).toContain(
+      "- el Colegio de Contadores Públicos de Costa Rica (CCPA): " +
+        "https://ccpa.or.cr",
+    );
+    expect(text).not.toContain("hacienda.go.cr");
+    expect(text).not.toContain("ccss.sa.cr");
+    for (const other of ROUTING_CATEGORIES.filter((c) => c !== "contadores")) {
+      expect(declineAnswer(other)).not.toContain(CONTADORES_FACT);
+    }
   });
 
   it("states rule 5's fact on the MTSS decline, and only there", () => {
