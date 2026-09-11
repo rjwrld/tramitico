@@ -349,6 +349,11 @@ describe("rule 6 and the routing table (#264)", () => {
     );
     expect(ANSWER_SYSTEM_PROMPT).toContain("no hay fuente oficial que lo fije");
     expect(ANSWER_SYSTEM_PROMPT).toContain(routingEntry("contadores").url);
+    // Scoped to its own profession: «¿qué abogado me recomienda?» is a rule 6
+    // question, not a referral to the contadores' register.
+    expect(ANSWER_SYSTEM_PROMPT).toContain(
+      "Si la pregunta es por otra profesión, no la envíe ahí",
+    );
   });
 
   it("says that correcting a false premise does not replace routing (#290)", () => {
