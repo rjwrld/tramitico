@@ -29,7 +29,8 @@
  *   EMBEDDINGS_PROVIDER=voyage VOYAGE_API_KEY=<key> \
  *   pnpm vitest run src/lib/eval/abstention.eval.test.ts
  */
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { generateText } from "ai";
 import { beforeAll, expect, it } from "vitest";
 import { condenseQuestion } from "../answer/condense";
@@ -49,6 +50,7 @@ import { retrieve } from "../retrieval";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import { figureMentions, judgeAbstention } from "./adequacy";
 import { abstentionCases, DATASET_PATH, parseDataset } from "./dataset";
+import { DEFAULT_TRANSCRIPT_DIR } from "./transcript";
 import type { EvalCase } from "./dataset";
 import type { Verdict } from "./groundedness";
 
@@ -66,6 +68,42 @@ const describeEval = integrationSuite({
   [REAL_EMBEDDINGS]: realEmbedderConfigured(),
 });
 
+/**
+ * The run's answers, written beside the other lanes' transcripts (#290).
+ *
+ * The console block says *what* each verdict was; only the answer says why,
+ * and a judge verdict or a figure flag is unreadable without it. The other
+ * two paid lanes have had transcripts since #261 and this one did not, so its
+ * runs left nothing to re-read — a bad trade for a lane that costs real money
+ * every time it answers these nine questions. Gitignored and worktree-local
+ * like the rest: copy it to the main checkout before the worktree goes.
+ */
+function writeAbstentionTranscript(results: readonly CaseResult[]): string {
+  const dir = process.env.EVAL_TRANSCRIPT_DIR ?? DEFAULT_TRANSCRIPT_DIR;
+  mkdirSync(dir, { recursive: true });
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const path = join(dir, `abstention-${stamp}.jsonl`);
+  writeFileSync(
+    path,
+    results
+      .map((r) =>
+        JSON.stringify({
+          id: r.evalCase.id,
+          question: r.evalCase.question,
+          route: r.viaFallback ? "fallback" : "model",
+          verdict: r.verdict,
+          verdicts: r.verdicts,
+          reason: r.reason,
+          figures: r.figures,
+          answer: r.answer,
+        }),
+      )
+      .join("\n") + "\n",
+    "utf8",
+  );
+  return path;
+}
+
 interface CaseResult {
   evalCase: EvalCase;
   verdict: Verdict;
@@ -75,6 +113,8 @@ interface CaseResult {
   viaFallback: boolean;
   /** The colón amounts and percentages the answer had no business printing. */
   figures: string[];
+  /** What the pipeline actually said — the transcript's reason for existing. */
+  answer: string;
 }
 
 describeEval("abstention set (eval/dataset.jsonl)", () => {
@@ -140,11 +180,13 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
         ...judged,
         viaFallback,
         figures: figureMentions(answer, sources),
+        answer,
       });
     }
 
     const passes = results.filter((r) => r.verdict === "pass").length;
     console.log(`\nabstention: ${passes}/${results.length}`);
+    console.log(`  transcript: ${writeAbstentionTranscript(results)}`);
     for (const r of results) {
       const votes = r.verdicts.length > 1 ? ` [${r.verdicts.join("/")}]` : "";
       console.log(

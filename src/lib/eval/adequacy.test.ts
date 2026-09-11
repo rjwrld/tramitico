@@ -516,6 +516,47 @@ describe("judgeAbstention", () => {
   });
 });
 
+describe("checkLiteral on a table whose citation precedes it (#290)", () => {
+  const ANSWER = [
+    "Los tramos vigentes para 2026 son los siguientes [3]:",
+    "",
+    "| Tramo | Tarifa |",
+    "| --- | --- |",
+    "| Hasta ¢6.244.000,00 | exento |",
+    "| Exceso | 10% |",
+    "",
+    "El período va del 1 de enero al 31 de diciembre [3].",
+  ].join("\n");
+
+  it("counts a cell figure as cited when the lead-in carries the marker", () => {
+    expect(checkLiteral(ANSWER, ["¢6.244.000,00"])).toEqual({
+      found: true,
+      cited: true,
+    });
+  });
+
+  it("does not let the lead-in vouch for prose outside the table", () => {
+    const prose = "Los tramos son los siguientes [3]:\n\nLa tarifa es 13 %.";
+    expect(checkLiteral(prose, ["13 %"])).toEqual({
+      found: true,
+      cited: false,
+    });
+  });
+
+  it("reaches no further back than the sentence that introduces the table", () => {
+    const far = [
+      "El impuesto es anual [3]. Los tramos son estos:",
+      "",
+      "| Tramo | Tarifa |",
+      "| Hasta ¢6.244.000,00 | exento |",
+    ].join("\n");
+    expect(checkLiteral(far, ["¢6.244.000,00"])).toEqual({
+      found: true,
+      cited: false,
+    });
+  });
+});
+
 describe("figureMentions", () => {
   it("finds colón amounts and percentages, deduped", () => {
     expect(

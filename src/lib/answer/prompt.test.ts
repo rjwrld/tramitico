@@ -371,9 +371,13 @@ describe("rule 6 and the routing table (#264)", () => {
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
       /fuera de lo que cubre este asistente/,
     );
-    // Rule 5 (MTSS) is untouched: still an encoded fact, not a routing.
+    // Rule 5 (MTSS) is still an encoded fact, not a routing — stated as the
+    // limit of the law rather than as a verdict on the reader's own case.
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
       /5\. Si la pregunta trata de derechos laborales del MTSS/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toContain(
+      "no como un veredicto sobre el caso de quien pregunta",
     );
   });
 });

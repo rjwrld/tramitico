@@ -718,6 +718,21 @@ that are already inside these 73 — and that is a gap, not a claim.
 | `ho-abs-sociedad-inactiva`     | model | FAIL [3/3]             | answered; routed to Hacienda instead of Registro Nacional      |
 | `ho-abs-recomendar-contador`   | model | pass (not gated, #285) |                                                                |
 
+### Abstention, after #285 + #290 (2026-09-10, PR #321)
+
+Re-measured on the same nine cases, all gated: **9/9, zero figure flags**, every
+case on the model route. The three routing failures above pass (rule 6a for the
+two sociedad cases, 6c for the false premise), and both previously excused cases
+route to `contadores`. `ho-abs-aguinaldo-freelancer` failed an intermediate run
+by answering «no, no tiene derecho» before routing — rule 5 now says to state the
+Código de Trabajo limit as the general limit it is, not as a verdict on the
+asker's case. The two `figures:` flags were a cited table whose citation sat in
+its lead-in line; the citation window now reaches back to it.
+
+Transcripts (`eval/transcripts/`, gitignored — copied to the main checkout):
+`abstention-2026-09-11T00-28-44-957Z.jsonl`, with each answer in full. This lane
+writes one now; before #290 it wrote nothing and a run left only scrollback.
+
 Both "(not gated, #285)" rows are historical: the routing gap they measured
 closed with the `contadores` category, and the abstention gate now counts all
 nine cases. The two `figures:` flags are historical too — on the model route

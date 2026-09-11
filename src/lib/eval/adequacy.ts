@@ -193,6 +193,35 @@ function tableWindow(rest: string): string {
   );
 }
 
+/**
+ * The sentence that introduces a table, for a figure sitting inside it.
+ *
+ * `tableWindow` looks forward, on the reading that an answer captions its
+ * table immediately after it. Spanish prose puts the caption first at least
+ * as often — «Los tramos vigentes para 2026 son los siguientes [3]:» and then
+ * the rows — and #289's own baseline recorded the consequence: the tramos of
+ * `ho-minimo-renta-2026` scored "present but uncited" against an answer that
+ * had cited its table, just on the other side. So the window for a figure in
+ * a cell is the lead-in *and* the table and its caption; a figure in ordinary
+ * prose keeps the sentence window, which is what stops a cited table from
+ * vouching for the paragraph above it.
+ */
+function tableLeadIn(haystack: string, index: number): string {
+  const before = haystack.slice(0, index).split("\n");
+  let i = before.length - 1;
+  while (i > 0 && TABLE_ROW.test(before[i - 1]!)) i -= 1;
+  // The blank line between a paragraph and the table it introduces is a
+  // paragraph break, not distance — the same step `tableWindow` makes.
+  while (i > 0 && before[i - 1]!.trim() === "") i -= 1;
+  if (i === 0) return "";
+  const lead = before[i - 1]!;
+  // Its last sentence only: an earlier sentence in the same paragraph is a
+  // different claim, and its citation does not reach the table.
+  const ends = [...lead.matchAll(/[.;:!?](?=\s)/g)];
+  const lastEnd = ends.at(-1);
+  return lastEnd === undefined ? lead : lead.slice(lastEnd.index + 1);
+}
+
 /** Whether the line `index` falls on is a markdown table row. */
 function onTableRow(haystack: string, index: number): boolean {
   const lineStart = haystack.lastIndexOf("\n", index - 1) + 1;
@@ -223,7 +252,9 @@ export function checkLiteral(
       found = true;
       const rest = haystack.slice(match.index + match[0].length);
       if (onTableRow(haystack, match.index)) {
-        if (CITATION_MARKER.test(tableWindow(rest))) {
+        const window =
+          tableLeadIn(haystack, match.index) + "\n" + tableWindow(rest);
+        if (CITATION_MARKER.test(window)) {
           return { found: true, cited: true };
         }
         continue;
