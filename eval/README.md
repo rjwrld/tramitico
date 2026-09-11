@@ -1817,6 +1817,95 @@ that sentence is where to look, and the remedy is not a rule that forbids
 counting but one that keeps a count the article does not state out of the
 answer (rule 1's territory, cf. rule 9's last clause).
 
+## The closing run (2026-09-11)
+
+The Phase 4 closing run the roadmap's Option A called for: one arm, the
+shipped pipeline on `main` at #322 (#314 rule 9, #321 abstention, #288 closed
+on re-reads), every suite once, answer `claude-sonnet-5`, judge
+`claude-sonnet-4-5`, same 871-chunk corpus, 2 163 s. Transcripts, copied to
+the main checkout: `groundedness-claude-sonnet-5-20260911T013607Z.jsonl`,
+`abstention-2026-09-11T01-02-10-369Z.jsonl`, and the raw logs
+`closing-run-20260911.log`, `closing-run-hitrate-rerun3-20260911.log`.
+
+| Gate (73 cases)                  | #304 (shipped) | Closing run | Gate             |
+| -------------------------------- | -------------- | ----------- | ---------------- |
+| Hit-rate                         | 71/73          | **70/73**   | ≥ 0.92, pass     |
+| Groundedness                     | 71/73          | **70/73**   | ≥ 0.94, pass     |
+| Adequacy, cases with claims      | 16/40          | **17/40**   | —                |
+| Tier 1 adequate                  | 5/27           | **5/27**    | 27/27, **fails** |
+| Tier 2 adequate                  | 11/13          | **12/13**   | ≥ 0.8 → **0.84** |
+| Abstention                       | 3/7            | **9/9**     | ≥ 0.9, **pass**  |
+| Citation invariant (#168)        | 0              | **0**       | 0, pass          |
+| F1 (`ccss-cuanto-pago-base`) BMC | fail           | fail        | — (#305)         |
+
+Four of seven conditions for deploy were green on the 08-09 tables; **six of
+seven** are now, and the seventh (Tier 1) is where the residue analysis of
+#289 said it would be: 22 Tier 1 cases short, and the missing requirements are
+the same 33-retrieval / handful-prompt split — `cnpt` 88 and ¢462.200 on the
+sanctions cases, the export exemption and 13 % on T1-D, the OVi steps, the
+CCSS FAQ that is an image. Nothing in this run moves a Tier 1 case that #305,
+#311 or #301 was not already assigned. Per Option A, Tier 1 deploys as an
+**accepted risk, dated, on #121**, with the residue owned by those three.
+
+**Abstention 9/9** is #321's measurement: the four cases that answered
+instead of declining on both prior runs (`sociedad anónima`, `aguinaldo`,
+`sociedad inactiva`, and the alternating pair) all decline and route now, and
+the two cases #321 added decline too. First time over the gate.
+
+**Groundedness 70/73**, three unanimous failures, all reasoning-shaped, two
+of them the #286 pair #288's roadmap entry had left to this run:
+
+- `ho-cliente-espana-lleva-iva` — reads «ubicado en dicho territorio» as
+  sufficient for IVA and says so, while itself acknowledging the fragments do
+  not settle the export case (the dropped-qualifier shape from #286).
+- `ho-minimo-caja-independiente-2026` — states 11,66 % as category 1's IVM
+  rate; [6]'s «Conjunta» column says 9,91 % and 11,66 % is the preamble's
+  global rate (the double-counted-percentage shape from #286, now in the
+  other direction).
+- `ho-t2-tipo-de-cambio` — new: claims a discrepancy between art. 81
+  (interbancario) and art. 5 (referencia de venta) that [5] does not carry.
+
+The two #288 cases pass, as their three re-reads said they would. 70/73 is
+one case under #304's 71/73 and the same figure as the baseline; the ratchet
+does not move (69/73 = 0.945 → 0.94, the current value). Two answers in this
+lane logged `expansion failed — reason=timeout` (Haiku over 3 s); with the
+expansion legs absent those asks ran on the question alone, which is the
+designed fallback, and neither is among the three failures.
+
+**Hit-rate, and the number that had to be re-read.** The run's own hit-rate
+lane scored **68/73 with the blocking case `ho-rebajar-25-sin-facturas`
+missed** (pool #26) — and logged three expansion timeouts, against three new
+misses versus #304. That is a technical-failure signature, and the rules allow
+one repeat for it. The first repeat came back **61/73 with every expansion
+failing `400`**: the Anthropic balance had reached zero mid-session (the
+closing run itself completed before it did — its groundedness numbers are
+whole). After a top-up, the lane twice more: **70/73, zero expansion
+failures, the blocking case hits**, first-exposure 30/32, promoted 7/7,
+corpus-derived 33/34. The three misses are `ho-t2-constancia-al-dia` (never
+reaches the pool, #297) and `ho-t2-payoneer` (pool #8) — #304's known pair —
+plus `ccss-asalariado-followup` at pool #5, which hit at #304 and missed on
+both clean readings here; one Tier 2 corpus case, not blocking, worth a
+`pool-dump` before the next retrieval change. 70/73 is what the README
+records; 68 and 61 were the provider, not the pipeline. `HIT_RATE_GATE` stays
+0.92 by #296 requirement 4 (the ratchet would say 0.94; the misses are corpus
+ones).
+
+**Tier 2 adequacy ratchets** 0.8 → **0.84**: 12/13 measured, minus one case
+= 0.846, floored. `ADEQUACY_TIER2_GATE` and SPEC §9 carry the new value. The
+one Tier 2 miss is `ho-t2-constancia-al-dia`'s «OVi pública, sin usuario»,
+the same case hit-rate cannot reach — #297's decision.
+
+**F1** stays red for the reason #312 left it: `bmc-ivm-2026` does not resolve
+from the answer chunks (`ccss-escala-ivm` reranks at #8/#9/outside), and
+`ho-minimo-caja-independiente-2026` presents the derived figure without that
+input. `PIN_DERIVED_INPUTS` is still off; the knob that decides it is
+`ANSWER_TOP_K`, which is #305's run.
+
+What this run cost: ≈US$6.20 for the full lane, plus ≈US$0.75 for the three
+hit-rate readings, one of which bought nothing but the diagnosis. The lesson
+is cheap and already in the roadmap: verify the balance before a paid run,
+and read a run that logs provider errors as a run to repeat, not a number.
+
 ## Adversarial conflicting-sources case (issue #135)
 
 `src/lib/eval/conflicting-sources.eval.test.ts` is the one case that

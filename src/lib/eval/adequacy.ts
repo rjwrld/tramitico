@@ -45,9 +45,11 @@ import type { EvalCase, RequiredClaim } from "./dataset";
 
 /**
  * Tier 1 is 100% per case — it is blocking, so there is no rate to set. This
- * is the Tier 2 aggregate of the trust contract (#254 §A3). Ratchet up.
+ * is the Tier 2 aggregate of the trust contract (#254 §A3). Ratchet up:
+ * 0.8 from the baseline, 0.84 from the closing run of 2026-09-11 (12/13,
+ * minus one case = 0.846, floored — eval/README.md, «The closing run»).
  */
-export const ADEQUACY_TIER2_GATE = 0.8;
+export const ADEQUACY_TIER2_GATE = 0.84;
 
 /** Where a requirement came from — the judge is told which it is reading. */
 export type RequirementKind = "claim" | "step";
