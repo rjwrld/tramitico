@@ -1789,6 +1789,34 @@ four fixes (a delimiting clause the document states outright) and are the
 first thing to look at if the full run leaves Tier 1 short of what the
 retrieval residue predicts.
 
+#### #288, re-read twice more, and closed (2026-09-11)
+
+#288 was opened on the 2026 baseline's three unanimous failures; #286's
+re-measurement retired all three and named four others, and #304's
+transcripts — the run that scored 71/73 — died with their worktree without
+naming its two. What survived as #288's set was `multa-iva-no-declarado` and
+`ho-hacienda-solo-cliente-eeuu`, both 1/1 in the eight-case read above. Two
+more readings of the pair on `main` at #321, shipped pipeline, ≈US$0.10,
+transcripts `groundedness-claude-sonnet-5-subset-20260911T004608Z.jsonl` and
+`…T004801Z.jsonl` (copied to the main checkout): **pass and pass, both cases,
+both readings** — three readings, three passes each, with the judge saying
+«every factual claim … supported» every time. No prompt or retrieval change
+was made; the issue closes on the reproduction it asked for in requirement 1
+having failed to reproduce.
+
+One thing the reading surfaced that the judge no longer flags. #286's judge
+failed `multa-iva-no-declarado` for turning three omitted declarations into
+three separate sanctions; today's answer still says «esta sanción es fija por
+cada declaración no presentada … en principio correspondería … por cada una
+de ellas [1]», and `cnpt` art. 79 at [1] says «los sujetos pasivos que omitan
+presentar las declaraciones … tendrán una multa equivalente al cincuenta por
+ciento del salario base» — plural declarations, one multa, per-declaration
+unstated either way. The judge accepts the hedged form 3/3. It is recorded here
+as a judge-tolerance boundary, not a fix: if the closing run fails this case,
+that sentence is where to look, and the remedy is not a rule that forbids
+counting but one that keeps a count the article does not state out of the
+answer (rule 1's territory, cf. rule 9's last clause).
+
 ## Adversarial conflicting-sources case (issue #135)
 
 `src/lib/eval/conflicting-sources.eval.test.ts` is the one case that
