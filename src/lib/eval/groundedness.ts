@@ -170,6 +170,13 @@ export async function judgeAnswer(
   return { verdict: majorityVerdict(verdicts), verdicts, reason };
 }
 
+/** The slice of a judged case the per-case gate reads. */
+export interface BlockingVerdict {
+  evalCase: { id: string; blocking: boolean };
+  verdict: Verdict;
+  reason: string;
+}
+
 /**
  * The per-case half of SPEC §9's groundedness rule (#324): «no individually
  * blocking Tier 1 case may fail». The aggregate gate above held 70/73 on the
@@ -180,12 +187,6 @@ export async function judgeAnswer(
  * eval output says which case and why. Pure, so the filter is unit-tested
  * without a provider.
  */
-export interface BlockingVerdict {
-  evalCase: { id: string; blocking: boolean };
-  verdict: Verdict;
-  reason: string;
-}
-
 export function blockingGroundednessFailures(
   results: readonly BlockingVerdict[],
 ): string[] {
