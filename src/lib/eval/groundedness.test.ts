@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
 import type { ResolvedDerivedFigure } from "../answer/derived";
 import {
+  blockingGroundednessFailures,
   buildJudgePrompt,
   GROUNDEDNESS_GATE,
   judgeAnswer,
@@ -211,5 +212,54 @@ describe("judge configuration", () => {
     expect(JUDGE_SYSTEM_PROMPT).toContain('"verdict"');
     expect(JUDGE_SYSTEM_PROMPT).toContain('"pass"');
     expect(JUDGE_SYSTEM_PROMPT).toContain('"fail"');
+  });
+});
+
+describe("blockingGroundednessFailures (#324)", () => {
+  const judged = (
+    id: string,
+    blocking: boolean,
+    verdict: "pass" | "fail",
+    reason = "",
+  ) => ({ evalCase: { id, blocking }, verdict, reason });
+
+  it("names a blocking case that failed, with the judge's reason", () => {
+    expect(
+      blockingGroundednessFailures([
+        judged("ho-hacienda-solo-cliente-eeuu", true, "pass"),
+        judged(
+          "ho-minimo-caja-independiente-2026",
+          true,
+          "fail",
+          "states 11,66 % as category 1's IVM rate; [6] says 9,91 %",
+        ),
+        judged("ho-t2-tipo-de-cambio", false, "fail", "invented discrepancy"),
+      ]),
+    ).toEqual([
+      "ho-minimo-caja-independiente-2026 (states 11,66 % as category 1's IVM rate; [6] says 9,91 %)",
+    ]);
+  });
+
+  it("names every blocking failure, in result order", () => {
+    expect(
+      blockingGroundednessFailures([
+        judged("b", true, "fail", "second"),
+        judged("a", true, "fail", "first"),
+      ]),
+    ).toEqual(["b (second)", "a (first)"]);
+  });
+
+  it("is empty when only non-blocking cases failed", () => {
+    expect(
+      blockingGroundednessFailures([
+        judged("t1", true, "pass"),
+        judged("t2-a", false, "fail", "unsupported claim"),
+        judged("t2-b", false, "fail", "unsupported claim"),
+      ]),
+    ).toEqual([]);
+  });
+
+  it("is empty on no results", () => {
+    expect(blockingGroundednessFailures([])).toEqual([]);
   });
 });

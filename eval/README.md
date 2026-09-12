@@ -1906,6 +1906,39 @@ hit-rate readings, one of which bought nothing but the diagnosis. The lesson
 is cheap and already in the roadmap: verify the balance before a paid run,
 and read a run that logs provider errors as a run to repeat, not a number.
 
+### The gate that did not say so: per-case groundedness (#324)
+
+SPEC §9 has said since #277 (2026-09-04) that «no individually blocking Tier 1
+case may fail» groundedness, and `dataset.ts` says every Tier 1 case is
+individually blocking on hit-rate, groundedness and adequacy. The hit-rate
+lane asserted it from the start (`finds every blocking case's artículo in the
+answer top-k`, listed by id). The groundedness lane never did: from the day
+Tier 1 cases became `blocking` by construction (#278/#284, 2026-09-04) until
+#324, `groundedness.eval.test.ts` asserted only the aggregate `≥ 0.94`.
+
+What the missing assertion let through, run by run:
+
+| Run                      | Rate  | Blocking failures the rate absorbed                                              |
+| ------------------------ | ----- | -------------------------------------------------------------------------------- |
+| 2026 baseline (#267)     | 70/73 | `ho-hacienda-solo-cliente-eeuu` (T1-A)                                           |
+| Closing run (2026-09-11) | 70/73 | `ho-cliente-espana-lleva-iva` (T1-D), `ho-minimo-caja-independiente-2026` (T1-F) |
+
+Both closing-run cases are wrong statements, not missing ones — the export
+case read as taxable on «ubicado en dicho territorio» alone; 11,66 % given as
+category 1's IVM rate where [6] says 9,91 % — and the gate passed. The
+accepted-risk record on #121 (2026-09-11) described Tier 1 answers as
+incomplete «never a wrong one»; #324's comment under it names the two cases
+with the same owner and expiry (2026-11-12) and corrects that sentence.
+
+Closed 2026-09-12 (#324): `blockingGroundednessFailures` in
+`src/lib/eval/groundedness.ts` — every `blocking` case must pass, failures
+named by id with the judge's reason — asserted by the lane beside the
+aggregate gate, which is unchanged, and unit-tested keyless in
+`groundedness.test.ts`. No paid run: #305's is the first measurement with the
+assertion on, and it will fail while the two cases still fail. That is what
+the gate should say; the deploy decision lives in the accepted-risk record,
+not in the gate.
+
 ## Adversarial conflicting-sources case (issue #135)
 
 `src/lib/eval/conflicting-sources.eval.test.ts` is the one case that
