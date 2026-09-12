@@ -1939,6 +1939,22 @@ assertion on, and it will fail while the two cases still fail. That is what
 the gate should say; the deploy decision lives in the accepted-risk record,
 not in the gate.
 
+### A dataset decision, no run (#293)
+
+The Tier 1 adequacy FAIL #289 classified as A2 was decided on 2026-09-12 by
+reading the ingested sources, not by running anything; the numbers above do
+not change until the next paid run.
+
+- `ho-cabys-paginas-web` (Tier 1 adequacy FAIL, #289 A2) — the v4.4 «Anexos y
+  Estructuras» annex stays out of the corpus: field-level comprobante
+  structure is outside the release promise (BRIEF §5). The claim «cada línea
+  de detalle lleva su código CABYS» lived only in that annex and is rewritten
+  to what the ingested corpus states: Reglamento de Comprobantes art. 13
+  inciso 10 requires a «código de producto» per bien o servicio in the
+  detail. That the code is CABYS is the annex's sentence, not the
+  reglamento's, and the claim no longer asserts it. Art. 13 joins `expected`
+  as that claim's source; `cabys-dev` stays as the target of the second.
+
 ## Adversarial conflicting-sources case (issue #135)
 
 `src/lib/eval/conflicting-sources.eval.test.ts` is the one case that
