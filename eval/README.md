@@ -1939,6 +1939,22 @@ assertion on, and it will fail while the two cases still fail. That is what
 the gate should say; the deploy decision lives in the accepted-risk record,
 not in the gate.
 
+### A dataset decision, no run (#297)
+
+The Tier 2 miss the closing-run tables leave to a decision was decided on
+2026-09-12 by reading the source, not by running anything; the numbers above
+do not change until the next paid run.
+
+- `ho-t2-constancia-al-dia` (the one Tier 2 adequacy miss, and one of the
+  three hit-rate misses) — the FAQ has no «constancia» to download; what it
+  has is the public consultation, so the honest answer is entries · 1 (where
+  it is), · 2 (no user needed) and · 7 (what the «al día» status the reader
+  names means). `· 7` joins `expected` as the source that defines the status
+  asked about — #286 measured it at vector rank 1 and left it alone on
+  purpose; this is the review that rule asked for — and its content joins the
+  case as a second required claim, so the change makes the case stricter
+  where it makes it reachable. Still `heldOut`, still Tier 2.
+
 ## Adversarial conflicting-sources case (issue #135)
 
 `src/lib/eval/conflicting-sources.eval.test.ts` is the one case that
