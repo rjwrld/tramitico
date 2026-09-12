@@ -9,7 +9,8 @@
  * LLM judge at temperature 0 whether the answer is supported by the
  * retrieved chunks. Failed items are re-judged twice more; the majority
  * verdict stands (absorbs judge flakiness at n≈25 without loosening the
- * gate). Blocking gate: ≥90% pass, ratchet-only.
+ * gate). Blocking gate: ≥90% pass, ratchet-only — and, since #324, every
+ * `blocking` case individually, as SPEC §9 has said since #277.
  *
  * Env-gated like retrieval-hitrate.eval.test.ts, plus it needs an
  * Anthropic key for the answer + judge calls: skipped locally when any is
@@ -71,6 +72,7 @@ import {
 } from "./subset";
 import { transcriptRow, writeTranscript } from "./transcript";
 import {
+  blockingGroundednessFailures,
   GROUNDEDNESS_GATE,
   judgeAnswer,
   JUDGE_MODEL,
@@ -423,6 +425,17 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
           `${r.evalCase.id} (${(r.citations as Exclude<CitationVerdict, { ok: true }>).violation})`,
       );
     expect(failed, `citation violations: ${failed.join("; ")}`).toEqual([]);
+  });
+
+  it("every blocking case's answer is supported by its retrieved chunks", () => {
+    assertFullRun();
+    // SPEC §9: «no individually blocking Tier 1 case may fail». Until #324
+    // this lane asserted only the rate below, and the 2026-09-11 closing run
+    // passed it with two Tier 1 held-out cases failing unanimously.
+    const failed = blockingGroundednessFailures(results);
+    expect(failed, `ungrounded blocking answers: ${failed.join("; ")}`).toEqual(
+      [],
+    );
   });
 
   it(`at least ${GROUNDEDNESS_GATE * 100}% of answers are supported by their retrieved chunks`, () => {
