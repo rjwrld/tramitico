@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { PRIVACY_PATH, TERMS_PATH } from "@/components/chat/privacy-note";
+import {
+  ACERCA_PATH,
+  PRIVACY_PATH,
+  TERMS_PATH,
+} from "@/components/chat/privacy-note";
 
 /**
  * The privacy statement (#136 req. 3, privacy contract from #121).
@@ -183,6 +187,10 @@ export default function PrivacyPage() {
         . Las condiciones de uso del servicio están en{" "}
         <Link href={TERMS_PATH} className="underline underline-offset-4">
           Términos de uso
+        </Link>
+        ; qué es Tramitico y de qué documentos responde, en{" "}
+        <Link href={ACERCA_PATH} className="underline underline-offset-4">
+          Acerca
         </Link>
         .
       </p>

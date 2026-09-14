@@ -115,20 +115,30 @@ const selloClassName = cn(
   "inline-block rounded-[3px] px-[9px] py-[5px] font-mono text-[0.6875rem] font-medium tracking-[0.03em] uppercase",
   "border border-sello-border bg-sello-bg text-sello",
   "shadow-[inset_0_0_0_3px_var(--sello-bg),inset_0_0_0_4px_var(--sello-border)]",
-  "animate-stamp-settle motion-reduce:animate-none",
 );
 
+/** The stamp settle (DESIGN §8 moment 1) — the signature, on a citation. */
+const settleClassName = "animate-stamp-settle motion-reduce:animate-none";
+
+/**
+ * `settle` is on by default: a stamp lands when an answer names its source.
+ * `/acerca` lists the whole corpus at once and turns it off — twenty chips
+ * settling on page load would be a staggered entrance, which §8 forbids.
+ */
 export function Sello({
   citation,
   className,
+  settle = true,
 }: {
   citation: Citation;
   className?: string;
+  settle?: boolean;
 }) {
   const label = selloLabel(citation);
+  const base = cn(selloClassName, settle && settleClassName);
   if (!citation.url) {
     return (
-      <span data-slot="sello" className={cn(selloClassName, className)}>
+      <span data-slot="sello" className={cn(base, className)}>
         {label}
       </span>
     );
@@ -140,7 +150,7 @@ export function Sello({
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        selloClassName,
+        base,
         "transition-colors duration-150 hover:border-sello focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
         className,
       )}

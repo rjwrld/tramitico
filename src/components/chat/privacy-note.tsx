@@ -34,6 +34,16 @@ export const PRIVACY_LINK_LABEL = "Ver cómo se tratan sus datos";
 export const TERMS_PATH = "/terminos";
 export const TERMS_LINK_LABEL = "Términos de uso";
 
+/**
+ * Where the about page lives (#328): what Tramitico is, how it answers, the
+ * documents it answers from, who made it. First of the three links, because
+ * it is the one a first-time visitor is most likely to want.
+ */
+export const ACERCA_PATH = "/acerca";
+export const ACERCA_LINK_LABEL = "Acerca";
+/** The fragment of `/acerca` that lists the documents; the home caption links to it. */
+export const ACERCA_SOURCES_ANCHOR = "fuentes";
+
 export function PrivacyNote() {
   return (
     <p
@@ -41,6 +51,10 @@ export function PrivacyNote() {
       className="text-[0.6875rem] leading-snug text-pretty text-muted-foreground"
     >
       {PRIVACY_DISCLOSURE}{" "}
+      <Link href={ACERCA_PATH} className="underline underline-offset-4">
+        {ACERCA_LINK_LABEL}
+      </Link>
+      {" · "}
       <Link href={PRIVACY_PATH} className="underline underline-offset-4">
         {PRIVACY_LINK_LABEL}
       </Link>
