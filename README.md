@@ -34,6 +34,26 @@ Integration and eval suites skip locally when their prerequisites are absent, an
 naming the missing variable — under `CI=true`, so no required check can pass while
 asserting nothing.
 
+## License
+
+The application code in this repository is licensed under the
+[Apache License 2.0](LICENSE). Copyright 2026 Ronald Josue Calderon Barrantes.
+
+That license covers the software only. It does not cover:
+
+- **The Tramitico name, logo and visual identity.** They are not granted for reuse by the
+  software license. Forks are welcome, but not under the Tramitico name or seal.
+- **Official documents and third-party content.** The Costa Rican legal texts and datasets
+  the corpus is built from, and the fixtures committed under `docs/corpus-samples/` and
+  `corpus/cabys-dev.json`, are public documents of their issuing institutions. Their
+  sources and status are listed in
+  [docs/corpus-samples/README.md](docs/corpus-samples/README.md).
+- **Vendored fonts.** Source Serif 4 is under the SIL Open Font License 1.1
+  (`src/app/fonts/SourceSerif4-LICENSE.txt`).
+
+The hosted service at tramitico.com, its data and its credentials are separate from this
+codebase; see [SECURITY.md](SECURITY.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
