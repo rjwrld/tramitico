@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { DISCLAIMER } from "@/components/chat/answer-block";
-import { PRIVACY_PATH, TERMS_PATH } from "@/components/chat/privacy-note";
+import {
+  ACERCA_PATH,
+  PRIVACY_PATH,
+  TERMS_PATH,
+} from "@/components/chat/privacy-note";
 import { limitFor } from "@/lib/rate-limit";
 
 /**
@@ -205,6 +209,10 @@ export default function TermsPage() {
         . La política de privacidad está en{" "}
         <Link href={PRIVACY_PATH} className="underline underline-offset-4">
           Privacidad
+        </Link>
+        ; qué es Tramitico y de qué documentos responde, en{" "}
+        <Link href={ACERCA_PATH} className="underline underline-offset-4">
+          Acerca
         </Link>
         .
       </p>

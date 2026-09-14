@@ -98,3 +98,26 @@ test("the terms of use render and are reachable from the composer note (#326)", 
     page.getByRole("link", { name: "privacidad@tramitico.com" }),
   ).toBeVisible();
 });
+
+test("the about page renders keyless with an honest empty source list (#328)", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Acerca", exact: true }).click();
+
+  await expect(page).toHaveURL(/\/acerca$/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Acerca de Tramitico" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Las fuentes" }),
+  ).toBeVisible();
+  // No service client on this stack: the section says so, and never «0 documentos».
+  await expect(
+    page.getByText("Todavía no hay documentos cargados en esta instalación."),
+  ).toBeVisible();
+  await expect(page.getByText(/0 documentos/)).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Código y documentación" }),
+  ).toHaveAttribute("href", "https://github.com/rjwrld/tramitico");
+});

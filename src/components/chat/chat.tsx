@@ -8,6 +8,7 @@
  * 429 rate-limit nudge — render inline in the flow, never as a modal.
  */
 import * as React from "react";
+import Link from "next/link";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { toast } from "sonner";
@@ -27,6 +28,10 @@ import {
   completionAnnouncement,
 } from "@/components/chat/ask-status";
 import { ChatInput } from "@/components/chat/chat-input";
+import {
+  ACERCA_PATH,
+  ACERCA_SOURCES_ANCHOR,
+} from "@/components/chat/privacy-note";
 import { SeedPrompts } from "@/components/chat/seed-prompts";
 import { SCOPE_PHRASE } from "@/lib/routing";
 import { useHistoryRefresh } from "@/components/history/history-refresh";
@@ -203,7 +208,12 @@ export function Chat({
                   data-slot="corpus-caption"
                   className="text-center font-mono text-[0.6875rem] tracking-[0.03em] text-balance text-muted-foreground tabular-nums"
                 >
-                  {corpusCaption}
+                  <Link
+                    href={`${ACERCA_PATH}#${ACERCA_SOURCES_ANCHOR}`}
+                    className="underline decoration-border underline-offset-4 hover:decoration-current"
+                  >
+                    {corpusCaption}
+                  </Link>
                 </p>
               )}
               {/* The scope and the non-promise (#264): two short lines in
