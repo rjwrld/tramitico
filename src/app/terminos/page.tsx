@@ -65,6 +65,10 @@ function formatDateEs(iso: string): string {
 }
 
 export default function TermsPage() {
+  // Read at build time: this page is prerendered. That matches enforcement
+  // because on Vercel a function's env is fixed at deploy time as well, so a
+  // quota override only takes effect through a redeploy, which rebuilds this
+  // page with it. Forcing dynamic rendering would buy nothing here.
   const anonLimit = limitFor("anon");
   const authedLimit = limitFor("authed");
   const [
