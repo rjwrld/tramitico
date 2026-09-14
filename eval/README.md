@@ -688,7 +688,7 @@ that are already inside these 73 — and that is a gap, not a claim.
 - `ho-donde-me-afilio-caja` — En el trámite se declara el ingreso de referencia sobre el que se calculará la cuota.; La cuota se paga mensualmente, dentro de la fecha que corresponde según la primera letra del primer apellido.
 - `ho-tiquete-en-vez-de-factura` — Quien emite comprobantes electrónicos debe estar inscrito en el Registro Único Tributario y tener registrado un correo electrónico válido ante la Administración Tributaria.
 - `ho-factura-electronica-o-recibo` — Las excepciones a la obligación de emitir comprobantes electrónicos son las del artículo 8 y no alcanzan a una persona física que vende bienes o presta servicios gravados con IVA.; Con qué emitir: el facturador gratuito de Hacienda o un proveedor de sistemas de comprobantes electrónicos.; Los comprobantes electrónicos y sus documentos asociados deben almacenarse y conservarse por un plazo de cinco años. (cinco años | 5 años: absent)
-- `ho-cabys-paginas-web` — Cada línea de detalle del comprobante lleva su código CABYS.
+- `ho-cabys-paginas-web` — Cada línea de detalle del comprobante lleva su código CABYS. _(The claim as the run judged it; #293 later rewrote it to art. 13's «código de producto» — see «A dataset decision, no run (#293)».)_
 - `ho-cliente-espana-lleva-iva` — Que el cliente sea extranjero no basta por sí solo: lo que decide es dónde se consume o utiliza el servicio.; La operación exenta se documenta igual, con el comprobante electrónico que corresponda.; El hecho generador ocurre al facturar o al prestar el servicio, el acto que se realice primero, no cuando el cliente paga.; Qué comprobante emitir y qué conservar como prueba de que el servicio se consumió fuera del país.; Si el servicio se consume en Costa Rica, la tarifa general del impuesto es del 13 %. (13 % | 13% | trece por ciento: absent)
 - `ho-iva-en-cero-sin-facturar` — Dónde se presenta la declaración hoy y qué pasa si ya venció el plazo.; Omitir la declaración dentro del plazo legal se sanciona con una multa del cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent)
 - `ho-hasta-que-dia-tengo-iva` — Qué hacer si la fecha ya pasó.
@@ -1938,6 +1938,22 @@ aggregate gate, which is unchanged, and unit-tested keyless in
 assertion on, and it will fail while the two cases still fail. That is what
 the gate should say; the deploy decision lives in the accepted-risk record,
 not in the gate.
+
+### A dataset decision, no run (#293)
+
+The Tier 1 adequacy FAIL #289 classified as A2 was decided on 2026-09-12 by
+reading the ingested sources, not by running anything; the numbers above do
+not change until the next paid run.
+
+- `ho-cabys-paginas-web` (Tier 1 adequacy FAIL, #289 A2) — the v4.4 «Anexos y
+  Estructuras» annex stays out of the corpus: field-level comprobante
+  structure is outside the release promise (BRIEF §5). The claim «cada línea
+  de detalle lleva su código CABYS» lived only in that annex and is rewritten
+  to what the ingested corpus states: Reglamento de Comprobantes art. 13
+  inciso 10 requires a «código de producto» per bien o servicio in the
+  detail. That the code is CABYS is the annex's sentence, not the
+  reglamento's, and the claim no longer asserts it. Art. 13 joins `expected`
+  as that claim's source; `cabys-dev` stays as the target of the second.
 
 ### A dataset decision, no run (#297)
 
