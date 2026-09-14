@@ -34,9 +34,11 @@ jobs:
     permissions:
       contents: read
     env:
-      # A dedicated, ingested test project — NOT production. These suites read
-      # the corpus rather than writing it, but they are pointed by a secret and
-      # #29 owns which project that names.
+      # The production project (#327: one Supabase free project, no second
+      # ingested copy). These suites read `chunks` and write nothing — the
+      # eval clients never touch `questions` or `rate_limits` — so pointing
+      # them at production costs nothing but the read. Same secret names as
+      # keepalive.yml and recrawl.yml; #29 sets the values once.
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       # retrieval.eval.test.ts's `grants` suite reads the legacy
@@ -49,6 +51,9 @@ jobs:
       # Empty is "on" (expand.ts reads it with ||, like RERANK): the eval lane
       # measures the search production performs, expansion legs included.
       EXPAND: ${{ vars.EXPAND }}
+      # The *eval* key, from a workspace separate from `tramitico-prod`
+      # (runbook §7): production's US$10/month cap must never block an
+      # authorized run, and a run must never eat production's budget.
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       ANSWER_MODEL: ${{ vars.ANSWER_MODEL }}
       EXPAND_MODEL: ${{ vars.EXPAND_MODEL }}

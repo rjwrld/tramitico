@@ -50,7 +50,18 @@ The assertion lives in `src/lib/eval/retrieval-hitrate.eval.test.ts`
 the production retrieval path — a fused pool of `RERANK_POOL` (40 since #51),
 Voyage rerank, the answer top-k — and gates on hit-rate, the blocking canary,
 and the weak-retrieval threshold. It is env-gated: skipped without
-`SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` and real embeddings; CI runs it once those secrets exist (see `.github/workflows/ci.yml`).
+`SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` and real embeddings; the on-demand
+`eval.yml` lane runs it with those secrets (#147 moved it out of `ci.yml`).
+
+**Which database `eval.yml` reads (#327).** The production Supabase project —
+there is one hosted project, not a dedicated eval copy. The eval suites read
+`chunks` and write nothing (they never call `rate_limit_increment` or insert
+into `questions`), so the only thing a run costs production is the read, and
+the corpus it measures is exactly the corpus production answers from. The
+per-PR lanes (`test:integration`, pgTAP, `test:e2e:local`) keep CI's throwaway
+`supabase start` stack and never see production. The Anthropic key the lane
+uses comes from a workspace separate from production's capped one (runbook
+§7), so an authorized run is never blocked by the US$10 cap.
 
 Run locally:
 

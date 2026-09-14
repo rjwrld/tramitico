@@ -28,6 +28,19 @@ describe("privacy page", () => {
     }
   });
 
+  it("names the sign-in email provider outside the question path (#327)", () => {
+    render(<PrivacyPage />);
+
+    // Resend holds the address of everyone who signs in by magic link, so it
+    // is disclosed — but not as one of the «cuatro proveedores» a question
+    // passes through, because it never sees one.
+    const dd = screen.getByText(/ese mensaje lo envía Resend/);
+    expect(dd.textContent).toMatch(/no recibe ninguna pregunta/);
+    expect(screen.getByText(/cuatro proveedores/).textContent).not.toMatch(
+      /Resend/,
+    );
+  });
+
   it("states what is kept and for how long", () => {
     render(<PrivacyPage />);
     const text = document.body.textContent ?? "";
