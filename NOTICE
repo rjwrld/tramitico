@@ -1,0 +1,15 @@
+Tramitico
+Copyright 2026 Ronald Josue Calderon Barrantes
+
+Licensed under the Apache License, Version 2.0. See LICENSE.
+
+The Tramitico name, logo and visual identity are not licensed under the
+Apache License; see the "License" section of README.md.
+
+This repository also carries content that is not covered by the Apache
+License:
+
+- Official public documents of the Government of Costa Rica and derived
+  fixtures, listed with their sources in docs/corpus-samples/README.md.
+- Source Serif 4, vendored under src/app/fonts/ under the SIL Open Font
+  License 1.1 (src/app/fonts/SourceSerif4-LICENSE.txt).
