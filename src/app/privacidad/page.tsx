@@ -30,6 +30,16 @@ export const metadata: Metadata = {
 const CONTACT_EMAIL = "privacidad@tramitico.com";
 
 /**
+ * The one third party that never sees a question but does hold personal
+ * data: the provider that delivers the sign-in email (#327 req. 7). Kept out
+ * of SUBPROCESSORS on purpose — that list is «a quién se envía su pregunta»,
+ * and Resend is not on the question's path. Named here so the page stays a
+ * claim about the code (#136): adding or replacing the SMTP provider in the
+ * hosted project's Auth settings must update this constant.
+ */
+const AUTH_EMAIL_PROVIDER = "Resend";
+
+/**
  * Every third party a question or its answer touches, and why. Rendered as a
  * definition list rather than cards — four short entries do not need a grid.
  */
@@ -90,6 +100,15 @@ export default function PrivacyPage() {
 
       <Section title="Qué se guarda">
         <p>
+          <strong className="font-medium text-foreground">
+            Su cuenta, si inicia sesión.
+          </strong>{" "}
+          Su dirección de correo, o la que Google o GitHub entregan al autorizar
+          el acceso. Cuando entra con un enlace por correo, ese mensaje lo envía{" "}
+          {AUTH_EMAIL_PROVIDER}, que por eso conoce su dirección; no recibe
+          ninguna pregunta ni ninguna respuesta.
+        </p>
+        <p className="mt-4">
           <strong className="font-medium text-foreground">
             Su historial, solo si inicia sesión.
           </strong>{" "}

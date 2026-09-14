@@ -1,0 +1,89 @@
+name: Keepalive
+
+# Why this exists (#327): production is one Supabase *free* project, and a
+# free project pauses after 7 days without activity. Nothing else touches it
+# on a schedule — recrawl.yml is quarterly, eval.yml is on demand, and
+# portfolio traffic is a recruiter clicking a link three weeks after the post,
+# which is exactly the visit that must not find a paused database. One cheap
+# authenticated read is the activity that keeps it awake.
+#
+# Twice a week, not weekly. GitHub's scheduler runs a cron late or drops it
+# under load, and a weekly cron that misses once is an eight-day gap — past
+# the pause. Two runs a week means a single miss still lands inside seven
+# days. Runbook §7 has the operational notes, including the one this file
+# cannot fix: GitHub disables *every* scheduled workflow in a repo after 60
+# days without a commit, so a quiet repo loses this and recrawl.yml together.
+#
+# The read goes through the service-role key eval.yml and recrawl.yml already
+# hold: the #123 lockdown leaves `anon` and `authenticated` with no privilege
+# on anything in `public`, so there is no cheaper credential that can read a
+# row. A failed read fails the workflow and files an issue, like recrawl.yml
+# — a scheduled workflow's own failure email reaches one inbox and is easy to
+# miss, and a keep-alive that fails quietly is the pause with extra steps.
+on:
+  schedule:
+    # 06:00 UTC Monday and Thursday — three and four days apart.
+    - cron: "0 6 * * 1,4"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Require the production project
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          missing=""
+          for var in SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY; do
+            if [ -z "${!var}" ]; then missing="$missing $var"; fi
+          done
+          if [ -n "$missing" ]; then
+            echo "Keepalive cannot run — missing:$missing" >&2
+            echo "These are repository secrets; #29 provisions them." >&2
+            exit 1
+          fi
+      # One row from `documents` through PostgREST. `documents` rather than
+      # `chunks`: it is the smaller table and any ingested project has at
+      # least one row, so an empty body is a signal too (the project is up but
+      # the corpus is gone — not this workflow's problem, but worth the line).
+      - name: Read one row
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          status=$(curl --silent --show-error --output body.json --write-out '%{http_code}' \
+            --max-time 30 \
+            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            "$SUPABASE_URL/rest/v1/documents?select=id&limit=1")
+          if [ "$status" != "200" ]; then
+            echo "Keepalive read failed: HTTP $status" >&2
+            # The body is a PostgREST error object, never a row — safe to print.
+            cat body.json >&2
+            exit 1
+          fi
+          if [ "$(cat body.json)" = "[]" ]; then
+            echo "::warning::The read succeeded but documents is empty — has pnpm ingest run on this project?"
+          fi
+          echo "Keepalive read ok (HTTP $status)"
+      - name: Report failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          printf '%s\n\n%s\n\n%s\n' \
+            'The keep-alive read on the production Supabase project failed; the run log names the step. A non-200 from PostgREST usually means the project is already paused (restore it from the Supabase dashboard, then re-run this workflow), or the secrets moved. If nothing ran at all, check whether GitHub disabled the schedule — it does after 60 days without a commit (runbook §7).' \
+            'Contract: [docs/runbook.md §7](../blob/main/docs/runbook.md) · #327.' \
+            "Run log: $RUN_URL" > body.md
+          gh issue create \
+            --title "Keepalive failed — run $RUN_ID" \
+            --label needs-triage \
+            --body-file body.md
