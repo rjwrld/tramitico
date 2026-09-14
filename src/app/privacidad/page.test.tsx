@@ -110,6 +110,23 @@ describe("privacy page", () => {
     );
   });
 
+  it("links the terms of use, so the two pages sit side by side (#326)", () => {
+    render(<PrivacyPage />);
+
+    const link = screen.getByRole("link", { name: "Términos de uso" });
+    expect(link.getAttribute("href")).toBe("/terminos");
+  });
+
+  it("has a single h1 and a two-level heading outline (#326)", () => {
+    render(<PrivacyPage />);
+
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    expect(screen.getAllByRole("heading", { level: 2 }).length).toBeGreaterThan(
+      0,
+    );
+    expect(screen.queryAllByRole("heading", { level: 3 })).toHaveLength(0);
+  });
+
   it("titles itself for the tab and for search", () => {
     expect(metadata.title).toBe("Privacidad — Tramitico");
   });

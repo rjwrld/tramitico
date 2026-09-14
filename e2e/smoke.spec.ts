@@ -80,3 +80,21 @@ test("a 429 renders the friendly rate-limit message inline", async ({
   );
   await expect(alert).toContainText("Inicie sesión");
 });
+
+test("the terms of use render and are reachable from the composer note (#326)", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Términos de uso" }).click();
+
+  await expect(page).toHaveURL(/\/terminos$/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Términos de uso" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Ley aplicable" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "privacidad@tramitico.com" }),
+  ).toBeVisible();
+});
