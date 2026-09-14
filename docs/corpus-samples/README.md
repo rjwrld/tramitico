@@ -27,8 +27,14 @@ the repository, including the one outside this directory.
 
 The legal text is public; SINALEVI's Word-export markup and Hacienda's PDF layout are
 kept only because the extraction code is tested against exactly what the sources serve.
-Nothing else that the pipeline fetches is committed: the live corpus is rebuilt from
-`corpus/manifest.json` by `pnpm ingest`.
+Nothing else that the pipeline fetches is committed as a fixture: the live corpus is
+rebuilt from `corpus/manifest.json` by `pnpm ingest`.
+
+One more place carries excerpts of these documents: the published eval run under
+`eval/runs/` (#325). Each groundedness row there embeds the chunks the pipeline retrieved
+for that question, verbatim from the documents `corpus/manifest.json` lists. The same
+status applies: official public text of its issuing institution (Hacienda, CCSS, SINALEVI,
+BCCR), outside the Apache license; the model answers around it are repository output.
 
 The `.html` files are the raw `html` payload from SINALEVI's API — Word-export HTML
 (`mso-` styles); a cleaning pass is part of the chunking work.
