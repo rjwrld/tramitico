@@ -1822,10 +1822,9 @@ answer (rule 1's territory, cf. rule 9's last clause).
 The Phase 4 closing run the roadmap's Option A called for: one arm, the
 shipped pipeline on `main` at #322 (#314 rule 9, #321 abstention, #288 closed
 on re-reads), every suite once, answer `claude-sonnet-5`, judge
-`claude-sonnet-4-5`, same 871-chunk corpus, 2 163 s. Transcripts, copied to
-the main checkout: `groundedness-claude-sonnet-5-20260911T013607Z.jsonl`,
-`abstention-2026-09-11T01-02-10-369Z.jsonl`, and the raw logs
-`closing-run-20260911.log`, `closing-run-hitrate-rerun3-20260911.log`.
+`claude-sonnet-4-5`, same 871-chunk corpus, 2 163 s. The transcripts and raw
+logs are published in [`eval/runs/2026-09-11-closing/`](runs/2026-09-11-closing/)
+(#325), with a README naming each file.
 
 | Gate (73 cases)                  | #304 (shipped) | Closing run | Gate             |
 | -------------------------------- | -------------- | ----------- | ---------------- |

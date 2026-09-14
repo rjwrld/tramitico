@@ -69,3 +69,12 @@ corpus/cache/
 
 # Codex CLI local state
 .codex/
+
+# Orca worktrees. Orca checks each branch out under a folder named after the
+# project, and that folder lands inside the main checkout rather than beside
+# it (`.orca-worktree-trash` marks it). Root-anchored: only the parent folder,
+# not a future `src/tramitico/`.
+/tramitico/
+
+# Written by the Claude Code desktop app's preview tool; per-machine state.
+.claude/launch.json
