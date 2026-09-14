@@ -23,6 +23,8 @@ import {
   PRIVACY_DISCLOSURE,
   PRIVACY_LINK_LABEL,
   PRIVACY_PATH,
+  TERMS_LINK_LABEL,
+  TERMS_PATH,
 } from "@/components/chat/privacy-note";
 
 const chat: { messages: AskUIMessage[]; status: string } = {
@@ -266,6 +268,14 @@ describe("Chat pre-submission privacy disclosure (#136)", () => {
       name: PRIVACY_LINK_LABEL,
     }) as HTMLAnchorElement;
     expect(link.getAttribute("href")).toBe(PRIVACY_PATH);
+  });
+
+  it("links the terms of use beside the privacy page (#326)", () => {
+    render(<Chat />);
+
+    const link = screen.getByRole("link", { name: TERMS_LINK_LABEL });
+    expect(link.getAttribute("href")).toBe(TERMS_PATH);
+    expect(privacyNote().contains(link)).toBe(true);
   });
 
   it("sits with the composer, so it survives the move into the conversation", () => {

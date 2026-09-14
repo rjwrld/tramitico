@@ -26,6 +26,14 @@ export const PRIVACY_DISCLOSURE =
 
 export const PRIVACY_LINK_LABEL = "Ver cómo se tratan sus datos";
 
+/**
+ * Where the terms of use live (#326). They ride along here because this note
+ * is the one place the app links `/privacidad`, and the two pages belong side
+ * by side; the note stays one paragraph, three lines on a phone.
+ */
+export const TERMS_PATH = "/terminos";
+export const TERMS_LINK_LABEL = "Términos de uso";
+
 export function PrivacyNote() {
   return (
     <p
@@ -35,6 +43,10 @@ export function PrivacyNote() {
       {PRIVACY_DISCLOSURE}{" "}
       <Link href={PRIVACY_PATH} className="underline underline-offset-4">
         {PRIVACY_LINK_LABEL}
+      </Link>
+      {" · "}
+      <Link href={TERMS_PATH} className="underline underline-offset-4">
+        {TERMS_LINK_LABEL}
       </Link>
       .
     </p>

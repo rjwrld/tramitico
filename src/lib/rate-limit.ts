@@ -101,7 +101,12 @@ const RETENTION_DAYS = 2;
 
 const DEFAULT_LIMITS: Record<RateLimitTier, number> = { anon: 10, authed: 50 };
 
-function limitFor(tier: RateLimitTier): number {
+/**
+ * The daily quota for a tier: the env override when set, else the SPEC §7
+ * default. Exported so `/terminos` states the number that is enforced rather
+ * than a copy of it.
+ */
+export function limitFor(tier: RateLimitTier): number {
   const env = tier === "anon" ? "RATE_LIMIT_ANON" : "RATE_LIMIT_AUTHED";
   const raw = process.env[env];
   if (!raw) return DEFAULT_LIMITS[tier];
