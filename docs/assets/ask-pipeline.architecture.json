@@ -1,0 +1,393 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "How Tramitico answers",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/rjwrld/tramitico",
+      "revision": "bcbcb32b1b1836ee01ba7adeab0ac842fe4dab77"
+    }
+  },
+  "components": [
+    {
+      "id": "chat_ui",
+      "type": "frontend",
+      "label": "Chat UI",
+      "sublabel": "streams UI parts",
+      "pos": [40, 340],
+      "size": [100, 64],
+      "sources": [
+        {
+          "path": "src/components/chat/chat.tsx",
+          "label": "AskUIMessage stream"
+        }
+      ]
+    },
+    {
+      "id": "ask_api",
+      "type": "backend",
+      "label": "POST /api/ask",
+      "sublabel": "runs the pipeline",
+      "brand": "vercel",
+      "pos": [170, 340],
+      "size": [130, 64],
+      "sources": [
+        {
+          "path": "src/app/api/ask/route.ts",
+          "line": 549,
+          "label": "POST handler"
+        },
+        {
+          "path": "src/lib/answer/deadline.ts",
+          "line": 34,
+          "end_line": 40,
+          "label": "startAskDeadline"
+        }
+      ]
+    },
+    {
+      "id": "quota",
+      "type": "security",
+      "label": "Daily quota",
+      "sublabel": "refunds on abort",
+      "brand": "supabase",
+      "pos": [170, 140],
+      "size": [130, 60],
+      "sources": [
+        {
+          "path": "src/lib/rate-limit.ts",
+          "line": 261,
+          "end_line": 327,
+          "label": "checkRateLimit"
+        }
+      ]
+    },
+    {
+      "id": "condense",
+      "type": "external",
+      "label": "Condense",
+      "sublabel": "Haiku rewrite",
+      "brand": "anthropic",
+      "pos": [330, 340],
+      "size": [110, 64],
+      "sources": [
+        {
+          "path": "src/lib/answer/condense.ts",
+          "line": 195,
+          "end_line": 231,
+          "label": "condenseQuestion"
+        },
+        {
+          "path": "src/lib/answer/model.ts",
+          "line": 31,
+          "label": "DEFAULT_CONDENSE_MODEL"
+        }
+      ]
+    },
+    {
+      "id": "embed",
+      "type": "external",
+      "label": "Embed",
+      "sublabel": "Voyage voyage-3",
+      "pos": [470, 150],
+      "size": [140, 56],
+      "sources": [
+        {
+          "path": "src/lib/ingestion/embedder.ts",
+          "line": 32,
+          "label": "embedQuery"
+        }
+      ]
+    },
+    {
+      "id": "expand_steps",
+      "type": "external",
+      "label": "Expand + steps",
+      "sublabel": "Haiku + catalogue",
+      "brand": "anthropic",
+      "pos": [470, 560],
+      "size": [140, 60],
+      "sources": [
+        {
+          "path": "src/lib/answer/expand.ts",
+          "line": 196,
+          "label": "expandQuery"
+        },
+        {
+          "path": "src/lib/answer/steps.ts",
+          "line": 256,
+          "label": "stepProbe"
+        }
+      ]
+    },
+    {
+      "id": "search_chunks",
+      "type": "database",
+      "label": "search_chunks",
+      "sublabel": "pgvector + lexical",
+      "brand": "postgresql",
+      "pos": [640, 335],
+      "size": [140, 66],
+      "sources": [
+        {
+          "path": "src/lib/retrieval.ts",
+          "line": 550,
+          "end_line": 666,
+          "label": "retrieve"
+        },
+        {
+          "path": "supabase/migrations/20260907120000_search_chunks_step_legs.sql",
+          "label": "search_chunks RPC"
+        }
+      ]
+    },
+    {
+      "id": "routed_decline",
+      "type": "backend",
+      "label": "Routed decline",
+      "sublabel": "no model call",
+      "pos": [810, 560],
+      "size": [140, 60],
+      "sources": [
+        {
+          "path": "src/lib/routing.ts",
+          "line": 383,
+          "end_line": 396,
+          "label": "classifyRouting"
+        },
+        {
+          "path": "src/lib/routing.ts",
+          "line": 448,
+          "end_line": 485,
+          "label": "declineAnswer"
+        }
+      ]
+    },
+    {
+      "id": "rerank_derive",
+      "type": "external",
+      "label": "Rerank + figures",
+      "sublabel": "narrows to top 8",
+      "pos": [810, 330],
+      "size": [140, 70],
+      "sources": [
+        {
+          "path": "src/lib/answer/rerank.ts",
+          "line": 502,
+          "end_line": 513,
+          "label": "rerankChunks"
+        },
+        {
+          "path": "src/lib/answer/rerank.ts",
+          "line": 122,
+          "label": "RERANK_MODEL"
+        },
+        {
+          "path": "src/lib/answer/derived.ts",
+          "line": 263,
+          "end_line": 295,
+          "label": "resolveDerivedFigures"
+        }
+      ]
+    },
+    {
+      "id": "answer",
+      "type": "external",
+      "label": "Answer",
+      "sublabel": "Sonnet 5",
+      "brand": "anthropic",
+      "pos": [980, 335],
+      "size": [100, 60],
+      "sources": [
+        {
+          "path": "src/app/api/ask/route.ts",
+          "line": 492,
+          "end_line": 521,
+          "label": "generateAnswer"
+        },
+        {
+          "path": "src/lib/answer/model.ts",
+          "line": 23,
+          "label": "DEFAULT_ANSWER_MODEL"
+        }
+      ]
+    },
+    {
+      "id": "verify",
+      "type": "security",
+      "label": "Verify citations",
+      "sublabel": "≤2 attempts",
+      "pos": [1110, 330],
+      "size": [140, 66],
+      "sources": [
+        {
+          "path": "src/lib/answer/invariant.ts",
+          "line": 51,
+          "end_line": 70,
+          "label": "validateCitations"
+        },
+        {
+          "path": "src/app/api/ask/route.ts",
+          "line": 203,
+          "label": "MAX_ANSWER_ATTEMPTS"
+        }
+      ]
+    },
+    {
+      "id": "supabase",
+      "type": "database",
+      "label": "Supabase",
+      "sublabel": "chunks · questions",
+      "brand": "supabase",
+      "pos": [1110, 560],
+      "size": [140, 66],
+      "sources": [
+        {
+          "path": "src/lib/answer/persist.ts",
+          "line": 62,
+          "end_line": 96,
+          "label": "saveQuestion"
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Hybrid retrieval",
+      "wraps": ["embed", "expand_steps", "search_chunks"],
+      "pad": 14
+    }
+  ],
+  "connections": [
+    {
+      "id": "chat-to-api",
+      "from": "chat_ui",
+      "to": "ask_api",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-to-quota",
+      "from": "ask_api",
+      "to": "quota",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "api-to-condense",
+      "from": "ask_api",
+      "to": "condense",
+      "label": "multi-turn",
+      "labelDy": -26
+    },
+    {
+      "id": "condense-to-embed",
+      "from": "condense",
+      "to": "embed",
+      "label": "standalone question",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "condense-to-expand",
+      "from": "condense",
+      "to": "expand_steps",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "embed-to-search",
+      "from": "embed",
+      "to": "search_chunks",
+      "label": "query_embedding",
+      "fromSide": "right",
+      "toSide": "top"
+    },
+    {
+      "id": "expand-to-search",
+      "from": "expand_steps",
+      "to": "search_chunks",
+      "label": "expansion + step texts",
+      "fromSide": "right",
+      "toSide": "bottom"
+    },
+    {
+      "id": "search-to-rerank",
+      "from": "search_chunks",
+      "to": "rerank_derive",
+      "label": "corroborated · pool of 40",
+      "variant": "emphasis",
+      "labelDy": -25
+    },
+    {
+      "id": "search-to-decline",
+      "from": "search_chunks",
+      "to": "routed_decline",
+      "label": "weak retrieval",
+      "variant": "dashed"
+    },
+    {
+      "id": "rerank-to-answer",
+      "from": "rerank_derive",
+      "to": "answer",
+      "label": "top-8 + derived figures",
+      "labelDy": -29
+    },
+    {
+      "id": "answer-to-verify",
+      "from": "answer",
+      "to": "verify",
+      "label": "buffered draft",
+      "labelAt": [1095, 326]
+    },
+    {
+      "id": "verify-retry",
+      "from": "verify",
+      "to": "answer",
+      "label": "retry ≤2",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "top"
+    },
+    {
+      "id": "verify-to-db",
+      "from": "verify",
+      "to": "supabase",
+      "label": "persist (signed-in)",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 24
+    },
+    {
+      "id": "decline-to-db",
+      "from": "routed_decline",
+      "to": "supabase",
+      "label": "persist decline",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelDy": -34
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "What it never does",
+      "items": [
+        "Publish an answer without a citation that resolves to a retrieved chunk (ADR 0011)",
+        "Let the model compute a derived figure — code does the arithmetic from cited inputs (ADR 0018)",
+        "Guess at institutions outside Hacienda/CCSS — the decline routes there instead (ADR 0017)"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Models",
+      "items": [
+        "claude-sonnet-5 answers",
+        "claude-haiku-4-5 condenses follow-ups and expands the query",
+        "voyage-3 embeds; rerank-2.5-lite reranks"
+      ]
+    }
+  ]
+}
