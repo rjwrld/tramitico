@@ -212,6 +212,12 @@ _load_env() {
   done < "$ENV_FILE"
 }
 _load_env
+if [[ ! "$START_STAGE" =~ ^[0-9]+$ ]] ||
+   (( 10#$START_STAGE < 1 || 10#$START_STAGE > TOTAL_STAGES )); then
+  printf 'START_STAGE must be an integer from 1 to %s\n' "$TOTAL_STAGES" >&2
+  exit 2
+fi
+START_STAGE=$((10#$START_STAGE))
 _STAGE_INDEX=$((START_STAGE - 1))
 SUPABASE_URL="${SUPABASE_URL:-}"
 CALLBACK="${SUPABASE_URL}/auth/v1/callback"
