@@ -191,14 +191,40 @@ finish() {
 # issue #29 (comments of 2026-09-12/14/15) and docs/runbook.md §7.
 # ──────────────────────────────────────────────────────────────────────────
 
-ENV_FILE="${ENV_FILE:-.env.prod}"
+# Unconditional: the library above already defaulted ENV_FILE to ".env", which
+# Next.js loads, so a `${ENV_FILE:-…}` here would never take effect.
+ENV_FILE=".env.prod"
 TOTAL_STAGES=12
 SITE_URL="https://tramitico.com"
 MAIL_DOMAIN="mail.tramitico.com"
 
-banner "Tramitico → production (#29)"
+# Resume: START_STAGE=9 bash scripts/deploy-wizard.sh skips straight to stage 9.
+# Every stage's inputs come from ENV_FILE (written by the earlier stages), so a
+# later stage never depends on an earlier one having run in this process.
+START_STAGE="${START_STAGE:-1}"
+_load_env() {
+  [[ -f "$ENV_FILE" ]] || return 0
+  local line key
+  while IFS= read -r line; do
+    [[ -z "$line" || "$line" == \#* || "$line" != *=* ]] && continue
+    key="${line%%=*}"
+    printf -v "$key" '%s' "${line#*=}"
+  done < "$ENV_FILE"
+}
+_load_env
+if [[ ! "$START_STAGE" =~ ^[0-9]+$ ]] ||
+   (( 10#$START_STAGE < 1 || 10#$START_STAGE > TOTAL_STAGES )); then
+  printf 'START_STAGE must be an integer from 1 to %s\n' "$TOTAL_STAGES" >&2
+  exit 2
+fi
+START_STAGE=$((10#$START_STAGE))
+_STAGE_INDEX=$((START_STAGE - 1))
+SUPABASE_URL="${SUPABASE_URL:-}"
+CALLBACK="${SUPABASE_URL}/auth/v1/callback"
+SMTP_ADMIN_EMAIL="${SMTP_ADMIN_EMAIL:-no-reply@${MAIL_DOMAIN}}"
 
 # ── 1 ─────────────────────────────────────────────────────────────────────
+stage_1() {
 stage "Supabase: the production project"
 say "One free project; production, eval.yml, keepalive.yml and recrawl.yml all use it."
 open_url "https://supabase.com/dashboard/new"
@@ -209,14 +235,17 @@ step "Wait for the project to finish provisioning (a minute or two)."
 step "Project Settings → General → copy the Project ID (the 20-char ref)."
 ask SUPABASE_PROJECT_REF "Paste the project ref:"
 SUPABASE_URL="https://${SUPABASE_PROJECT_REF}.supabase.co"
+CALLBACK="${SUPABASE_URL}/auth/v1/callback"
 say "Project URL: ${SUPABASE_URL}"
 write_env SUPABASE_DB_PASSWORD "$SUPABASE_DB_PASSWORD"
 write_env SUPABASE_PROJECT_REF "$SUPABASE_PROJECT_REF"
 write_env SUPABASE_URL "$SUPABASE_URL"
 write_env NEXT_PUBLIC_SUPABASE_URL "$SUPABASE_URL"
 pause
+}
 
 # ── 2 ─────────────────────────────────────────────────────────────────────
+stage_2() {
 stage "Supabase: API keys and the JWT signing mode"
 open_url "https://supabase.com/dashboard/project/${SUPABASE_PROJECT_REF}/settings/api-keys"
 step "Publishable key (sb_publishable_…): what the browser and server clients use."
@@ -236,8 +265,10 @@ ask JWT_SIGNING_MODE "Type the algorithm as shown (ES256 / RS256 / HS256):"
 write_env JWT_SIGNING_MODE "$JWT_SIGNING_MODE"
 note "Claude turns this into the CONTEXT.md note in Phase 7."
 pause
+}
 
 # ── 3 ─────────────────────────────────────────────────────────────────────
+stage_3() {
 stage "Anthropic: the tramitico-prod workspace and its cap"
 say "Production gets its own workspace, key and a US\$10/month limit (runbook §7)."
 open_url "https://console.anthropic.com/settings/workspaces"
@@ -248,8 +279,10 @@ ask_secret ANTHROPIC_API_KEY "Paste the tramitico-prod key (for Vercel only):"
 write_env ANTHROPIC_API_KEY "$ANTHROPIC_API_KEY"
 warn "This key goes to Vercel and nowhere else. eval.yml uses the EVAL workspace's key (stage 9)."
 pause
+}
 
 # ── 4 ─────────────────────────────────────────────────────────────────────
+stage_4() {
 stage "Voyage AI: a production key, and the rate tier"
 say "Voyage bills per account, not per key: a second key is for revocability."
 open_url "https://dashboard.voyageai.com/api-keys"
@@ -265,15 +298,18 @@ if ! confirm "Is a payment method on file (standard rate limits)?"; then
   SKIPPED+=("Voyage: add a payment method so production is not on the 3 req/min tier")
 fi
 pause
+}
 
 # ── 5 ─────────────────────────────────────────────────────────────────────
+stage_5() {
 stage "Resend: sending domain ${MAIL_DOMAIN}"
 say "Auth email for magic links. The subdomain keeps SPF/DKIM off the apex (runbook §7)."
 open_url "https://resend.com/domains"
 step "Add domain: ${MAIL_DOMAIN} · Region: North Virginia (us-east-1)."
 step "Resend shows the DNS records: one DKIM TXT/CNAME, one SPF TXT, and an MX for bounces."
 say "Add them at Vercel DNS, exactly as shown:"
-open_url "https://vercel.com/domains"
+open_url "https://vercel.com/dashboard"
+step "Dashboard → left sidebar Domains → tramitico.com → DNS Records (the form at the bottom)."
 step "tramitico.com → DNS Records → add each record (name relative to the apex, e.g. 'resend._domainkey.mail')."
 pause "Records added at Vercel? (Enter)"
 step "Back in Resend, click Verify. Propagation is usually minutes."
@@ -287,24 +323,28 @@ SMTP_ADMIN_EMAIL="${SMTP_ADMIN_EMAIL:-no-reply@${MAIL_DOMAIN}}"
 write_env SMTP_PASS "$SMTP_PASS"
 write_env SMTP_ADMIN_EMAIL "$SMTP_ADMIN_EMAIL"
 pause
+}
 
 # ── 6 ─────────────────────────────────────────────────────────────────────
+stage_6() {
 stage "ImprovMX: privacidad@tramitico.com"
 say "/privacidad names this mailbox; it must reach you before launch (#136)."
 open_url "https://improvmx.com/"
 step "Add domain tramitico.com · alias 'privacidad' → your inbox."
 step "ImprovMX shows two MX records and one SPF TXT for the APEX (not mail.)."
-open_url "https://vercel.com/domains"
+open_url "https://vercel.com/dashboard"
+step "Dashboard → left sidebar Domains → tramitico.com → DNS Records (the form at the bottom)."
 step "Add them on tramitico.com. If an apex SPF TXT already exists, merge: 'v=spf1 include:spf.improvmx.com ~all'."
 pause "Records added and ImprovMX shows the domain as active? (Enter)"
 step "Send a test mail to privacidad@tramitico.com from any account and confirm it arrives."
 if ! confirm "Did the test mail arrive?"; then
   SKIPPED+=("privacidad@tramitico.com forwarding — re-test after DNS propagates")
 fi
+}
 
 # ── 7 ─────────────────────────────────────────────────────────────────────
+stage_7() {
 stage "GitHub OAuth app"
-CALLBACK="${SUPABASE_URL}/auth/v1/callback"
 open_url "https://github.com/settings/applications/new"
 step "Name: Tramitico · Homepage: ${SITE_URL}"
 step "Authorization callback URL: ${CALLBACK}"
@@ -314,8 +354,10 @@ ask_secret GITHUB_OAUTH_CLIENT_SECRET "Paste the client secret:"
 write_env GITHUB_OAUTH_CLIENT_ID "$GITHUB_OAUTH_CLIENT_ID"
 write_env GITHUB_OAUTH_CLIENT_SECRET "$GITHUB_OAUTH_CLIENT_SECRET"
 pause
+}
 
 # ── 8 ─────────────────────────────────────────────────────────────────────
+stage_8() {
 stage "Google OAuth client"
 say "Basic scopes only (#84): no Google verification review, but the consent screen must be Published."
 open_url "https://console.cloud.google.com/apis/credentials"
@@ -331,19 +373,21 @@ ask_secret GOOGLE_OAUTH_CLIENT_SECRET "Paste the client secret:"
 write_env GOOGLE_OAUTH_CLIENT_ID "$GOOGLE_OAUTH_CLIENT_ID"
 write_env GOOGLE_OAUTH_CLIENT_SECRET "$GOOGLE_OAUTH_CLIENT_SECRET"
 pause
+}
 
 # ── 9 ─────────────────────────────────────────────────────────────────────
+stage_9() {
 stage "Supabase Auth: configure the hosted project (dashboard only)"
 warn "Never 'supabase config push': it would upload the localhost site_url (supabase/config.toml)."
 open_url "https://supabase.com/dashboard/project/${SUPABASE_PROJECT_REF}/auth/url-configuration"
 step "Site URL: ${SITE_URL}"
 step "Redirect URLs: exactly one — ${SITE_URL}/auth/callback   (prod only, no previews)"
 pause "Saved? (Enter)"
-open_url "https://supabase.com/dashboard/project/${SUPABASE_PROJECT_REF}/settings/auth"
-step "SMTP Settings → Enable custom SMTP:"
+open_url "https://supabase.com/dashboard/project/${SUPABASE_PROJECT_REF}/auth/smtp"
+step "Emails → SMTP Settings → Enable custom SMTP:"
 step "  Sender email ${SMTP_ADMIN_EMAIL} · Sender name Tramitico"
 step "  Host smtp.resend.com · Port 465 · Username resend · Password = the Resend API key"
-step "Rate Limits → Emails sent per hour: 10 (Resend free is 100/day)."
+step "Then sidebar → Rate Limits → emails sent per hour: 10 (Resend free is 100/day)."
 pause "Saved? (Enter)"
 open_url "https://supabase.com/dashboard/project/${SUPABASE_PROJECT_REF}/auth/providers"
 step "Email: enabled, Confirm email ON (magic link flow)."
@@ -354,8 +398,10 @@ open_url "https://supabase.com/dashboard/project/${SUPABASE_PROJECT_REF}/auth/te
 step "Magic Link template: mirror supabase/config.toml's [auth.email.template.magic_link] —"
 step "  the link must land on ${SITE_URL}/auth/confirm with the token hash (see supabase/templates/)."
 pause "Template saved? (Enter)"
+}
 
 # ── 10 ────────────────────────────────────────────────────────────────────
+stage_10() {
 stage "GitHub Actions: secrets and variables for eval.yml / keepalive.yml / recrawl.yml"
 say "These workflows read production directly (runbook §7). Names must match exactly."
 set_secret SUPABASE_URL "$SUPABASE_URL"
@@ -370,8 +416,10 @@ set_secret ANTHROPIC_API_KEY "$ANTHROPIC_EVAL_API_KEY"
 set_var EMBEDDINGS_PROVIDER "voyage"
 note "RERANK / EXPAND / ANSWER_MODEL / EXPAND_MODEL variables stay unset: empty is the shipped default."
 pause
+}
 
 # ── 11 ────────────────────────────────────────────────────────────────────
+stage_11() {
 stage "Database: link, migrate, ingest (Phase 4)"
 say "Needs the Supabase CLI, Voyage key and ~5 minutes. Idempotent; safe to re-run."
 say "Skip this stage to hand it to Claude — the same commands, reading ${ENV_FILE}."
@@ -392,8 +440,10 @@ else
   SKIPPED+=("Phase 4: supabase link/db push + pnpm ingest against production (Claude, from ${ENV_FILE})")
 fi
 pause
+}
 
 # ── 12 ────────────────────────────────────────────────────────────────────
+stage_12() {
 stage "Vercel: project, env, domain, preview protection"
 RATE_LIMIT_SUBJECT_SECRET=$(_existing RATE_LIMIT_SUBJECT_SECRET || openssl rand -hex 32)
 write_env RATE_LIMIT_SUBJECT_SECRET "$RATE_LIMIT_SUBJECT_SECRET"
@@ -420,5 +470,8 @@ pause "Domain live and protection on? (Enter)"
 say ""
 say "Now Phase 7 with Claude: runbook §5 (five steps), HSTS curl, one sign-in per provider,"
 say "SPF/DKIM 'pass' on a real magic link, results as a comment on #29, CONTEXT.md signing-key PR."
+}
 
+banner "Tramitico → production (#29)"
+for n in $(seq "$START_STAGE" "$TOTAL_STAGES"); do "stage_$n"; done
 finish
