@@ -70,11 +70,14 @@ supabase start && pnpm ingest   # once
 SUPABASE_URL=http://127.0.0.1:54321 \
 SUPABASE_SERVICE_ROLE_KEY=<service role key> \
 EMBEDDINGS_PROVIDER=voyage VOYAGE_API_KEY=<key> \
-pnpm vitest run src/lib/eval/retrieval-hitrate.eval.test.ts
+pnpm vitest run --disableConsoleIntercept src/lib/eval/retrieval-hitrate.eval.test.ts
 ```
 
-`RERANK=off` measures the fused-only baseline; the per-case table (pool rank,
-top score) prints with the run. Since #286 the retrieval a case runs is also
+`--disableConsoleIntercept` is not optional (#342): vitest hides a _passing_
+file's console, so without it a lane that passes leaves no per-case table in
+the log — #305 paid US$0.25 to re-read one number that way, and `eval.yml`
+now carries the flag too. `RERANK=off` measures the fused-only baseline; the
+per-case table (pool rank, top score) prints with the run. Since #286 the retrieval a case runs is also
 the _expanded_ one — a Haiku rewrite of the question into corpus register,
 fused as two further legs — so a run without `ANTHROPIC_API_KEY` measures a
 different search than a run with one. `EXPAND=off` opts out explicitly, and is
@@ -778,7 +781,7 @@ it is far cheaper than the hit-rate eval:
 ```sh
 SUPABASE_URL=http://127.0.0.1:54321 \
 SUPABASE_SERVICE_ROLE_KEY=<service role key> \
-pnpm vitest run src/lib/eval/dataset-satisfiability.eval.test.ts
+pnpm vitest run --disableConsoleIntercept src/lib/eval/dataset-satisfiability.eval.test.ts
 ```
 
 Its limit is deliberate: an `articulo`-less target passes by construction,
@@ -813,7 +816,7 @@ SUPABASE_URL=http://127.0.0.1:54321 \
 SUPABASE_SERVICE_ROLE_KEY=<service role key> \
 EMBEDDINGS_PROVIDER=voyage VOYAGE_API_KEY=<key> \
 ANTHROPIC_API_KEY=<key> \
-pnpm vitest run src/lib/eval/groundedness.eval.test.ts
+pnpm vitest run --disableConsoleIntercept src/lib/eval/groundedness.eval.test.ts
 ```
 
 > **Gate run 2026-08-25 (#157) on the current corpus: 24/25 (96%) — PASS.**
@@ -988,7 +991,7 @@ visible. It needs no database and no embeddings:
 
 ```sh
 ANTHROPIC_API_KEY=<key> \
-pnpm vitest run src/lib/eval/adequacy.eval.test.ts
+pnpm vitest run --disableConsoleIntercept src/lib/eval/adequacy.eval.test.ts
 ```
 
 ### The abstention lane (#261)
@@ -1153,7 +1156,7 @@ comma-separated list of case ids and scopes the run to them:
 
 ```
 EVAL_CASES=ho-donde-me-afilio-caja,ho-hasta-que-dia-tengo-iva \
-  pnpm vitest run src/lib/eval/groundedness.eval.test.ts
+  pnpm vitest run --disableConsoleIntercept src/lib/eval/groundedness.eval.test.ts
 ```
 
 Same production answer path, same judges, same transcript — for cents instead
@@ -1848,6 +1851,47 @@ condition — «runs only if #305 leaves the seeds thin» — is met.
 **Cost.** Two full arms, one dead half-arm, one hit-rate re-read and the scoped
 arm C: ≈ US$15 at today's prices, against the issue's US$8–12 per arm.
 
+### Harness fixes after #305, no full run (#342)
+
+Three findings of that run that were about the harness, not the knob.
+
+**A passing lane's console.** `eval.yml` and every run-locally command above
+now pass `--disableConsoleIntercept`, so a hit-rate lane that passes inside a
+full run leaves its per-case table in the log instead of costing a re-read.
+
+**The figure gate's semicolon.** `checkLiteral` cut its citation window at
+`;` and `:` as well as `.!?` — from #261's first draft, on no recorded reason.
+Two of #305's readings were that cut and nothing else: arm A's abstention lane
+flagged «¢20.520,00 anuales; como usted indica … [4]» and «el 75% … setiembre;
+el saldo … [5]» on `ho-abs-calculo-personalizado` as invented (arm C the 75 %
+again), and the adequacy lane scored `ho-rebajar-multa-si-pago-ya`'s 75 %
+«present but uncited» in the closing run and arm A alike — both times inside
+«se reduce en un 75%; si además … sube a 80% [1]», the marker at the end of
+the sentence. Prompt rule 2 puts the marker after the affirmation and Spanish
+prose chains one affirmation across a semicolon, so the window is now the
+orthographic sentence: `;` and `:` are out, a marker in the next sentence
+still vouches for nothing, and `adequacy.test.ts` pins both #305 sentences
+verbatim. Expect `ho-rebajar-multa-si-pago-ya`'s literal row to flip to cited
+on the next run; its adequacy fail stays, on the TRIBU-CR step.
+
+**The blocking miss, diagnosed.** `pnpm pool-dump ho-rebajar-25-sin-facturas
+--pool=300` before the fix: `ley-renta` art. 8 (the Ley 10818 deducción única,
+chunk #2 of a 6.7 k-character article) at fused #21 — vector 31, lexical
+nowhere, expansion lexical 6, and **no step leg at all**: the T1-E catalogue
+carried the declaración, the pagos parciales and the tramos, and named this
+case without a sentence for it. A catalogue-shaped miss, so a fourth T1-E
+sentence in inciso s)'s own words (`steps.test.ts` allows four since #312).
+After: fused **#10** (step lexical 3, step vector 26), inside the reranker's
+40 with room to spare, where the closing run's #21 was a coin flip. Art. 7,
+the second target, sits at #66–114 either way and is not what the case needs
+to hit. Hit-rate lane alone, run to confirm (`hitrate-342-…log` in the main
+checkout's `eval/transcripts/`): **71/73, pass**, `ho-rebajar-25-sin-facturas`
+**hit** at pool #13, no blocking miss. The two misses are the non-blocking
+pair the arms already knew — `ccss-asalariado-followup` at pool #5 (arm B's
+#4) and `ho-t2-payoneer` at #38.
+
+**Cost.** Two pool-dumps and one hit-rate lane, ≈ US$0.30.
+
 ### The answer side, read and fixed: rule 9 (#289)
 
 #304's authorized run left Tier 1 at 5/27 with the shipped `STEPS_RERANK=off`,
@@ -2157,7 +2201,7 @@ the groundedness gate:
 
 ```sh
 ANTHROPIC_API_KEY=<key> \
-pnpm vitest run src/lib/eval/conflicting-sources.eval.test.ts
+pnpm vitest run --disableConsoleIntercept src/lib/eval/conflicting-sources.eval.test.ts
 ```
 
 Verified 2026-08-13 (answer `claude-sonnet-5`, judge `claude-sonnet-4-5`):

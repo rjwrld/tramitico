@@ -88,7 +88,11 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test:eval
+      # #342: vitest hides a *passing* file's console, so a hit-rate lane that
+      # passed inside a full run left no per-case table in the log and #305
+      # had to re-run it alone (US$0.25) to read one number. The flag keeps
+      # every lane's stdout, pass or fail.
+      - run: pnpm test:eval --disableConsoleIntercept
       # #289 req. 1: the groundedness lane writes every answer it generated to
       # eval/transcripts/. `if: always()` on purpose — a red run is exactly the
       # one whose answers someone needs to read, and the gates are what turn it

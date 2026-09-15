@@ -77,7 +77,8 @@
       "steps": [
         "Los contribuyentes del impuesto sobre las utilidades deberán presentar una declaración jurada de autoliquidación del impuesto y pagar la respectiva deuda tributaria dentro de los dos meses y quince días naturales siguientes al cierre del período fiscal.",
         "Los contribuyentes están obligados a efectuar pagos parciales a cuenta del impuesto de cada período fiscal, calculados sobre el impuesto determinado en el año inmediato anterior o el promedio de los tres últimos períodos fiscales.",
-        "Tramos del impuesto sobre la renta para el período fiscal: las rentas de hasta el monto mensual exento no están sujetas al impuesto, y sobre el exceso aplica la tasa de impuesto de cada tramo."
+        "Tramos del impuesto sobre la renta para el período fiscal: las rentas de hasta el monto mensual exento no están sujetas al impuesto, y sobre el exceso aplica la tasa de impuesto de cada tramo.",
+        "Las personas físicas que presten servicios personales sin relación de dependencia podrán acogerse a una deducción única, sin necesidad de prueba alguna, del veinticinco por ciento (25%) de los ingresos brutos de la actividad."
       ],
       "cases": [
         "ho-minimo-renta-2026",
@@ -87,7 +88,8 @@
       "reaches": [
         "reglamento-renta · Artículo 28",
         "ley-renta · ARTICULO 22",
-        "tramos-renta-2026"
+        "tramos-renta-2026",
+        "ley-renta · ARTICULO 8"
       ]
     },
     "T1-F": {
