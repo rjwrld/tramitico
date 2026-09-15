@@ -92,6 +92,55 @@ describe("checkLiteral", () => {
     expect(checkLiteral("Es 13 %\nOtra cosa [1]", ["13 %"]).cited).toBe(false);
   });
 
+  /**
+   * #342: `;` and `:` are not sentence ends. #305's run scored the first
+   * figure of a semicolon-joined pair "present but uncited" — the adequacy
+   * lane on `ho-rebajar-multa-si-pago-ya`, the abstention lane on
+   * `ho-abs-calculo-personalizado` — against sentences whose marker sat at
+   * their end. These are those two sentences, as the model wrote them.
+   */
+  it("lets a marker after a semicolon vouch for the figure before it (#342)", () => {
+    expect(
+      checkLiteral(
+        "- Si subsana de forma espontánea, sin que haya mediado ninguna " +
+          "actuación de la Administración Tributaria, la sanción se reduce " +
+          "en un 75%; si además autoliquida y paga la sanción en ese mismo " +
+          "momento, la reducción sube a 80% [1].",
+        ["75 %", "75%", "setenta y cinco por ciento"],
+      ),
+    ).toEqual({ found: true, cited: true });
+    expect(
+      checkLiteral(
+        "Una vez calculado el impuesto según esa escala, la ley reconoce un " +
+          "crédito fiscal por cada hijo de ¢20.520,00 anuales; como usted " +
+          "indica que tiene dos hijos, ese crédito se aplicaría por cada uno " +
+          "de ellos, restándose del impuesto ya determinado [4].",
+        ["¢20.520,00", "20.520"],
+      ),
+    ).toEqual({ found: true, cited: true });
+  });
+
+  it("lets a marker after a colon vouch for the figure before it (#342)", () => {
+    expect(
+      checkLiteral(
+        "El salario base es ¢462.200: sobre él se calcula la multa [5].",
+        ["¢462.200"],
+      ).cited,
+    ).toBe(true);
+  });
+
+  it("still stops at the period, whatever follows the semicolon (#342)", () => {
+    // The widening is to the orthographic sentence, not the paragraph: a
+    // marker on the next sentence vouches for nothing, as before.
+    expect(
+      checkLiteral(
+        "La sanción se reduce en un 75%; si paga, sube a 80%. " +
+          "Así lo dice el artículo 88 [1].",
+        ["75 %", "75%"],
+      ),
+    ).toEqual({ found: true, cited: false });
+  });
+
   it("reports an absent figure as absent, not merely uncited", () => {
     expect(checkLiteral("La tarifa es del 4 % [1].", ["13 %"])).toEqual({
       found: false,
@@ -595,6 +644,23 @@ describe("figureMentions", () => {
       expect(figureMentions("La tarifa general es del 13 %.", SOURCES)).toEqual(
         ["13 %"],
       );
+    });
+
+    it("clears a corpus figure whose marker follows a semicolon (#342)", () => {
+      // Arm A of #305 flagged ¢20.520,00 and 75% as invented on
+      // `ho-abs-calculo-personalizado`: both in the fragments, both cited,
+      // both cut off from their marker at a `;`.
+      expect(
+        figureMentions(
+          "La ley reconoce un crédito fiscal por cada hijo de ¢20.520,00 " +
+            "anuales; como usted indica que tiene dos hijos, se aplicaría " +
+            "por cada uno [4].",
+          [
+            ...SOURCES,
+            "un crédito de veinte mil quinientos veinte colones (¢20.520,00) anuales",
+          ],
+        ),
+      ).toEqual([]);
     });
 
     it("clears a system-derived figure, which is in no fragment by design", () => {

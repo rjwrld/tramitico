@@ -85,8 +85,21 @@ export function judgedRequirements(evalCase: EvalCase): Requirement[] {
  * punctuation is load-bearing: "¢462.200" and "45333-H" carry dots and dashes
  * that are not sentence ends, and treating them as ones would cut the window
  * before the marker that follows the figure.
+ *
+ * `;` and `:` are not in the set (#342). #261's first draft counted them, on
+ * no recorded reason beyond caution, and #305's run showed what that costs:
+ * prompt rule 2 puts the marker after the *affirmation*, and Spanish prose
+ * routinely chains two clauses of one affirmation with a semicolon — «la
+ * sanción se reduce en un 75%; si además paga … sube a 80% [1]», «un crédito
+ * por cada hijo de ¢20.520,00 anuales; como usted indica … [4]». Cutting at
+ * the `;` scored the first figure of each pair "present but uncited" (or, on
+ * the abstention lane, "invented") against a sentence whose marker was right
+ * there. The window is the orthographic sentence; a marker in a *later*
+ * sentence still vouches for nothing.
  */
-const SENTENCE_END = /[.;:!?](?=\s|$)|\n/;
+const SENTENCE_END = /[.!?](?=\s|$)|\n/;
+/** The same set, for finding the last sentence *inside* one line. */
+const SENTENCE_END_IN_LINE = /[.!?](?=\s)/g;
 const CITATION_MARKER = /\[\d+\]/;
 
 /**
@@ -219,7 +232,7 @@ function tableLeadIn(haystack: string, index: number): string {
   const lead = before[i - 1]!;
   // Its last sentence only: an earlier sentence in the same paragraph is a
   // different claim, and its citation does not reach the table.
-  const ends = [...lead.matchAll(/[.;:!?](?=\s)/g)];
+  const ends = [...lead.matchAll(SENTENCE_END_IN_LINE)];
   const lastEnd = ends.at(-1);
   return lastEnd === undefined ? lead : lead.slice(lastEnd.index + 1);
 }
