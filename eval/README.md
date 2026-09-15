@@ -1892,6 +1892,42 @@ pair the arms already knew — `ccss-asalariado-followup` at pool #5 (arm B's
 
 **Cost.** Two pool-dumps and one hit-rate lane, ≈ US$0.30.
 
+### The pin at top 8, and on by default
+
+The one scoped paid run left after #305: `PIN_DERIVED_INPUTS=on` at the
+shipped `ANSWER_TOP_K=8`, read where the probe says the pin changes an
+answer set at 8 and nowhere else — `EVAL_CASES=ccss-cuanto-pago-base,
+ho-desde-cuanta-plata-caja,ho-800-mil-que-porcentaje-caja,
+ho-minimo-caja-independiente-2026` on the groundedness lane, then the whole
+abstention lane. Transcripts under `eval/transcripts/pin-8/` in the main
+checkout (`groundedness-scoped-20260915T051339Z.log`,
+`abstention-20260915T051612Z.log` and their `.jsonl`).
+
+| Read                             | Result                                                                         |
+| -------------------------------- | ------------------------------------------------------------------------------ |
+| Groundedness, the four pin cases | **4/4**                                                                        |
+| Runtime citation invariant       | ok on all four                                                                 |
+| Derived figures, cited           | 6/6 mentions with both input markers («¢346.789 [5][9]», «¢324.590 [7][9]», …) |
+| Abstention lane                  | **9/9**, no figure on any ABS case                                             |
+
+Per case: `ho-minimo-caja-independiente-2026` and `ho-800-mil-que-porcentaje-caja`
+resolve and cite **both** BMC figures at 8; `ho-desde-cuanta-plata-caja` the SEM
+one, the only input pair its set holds; `ccss-cuanto-pago-base` (F1) SEM only —
+`ccss-escala-ivm` fell outside the eight on this reading as on arm A's, so the
+strict F1 assertion stays red at 8 and stays #287's. The three Tier 1
+adequacy fails on these cases are the same steps and literals they missed
+before the pin; the lane's gate errors are the scoped-run refusal by design
+(a subset is a transcript read, not a measurement). `ho-abs-calculo-personalizado`
+reads clean now that #342's window is in.
+
+That is the bar ADR 0018 set, met at 8 on the answers the pin touches, after
+#305 met it at 10. **The pin is on by default** from this reading:
+`PIN_DERIVED_INPUTS` reads like `RERANK` and `EXPAND` (unset or empty is on,
+`off` is the measured baseline), `eval.yml` carries the variable, and ADR
+0018's third amendment records the decision and what it does not claim.
+
+**Cost.** One scoped groundedness lane and one abstention lane, ≈ US$1.
+
 ### The answer side, read and fixed: rule 9 (#289)
 
 #304's authorized run left Tier 1 at 5/27 with the shipped `STEPS_RERANK=off`,
