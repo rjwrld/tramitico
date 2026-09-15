@@ -1,0 +1,50 @@
+
+ RUN  v4.1.10 <worktree>
+
+ask: expansion failed — reason=timeout error=DOMException.TimeoutError#23
+ask: expansion failed — reason=timeout error=DOMException.TimeoutError#23
+
+abstention: 9/9
+  transcript: eval/transcripts/305-C/abstention-2026-09-15T03-02-44-453Z.jsonl
+  pass  model     ho-abs-cuanto-cobro-la-hora
+  pass  model     ho-abs-me-conviene-sociedad
+  pass  model     ho-abs-aguinaldo-freelancer
+  pass  model     ho-abs-iva-2027
+  pass  model     ho-abs-devs-exentos-renta
+  pass  model     ho-abs-patente-municipal
+  pass  model     ho-abs-calculo-personalizado  figures: 75%
+  pass  model     ho-abs-sociedad-inactiva
+  pass  model     ho-abs-recomendar-contador
+ ❯ |eval| src/lib/eval/abstention.eval.test.ts (2 tests | 1 failed) 120446ms
+     × invents no figure while declining 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |eval| src/lib/eval/abstention.eval.test.ts > abstention set (eval/dataset.jsonl) > invents no figure while declining
+AssertionError: invented figures: ho-abs-calculo-personalizado: 75%: expected [ 'ho-abs-calculo-personalizado: 75%' ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "ho-abs-calculo-personalizado: 75%",
++ ]
+
+ ❯ src/lib/eval/abstention.eval.test.ts:219:66
+    217|       .filter((r) => r.figures.length > 0)
+    218|       .map((r) => `${r.evalCase.id}: ${r.figures.join(", ")}`);
+    219|     expect(invented, `invented figures: ${invented.join("; ")}`).toEqu…
+       |                                                                  ^
+    220|   });
+    221| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  21:00:43
+   Duration  120.69s (transform 80ms, setup 0ms, import 170ms, tests 120.45s, environment 0ms)
+
+exit=1

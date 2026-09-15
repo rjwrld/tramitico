@@ -1,0 +1,30 @@
+ARM=C  ENV: ANSWER_TOP_K=10 PIN_DERIVED_INPUTS=on
+HEAD=cd6282a  started=20260915T021635Z
+$ vitest run --project eval
+
+ RUN  v4.1.10 <worktree>
+
+ ❯ |eval| src/lib/eval/amending-law.eval.test.ts (2 tests | 2 skipped) 494ms
+ ❯ |eval| src/lib/eval/conflicting-sources.eval.test.ts (2 tests | 2 skipped) 510ms
+stderr | src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl)
+ask: expansion failed — reason=error error=APICallError.AI_APICallError#400
+
+ ❯ |eval| src/lib/eval/groundedness.eval.test.ts (7 tests | 7 skipped) 1247ms
+stderr | src/lib/eval/adequacy.eval.test.ts > adequacy vs groundedness on a rate-less answer (#130) > …and inadequate: the figure is absent and the base is never stated
+eval: adequacy judge output unreadable (attempt 1 of 3) — Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.
+
+stderr | src/lib/eval/adequacy.eval.test.ts > adequacy vs groundedness on a rate-less answer (#130) > …and inadequate: the figure is absent and the base is never stated
+eval: adequacy judge output unreadable (attempt 2 of 3) — Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.
+
+stderr | src/lib/eval/adequacy.eval.test.ts > adequacy vs groundedness on a rate-less answer (#130) > …and inadequate: the figure is absent and the base is never stated
+eval: adequacy judge output unreadable (attempt 3 of 3) — Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.
+
+stderr | src/lib/eval/abstention.eval.test.ts > abstention set (eval/dataset.jsonl)
+ask: expansion failed — reason=error error=APICallError.AI_APICallError#400
+
+ ❯ |eval| src/lib/eval/abstention.eval.test.ts (2 tests | 2 skipped) 1342ms
+ ❯ |eval| src/lib/eval/adequacy.eval.test.ts (3 tests | 3 failed) 1426ms
+     × the rate-less answer is grounded — every claim it makes is supported 514ms
+     × …and inadequate: the figure is absent and the base is never stated 716ms
+     × the complete answer passes both gates (the positive control) 195ms
+[ELIFECYCLE] Command failed with exit code 143.

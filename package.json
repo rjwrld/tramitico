@@ -24,6 +24,8 @@
     "ingest": "tsx scripts/ingest.ts",
     "check:routing": "tsx scripts/check-routing-urls.ts",
     "pool-dump": "tsx scripts/pool-dump.ts",
+    "answer-set-probe": "tsx scripts/answer-set-probe.ts",
+    "prompt-tokens": "tsx scripts/prompt-tokens.ts",
     "icons": "tsx scripts/generate-icons.ts"
   },
   "dependencies": {

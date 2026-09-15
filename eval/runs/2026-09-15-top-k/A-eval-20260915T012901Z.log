@@ -1,0 +1,309 @@
+ARM=A  ENV: 
+HEAD=cd6282a  started=20260915T012901Z
+$ vitest run --project eval
+
+ RUN  v4.1.10 <worktree>
+
+stdout | src/lib/eval/abstention.eval.test.ts > abstention set (eval/dataset.jsonl)
+
+abstention: 9/9
+  transcript: eval/transcripts/305-A/abstention-2026-09-15T01-31-12-512Z.jsonl
+  pass  model     ho-abs-cuanto-cobro-la-hora
+  pass  model     ho-abs-me-conviene-sociedad
+  pass  model     ho-abs-aguinaldo-freelancer
+  pass  model     ho-abs-iva-2027
+  pass  model     ho-abs-devs-exentos-renta
+  pass  model     ho-abs-patente-municipal
+  pass  model     ho-abs-calculo-personalizado  figures: ¢20.520,00, 75%
+  pass  model     ho-abs-sociedad-inactiva
+  pass  model     ho-abs-recomendar-contador
+
+ ❯ |eval| src/lib/eval/abstention.eval.test.ts (2 tests | 1 failed) 128714ms
+     × invents no figure while declining 3ms
+stderr | src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl)
+ask: expansion failed — reason=timeout error=DOMException.TimeoutError#23
+
+stdout | src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl)
+
+transcript (#289): eval/transcripts/305-A/groundedness-claude-sonnet-5-20260915T020253Z.jsonl
+
+groundedness (answer=claude-sonnet-5, judge=claude-sonnet-4-5): 69/73
+  pass  inscripcion-hacienda-clientes-extranjero
+  pass  iva-clientes-fuera-cr
+  pass  cabys-desarrollo-software
+  pass  ccss-cuanto-pago-base
+  pass  ccss-cobro-retroactivo
+  pass  ccss-pedir-prescripcion-cuotas
+  pass  ccss-ventana-prescripcion-24-meses
+  pass  ccss-obligacion-ingreso-bajo
+  pass  ccss-asalariado-y-freelance
+  pass  ccss-cese-actividad
+  pass  ccss-arreglo-pago
+  pass  ccss-suspension-seguro-ti
+  pass  factura-electronica-v44
+  pass  desinscripcion-dejar-actividad
+  pass  renta-persona-fisica-deduccion
+  pass  regimen-simplificado-programador
+  pass  tribu-cr-declarar-pagar
+  FAIL [fail/fail/fail]  iva-servicios-extranjero-comprados  — The answer cites '[9]' multiple times, but there is no fragment [9] in the provided materials; the fragments only go up to [8].
+  pass  iva-credito-fiscal-compras
+  pass  iva-declaracion-mensual
+  pass  iva-tarifa-general
+  pass  iva-tarifas-reducidas
+  pass  iva-momento-hecho-generador
+  pass  renta-bruta-que-incluye
+  pass  renta-tramos-2026
+  pass  renta-declaracion-plazo
+  pass  renta-pagos-parciales-retenciones
+  pass  renta-salario-y-actividad
+  pass  comprobantes-plazo-conservacion
+  pass  comprobantes-factura-vs-tiquete
+  pass  exportacion-servicios-comprobante
+  pass  iva-facturas-en-dolares
+  pass  ccss-asalariado-followup
+  pass  exportacion-comprobante-followup
+  pass  renta-plazo-followup
+  pass  iva-ajuste-bien-de-capital
+  pass  iva-retencion-tarjetas-porcentaje
+  pass  inscripcion-tribu-cr
+  pass  multa-iva-no-declarado
+  pass  inscripcion-tardia-sancion
+  pass  factura-primera-cabys
+  pass  ho-hacienda-solo-cliente-eeuu
+  pass  ho-trabajitos-por-mi-cuenta
+  pass  ho-donde-inscribo-ya-no-atv
+  pass  ho-desde-cuanta-plata-caja
+  pass  ho-donde-me-afilio-caja
+  pass  ho-tiquete-en-vez-de-factura
+  pass  ho-factura-electronica-o-recibo
+  FAIL [fail/fail/fail]  ho-cabys-paginas-web  — The answer states that CABYS codes are used for classifying goods/services on electronic invoices and are distinct from economic activity codes (CIIU 4) declared to Hacienda, but the provided fragments do not support this distinction or explain the relationship between CABYS and CIIU codes.
+  FAIL [fail/fail/fail]  ho-cliente-espana-lleva-iva  — The answer claims that services provided from Costa Rica to a client abroad are taxable based on the provider's location in Costa Rica, but fragment [6] Article 1.2.b.i only establishes territoriality when the service provider is a 'contribuyente' located in Costa Rica—it does not address whether a service consumed entirely abroad by a foreign client falls within the tax scope, and the answer extrapolates this rule without fragment support for the specific cross-border export scenario.
+  pass  ho-iva-en-cero-sin-facturar
+  pass  ho-hasta-que-dia-tengo-iva
+  pass  ho-rebajar-25-sin-facturas
+  pass  ho-minimo-renta-2026
+  pass  ho-ademas-tengo-salario
+  pass  ho-minimo-caja-independiente-2026
+  pass  ho-800-mil-que-porcentaje-caja
+  pass  ho-tambien-asegurado-por-patrono
+  pass  ho-cobrar-8-anos-atras-caja
+  pass  ho-desinscribir-debiendo-declaraciones
+  FAIL [fail/fail/fail]  ho-rebajar-multa-si-pago-ya  — The answer states that Article 88 only covers sanctions from Articles 78, 79, 81, and 83, and that Article 80 bis is not included, but Fragment [1] explicitly lists 'artículos 78, 79, 81 y 83' without mentioning 80 bis, which is correct; however, the answer then claims the morosidad sanction from Article 80 bis cannot be reduced, but Fragment [1] does not explicitly state this exclusion applies to 80 bis versus Article 80, creating an unsupported inference about which morosidad article applies and whether it's reducible.
+  pass  ho-t2-credito-iva-compras
+  pass  ho-t2-hosting-extranjero
+  pass  ho-t2-retencion-tarjetas
+  pass  ho-t2-compu-cara-iva
+  pass  ho-t2-tipo-de-cambio
+  pass  ho-t2-panaderia-simplificado
+  pass  ho-t2-arreglo-pago-caja
+  pass  ho-t2-salir-del-pais-seguro
+  pass  ho-t2-pensionado-con-actividad
+  pass  ho-t2-autorizar-contador
+  pass  ho-t2-constancia-al-dia
+  pass  ho-t2-payoneer
+groundedness by exposure (#267):
+  first-exposure  29/32
+  promoted        7/7
+  corpus-derived  33/34
+
+adequacy (#130): 13/40
+  FAIL  tier 1  T1-G  ccss-pedir-prescripcion-cuotas  — missing: Si la deuda está en verificación, la nota se presenta ante la unidad o sucursal financiera de la CCSS a cargo del procedimiento e incluye lugar y fecha, identificación del caso si existe, nombre e identificación, condición en que actúa, periodos solicitados, medio para notificaciones y firma.; Si la deuda ya está en cobro, la solicitud puede enviarse a cobros@ccss.sa.cr; si no tiene firma digital, debe firmarla en papel, escanearla, adjuntar la identificación por ambos lados y luego presentarse a firmar cuando la CCSS lo cite.; El canal correcto según la fase del caso — la unidad o sucursal financiera si está en verificación, cobros@ccss.sa.cr si ya está en cobro — y el plazo en que la Administración resuelve.
+  FAIL  tier 1  T1-G  ccss-ventana-prescripcion-24-meses  — missing: No: la ventana excepcional duró 24 meses desde la vigencia de la Ley 10363 el 8 de mayo de 2023, por lo que terminó el 8 de mayo de 2025.; Qué queda por hacer ahora que la ventana cerró: solicitar la prescripción ordinaria de los periodos que ya cumplieron el plazo legal.
+  FAIL  tier 1  T1-B  ccss-obligacion-ingreso-bajo  — missing: Quien tiene muy escasa capacidad contributiva se ubica en la categoría 1 de la escala, que es exclusiva de trabajadores independientes y asegurados voluntarios.; Dónde se hace la afiliación y qué se declara: el ingreso de referencia, en la sucursal de la CCSS que corresponda a la zona de adscripción.; La cuota se calcula sobre un ingreso de referencia que no baja de la base mínima contributiva, fijada en 0,9295 salarios mínimos para el Seguro de Salud. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent)
+  pass  tier 1  T1-H  ccss-cese-actividad
+  FAIL  tier 1  T1-H  desinscripcion-dejar-actividad  — missing: La desinscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, en «Mis datos» → «Solicitar desinscripción», indicando motivo y fecha de cese; el antiguo formulario D-140 ya no existe.; Al desinscribirse del IVA hay que liquidar el impuesto sobre las existencias de bienes y los bienes afectos que queden, salvo que opere la continuidad del negocio.; Los pasos en la OVi: dónde está la solicitud, qué campos son obligatorios y cuál es el efecto (estado «Desinscrito», con posibilidad de reinscribirse).
+  pass  tier 2  —  tribu-cr-declarar-pagar
+  FAIL  tier 1  T1-I  multa-iva-no-declarado  — missing: La sanción se reduce si se subsana antes de que la Administración Tributaria actúe (CNPT artículo 88).; Cómo regularizar: presentar las declaraciones omitidas y pagar en TRIBU-CR, y que hacerlo antes de cualquier actuación de la Administración rebaja la sanción.; El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent)
+  FAIL  tier 1  T1-I  inscripcion-tardia-sancion  — missing: Subsanar de forma espontánea, antes de cualquier actuación de la Administración, rebaja la sanción en un setenta y cinco por ciento (75 %), u ochenta por ciento (80 %) si se autoliquida y paga en ese momento (CNPT artículo 88).; Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.; El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent)
+  FAIL  tier 1  T1-A  ho-hacienda-solo-cliente-eeuu  — missing: Facturar sólo a clientes del exterior no exime de inscribirse: aunque el servicio llegue a calificar como exportación exenta —lo que depende de que se consuma fuera de Costa Rica—, estar exento no es lo mismo que no ser contribuyente.; La inscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, como declaración de inscripción del Registro Único Tributario.; Omitir la declaración de inscripción se sanciona con el cincuenta por ciento (50 %) de un salario base por cada mes o fracción de atraso. (50 % | 50% | cincuenta por ciento: absent)
+  FAIL  tier 1  T1-A  ho-trabajitos-por-mi-cuenta  — missing: Sí: iniciar una actividad lucrativa por cuenta propia obliga a inscribirse ante la Administración Tributaria al momento de iniciarla, sin importar lo pequeña que sea.; La persona física con actividad lucrativa es contribuyente del impuesto sobre las utilidades y, si presta servicios gravados, también del IVA.; La inscripción ante Hacienda no sustituye el aseguramiento ante la CCSS como trabajador independiente: son dos obligaciones distintas.; Los dos trámites que siguen: la declaración de inscripción del RUT en la Oficina Virtual de TRIBU-CR y la afiliación como trabajador independiente en la CCSS.
+  FAIL  tier 1  T1-A  ho-donde-inscribo-ya-no-atv  — missing: El camino dentro de la OVi hasta la declaración de inscripción y qué datos pide (actividad, fecha de inicio, domicilio).
+  FAIL  tier 1  T1-B  ho-desde-cuanta-plata-caja  — missing: Cómo se declara el ingreso de referencia y dónde se paga la cuota.; Lo que sí tiene un piso es la base de cálculo: la base mínima contributiva del Seguro de Salud es 0,9295 salarios mínimos. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent); La base mínima contributiva del Seguro de IVM es 0,87 salarios mínimos. (0,87 SM | 0,87 salarios mínimos | 0.87 SM: absent); El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico, ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent)
+  FAIL  tier 1  T1-B  ho-donde-me-afilio-caja  — missing: La cuota se paga mensualmente, dentro de la fecha que corresponde según la primera letra del primer apellido.
+  FAIL  tier 1  T1-C  ho-tiquete-en-vez-de-factura  — missing: El tiquete electrónico es uno de esos comprobantes autorizados, de modo que la pregunta no es si es válido sino cuál corresponde a la operación.; Quien emite comprobantes electrónicos debe estar inscrito en el Registro Único Tributario y tener registrado un correo electrónico válido ante la Administración Tributaria.
+  FAIL  tier 1  T1-C  ho-factura-electronica-o-recibo  — missing: Con qué emitir: el facturador gratuito de Hacienda o un proveedor de sistemas de comprobantes electrónicos.; Los comprobantes electrónicos y sus documentos asociados deben almacenarse y conservarse por un plazo de cinco años. (cinco años | 5 años: absent)
+  FAIL  tier 1  T1-C  ho-cabys-paginas-web  — missing: El detalle del comprobante lleva, por cada bien o servicio, un código de producto junto con la descripción, la cantidad y el precio unitario.; Dónde consultar el catálogo CABYS cuando la actividad no está en el subconjunto curado.
+  FAIL  tier 1  T1-D  ho-cliente-espana-lleva-iva  — missing: La exención aplica a los servicios prestados por contribuyentes del impuesto cuando son consumidos fuera del territorio nacional.; Que el cliente sea extranjero no basta por sí solo: lo que decide es dónde se consume o utiliza el servicio.; La operación exenta se documenta igual, con el comprobante electrónico que corresponda.; Qué comprobante emitir y qué conservar como prueba de que el servicio se consumió fuera del país.; Si el servicio se consume en Costa Rica, la tarifa general del impuesto es del 13 %. (13 % | 13% | trece por ciento: absent)
+  FAIL  tier 1  T1-D  ho-iva-en-cero-sin-facturar  — missing: Dónde se presenta la declaración hoy y qué pasa si ya venció el plazo.; Omitir la declaración dentro del plazo legal se sanciona con una multa del cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent)
+  pass  tier 1  T1-D  ho-hasta-que-dia-tengo-iva
+  FAIL  tier 1  T1-E  ho-rebajar-25-sin-facturas  — missing: Es una alternativa, no un añadido: se toma la deducción única o se deducen los gastos reales con comprobante, no ambas.; La deducción única fue incorporada por la Ley 10818 del 13 de noviembre de 2025, así que rige para los períodos que esa reforma alcanza.; Dónde se aplica la opción al presentar la declaración anual.
+  FAIL  tier 1  T1-E  ho-minimo-renta-2026  — missing: El período del impuesto va del 1 de enero al 31 de diciembre.; Dónde se consultan los tramos vigentes cuando cambia el decreto anual.
+  FAIL  tier 1  T1-E  ho-ademas-tengo-salario  — missing: El salario y la actividad lucrativa tributan por escalas distintas: el salario por la escala mensual de rentas del trabajo y la actividad por la escala anual de personas físicas con actividad lucrativa.; Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.; Qué se declara en la declaración anual cuando hay salario y actividad, y cómo se tratan las retenciones ya soportadas.; Los pagos parciales: cuándo se pagan y que puede pedirse su rebaja cuando la renta del período va a ser menor.; La declaración anual y el pago vencen dentro de los dos meses y quince días naturales siguientes al cierre del período. (dos meses y quince días | 2 meses y 15 días: absent)
+  FAIL  tier 1  T1-F  ho-minimo-caja-independiente-2026  — missing: Cómo se declara y se actualiza el ingreso de referencia sobre el que se aplican esos porcentajes.; El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico: ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent); La base mínima contributiva es 0,9295 salarios mínimos en el Seguro de Salud y 0,87 salarios mínimos en el de IVM. (0,9295 SM | 0,9295 salarios mínimos: absent)
+  FAIL  tier 1  T1-F  ho-800-mil-que-porcentaje-caja  — missing: La base de cálculo es el ingreso de referencia declarado ante la CCSS, no el ingreso bruto facturado.; Cómo se modifica el ingreso de referencia cuando los ingresos varían.
+  FAIL  tier 1  T1-F  ho-tambien-asegurado-por-patrono  — missing: Qué hay que hacer ante la CCSS para quedar registrado en las dos condiciones.
+  pass  tier 1  T1-G  ho-cobrar-8-anos-atras-caja
+  FAIL  tier 1  T1-H  ho-desinscribir-debiendo-declaraciones  — missing: Desinscribirse no borra las obligaciones ya devengadas: las declaraciones pendientes siguen debiéndose y se sancionan igual.; Mientras la persona siga inscrita, la obligación de declarar continúa aunque ya no facture.; El orden recomendado: presentar lo pendiente y después solicitar la desinscripción indicando el motivo y la fecha de cese.; Cada declaración omitida dentro del plazo legal se sanciona con el cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent)
+  FAIL  tier 1  T1-I  ho-rebajar-multa-si-pago-ya  — missing: Cómo se regulariza: presentar lo omitido y pagar en TRIBU-CR antes de cualquier actuación de la Administración.; Subsanar de forma espontánea, sin que medie actuación de la Administración, rebaja la sanción en un setenta y cinco por ciento (75 %). (75 % | 75% | setenta y cinco por ciento: present but uncited)
+  pass  tier 2  —  ho-t2-credito-iva-compras
+  pass  tier 2  —  ho-t2-hosting-extranjero
+  pass  tier 2  —  ho-t2-retencion-tarjetas
+  pass  tier 2  —  ho-t2-compu-cara-iva
+  pass  tier 2  —  ho-t2-tipo-de-cambio
+  pass  tier 2  —  ho-t2-panaderia-simplificado
+  pass  tier 2  —  ho-t2-arreglo-pago-caja
+  FAIL  tier 2  —  ho-t2-salir-del-pais-seguro  — missing: La suspensión del seguro de trabajador independiente se hace a solicitud de la persona y no ocurre de forma automática.
+  pass  tier 2  —  ho-t2-pensionado-con-actividad
+  pass  tier 2  —  ho-t2-autorizar-contador
+  FAIL  tier 2  —  ho-t2-constancia-al-dia  — missing: La situación tributaria se consulta en la OVi pública de TRIBU-CR, sin necesidad de usuario.
+  FAIL  tier 2  —  ho-t2-payoneer  — missing: El medio por el que se recibe el pago no cambia la regla: lo que decide es si la renta es de fuente costarricense y si la persona es contribuyente.
+adequacy by exposure (#267):
+  first-exposure  11/32
+  promoted        1/7
+  corpus-derived  1/1
+
+citation invariant (#168): 2 violation(s)
+  unresolved_markers  iva-servicios-extranjero-comprados  unresolved=9
+  unresolved_markers  ho-800-mil-que-porcentaje-caja  unresolved=15
+
+ ❯ |eval| src/lib/eval/groundedness.eval.test.ts (7 tests | 5 failed) 2030190ms
+     × every tier 1 case states all of its required claims and steps 7ms
+     × at least 84% of tier 2 cases with required claims are adequate 1ms
+     × ships no answer the runtime citation invariant would refuse 0ms
+     × every blocking case's answer is supported by its retrieved chunks 1ms
+     × answers F1 with both BMC figures and citations to every input 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |eval| src/lib/eval/abstention.eval.test.ts > abstention set (eval/dataset.jsonl) > invents no figure while declining
+AssertionError: invented figures: ho-abs-calculo-personalizado: ¢20.520,00, 75%: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "ho-abs-calculo-personalizado: ¢20.520,00, 75%",
++ ]
+
+ ❯ src/lib/eval/abstention.eval.test.ts:219:66
+    217|       .filter((r) => r.figures.length > 0)
+    218|       .map((r) => `${r.evalCase.id}: ${r.figures.join(", ")}`);
+    219|     expect(invented, `invented figures: ${invented.join("; ")}`).toEqu…
+       |                                                                  ^
+    220|   });
+    221| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > every tier 1 case states all of its required claims and steps
+AssertionError: inadequate tier 1 answers: ccss-pedir-prescripcion-cuotas (Si la deuda está en verificación, la nota se presenta ante la unidad o sucursal financiera de la CCSS a cargo del procedimiento e incluye lugar y fecha, identificación del caso si existe, nombre e identificación, condición en que actúa, periodos solicitados, medio para notificaciones y firma.; Si la deuda ya está en cobro, la solicitud puede enviarse a cobros@ccss.sa.cr; si no tiene firma digital, debe firmarla en papel, escanearla, adjuntar la identificación por ambos lados y luego presentarse a firmar cuando la CCSS lo cite.; El canal correcto según la fase del caso — la unidad o sucursal financiera si está en verificación, cobros@ccss.sa.cr si ya está en cobro — y el plazo en que la Administración resuelve.); ccss-ventana-prescripcion-24-meses (No: la ventana excepcional duró 24 meses desde la vigencia de la Ley 10363 el 8 de mayo de 2023, por lo que terminó el 8 de mayo de 2025.; Qué queda por hacer ahora que la ventana cerró: solicitar la prescripción ordinaria de los periodos que ya cumplieron el plazo legal.); ccss-obligacion-ingreso-bajo (Quien tiene muy escasa capacidad contributiva se ubica en la categoría 1 de la escala, que es exclusiva de trabajadores independientes y asegurados voluntarios.; Dónde se hace la afiliación y qué se declara: el ingreso de referencia, en la sucursal de la CCSS que corresponda a la zona de adscripción.; La cuota se calcula sobre un ingreso de referencia que no baja de la base mínima contributiva, fijada en 0,9295 salarios mínimos para el Seguro de Salud. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent)); desinscripcion-dejar-actividad (La desinscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, en «Mis datos» → «Solicitar desinscripción», indicando motivo y fecha de cese; el antiguo formulario D-140 ya no existe.; Al desinscribirse del IVA hay que liquidar el impuesto sobre las existencias de bienes y los bienes afectos que queden, salvo que opere la continuidad del negocio.; Los pasos en la OVi: dónde está la solicitud, qué campos son obligatorios y cuál es el efecto (estado «Desinscrito», con posibilidad de reinscribirse).); multa-iva-no-declarado (La sanción se reduce si se subsana antes de que la Administración Tributaria actúe (CNPT artículo 88).; Cómo regularizar: presentar las declaraciones omitidas y pagar en TRIBU-CR, y que hacerlo antes de cualquier actuación de la Administración rebaja la sanción.; El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent)); inscripcion-tardia-sancion (Subsanar de forma espontánea, antes de cualquier actuación de la Administración, rebaja la sanción en un setenta y cinco por ciento (75 %), u ochenta por ciento (80 %) si se autoliquida y paga en ese momento (CNPT artículo 88).; Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.; El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent)); ho-hacienda-solo-cliente-eeuu (Facturar sólo a clientes del exterior no exime de inscribirse: aunque el servicio llegue a calificar como exportación exenta —lo que depende de que se consuma fuera de Costa Rica—, estar exento no es lo mismo que no ser contribuyente.; La inscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, como declaración de inscripción del Registro Único Tributario.; Omitir la declaración de inscripción se sanciona con el cincuenta por ciento (50 %) de un salario base por cada mes o fracción de atraso. (50 % | 50% | cincuenta por ciento: absent)); ho-trabajitos-por-mi-cuenta (Sí: iniciar una actividad lucrativa por cuenta propia obliga a inscribirse ante la Administración Tributaria al momento de iniciarla, sin importar lo pequeña que sea.; La persona física con actividad lucrativa es contribuyente del impuesto sobre las utilidades y, si presta servicios gravados, también del IVA.; La inscripción ante Hacienda no sustituye el aseguramiento ante la CCSS como trabajador independiente: son dos obligaciones distintas.; Los dos trámites que siguen: la declaración de inscripción del RUT en la Oficina Virtual de TRIBU-CR y la afiliación como trabajador independiente en la CCSS.); ho-donde-inscribo-ya-no-atv (El camino dentro de la OVi hasta la declaración de inscripción y qué datos pide (actividad, fecha de inicio, domicilio).); ho-desde-cuanta-plata-caja (Cómo se declara el ingreso de referencia y dónde se paga la cuota.; Lo que sí tiene un piso es la base de cálculo: la base mínima contributiva del Seguro de Salud es 0,9295 salarios mínimos. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent); La base mínima contributiva del Seguro de IVM es 0,87 salarios mínimos. (0,87 SM | 0,87 salarios mínimos | 0.87 SM: absent); El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico, ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent)); ho-donde-me-afilio-caja (La cuota se paga mensualmente, dentro de la fecha que corresponde según la primera letra del primer apellido.); ho-tiquete-en-vez-de-factura (El tiquete electrónico es uno de esos comprobantes autorizados, de modo que la pregunta no es si es válido sino cuál corresponde a la operación.; Quien emite comprobantes electrónicos debe estar inscrito en el Registro Único Tributario y tener registrado un correo electrónico válido ante la Administración Tributaria.); ho-factura-electronica-o-recibo (Con qué emitir: el facturador gratuito de Hacienda o un proveedor de sistemas de comprobantes electrónicos.; Los comprobantes electrónicos y sus documentos asociados deben almacenarse y conservarse por un plazo de cinco años. (cinco años | 5 años: absent)); ho-cabys-paginas-web (El detalle del comprobante lleva, por cada bien o servicio, un código de producto junto con la descripción, la cantidad y el precio unitario.; Dónde consultar el catálogo CABYS cuando la actividad no está en el subconjunto curado.); ho-cliente-espana-lleva-iva (La exención aplica a los servicios prestados por contribuyentes del impuesto cuando son consumidos fuera del territorio nacional.; Que el cliente sea extranjero no basta por sí solo: lo que decide es dónde se consume o utiliza el servicio.; La operación exenta se documenta igual, con el comprobante electrónico que corresponda.; Qué comprobante emitir y qué conservar como prueba de que el servicio se consumió fuera del país.; Si el servicio se consume en Costa Rica, la tarifa general del impuesto es del 13 %. (13 % | 13% | trece por ciento: absent)); ho-iva-en-cero-sin-facturar (Dónde se presenta la declaración hoy y qué pasa si ya venció el plazo.; Omitir la declaración dentro del plazo legal se sanciona con una multa del cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent)); ho-rebajar-25-sin-facturas (Es una alternativa, no un añadido: se toma la deducción única o se deducen los gastos reales con comprobante, no ambas.; La deducción única fue incorporada por la Ley 10818 del 13 de noviembre de 2025, así que rige para los períodos que esa reforma alcanza.; Dónde se aplica la opción al presentar la declaración anual.); ho-minimo-renta-2026 (El período del impuesto va del 1 de enero al 31 de diciembre.; Dónde se consultan los tramos vigentes cuando cambia el decreto anual.); ho-ademas-tengo-salario (El salario y la actividad lucrativa tributan por escalas distintas: el salario por la escala mensual de rentas del trabajo y la actividad por la escala anual de personas físicas con actividad lucrativa.; Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.; Qué se declara en la declaración anual cuando hay salario y actividad, y cómo se tratan las retenciones ya soportadas.; Los pagos parciales: cuándo se pagan y que puede pedirse su rebaja cuando la renta del período va a ser menor.; La declaración anual y el pago vencen dentro de los dos meses y quince días naturales siguientes al cierre del período. (dos meses y quince días | 2 meses y 15 días: absent)); ho-minimo-caja-independiente-2026 (Cómo se declara y se actualiza el ingreso de referencia sobre el que se aplican esos porcentajes.; El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico: ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent); La base mínima contributiva es 0,9295 salarios mínimos en el Seguro de Salud y 0,87 salarios mínimos en el de IVM. (0,9295 SM | 0,9295 salarios mínimos: absent)); ho-800-mil-que-porcentaje-caja (La base de cálculo es el ingreso de referencia declarado ante la CCSS, no el ingreso bruto facturado.; Cómo se modifica el ingreso de referencia cuando los ingresos varían.); ho-tambien-asegurado-por-patrono (Qué hay que hacer ante la CCSS para quedar registrado en las dos condiciones.); ho-desinscribir-debiendo-declaraciones (Desinscribirse no borra las obligaciones ya devengadas: las declaraciones pendientes siguen debiéndose y se sancionan igual.; Mientras la persona siga inscrita, la obligación de declarar continúa aunque ya no facture.; El orden recomendado: presentar lo pendiente y después solicitar la desinscripción indicando el motivo y la fecha de cese.; Cada declaración omitida dentro del plazo legal se sanciona con el cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent)); ho-rebajar-multa-si-pago-ya (Cómo se regulariza: presentar lo omitido y pagar en TRIBU-CR antes de cualquier actuación de la Administración.; Subsanar de forma espontánea, sin que medie actuación de la Administración, rebaja la sanción en un setenta y cinco por ciento (75 %). (75 % | 75% | setenta y cinco por ciento: present but uncited)): expected [ …(24) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "ccss-pedir-prescripcion-cuotas (Si la deuda está en verificación, la nota se presenta ante la unidad o sucursal financiera de la CCSS a cargo del procedimiento e incluye lugar y fecha, identificación del caso si existe, nombre e identificación, condición en que actúa, periodos solicitados, medio para notificaciones y firma.; Si la deuda ya está en cobro, la solicitud puede enviarse a cobros@ccss.sa.cr; si no tiene firma digital, debe firmarla en papel, escanearla, adjuntar la identificación por ambos lados y luego presentarse a firmar cuando la CCSS lo cite.; El canal correcto según la fase del caso — la unidad o sucursal financiera si está en verificación, cobros@ccss.sa.cr si ya está en cobro — y el plazo en que la Administración resuelve.)",
++   "ccss-ventana-prescripcion-24-meses (No: la ventana excepcional duró 24 meses desde la vigencia de la Ley 10363 el 8 de mayo de 2023, por lo que terminó el 8 de mayo de 2025.; Qué queda por hacer ahora que la ventana cerró: solicitar la prescripción ordinaria de los periodos que ya cumplieron el plazo legal.)",
++   "ccss-obligacion-ingreso-bajo (Quien tiene muy escasa capacidad contributiva se ubica en la categoría 1 de la escala, que es exclusiva de trabajadores independientes y asegurados voluntarios.; Dónde se hace la afiliación y qué se declara: el ingreso de referencia, en la sucursal de la CCSS que corresponda a la zona de adscripción.; La cuota se calcula sobre un ingreso de referencia que no baja de la base mínima contributiva, fijada en 0,9295 salarios mínimos para el Seguro de Salud. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent))",
++   "desinscripcion-dejar-actividad (La desinscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, en «Mis datos» → «Solicitar desinscripción», indicando motivo y fecha de cese; el antiguo formulario D-140 ya no existe.; Al desinscribirse del IVA hay que liquidar el impuesto sobre las existencias de bienes y los bienes afectos que queden, salvo que opere la continuidad del negocio.; Los pasos en la OVi: dónde está la solicitud, qué campos son obligatorios y cuál es el efecto (estado «Desinscrito», con posibilidad de reinscribirse).)",
++   "multa-iva-no-declarado (La sanción se reduce si se subsana antes de que la Administración Tributaria actúe (CNPT artículo 88).; Cómo regularizar: presentar las declaraciones omitidas y pagar en TRIBU-CR, y que hacerlo antes de cualquier actuación de la Administración rebaja la sanción.; El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent))",
++   "inscripcion-tardia-sancion (Subsanar de forma espontánea, antes de cualquier actuación de la Administración, rebaja la sanción en un setenta y cinco por ciento (75 %), u ochenta por ciento (80 %) si se autoliquida y paga en ese momento (CNPT artículo 88).; Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.; El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent))",
++   "ho-hacienda-solo-cliente-eeuu (Facturar sólo a clientes del exterior no exime de inscribirse: aunque el servicio llegue a calificar como exportación exenta —lo que depende de que se consuma fuera de Costa Rica—, estar exento no es lo mismo que no ser contribuyente.; La inscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, como declaración de inscripción del Registro Único Tributario.; Omitir la declaración de inscripción se sanciona con el cincuenta por ciento (50 %) de un salario base por cada mes o fracción de atraso. (50 % | 50% | cincuenta por ciento: absent))",
++   "ho-trabajitos-por-mi-cuenta (Sí: iniciar una actividad lucrativa por cuenta propia obliga a inscribirse ante la Administración Tributaria al momento de iniciarla, sin importar lo pequeña que sea.; La persona física con actividad lucrativa es contribuyente del impuesto sobre las utilidades y, si presta servicios gravados, también del IVA.; La inscripción ante Hacienda no sustituye el aseguramiento ante la CCSS como trabajador independiente: son dos obligaciones distintas.; Los dos trámites que siguen: la declaración de inscripción del RUT en la Oficina Virtual de TRIBU-CR y la afiliación como trabajador independiente en la CCSS.)",
++   "ho-donde-inscribo-ya-no-atv (El camino dentro de la OVi hasta la declaración de inscripción y qué datos pide (actividad, fecha de inicio, domicilio).)",
++   "ho-desde-cuanta-plata-caja (Cómo se declara el ingreso de referencia y dónde se paga la cuota.; Lo que sí tiene un piso es la base de cálculo: la base mínima contributiva del Seguro de Salud es 0,9295 salarios mínimos. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent); La base mínima contributiva del Seguro de IVM es 0,87 salarios mínimos. (0,87 SM | 0,87 salarios mínimos | 0.87 SM: absent); El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico, ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent))",
++   "ho-donde-me-afilio-caja (La cuota se paga mensualmente, dentro de la fecha que corresponde según la primera letra del primer apellido.)",
++   "ho-tiquete-en-vez-de-factura (El tiquete electrónico es uno de esos comprobantes autorizados, de modo que la pregunta no es si es válido sino cuál corresponde a la operación.; Quien emite comprobantes electrónicos debe estar inscrito en el Registro Único Tributario y tener registrado un correo electrónico válido ante la Administración Tributaria.)",
++   "ho-factura-electronica-o-recibo (Con qué emitir: el facturador gratuito de Hacienda o un proveedor de sistemas de comprobantes electrónicos.; Los comprobantes electrónicos y sus documentos asociados deben almacenarse y conservarse por un plazo de cinco años. (cinco años | 5 años: absent))",
++   "ho-cabys-paginas-web (El detalle del comprobante lleva, por cada bien o servicio, un código de producto junto con la descripción, la cantidad y el precio unitario.; Dónde consultar el catálogo CABYS cuando la actividad no está en el subconjunto curado.)",
++   "ho-cliente-espana-lleva-iva (La exención aplica a los servicios prestados por contribuyentes del impuesto cuando son consumidos fuera del territorio nacional.; Que el cliente sea extranjero no basta por sí solo: lo que decide es dónde se consume o utiliza el servicio.; La operación exenta se documenta igual, con el comprobante electrónico que corresponda.; Qué comprobante emitir y qué conservar como prueba de que el servicio se consumió fuera del país.; Si el servicio se consume en Costa Rica, la tarifa general del impuesto es del 13 %. (13 % | 13% | trece por ciento: absent))",
++   "ho-iva-en-cero-sin-facturar (Dónde se presenta la declaración hoy y qué pasa si ya venció el plazo.; Omitir la declaración dentro del plazo legal se sanciona con una multa del cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent))",
++   "ho-rebajar-25-sin-facturas (Es una alternativa, no un añadido: se toma la deducción única o se deducen los gastos reales con comprobante, no ambas.; La deducción única fue incorporada por la Ley 10818 del 13 de noviembre de 2025, así que rige para los períodos que esa reforma alcanza.; Dónde se aplica la opción al presentar la declaración anual.)",
++   "ho-minimo-renta-2026 (El período del impuesto va del 1 de enero al 31 de diciembre.; Dónde se consultan los tramos vigentes cuando cambia el decreto anual.)",
++   "ho-ademas-tengo-salario (El salario y la actividad lucrativa tributan por escalas distintas: el salario por la escala mensual de rentas del trabajo y la actividad por la escala anual de personas físicas con actividad lucrativa.; Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.; Qué se declara en la declaración anual cuando hay salario y actividad, y cómo se tratan las retenciones ya soportadas.; Los pagos parciales: cuándo se pagan y que puede pedirse su rebaja cuando la renta del período va a ser menor.; La declaración anual y el pago vencen dentro de los dos meses y quince días naturales siguientes al cierre del período. (dos meses y quince días | 2 meses y 15 días: absent))",
++   "ho-minimo-caja-independiente-2026 (Cómo se declara y se actualiza el ingreso de referencia sobre el que se aplican esos porcentajes.; El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico: ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent); La base mínima contributiva es 0,9295 salarios mínimos en el Seguro de Salud y 0,87 salarios mínimos en el de IVM. (0,9295 SM | 0,9295 salarios mínimos: absent))",
++   "ho-800-mil-que-porcentaje-caja (La base de cálculo es el ingreso de referencia declarado ante la CCSS, no el ingreso bruto facturado.; Cómo se modifica el ingreso de referencia cuando los ingresos varían.)",
++   "ho-tambien-asegurado-por-patrono (Qué hay que hacer ante la CCSS para quedar registrado en las dos condiciones.)",
++   "ho-desinscribir-debiendo-declaraciones (Desinscribirse no borra las obligaciones ya devengadas: las declaraciones pendientes siguen debiéndose y se sancionan igual.; Mientras la persona siga inscrita, la obligación de declarar continúa aunque ya no facture.; El orden recomendado: presentar lo pendiente y después solicitar la desinscripción indicando el motivo y la fecha de cese.; Cada declaración omitida dentro del plazo legal se sanciona con el cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent))",
++   "ho-rebajar-multa-si-pago-ya (Cómo se regulariza: presentar lo omitido y pagar en TRIBU-CR antes de cualquier actuación de la Administración.; Subsanar de forma espontánea, sin que medie actuación de la Administración, rebaja la sanción en un setenta y cinco por ciento (75 %). (75 % | 75% | setenta y cinco por ciento: present but uncited))",
++ ]
+
+ ❯ src/lib/eval/groundedness.eval.test.ts:395:71
+    393|       .filter((r) => r.evalCase.tier === 1 && adequacyFailed(r))
+    394|       .map((r) => `${r.evalCase.id} (${adequacyReason(r)})`);
+    395|     expect(failed, `inadequate tier 1 answers: ${failed.join("; ")}`).…
+       |                                                                       ^
+    396|       [],
+    397|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > at least 84% of tier 2 cases with required claims are adequate
+AssertionError: inadequate tier 2 answers: ho-t2-salir-del-pais-seguro (La suspensión del seguro de trabajador independiente se hace a solicitud de la persona y no ocurre de forma automática.); ho-t2-constancia-al-dia (La situación tributaria se consulta en la OVi pública de TRIBU-CR, sin necesidad de usuario.); ho-t2-payoneer (El medio por el que se recibe el pago no cambia la regla: lo que decide es si la renta es de fuente costarricense y si la persona es contribuyente.): expected 0.7692307692307693 to be greater than or equal to 0.84
+ ❯ src/lib/eval/groundedness.eval.test.ts:413:7
+    411|       rate,
+    412|       `inadequate tier 2 answers: ${failed.join("; ")}`,
+    413|     ).toBeGreaterThanOrEqual(ADEQUACY_TIER2_GATE);
+       |       ^
+    414|   });
+    415|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > ships no answer the runtime citation invariant would refuse
+AssertionError: citation violations: iva-servicios-extranjero-comprados (unresolved_markers); ho-800-mil-que-porcentaje-caja (unresolved_markers): expected [ …(2) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "iva-servicios-extranjero-comprados (unresolved_markers)",
++   "ho-800-mil-que-porcentaje-caja (unresolved_markers)",
++ ]
+
+ ❯ src/lib/eval/groundedness.eval.test.ts:427:65
+    425|           `${r.evalCase.id} (${(r.citations as Exclude<CitationVerdict…
+    426|       );
+    427|     expect(failed, `citation violations: ${failed.join("; ")}`).toEqua…
+       |                                                                 ^
+    428|   });
+    429|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > every blocking case's answer is supported by its retrieved chunks
+AssertionError: ungrounded blocking answers: ho-cabys-paginas-web (The answer states that CABYS codes are used for classifying goods/services on electronic invoices and are distinct from economic activity codes (CIIU 4) declared to Hacienda, but the provided fragments do not support this distinction or explain the relationship between CABYS and CIIU codes.); ho-cliente-espana-lleva-iva (The answer claims that services provided from Costa Rica to a client abroad are taxable based on the provider's location in Costa Rica, but fragment [6] Article 1.2.b.i only establishes territoriality when the service provider is a 'contribuyente' located in Costa Rica—it does not address whether a service consumed entirely abroad by a foreign client falls within the tax scope, and the answer extrapolates this rule without fragment support for the specific cross-border export scenario.); ho-rebajar-multa-si-pago-ya (The answer states that Article 88 only covers sanctions from Articles 78, 79, 81, and 83, and that Article 80 bis is not included, but Fragment [1] explicitly lists 'artículos 78, 79, 81 y 83' without mentioning 80 bis, which is correct; however, the answer then claims the morosidad sanction from Article 80 bis cannot be reduced, but Fragment [1] does not explicitly state this exclusion applies to 80 bis versus Article 80, creating an unsupported inference about which morosidad article applies and whether it's reducible.): expected [ …(3) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "ho-cabys-paginas-web (The answer states that CABYS codes are used for classifying goods/services on electronic invoices and are distinct from economic activity codes (CIIU 4) declared to Hacienda, but the provided fragments do not support this distinction or explain the relationship between CABYS and CIIU codes.)",
++   "ho-cliente-espana-lleva-iva (The answer claims that services provided from Costa Rica to a client abroad are taxable based on the provider's location in Costa Rica, but fragment [6] Article 1.2.b.i only establishes territoriality when the service provider is a 'contribuyente' located in Costa Rica—it does not address whether a service consumed entirely abroad by a foreign client falls within the tax scope, and the answer extrapolates this rule without fragment support for the specific cross-border export scenario.)",
++   "ho-rebajar-multa-si-pago-ya (The answer states that Article 88 only covers sanctions from Articles 78, 79, 81, and 83, and that Article 80 bis is not included, but Fragment [1] explicitly lists 'artículos 78, 79, 81 y 83' without mentioning 80 bis, which is correct; however, the answer then claims the morosidad sanction from Article 80 bis cannot be reduced, but Fragment [1] does not explicitly state this exclusion applies to 80 bis versus Article 80, creating an unsupported inference about which morosidad article applies and whether it's reducible.)",
++ ]
+
+ ❯ src/lib/eval/groundedness.eval.test.ts:436:73
+    434|     // passed it with two Tier 1 held-out cases failing unanimously.
+    435|     const failed = blockingGroundednessFailures(results);
+    436|     expect(failed, `ungrounded blocking answers: ${failed.join("; ")}`…
+       |                                                                         ^
+    437|       [],
+    438|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > answers F1 with both BMC figures and citations to every input
+AssertionError: bmc-ivm-2026 was not resolved from the answer chunks: expected undefined to be defined
+ ❯ src/lib/eval/groundedness.eval.test.ts:496:9
+    494|         figure,
+    495|         `${id} was not resolved from the answer chunks`,
+    496|       ).toBeDefined();
+       |         ^
+    497|       expect(result!.answer).toContain(figure!.formattedValue);
+    498|       expect(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+
+ Test Files  2 failed | 6 passed (8)
+      Tests  6 failed | 29 passed | 1 skipped (36)
+   Start at  19:29:02
+   Duration  2031.08s (transform 712ms, setup 0ms, import 1.71s, tests 2389.56s, environment 0ms)
+
+[ELIFECYCLE] Command failed with exit code 1.
+exit=1  finished=20260915T020254Z
