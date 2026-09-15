@@ -7,6 +7,7 @@ import {
   incompletelyCitedDerivedFigures,
   parseDerivedFigures,
   pinDerivedFigureInputs,
+  pinEnabled,
   resolveDerivedFigures,
   type DerivedFigure,
   type ResolvedDerivedFigure,
@@ -259,7 +260,8 @@ describe("incompletelyCitedDerivedFigures", () => {
 
 describe("pinDerivedFigureInputs", () => {
   beforeEach(() => {
-    // Off unless asked for (#287): every case below is the opted-in pipeline.
+    // On by default since the pin-at-8 reading; the stub keeps every case
+    // below on the pipeline of record whatever the shell says.
     vi.stubEnv("PIN_DERIVED_INPUTS", "on");
   });
   afterEach(() => {
@@ -353,14 +355,23 @@ describe("pinDerivedFigureInputs", () => {
     expect(pinned).toEqual([escala, salud, salarios]);
   });
 
-  it("pins nothing until PIN_DERIVED_INPUTS=on asks for it (#287)", () => {
-    // Unset, empty and off are one answer: the pipeline of record, which does
-    // not pin until an authorized run has measured that it should.
-    for (const value of ["", "off", "true", "1"]) {
+  it("is on by default, and when CI interpolates an unset variable as empty", () => {
+    // The pipeline of record since the pin-at-8 reading (ADR 0018): unset
+    // and "" both pin, the way RERANK and EXPAND read their variables.
+    for (const value of ["", "on"]) {
       vi.stubEnv("PIN_DERIVED_INPUTS", value);
+      expect(pinEnabled()).toBe(true);
       expect(
         pinDerivedFigureInputs([escala], [escala, salarios], [BMC_IVM]),
-      ).toEqual([escala]);
+      ).toEqual([escala, salarios]);
     }
+  });
+
+  it("pins nothing under PIN_DERIVED_INPUTS=off — the measured baseline", () => {
+    vi.stubEnv("PIN_DERIVED_INPUTS", "off");
+    expect(pinEnabled()).toBe(false);
+    expect(
+      pinDerivedFigureInputs([escala], [escala, salarios], [BMC_IVM]),
+    ).toEqual([escala]);
   });
 });

@@ -51,6 +51,9 @@ jobs:
       # Empty is "on" (expand.ts reads it with ||, like RERANK): the eval lane
       # measures the search production performs, expansion legs included.
       EXPAND: ${{ vars.EXPAND }}
+      # Same reading: the pin is on by default since the pin-at-8 reading
+      # (ADR 0018), and `off` is the measured baseline.
+      PIN_DERIVED_INPUTS: ${{ vars.PIN_DERIVED_INPUTS }}
       # The *eval* key, from a workspace separate from `tramitico-prod`
       # (runbook §7): production's US$10/month cap must never block an
       # authorized run, and a run must never eat production's budget.

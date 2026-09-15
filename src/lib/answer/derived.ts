@@ -364,24 +364,33 @@ export function incompletelyCitedDerivedFigures(
  * markers are 1-based positions in the final list, so the existing numbering
  * is untouched.
  *
- * **Off by default.** #287 asked for options «to measure, not guess», and an
- * append is still a change to what the answer model reads: the check is
- * source identity, not question relevance, so a salary artículo that survived
- * an unrelated question drags its figure's siblings in with it. The append
- * cannot move a citation marker, but it can move an answer. So the pin waits
- * for the authorized run that measures it — `PIN_DERIVED_INPUTS=on` turns it
- * on for that run, and a measured result is what makes it the default.
+ * **On by default since 2026-09-15** (ADR 0018, third amendment). #287 asked
+ * for options «to measure, not guess», and an append is still a change to
+ * what the answer model reads: the check is source identity, not question
+ * relevance, so a salary artículo that survived an unrelated question could
+ * drag its figure's siblings in with it. So the pin shipped off until it was
+ * measured. The probe (#312) showed the append fires on exactly four dataset
+ * cases and leaves every other answer set byte-identical; #305 read those
+ * answers at top 10 and the pin-at-8 run read them at the shipped top 8 —
+ * grounded 4/4, every derived figure stated with both input markers, the
+ * abstention lane 9/9 with no figure. `PIN_DERIVED_INPUTS=off` is the
+ * measured baseline, the way `RERANK=off` and `EXPAND=off` are.
  */
+/**
+ * Whether the pin runs. Unset and the empty string CI interpolates for an
+ * unset variable both mean on, like `RERANK` and `EXPAND`; only an explicit
+ * `off` opts out, for the measured baseline.
+ */
+export function pinEnabled(): boolean {
+  return (process.env.PIN_DERIVED_INPUTS || "on") !== "off";
+}
+
 export function pinDerivedFigureInputs(
   answerSet: readonly RetrievedChunk[],
   pool: readonly RetrievedChunk[],
   figures: readonly DerivedFigure[] = DERIVED_FIGURES,
 ): RetrievedChunk[] {
-  // Unset or interpolated empty both mean off: only an explicit
-  // PIN_DERIVED_INPUTS=on opts in, which is the opposite reading rerank.ts
-  // gives RERANK and deliberately so — RERANK=voyage was measured, this is
-  // what the next authorized run measures.
-  if (process.env.PIN_DERIVED_INPUTS !== "on") return [...answerSet];
+  if (!pinEnabled()) return [...answerSet];
 
   const pinned = [...answerSet];
   for (const figure of figures) {

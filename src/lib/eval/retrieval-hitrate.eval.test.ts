@@ -34,7 +34,7 @@
 import { readFileSync } from "node:fs";
 import { beforeAll, expect, it } from "vitest";
 import { condenseQuestion } from "../answer/condense";
-import { pinDerivedFigureInputs } from "../answer/derived";
+import { pinDerivedFigureInputs, pinEnabled } from "../answer/derived";
 import { expansionEnabled } from "../answer/expand";
 import { STEP_CATALOGUE, stepsEnabled } from "../answer/steps";
 import {
@@ -281,7 +281,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
     console.log(
       `\nretrieval hit-rate (rerank=${rerankMode} ${process.env.RERANK_MODEL || RERANK_MODEL}, pool ${RERANK_POOL} → top ${topKSize}, ` +
         `cap=${docCap === Infinity ? "off" : docCap}/doc, expand=${expandMode}, steps=${stepsMode}, ` +
-        `pin=${process.env.PIN_DERIVED_INPUTS === "on" ? "on" : "off"}): ${hits}/${results.length}`,
+        `pin=${pinEnabled() ? "on" : "off"}): ${hits}/${results.length}`,
     );
     for (const r of results) {
       console.log(
