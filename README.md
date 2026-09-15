@@ -159,4 +159,5 @@ codebase; see [SECURITY.md](SECURITY.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
-Made by [Josue Calderon](https://josuecalderon.com) · [GitHub](https://github.com/rjwrld)
+Made by [Josue Calderon](https://josuecalderon.com) · [GitHub](https://github.com/rjwrld) ·
+[LinkedIn](https://www.linkedin.com/in/rjwrld/)
