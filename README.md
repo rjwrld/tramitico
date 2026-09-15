@@ -1,38 +1,141 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tramitico
 
-## Getting Started
+[![CI](https://github.com/rjwrld/tramitico/actions/workflows/ci.yml/badge.svg)](https://github.com/rjwrld/tramitico/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-First, run the development server:
+A RAG assistant that answers the tax and social-security questions of people who work for
+themselves in Costa Rica, in plain Spanish, with every material claim cited to the official
+Hacienda or CCSS document it came from. It retrieves and cites; it never rules. When the
+corpus cannot back an answer it says so, and when the question belongs to another institution
+it names that institution instead of guessing. The app is in Spanish because its users are;
+this README is in English because its second audience reads code. _Tramitico_ is a diminutive
+of _trámite_, the Costa Rican word for paperwork.
+
+<!-- live-url: replaced after #29 deploys -->
+
+**Live:** deploying, see [#29](https://github.com/rjwrld/tramitico/issues/29).
+
+<!-- demo: docs/assets/demo.gif — a question becoming a cited answer, recorded in #82 -->
+
+## What it does
+
+- **Answers from the source, not from memory.** Every figure, deadline and condition in an
+  answer carries a seal that opens the official document and artículo it was taken from. An
+  answer with a citation that does not resolve is never shown; the pipeline retries once and
+  then declines ([ADR 0011](docs/adr/0011-runtime-citation-invariant.md)).
+- **Says no when it should.** A question the corpus does not cover gets an honest abstention.
+  A question for another institution, immigration, municipal patentes, INS, gets a decline
+  that names the institution and links its page
+  ([ADR 0017](docs/adr/0017-other-institutions-are-routed.md)).
+  <!-- demo: docs/assets/demo-routed.gif and docs/assets/demo-abstain.gif, recorded in #82 -->
+- **Never invents a number.** Figures that no single document states, such as the CCSS
+  minimum contribution base, are computed by code from cited inputs, never by the model
+  ([ADR 0018](docs/adr/0018-derived-figures-by-code.md)).
+- **Remembers the thread.** Follow-up questions are condensed into one standalone question
+  before retrieval, so «¿y si facturo desde España?» is searched as the full question it
+  implies ([ADR 0012](docs/adr/0012-multi-turn-question-condensation.md)).
+
+## How it answers
+
+![The ask pipeline: chat UI, quota, condense, hybrid retrieval, rerank, answer, citation check, Supabase](docs/assets/ask-pipeline.png)
+
+<sub>Rendered from [`docs/assets/ask-pipeline.architecture.json`](docs/assets/ask-pipeline.architecture.json); every node cites the file and line it describes at a pinned commit.</sub>
+
+One request, left to right: a daily quota check, condensation of the conversation into one
+question, hybrid retrieval, a rerank, one model call, a citation check, and persistence.
+
+- **Retrieval is hybrid and asks the question more than once.** The question, a
+  corpus-register rewrite of it ([ADR 0019](docs/adr/0019-query-expansion-legs.md)) and, for
+  the families that have one, the hand-written steps a complete answer needs
+  ([ADR 0020](docs/adr/0020-step-catalogue-legs.md)) each run a vector leg and a lexical leg
+  inside one Postgres function. Reciprocal rank fusion merges them into a pool of 40; a
+  reranker keeps 8.
+- **The answer is checked before it is streamed.** The model writes with numbered markers;
+  the server buffers the answer, resolves every marker to a retrieved chunk, and only then
+  streams it with the seals attached.
+- **Everything that spends is bounded.** The quota is checked before any provider call and
+  refunded on any failure that is not the user's
+  ([ADR 0013](docs/adr/0013-disconnect-refunds-and-internal-deadline.md)). The pipeline
+  carries its own deadline so the platform never kills it mid-answer.
+
+Models: `claude-sonnet-5` writes the answer, `claude-haiku-4-5` condenses and expands,
+Voyage `voyage-3` embeds and `rerank-2.5-lite` reranks. Postgres with pgvector holds the
+corpus, the question history and the quota, all behind row-level security.
+
+## The numbers
+
+The corpus is 23 official documents in 871 chunks. The eval set is 73 hand-written cases,
+each with the artículo the answer must cite and, for the 40 that carry them, the claims a
+complete answer must make. Every case is run through the production pipeline and judged by
+a second model at temperature 0. The tables below are from the closing run of 2026-09-11,
+published with transcripts in [`eval/runs/2026-09-11-closing/`](eval/runs/2026-09-11-closing/).
+
+| Gate                                            | Baseline (2026-09-05) | Closing run (2026-09-11) | Threshold |
+| ----------------------------------------------- | --------------------- | ------------------------ | --------- |
+| Retrieval hit-rate (cited artículo in top 8)    | 63/73                 | **70/73**                | ≥ 0.92    |
+| Groundedness (answer supported by its chunks)   | 70/73                 | **70/73**                | ≥ 0.94    |
+| Adequacy, Tier 2 (every required claim present) | 9/13                  | **12/13**                | ≥ 0.84    |
+| Abstention (declines when it should)            | 4/7                   | **9/9**                  | ≥ 0.90    |
+
+Tier 1, the 27 cases the product promise depends on, is fully adequate in 5 of 27: the
+answers are cited and grounded but miss required steps or figures. That is the open work
+([#305](https://github.com/rjwrld/tramitico/issues/305),
+[#311](https://github.com/rjwrld/tramitico/issues/311)), and it is recorded as an accepted,
+dated risk rather than hidden by an aggregate. A full run costs about US$6 in provider
+spend; the runs behind these tables cost on the order of US$30 in total.
+
+How the gates are defined, how thresholds ratchet and never lower, and every run since the
+first are in [`eval/README.md`](eval/README.md).
+
+## How it was built
+
+By one person and a set of coding agents, in about eight weeks: a wayfinder map of the
+domain first, then a grilling session per decision, then GitHub issues that link the spec
+section they implement, then agents working in parallel worktrees, then review, then the eval
+gates above as the release bar. Each stage caught something the previous one had let through.
+The full account, including what was lost and what the gates failed to say, is in
+[`docs/how-it-was-built.md`](docs/how-it-was-built.md).
+
+## Limitations
+
+- Tier 1 adequacy is 5 of 27. Answers in those families are cited and grounded but
+  incomplete.
+- Two Tier 1 groundedness failures remain in the closing run, both wrong statements rather
+  than missing ones ([#324](https://github.com/rjwrld/tramitico/issues/324)). The per-case
+  gate that now names them was added after that run.
+- No one outside the author has used it, and the author wrote the eval set. Peer questions
+  are the next dataset.
+- The corpus has annual obligations, tramos, minimum wage, contribution scales, that a
+  freshness policy describes ([ADR 0016](docs/adr/0016-source-freshness-policy.md)) and
+  nothing automates yet.
+- Tramitico is not legal or tax advice. It cites the general rule and the conditions that
+  change it; the decision is the reader's, or their accountant's.
+
+## Run it locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm test:unit     # no database, no API keys — the CI gate
+pnpm build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Those pass from a clean clone. Running the app or the database-backed lanes needs a local
+Supabase stack and provider keys; [CONTRIBUTING.md](CONTRIBUTING.md) has the steps and the
+five test lanes, split by what each one needs.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Docs
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Testing
-
-```bash
-pnpm test:unit         # no database, no API keys — the required CI gate
-pnpm test:integration  # needs a database: supabase start
-pnpm test:eval         # needs a database, real embeddings and an Anthropic key
-pnpm test              # all three, for local convenience
-pnpm test:e2e          # Playwright
-```
-
-Integration and eval suites skip locally when their prerequisites are absent, and fail —
-naming the missing variable — under `CI=true`, so no required check can pass while
-asserting nothing.
+| Document                                             | What it is                                                    |
+| ---------------------------------------------------- | ------------------------------------------------------------- |
+| [SPEC.md](SPEC.md)                                   | the build contract: corpus, retrieval, answer contract, gates |
+| [DESIGN.md](DESIGN.md)                               | the visual contract, written before the first component       |
+| [PRODUCT.md](PRODUCT.md)                             | who it is for and what it is not                              |
+| [BRIEF.md](BRIEF.md)                                 | the original scope; its out-of-scope list is binding          |
+| [docs/adr/](docs/adr/README.md)                      | the decisions that overturned a default, numbered and dated   |
+| [docs/how-it-was-built.md](docs/how-it-was-built.md) | the workflow and what each stage caught                       |
+| [docs/runbook.md](docs/runbook.md)                   | what to watch in production and when to roll back             |
+| [eval/README.md](eval/README.md)                     | every eval run, and the rules for reading one                 |
+| [CLAUDE.md](CLAUDE.md)                               | the working map for coding agents                             |
 
 ## License
 
@@ -54,17 +157,7 @@ That license covers the software only. It does not cover:
 The hosted service at tramitico.com, its data and its credentials are separate from this
 codebase; see [SECURITY.md](SECURITY.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Made by [Josue Calderon](https://josuecalderon.com) · [GitHub](https://github.com/rjwrld) ·
+[LinkedIn](https://www.linkedin.com/in/rjwrld/)

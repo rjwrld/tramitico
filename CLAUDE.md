@@ -1,5 +1,9 @@
 # Tramitico
 
+This file is the working map for coding agents: where things are, which lane a test
+belongs to, what a change must keep true. Humans start at the [README](README.md); the
+narrative of how the project was built is [docs/how-it-was-built.md](docs/how-it-was-built.md).
+
 RAG assistant for CR independent developers — tax & trámite answers cited to official
 Hacienda/CCSS documents. [SPEC.md](SPEC.md) is the build contract; [DESIGN.md](DESIGN.md) the
 visual contract; [PRODUCT.md](PRODUCT.md) the strategic context; [BRIEF.md](BRIEF.md) the
