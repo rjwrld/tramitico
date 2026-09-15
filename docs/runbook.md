@@ -397,7 +397,11 @@ ingestion from the manifest, which is idempotent for the same reason.
 ## 7. The free stack (#327)
 
 Decision of 2026-09-12: portfolio first. Everything below is chosen for near-zero monthly
-cost and written down so an operator knows what is load-bearing.
+cost and written down so an operator knows what is load-bearing. The console pass that
+provisions all of it is scripted: `bash scripts/deploy-wizard.sh` opens each dashboard in
+order, says what to click, and captures the values into a gitignored `.env.prod` and the
+GitHub secrets the workflows read. Hosted Auth is configured through the dashboard only —
+never `supabase config push`, which would upload `config.toml`'s localhost `site_url`.
 
 **Vercel Hobby.** §2 says what it changes for observability. Nothing else in this file
 depends on the tier.
