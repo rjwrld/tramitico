@@ -4,7 +4,7 @@
  * Manual light/dark switch (DESIGN §1/§8). The switch arms a 150ms crossfade
  * on ground colors only — `.theme-crossfade` on <html>, consumed by
  * globals.css — and disarms it right after, so nothing else ever transitions
- * on theme change. Chrome is Spanish per SPEC §8 (ADR 0013).
+ * on theme change. Chrome is Spanish per SPEC §8 (ADR 0021).
  */
 import { useTheme } from "next-themes";
 import { MoonIcon, SunIcon } from "lucide-react";

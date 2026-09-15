@@ -228,7 +228,7 @@ static labels, instant text.
 ## 9. Voice & copy
 
 - **Answers and chrome in Spanish, usted.** Every visible string, `aria-label`, `sr-only` label
-  and page title ([ADR 0013](docs/adr/0013-spanish-chrome.md), #215). The English shell this line
+  and page title ([ADR 0021](docs/adr/0021-spanish-chrome.md), #215). The English shell this line
   used to promise is retired: it only ever reached screen-reader users, as English controls
   narrated over a Spanish page. README and the demo script stay English — they address
   contributors, not users.
