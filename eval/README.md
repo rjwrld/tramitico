@@ -90,12 +90,12 @@ per case, no answer model). `--pool=<n>` widens the fused depth past
 Four knobs exist so the #287 and #303 options are measured rather than
 argued, all read at call time and all defaulting to the pipeline of record:
 
-| Variable             | Default           | What it changes                                                      |
-| -------------------- | ----------------- | -------------------------------------------------------------------- |
-| `RERANK_MODEL`       | `rerank-2.5-lite` | the Voyage reranker asked for                                        |
-| `ANSWER_TOP_K`       | `8`               | how many reranked chunks reach the answer prompt                     |
-| `ANSWER_DOC_CAP`     | `off`             | at most _n_ chunks per document in the answer set, backfilled (#303) |
-| `PIN_DERIVED_INPUTS` | `off`             | `on` completes a derived figure whose sibling input survived the cut |
+| Variable             | Default           | What it changes                                                                                         |
+| -------------------- | ----------------- | ------------------------------------------------------------------------------------------------------- |
+| `RERANK_MODEL`       | `rerank-2.5-lite` | the Voyage reranker asked for                                                                           |
+| `ANSWER_TOP_K`       | `8`               | how many reranked chunks reach the answer prompt; 10 measured and kept at 8 (#305)                      |
+| `ANSWER_DOC_CAP`     | `off`             | at most _n_ chunks per document in the answer set, backfilled (#303); rejected at 8 and 10 (#312, #305) |
+| `PIN_DERIVED_INPUTS` | `off`             | `on` completes a derived figure whose sibling input survived the cut; read at top 10 only (#305)        |
 
 Changing one changes the ask pipeline, not just the eval, so a run that moves
 a knob says so in its header line, and all four keep their defaults until a
@@ -1696,6 +1696,157 @@ abstention lane before the pin goes on with it.
 So the cap is not the lever, and the remaining F1 gap stays where the paragraph
 above put it: `ANSWER_TOP_K`, on a full run, with the abstention lane read
 beside it.
+
+### The authorized full run: `ANSWER_TOP_K=10` beside the cap and the pin (#305)
+
+The run #303 could not afford and #312 handed its last question to: the same
+corpus (871 chunks), the same models (answer `claude-sonnet-5`, judge
+`claude-sonnet-4-5`, expansion `claude-haiku-4-5`), the same day
+(2026-09-15), `main` at #339, every lane once per arm. The rows are published
+in [`eval/runs/2026-09-15-top-k/`](runs/2026-09-15-top-k/) — this time copied
+out of the worktree before anything else was done, which is the lesson of the
+#304 transcripts.
+
+**What was run, and why not the issue's third arm.** The issue named three
+arms: the pipeline of record, `ANSWER_TOP_K=10`, and `10 + ANSWER_DOC_CAP=3`.
+#312's deterministic probe (retrieve → rerank → cap → pin → resolve, no
+answer model, no judge) was re-run at both top-k values first, over the 61
+single-turn retrieval cases (158 expected targets) and the 9 abstention
+cases — `pnpm answer-set-probe`, cents:
+
+| Configuration                | Targets in the answer set | Cases with every target | Figures resolved | Figures on an abstention case         |
+| ---------------------------- | ------------------------- | ----------------------- | ---------------- | ------------------------------------- |
+| top 8, cap off, pin off      | 102/158                   | 32/61                   | 2                | —                                     |
+| top 8, cap off, pin on       | 105/158                   | 33/61                   | 7                | —                                     |
+| **top 10, cap off, pin off** | **108/158**               | **35/61**               | 2                | —                                     |
+| top 10, cap off, pin on      | 111/158                   | 36/61                   | 7                | —                                     |
+| top 10, cap 3, pin off       | 101/158                   | 33/61                   | 2                | —                                     |
+| top 10, cap 3, pin on        | 105/158                   | 36/61                   | 10               | `ho-abs-aguinaldo-freelancer` (2 BMC) |
+| top 10, cap 2, pin off       | 102/158                   | 32/61                   | 6                | —                                     |
+
+The cap arm was retired on that table rather than run: at top 10 the cap starts
+seven expected targets down (108 → 101, the same «four different artículos of
+one reglamento» shape #312 found at top 8), and with the pin on it brings back
+the abstention leak #312 recorded. US$6 to confirm a number a probe already
+gives was the wrong trade, and the money went to the pin instead: arm C is
+`ANSWER_TOP_K=10` with `PIN_DERIVED_INPUTS=on`, read as a scoped run on the
+three cases where the probe says the pin changes the answer set at top 10
+(`ccss-cuanto-pago-base`, `ho-desde-cuanta-plata-caja`,
+`ho-800-mil-que-porcentaje-caja` — every other answer set is byte-identical to
+arm B's), plus the whole abstention lane, since that is where #312 said a pin
+under a wider set had to be read.
+
+The probe's per-case rows say what top 10 reaches that top 8 does not: six
+cases gain a target (`inscripcion-hacienda-clientes-extranjero`,
+`ccss-pedir-prescripcion-cuotas`, `desinscripcion-dejar-actividad`,
+`regimen-simplificado-programador`, `iva-servicios-extranjero-comprados`,
+`ho-factura-electronica-o-recibo`), none loses one. F1's `ccss-escala-ivm`
+sat at reranked #8 in the probe, #9 in arm B and #8 in arm C — the one-place
+coin flip #312 described.
+
+**The arms, on the gates.** Arm A is the pipeline of record, arm B moves the
+one knob. Arm A's hit-rate lane passed inside the full run and vitest hides a
+passing file's console, so its number is a re-read of that lane alone, forty
+minutes later (`hitrate-…log`; from now on the lane runs with
+`--disableConsoleIntercept`).
+
+| Gate (73 cases)                       | A: top 8 (record)                                                                        | B: top 10                                                                                                                                                               | C: top 10 + pin (scoped)       | Gate                                |
+| ------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ----------------------------------- |
+| Hit-rate                              | **72/73** · blocking `ho-rebajar-25-sin-facturas` at pool #27                            | **71/73** · same blocking miss at pool #21, plus `ccss-asalariado-followup` at pool #4                                                                                  | —                              | ≥ 0.92 pass; blocking fails on both |
+| Groundedness                          | **69/73**                                                                                | **66/73**, under the gate                                                                                                                                               | 3/3 on the three               | ≥ 0.94                              |
+| Blocking groundedness failures (#324) | 3 — `ho-cabys-paginas-web`, `ho-cliente-espana-lleva-iva`, `ho-rebajar-multa-si-pago-ya` | 5 — `multa-iva-no-declarado` (2/3), `ho-trabajitos-por-mi-cuenta`, `ho-cliente-espana-lleva-iva`, `ho-minimo-caja-independiente-2026`, `ho-800-mil-que-porcentaje-caja` | 0                              | 0                                   |
+| Adequacy, cases with claims           | 13/40                                                                                    | **17/40**                                                                                                                                                               | 0/2                            | —                                   |
+| Tier 1 adequate                       | 3/27                                                                                     | **6/27**                                                                                                                                                                | —                              | 27/27, fails                        |
+| Tier 2 adequate                       | 10/13 (0.77, **fails 0.84**)                                                             | 11/13 (0.846, pass)                                                                                                                                                     | —                              | ≥ 0.84                              |
+| Abstention                            | 9/9 · figure gate fails (`ho-abs-calculo-personalizado`: ¢20.520,00, 75 %)               | **8/9** · `ho-abs-calculo-personalizado` answers                                                                                                                        | 9/9 · figure gate fails (75 %) | ≥ 0.9, zero figures                 |
+| Citation invariant (#168)             | 2 (`[9]` of 8, `[15]` of 8)                                                              | 2 (`[16]` of 10, twice)                                                                                                                                                 | 0                              | 0                                   |
+| F1 (`ccss-cuanto-pago-base`) BMC      | fail — `ccss-escala-ivm` outside the 8                                                   | fail — `ccss-escala-ivm` at #9, pin off                                                                                                                                 | **pass** — both figures, cited | —                                   |
+| Prompt tokens per ask, mean / median  | 12 147 / 11 520                                                                          | 14 068 / 13 493 (**+16 %**)                                                                                                                                             | —                              | `pnpm prompt-tokens`                |
+
+Every lane logged one to three Haiku expansion timeouts (the 3 s budget) and
+no other provider error; those asks ran on the question alone, the designed
+fallback, and the run is recorded the way the closing run was. The first
+attempt at arm B is not in the table: the Anthropic balance ran out thirteen
+minutes into its groundedness lane (`AI_APICallError: Your credit balance is
+too low`), the arm was discarded whole and re-run after a top-up, and the
+rule the closing run wrote — verify the balance before launch — was the rule
+this run broke. The logs of that dead arm are in the published folder under
+`dead/`, so the 72/73 hit-rate reading it produced at top 10 is on record as
+the one that is _not_ counted.
+
+**Decision: `ANSWER_TOP_K` stays 8.** The knob bought what #303 predicted on
+the cases it predicted it for — `ccss-pedir-prescripcion-cuotas` passes on the
+«¿Cómo se solicita?» entry at #9, `ho-rebajar-multa-si-pago-ya` and
+`ho-tambien-asegurado-por-patrono` pass, `ho-800-mil-que-porcentaje-caja` and
+`ho-hacienda-solo-cliente-eeuu` each gain a requirement — and it paid for them
+with the release gate, the same shape #304's `pin` had: adequacy up, four more
+blocking groundedness failures, 0.94 lost. Three things make that a decision
+rather than a coin flip:
+
+1. **The new failures are index-shaped.** `ho-trabajitos-por-mi-cuenta` cites
+   [10] for a rule [10] does not state; the two citation violations are both
+   `[16]` on a list of ten. Arm A's two violations are `[9]` and `[15]` on a
+   list of eight: the model invents markers past the end of whatever list it
+   is given, and a longer list gives it more room to mis-index inside it.
+2. **The wider set loses claims as well as gaining them.** Beside the
+   fourteen requirements top 10 reaches, seven that top 8 stated go missing —
+   `ho-hasta-que-dia-tengo-iva`'s «qué hacer si la fecha ya pasó» (the one
+   Tier 1 case that passed in every prior reading), `ho-iva-en-cero-sin-facturar`'s
+   «decimoquinto día» literal, the OVi username in `ho-donde-inscribo-ya-no-atv`,
+   the declared ingreso de referencia in `ho-donde-me-afilio-caja`. More
+   fragments spread the answer thinner, which is also why
+   `ho-minimo-caja-independiente-2026` fails **worse** at 10 (3 → 5 missing)
+   while finally holding both BMC inputs: it states the figures and then
+   over-reads which base triggers the obligation, and the judge fails it for
+   that.
+3. **The adequacy gain is inside the noise.** The closing run scored 17/40 on
+   the pipeline arm A re-measured at 13/40 four days later, same code, same
+   corpus: the run-to-run band on adequacy is ±4 cases, and B's 17/40 is the
+   closing run's number, not a step past it. Hit-rate did not move (72 → 71),
+   abstention lost a case, and every ask would carry 16 % more prompt.
+
+So the default, SPEC §5's «top-k ≈ 8» and `rerank.test.ts`'s pin of the
+constant are untouched; `ANSWER_TOP_K` remains the env knob it was.
+
+**The pin, on the bar ADR 0018 set.** Arm C is the first reading of
+`PIN_DERIVED_INPUTS=on` on real answers: the three cases whose answer set it
+changes are all grounded (3/3), `ccss-cuanto-pago-base` resolves **both** BMC
+figures — ¢324.590 with markers {8, 11}, ¢346.789 with {2, 11} — states both,
+cites both completely, and passes the F1 assertion for the first time since
+#296; and the abstention lane under the pin is 9/9 with no figure on
+`ho-abs-aguinaldo-freelancer` or any other ABS case, exactly as the probe
+said. That is the pin passing its bar **at top 10**, which does not ship. At
+top 8 the IVM input sits outside the cut on the reading arm A happened to get,
+so the pin could only have completed the SEM figure there; ADR 0018's rule is
+a full run on both sides of the shipped top-k, and that run has not happened.
+The pin stays off, with its bar now half met. What F1 needs is not a wider
+cut but `ccss-escala-ivm` reliably inside eight — a rerank question, which
+#287 still owns.
+
+**Where the misses are, re-read.** #303's answer-side list died with its
+transcript; arm A is the re-read. Of the 68 requirements arm A's judged cases
+miss, **15 are answer omissions** — the carrying chunk was numbered in the
+prompt and the answer did not state the claim or cited it wrong — on 14 cases
+(12 Tier 1, 2 Tier 2), handed to #130 by id; the other 53 are the retrieval
+residue #289 mapped (the sanction articles, ¢462.200, the export exemption and
+13 %, the OVi steps, the image-only FAQ entry). The ones worth naming here:
+`ho-minimo-caja-independiente-2026` writes «no encuentro … la BMC» with
+`ccss-escala-salud` numbered [2]; `ho-t2-constancia-al-dia` tells the reader to
+log in with the «OVi Pública» entry (#297's new target) numbered [4];
+`ho-rebajar-multa-si-pago-ya` states the 75 % and does not cite art. 88 for it.
+
+**The seeds stay.** The two home-page seeds the 2026-09-12 note put on this
+run are no better at 8 or 10: `ccss-obligacion-ingreso-bajo` misses the same
+three requirements in the closing run, arm A and arm B (categoría 1, where to
+enrol, 0,9295 SM — one of them an answer omission with the chunk in hand), and
+the T1-F seed's figures resolve only under top 10 + pin. The one clean
+candidate, `ho-hasta-que-dia-tengo-iva`, passed two of three readings and
+belongs to T1-D, a family that already has a seed, so a swap would break
+one-per-family for a case that is not reliably clean either. #311's
+condition — «runs only if #305 leaves the seeds thin» — is met.
+
+**Cost.** Two full arms, one dead half-arm, one hit-rate re-read and the scoped
+arm C: ≈ US$15 at today's prices, against the issue's US$8–12 per arm.
 
 ### The answer side, read and fixed: rule 9 (#289)
 
