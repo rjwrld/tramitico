@@ -248,10 +248,16 @@ otp_expiry = 3600
 # Production SMTP (issue #85) — Supabase's built-in sender is dev-grade
 # (single-digit emails/hour) and not meant for production traffic. Left
 # commented so local dev keeps using Inbucket/Mailpit unchanged; production
-# values are set directly in the hosted project's Auth settings (dashboard or
-# `supabase config push`), executed alongside the #29 deploy. Resend or
-# Postmark free tier is ample at this scale — either needs a verified sending
-# domain with SPF + DKIM DNS records (see the #29 deploy checklist comment).
+# values are set in the hosted project's Auth settings **through the
+# dashboard only** (`scripts/deploy-wizard.sh` walks it). Resend, free tier,
+# sending domain mail.tramitico.com (runbook §7).
+#
+# NEVER run `supabase config push` against the production project. It uploads
+# this whole [auth] section — `site_url = "http://127.0.0.1:3000"` and the
+# localhost `additional_redirect_urls` above included — and overwrites the
+# dashboard, so every production magic link would point at localhost (#29).
+# This file describes the local stack; the hosted project is configured by
+# hand and the wizard is the record of what was set.
 # [auth.email.smtp]
 # enabled = true
 # host = "smtp.resend.com"
