@@ -1,4 +1,4 @@
-# ADR 0013 — The app chrome is Spanish, everywhere
+# ADR 0021 — The app chrome is Spanish, everywhere
 
 Date: 2026-08-28 · Status: accepted · Reverses the language line in
 [SPEC §8](../../SPEC.md#8-ui), the SPEC §1 Language row and

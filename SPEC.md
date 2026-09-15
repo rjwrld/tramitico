@@ -53,7 +53,7 @@ quality gates in §9, and deployment on Vercel. This contract is recorded in
 | Chunking | Por-artículo + context header; hybrid retrieval                                                                                                                                              | [#4](https://github.com/rjwrld/tramitico/issues/4)   |
 | UI       | Chat + one one-click prompt per Tier 1 family ([#264](https://github.com/rjwrld/tramitico/issues/264))                                                                                       | [#9](https://github.com/rjwrld/tramitico/issues/9)   |
 | Auth     | Public ask (rate-limited); sign-in → history + higher limits                                                                                                                                 | [#10](https://github.com/rjwrld/tramitico/issues/10) |
-| Language | ES corpus/answers **and app chrome** ([ADR 0013](docs/adr/0013-spanish-chrome.md)); EN README, demo                                                                                          | [#11](https://github.com/rjwrld/tramitico/issues/11) |
+| Language | ES corpus/answers **and app chrome** ([ADR 0021](docs/adr/0021-spanish-chrome.md)); EN README, demo                                                                                          | [#11](https://github.com/rjwrld/tramitico/issues/11) |
 | Eval set | ~20–30 hand-written Q&As; peer questions post-launch                                                                                                                                         | [#12](https://github.com/rjwrld/tramitico/issues/12) |
 | Done bar | §5 IN-list + green CI w/ eval gate + deployed + docs                                                                                                                                         | [#14](https://github.com/rjwrld/tramitico/issues/14) |
 | Stack    | Next.js App Router · Supabase (Postgres/pgvector/Auth) · Claude Sonnet via Vercel AI SDK · **shadcn/ui + AI Elements** · Vitest/Playwright/GHA/Vercel — re-confirmed layer-by-layer post-map | BRIEF §4                                             |
@@ -336,7 +336,7 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   citation reference (#133), a same-page fragment to the answer's own sello. AI Elements still
   supplies the chat scaffolding.
 - **Answers _and_ chrome in Spanish** — every visible string, `aria-label`, `sr-only` label and
-  page title ([ADR 0013](docs/adr/0013-spanish-chrome.md), amending #11). The reader is a Costa
+  page title ([ADR 0021](docs/adr/0021-spanish-chrome.md), amending #11). The reader is a Costa
   Rican developer and `<html lang="es">`; an English control narrated over a Spanish page was a
   defect for screen-reader users and a benefit to nobody. README and the demo script stay English —
   they address contributors, not users. Citation chips + disclaimer per answer.
