@@ -193,6 +193,10 @@ leads nowhere.
   view ("Enviar"). Destructive per red-discipline rule.
 - **Empty state**: serif headline ("¿Qué trámite le quita el sueño?"), seeded prompts below —
   invitation, not apology.
+- **Hover-revealed controls** (the history row's delete): hover is a desktop affordance, and
+  Tailwind's `hover:` never fires where `@media (hover: hover)` is false. Every such control
+  also carries `no-hover:` (the `(hover: none)` variant in `globals.css`) and
+  `focus-visible:` reveals, so a phone and a keyboard see what a mouse sees.
 
 ## 7. Layout & spacing
 

@@ -2,6 +2,10 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+/* The inverse of Tailwind's own `hover:` gate, which only fires under
+   `@media (hover: hover)`. A control revealed on hover must also be revealed
+   here, or a phone — no hover, ever — never sees it (#138, the iPhone pass). */
+@custom-variant no-hover (@media (hover: none));
 
 /* Tramitico tokens — DESIGN.md §2 (notaría moderna). Red appears only as: wordmark
    syllable, sello (citations), the single primary action, and focus/active states.
