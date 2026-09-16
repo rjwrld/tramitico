@@ -201,6 +201,19 @@ MAIL_DOMAIN="mail.tramitico.com"
 # Resume: START_STAGE=9 bash scripts/deploy-wizard.sh skips straight to stage 9.
 # Every stage's inputs come from ENV_FILE (written by the earlier stages), so a
 # later stage never depends on an earlier one having run in this process.
+# Dashboards' copy buttons can append invisible characters (the first run
+# captured a service-role key ending in U+2028, which every HTTP client then
+# rejected as a header value). Strip them from every captured value.
+_strip_invisible() {
+  local v="${!1}"
+  v="${v//$'\u2028'/}"; v="${v//$'\u2029'/}"; v="${v//$'\u00a0'/}"; v="${v//$'\ufeff'/}"; v="${v//$'\r'/}"
+  printf -v "$1" '%s' "$v"
+}
+eval "$(declare -f ask | sed '1s/^ask/_ask_raw/')"
+eval "$(declare -f ask_secret | sed '1s/^ask_secret/_ask_secret_raw/')"
+ask()        { _ask_raw "$@";        _strip_invisible "$1"; }
+ask_secret() { _ask_secret_raw "$@"; _strip_invisible "$1"; }
+
 START_STAGE="${START_STAGE:-1}"
 _load_env() {
   [[ -f "$ENV_FILE" ]] || return 0
