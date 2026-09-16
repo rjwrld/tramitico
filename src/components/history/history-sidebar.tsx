@@ -105,7 +105,11 @@ export function HistorySidebar({
                   variant="ghost"
                   size="icon-xs"
                   aria-label={`Eliminar: ${item.question}`}
-                  className="text-muted-foreground opacity-0 group-hover/item:opacity-100 focus-visible:opacity-100 hover:text-destructive"
+                  // Hidden until the row is hovered or the control is focused — and shown
+                  // outright where hover does not exist: Tailwind's `hover:` only fires
+                  // under `@media (hover: hover)`, so on a phone the button was invisible
+                  // and undeletable (#138, the mobile Safari pass).
+                  className="text-muted-foreground opacity-0 group-hover/item:opacity-100 focus-visible:opacity-100 no-hover:opacity-100 hover:text-destructive"
                   onClick={() => setConfirmingId(item.id)}
                 >
                   <Trash2 />

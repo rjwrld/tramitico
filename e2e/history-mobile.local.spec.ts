@@ -259,6 +259,66 @@ test.describe("history sheet at a phone viewport", () => {
     await expect.poll(groundY).toBeCloseTo(scrolled, 0);
   });
 
+  /**
+   * The row's delete control is hover-revealed, and Tailwind's `hover:` only
+   * fires under `@media (hover: hover)` — so on a phone it was invisible and
+   * the question undeletable (found by the owner's iPhone pass for #138).
+   * `hasTouch` makes Chromium report `(hover: none)`, the media state a phone
+   * lives in; the precondition assertion keeps this from passing vacuously.
+   */
+  test.describe("on a touch screen", () => {
+    test.use({ hasTouch: true });
+
+    test("the delete control is visible without hover and deletes on tap", async ({
+      page,
+    }) => {
+      expect(
+        await page.evaluate(() => matchMedia("(hover: none)").matches),
+        "touch emulation must report (hover: none) or this proves nothing",
+      ).toBe(true);
+
+      await trigger(page).tap();
+      const remove = sheet(page).getByRole("button", {
+        name: `Eliminar: ${SEEDED[1].question}`,
+      });
+      await expect(remove).toBeVisible();
+      // `toBeVisible` accepts opacity 0 — the computed value is the claim.
+      expect(await remove.evaluate((el) => getComputedStyle(el).opacity)).toBe(
+        "1",
+      );
+
+      await remove.tap();
+      await sheet(page)
+        .getByRole("button", { name: "Eliminar", exact: true })
+        .tap();
+      await expect(sheet(page).getByText(SEEDED[1].question)).toBeHidden();
+      await expect(sheet(page).getByText(SEEDED[0].question)).toBeVisible();
+
+      // Gone on the server too, not just optimistically.
+      await page.reload();
+      await trigger(page).tap();
+      await expect(sheet(page).getByText(SEEDED[1].question)).toBeHidden();
+    });
+  });
+
+  test("with a mouse the delete control stays hidden until the row is hovered", async ({
+    page,
+  }) => {
+    // The other side of the media gate: the desktop reveal is still hover-only,
+    // so the `no-hover:` fix did not simply turn the control on everywhere.
+    expect(
+      await page.evaluate(() => matchMedia("(hover: hover)").matches),
+    ).toBe(true);
+    await trigger(page).click();
+    const remove = sheet(page).getByRole("button", {
+      name: `Eliminar: ${SEEDED[1].question}`,
+    });
+    const opacity = () => remove.evaluate((el) => getComputedStyle(el).opacity);
+    expect(await opacity()).toBe("0");
+    await historyItem(page, SEEDED[1].question).hover();
+    await expect.poll(opacity).toBe("1");
+  });
+
   test("a finished ask reaches the top of the sheet without a reload", async ({
     page,
   }) => {
