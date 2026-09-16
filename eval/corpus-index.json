@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-04T17:02:10.282Z",
-  "chunkCount": 871,
+  "generatedAt": "2026-09-16T00:05:05.036Z",
+  "chunkCount": 876,
   "entries": [
     {
       "docKey": "cabys-dev",
@@ -144,7 +144,7 @@
     },
     {
       "docKey": "ccss-faq",
-      "articulo": "¿Cuál es la vigencia del documento digital “consulta de morosidad” patrono/TI/AV” de estar al día con la CCSS?",
+      "articulo": "¿Cuáles cuotas de trabajador independiente pueden ser prescritas según la Ley N°10.363?",
       "path": ["Cobros"],
       "chunks": 1,
       "parts": 1
@@ -167,6 +167,13 @@
       "docKey": "ccss-faq",
       "articulo": "¿Cuáles son los beneficios de ser un asegurado voluntario?",
       "path": ["Seguro voluntario"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Cuáles son los requisitos para solicitar la prescripción de cuotas de trabajador independiente en aplicación de lo dispuesto en la Ley N°10.363?",
+      "path": ["Cobros"],
       "chunks": 1,
       "parts": 1
     },
@@ -242,6 +249,13 @@
     },
     {
       "docKey": "ccss-faq",
+      "articulo": "¿Debo pagar a un abogado para solicitar la prescripción de cuotas de trabajador independiente?",
+      "path": ["Cobros"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-faq",
       "articulo": "¿Dónde me corresponde realizar el trámite de afiliación como asegurado voluntario o asegurado migrante?",
       "path": ["Seguro voluntario"],
       "chunks": 1,
@@ -298,6 +312,13 @@
     },
     {
       "docKey": "ccss-faq",
+      "articulo": "¿Dónde puedo solicitar la prescripción de cuotas de trabajador independiente pendientes de pago (Ley N°10.363)?",
+      "path": ["Cobros"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-faq",
       "articulo": "¿El Trabajador Independiente está obligado a asegurarse ante la CCSS?",
       "path": ["Trabajador Independiente"],
       "chunks": 1,
@@ -328,6 +349,13 @@
       "docKey": "ccss-faq",
       "articulo": "¿Hace tiempo fui asegurado voluntario y quiero volver a serlo, que tengo que hacer?",
       "path": ["Seguro voluntario"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Hasta cuándo puedo solicitar la condonación de recargos, multas, intereses y facturas por servicios médicos en aplicación de la Ley N°10.232, sus ampliaciones y reglamento?",
+      "path": ["Cobros"],
       "chunks": 1,
       "parts": 1
     },
@@ -460,6 +488,13 @@
     {
       "docKey": "ccss-faq",
       "articulo": "¿Qué significa la abreviatura “T.I.” utilizada en las constancias de estar al día con la CAJA o en la consulta de morosidad de la página Web institucional?",
+      "path": ["Cobros"],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "ccss-faq",
+      "articulo": "¿Qué son los convenios autogestionables, quien puede realizarlos y donde se realiza el trámite?",
       "path": ["Cobros"],
       "chunks": 1,
       "parts": 1
