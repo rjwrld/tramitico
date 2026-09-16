@@ -2244,3 +2244,54 @@ Verified 2026-08-13 (answer `claude-sonnet-5`, judge `claude-sonnet-4-5`):
 pass — the answer opens with «Las fuentes discrepan…», names each decree with
 its own figure and marker, and refers the reader to Hacienda for which one
 rules.
+
+## The first run on production (2026-09-16, #29)
+
+> **Measured 2026-09-16 (04:11–04:52 UTC) by `eval.yml`
+> ([run 35054635623](https://github.com/rjwrld/tramitico/actions/runs/35054635623)),
+> the first execution of the lane against the production Supabase project
+> rather than a local stack: 23 documents / 876 chunks, the corpus of
+> `eval/corpus-index.json` after #347 (real-table census 187/187).** Answer
+> `claude-sonnet-5` (default), judge `claude-sonnet-4-5`, `RERANK` on,
+> `EXPAND` on, the pin on (#344), top 8. Wall-clock 2 447s. Transcripts are
+> the run's `eval-transcripts` artifact (90 days) and a copy in the main
+> checkout's `eval/transcripts/ci-35054635623/`.
+
+The question this run answers is #29's: does the deployed stack reproduce the
+record? It does, and slightly better. The column to read against is arm A of
+#305, the shipped configuration measured locally on 2026-09-14.
+
+| Gate (73 cases)                   | #305 arm A, local (record)                                                               | production, this run                                                          | Gate                            |
+| --------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------- |
+| Satisfiability census, real table | 3/3                                                                                      | 187/187 targets, index in sync                                                | PASS                            |
+| Hit-rate, rerank on               | 72/73, blocking `ho-rebajar-25-sin-facturas` at pool #27                                 | 72/73, same blocking miss                                                     | ≥ 0.92 pass; blocking fails     |
+| Groundedness                      | 69/73                                                                                    | **69/73 (94.5 %)**                                                            | ≥ 0.94 pass                     |
+| Blocking groundedness failures    | 3 — `ho-cabys-paginas-web`, `ho-cliente-espana-lleva-iva`, `ho-rebajar-multa-si-pago-ya` | **2** — `iva-clientes-fuera-cr` (new), `ho-cliente-espana-lleva-iva` (repeat) | 0 — **fails**                   |
+| Adequacy, cases with claims       | 13/40                                                                                    | **18/40**, the best reading so far                                            | —                               |
+| Tier 1 adequate                   | 3/27                                                                                     | fails (`ccss-pedir-prescripcion-cuotas` named; per-case table in the log)     | 27/27 — **fails**               |
+| Abstention                        | 9/9, figure gate fails                                                                   | **8/9** — `ho-abs-calculo-personalizado` answers; no figure flagged           | ≥ 0.9, zero figures — **fails** |
+| Citation invariant (#168)         | 2 violations                                                                             | **1** — `ho-tiquete-en-vez-de-factura`, unresolved marker `[18]`              | 0 — **fails**                   |
+| F1 (`ccss-cuanto-pago-base`)      | fail, `ccss-escala-ivm` outside the 8                                                    | **pass** — both BMC figures, cited (the #344 pin)                             | PASS                            |
+| Conflicting sources (#135)        | pass                                                                                     | **fail** — judge: «frames them as potentially both valid for different years» | PASS — **fails**                |
+| Amending law (#182)               | pass                                                                                     | pass                                                                          | PASS                            |
+
+What it says:
+
+- **Production is the record, not a regression.** Every lane that reads the
+  corpus — census, hit-rate, groundedness rate, F1 — lands on or above the
+  local reading, and the one corpus difference (#347, the CCSS FAQ page) is
+  visible exactly where it should be: `ccss-pedir-prescripcion-cuotas` now
+  retrieves the new Ley 10.363 FAQ entries and the adequacy judge asks for the
+  channel-by-phase claim those entries carry.
+- **The lane was red before the deploy and is red after it, on the same
+  gates.** Blocking groundedness, Tier 1 adequacy, the abstention set and the
+  citation invariant all failed in the record run too. Three of the four
+  moved in the right direction here; none crossed its gate. The two new reds
+  are single judgements — `iva-clientes-fuera-cr` on whether the export
+  invoice is _required_ for every exempt service, and the conflicting-sources
+  judge on the wording «discrepan» — the kind #305 attributed to judge
+  variance, not to the answer.
+- **The done bar's «groundedness gate» (SPEC §10) reads ≥ 0.94 on the rate and
+  passes at 94.5 %; the per-case Tier 1 assertion #324 added on top of it
+  does not.** That was true on 2026-09-14 as well. Whether the bar means the
+  rate or the assertion is the owner's reading, recorded on #29.
