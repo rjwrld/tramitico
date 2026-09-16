@@ -97,6 +97,21 @@ describe("UserMenu", () => {
     expect(confirm?.className).not.toContain("rounded-md");
   });
 
+  it("gives the popup an explicit width and lets the confirm's buttons wrap (#29)", async () => {
+    render(<UserMenu email="dev@example.com" />);
+    await openMenu();
+    await userEvent.click(
+      await screen.findByRole("menuitem", { name: "Eliminar cuenta" }),
+    );
+
+    // jsdom lays nothing out, so this asserts the classes that fix the clip:
+    // without them the popup sizes to the 2rem avatar (min-w-32) and the
+    // confirm's 205px button row scrolls the prompt out of view.
+    expect(screen.getByRole("menu").className).toContain("w-64");
+    const row = screen.getByRole("button", { name: "Cancelar" }).parentElement;
+    expect(row?.className).toContain("flex-wrap");
+  });
+
   it("confirm click calls the delete endpoint, signs out, and redirects", async () => {
     fetchMock.mockResolvedValue({ ok: true });
     render(<UserMenu email="dev@example.com" />);
