@@ -445,6 +445,12 @@ not solved. If Voyage starts billing, the knob is `RERANK=off` (one call fewer p
 and, in the extreme, `EMBEDDINGS_PROVIDER=stub`, which the app labels as `degraded` and
 answers on lexical search alone (#127).
 
+**Google's consent screen names `<ref>.supabase.co`, not Tramitico.** Google prints the app
+name only when the OAuth redirect lands on a domain the app's owner has verified; the
+redirect is Supabase's, which cannot be. The cure is a Supabase custom auth domain
+(`auth.tramitico.com`), a Pro-plan add-on — accepted as a cosmetic limit of the free stack on
+2026-09-15 (#29). GitHub's consent screen has no such line.
+
 **Email.** Resend, free tier, on the sending domain **`mail.tramitico.com`** — a subdomain
 so its SPF/DKIM records never touch the apex, whose MX records the `privacidad@` forwarder
 needs. `/privacidad` names Resend as the sign-in email provider (#327 req. 7): it holds the

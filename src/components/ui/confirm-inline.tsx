@@ -56,7 +56,7 @@ function ConfirmInline({
         children: (
           <>
             <p className="text-xs text-destructive">{prompt}</p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant="destructive"
                 size="xs"

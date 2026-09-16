@@ -70,7 +70,12 @@ export function UserMenu({ email }: { email: string }) {
           </Button>
         }
       />
-      <DropdownMenuContent align="end">
+      {/* Explicit width: the popup otherwise sizes to its anchor — the 2rem
+          avatar button, floored at min-w-32 — and the inline confirm below
+          overflowed it sideways, so a focused button scrolled the prompt out
+          of view (#29 acceptance pass). 16rem fits the truncated email label
+          and the confirm's wrapped button row. */}
+      <DropdownMenuContent align="end" className="w-64">
         {/* GroupLabel requires a Group ancestor (Base UI MenuGroupContext). */}
         <DropdownMenuGroup>
           <DropdownMenuLabel className="max-w-56 truncate">
