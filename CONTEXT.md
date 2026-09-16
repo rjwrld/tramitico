@@ -39,10 +39,10 @@ linking the spec section or ADR that owns the definition. Created lazily per
   shared secret) or asymmetrically (ES256/RS256, published JWKS). It decides what `getClaims()`
   costs and trusts: with asymmetric keys it verifies the signature locally and never asks the
   Auth server, so a deleted user's unexpired token still passes; with symmetric keys it falls
-  back to `getUser()`, a server round trip. **Verified 2026-08-12:** the local stack signs
-  **ES256** with a JWKS at `/auth/v1/.well-known/jwks.json`; **no production project exists
-  yet** (#29 provisions it) — re-verify its mode at provisioning, and assume asymmetric, since
-  that is the current Supabase default. Hence `POST /api/account/delete` verifies its caller
+  back to `getUser()`, a server round trip. **Verified 2026-08-12** on the local stack and
+  **2026-09-15 on the production project** (#29): both sign **ES256** (ECC P-256, the current
+  Supabase default) with a JWKS at `/auth/v1/.well-known/jwks.json`; production's previous
+  HS256 key is retired and verifies nothing. Hence `POST /api/account/delete` verifies its caller
   with `getUser()` and globally signs the account out _before_ deleting it, while read paths
   keep `getClaims()` and carry the ≤1h token tail as the accepted risk on #121. Issue #124.
 - **Tier 1** — a published beta question family whose every eval case blocks release across
