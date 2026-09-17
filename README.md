@@ -11,11 +11,11 @@ it names that institution instead of guessing. The app is in Spanish because its
 this README is in English because its second audience reads code. _Tramitico_ is a diminutive
 of _trámite_, the Costa Rican word for paperwork.
 
-<!-- live-url: replaced after #29 deploys -->
+**Live:** [tramitico.com](https://tramitico.com).
 
-**Live:** deploying, see [#29](https://github.com/rjwrld/tramitico/issues/29).
+![A Spanish CCSS question becomes a cited answer; clicking a source seal opens the official article in a new tab.](docs/assets/demo.gif)
 
-<!-- demo: docs/assets/demo.gif — a question becoming a cited answer, recorded in #82 -->
+<sub>Recorded on the live app in an anonymous session. Processing waits and source-page loading are shortened; the answer reveal plays at normal speed.</sub>
 
 ## What it does
 
@@ -27,7 +27,21 @@ of _trámite_, the Costa Rican word for paperwork.
   A question for another institution, immigration, municipal patentes, INS, gets a decline
   that names the institution and links its page
   ([ADR 0017](docs/adr/0017-other-institutions-are-routed.md)).
-  <!-- demo: docs/assets/demo-routed.gif and docs/assets/demo-abstain.gif, recorded in #82 -->
+
+  <details>
+  <summary>Watch a question routed to Migración</summary>
+
+  ![A passport-renewal question in Spanish is declined and directed to Migración and its official URL.](docs/assets/demo-routed.gif)
+
+  </details>
+
+  <details>
+  <summary>Watch an answer abstain when the sources do not cover it</summary>
+
+  ![Asked in Spanish about the IVA rate in 2027, Tramitico says its sources cannot support an answer and directs the user to Hacienda.](docs/assets/demo-abstain.gif)
+
+  </details>
+
 - **Never invents a number.** Figures that no single document states, such as the CCSS
   minimum contribution base, are computed by code from cited inputs, never by the model
   ([ADR 0018](docs/adr/0018-derived-figures-by-code.md)).
