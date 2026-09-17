@@ -1,0 +1,1293 @@
+2026-09-16T04:11:57.7876014Z ##[group]Run pnpm test:eval --disableConsoleIntercept
+2026-09-16T04:11:57.7876483Z pnpm test:eval --disableConsoleIntercept
+2026-09-16T04:11:57.7916654Z shell: /usr/bin/bash -e {0}
+2026-09-16T04:11:57.7916948Z env:
+2026-09-16T04:11:57.7917347Z   SUPABASE_URL: ***
+2026-09-16T04:11:57.7917731Z   SUPABASE_SERVICE_ROLE_KEY: ***
+2026-09-16T04:11:57.7919098Z   SUPABASE_ANON_KEY: ***
+2026-09-16T04:11:57.7919385Z   EMBEDDINGS_PROVIDER: voyage
+2026-09-16T04:11:57.7919771Z   VOYAGE_API_KEY: ***
+2026-09-16T04:11:57.7920014Z   RERANK: 
+2026-09-16T04:11:57.7920226Z   EXPAND: 
+2026-09-16T04:11:57.7920440Z   PIN_DERIVED_INPUTS: 
+2026-09-16T04:11:57.7921051Z   ANTHROPIC_API_KEY: ***
+2026-09-16T04:11:57.7921308Z   ANSWER_MODEL: 
+2026-09-16T04:11:57.7921840Z   EXPAND_MODEL: 
+2026-09-16T04:11:57.7922125Z   PNPM_HOME: /home/runner/setup-pnpm/node_modules/.bin
+2026-09-16T04:11:57.7922469Z ##[endgroup]
+2026-09-16T04:11:58.3652944Z $ vitest run --project eval --disableConsoleIntercept
+2026-09-16T04:11:58.7692184Z 
+2026-09-16T04:11:58.7703256Z  RUN  v4.1.10 /home/runner/work/tramitico/tramitico
+2026-09-16T04:11:58.7721822Z 
+2026-09-16T04:16:09.9649011Z ask: expansion failed — reason=timeout error=DOMException.TimeoutError#23
+2026-09-16T04:16:25.7033422Z ask: expansion failed — reason=timeout error=DOMException.TimeoutError#23
+2026-09-16T04:16:54.3753981Z ask: expansion failed — reason=timeout error=DOMException.TimeoutError#23
+2026-09-16T04:17:05.7856180Z ask: expansion failed — reason=timeout error=DOMException.TimeoutError#23
+2026-09-16T04:46:40.6592105Z 
+2026-09-16T04:46:40.6672741Z transcript (#289): eval/transcripts/groundedness--20260916T044640Z.jsonl
+2026-09-16T04:46:40.6751807Z 
+2026-09-16T04:46:40.6772438Z groundedness (answer=, judge=claude-sonnet-4-5): 69/73
+2026-09-16T04:46:40.6832351Z   pass  inscripcion-hacienda-clientes-extranjero
+2026-09-16T04:46:40.6897160Z   FAIL [fail/fail/fail]  iva-clientes-fuera-cr  — The answer states that the Factura Electrónica de Exportación must be used for exempt services consumed abroad, but fragment [8] only defines that document type for 'exportación de mercancías' and services/intangibles 'hacia el exterior,' without explicitly requiring it for all exempt services under article 8(1) of the IVA law.
+2026-09-16T04:46:40.6918117Z   pass  cabys-desarrollo-software
+2026-09-16T04:46:40.6935691Z   pass  ccss-cuanto-pago-base
+2026-09-16T04:46:40.6942337Z   pass  ccss-cobro-retroactivo
+2026-09-16T04:46:40.6943081Z   pass  ccss-pedir-prescripcion-cuotas
+2026-09-16T04:46:40.6943847Z   pass  ccss-ventana-prescripcion-24-meses
+2026-09-16T04:46:40.6944613Z   pass  ccss-obligacion-ingreso-bajo
+2026-09-16T04:46:40.6945328Z   pass  ccss-asalariado-y-freelance
+2026-09-16T04:46:40.6945986Z   pass  ccss-cese-actividad
+2026-09-16T04:46:40.6946583Z   pass  ccss-arreglo-pago
+2026-09-16T04:46:40.6947345Z   pass  ccss-suspension-seguro-ti
+2026-09-16T04:46:40.6948046Z   pass  factura-electronica-v44
+2026-09-16T04:46:40.6968982Z   pass  desinscripcion-dejar-actividad
+2026-09-16T04:46:40.7032597Z   pass  renta-persona-fisica-deduccion
+2026-09-16T04:46:40.7052165Z   pass  regimen-simplificado-programador
+2026-09-16T04:46:40.7058251Z   pass  tribu-cr-declarar-pagar
+2026-09-16T04:46:40.7059017Z   pass  iva-servicios-extranjero-comprados
+2026-09-16T04:46:40.7059730Z   pass  iva-credito-fiscal-compras
+2026-09-16T04:46:40.7060326Z   pass  iva-declaracion-mensual
+2026-09-16T04:46:40.7060842Z   pass  iva-tarifa-general
+2026-09-16T04:46:40.7061576Z   pass  iva-tarifas-reducidas
+2026-09-16T04:46:40.7062189Z   pass  iva-momento-hecho-generador
+2026-09-16T04:46:40.7062814Z   pass  renta-bruta-que-incluye
+2026-09-16T04:46:40.7063357Z   pass  renta-tramos-2026
+2026-09-16T04:46:40.7063921Z   pass  renta-declaracion-plazo
+2026-09-16T04:46:40.7064552Z   pass  renta-pagos-parciales-retenciones
+2026-09-16T04:46:40.7065215Z   pass  renta-salario-y-actividad
+2026-09-16T04:46:40.7065855Z   pass  comprobantes-plazo-conservacion
+2026-09-16T04:46:40.7066564Z   pass  comprobantes-factura-vs-tiquete
+2026-09-16T04:46:40.7067607Z   pass  exportacion-servicios-comprobante
+2026-09-16T04:46:40.7068254Z   pass  iva-facturas-en-dolares
+2026-09-16T04:46:40.7071521Z   FAIL [fail/fail/fail]  ccss-asalariado-followup  — The answer states that fragments [7] and [8] do not specify the percentage or scale of contribution, but both fragments explicitly reference an included image (https://www.ccss.sa.cr/assets/img/faq/av_tv_2026.png) that contains this information, making the claim that percentages cannot be indicated unsupported.
+2026-09-16T04:46:40.7073925Z   pass  exportacion-comprobante-followup
+2026-09-16T04:46:40.7074591Z   pass  renta-plazo-followup
+2026-09-16T04:46:40.7075189Z   pass  iva-ajuste-bien-de-capital
+2026-09-16T04:46:40.7075850Z   pass  iva-retencion-tarjetas-porcentaje
+2026-09-16T04:46:40.7076507Z   pass  inscripcion-tribu-cr
+2026-09-16T04:46:40.7077098Z   pass  multa-iva-no-declarado
+2026-09-16T04:46:40.7077737Z   pass  inscripcion-tardia-sancion
+2026-09-16T04:46:40.7078346Z   pass  factura-primera-cabys
+2026-09-16T04:46:40.7078958Z   pass  ho-hacienda-solo-cliente-eeuu
+2026-09-16T04:46:40.7079615Z   pass  ho-trabajitos-por-mi-cuenta
+2026-09-16T04:46:40.7080253Z   pass  ho-donde-inscribo-ya-no-atv
+2026-09-16T04:46:40.7080874Z   pass  ho-desde-cuanta-plata-caja
+2026-09-16T04:46:40.7081718Z   pass  ho-donde-me-afilio-caja
+2026-09-16T04:46:40.7082354Z   pass  ho-tiquete-en-vez-de-factura
+2026-09-16T04:46:40.7083016Z   pass  ho-factura-electronica-o-recibo
+2026-09-16T04:46:40.7083623Z   pass  ho-cabys-paginas-web
+2026-09-16T04:46:40.7087329Z   FAIL [fail/fail/fail]  ho-cliente-espana-lleva-iva  — The answer claims the service is taxed in Costa Rica because the provider is located there, but fragment [5] establishes two alternative criteria where the second requires the recipient to be a contributor in Costa Rica, which is not the case here (the client is in Spain), and the answer does not adequately address whether the first criterion alone suffices when the service is consumed abroad.
+2026-09-16T04:46:40.7090168Z   pass  ho-iva-en-cero-sin-facturar
+2026-09-16T04:46:40.7090824Z   pass  ho-hasta-que-dia-tengo-iva
+2026-09-16T04:46:40.7097453Z   FAIL [fail/pass/fail]  ho-rebajar-25-sin-facturas  — The answer states that the 25% deduction applies to 'profesionales, técnicos, agentes vendedores, comisionistas y de seguros' and cites fragment [8], but fragment [8] (article 8 inciso s) only mentions 'personas físicas que presten sus servicios, tanto los profesionales como los técnicos, y cualquier otro sujeto pasivo que preste servicios personales, sin que medie relación de dependencia con sus clientes, así como los agentes vendedores, agentes comisionistas y agentes de seguros'; the answer's phrasing suggests the 25% applies to all these categories, but the fragment structure ('personas físicas que presten sus servicios... así como los agentes...') may be read as two groups, and the answer does not clarify this ambiguity or acknowledge that the scope is uncertain from the text alone.
+2026-09-16T04:46:40.7102635Z   pass  ho-minimo-renta-2026
+2026-09-16T04:46:40.7111585Z   pass  ho-ademas-tengo-salario
+2026-09-16T04:46:40.7112685Z   pass  ho-minimo-caja-independiente-2026
+2026-09-16T04:46:40.7113393Z   pass  ho-800-mil-que-porcentaje-caja
+2026-09-16T04:46:40.7114225Z   pass  ho-tambien-asegurado-por-patrono
+2026-09-16T04:46:40.7122051Z   pass  ho-cobrar-8-anos-atras-caja
+2026-09-16T04:46:40.7122887Z   pass  ho-desinscribir-debiendo-declaraciones
+2026-09-16T04:46:40.7123559Z   pass  ho-rebajar-multa-si-pago-ya
+2026-09-16T04:46:40.7124147Z   pass  ho-t2-credito-iva-compras
+2026-09-16T04:46:40.7124724Z   pass  ho-t2-hosting-extranjero
+2026-09-16T04:46:40.7125416Z   pass  ho-t2-retencion-tarjetas
+2026-09-16T04:46:40.7125953Z   pass  ho-t2-compu-cara-iva
+2026-09-16T04:46:40.7126445Z   pass  ho-t2-tipo-de-cambio
+2026-09-16T04:46:40.7127026Z   pass  ho-t2-panaderia-simplificado
+2026-09-16T04:46:40.7127635Z   pass  ho-t2-arreglo-pago-caja
+2026-09-16T04:46:40.7128219Z   pass  ho-t2-salir-del-pais-seguro
+2026-09-16T04:46:40.7129102Z   pass  ho-t2-pensionado-con-actividad
+2026-09-16T04:46:40.7129689Z   pass  ho-t2-autorizar-contador
+2026-09-16T04:46:40.7130248Z   pass  ho-t2-constancia-al-dia
+2026-09-16T04:46:40.7130747Z   pass  ho-t2-payoneer
+2026-09-16T04:46:40.7131229Z groundedness by exposure (#267):
+2026-09-16T04:46:40.7131896Z   first-exposure  30/32
+2026-09-16T04:46:40.7132558Z   promoted        7/7
+2026-09-16T04:46:40.7133052Z   corpus-derived  32/34
+2026-09-16T04:46:40.7133388Z 
+2026-09-16T04:46:40.7133663Z adequacy (#130): 18/40
+2026-09-16T04:46:40.7139803Z   FAIL  tier 1  T1-G  ccss-pedir-prescripcion-cuotas  — missing: Si la deuda está en verificación, la nota se presenta ante la unidad o sucursal financiera de la CCSS a cargo del procedimiento e incluye lugar y fecha, identificación del caso si existe, nombre e identificación, condición en que actúa, periodos solicitados, medio para notificaciones y firma.; Si la deuda ya está en cobro, la solicitud puede enviarse a cobros@ccss.sa.cr; si no tiene firma digital, debe firmarla en papel, escanearla, adjuntar la identificación por ambos lados y luego presentarse a firmar cuando la CCSS lo cite.; El canal correcto según la fase del caso — la unidad o sucursal financiera si está en verificación, cobros@ccss.sa.cr si ya está en cobro — y el plazo en que la Administración resuelve.
+2026-09-16T04:46:40.7161575Z   pass  tier 1  T1-G  ccss-ventana-prescripcion-24-meses
+2026-09-16T04:46:40.7165011Z   FAIL  tier 1  T1-B  ccss-obligacion-ingreso-bajo  — missing: Dónde se hace la afiliación y qué se declara: el ingreso de referencia, en la sucursal de la CCSS que corresponda a la zona de adscripción.; La cuota se calcula sobre un ingreso de referencia que no baja de la base mínima contributiva, fijada en 0,9295 salarios mínimos para el Seguro de Salud. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent)
+2026-09-16T04:46:40.7167525Z   pass  tier 1  T1-H  ccss-cese-actividad
+2026-09-16T04:46:40.7174073Z   FAIL  tier 1  T1-H  desinscripcion-dejar-actividad  — missing: Al cesar la actividad económica hay que desinscribirse del Registro de Contribuyentes; no basta con dejar de facturar.; Mientras la persona siga inscrita conserva sus obligaciones de declarar, y omitir una declaración se sanciona aunque no haya habido ingresos.; La desinscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, en «Mis datos» → «Solicitar desinscripción», indicando motivo y fecha de cese; el antiguo formulario D-140 ya no existe.; Al desinscribirse del IVA hay que liquidar el impuesto sobre las existencias de bienes y los bienes afectos que queden, salvo que opere la continuidad del negocio.; Los pasos en la OVi: dónde está la solicitud, qué campos son obligatorios y cuál es el efecto (estado «Desinscrito», con posibilidad de reinscribirse).
+2026-09-16T04:46:40.7202467Z   pass  tier 2  —  tribu-cr-declarar-pagar
+2026-09-16T04:46:40.7214965Z   FAIL  tier 1  T1-I  multa-iva-no-declarado  — missing: La sanción se reduce si se subsana antes de que la Administración Tributaria actúe (CNPT artículo 88).; Cómo regularizar: presentar las declaraciones omitidas y pagar en TRIBU-CR, y que hacerlo antes de cualquier actuación de la Administración rebaja la sanción.; El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent)
+2026-09-16T04:46:40.7226205Z   FAIL  tier 1  T1-I  inscripcion-tardia-sancion  — missing: Subsanar de forma espontánea, antes de cualquier actuación de la Administración, rebaja la sanción en un setenta y cinco por ciento (75 %), u ochenta por ciento (80 %) si se autoliquida y paga en ese momento (CNPT artículo 88).; Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.; El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent)
+2026-09-16T04:46:40.7236073Z   FAIL  tier 1  T1-A  ho-hacienda-solo-cliente-eeuu  — missing: Facturar sólo a clientes del exterior no exime de inscribirse: aunque el servicio llegue a calificar como exportación exenta —lo que depende de que se consuma fuera de Costa Rica—, estar exento no es lo mismo que no ser contribuyente.; La inscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, como declaración de inscripción del Registro Único Tributario.; Omitir la declaración de inscripción se sanciona con el cincuenta por ciento (50 %) de un salario base por cada mes o fracción de atraso. (50 % | 50% | cincuenta por ciento: absent)
+2026-09-16T04:46:40.7245025Z   FAIL  tier 1  T1-A  ho-trabajitos-por-mi-cuenta  — missing: Sí: iniciar una actividad lucrativa por cuenta propia obliga a inscribirse ante la Administración Tributaria al momento de iniciarla, sin importar lo pequeña que sea.; La persona física con actividad lucrativa es contribuyente del impuesto sobre las utilidades y, si presta servicios gravados, también del IVA.; La inscripción ante Hacienda no sustituye el aseguramiento ante la CCSS como trabajador independiente: son dos obligaciones distintas.; Los dos trámites que siguen: la declaración de inscripción del RUT en la Oficina Virtual de TRIBU-CR y la afiliación como trabajador independiente en la CCSS.
+2026-09-16T04:46:40.7249892Z   FAIL  tier 1  T1-A  ho-donde-inscribo-ya-no-atv  — missing: El camino dentro de la OVi hasta la declaración de inscripción y qué datos pide (actividad, fecha de inicio, domicilio).
+2026-09-16T04:46:40.7253928Z   FAIL  tier 1  T1-B  ho-desde-cuanta-plata-caja  — missing: Cómo se declara el ingreso de referencia y dónde se paga la cuota.; La base mínima contributiva del Seguro de IVM es 0,87 salarios mínimos. (0,87 SM | 0,87 salarios mínimos | 0.87 SM: absent); El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico, ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent)
+2026-09-16T04:46:40.7257319Z   FAIL  tier 1  T1-B  ho-donde-me-afilio-caja  — missing: La cuota se paga mensualmente, dentro de la fecha que corresponde según la primera letra del primer apellido.
+2026-09-16T04:46:40.7262476Z   FAIL  tier 1  T1-C  ho-tiquete-en-vez-de-factura  — missing: Los únicos comprobantes autorizados para cumplir obligaciones tributarias son los que lista el artículo 9 del Reglamento de Comprobantes Electrónicos: factura electrónica, factura electrónica de compra, factura electrónica de exportación, tiquete electrónico, recibo electrónico de pago y las notas de crédito y débito.; Quien emite comprobantes electrónicos debe estar inscrito en el Registro Único Tributario y tener registrado un correo electrónico válido ante la Administración Tributaria.
+2026-09-16T04:46:40.7268119Z   FAIL  tier 1  T1-C  ho-factura-electronica-o-recibo  — missing: Con qué emitir: el facturador gratuito de Hacienda o un proveedor de sistemas de comprobantes electrónicos.; Los comprobantes electrónicos y sus documentos asociados deben almacenarse y conservarse por un plazo de cinco años. (cinco años | 5 años: absent)
+2026-09-16T04:46:40.7272343Z   FAIL  tier 1  T1-C  ho-cabys-paginas-web  — missing: El detalle del comprobante lleva, por cada bien o servicio, un código de producto junto con la descripción, la cantidad y el precio unitario.; Dónde consultar el catálogo CABYS cuando la actividad no está en el subconjunto curado.
+2026-09-16T04:46:40.7277673Z   FAIL  tier 1  T1-D  ho-cliente-espana-lleva-iva  — missing: La exención aplica a los servicios prestados por contribuyentes del impuesto cuando son consumidos fuera del territorio nacional.; La operación exenta se documenta igual, con el comprobante electrónico que corresponda.; Qué comprobante emitir y qué conservar como prueba de que el servicio se consumió fuera del país.; Si el servicio se consume en Costa Rica, la tarifa general del impuesto es del 13 %. (13 % | 13% | trece por ciento: absent)
+2026-09-16T04:46:40.7283767Z   FAIL  tier 1  T1-D  ho-iva-en-cero-sin-facturar  — missing: Dónde se presenta la declaración hoy y qué pasa si ya venció el plazo.; El plazo vence el decimoquinto día natural del mes siguiente. (decimoquinto día natural | día 15 | 15 de cada mes: absent); Omitir la declaración dentro del plazo legal se sanciona con una multa del cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent)
+2026-09-16T04:46:40.7286643Z   pass  tier 1  T1-D  ho-hasta-que-dia-tengo-iva
+2026-09-16T04:46:40.7288654Z   FAIL  tier 1  T1-E  ho-rebajar-25-sin-facturas  — missing: La deducción única fue incorporada por la Ley 10818 del 13 de noviembre de 2025, así que rige para los períodos que esa reforma alcanza.
+2026-09-16T04:46:40.7291894Z   FAIL  tier 1  T1-E  ho-minimo-renta-2026  — missing: Los tramos son anuales y se aplican sobre la renta neta, no sobre los ingresos brutos.; El período del impuesto va del 1 de enero al 31 de diciembre.; Dónde se consultan los tramos vigentes cuando cambia el decreto anual.
+2026-09-16T04:46:40.7297969Z   FAIL  tier 1  T1-E  ho-ademas-tengo-salario  — missing: Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.; Qué se declara en la declaración anual cuando hay salario y actividad, y cómo se tratan las retenciones ya soportadas.; Los pagos parciales: cuándo se pagan y que puede pedirse su rebaja cuando la renta del período va a ser menor.; La declaración anual y el pago vencen dentro de los dos meses y quince días naturales siguientes al cierre del período. (dos meses y quince días | 2 meses y 15 días: absent)
+2026-09-16T04:46:40.7305068Z   FAIL  tier 1  T1-F  ho-minimo-caja-independiente-2026  — missing: Cómo se declara y se actualiza el ingreso de referencia sobre el que se aplican esos porcentajes.; El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico: ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent); La base mínima contributiva es 0,9295 salarios mínimos en el Seguro de Salud y 0,87 salarios mínimos en el de IVM. (0,9295 SM | 0,9295 salarios mínimos: absent)
+2026-09-16T04:46:40.7307980Z   pass  tier 1  T1-F  ho-800-mil-que-porcentaje-caja
+2026-09-16T04:46:40.7309523Z   FAIL  tier 1  T1-F  ho-tambien-asegurado-por-patrono  — missing: Qué hay que hacer ante la CCSS para quedar registrado en las dos condiciones.
+2026-09-16T04:46:40.7310763Z   pass  tier 1  T1-G  ho-cobrar-8-anos-atras-caja
+2026-09-16T04:46:40.7315049Z   FAIL  tier 1  T1-H  ho-desinscribir-debiendo-declaraciones  — missing: Desinscribirse no borra las obligaciones ya devengadas: las declaraciones pendientes siguen debiéndose y se sancionan igual.; Mientras la persona siga inscrita, la obligación de declarar continúa aunque ya no facture.; El orden recomendado: presentar lo pendiente y después solicitar la desinscripción indicando el motivo y la fecha de cese.; Cada declaración omitida dentro del plazo legal se sanciona con el cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent)
+2026-09-16T04:46:40.7318518Z   pass  tier 1  T1-I  ho-rebajar-multa-si-pago-ya
+2026-09-16T04:46:40.7319393Z   pass  tier 2  —  ho-t2-credito-iva-compras
+2026-09-16T04:46:40.7320140Z   pass  tier 2  —  ho-t2-hosting-extranjero
+2026-09-16T04:46:40.7321081Z   pass  tier 2  —  ho-t2-retencion-tarjetas
+2026-09-16T04:46:40.7321951Z   pass  tier 2  —  ho-t2-compu-cara-iva
+2026-09-16T04:46:40.7322680Z   pass  tier 2  —  ho-t2-tipo-de-cambio
+2026-09-16T04:46:40.7323459Z   pass  tier 2  —  ho-t2-panaderia-simplificado
+2026-09-16T04:46:40.7324237Z   pass  tier 2  —  ho-t2-arreglo-pago-caja
+2026-09-16T04:46:40.7325953Z   FAIL  tier 2  —  ho-t2-salir-del-pais-seguro  — missing: La suspensión del seguro de trabajador independiente se hace a solicitud de la persona y no ocurre de forma automática.
+2026-09-16T04:46:40.7327542Z   pass  tier 2  —  ho-t2-pensionado-con-actividad
+2026-09-16T04:46:40.7328244Z   pass  tier 2  —  ho-t2-autorizar-contador
+2026-09-16T04:46:40.7328886Z   pass  tier 2  —  ho-t2-constancia-al-dia
+2026-09-16T04:46:40.7329496Z   pass  tier 2  —  ho-t2-payoneer
+2026-09-16T04:46:40.7330021Z adequacy by exposure (#267):
+2026-09-16T04:46:40.7330779Z   first-exposure  15/32
+2026-09-16T04:46:40.7331280Z   promoted        2/7
+2026-09-16T04:46:40.7331916Z   corpus-derived  1/1
+2026-09-16T04:46:40.7332242Z 
+2026-09-16T04:46:40.7332621Z citation invariant (#168): 1 violation(s)
+2026-09-16T04:46:40.7333435Z   unresolved_markers  ho-tiquete-en-vez-de-factura  unresolved=18
+2026-09-16T04:46:40.7335152Z  ❯  eval  src/lib/eval/groundedness.eval.test.ts (7 tests | 3 failed) 2081139ms
+2026-09-16T04:46:40.7336982Z      × every tier 1 case states all of its required claims and steps 12ms
+2026-09-16T04:46:40.7338456Z      ✓ at least 84% of tier 2 cases with required claims are adequate 1ms
+2026-09-16T04:46:40.7339930Z      × ships no answer the runtime citation invariant would refuse 1ms
+2026-09-16T04:46:40.7341596Z      × every blocking case's answer is supported by its retrieved chunks 2ms
+2026-09-16T04:46:40.7343045Z      ✓ at least 94% of answers are supported by their retrieved chunks 0ms
+2026-09-16T04:46:40.7344719Z      ✓ ships no answer whose derived figures are incompletely cited 1ms
+2026-09-16T04:46:40.7362445Z      ✓ answers F1 with both BMC figures and citations to every input 1ms
+2026-09-16T04:49:50.4362032Z 
+2026-09-16T04:49:50.4363968Z retrieval hit-rate (rerank=voyage rerank-2.5-lite, pool 40 → top 8, cap=off/doc, expand=on, steps=on(off), pin=on): 70/73
+2026-09-16T04:49:50.4365175Z   hit   pool#5  top=0.0546  inscripcion-hacienda-clientes-extranjero
+2026-09-16T04:49:50.4380337Z         ⤳ La obligación de inscribirse ante la Administración Tributaria rige para quien realiza actividades económicas en el territorio nacional o desde él, incluyendo la prestación de servicios al exterior, y la inscripción en el Registro de Contribuyentes es requisito previo para ejercer tales actividades y emitir comprobantes electrónicos. La exportación de servicios está sujeta a las normas sobre obligaciones tributarias de quienes generan ingresos, independientemente de la ubicación del cliente.
+2026-09-16T04:49:50.4402753Z         ⊕ steps=T1-A
+2026-09-16T04:49:50.4408293Z           pool#6  rr#8  top    ley-iva · Artículo 5
+2026-09-16T04:49:50.4409278Z           pool#20 rr#1  top    ley-iva · Artículo 4
+2026-09-16T04:49:50.4410233Z           pool#7  rr#10 cut    ley-renta · ARTICULO 2
+2026-09-16T04:49:50.4411221Z           pool#5  rr#9  cut    reglamento-renta · Artículo 27
+2026-09-16T04:49:50.4412703Z           pool#1  rr#18 cut    tribu-cr-faq · Registro Único Tributario (RUT) · 1 (catálogo)
+2026-09-16T04:49:50.4414075Z           pool#—  rr#—  cut    tribu-cr-faq · Registro Único Tributario (RUT) · 2 (catálogo)
+2026-09-16T04:49:50.4415319Z           pool#14 rr#34 cut    ccss-reglamento-ti · Artículo 1 (catálogo)
+2026-09-16T04:49:50.4416315Z           pool#4  rr#27 cut    cnpt · Artículo 78 (catálogo)
+2026-09-16T04:49:50.4417198Z   hit   pool#2  top=0.0701  iva-clientes-fuera-cr
+2026-09-16T04:49:50.4424430Z         ⤳ Exportación de servicios y bienes exentos del impuesto; la ley exenta del impuesto sobre el valor agregado las exportaciones de bienes y servicios realizadas por contribuyentes inscritos, siempre que cumplan con los requisitos y procedimientos establecidos en la ley y su reglamento, y el exportador debe contar con la documentación que acredite la condición de exportación.
+2026-09-16T04:49:50.4431035Z         ⊕ steps=T1-D
+2026-09-16T04:49:50.4432203Z           pool#2  rr#1  top    reglamento-iva · Artículo 11
+2026-09-16T04:49:50.4433206Z           pool#3  rr#2  top    ley-iva · Artículo 8
+2026-09-16T04:49:50.4434185Z           pool#1  rr#32 cut    ley-iva · Artículo 27 (catálogo)
+2026-09-16T04:49:50.4435269Z           pool#36 rr#31 cut    reglamento-iva · Artículo 40 (catálogo)
+2026-09-16T04:49:50.4436322Z           pool#20 rr#40 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.4438271Z           pool#2  rr#1  top    reglamento-iva · Artículo 11 (catálogo)
+2026-09-16T04:49:50.4439199Z   hit   pool#1  top=0.0860  cabys-desarrollo-software
+2026-09-16T04:49:50.4442538Z         ⤳ El desarrollo de software se clasifica en la Clasificación de Actividades Económicas (CABYS) según el tipo específico de actividad: programación informática, consultoría en tecnología de la información, procesamiento de datos, o actividades de tecnología de la información relacionadas, cada una con su código correspondiente en la estructura CABYS.
+2026-09-16T04:49:50.4445316Z         ⊕ steps=T1-C
+2026-09-16T04:49:50.4446082Z           pool#1  rr#1  top    cabys-dev · *
+2026-09-16T04:49:50.4447151Z           pool#9  rr#15 cut    reglamento-comprobantes · Artículo 4 (catálogo)
+2026-09-16T04:49:50.4448324Z           pool#13 rr#28 cut    reglamento-comprobantes · Artículo 9 (catálogo)
+2026-09-16T04:49:50.4449327Z           pool#1  rr#1  top    cabys-dev · * (catálogo)
+2026-09-16T04:49:50.4450170Z   hit   pool#5  top=0.0766  ccss-cuanto-pago-base
+2026-09-16T04:49:50.4454226Z         ⤳ La cuota de seguro de un trabajador independiente se calcula aplicando el porcentaje de cotización que fije la ley sobre una base contributiva que el asegurado declara y que no puede ser inferior a la base mínima contributiva establecida por la Caja. El trabajador independiente debe declarar su base mensualmente y pagar la cuota resultante conforme a la escala contributiva vigente para el Seguro de Invalidez, Vejez y Muerte y para el Seguro de Salud.
+2026-09-16T04:49:50.4457438Z         ⊕ steps=T1-F
+2026-09-16T04:49:50.4458350Z           pool#5  rr#4  top    ccss-escala-salud · Artículo 30°, sesión 8999
+2026-09-16T04:49:50.4459453Z           pool#7  rr#8  top    ccss-escala-ivm · Artículo 4°, sesión 9570
+2026-09-16T04:49:50.4460391Z           pool#—  rr#—  cut    ley-10363 · ARTÍCULO 1
+2026-09-16T04:49:50.4461281Z           pool#18 rr#38 pinned salarios-minimos · Artículo 1
+2026-09-16T04:49:50.4462756Z           pool#1  rr#2  top    ccss-reglamento-ti · Artículo 10 (catálogo)
+2026-09-16T04:49:50.4463870Z           pool#2  rr#9  cut    ccss-reglamento-ti · Artículo 12 (catálogo)
+2026-09-16T04:49:50.4466090Z           pool#4  rr#12 cut    ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? (catálogo)
+2026-09-16T04:49:50.4468032Z           pool#18 rr#38 pinned salarios-minimos · Artículo 1 (catálogo)
+2026-09-16T04:49:50.4468967Z   hit   pool#3  top=0.0613  ccss-cobro-retroactivo
+2026-09-16T04:49:50.4473128Z         ⤳ La inscripción ante la CCSS es obligatoria para los trabajadores independientes desde el inicio de sus actividades, y la falta de cumplimiento genera el deudor de cuotas desde el período en que debió haberse inscrito; la CCSS puede cobrar las cuotas adeudadas conforme a los plazos de prescripción establecidos en la ley, y el trabajador independiente que no se inscribió oportunamente es responsable del pago de todas las cuotas correspondientes al período de actividad no declarado.
+2026-09-16T04:49:50.4476850Z         ⊕ steps=T1-G
+2026-09-16T04:49:50.4477686Z           pool#9  rr#1  top    ley-10363 · ARTÍCULO 2
+2026-09-16T04:49:50.4478598Z           pool#3  rr#3  top    ley-10363 · TRANSITORIO II
+2026-09-16T04:49:50.4479658Z           pool#2  rr#14 cut    ccss-prescripcion · ¿Dónde presento la solicitud? (catálogo)
+2026-09-16T04:49:50.4482057Z           pool#11 rr#20 cut    ccss-prescripcion · ¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración? (catálogo)
+2026-09-16T04:49:50.4484151Z           pool#8  rr#26 cut    ccss-prescripcion · ¿En qué momento puedo solicitar la prescripción de las deudas? (catálogo)
+2026-09-16T04:49:50.4485308Z   hit   pool#1  top=0.0597  ccss-pedir-prescripcion-cuotas
+2026-09-16T04:49:50.4489716Z         ⤳ La prescripción de las deudas de trabajadores independientes ante la CCSS se produce por el transcurso del plazo establecido en la ley, sin necesidad de solicitud expresa del deudor, cuando la obligación de pago no ha sido reconocida ni ejecutada dentro del término legal. En materia tributaria, la prescripción de la obligación tributaria opera de oficio conforme a los plazos que establece el Código de Normas y Procedimientos Tributarios, y el contribuyente puede alegar la prescripción como defensa en un procedimiento de cobro o fiscalización.
+2026-09-16T04:49:50.4493696Z         ⊕ steps=T1-G (dataset T1-G)
+2026-09-16T04:49:50.4494759Z           pool#1  rr#9  cut    ccss-prescripcion · ¿Cómo se solicita la prescripción?
+2026-09-16T04:49:50.4495908Z           pool#4  rr#16 cut    ccss-prescripcion · ¿Dónde presento la solicitud?
+2026-09-16T04:49:50.4497664Z           pool#3  rr#8  top    ccss-prescripcion · ¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración?
+2026-09-16T04:49:50.4499301Z           pool#4  rr#16 cut    ccss-prescripcion · ¿Dónde presento la solicitud? (catálogo)
+2026-09-16T04:49:50.4501102Z           pool#3  rr#8  top    ccss-prescripcion · ¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración? (catálogo)
+2026-09-16T04:49:50.4503290Z           pool#2  rr#14 cut    ccss-prescripcion · ¿En qué momento puedo solicitar la prescripción de las deudas? (catálogo)
+2026-09-16T04:49:50.4504495Z   hit   pool#3  top=0.0572  ccss-ventana-prescripcion-24-meses
+2026-09-16T04:49:50.4506079Z         ↳ ¿Todavía aplica la ventana de los 24 meses para regularizar la inscripción en la CCSS sin que se cobre la deuda de los años anteriores?
+2026-09-16T04:49:50.4509516Z         ⤳ La regularización de la inscripción ante la CCSS dentro del plazo establecido permite al trabajador independiente o asegurado voluntario ponerse al día sin que se cobre la deuda de períodos anteriores a la inscripción, conforme a las disposiciones sobre prescripción y regularización de deudas de trabajadores independientes ante la CCSS.
+2026-09-16T04:49:50.4512373Z         ⊕ steps=T1-G (dataset T1-G)
+2026-09-16T04:49:50.4513656Z           pool#5  rr#2  top    ccss-prescripcion · ¿Cuáles son los plazos de la prescripción conforme la Ley?
+2026-09-16T04:49:50.4514818Z           pool#3  rr#1  top    ley-10363 · TRANSITORIO II
+2026-09-16T04:49:50.4515936Z           pool#2  rr#13 cut    ccss-prescripcion · ¿Dónde presento la solicitud? (catálogo)
+2026-09-16T04:49:50.4517894Z           pool#10 rr#15 cut    ccss-prescripcion · ¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración? (catálogo)
+2026-09-16T04:49:50.4520040Z           pool#7  rr#22 cut    ccss-prescripcion · ¿En qué momento puedo solicitar la prescripción de las deudas? (catálogo)
+2026-09-16T04:49:50.4521527Z   hit   pool#4  top=0.0563  ccss-obligacion-ingreso-bajo
+2026-09-16T04:49:50.4525914Z         ⤳ La obligación de aseguramiento en la Caja se determina conforme a la condición de trabajador independiente y a los ingresos brutos obtenidos, sin que exista exención por bajo nivel de ingresos; sin embargo, existe una base mínima contributiva establecida por la Caja que determina el monto sobre el cual se calcula la cotización, y los trabajadores independientes deben cumplir con el aseguramiento en los seguros de invalidez, vejez y muerte, así como en el seguro de salud, conforme a la escala contributiva vigente.
+2026-09-16T04:49:50.4552199Z         ⊕ steps=T1-B (dataset T1-B)
+2026-09-16T04:49:50.4569708Z           pool#4  rr#2  top    ccss-reglamento-ti · Artículo 1
+2026-09-16T04:49:50.4595533Z           pool#7  rr#6  top    ccss-faq · ¿El Trabajador Independiente está obligado a asegurarse ante la CCSS?
+2026-09-16T04:49:50.4598241Z           pool#26 rr#3  top    ccss-escala-salud · *
+2026-09-16T04:49:50.4612894Z           pool#9  rr#40 pinned salarios-minimos · Artículo 1
+2026-09-16T04:49:50.4635165Z           pool#5  rr#36 cut    ccss-faq · ¿Dónde me corresponde realizar el trámite de afiliación? (catálogo)
+2026-09-16T04:49:50.4653130Z           pool#17 rr#31 cut    ccss-faq · ¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente? (catálogo)
+2026-09-16T04:49:50.4668276Z           pool#2  rr#7  top    ccss-reglamento-ti · Artículo 10 (catálogo)
+2026-09-16T04:49:50.4669573Z           pool#9  rr#40 pinned salarios-minimos · Artículo 1 (catálogo)
+2026-09-16T04:49:50.4670483Z   hit   pool#3  top=0.0499  ccss-asalariado-y-freelance
+2026-09-16T04:49:50.4674337Z         ⤳ El trabajador que simultáneamente es asalariado y ejerce actividades como trabajador independiente debe cotizar al régimen de asegurados voluntarios de la CCSS por sus ingresos como independiente, además de las cotizaciones que realiza como asalariado en su empleo principal. La cotización como trabajador independiente se calcula sobre la base contributiva que declare según su actividad independiente y se rige por la escala contributiva establecida para este régimen.
+2026-09-16T04:49:50.4677432Z         ⊕ steps=T1-E
+2026-09-16T04:49:50.4678264Z           pool#—  rr#—  cut    ccss-reglamento-ti · Artículo 2
+2026-09-16T04:49:50.4680467Z           pool#3  rr#2  top    ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?
+2026-09-16T04:49:50.4682869Z           pool#13 rr#29 cut    reglamento-renta · Artículo 28 (catálogo)
+2026-09-16T04:49:50.4683879Z           pool#11 rr#33 cut    ley-renta · ARTICULO 22 (catálogo)
+2026-09-16T04:49:50.4684801Z           pool#2  rr#19 cut    tramos-renta-2026 · * (catálogo)
+2026-09-16T04:49:50.4685701Z           pool#17 rr#28 cut    ley-renta · ARTICULO 8 (catálogo)
+2026-09-16T04:49:50.4686476Z   hit   pool#4  top=0.0611  ccss-cese-actividad
+2026-09-16T04:49:50.4687654Z         ↳ ¿Cómo se realiza la desinscripción ante la CCSS cuando se deja de trabajar por cuenta propia?
+2026-09-16T04:49:50.4692001Z         ⤳ La desinscripción del trabajador independiente ante la CCSS se realiza mediante el trámite de cese de actividades, que debe presentarse ante la institución conforme a los requisitos y procedimientos establecidos en el Reglamento para el Aseguramiento Contributivo de los Trabajadores Independientes, y genera la terminación de las obligaciones contributivas a partir de la fecha en que cese efectivamente la actividad laboral independiente.
+2026-09-16T04:49:50.4695164Z         ⊕ steps=T1-H (dataset T1-H)
+2026-09-16T04:49:50.4696228Z           pool#4  rr#3  top    ccss-faq · ¿Qué debo hacer si dejo de trabajar de forma Independiente?
+2026-09-16T04:49:50.4697551Z           pool#6  rr#4  top    ccss-faq · ¿Se puede suspender el seguro de trabajador independiente?
+2026-09-16T04:49:50.4698837Z           pool#14 rr#33 cut    tribu-cr-faq · Declaraciones del RUT · 31 (catálogo)
+2026-09-16T04:49:50.4699992Z           pool#35 rr#26 cut    tribu-cr-faq · Declaraciones del RUT · 43 (catálogo)
+2026-09-16T04:49:50.4700921Z           pool#15 rr#40 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.4702566Z           pool#4  rr#3  top    ccss-faq · ¿Qué debo hacer si dejo de trabajar de forma Independiente? (catálogo)
+2026-09-16T04:49:50.4704228Z           pool#6  rr#4  top    ccss-faq · ¿Se puede suspender el seguro de trabajador independiente? (catálogo)
+2026-09-16T04:49:50.4705029Z   hit   pool#1  top=0.0555  ccss-arreglo-pago
+2026-09-16T04:49:50.4706170Z         ⤳ Arreglo de pago de deuda de trabajador independiente ante la CCSS, requisitos y procedimiento para su formalización.
+2026-09-16T04:49:50.4707058Z         ⊕ steps=—
+2026-09-16T04:49:50.4708288Z           pool#1  rr#1  top    ccss-faq · En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA?
+2026-09-16T04:49:50.4709485Z   hit   pool#6  top=0.0437  ccss-suspension-seguro-ti
+2026-09-16T04:49:50.4713223Z         ⤳ La suspensión del aseguramiento como trabajador independiente ante la CCSS procede cuando cesa la actividad económica, y requiere la presentación de la solicitud correspondiente ante la institución dentro del plazo establecido, con lo cual se interrumpen las obligaciones contributivas y se suspenden los derechos derivados del seguro hasta que se reactive o se cancele definitivamente la condición de asegurado.
+2026-09-16T04:49:50.4717457Z         ⊕ steps=—
+2026-09-16T04:49:50.4718352Z           pool#6  rr#1  top    ccss-faq · ¿Se puede suspender el seguro de trabajador independiente?
+2026-09-16T04:49:50.4720048Z           pool#7  rr#5  top    ccss-faq · ¿Por qué cuando el Trabajador Independiente ingresa a laborar con una empresa, la suspensión del seguro no es automática?
+2026-09-16T04:49:50.4721195Z   hit   pool#1  top=0.0800  factura-electronica-v44
+2026-09-16T04:49:50.4728147Z         ⤳ La emisión de comprobantes electrónicos se rige por el Reglamento de Comprobantes Electrónicos y las disposiciones técnicas que establece la Dirección General de Tributación, siendo obligatoria para los contribuyentes que cumplan con los requisitos de obligatoriedad fijados en la normativa. Las disposiciones técnicas de comprobantes electrónicos en su versión 4.4 introdujeron cambios en los requisitos técnicos y estructurales que deben cumplir los comprobantes emitidos, los cuales se encuentran detallados en las especificaciones técnicas vigentes que rigen la generación, transmisión y almacenamiento de facturas electrónicas.
+2026-09-16T04:49:50.4732264Z         ⊕ steps=T1-C
+2026-09-16T04:49:50.4732862Z           pool#4  rr#1  top    disposiciones-v44 · *
+2026-09-16T04:49:50.4733656Z           pool#1  rr#9  cut    reglamento-comprobantes · Artículo 4
+2026-09-16T04:49:50.4735414Z           pool#1  rr#9  cut    reglamento-comprobantes · Artículo 4 (catálogo)
+2026-09-16T04:49:50.4736405Z           pool#3  rr#23 cut    reglamento-comprobantes · Artículo 9 (catálogo)
+2026-09-16T04:49:50.4737198Z           pool#28 rr#40 cut    cabys-dev · * (catálogo)
+2026-09-16T04:49:50.4737857Z   hit   pool#3  top=0.0473  desinscripcion-dejar-actividad
+2026-09-16T04:49:50.4746222Z         ⤳ El contribuyente que cesa en la actividad económica debe presentar la declaración de cese de actividades ante la Administración Tributaria dentro del plazo establecido, lo que implica la cancelación de su inscripción en el Registro de Contribuyentes y la terminación de sus obligaciones tributarias como trabajador independiente. El trabajador independiente que cesa en sus actividades debe comunicar tal circunstancia a la Caja de Seguro Social conforme a los procedimientos establecidos para la desafiliación del régimen de aseguramiento contributivo.
+2026-09-16T04:49:50.4749885Z         ⊕ steps=T1-H (dataset T1-H)
+2026-09-16T04:49:50.4750651Z           pool#10 rr#13 cut    tribu-cr-faq · Declaraciones del RUT · 31
+2026-09-16T04:49:50.4751849Z           pool#3  rr#14 cut    tribu-cr-faq · Declaraciones del RUT · 35
+2026-09-16T04:49:50.4752720Z           pool#—  rr#—  cut    tribu-cr-faq · Declaraciones del RUT · 37
+2026-09-16T04:49:50.4753554Z           pool#14 rr#15 cut    tribu-cr-faq · Declaraciones del RUT · 38
+2026-09-16T04:49:50.4754406Z           pool#7  rr#16 cut    tribu-cr-faq · Declaraciones del RUT · 43
+2026-09-16T04:49:50.4755471Z           pool#23 rr#11 cut    tribu-cr-faq · Declaraciones del RUT · 46
+2026-09-16T04:49:50.4756247Z           pool#25 rr#9  cut    reglamento-iva · Artículo 67
+2026-09-16T04:49:50.4756955Z           pool#13 rr#32 cut    ley-iva · Artículo 27
+2026-09-16T04:49:50.4757685Z           pool#21 rr#6  top    reglamento-renta · Artículo 27
+2026-09-16T04:49:50.4758575Z           pool#10 rr#13 cut    tribu-cr-faq · Declaraciones del RUT · 31 (catálogo)
+2026-09-16T04:49:50.4759543Z           pool#7  rr#16 cut    tribu-cr-faq · Declaraciones del RUT · 43 (catálogo)
+2026-09-16T04:49:50.4760374Z           pool#15 rr#39 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.4762403Z           pool#2  rr#5  top    ccss-faq · ¿Qué debo hacer si dejo de trabajar de forma Independiente? (catálogo)
+2026-09-16T04:49:50.4763834Z           pool#16 rr#7  top    ccss-faq · ¿Se puede suspender el seguro de trabajador independiente? (catálogo)
+2026-09-16T04:49:50.4765023Z   hit   pool#1  top=0.0735  renta-persona-fisica-deduccion
+2026-09-16T04:49:50.4770257Z         ⤳ El impuesto sobre la renta de la persona física con actividad lucrativa se calcula sobre la renta neta, que resulta de restar de los ingresos brutos los gastos necesarios para producir la renta y los gastos de administración del negocio, conforme a lo establecido en la Ley del Impuesto sobre la Renta; son deducibles los gastos ordinarios y necesarios realizados en el ejercicio de la actividad lucrativa, incluyendo materiales, servicios, salarios, alquileres, depreciación de bienes de capital y otros gastos directamente relacionados con la generación de ingresos, siempre que se encuentren debidamente documentados y no estén expresamente prohibidos por la ley.
+2026-09-16T04:49:50.4774459Z         ⊕ steps=T1-E
+2026-09-16T04:49:50.4775034Z           pool#4  rr#2  top    ley-renta · ARTICULO 8
+2026-09-16T04:49:50.4775751Z           pool#38 rr#4  top    reglamento-renta · Artículo 16
+2026-09-16T04:49:50.4776444Z           pool#1  rr#1  top    reglamento-renta · Artículo 17
+2026-09-16T04:49:50.4777111Z           pool#2  rr#8  top    ley-renta · Artículo 15
+2026-09-16T04:49:50.4777872Z           pool#19 rr#37 cut    reglamento-renta · Artículo 28 (catálogo)
+2026-09-16T04:49:50.4778668Z           pool#28 rr#36 cut    ley-renta · ARTICULO 22 (catálogo)
+2026-09-16T04:49:50.4779400Z           pool#9  rr#9  cut    tramos-renta-2026 · * (catálogo)
+2026-09-16T04:49:50.4780130Z           pool#4  rr#2  top    ley-renta · ARTICULO 8 (catálogo)
+2026-09-16T04:49:50.4780824Z   hit   pool#3  top=0.0442  regimen-simplificado-programador
+2026-09-16T04:49:50.4786606Z         ⤳ El Régimen de Tributación Simplificada es un sistema opcional de determinación del impuesto sobre la renta aplicable a contribuyentes que cumplan los requisitos establecidos en la ley, incluyendo límites de ingresos brutos anuales y restricciones según la actividad económica desarrollada; la actividad de programación o desarrollo de software puede estar sujeta a limitaciones específicas en cuanto a su elegibilidad para acogerse a este régimen, por lo que debe verificarse si la actividad realizada se encuentra dentro de las actividades permitidas y si se cumplen los demás requisitos de ingresos y condiciones establecidas en el reglamento correspondiente.
+2026-09-16T04:49:50.4790706Z         ⊕ steps=—
+2026-09-16T04:49:50.4791292Z           pool#13 rr#4  top    reglamento-rts · Artículo 1
+2026-09-16T04:49:50.4792248Z           pool#3  rr#6  top    reglamento-rts · Artículo 2
+2026-09-16T04:49:50.4792918Z           pool#11 rr#2  top    ley-iva · Artículo 36
+2026-09-16T04:49:50.4794053Z   hit   pool#21  top=0.0509  tribu-cr-declarar-pagar
+2026-09-16T04:49:50.4797284Z         ⤳ La plataforma TRIBU-CR es el sistema de declaración y pago de impuestos que sustituyó a las plataformas tributarias anteriores, y su implementación se realizó conforme a la resolución general que estableció la deshabilitación de plataformas tributarias e implementación de TRIBU-CR como sistema único de presentación de declaraciones y pagos ante la Administración Tributaria.
+2026-09-16T04:49:50.4799970Z         ⊕ steps=—
+2026-09-16T04:49:50.4800591Z           pool#32 rr#4  top    tribu-cr-res-0011-2025 · Artículo 1
+2026-09-16T04:49:50.4802039Z           pool#31 rr#2  top    tribu-cr-res-0011-2025 · Artículo 2
+2026-09-16T04:49:50.4802987Z           pool#34 rr#7  top    tribu-cr-res-0011-2025 · Artículo 3
+2026-09-16T04:49:50.4803811Z           pool#21 rr#8  top    tribu-cr-res-0011-2025 · Transitorio II
+2026-09-16T04:49:50.4804558Z   hit   pool#5  top=0.0654  iva-servicios-extranjero-comprados
+2026-09-16T04:49:50.4808217Z         ⤳ La importación de servicios digitales prestados por no residentes está sujeta al Impuesto sobre el Valor Agregado conforme a las normas sobre servicios prestados desde el exterior, y el contribuyente debe declarar y pagar el impuesto en la declaración del período fiscal correspondiente, sin perjuicio de las obligaciones de retención que correspondan al proveedor o intermediario según lo establecido en la ley y sus reglamentos.
+2026-09-16T04:49:50.4811276Z         ⊕ steps=T1-D
+2026-09-16T04:49:50.4812110Z           pool#5  rr#11 cut    ley-iva · Artículo 30
+2026-09-16T04:49:50.4812849Z           pool#21 rr#1  top    reglamento-iva · Artículo 46
+2026-09-16T04:49:50.4813600Z           pool#7  rr#3  top    reglamento-iva · Artículo 47
+2026-09-16T04:49:50.4814353Z           pool#1  rr#22 cut    ley-iva · Artículo 27 (catálogo)
+2026-09-16T04:49:50.4815154Z           pool#28 rr#26 cut    reglamento-iva · Artículo 40 (catálogo)
+2026-09-16T04:49:50.4815943Z           pool#27 rr#39 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.4816740Z           pool#3  rr#24 cut    reglamento-iva · Artículo 11 (catálogo)
+2026-09-16T04:49:50.4817420Z   hit   pool#12  top=0.0718  iva-credito-fiscal-compras
+2026-09-16T04:49:50.4820619Z         ⤳ El crédito fiscal del impuesto sobre el valor agregado es el derecho del contribuyente a deducir del impuesto que debe pagar el monto del impuesto pagado en la adquisición de bienes y servicios relacionados con su actividad económica, siempre que tales bienes y servicios sean utilizados en operaciones gravadas y que cuente con los comprobantes que acrediten el pago del impuesto.
+2026-09-16T04:49:50.4823736Z         ⊕ steps=T1-D
+2026-09-16T04:49:50.4824335Z           pool#12 rr#4  top    ley-iva · Artículo 21
+2026-09-16T04:49:50.4825014Z           pool#30 rr#12 cut    ley-iva · Artículo 17
+2026-09-16T04:49:50.4825741Z           pool#1  rr#20 cut    ley-iva · Artículo 27 (catálogo)
+2026-09-16T04:49:50.4826547Z           pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+2026-09-16T04:49:50.4827318Z           pool#19 rr#40 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.4828137Z           pool#15 rr#29 cut    reglamento-iva · Artículo 11 (catálogo)
+2026-09-16T04:49:50.4828819Z   hit   pool#1  top=0.0747  iva-declaracion-mensual
+2026-09-16T04:49:50.4832316Z         ⤳ La declaración mensual del impuesto sobre el valor agregado debe presentarse dentro del plazo establecido por la administración tributaria, conforme a las disposiciones del Reglamento de la Ley del Impuesto sobre el Valor Agregado, y puede efectuarse por medios electrónicos a través de la plataforma de presentación de comprobantes y declaraciones que designe el Ministerio de Hacienda.
+2026-09-16T04:49:50.4834876Z         ⊕ steps=T1-D
+2026-09-16T04:49:50.4835443Z           pool#1  rr#2  top    ley-iva · Artículo 27
+2026-09-16T04:49:50.4836143Z           pool#2  rr#1  top    reglamento-iva · Artículo 40
+2026-09-16T04:49:50.4836888Z           pool#1  rr#2  top    ley-iva · Artículo 27 (catálogo)
+2026-09-16T04:49:50.4837716Z           pool#2  rr#1  top    reglamento-iva · Artículo 40 (catálogo)
+2026-09-16T04:49:50.4838505Z           pool#23 rr#37 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.4839284Z           pool#31 rr#32 cut    reglamento-iva · Artículo 11 (catálogo)
+2026-09-16T04:49:50.4839918Z   hit   pool#37  top=0.0745  iva-tarifa-general
+2026-09-16T04:49:50.4842872Z         ⤳ La tarifa general del Impuesto sobre el Valor Agregado aplicable a los servicios de desarrollo es la que establece la ley para la generalidad de bienes y servicios, salvo que la actividad se encuentre expresamente exonerada o sujeta a una tarifa diferenciada.
+2026-09-16T04:49:50.4844614Z         ⊕ steps=T1-D
+2026-09-16T04:49:50.4845185Z           pool#37 rr#2  top    ley-iva · Artículo 10
+2026-09-16T04:49:50.4845903Z           pool#21 rr#37 cut    ley-iva · Artículo 27 (catálogo)
+2026-09-16T04:49:50.4846681Z           pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+2026-09-16T04:49:50.4847467Z           pool#25 rr#40 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.4848247Z           pool#2  rr#17 cut    reglamento-iva · Artículo 11 (catálogo)
+2026-09-16T04:49:50.4848890Z   hit   pool#9  top=0.0674  iva-tarifas-reducidas
+2026-09-16T04:49:50.4853844Z         ⤳ La Ley del Impuesto sobre el Valor Agregado establece una tarifa reducida del ocho por ciento que aplica a bienes y servicios específicos, entre los que se encuentran alimentos básicos, medicamentos, servicios médicos y educativos, y otros bienes de primera necesidad que la ley enumera expresamente, mientras que la tarifa general es del trece por ciento; el Reglamento de la Ley del Impuesto sobre el Valor Agregado desarrolla la aplicación de estas tarifas reducidas y establece los requisitos para que los contribuyentes accedan al tratamiento tributario correspondiente a cada categoría de bien o servicio.
+2026-09-16T04:49:50.4858003Z         ⊕ steps=T1-D
+2026-09-16T04:49:50.4858633Z           pool#9  rr#1  top    ley-iva · Artículo 11
+2026-09-16T04:49:50.4859412Z           pool#19 rr#36 cut    ley-iva · Artículo 27 (catálogo)
+2026-09-16T04:49:50.4860252Z           pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+2026-09-16T04:49:50.4861088Z           pool#24 rr#40 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.4862496Z           pool#5  rr#8  top    reglamento-iva · Artículo 11 (catálogo)
+2026-09-16T04:49:50.4863221Z   hit   pool#2  top=0.0698  iva-momento-hecho-generador
+2026-09-16T04:49:50.4865117Z         ⤳ El impuesto se genera en el momento en que se realiza la operación gravada, que es cuando se ejecuta la prestación del servicio, independientemente de cuándo se emita el comprobante o se reciba el pago.
+2026-09-16T04:49:50.4866561Z         ⊕ steps=T1-D
+2026-09-16T04:49:50.4867116Z           pool#2  rr#1  top    ley-iva · Artículo 3
+2026-09-16T04:49:50.4867868Z           pool#1  rr#12 cut    ley-iva · Artículo 27 (catálogo)
+2026-09-16T04:49:50.4868693Z           pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+2026-09-16T04:49:50.4869475Z           pool#20 rr#40 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.4870271Z           pool#13 rr#27 cut    reglamento-iva · Artículo 11 (catálogo)
+2026-09-16T04:49:50.4870958Z   hit   pool#9  top=0.0597  renta-bruta-que-incluye
+2026-09-16T04:49:50.4875220Z         ⤳ La renta bruta de una actividad lucrativa está constituida por todos los ingresos derivados del ejercicio de la actividad, incluyendo los ingresos por ventas de bienes o servicios, los ingresos por arrendamiento de bienes utilizados en la actividad, los ingresos por intereses y otros rendimientos del capital invertido en la actividad, y cualesquiera otros ingresos que provengan directamente del ejercicio de la actividad lucrativa, conforme a lo establecido en la Ley del Impuesto sobre la Renta.
+2026-09-16T04:49:50.4878448Z         ⊕ steps=T1-E
+2026-09-16T04:49:50.4879025Z           pool#9  rr#2  top    ley-renta · Artículo 5
+2026-09-16T04:49:50.4879797Z           pool#22 rr#1  top    reglamento-renta · Artículo 13
+2026-09-16T04:49:50.4880652Z           pool#12 rr#38 cut    reglamento-renta · Artículo 28 (catálogo)
+2026-09-16T04:49:50.4882049Z           pool#21 rr#40 cut    ley-renta · ARTICULO 22 (catálogo)
+2026-09-16T04:49:50.4882903Z           pool#26 rr#12 cut    tramos-renta-2026 · * (catálogo)
+2026-09-16T04:49:50.4883723Z           pool#10 rr#7  top    ley-renta · ARTICULO 8 (catálogo)
+2026-09-16T04:49:50.4884620Z   hit   pool#1  top=0.0837  renta-tramos-2026
+2026-09-16T04:49:50.4886995Z         ⤳ Los tramos del Impuesto sobre la Renta para personas físicas con actividad lucrativa en el período fiscal 2026 se establecen según la renta neta gravable, aplicándose una tarifa progresiva que varía en función del monto de ingresos obtenidos durante el período fiscal.
+2026-09-16T04:49:50.4888816Z         ⊕ steps=T1-E
+2026-09-16T04:49:50.4889420Z           pool#3  rr#1  top    tramos-renta-2026 · *
+2026-09-16T04:49:50.4890110Z           pool#1  rr#2  top    ley-renta · Artículo 15
+2026-09-16T04:49:50.4890950Z           pool#7  rr#22 cut    reglamento-renta · Artículo 28 (catálogo)
+2026-09-16T04:49:50.4891990Z           pool#13 rr#27 cut    ley-renta · ARTICULO 22 (catálogo)
+2026-09-16T04:49:50.4892764Z           pool#3  rr#1  top    tramos-renta-2026 · * (catálogo)
+2026-09-16T04:49:50.4893808Z           pool#23 rr#18 cut    ley-renta · ARTICULO 8 (catálogo)
+2026-09-16T04:49:50.4894502Z   hit   pool#1  top=0.0792  renta-declaracion-plazo
+2026-09-16T04:49:50.4897110Z         ⤳ La declaración del Impuesto sobre la Renta debe presentarse dentro del plazo que establece la ley, y el impuesto debe pagarse en la oportunidad señalada por la administración tributaria conforme a las disposiciones sobre fechas de vencimiento y modalidades de pago que rigen para cada período fiscal.
+2026-09-16T04:49:50.4899044Z         ⊕ steps=T1-E
+2026-09-16T04:49:50.4899625Z           pool#1  rr#1  top    reglamento-renta · Artículo 28
+2026-09-16T04:49:50.4900454Z           pool#1  rr#1  top    reglamento-renta · Artículo 28 (catálogo)
+2026-09-16T04:49:50.4901273Z           pool#2  rr#6  top    ley-renta · ARTICULO 22 (catálogo)
+2026-09-16T04:49:50.4922889Z           pool#26 rr#23 cut    tramos-renta-2026 · * (catálogo)
+2026-09-16T04:49:50.4923769Z           pool#27 rr#40 cut    ley-renta · ARTICULO 8 (catálogo)
+2026-09-16T04:49:50.4956930Z   hit   pool#13  top=0.0776  renta-pagos-parciales-retenciones
+2026-09-16T04:49:50.4959520Z         ⤳ Los pagos a cuenta del impuesto sobre la renta realizados durante el período fiscal y las retenciones practicadas por terceros son acreditables contra el impuesto determinado en la declaración anual, de conformidad con lo establecido en la ley y sus reglamentos.
+2026-09-16T04:49:50.4961597Z         ⊕ steps=T1-E
+2026-09-16T04:49:50.4962515Z           pool#15 rr#2  top    reglamento-renta · Artículo 26
+2026-09-16T04:49:50.4963222Z           pool#13 rr#1  top    ley-renta · Artículo 24
+2026-09-16T04:49:50.4964005Z           pool#2  rr#29 cut    reglamento-renta · Artículo 28 (catálogo)
+2026-09-16T04:49:50.4964818Z           pool#1  rr#10 cut    ley-renta · ARTICULO 22 (catálogo)
+2026-09-16T04:49:50.4965591Z           pool#26 rr#30 cut    tramos-renta-2026 · * (catálogo)
+2026-09-16T04:49:50.4966366Z           pool#7  rr#26 cut    ley-renta · ARTICULO 8 (catálogo)
+2026-09-16T04:49:50.4967060Z   hit   pool#1  top=0.0672  renta-salario-y-actividad
+2026-09-16T04:49:50.4970655Z         ⤳ El salario derivado de una relación laboral se somete al Impuesto sobre la Renta conforme a las disposiciones aplicables a los ingresos por trabajo dependiente, y se calcula sobre la base del salario bruto menos las deducciones autorizadas por la ley, incluyendo las cotizaciones obligatorias a la seguridad social y otros descuentos legales, aplicándose los tramos y tasas del impuesto vigentes para el período fiscal de que se trate.
+2026-09-16T04:49:50.4974194Z         ⊕ steps=T1-E
+2026-09-16T04:49:50.4974809Z           pool#6  rr#6  top    ley-renta · Artículo 15
+2026-09-16T04:49:50.4975508Z           pool#1  rr#4  top    ley-renta · Artículo 33
+2026-09-16T04:49:50.4976211Z           pool#34 rr#2  top    reglamento-renta · Artículo 56
+2026-09-16T04:49:50.4976973Z           pool#11 rr#3  top    reglamento-renta · Artículo 57
+2026-09-16T04:49:50.4977692Z           pool#19 rr#1  top    tramos-renta-2026 · *
+2026-09-16T04:49:50.4978855Z           pool#29 rr#16 cut    reglamento-renta · Artículo 28 (catálogo)
+2026-09-16T04:49:50.4979718Z           pool#20 rr#32 cut    ley-renta · ARTICULO 22 (catálogo)
+2026-09-16T04:49:50.4980517Z           pool#19 rr#1  top    tramos-renta-2026 · * (catálogo)
+2026-09-16T04:49:50.4981281Z           pool#12 rr#5  top    ley-renta · ARTICULO 8 (catálogo)
+2026-09-16T04:49:50.4982300Z   hit   pool#1  top=0.0852  comprobantes-plazo-conservacion
+2026-09-16T04:49:50.4985610Z         ⤳ La conservación de comprobantes electrónicos y sus respaldos debe realizarse conforme a los plazos establecidos en la normativa tributaria sobre comprobantes electrónicos y en el Código de Normas y Procedimientos Tributarios, que regulan la obligación de mantener la documentación de apoyo y los archivos de los comprobantes emitidos o recibidos durante el período que la ley señale.
+2026-09-16T04:49:50.4988168Z         ⊕ steps=T1-C
+2026-09-16T04:49:50.4988852Z           pool#12 rr#1  top    reglamento-comprobantes · Artículo 22
+2026-09-16T04:49:50.4989770Z           pool#1  rr#3  top    reglamento-comprobantes · Artículo 4
+2026-09-16T04:49:50.4990842Z           pool#1  rr#3  top    reglamento-comprobantes · Artículo 4 (catálogo)
+2026-09-16T04:49:50.4992360Z           pool#4  rr#20 cut    reglamento-comprobantes · Artículo 9 (catálogo)
+2026-09-16T04:49:50.4993207Z           pool#31 rr#40 cut    cabys-dev · * (catálogo)
+2026-09-16T04:49:50.4993894Z   hit   pool#1  top=0.0824  comprobantes-factura-vs-tiquete
+2026-09-16T04:49:50.4998785Z         ⤳ Los comprobantes electrónicos se clasifican en facturas y tiquetes según el tipo de operación y el régimen del contribuyente, siendo la factura electrónica el comprobante que documenta ventas a contribuyentes identificados o personas que solicitan factura, mientras que el tiquete electrónico es el comprobante que documenta ventas a consumidores finales que no requieren identificación del vendedor. La obligación de emitir uno u otro comprobante depende de las características de la transacción, el tipo de contribuyente y lo establecido en las disposiciones técnicas de comprobantes electrónicos.
+2026-09-16T04:49:50.5002774Z         ⊕ steps=T1-C
+2026-09-16T04:49:50.5003463Z           pool#1  rr#1  top    reglamento-comprobantes · Artículo 2
+2026-09-16T04:49:50.5004402Z           pool#3  rr#9  cut    reglamento-comprobantes · Artículo 4 (catálogo)
+2026-09-16T04:49:50.5005368Z           pool#2  rr#3  top    reglamento-comprobantes · Artículo 9 (catálogo)
+2026-09-16T04:49:50.5006157Z           pool#22 rr#40 cut    cabys-dev · * (catálogo)
+2026-09-16T04:49:50.5006848Z   hit   pool#2  top=0.0817  exportacion-servicios-comprobante
+2026-09-16T04:49:50.5010732Z         ⤳ La emisión de comprobantes electrónicos es obligatoria para todas las operaciones sujetas al régimen de comprobantes electrónicos, independientemente de que la operación esté gravada, exenta o no sujeta al impuesto, y las exportaciones de servicios constituyen operaciones exentas del Impuesto sobre el Valor Agregado que deben ser documentadas mediante comprobante electrónico con la identificación correspondiente de su condición de exención.
+2026-09-16T04:49:50.5014463Z         ⊕ steps=T1-D
+2026-09-16T04:49:50.5015095Z           pool#5  rr#7  top    reglamento-comprobantes · Artículo 2
+2026-09-16T04:49:50.5015841Z           pool#2  rr#1  top    reglamento-iva · Artículo 11
+2026-09-16T04:49:50.5016548Z           pool#4  rr#26 cut    ley-iva · Artículo 27 (catálogo)
+2026-09-16T04:49:50.5017306Z           pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+2026-09-16T04:49:50.5018069Z           pool#26 rr#39 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.5018836Z           pool#2  rr#1  top    reglamento-iva · Artículo 11 (catálogo)
+2026-09-16T04:49:50.5019505Z   hit   pool#15  top=0.0621  iva-facturas-en-dolares
+2026-09-16T04:49:50.5022841Z         ⤳ El tipo de cambio aplicable para convertir a moneda nacional las operaciones facturadas en moneda extranjera, a efectos del cálculo del impuesto sobre el valor agregado, es el tipo de cambio promedio ponderado publicado por el Banco Central de Costa Rica para la fecha en que se perfecciona la operación, o el que establezca el reglamento según las circunstancias de la transacción.
+2026-09-16T04:49:50.5025485Z         ⊕ steps=T1-D
+2026-09-16T04:49:50.5026038Z           pool#15 rr#2  top    ley-iva · Artículo 15
+2026-09-16T04:49:50.5026769Z           pool#2  rr#28 cut    ley-iva · Artículo 27 (catálogo)
+2026-09-16T04:49:50.5027581Z           pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+2026-09-16T04:49:50.5028370Z           pool#16 rr#40 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.5029174Z           pool#6  rr#21 cut    reglamento-iva · Artículo 11 (catálogo)
+2026-09-16T04:49:50.5029886Z   MISS  pool#6  top=0.0537  ccss-asalariado-followup
+2026-09-16T04:49:50.5031020Z         ↳ ¿Cómo se calcula la cotización a la CCSS si usted es tanto trabajador independiente como asalariado?
+2026-09-16T04:49:50.5037769Z         ⤳ La cotización al Seguro de Invalidez, Vejez y Muerte (IVM) y al Seguro de Salud de un trabajador que es simultáneamente independiente y asalariado se calcula sobre la base contributiva correspondiente a cada condición: sobre el salario devengado en la relación laboral dependiente y sobre la base imponible declarada en la actividad independiente, aplicándose a cada una las tasas de cotización establecidas para trabajadores independientes y asalariados según el régimen de aseguramiento que corresponda. El trabajador debe estar inscrito ante la CCSS en ambas condiciones y reportar correctamente los ingresos de cada fuente para que se determine el monto total de las cuotas obrero-patronales o de trabajador independiente que correspondan.
+2026-09-16T04:49:50.5042583Z         ⊕ steps=T1-E
+2026-09-16T04:49:50.5043291Z           pool#10 rr#9  cut    ccss-escala-salud · Artículo 30°, sesión 8999
+2026-09-16T04:49:50.5044207Z           pool#6  rr#12 cut    ccss-escala-ivm · Artículo 4°, sesión 9570
+2026-09-16T04:49:50.5045013Z           pool#—  rr#—  cut    ley-10363 · ARTÍCULO 1
+2026-09-16T04:49:50.5045851Z           pool#16 rr#36 cut    reglamento-renta · Artículo 28 (catálogo)
+2026-09-16T04:49:50.5046734Z           pool#9  rr#35 cut    ley-renta · ARTICULO 22 (catálogo)
+2026-09-16T04:49:50.5047521Z           pool#18 rr#33 cut    tramos-renta-2026 · * (catálogo)
+2026-09-16T04:49:50.5048301Z           pool#24 rr#37 cut    ley-renta · ARTICULO 8 (catálogo)
+2026-09-16T04:49:50.5049037Z   hit   pool#1  top=0.0674  exportacion-comprobante-followup
+2026-09-16T04:49:50.5050269Z         ↳ ¿Debo emitir comprobante electrónico en las facturas de exportación de servicios fuera de Costa Rica?
+2026-09-16T04:49:50.5054745Z         ⤳ La emisión de comprobantes electrónicos es obligatoria para todas las transacciones que realicen los contribuyentes, incluyendo las exportaciones de servicios, conforme a los requisitos y especificaciones técnicas establecidos en la normativa de comprobantes electrónicos; sin embargo, existen regímenes especiales y excepciones que pueden aplicar según la naturaleza de la operación y la condición del sujeto pasivo del impuesto.
+2026-09-16T04:49:50.5057872Z         ⊕ steps=T1-C
+2026-09-16T04:49:50.5058584Z           pool#1  rr#3  top    reglamento-comprobantes · Artículo 2
+2026-09-16T04:49:50.5059394Z           pool#19 rr#13 cut    reglamento-iva · Artículo 11
+2026-09-16T04:49:50.5060272Z           pool#3  rr#15 cut    reglamento-comprobantes · Artículo 4 (catálogo)
+2026-09-16T04:49:50.5061224Z           pool#4  rr#6  top    reglamento-comprobantes · Artículo 9 (catálogo)
+2026-09-16T04:49:50.5062247Z           pool#17 rr#40 cut    cabys-dev · * (catálogo)
+2026-09-16T04:49:50.5062860Z   hit   pool#1  top=0.0830  renta-plazo-followup
+2026-09-16T04:49:50.5063835Z         ↳ ¿Cuándo tiene que presentar la declaración de renta del trabajo dependiente?
+2026-09-16T04:49:50.5066424Z         ⤳ La declaración del Impuesto sobre la Renta correspondiente al período fiscal debe presentarse dentro del plazo que establece la ley, el cual vence generalmente en los primeros meses del año siguiente al período fiscal de que se trate, ante la Dirección General de Tributación.
+2026-09-16T04:49:50.5068605Z         ⊕ steps=T1-E
+2026-09-16T04:49:50.5069261Z           pool#1  rr#2  top    reglamento-renta · Artículo 28
+2026-09-16T04:49:50.5070119Z           pool#1  rr#2  top    reglamento-renta · Artículo 28 (catálogo)
+2026-09-16T04:49:50.5070957Z           pool#5  rr#9  cut    ley-renta · ARTICULO 22 (catálogo)
+2026-09-16T04:49:50.5072380Z           pool#26 rr#20 cut    tramos-renta-2026 · * (catálogo)
+2026-09-16T04:49:50.5073176Z           pool#19 rr#40 cut    ley-renta · ARTICULO 8 (catálogo)
+2026-09-16T04:49:50.5073846Z   hit   pool#6  top=0.0591  iva-ajuste-bien-de-capital
+2026-09-16T04:49:50.5076941Z         ⤳ El crédito aplicable respecto a bienes de capital se ajusta anualmente conforme al procedimiento establecido en la norma reglamentaria, considerando la depreciación del bien y el porcentaje de uso en la actividad gravada, de modo que el contribuyente puede recuperar proporcionalmente el impuesto pagado en la adquisición durante los años de vida útil del activo.
+2026-09-16T04:49:50.5079367Z         ⊕ steps=T1-D
+2026-09-16T04:49:50.5080034Z           pool#6  rr#2  top    reglamento-iva-bienes-capital · Artículo 31
+2026-09-16T04:49:50.5080881Z           pool#1  rr#21 cut    ley-iva · Artículo 27 (catálogo)
+2026-09-16T04:49:50.5081929Z           pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+2026-09-16T04:49:50.5082729Z           pool#15 rr#40 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.5083537Z           pool#25 rr#34 cut    reglamento-iva · Artículo 11 (catálogo)
+2026-09-16T04:49:50.5084264Z   hit   pool#1  top=0.0628  iva-retencion-tarjetas-porcentaje
+2026-09-16T04:49:50.5088133Z         ⤳ El porcentaje de retención del Impuesto sobre el Valor Agregado aplicable a los pagos realizados por procesadores de tarjetas de crédito se determina conforme a lo establecido en el Reglamento de la Ley del Impuesto sobre el Valor Agregado, que fija los porcentajes de retención según la naturaleza de la actividad y el tipo de bien o servicio prestado, siendo obligación del agente retenedor aplicar el porcentaje que corresponda al momento de efectuar el pago.
+2026-09-16T04:49:50.5091027Z         ⊕ steps=T1-F
+2026-09-16T04:49:50.5092307Z           pool#1  rr#2  top    reglamento-iva-retencion-tarjetas · Artículo 41
+2026-09-16T04:49:50.5093264Z           pool#12 rr#33 cut    ccss-reglamento-ti · Artículo 10 (catálogo)
+2026-09-16T04:49:50.5094172Z           pool#14 rr#34 cut    ccss-reglamento-ti · Artículo 12 (catálogo)
+2026-09-16T04:49:50.5096383Z           pool#10 rr#40 cut    ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? (catálogo)
+2026-09-16T04:49:50.5098292Z           pool#13 rr#36 cut    salarios-minimos · Artículo 1 (catálogo)
+2026-09-16T04:49:50.5099019Z   hit   pool#1  top=0.0610  inscripcion-tribu-cr
+2026-09-16T04:49:50.5102455Z         ⤳ La inscripción en TRIBU-CR es obligatoria para los contribuyentes que deben presentar declaraciones tributarias, y se realiza a través de la plataforma digital habilitada por la Dirección General de Tributación conforme a los requisitos y procedimientos establecidos en la Resolución General para la deshabilitación de plataformas tributarias e implementación de TRIBU-CR.
+2026-09-16T04:49:50.5105238Z         ⊕ steps=T1-A
+2026-09-16T04:49:50.5105963Z           pool#1  rr#3  top    tribu-cr-faq · Registro Único Tributario (RUT) · 1
+2026-09-16T04:49:50.5106950Z           pool#3  rr#6  top    tribu-cr-faq · Registro Único Tributario (RUT) · 2
+2026-09-16T04:49:50.5107888Z           pool#13 rr#26 cut    tribu-cr-faq · Declaraciones del RUT · 1
+2026-09-16T04:49:50.5108750Z           pool#4  rr#4  top    tribu-cr-faq · Declaraciones del RUT · 2
+2026-09-16T04:49:50.5109719Z           pool#1  rr#3  top    tribu-cr-faq · Registro Único Tributario (RUT) · 1 (catálogo)
+2026-09-16T04:49:50.5111148Z           pool#3  rr#6  top    tribu-cr-faq · Registro Único Tributario (RUT) · 2 (catálogo)
+2026-09-16T04:49:50.5112891Z           pool#22 rr#40 cut    ccss-reglamento-ti · Artículo 1 (catálogo)
+2026-09-16T04:49:50.5113710Z           pool#15 rr#38 cut    cnpt · Artículo 78 (catálogo)
+2026-09-16T04:49:50.5114317Z   hit   pool#5  top=0.0808  multa-iva-no-declarado
+2026-09-16T04:49:50.5116975Z         ⤳ Infracción por omisión de declaración de impuesto sobre el valor agregado durante el período especificado, sancionada con multa conforme a lo establecido en el Código de Normas y Procedimientos Tributarios según la gravedad de la infracción y el salario base para multas y penas vigente en el año correspondiente.
+2026-09-16T04:49:50.5119010Z         ⊕ steps=T1-I (dataset T1-I)
+2026-09-16T04:49:50.5119682Z           pool#5  rr#1  top    cnpt · Artículo 79
+2026-09-16T04:49:50.5120369Z           pool#—  rr#—  cut    salario-base-2026 · *
+2026-09-16T04:49:50.5121077Z           pool#10 rr#6  top    cnpt · Artículo 80 bis
+2026-09-16T04:49:50.5121998Z           pool#—  rr#—  cut    cnpt · Artículo 57
+2026-09-16T04:49:50.5122652Z           pool#15 rr#10 cut    cnpt · Artículo 88
+2026-09-16T04:49:50.5123315Z           pool#15 rr#10 cut    cnpt · Artículo 88 (catálogo)
+2026-09-16T04:49:50.5124072Z           pool#3  rr#4  top    cnpt · Artículo 78 (catálogo)
+2026-09-16T04:49:50.5124822Z           pool#5  rr#1  top    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.5125488Z   hit   pool#7  top=0.0457  inscripcion-tardia-sancion
+2026-09-16T04:49:50.5129623Z         ⤳ Inscripción extemporánea ante la Administración Tributaria: la inscripción fuera del plazo establecido en la ley genera obligaciones tributarias desde la fecha en que debió efectuarse, sin perjuicio de las sanciones que correspondan por el incumplimiento. Inscripción extemporánea ante la CCSS: el trabajador independiente que se inscribe fuera del plazo legal debe regularizar sus cotizaciones desde el mes en que debió haberse afiliado, con los intereses y recargos que establezca la institución.
+2026-09-16T04:49:50.5133434Z         ⊕ steps=T1-I (dataset T1-I)
+2026-09-16T04:49:50.5134159Z           pool#15 rr#2  top    cnpt · Artículo 78
+2026-09-16T04:49:50.5134885Z           pool#—  rr#—  cut    salario-base-2026 · *
+2026-09-16T04:49:50.5135524Z           pool#7  rr#27 cut    cnpt · Artículo 88
+2026-09-16T04:49:50.5136220Z           pool#7  rr#27 cut    cnpt · Artículo 88 (catálogo)
+2026-09-16T04:49:50.5136959Z           pool#15 rr#2  top    cnpt · Artículo 78 (catálogo)
+2026-09-16T04:49:50.5137706Z           pool#36 rr#16 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.5138344Z   hit   pool#2  top=0.0792  factura-primera-cabys
+2026-09-16T04:49:50.5143841Z         ⤳ La emisión de comprobantes electrónicos requiere cumplir con los requisitos técnicos y de autorización establecidos en la normativa de comprobantes electrónicos, incluyendo la obtención de credenciales de acceso a la plataforma tributaria autorizada y la configuración del sistema emisor conforme a las disposiciones técnicas vigentes. El código CABYS corresponde a la clasificación de actividades económicas que debe consignarse en los comprobantes según la actividad principal del contribuyente, y se selecciona del catálogo oficial de códigos de actividades económicas mantenido por la administración tributaria.
+2026-09-16T04:49:50.5148015Z         ⊕ steps=T1-C
+2026-09-16T04:49:50.5148705Z           pool#2  rr#2  top    reglamento-comprobantes · Artículo 4
+2026-09-16T04:49:50.5149449Z           pool#3  rr#15 cut    cabys-dev · *
+2026-09-16T04:49:50.5150274Z           pool#2  rr#2  top    reglamento-comprobantes · Artículo 4 (catálogo)
+2026-09-16T04:49:50.5151219Z           pool#4  rr#13 cut    reglamento-comprobantes · Artículo 9 (catálogo)
+2026-09-16T04:49:50.5152418Z           pool#3  rr#15 cut    cabys-dev · * (catálogo)
+2026-09-16T04:49:50.5153100Z   hit   pool#4  top=0.0464  ho-hacienda-solo-cliente-eeuu
+2026-09-16T04:49:50.5156994Z         ⤳ Obligación de inscripción ante la Administración Tributaria para contribuyentes que realizan actividades económicas, incluyendo aquellas cuyo ingreso proviene de exportación de servicios o bienes hacia el extranjero. La inscripción en el Registro de Contribuyentes es requisito previo para la emisión de comprobantes electrónicos y el cumplimiento de obligaciones tributarias, independientemente de la ubicación del cliente o la naturaleza de la transacción comercial.
+2026-09-16T04:49:50.5160340Z         ⊕ steps=T1-A (dataset T1-A)
+2026-09-16T04:49:50.5161006Z           pool#20 rr#4  top    ley-iva · Artículo 5
+2026-09-16T04:49:50.5161921Z           pool#—  rr#—  cut    ley-iva · Artículo 4
+2026-09-16T04:49:50.5162620Z           pool#4  rr#12 cut    ley-renta · ARTICULO 2
+2026-09-16T04:49:50.5163354Z           pool#5  rr#5  top    reglamento-renta · Artículo 27
+2026-09-16T04:49:50.5164062Z           pool#7  rr#19 cut    cnpt · Artículo 78
+2026-09-16T04:49:50.5165001Z           pool#3  rr#13 cut    tribu-cr-faq · Registro Único Tributario (RUT) · 1 (catálogo)
+2026-09-16T04:49:50.5166138Z           pool#—  rr#—  cut    tribu-cr-faq · Registro Único Tributario (RUT) · 2 (catálogo)
+2026-09-16T04:49:50.5167170Z           pool#9  rr#34 cut    ccss-reglamento-ti · Artículo 1 (catálogo)
+2026-09-16T04:49:50.5168007Z           pool#7  rr#19 cut    cnpt · Artículo 78 (catálogo)
+2026-09-16T04:49:50.5168659Z   hit   pool#1  top=0.0588  ho-trabajitos-por-mi-cuenta
+2026-09-16T04:49:50.5174724Z         ⤳ La persona que inicia actividades como trabajador independiente debe inscribirse ante la Caja de Seguro Social en el régimen de aseguramiento contributivo de trabajadores independientes, y también debe inscribirse ante la Administración Tributaria como contribuyente del impuesto sobre la renta si sus ingresos superan el monto que establece la ley. La inscripción ante la CCSS determina las obligaciones de cotización al seguro de invalidez, vejez y muerte y al seguro de salud, mientras que la inscripción tributaria establece la obligación de declarar y pagar impuesto sobre la renta conforme a los tramos y regímenes que correspondan según el nivel de ingresos.
+2026-09-16T04:49:50.5178964Z         ⊕ steps=T1-A (dataset T1-A)
+2026-09-16T04:49:50.5179591Z           pool#9  rr#15 cut    ley-iva · Artículo 5
+2026-09-16T04:49:50.5180231Z           pool#—  rr#—  cut    ley-renta · ARTICULO 2
+2026-09-16T04:49:50.5180934Z           pool#8  rr#16 cut    reglamento-renta · Artículo 27
+2026-09-16T04:49:50.5182038Z           pool#1  rr#4  top    ccss-reglamento-ti · Artículo 1
+2026-09-16T04:49:50.5182987Z           pool#5  rr#33 cut    tribu-cr-faq · Registro Único Tributario (RUT) · 1 (catálogo)
+2026-09-16T04:49:50.5184083Z           pool#—  rr#—  cut    tribu-cr-faq · Registro Único Tributario (RUT) · 2 (catálogo)
+2026-09-16T04:49:50.5185056Z           pool#1  rr#4  top    ccss-reglamento-ti · Artículo 1 (catálogo)
+2026-09-16T04:49:50.5185896Z           pool#16 rr#36 cut    cnpt · Artículo 78 (catálogo)
+2026-09-16T04:49:50.5186553Z   hit   pool#1  top=0.0600  ho-donde-inscribo-ya-no-atv
+2026-09-16T04:49:50.5187749Z         ↳ ¿Dónde se inscribe en el registro de contribuyentes de Hacienda ahora que ya no está disponible el ATV?
+2026-09-16T04:49:50.5192148Z         ⤳ La inscripción en el Registro de Contribuyentes se realiza a través de la plataforma TRIBU-CR, que es el sistema de tramitación tributaria electrónica que sustituyó a las plataformas anteriores, y el contribuyente debe cumplir con los requisitos y procedimientos establecidos en la Resolución General para la deshabilitación de plataformas tributarias e implementación de TRIBU-CR.
+2026-09-16T04:49:50.5194765Z         ⊕ steps=T1-A (dataset T1-A)
+2026-09-16T04:49:50.5195602Z           pool#1  rr#6  top    tribu-cr-faq · Registro Único Tributario (RUT) · 1
+2026-09-16T04:49:50.5196585Z           pool#3  rr#7  top    tribu-cr-faq · Registro Único Tributario (RUT) · 2
+2026-09-16T04:49:50.5197531Z           pool#—  rr#—  cut    tribu-cr-faq · Ingreso a la Oficina Virtual (OVI) · 1
+2026-09-16T04:49:50.5198430Z           pool#—  rr#—  cut    tribu-cr-res-0011-2025 · Artículo 1
+2026-09-16T04:49:50.5199671Z           pool#1  rr#6  top    tribu-cr-faq · Registro Único Tributario (RUT) · 1 (catálogo)
+2026-09-16T04:49:50.5200737Z           pool#3  rr#7  top    tribu-cr-faq · Registro Único Tributario (RUT) · 2 (catálogo)
+2026-09-16T04:49:50.5201999Z           pool#15 rr#38 cut    ccss-reglamento-ti · Artículo 1 (catálogo)
+2026-09-16T04:49:50.5202823Z           pool#11 rr#35 cut    cnpt · Artículo 78 (catálogo)
+2026-09-16T04:49:50.5203486Z   hit   pool#3  top=0.0509  ho-desde-cuanta-plata-caja
+2026-09-16T04:49:50.5207116Z         ⤳ La obligación de cotizar al seguro de Invalidez, Vejez y Muerte de la CCSS existe cuando el trabajador independiente o asegurado voluntario alcanza la base mínima contributiva establecida por la Junta Directiva, y la cotización se calcula como un porcentaje de la base de cotización declarada. El trabajador independiente que no alcance la base mínima contributiva no está obligado a cotizar, pero puede hacerlo voluntariamente.
+2026-09-16T04:49:50.5209897Z         ⊕ steps=T1-B (dataset T1-B)
+2026-09-16T04:49:50.5210612Z           pool#22 rr#4  top    ccss-reglamento-ti · Artículo 1
+2026-09-16T04:49:50.5211926Z           pool#25 rr#7  top    ccss-escala-salud · *
+2026-09-16T04:49:50.5212646Z           pool#13 rr#9  cut    ccss-escala-ivm · *
+2026-09-16T04:49:50.5213393Z           pool#3  rr#27 pinned salarios-minimos · Artículo 1
+2026-09-16T04:49:50.5214512Z           pool#6  rr#30 cut    ccss-faq · ¿Dónde me corresponde realizar el trámite de afiliación? (catálogo)
+2026-09-16T04:49:50.5215921Z           pool#2  rr#24 cut    ccss-faq · ¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente? (catálogo)
+2026-09-16T04:49:50.5217067Z           pool#1  rr#14 cut    ccss-reglamento-ti · Artículo 10 (catálogo)
+2026-09-16T04:49:50.5217956Z           pool#3  rr#27 pinned salarios-minimos · Artículo 1 (catálogo)
+2026-09-16T04:49:50.5218660Z   hit   pool#1  top=0.0808  ho-donde-me-afilio-caja
+2026-09-16T04:49:50.5219491Z         ↳ ¿Dónde se afilia como trabajador independiente ante la CCSS?
+2026-09-16T04:49:50.5223221Z         ⤳ La afiliación de trabajadores independientes ante la CCSS se realiza conforme a los requisitos y procedimientos establecidos en el Reglamento para el Aseguramiento Contributivo de los Trabajadores Independientes, que regula el registro, la inscripción y la formalización de la condición de asegurado independiente en los seguros de invalidez, vejez y muerte, así como en el seguro de salud.
+2026-09-16T04:49:50.5225932Z         ⊕ steps=T1-B (dataset T1-B)
+2026-09-16T04:49:50.5226882Z           pool#1  rr#1  top    ccss-faq · ¿Dónde me corresponde realizar el trámite de afiliación?
+2026-09-16T04:49:50.5228115Z           pool#10 rr#39 cut    ccss-faq · ¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente?
+2026-09-16T04:49:50.5229434Z           pool#1  rr#1  top    ccss-faq · ¿Dónde me corresponde realizar el trámite de afiliación? (catálogo)
+2026-09-16T04:49:50.5230805Z           pool#10 rr#39 cut    ccss-faq · ¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente? (catálogo)
+2026-09-16T04:49:50.5232824Z           pool#2  rr#16 cut    ccss-reglamento-ti · Artículo 10 (catálogo)
+2026-09-16T04:49:50.5233764Z           pool#22 rr#40 cut    salarios-minimos · Artículo 1 (catálogo)
+2026-09-16T04:49:50.5234507Z   hit   pool#1  top=0.0815  ho-tiquete-en-vez-de-factura
+2026-09-16T04:49:50.5237741Z         ⤳ El comprobante electrónico que se emita debe ser factura electrónica cuando el adquirente es una persona física que solicita factura, o tiquete electrónico cuando la operación se realiza sin que medie solicitud de factura; la emisión del comprobante correspondiente es obligatoria conforme a los requisitos y características establecidos en la normativa de comprobantes electrónicos.
+2026-09-16T04:49:50.5240326Z         ⊕ steps=T1-C (dataset T1-C)
+2026-09-16T04:49:50.5241100Z           pool#3  rr#4  top    reglamento-comprobantes · Artículo 9
+2026-09-16T04:49:50.5242200Z           pool#5  rr#12 cut    reglamento-comprobantes · Artículo 4
+2026-09-16T04:49:50.5243385Z           pool#1  rr#2  top    reglamento-comprobantes · Artículo 2
+2026-09-16T04:49:50.5244329Z           pool#5  rr#12 cut    reglamento-comprobantes · Artículo 4 (catálogo)
+2026-09-16T04:49:50.5245318Z           pool#3  rr#4  top    reglamento-comprobantes · Artículo 9 (catálogo)
+2026-09-16T04:49:50.5246134Z           pool#14 rr#40 cut    cabys-dev · * (catálogo)
+2026-09-16T04:49:50.5246818Z   hit   pool#2  top=0.0796  ho-factura-electronica-o-recibo
+2026-09-16T04:49:50.5250953Z         ⤳ La emisión de comprobantes electrónicos es obligatoria para los contribuyentes que realicen actividades gravadas, conforme a los requisitos y plazos establecidos en la normativa de comprobantes electrónicos; la factura electrónica es el comprobante que debe utilizarse para documentar las operaciones sujetas a impuesto, y no es admisible sustituirla por recibos u otros documentos que no cumplan con los requisitos técnicos y de autenticidad exigidos por la administración tributaria.
+2026-09-16T04:49:50.5254678Z         ⊕ steps=T1-C (dataset T1-C)
+2026-09-16T04:49:50.5255469Z           pool#2  rr#8  top    reglamento-comprobantes · Artículo 4
+2026-09-16T04:49:50.5256334Z           pool#—  rr#—  cut    reglamento-comprobantes · Artículo 8
+2026-09-16T04:49:50.5257198Z           pool#—  rr#—  cut    reglamento-comprobantes · Artículo 22
+2026-09-16T04:49:50.5258104Z           pool#2  rr#8  top    reglamento-comprobantes · Artículo 4 (catálogo)
+2026-09-16T04:49:50.5259048Z           pool#3  rr#1  top    reglamento-comprobantes · Artículo 9 (catálogo)
+2026-09-16T04:49:50.5259834Z           pool#25 rr#40 cut    cabys-dev · * (catálogo)
+2026-09-16T04:49:50.5260417Z   hit   pool#1  top=0.0748  ho-cabys-paginas-web
+2026-09-16T04:49:50.5261581Z         ↳ ¿Qué código de actividad económica debo usar si mi actividad es hacer páginas web?
+2026-09-16T04:49:50.5264649Z         ⤳ El desarrollo de software y la creación de páginas web se clasifican en el Catálogo de Bienes y Servicios (CABYS) según la naturaleza específica de la actividad, y el contribuyente debe utilizar el código que corresponda a su actividad principal para efectos de inscripción ante la Administración Tributaria y cumplimiento de obligaciones tributarias.
+2026-09-16T04:49:50.5266960Z         ⊕ steps=T1-C (dataset T1-C)
+2026-09-16T04:49:50.5267551Z           pool#1  rr#1  top    cabys-dev · *
+2026-09-16T04:49:50.5268294Z           pool#20 rr#37 cut    reglamento-comprobantes · Artículo 13
+2026-09-16T04:49:50.5269212Z           pool#6  rr#26 cut    reglamento-comprobantes · Artículo 4 (catálogo)
+2026-09-16T04:49:50.5270158Z           pool#11 rr#38 cut    reglamento-comprobantes · Artículo 9 (catálogo)
+2026-09-16T04:49:50.5270974Z           pool#1  rr#1  top    cabys-dev · * (catálogo)
+2026-09-16T04:49:50.5272232Z   hit   pool#2  top=0.0619  ho-cliente-espana-lleva-iva
+2026-09-16T04:49:50.5274486Z         ⤳ Prestación de servicios digitales a sujeto pasivo establecido en el extranjero, ubicación del lugar de suministro conforme a la normativa del IVA, obligación de repercutir el impuesto según la jurisdicción donde se considera realizado el servicio.
+2026-09-16T04:49:50.5276696Z         ⊕ steps=T1-D (dataset T1-D)
+2026-09-16T04:49:50.5277376Z           pool#2  rr#17 cut    ley-iva · Artículo 8
+2026-09-16T04:49:50.5278135Z           pool#21 rr#19 cut    reglamento-iva · Artículo 11
+2026-09-16T04:49:50.5278877Z           pool#—  rr#—  cut    ley-iva · Artículo 10
+2026-09-16T04:49:50.5279564Z           pool#8  rr#5  top    ley-iva · Artículo 3
+2026-09-16T04:49:50.5280310Z           pool#1  rr#28 cut    ley-iva · Artículo 27 (catálogo)
+2026-09-16T04:49:50.5281153Z           pool#29 rr#24 cut    reglamento-iva · Artículo 40 (catálogo)
+2026-09-16T04:49:50.5282203Z           pool#19 rr#40 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.5283005Z           pool#21 rr#19 cut    reglamento-iva · Artículo 11 (catálogo)
+2026-09-16T04:49:50.5283724Z   hit   pool#1  top=0.0811  ho-iva-en-cero-sin-facturar
+2026-09-16T04:49:50.5286276Z         ⤳ La declaración del Impuesto sobre el Valor Agregado debe presentarse en los períodos establecidos por la ley, aun cuando no haya operaciones gravadas o exentas durante el período fiscal, reportando un impuesto a pagar de cero cuando corresponda.
+2026-09-16T04:49:50.5288090Z         ⊕ steps=T1-D (dataset T1-D)
+2026-09-16T04:49:50.5288742Z           pool#1  rr#2  top    ley-iva · Artículo 27
+2026-09-16T04:49:50.5289473Z           pool#6  rr#1  top    reglamento-iva · Artículo 40
+2026-09-16T04:49:50.5290140Z           pool#8  rr#34 cut    cnpt · Artículo 79
+2026-09-16T04:49:50.5290860Z           pool#1  rr#2  top    ley-iva · Artículo 27 (catálogo)
+2026-09-16T04:49:50.5292248Z           pool#6  rr#1  top    reglamento-iva · Artículo 40 (catálogo)
+2026-09-16T04:49:50.5293077Z           pool#8  rr#34 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.5293895Z           pool#9  rr#24 cut    reglamento-iva · Artículo 11 (catálogo)
+2026-09-16T04:49:50.5294620Z   hit   pool#1  top=0.0813  ho-hasta-que-dia-tengo-iva
+2026-09-16T04:49:50.5295600Z         ↳ ¿Hasta qué día tiene para presentar la declaración mensual del IVA?
+2026-09-16T04:49:50.5297691Z         ⤳ La declaración mensual del Impuesto sobre el Valor Agregado debe presentarse dentro del plazo establecido por la ley, conforme a lo dispuesto en la Ley del Impuesto sobre el Valor Agregado y su reglamento.
+2026-09-16T04:49:50.5299222Z         ⊕ steps=T1-D (dataset T1-D)
+2026-09-16T04:49:50.5299858Z           pool#1  rr#2  top    ley-iva · Artículo 27
+2026-09-16T04:49:50.5300580Z           pool#2  rr#1  top    reglamento-iva · Artículo 40
+2026-09-16T04:49:50.5301654Z           pool#1  rr#2  top    ley-iva · Artículo 27 (catálogo)
+2026-09-16T04:49:50.5302505Z           pool#2  rr#1  top    reglamento-iva · Artículo 40 (catálogo)
+2026-09-16T04:49:50.5303332Z           pool#8  rr#29 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.5304150Z           pool#21 rr#32 cut    reglamento-iva · Artículo 11 (catálogo)
+2026-09-16T04:49:50.5304899Z   hit   pool#13  top=0.0613  ho-rebajar-25-sin-facturas
+2026-09-16T04:49:50.5307834Z         ⤳ La deducción del veinticinco por ciento del ingreso bruto en el Régimen de Tributación Simplificada se aplica sin necesidad de comprobantes de gasto, conforme lo establece el reglamento de ese régimen, y constituye una deducción forfaitaria que no requiere documentación de respaldo para su aplicación en la declaración de renta.
+2026-09-16T04:49:50.5310201Z         ⊕ steps=T1-E (dataset T1-E)
+2026-09-16T04:49:50.5310894Z           pool#13 rr#4  top    ley-renta · ARTICULO 8
+2026-09-16T04:49:50.5312156Z           pool#—  rr#—  cut    ley-renta · ARTICULO 7
+2026-09-16T04:49:50.5313019Z           pool#8  rr#37 cut    reglamento-renta · Artículo 28 (catálogo)
+2026-09-16T04:49:50.5313880Z           pool#3  rr#29 cut    ley-renta · ARTICULO 22 (catálogo)
+2026-09-16T04:49:50.5314687Z           pool#7  rr#7  top    tramos-renta-2026 · * (catálogo)
+2026-09-16T04:49:50.5315488Z           pool#13 rr#4  top    ley-renta · ARTICULO 8 (catálogo)
+2026-09-16T04:49:50.5316187Z   hit   pool#2  top=0.0761  ho-minimo-renta-2026
+2026-09-16T04:49:50.5318036Z         ⤳ El impuesto sobre la renta no se causa sobre la renta neta del contribuyente que no exceda el monto de la renta exenta establecido para el período fiscal correspondiente.
+2026-09-16T04:49:50.5319413Z         ⊕ steps=T1-E (dataset T1-E)
+2026-09-16T04:49:50.5320084Z           pool#2  rr#1  top    tramos-renta-2026 · *
+2026-09-16T04:49:50.5320805Z           pool#4  rr#3  top    ley-renta · Artículo 15
+2026-09-16T04:49:50.5321840Z           pool#5  rr#28 cut    reglamento-renta · Artículo 28 (catálogo)
+2026-09-16T04:49:50.5322704Z           pool#3  rr#22 cut    ley-renta · ARTICULO 22 (catálogo)
+2026-09-16T04:49:50.5323510Z           pool#2  rr#1  top    tramos-renta-2026 · * (catálogo)
+2026-09-16T04:49:50.5324315Z           pool#25 rr#25 cut    ley-renta · ARTICULO 8 (catálogo)
+2026-09-16T04:49:50.5324987Z   hit   pool#2  top=0.0698  ho-ademas-tengo-salario
+2026-09-16T04:49:50.5326457Z         ↳ ¿Cómo se calcula el mínimo de renta no gravable en 2026 si además del ingreso por actividad lucrativa tengo salario?
+2026-09-16T04:49:50.5330245Z         ⤳ El mínimo de renta no gravable se determina según el tramo de renta gravable en que se ubique el contribuyente, conforme a la escala establecida para el período fiscal 2026, y cuando concurren ingresos de diferentes fuentes —tales como salarios y ganancias de actividades lucrativas— se integran para efectos de determinar la renta bruta y aplicar el mínimo de exención que corresponda al tramo resultante.
+2026-09-16T04:49:50.5333317Z         ⊕ steps=T1-E (dataset T1-E)
+2026-09-16T04:49:50.5334003Z           pool#3  rr#4  top    ley-renta · Artículo 15
+2026-09-16T04:49:50.5334678Z           pool#2  rr#1  top    tramos-renta-2026 · *
+2026-09-16T04:49:50.5335410Z           pool#7  rr#29 cut    reglamento-renta · Artículo 28
+2026-09-16T04:49:50.5336146Z           pool#26 rr#33 cut    ley-renta · ARTICULO 22
+2026-09-16T04:49:50.5336917Z           pool#7  rr#29 cut    reglamento-renta · Artículo 28 (catálogo)
+2026-09-16T04:49:50.5337749Z           pool#26 rr#33 cut    ley-renta · ARTICULO 22 (catálogo)
+2026-09-16T04:49:50.5338533Z           pool#2  rr#1  top    tramos-renta-2026 · * (catálogo)
+2026-09-16T04:49:50.5339246Z           pool#20 rr#26 cut    ley-renta · ARTICULO 8 (catálogo)
+2026-09-16T04:49:50.5339962Z   hit   pool#2  top=0.0683  ho-minimo-caja-independiente-2026
+2026-09-16T04:49:50.5343454Z         ⤳ La base mínima contributiva para trabajadores independientes en el Seguro de Invalidez, Vejez y Muerte es la que fija anualmente la Caja, y sobre ella se aplica el porcentaje de cotización establecido; de igual forma, para el Seguro de Salud existe una base mínima sobre la cual se calcula la cuota correspondiente al régimen de aseguramiento contributivo de trabajadores independientes.
+2026-09-16T04:49:50.5346080Z         ⊕ steps=T1-F (dataset T1-F)
+2026-09-16T04:49:50.5346759Z           pool#7  rr#2  top    ccss-escala-salud · *
+2026-09-16T04:49:50.5347476Z           pool#2  rr#6  top    ccss-escala-ivm · *
+2026-09-16T04:49:50.5348236Z           pool#15 rr#8  top    salarios-minimos · Artículo 1
+2026-09-16T04:49:50.5349109Z           pool#3  rr#11 cut    ccss-reglamento-ti · Artículo 10 (catálogo)
+2026-09-16T04:49:50.5350007Z           pool#14 rr#15 cut    ccss-reglamento-ti · Artículo 12 (catálogo)
+2026-09-16T04:49:50.5352803Z           pool#16 rr#20 cut    ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? (catálogo)
+2026-09-16T04:49:50.5354744Z           pool#15 rr#8  top    salarios-minimos · Artículo 1 (catálogo)
+2026-09-16T04:49:50.5355495Z   hit   pool#1  top=0.0571  ho-800-mil-que-porcentaje-caja
+2026-09-16T04:49:50.5358047Z         ⤳ La cuota contributiva del trabajador independiente al Seguro de Invalidez, Vejez y Muerte se calcula aplicando el porcentaje que corresponda según la escala contributiva vigente sobre la base imponible declarada, la cual no puede ser inferior a la base mínima contributiva establecida por la Caja.
+2026-09-16T04:49:50.5360415Z         ⊕ steps=T1-F (dataset T1-F)
+2026-09-16T04:49:50.5361101Z           pool#17 rr#2  top    ccss-escala-salud · *
+2026-09-16T04:49:50.5362007Z           pool#1  rr#3  top    ccss-escala-ivm · *
+2026-09-16T04:49:50.5362766Z           pool#19 rr#37 pinned salarios-minimos · Artículo 1
+2026-09-16T04:49:50.5363611Z           pool#2  rr#10 cut    ccss-reglamento-ti · Artículo 10 (catálogo)
+2026-09-16T04:49:50.5364495Z           pool#5  rr#13 cut    ccss-reglamento-ti · Artículo 12 (catálogo)
+2026-09-16T04:49:50.5366611Z           pool#6  rr#20 cut    ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? (catálogo)
+2026-09-16T04:49:50.5368365Z           pool#19 rr#37 pinned salarios-minimos · Artículo 1 (catálogo)
+2026-09-16T04:49:50.5369415Z   hit   pool#2  top=0.0614  ho-tambien-asegurado-por-patrono
+2026-09-16T04:49:50.5370547Z         ↳ Si gana 800 mil al mes y también está asegurado por su patrono, ¿qué porcentaje le cobra la Caja?
+2026-09-16T04:49:50.5376259Z         ⤳ La cotización del trabajador independiente asegurado voluntariamente ante la Caja Costarricense de Seguro Social se calcula sobre la base contributiva que declare, conforme a la escala de cotización establecida para el Seguro de Invalidez, Vejez y Muerte, y el porcentaje aplicable depende del tramo de ingresos en que se ubique la base declarada. Cuando el trabajador independiente está simultáneamente asegurado como dependiente por su patrono, la legislación establece disposiciones específicas respecto a cómo se determina su obligación contributiva ante la Caja en su condición de independiente.
+2026-09-16T04:49:50.5380092Z         ⊕ steps=T1-F (dataset T1-F)
+2026-09-16T04:49:50.5380856Z           pool#35 rr#29 cut    ccss-reglamento-ti · Artículo 2
+2026-09-16T04:49:50.5382019Z           pool#5  rr#2  top    ccss-reglamento-ti · Artículo 1
+2026-09-16T04:49:50.5384122Z           pool#2  rr#6  top    ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?
+2026-09-16T04:49:50.5385957Z           pool#6  rr#10 cut    ccss-reglamento-ti · Artículo 10 (catálogo)
+2026-09-16T04:49:50.5386869Z           pool#9  rr#9  cut    ccss-reglamento-ti · Artículo 12 (catálogo)
+2026-09-16T04:49:50.5389034Z           pool#2  rr#6  top    ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? (catálogo)
+2026-09-16T04:49:50.5390938Z           pool#21 rr#39 pinned salarios-minimos · Artículo 1 (catálogo)
+2026-09-16T04:49:50.5392195Z   hit   pool#3  top=0.0572  ho-cobrar-8-anos-atras-caja
+2026-09-16T04:49:50.5394873Z         ⤳ La prescripción de las deudas de trabajadores independientes ante la CCSS se rige por los plazos establecidos en la normativa de aseguramiento contributivo, durante los cuales la institución puede ejercer acciones de cobro por cuotas no pagadas desde el inicio de la actividad económica del afiliado.
+2026-09-16T04:49:50.5397042Z         ⊕ steps=T1-G (dataset T1-G)
+2026-09-16T04:49:50.5397711Z           pool#3  rr#1  top    ley-10363 · ARTÍCULO 2
+2026-09-16T04:49:50.5398772Z           pool#6  rr#2  top    ccss-prescripcion · ¿Cuáles son los plazos de la prescripción conforme la Ley?
+2026-09-16T04:49:50.5399962Z           pool#1  rr#17 cut    ccss-prescripcion · ¿Dónde presento la solicitud? (catálogo)
+2026-09-16T04:49:50.5402010Z           pool#8  rr#9  cut    ccss-prescripcion · ¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración? (catálogo)
+2026-09-16T04:49:50.5403817Z           pool#7  rr#24 cut    ccss-prescripcion · ¿En qué momento puedo solicitar la prescripción de las deudas? (catálogo)
+2026-09-16T04:49:50.5405209Z   hit   pool#11  top=0.0481  ho-desinscribir-debiendo-declaraciones
+2026-09-16T04:49:50.5408903Z         ⤳ La desinscripción del Registro de Contribuyentes está condicionada al cumplimiento de las obligaciones tributarias, incluida la presentación de todas las declaraciones adeudadas ante la Administración Tributaria. El trabajador independiente que desee dejar de ejercer la actividad debe estar al corriente en sus obligaciones ante la CCSS, incluida la presentación de declaraciones y el pago de cuotas adeudadas al Instituto.
+2026-09-16T04:49:50.5412387Z         ⊕ steps=T1-H (dataset T1-H)
+2026-09-16T04:49:50.5413142Z           pool#18 rr#6  top    reglamento-renta · Artículo 27
+2026-09-16T04:49:50.5413935Z           pool#38 rr#20 cut    reglamento-iva · Artículo 67
+2026-09-16T04:49:50.5414601Z           pool#15 rr#36 cut    cnpt · Artículo 79
+2026-09-16T04:49:50.5415621Z           pool#11 rr#26 cut    tribu-cr-faq · Declaraciones del RUT · 43
+2026-09-16T04:49:50.5416540Z           pool#10 rr#1  top    tribu-cr-faq · Declaraciones del RUT · 31 (catálogo)
+2026-09-16T04:49:50.5417521Z           pool#11 rr#26 cut    tribu-cr-faq · Declaraciones del RUT · 43 (catálogo)
+2026-09-16T04:49:50.5418337Z           pool#15 rr#36 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.5419378Z           pool#16 rr#14 cut    ccss-faq · ¿Qué debo hacer si dejo de trabajar de forma Independiente? (catálogo)
+2026-09-16T04:49:50.5420661Z           pool#30 rr#40 cut    ccss-faq · ¿Se puede suspender el seguro de trabajador independiente? (catálogo)
+2026-09-16T04:49:50.5421759Z   hit   pool#2  top=0.0733  ho-rebajar-multa-si-pago-ya
+2026-09-16T04:49:50.5422741Z         ↳ ¿Se puede rebajar la multa por no haber declarado el IVA tres meses si pago ya?
+2026-09-16T04:49:50.5426221Z         ⤳ La rebaja de multas por infracciones tributarias, incluidas las relativas a la declaración del Impuesto sobre el Valor Agregado, procede cuando el contribuyente paga la deuda tributaria principal y cumple con los requisitos que establece la ley, siendo la Administración Tributaria competente para resolver sobre la procedencia y cuantía de la rebaja según las circunstancias del caso.
+2026-09-16T04:49:50.5428755Z         ⊕ steps=T1-I (dataset T1-I)
+2026-09-16T04:49:50.5429409Z           pool#2  rr#1  top    cnpt · Artículo 88
+2026-09-16T04:49:50.5430103Z           pool#11 rr#4  top    cnpt · Artículo 79
+2026-09-16T04:49:50.5430795Z           pool#2  rr#1  top    cnpt · Artículo 88 (catálogo)
+2026-09-16T04:49:50.5432174Z           pool#13 rr#11 cut    cnpt · Artículo 78 (catálogo)
+2026-09-16T04:49:50.5432982Z           pool#11 rr#4  top    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.5433633Z   MISS  pool#38  top=0.0634  ho-t2-credito-iva-compras
+2026-09-16T04:49:50.5436915Z         ⤳ El impuesto sobre el valor agregado soportado en la adquisición de bienes y servicios es deducible del IVA causado en las ventas, conforme a las condiciones y limitaciones establecidas en la ley, siendo necesario que los bienes y servicios adquiridos guarden relación directa con la actividad gravada del contribuyente y que se cumplan los requisitos de documentación y registro exigidos.
+2026-09-16T04:49:50.5439780Z         ⊕ steps=T1-D
+2026-09-16T04:49:50.5440415Z           pool#38 rr#24 cut    ley-iva · Artículo 21
+2026-09-16T04:49:50.5441110Z           pool#—  rr#—  cut    ley-iva · Artículo 17
+2026-09-16T04:49:50.5442167Z           pool#3  rr#21 cut    ley-iva · Artículo 27 (catálogo)
+2026-09-16T04:49:50.5442993Z           pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+2026-09-16T04:49:50.5443819Z           pool#20 rr#40 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.5444654Z           pool#10 rr#28 cut    reglamento-iva · Artículo 11 (catálogo)
+2026-09-16T04:49:50.5445378Z   hit   pool#5  top=0.0696  ho-t2-hosting-extranjero
+2026-09-16T04:49:50.5448426Z         ⤳ La importación de servicios digitales está sujeta al Impuesto sobre el Valor Agregado conforme a la tarifa y condiciones que establece la ley, y el contribuyente debe declarar y pagar el impuesto sobre el valor de tales servicios recibidos del exterior, sin perjuicio de que pueda ejercer el derecho al crédito fiscal si reúne los requisitos legales para ello.
+2026-09-16T04:49:50.5451050Z         ⊕ steps=T1-D
+2026-09-16T04:49:50.5452202Z           pool#5  rr#4  top    ley-iva · Artículo 30
+2026-09-16T04:49:50.5452958Z           pool#—  rr#—  cut    reglamento-iva · Artículo 46
+2026-09-16T04:49:50.5453694Z           pool#8  rr#3  top    reglamento-iva · Artículo 47
+2026-09-16T04:49:50.5454452Z           pool#1  rr#16 cut    ley-iva · Artículo 27 (catálogo)
+2026-09-16T04:49:50.5455277Z           pool#12 rr#30 cut    reglamento-iva · Artículo 40 (catálogo)
+2026-09-16T04:49:50.5456067Z           pool#19 rr#39 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.5456859Z           pool#3  rr#19 cut    reglamento-iva · Artículo 11 (catálogo)
+2026-09-16T04:49:50.5457583Z   hit   pool#2  top=0.0517  ho-t2-retencion-tarjetas
+2026-09-16T04:49:50.5459552Z         ⤳ Retención en la fuente sobre pagos realizados con tarjeta de crédito o débito, conforme al porcentaje de retención establecido en la normativa tributaria para ciertos tipos de transacciones y contribuyentes.
+2026-09-16T04:49:50.5461064Z         ⊕ steps=—
+2026-09-16T04:49:50.5462131Z           pool#2  rr#1  top    reglamento-iva-retencion-tarjetas · Artículo 41
+2026-09-16T04:49:50.5462886Z   hit   pool#16  top=0.0511  ho-t2-compu-cara-iva
+2026-09-16T04:49:50.5466576Z         ⤳ El crédito fiscal aplicable respecto a bienes de capital se ejerce de conformidad con lo establecido en la ley, pudiendo el contribuyente aplicar el impuesto pagado en la adquisición de bienes de capital contra sus obligaciones tributarias, aunque la ley y su reglamento establecen condiciones y limitaciones específicas para el ejercicio de este derecho que no necesariamente permiten la devolución íntegra en un único período.
+2026-09-16T04:49:50.5469302Z         ⊕ steps=T1-D
+2026-09-16T04:49:50.5470078Z           pool#16 rr#2  top    reglamento-iva-bienes-capital · Artículo 31
+2026-09-16T04:49:50.5470989Z           pool#2  rr#16 cut    ley-iva · Artículo 27 (catálogo)
+2026-09-16T04:49:50.5472367Z           pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+2026-09-16T04:49:50.5473216Z           pool#12 rr#39 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.5474041Z           pool#6  rr#28 cut    reglamento-iva · Artículo 11 (catálogo)
+2026-09-16T04:49:50.5474730Z   hit   pool#5  top=0.0469  ho-t2-tipo-de-cambio
+2026-09-16T04:49:50.5477483Z         ⤳ El comprobante electrónico debe expresar el monto en la moneda en que se realiza la operación, y cuando la transacción se pacta en moneda extranjera, el contribuyente debe utilizar el tipo de cambio vigente en la fecha en que se perfecciona la operación para efectos de la declaración y cumplimiento de obligaciones tributarias.
+2026-09-16T04:49:50.5479629Z         ⊕ steps=—
+2026-09-16T04:49:50.5480224Z           pool#5  rr#3  top    ley-iva · Artículo 15
+2026-09-16T04:49:50.5481146Z   hit   pool#1  top=0.0532  ho-t2-panaderia-simplificado
+2026-09-16T04:49:50.5485316Z         ⤳ El Régimen de Tributación Simplificada es un sistema especial de tributación que aplica a contribuyentes cuyos ingresos brutos anuales no excedan el límite establecido por la ley, y que cumplan con los requisitos de actividad económica y volumen de operaciones que el reglamento señala; la panadería pequeña podría acogerse a este régimen si sus características de ingresos y operaciones se ajustan a los parámetros definidos en la normativa correspondiente.
+2026-09-16T04:49:50.5488199Z         ⊕ steps=—
+2026-09-16T04:49:50.5488815Z           pool#7  rr#1  top    reglamento-rts · Artículo 1
+2026-09-16T04:49:50.5489575Z           pool#1  rr#2  top    reglamento-rts · Artículo 2
+2026-09-16T04:49:50.5490278Z           pool#11 rr#5  top    ley-iva · Artículo 36
+2026-09-16T04:49:50.5490896Z   hit   pool#2  top=0.0368  ho-t2-arreglo-pago-caja
+2026-09-16T04:49:50.5494589Z         ⤳ La Caja de Seguro Social permite a los deudores por cuotas de seguro social celebrar acuerdos de pago de las obligaciones vencidas, conforme a los procedimientos y condiciones que establece la normativa de aseguramiento contributivo, incluyendo la posibilidad de fraccionar el pago en cuotas según lo que determine la institución.
+2026-09-16T04:49:50.5496825Z         ⊕ steps=—
+2026-09-16T04:49:50.5498299Z           pool#2  rr#2  top    ccss-faq · En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA?
+2026-09-16T04:49:50.5499735Z   hit   pool#1  top=0.0593  ho-t2-salir-del-pais-seguro
+2026-09-16T04:49:50.5503639Z         ⤳ La suspensión temporal del aseguramiento ante la CCSS por ausencia del país se rige conforme a lo establecido en el Reglamento para el Aseguramiento Contributivo de los Trabajadores Independientes, que permite al asegurado solicitar la suspensión de su condición de tal cuando se ausente del territorio nacional por un período determinado, debiendo cumplir con los requisitos y procedimientos que la institución establezca para tal efecto.
+2026-09-16T04:49:50.5506513Z         ⊕ steps=T1-H
+2026-09-16T04:49:50.5507540Z           pool#1  rr#1  top    ccss-faq · ¿Qué hago si voy a salir del país por un periodo de tiempo mayor a tres meses?
+2026-09-16T04:49:50.5508841Z           pool#4  rr#4  top    ccss-faq · ¿Se puede suspender el seguro de trabajador independiente?
+2026-09-16T04:49:50.5509925Z           pool#24 rr#35 cut    tribu-cr-faq · Declaraciones del RUT · 31 (catálogo)
+2026-09-16T04:49:50.5510928Z           pool#20 rr#37 cut    tribu-cr-faq · Declaraciones del RUT · 43 (catálogo)
+2026-09-16T04:49:50.5512423Z           pool#15 rr#40 cut    cnpt · Artículo 79 (catálogo)
+2026-09-16T04:49:50.5513555Z           pool#6  rr#16 cut    ccss-faq · ¿Qué debo hacer si dejo de trabajar de forma Independiente? (catálogo)
+2026-09-16T04:49:50.5514948Z           pool#4  rr#4  top    ccss-faq · ¿Se puede suspender el seguro de trabajador independiente? (catálogo)
+2026-09-16T04:49:50.5515924Z   hit   pool#5  top=0.0460  ho-t2-pensionado-con-actividad
+2026-09-16T04:49:50.5520229Z         ⤳ El trabajador independiente que se encuentra en condición de pensionado por invalidez, vejez o muerte debe cumplir con la obligación de aseguramiento contributivo ante la CCSS en las modalidades de Seguro de Invalidez, Vejez y Muerte y Seguro de Salud, conforme a la escala contributiva establecida para trabajadores independientes, sin perjuicio de la pensión que perciba; alternativamente, el pensionado puede optar por mantenerse como asegurado voluntario en lugar de continuar como trabajador independiente obligado.
+2026-09-16T04:49:50.5523713Z         ⊕ steps=—
+2026-09-16T04:49:50.5525098Z           pool#5  rr#2  top    ccss-faq · El pensionado por Vejez que realice una actividad por cuenta propia. ¿Está obligado a asegurarse como Trabajador Independiente?
+2026-09-16T04:49:50.5526354Z   hit   pool#2  top=0.0411  ho-t2-autorizar-contador
+2026-09-16T04:49:50.5528195Z         ⤳ Autorización de acceso a terceros en la plataforma TRIBU-CR para que un contador o profesional tributario pueda actuar en representación del contribuyente ante la Administración Tributaria.
+2026-09-16T04:49:50.5529959Z         ⊕ steps=—
+2026-09-16T04:49:50.5530720Z           pool#2  rr#5  top    tribu-cr-faq · Ingreso a la Oficina Virtual (OVI) · 22
+2026-09-16T04:49:50.5532235Z           pool#—  rr#—  cut    tribu-cr-faq · Declaraciones del RUT · 54
+2026-09-16T04:49:50.5533209Z           pool#—  rr#—  cut    tribu-cr-faq · Declaraciones del RUT · 61
+2026-09-16T04:49:50.5534080Z           pool#3  rr#7  top    tribu-cr-faq · Declaraciones del RUT · 64
+2026-09-16T04:49:50.5534759Z   hit   pool#2  top=0.0340  ho-t2-constancia-al-dia
+2026-09-16T04:49:50.5536907Z         ⤳ Certificación de cumplimiento de obligaciones tributarias ante la Administración Tributaria, que acredita que el contribuyente se encuentra al corriente en el pago de sus impuestos y obligaciones formales ante el Ministerio de Hacienda.
+2026-09-16T04:49:50.5538857Z         ⊕ steps=—
+2026-09-16T04:49:50.5539720Z           pool#—  rr#—  cut    tribu-cr-faq · Consulta de la Situación Tributaria (OVi Pública) · 1
+2026-09-16T04:49:50.5540920Z           pool#—  rr#—  cut    tribu-cr-faq · Consulta de la Situación Tributaria (OVi Pública) · 2
+2026-09-16T04:49:50.5542312Z           pool#2  rr#4  top    tribu-cr-faq · Consulta de la Situación Tributaria (OVi Pública) · 7
+2026-09-16T04:49:50.5543092Z   MISS  pool#39  top=0.0454  ho-t2-payoneer
+2026-09-16T04:49:50.5547720Z         ⤳ Ingresos provenientes del exterior recibidos a través de plataformas de pago electrónico constituyen renta gravada que debe ser declarada conforme a las obligaciones del contribuyente residente en el país, independientemente del medio de transferencia utilizado. Los trabajadores independientes que perciben ingresos por servicios prestados están obligados a emitir comprobantes electrónicos por las operaciones realizadas, conforme a las disposiciones sobre comprobantes electrónicos y régimen tributario que corresponda según su actividad y volumen de ingresos.
+2026-09-16T04:49:50.5551894Z         ⊕ steps=—
+2026-09-16T04:49:50.5552501Z           pool#39 rr#20 cut    ley-renta · Artículo 1
+2026-09-16T04:49:50.5553200Z           pool#—  rr#—  cut    ley-renta · ARTICULO 2
+2026-09-16T04:49:50.5553973Z           pool#—  rr#—  cut    reglamento-comprobantes · Artículo 9
+2026-09-16T04:49:50.5554399Z 
+2026-09-16T04:49:50.5554701Z   cut between pool and top-8: ccss-asalariado-followup
+2026-09-16T04:49:50.5556602Z     target reranked #9 (pool #6), displaced by ccss-faq · ¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia? (score 0.6836)
+2026-09-16T04:49:50.5559344Z     #1 ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?
+2026-09-16T04:49:50.5560924Z     #2 ccss-reglamento-ti · Artículo 1
+2026-09-16T04:49:50.5561879Z     #3 ccss-faq · ¿Quién es un Trabajador Independiente?
+2026-09-16T04:49:50.5562577Z     #4 ccss-reglamento-ti · Artículo 6
+2026-09-16T04:49:50.5563178Z     #5 ccss-reglamento-ti · Artículo 10
+2026-09-16T04:49:50.5563803Z     #6 ccss-reglamento-ti · Artículo 12
+2026-09-16T04:49:50.5565196Z     #7 ccss-faq · ¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?
+2026-09-16T04:49:50.5567083Z     #8 ccss-faq · ¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?
+2026-09-16T04:49:50.5567910Z 
+2026-09-16T04:49:50.5568207Z   cut between pool and top-8: ho-t2-credito-iva-compras
+2026-09-16T04:49:50.5569134Z     target reranked #24 (pool #38), displaced by ley-iva · Artículo 28 (score 0.6406)
+2026-09-16T04:49:50.5569930Z     #1 reglamento-iva · Artículo 13
+2026-09-16T04:49:50.5570474Z     #2 reglamento-iva · Artículo 30
+2026-09-16T04:49:50.5571231Z     #3 ley-iva · Artículo 1
+2026-09-16T04:49:50.5572162Z     #4 reglamento-iva · Artículo 32
+2026-09-16T04:49:50.5572656Z     #5 ley-iva · Artículo 12
+2026-09-16T04:49:50.5573170Z     #6 reglamento-iva · Artículo 29
+2026-09-16T04:49:50.5573682Z     #7 reglamento-iva · Artículo 25
+2026-09-16T04:49:50.5574139Z     #8 ley-iva · Artículo 28
+2026-09-16T04:49:50.5574388Z 
+2026-09-16T04:49:50.5574627Z   cut between pool and top-8: ho-t2-payoneer
+2026-09-16T04:49:50.5575550Z     target reranked #20 (pool #39), displaced by reglamento-iva · Artículo 50 (score 0.5313)
+2026-09-16T04:49:50.5576353Z     #1 reglamento-renta · Artículo 84
+2026-09-16T04:49:50.5576978Z     #2 reglamento-comprobantes · Artículo 13
+2026-09-16T04:49:50.5577604Z     #3 reglamento-comprobantes · Artículo 2
+2026-09-16T04:49:50.5578247Z     #4 reglamento-comprobantes · Artículo 4
+2026-09-16T04:49:50.5579179Z     #5 reglamento-comprobantes · Preámbulo
+2026-09-16T04:49:50.5579759Z     #6 reglamento-iva · Artículo 60
+2026-09-16T04:49:50.5580386Z     #7 reglamento-comprobantes · Artículo 2
+2026-09-16T04:49:50.5580997Z     #8 reglamento-iva · Artículo 50
+2026-09-16T04:49:50.5581701Z hit-rate by exposure (#267):
+2026-09-16T04:49:50.5582152Z   first-exposure  30/32
+2026-09-16T04:49:50.5582547Z   promoted        7/7
+2026-09-16T04:49:50.5582936Z   corpus-derived  33/34
+2026-09-16T04:49:50.5584198Z  ✓  eval  src/lib/eval/retrieval-hitrate.eval.test.ts (3 tests) 189340ms
+2026-09-16T04:50:00.2399885Z  ✓  eval  src/lib/retrieval.eval.test.ts (14 tests) 9429ms
+2026-09-16T04:50:00.2403058Z      ✓ puts an official statement of the prescripción rule in the top 3  462ms
+2026-09-16T04:50:00.2404697Z      ✓ scores rows exactly as the RRF reference implementation does  477ms
+2026-09-16T04:50:00.2411287Z      ✓ survives whatever a user types into the ask box  2183ms
+2026-09-16T04:50:00.2412888Z      ✓ finds nothing for a question the corpus does not cover  346ms
+2026-09-16T04:50:00.2414324Z      ✓ returns typed chunks and citations that link to the official source  400ms
+2026-09-16T04:50:00.2415663Z      ✓ reports the top score and the weak-retrieval flag  4214ms
+2026-09-16T04:52:06.7608356Z 
+2026-09-16T04:52:06.7622347Z abstention: 8/9
+2026-09-16T04:52:06.7624561Z   transcript: eval/transcripts/abstention-2026-09-16T04-52-06-760Z.jsonl
+2026-09-16T04:52:06.7628315Z   pass  model     ho-abs-cuanto-cobro-la-hora
+2026-09-16T04:52:06.7629363Z   pass  model     ho-abs-me-conviene-sociedad
+2026-09-16T04:52:06.7630200Z   pass  model     ho-abs-aguinaldo-freelancer
+2026-09-16T04:52:06.7631025Z   pass  model     ho-abs-iva-2027
+2026-09-16T04:52:06.7632214Z   pass  model     ho-abs-devs-exentos-renta
+2026-09-16T04:52:06.7633073Z   pass  model     ho-abs-patente-municipal
+2026-09-16T04:52:06.7635310Z   FAIL [fail/fail/fail]  model     ho-abs-calculo-personalizado  — The assistant provided the substantive tax calculation method and tables instead of refusing to perform the personalized calculation.
+2026-09-16T04:52:06.7637079Z   pass  model     ho-abs-sociedad-inactiva
+2026-09-16T04:52:06.7637889Z   pass  model     ho-abs-recomendar-contador
+2026-09-16T04:52:06.7721810Z  ❯  eval  src/lib/eval/abstention.eval.test.ts (2 tests | 1 failed) 126186ms
+2026-09-16T04:52:06.7723702Z      × declines and routes on at least 90% of the abstention set 4ms
+2026-09-16T04:52:06.7724902Z      ✓ invents no figure while declining 1ms
+2026-09-16T04:52:19.5145421Z  ✓  eval  src/lib/eval/adequacy.eval.test.ts (3 tests) 12482ms
+2026-09-16T04:52:19.5157946Z      ✓ the rate-less answer is grounded — every claim it makes is supported  2258ms
+2026-09-16T04:52:19.5159438Z      ✓ …and inadequate: the figure is absent and the base is never stated  6164ms
+2026-09-16T04:52:19.5160814Z      ✓ the complete answer passes both gates (the positive control)  4058ms
+2026-09-16T04:52:30.4232995Z 
+2026-09-16T04:52:30.4237300Z consolidated vs reform (answer=, judge=claude-sonnet-4-5): pass
+2026-09-16T04:52:30.4239598Z Existen cuatro tarifas reducidas de IVA, según el texto consolidado de la Ley del Impuesto sobre el Valor Agregado [1]:
+2026-09-16T04:52:30.4240760Z 
+2026-09-16T04:52:30.4241166Z Tarifa del 4%:
+2026-09-16T04:52:30.4242974Z - Compra de boletos o pasajes aéreos, cuyo origen o destino sea el territorio nacional, para cualquier clase de viaje [1].
+2026-09-16T04:52:30.4245568Z - Servicios de salud privados prestados por centros de salud autorizados, o profesionales en ciencias de la salud autorizados [1].
+2026-09-16T04:52:30.4246724Z 
+2026-09-16T04:52:30.4247112Z Tarifa del 2%:
+2026-09-16T04:52:30.4248880Z - Medicamentos, materias primas, insumos, maquinaria, equipo y reactivos necesarios para su producción, autorizados por el Ministerio de Hacienda [1].
+2026-09-16T04:52:30.4252019Z - Servicios de educación privada, con excepción de los que están exentos según el inciso 31 del artículo 8 de la misma ley [1].
+2026-09-16T04:52:30.4253779Z - Primas de seguros personales [1].
+2026-09-16T04:52:30.4254470Z 
+2026-09-16T04:52:30.4255129Z Tarifa del 1%:
+2026-09-16T04:52:30.4274451Z - Ventas, importaciones o internaciones de bienes agropecuarios incluidos en la canasta básica [1].
+2026-09-16T04:52:30.4281031Z - Ventas, importaciones o internaciones de los artículos definidos en la canasta básica [1].
+2026-09-16T04:52:30.4282134Z 
+2026-09-16T04:52:30.4282468Z Tarifa del 0,5%:
+2026-09-16T04:52:30.4283978Z - Venta de productos agropecuarios o agroindustriales orgánicos que estén registrados y certificados ante la entidad correspondiente [1].
+2026-09-16T04:52:30.4285153Z 
+2026-09-16T04:52:30.4288282Z Sobre los servicios de educación privada, el texto vigente incorpora una excepción respecto a los servicios exentos del inciso 31 del artículo 8, ajuste introducido por la Ley N° 10479 de 14 de mayo de 2024 [1]; y la tarifa del 0,5% para productos orgánicos fue incorporada por la Ley N° 10256 de 24 de agosto de 2022 [1]. Estas notas de reforma forman parte del mismo cuerpo legal, por lo que la lista anterior es la que rige actualmente.
+2026-09-16T04:52:30.4296804Z 
+2026-09-16T04:52:30.4300172Z Si su actividad como trabajador independiente incluye la venta de alguno de estos bienes o la prestación de alguno de estos servicios, debe aplicar la tarifa reducida correspondiente al emitir el comprobante electrónico respectivo y liquidarla en su declaración de IVA ante el Ministerio de Hacienda, a través del sistema de facturación electrónica y el portal Tribu-CR (hacienda.go.cr).
+2026-09-16T04:52:30.4302770Z 
+2026-09-16T04:52:30.4303926Z  ✓  eval  src/lib/eval/amending-law.eval.test.ts (2 tests) 10646ms
+2026-09-16T04:52:44.3989316Z 
+2026-09-16T04:52:44.3990602Z conflicting sources (answer=, judge=claude-sonnet-4-5): fail [fail/fail/fail]
+2026-09-16T04:52:44.3998440Z Los documentos oficiales muestran dos decretos distintos con cifras diferentes para el tramo exento del impuesto sobre la renta de personas físicas con actividad lucrativa, y ninguno indica expresamente que uno sustituye al otro:
+2026-09-16T04:52:44.3999861Z 
+2026-09-16T04:52:44.4000524Z - Decreto Ejecutivo 44000 (tramos 2026): exento hasta ¢4.094.000 anuales [1].
+2026-09-16T04:52:44.4005368Z - Decreto Ejecutivo 43500 (tramos 2025): exento hasta ¢3.947.000 anuales [2].
+2026-09-16T04:52:44.4005964Z 
+2026-09-16T04:52:44.4008633Z Al tratarse de dos decretos con números distintos, no puedo asumir cuál rige actualmente ni promediar ni escoger uno por ser más reciente. Le recomiendo verificar directamente cuál decreto está vigente en el Ministerio de Hacienda, a través de https://www.hacienda.go.cr, antes de aplicar la cifra a su declaración.
+2026-09-16T04:52:44.4011008Z 
+2026-09-16T04:52:44.4113297Z  ❯  eval  src/lib/eval/conflicting-sources.eval.test.ts (2 tests | 1 failed) 13708ms
+2026-09-16T04:52:44.4115806Z      × states the discrepancy and cites both sources 7ms
+2026-09-16T04:52:44.4117721Z      ✓ carries both contradicting figures and both citation markers 1ms
+2026-09-16T04:52:45.2947054Z 
+2026-09-16T04:52:45.2962920Z dataset target census (876 chunks): 187/187 targets satisfiable
+2026-09-16T04:52:45.2982808Z   ok      1 chunk(s)  inscripcion-hacienda-clientes-extranjero  →  ley-iva · Artículo 5
+2026-09-16T04:52:45.3002546Z   ok      1 chunk(s)  inscripcion-hacienda-clientes-extranjero  →  ley-iva · Artículo 4
+2026-09-16T04:52:45.3022425Z   ok      2 chunk(s)  inscripcion-hacienda-clientes-extranjero  →  ley-renta · ARTICULO 2
+2026-09-16T04:52:45.3042314Z   ok      1 chunk(s)  inscripcion-hacienda-clientes-extranjero  →  reglamento-renta · Artículo 27
+2026-09-16T04:52:45.3043692Z   ok      5 chunk(s)  iva-clientes-fuera-cr  →  reglamento-iva · Artículo 11
+2026-09-16T04:52:45.3062171Z   ok      3 chunk(s)  iva-clientes-fuera-cr  →  ley-iva · Artículo 8
+2026-09-16T04:52:45.3082036Z   ok      1 chunk(s)  cabys-desarrollo-software  →  cabys-dev
+2026-09-16T04:52:45.3102287Z   ok      1 chunk(s)  ccss-cuanto-pago-base  →  ccss-escala-salud · Artículo 30°, sesión 8999
+2026-09-16T04:52:45.3103557Z   ok      1 chunk(s)  ccss-cuanto-pago-base  →  ccss-escala-ivm · Artículo 4°, sesión 9570
+2026-09-16T04:52:45.3122347Z   ok      1 chunk(s)  ccss-cuanto-pago-base  →  ley-10363 · ARTÍCULO 1
+2026-09-16T04:52:45.3142194Z   ok      1 chunk(s)  ccss-cuanto-pago-base  →  salarios-minimos · Artículo 1
+2026-09-16T04:52:45.3162147Z   ok      1 chunk(s)  ccss-cobro-retroactivo  →  ley-10363 · ARTÍCULO 2
+2026-09-16T04:52:45.3173448Z   ok      1 chunk(s)  ccss-cobro-retroactivo  →  ley-10363 · TRANSITORIO II
+2026-09-16T04:52:45.3192712Z   ok      1 chunk(s)  ccss-pedir-prescripcion-cuotas  →  ccss-prescripcion · ¿Cómo se solicita la prescripción? · @Guía
+2026-09-16T04:52:45.3222824Z   ok      1 chunk(s)  ccss-pedir-prescripcion-cuotas  →  ccss-prescripcion · ¿Dónde presento la solicitud? · @Guía
+2026-09-16T04:52:45.3243369Z   ok      1 chunk(s)  ccss-pedir-prescripcion-cuotas  →  ccss-prescripcion · ¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración? · @Preguntas frecuentes
+2026-09-16T04:52:45.3262864Z   ok      1 chunk(s)  ccss-ventana-prescripcion-24-meses  →  ccss-prescripcion · ¿Cuáles son los plazos de la prescripción conforme la Ley? · @Guía
+2026-09-16T04:52:45.3264441Z   ok      1 chunk(s)  ccss-ventana-prescripcion-24-meses  →  ley-10363 · TRANSITORIO II
+2026-09-16T04:52:45.3282511Z   ok      1 chunk(s)  ccss-obligacion-ingreso-bajo  →  ccss-reglamento-ti · Artículo 1
+2026-09-16T04:52:45.3303023Z   ok      1 chunk(s)  ccss-obligacion-ingreso-bajo  →  ccss-faq · ¿El Trabajador Independiente está obligado a asegurarse ante la CCSS? · @Trabajador Independiente
+2026-09-16T04:52:45.3322153Z   ok      1 chunk(s)  ccss-obligacion-ingreso-bajo  →  ccss-escala-salud
+2026-09-16T04:52:45.3324014Z   ok      1 chunk(s)  ccss-obligacion-ingreso-bajo  →  salarios-minimos · Artículo 1
+2026-09-16T04:52:45.3325197Z   ok      1 chunk(s)  ccss-asalariado-y-freelance  →  ccss-reglamento-ti · Artículo 2
+2026-09-16T04:52:45.3327869Z   ok      1 chunk(s)  ccss-asalariado-y-freelance  →  ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? · @Trabajador Independiente
+2026-09-16T04:52:45.3330990Z   ok      1 chunk(s)  ccss-cese-actividad  →  ccss-faq · ¿Qué debo hacer si dejo de trabajar de forma Independiente? · @Trabajador Independiente
+2026-09-16T04:52:45.3363170Z   ok      1 chunk(s)  ccss-cese-actividad  →  ccss-faq · ¿Se puede suspender el seguro de trabajador independiente? · @Trabajador Independiente
+2026-09-16T04:52:45.3365563Z   ok      1 chunk(s)  ccss-arreglo-pago  →  ccss-faq · En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA? · @Cobros
+2026-09-16T04:52:45.3367801Z   ok      1 chunk(s)  ccss-suspension-seguro-ti  →  ccss-faq · ¿Se puede suspender el seguro de trabajador independiente? · @Trabajador Independiente
+2026-09-16T04:52:45.3370099Z   ok      1 chunk(s)  ccss-suspension-seguro-ti  →  ccss-faq · ¿Por qué cuando el Trabajador Independiente ingresa a laborar con una empresa, la suspensión del seguro no es automática? · @Cobros
+2026-09-16T04:52:45.3382344Z   ok     16 chunk(s)  factura-electronica-v44  →  disposiciones-v44
+2026-09-16T04:52:45.3383444Z   ok      1 chunk(s)  factura-electronica-v44  →  reglamento-comprobantes · Artículo 4
+2026-09-16T04:52:45.3384687Z   ok      1 chunk(s)  desinscripcion-dejar-actividad  →  tribu-cr-faq · Declaraciones del RUT · 31
+2026-09-16T04:52:45.3385971Z   ok      1 chunk(s)  desinscripcion-dejar-actividad  →  tribu-cr-faq · Declaraciones del RUT · 35
+2026-09-16T04:52:45.3387227Z   ok      1 chunk(s)  desinscripcion-dejar-actividad  →  tribu-cr-faq · Declaraciones del RUT · 37
+2026-09-16T04:52:45.3388544Z   ok      1 chunk(s)  desinscripcion-dejar-actividad  →  tribu-cr-faq · Declaraciones del RUT · 38
+2026-09-16T04:52:45.3389824Z   ok      1 chunk(s)  desinscripcion-dejar-actividad  →  tribu-cr-faq · Declaraciones del RUT · 43
+2026-09-16T04:52:45.3391085Z   ok      1 chunk(s)  desinscripcion-dejar-actividad  →  tribu-cr-faq · Declaraciones del RUT · 46
+2026-09-16T04:52:45.3392441Z   ok      1 chunk(s)  desinscripcion-dejar-actividad  →  reglamento-iva · Artículo 67
+2026-09-16T04:52:45.3393516Z   ok      1 chunk(s)  desinscripcion-dejar-actividad  →  ley-iva · Artículo 27
+2026-09-16T04:52:45.3394599Z   ok      1 chunk(s)  desinscripcion-dejar-actividad  →  reglamento-renta · Artículo 27
+2026-09-16T04:52:45.3395711Z   ok      4 chunk(s)  renta-persona-fisica-deduccion  →  ley-renta · ARTICULO 8
+2026-09-16T04:52:45.3396680Z   ok      1 chunk(s)  renta-persona-fisica-deduccion  →  reglamento-renta · Artículo 16
+2026-09-16T04:52:45.3397657Z   ok      2 chunk(s)  renta-persona-fisica-deduccion  →  reglamento-renta · Artículo 17
+2026-09-16T04:52:45.3398605Z   ok      2 chunk(s)  renta-persona-fisica-deduccion  →  ley-renta · Artículo 15
+2026-09-16T04:52:45.3399645Z   ok      1 chunk(s)  regimen-simplificado-programador  →  reglamento-rts · Artículo 1
+2026-09-16T04:52:45.3400808Z   ok      1 chunk(s)  regimen-simplificado-programador  →  reglamento-rts · Artículo 2
+2026-09-16T04:52:45.3439743Z   ok      1 chunk(s)  regimen-simplificado-programador  →  ley-iva · Artículo 36
+2026-09-16T04:52:45.3440906Z   ok      1 chunk(s)  tribu-cr-declarar-pagar  →  tribu-cr-res-0011-2025 · Artículo 1
+2026-09-16T04:52:45.3442261Z   ok      1 chunk(s)  tribu-cr-declarar-pagar  →  tribu-cr-res-0011-2025 · Artículo 2
+2026-09-16T04:52:45.3443318Z   ok      1 chunk(s)  tribu-cr-declarar-pagar  →  tribu-cr-res-0011-2025 · Artículo 3
+2026-09-16T04:52:45.3444396Z   ok      1 chunk(s)  tribu-cr-declarar-pagar  →  tribu-cr-res-0011-2025 · Transitorio II
+2026-09-16T04:52:45.3445476Z   ok      1 chunk(s)  iva-servicios-extranjero-comprados  →  ley-iva · Artículo 30
+2026-09-16T04:52:45.3446563Z   ok      1 chunk(s)  iva-servicios-extranjero-comprados  →  reglamento-iva · Artículo 46
+2026-09-16T04:52:45.3447603Z   ok      1 chunk(s)  iva-servicios-extranjero-comprados  →  reglamento-iva · Artículo 47
+2026-09-16T04:52:45.3448484Z   ok      1 chunk(s)  iva-credito-fiscal-compras  →  ley-iva · Artículo 21
+2026-09-16T04:52:45.3449405Z   ok      1 chunk(s)  iva-credito-fiscal-compras  →  ley-iva · Artículo 17
+2026-09-16T04:52:45.3450677Z   ok      1 chunk(s)  iva-declaracion-mensual  →  ley-iva · Artículo 27
+2026-09-16T04:52:45.3451740Z   ok      1 chunk(s)  iva-declaracion-mensual  →  reglamento-iva · Artículo 40
+2026-09-16T04:52:45.3452620Z   ok      1 chunk(s)  iva-tarifa-general  →  ley-iva · Artículo 10
+2026-09-16T04:52:45.3453446Z   ok      2 chunk(s)  iva-tarifas-reducidas  →  ley-iva · Artículo 11
+2026-09-16T04:52:45.3454301Z   ok      1 chunk(s)  iva-momento-hecho-generador  →  ley-iva · Artículo 3
+2026-09-16T04:52:45.3455172Z   ok      1 chunk(s)  renta-bruta-que-incluye  →  ley-renta · Artículo 5
+2026-09-16T04:52:45.3456076Z   ok      1 chunk(s)  renta-bruta-que-incluye  →  reglamento-renta · Artículo 13
+2026-09-16T04:52:45.3456914Z   ok      1 chunk(s)  renta-tramos-2026  →  tramos-renta-2026
+2026-09-16T04:52:45.3457667Z   ok      2 chunk(s)  renta-tramos-2026  →  ley-renta · Artículo 15
+2026-09-16T04:52:45.3458742Z   ok      1 chunk(s)  renta-declaracion-plazo  →  reglamento-renta · Artículo 28
+2026-09-16T04:52:45.3459834Z   ok      1 chunk(s)  renta-pagos-parciales-retenciones  →  reglamento-renta · Artículo 26
+2026-09-16T04:52:45.3460937Z   ok      1 chunk(s)  renta-pagos-parciales-retenciones  →  ley-renta · Artículo 24
+2026-09-16T04:52:45.3482511Z   ok      2 chunk(s)  renta-salario-y-actividad  →  ley-renta · Artículo 15
+2026-09-16T04:52:45.3483529Z   ok      1 chunk(s)  renta-salario-y-actividad  →  ley-renta · Artículo 33
+2026-09-16T04:52:45.3484504Z   ok      1 chunk(s)  renta-salario-y-actividad  →  reglamento-renta · Artículo 56
+2026-09-16T04:52:45.3485472Z   ok      1 chunk(s)  renta-salario-y-actividad  →  reglamento-renta · Artículo 57
+2026-09-16T04:52:45.3486415Z   ok      1 chunk(s)  renta-salario-y-actividad  →  tramos-renta-2026
+2026-09-16T04:52:45.3487409Z   ok      1 chunk(s)  comprobantes-plazo-conservacion  →  reglamento-comprobantes · Artículo 22
+2026-09-16T04:52:45.3488677Z   ok      1 chunk(s)  comprobantes-plazo-conservacion  →  reglamento-comprobantes · Artículo 4
+2026-09-16T04:52:45.3489926Z   ok      2 chunk(s)  comprobantes-factura-vs-tiquete  →  reglamento-comprobantes · Artículo 2
+2026-09-16T04:52:45.3491187Z   ok      2 chunk(s)  exportacion-servicios-comprobante  →  reglamento-comprobantes · Artículo 2
+2026-09-16T04:52:45.3492589Z   ok      5 chunk(s)  exportacion-servicios-comprobante  →  reglamento-iva · Artículo 11
+2026-09-16T04:52:45.3493611Z   ok      1 chunk(s)  iva-facturas-en-dolares  →  ley-iva · Artículo 15
+2026-09-16T04:52:45.3494696Z   ok      1 chunk(s)  ccss-asalariado-followup  →  ccss-escala-salud · Artículo 30°, sesión 8999
+2026-09-16T04:52:45.3495951Z   ok      1 chunk(s)  ccss-asalariado-followup  →  ccss-escala-ivm · Artículo 4°, sesión 9570
+2026-09-16T04:52:45.3496997Z   ok      1 chunk(s)  ccss-asalariado-followup  →  ley-10363 · ARTÍCULO 1
+2026-09-16T04:52:45.3498106Z   ok      2 chunk(s)  exportacion-comprobante-followup  →  reglamento-comprobantes · Artículo 2
+2026-09-16T04:52:45.3499319Z   ok      5 chunk(s)  exportacion-comprobante-followup  →  reglamento-iva · Artículo 11
+2026-09-16T04:52:45.3500407Z   ok      1 chunk(s)  renta-plazo-followup  →  reglamento-renta · Artículo 28
+2026-09-16T04:52:45.3531865Z   ok      1 chunk(s)  iva-ajuste-bien-de-capital  →  reglamento-iva-bienes-capital · Artículo 31
+2026-09-16T04:52:45.3533503Z   ok      2 chunk(s)  iva-retencion-tarjetas-porcentaje  →  reglamento-iva-retencion-tarjetas · Artículo 41
+2026-09-16T04:52:45.3534887Z   ok      1 chunk(s)  inscripcion-tribu-cr  →  tribu-cr-faq · Registro Único Tributario (RUT) · 1
+2026-09-16T04:52:45.3536149Z   ok      1 chunk(s)  inscripcion-tribu-cr  →  tribu-cr-faq · Registro Único Tributario (RUT) · 2
+2026-09-16T04:52:45.3537285Z   ok      1 chunk(s)  inscripcion-tribu-cr  →  tribu-cr-faq · Declaraciones del RUT · 1
+2026-09-16T04:52:45.3538363Z   ok      1 chunk(s)  inscripcion-tribu-cr  →  tribu-cr-faq · Declaraciones del RUT · 2
+2026-09-16T04:52:45.3539356Z   ok      1 chunk(s)  multa-iva-no-declarado  →  cnpt · Artículo 79
+2026-09-16T04:52:45.3540643Z   ok      1 chunk(s)  multa-iva-no-declarado  →  salario-base-2026
+2026-09-16T04:52:45.3541672Z   ok      1 chunk(s)  multa-iva-no-declarado  →  cnpt · Artículo 80 bis
+2026-09-16T04:52:45.3542535Z   ok      1 chunk(s)  multa-iva-no-declarado  →  cnpt · Artículo 57
+2026-09-16T04:52:45.3543352Z   ok      1 chunk(s)  multa-iva-no-declarado  →  cnpt · Artículo 88
+2026-09-16T04:52:45.3544205Z   ok      1 chunk(s)  inscripcion-tardia-sancion  →  cnpt · Artículo 78
+2026-09-16T04:52:45.3545094Z   ok      1 chunk(s)  inscripcion-tardia-sancion  →  salario-base-2026
+2026-09-16T04:52:45.3545982Z   ok      1 chunk(s)  inscripcion-tardia-sancion  →  cnpt · Artículo 88
+2026-09-16T04:52:45.3546988Z   ok      1 chunk(s)  factura-primera-cabys  →  reglamento-comprobantes · Artículo 4
+2026-09-16T04:52:45.3547906Z   ok      1 chunk(s)  factura-primera-cabys  →  cabys-dev
+2026-09-16T04:52:45.3548783Z   ok      1 chunk(s)  ho-hacienda-solo-cliente-eeuu  →  ley-iva · Artículo 5
+2026-09-16T04:52:45.3549991Z   ok      1 chunk(s)  ho-hacienda-solo-cliente-eeuu  →  ley-iva · Artículo 4
+2026-09-16T04:52:45.3550955Z   ok      2 chunk(s)  ho-hacienda-solo-cliente-eeuu  →  ley-renta · ARTICULO 2
+2026-09-16T04:52:45.3602547Z   ok      1 chunk(s)  ho-hacienda-solo-cliente-eeuu  →  reglamento-renta · Artículo 27
+2026-09-16T04:52:45.3603656Z   ok      1 chunk(s)  ho-hacienda-solo-cliente-eeuu  →  cnpt · Artículo 78
+2026-09-16T04:52:45.3604507Z   ok      1 chunk(s)  ho-trabajitos-por-mi-cuenta  →  ley-iva · Artículo 5
+2026-09-16T04:52:45.3605367Z   ok      2 chunk(s)  ho-trabajitos-por-mi-cuenta  →  ley-renta · ARTICULO 2
+2026-09-16T04:52:45.3606354Z   ok      1 chunk(s)  ho-trabajitos-por-mi-cuenta  →  reglamento-renta · Artículo 27
+2026-09-16T04:52:45.3607473Z   ok      1 chunk(s)  ho-trabajitos-por-mi-cuenta  →  ccss-reglamento-ti · Artículo 1
+2026-09-16T04:52:45.3608769Z   ok      1 chunk(s)  ho-donde-inscribo-ya-no-atv  →  tribu-cr-faq · Registro Único Tributario (RUT) · 1
+2026-09-16T04:52:45.3610172Z   ok      1 chunk(s)  ho-donde-inscribo-ya-no-atv  →  tribu-cr-faq · Registro Único Tributario (RUT) · 2
+2026-09-16T04:52:45.3611719Z   ok      1 chunk(s)  ho-donde-inscribo-ya-no-atv  →  tribu-cr-faq · Ingreso a la Oficina Virtual (OVI) · 1
+2026-09-16T04:52:45.3612925Z   ok      1 chunk(s)  ho-donde-inscribo-ya-no-atv  →  tribu-cr-res-0011-2025 · Artículo 1
+2026-09-16T04:52:45.3613972Z   ok      1 chunk(s)  ho-desde-cuanta-plata-caja  →  ccss-reglamento-ti · Artículo 1
+2026-09-16T04:52:45.3614802Z   ok      1 chunk(s)  ho-desde-cuanta-plata-caja  →  ccss-escala-salud
+2026-09-16T04:52:45.3615560Z   ok      1 chunk(s)  ho-desde-cuanta-plata-caja  →  ccss-escala-ivm
+2026-09-16T04:52:45.3616444Z   ok      1 chunk(s)  ho-desde-cuanta-plata-caja  →  salarios-minimos · Artículo 1
+2026-09-16T04:52:45.3617977Z   ok      1 chunk(s)  ho-donde-me-afilio-caja  →  ccss-faq · ¿Dónde me corresponde realizar el trámite de afiliación? · @Trabajador Independiente
+2026-09-16T04:52:45.3619915Z   ok      1 chunk(s)  ho-donde-me-afilio-caja  →  ccss-faq · ¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente? · @Trabajador Independiente
+2026-09-16T04:52:45.3645999Z   ok      1 chunk(s)  ho-tiquete-en-vez-de-factura  →  reglamento-comprobantes · Artículo 9
+2026-09-16T04:52:45.3647332Z   ok      1 chunk(s)  ho-tiquete-en-vez-de-factura  →  reglamento-comprobantes · Artículo 4
+2026-09-16T04:52:45.3648464Z   ok      2 chunk(s)  ho-tiquete-en-vez-de-factura  →  reglamento-comprobantes · Artículo 2
+2026-09-16T04:52:45.3649647Z   ok      1 chunk(s)  ho-factura-electronica-o-recibo  →  reglamento-comprobantes · Artículo 4
+2026-09-16T04:52:45.3650824Z   ok      1 chunk(s)  ho-factura-electronica-o-recibo  →  reglamento-comprobantes · Artículo 8
+2026-09-16T04:52:45.3656434Z   ok      1 chunk(s)  ho-factura-electronica-o-recibo  →  reglamento-comprobantes · Artículo 22
+2026-09-16T04:52:45.3657476Z   ok      1 chunk(s)  ho-cabys-paginas-web  →  cabys-dev
+2026-09-16T04:52:45.3658475Z   ok      1 chunk(s)  ho-cabys-paginas-web  →  reglamento-comprobantes · Artículo 13
+2026-09-16T04:52:45.3659820Z   ok      3 chunk(s)  ho-cliente-espana-lleva-iva  →  ley-iva · Artículo 8
+2026-09-16T04:52:45.3660819Z   ok      5 chunk(s)  ho-cliente-espana-lleva-iva  →  reglamento-iva · Artículo 11
+2026-09-16T04:52:45.3662026Z   ok      1 chunk(s)  ho-cliente-espana-lleva-iva  →  ley-iva · Artículo 10
+2026-09-16T04:52:45.3662955Z   ok      1 chunk(s)  ho-cliente-espana-lleva-iva  →  ley-iva · Artículo 3
+2026-09-16T04:52:45.3663928Z   ok      1 chunk(s)  ho-iva-en-cero-sin-facturar  →  ley-iva · Artículo 27
+2026-09-16T04:52:45.3664929Z   ok      1 chunk(s)  ho-iva-en-cero-sin-facturar  →  reglamento-iva · Artículo 40
+2026-09-16T04:52:45.3665840Z   ok      1 chunk(s)  ho-iva-en-cero-sin-facturar  →  cnpt · Artículo 79
+2026-09-16T04:52:45.3666692Z   ok      1 chunk(s)  ho-hasta-que-dia-tengo-iva  →  ley-iva · Artículo 27
+2026-09-16T04:52:45.3667633Z   ok      1 chunk(s)  ho-hasta-que-dia-tengo-iva  →  reglamento-iva · Artículo 40
+2026-09-16T04:52:45.3668903Z   ok      4 chunk(s)  ho-rebajar-25-sin-facturas  →  ley-renta · ARTICULO 8
+2026-09-16T04:52:45.3669867Z   ok      1 chunk(s)  ho-rebajar-25-sin-facturas  →  ley-renta · ARTICULO 7
+2026-09-16T04:52:45.3670700Z   ok      1 chunk(s)  ho-minimo-renta-2026  →  tramos-renta-2026
+2026-09-16T04:52:45.3692128Z   ok      2 chunk(s)  ho-minimo-renta-2026  →  ley-renta · Artículo 15
+2026-09-16T04:52:45.3693241Z   ok      2 chunk(s)  ho-ademas-tengo-salario  →  ley-renta · Artículo 15
+2026-09-16T04:52:45.3694147Z   ok      1 chunk(s)  ho-ademas-tengo-salario  →  tramos-renta-2026
+2026-09-16T04:52:45.3695137Z   ok      1 chunk(s)  ho-ademas-tengo-salario  →  reglamento-renta · Artículo 28
+2026-09-16T04:52:45.3696116Z   ok      1 chunk(s)  ho-ademas-tengo-salario  →  ley-renta · ARTICULO 22
+2026-09-16T04:52:45.3697073Z   ok      1 chunk(s)  ho-minimo-caja-independiente-2026  →  ccss-escala-salud
+2026-09-16T04:52:45.3698014Z   ok      1 chunk(s)  ho-minimo-caja-independiente-2026  →  ccss-escala-ivm
+2026-09-16T04:52:45.3699106Z   ok      1 chunk(s)  ho-minimo-caja-independiente-2026  →  salarios-minimos · Artículo 1
+2026-09-16T04:52:45.3700169Z   ok      1 chunk(s)  ho-800-mil-que-porcentaje-caja  →  ccss-escala-salud
+2026-09-16T04:52:45.3701077Z   ok      1 chunk(s)  ho-800-mil-que-porcentaje-caja  →  ccss-escala-ivm
+2026-09-16T04:52:45.3702415Z   ok      1 chunk(s)  ho-800-mil-que-porcentaje-caja  →  salarios-minimos · Artículo 1
+2026-09-16T04:52:45.3703607Z   ok      1 chunk(s)  ho-tambien-asegurado-por-patrono  →  ccss-reglamento-ti · Artículo 2
+2026-09-16T04:52:45.3704794Z   ok      1 chunk(s)  ho-tambien-asegurado-por-patrono  →  ccss-reglamento-ti · Artículo 1
+2026-09-16T04:52:45.3707526Z   ok      1 chunk(s)  ho-tambien-asegurado-por-patrono  →  ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? · @Trabajador Independiente
+2026-09-16T04:52:45.3709915Z   ok      1 chunk(s)  ho-cobrar-8-anos-atras-caja  →  ley-10363 · ARTÍCULO 2
+2026-09-16T04:52:45.3732397Z   ok      1 chunk(s)  ho-cobrar-8-anos-atras-caja  →  ccss-prescripcion · ¿Cuáles son los plazos de la prescripción conforme la Ley? · @Guía
+2026-09-16T04:52:45.3734091Z   ok      1 chunk(s)  ho-desinscribir-debiendo-declaraciones  →  reglamento-renta · Artículo 27
+2026-09-16T04:52:45.3735379Z   ok      1 chunk(s)  ho-desinscribir-debiendo-declaraciones  →  reglamento-iva · Artículo 67
+2026-09-16T04:52:45.3736528Z   ok      1 chunk(s)  ho-desinscribir-debiendo-declaraciones  →  cnpt · Artículo 79
+2026-09-16T04:52:45.3737786Z   ok      1 chunk(s)  ho-desinscribir-debiendo-declaraciones  →  tribu-cr-faq · Declaraciones del RUT · 43
+2026-09-16T04:52:45.3738942Z   ok      1 chunk(s)  ho-rebajar-multa-si-pago-ya  →  cnpt · Artículo 88
+2026-09-16T04:52:45.3739878Z   ok      1 chunk(s)  ho-rebajar-multa-si-pago-ya  →  cnpt · Artículo 79
+2026-09-16T04:52:45.3741102Z   ok      1 chunk(s)  ho-t2-credito-iva-compras  →  ley-iva · Artículo 21
+2026-09-16T04:52:45.3742247Z   ok      1 chunk(s)  ho-t2-credito-iva-compras  →  ley-iva · Artículo 17
+2026-09-16T04:52:45.3743114Z   ok      1 chunk(s)  ho-t2-hosting-extranjero  →  ley-iva · Artículo 30
+2026-09-16T04:52:45.3744046Z   ok      1 chunk(s)  ho-t2-hosting-extranjero  →  reglamento-iva · Artículo 46
+2026-09-16T04:52:45.3745004Z   ok      1 chunk(s)  ho-t2-hosting-extranjero  →  reglamento-iva · Artículo 47
+2026-09-16T04:52:45.3746118Z   ok      2 chunk(s)  ho-t2-retencion-tarjetas  →  reglamento-iva-retencion-tarjetas · Artículo 41
+2026-09-16T04:52:45.3747339Z   ok      1 chunk(s)  ho-t2-compu-cara-iva  →  reglamento-iva-bienes-capital · Artículo 31
+2026-09-16T04:52:45.3748297Z   ok      1 chunk(s)  ho-t2-tipo-de-cambio  →  ley-iva · Artículo 15
+2026-09-16T04:52:45.3749240Z   ok      1 chunk(s)  ho-t2-panaderia-simplificado  →  reglamento-rts · Artículo 1
+2026-09-16T04:52:45.3750286Z   ok      1 chunk(s)  ho-t2-panaderia-simplificado  →  reglamento-rts · Artículo 2
+2026-09-16T04:52:45.3751309Z   ok      1 chunk(s)  ho-t2-panaderia-simplificado  →  ley-iva · Artículo 36
+2026-09-16T04:52:45.3763943Z   ok      1 chunk(s)  ho-t2-arreglo-pago-caja  →  ccss-faq · En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA? · @Cobros
+2026-09-16T04:52:45.3766218Z   ok      1 chunk(s)  ho-t2-salir-del-pais-seguro  →  ccss-faq · ¿Qué hago si voy a salir del país por un periodo de tiempo mayor a tres meses? · @Trabajador Independiente
+2026-09-16T04:52:45.3768218Z   ok      1 chunk(s)  ho-t2-salir-del-pais-seguro  →  ccss-faq · ¿Se puede suspender el seguro de trabajador independiente? · @Trabajador Independiente
+2026-09-16T04:52:45.3770479Z   ok      1 chunk(s)  ho-t2-pensionado-con-actividad  →  ccss-faq · El pensionado por Vejez que realice una actividad por cuenta propia. ¿Está obligado a asegurarse como Trabajador Independiente? · @Trabajador Independiente
+2026-09-16T04:52:45.3772436Z   ok      1 chunk(s)  ho-t2-autorizar-contador  →  tribu-cr-faq · Ingreso a la Oficina Virtual (OVI) · 22
+2026-09-16T04:52:45.3773544Z   ok      1 chunk(s)  ho-t2-autorizar-contador  →  tribu-cr-faq · Declaraciones del RUT · 54
+2026-09-16T04:52:45.3774590Z   ok      1 chunk(s)  ho-t2-autorizar-contador  →  tribu-cr-faq · Declaraciones del RUT · 61
+2026-09-16T04:52:45.3775599Z   ok      1 chunk(s)  ho-t2-autorizar-contador  →  tribu-cr-faq · Declaraciones del RUT · 64
+2026-09-16T04:52:45.3776801Z   ok      1 chunk(s)  ho-t2-constancia-al-dia  →  tribu-cr-faq · Consulta de la Situación Tributaria (OVi Pública) · 1
+2026-09-16T04:52:45.3778127Z   ok      1 chunk(s)  ho-t2-constancia-al-dia  →  tribu-cr-faq · Consulta de la Situación Tributaria (OVi Pública) · 2
+2026-09-16T04:52:45.3779511Z   ok      1 chunk(s)  ho-t2-constancia-al-dia  →  tribu-cr-faq · Consulta de la Situación Tributaria (OVi Pública) · 7
+2026-09-16T04:52:45.3780504Z   ok      1 chunk(s)  ho-t2-payoneer  →  ley-renta · Artículo 1
+2026-09-16T04:52:45.3781232Z   ok      2 chunk(s)  ho-t2-payoneer  →  ley-renta · ARTICULO 2
+2026-09-16T04:52:45.3804001Z   ok      1 chunk(s)  ho-t2-payoneer  →  reglamento-comprobantes · Artículo 9
+2026-09-16T04:52:45.3804561Z 
+2026-09-16T04:52:45.3804939Z ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+2026-09-16T04:52:45.3805222Z 
+2026-09-16T04:52:45.3806155Z  FAIL   eval  src/lib/eval/abstention.eval.test.ts > abstention set (eval/dataset.jsonl) > declines and routes on at least 90% of the abstention set
+2026-09-16T04:52:45.3808203Z AssertionError: answered instead of declining: ho-abs-calculo-personalizado (The assistant provided the substantive tax calculation method and tables instead of refusing to perform the personalized calculation.): expected 0.8888888888888888 to be greater than or equal to 0.9
+2026-09-16T04:52:45.3809635Z  ❯ src/lib/eval/abstention.eval.test.ts:212:7
+2026-09-16T04:52:45.3810291Z     210|       rate,
+2026-09-16T04:52:45.3811102Z     211|       `answered instead of declining: ${failed.join("; ")}`,
+2026-09-16T04:52:45.3812238Z     212|     ).toBeGreaterThanOrEqual(ABSTENTION_GATE);
+2026-09-16T04:52:45.3812782Z        |       ^
+2026-09-16T04:52:45.3813119Z     213|   });
+2026-09-16T04:52:45.3813415Z     214|
+2026-09-16T04:52:45.3813556Z 
+2026-09-16T04:52:45.3813809Z ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+2026-09-16T04:52:45.3814029Z 
+2026-09-16T04:52:45.3814885Z  FAIL   eval  src/lib/eval/conflicting-sources.eval.test.ts > conflicting sources (#135) > states the discrepancy and cites both sources
+2026-09-16T04:52:45.3816865Z AssertionError: judge: The answer states the fragments show 'two different decrees with different figures' but does not explicitly say they contradict each other or are inconsistent; it frames them as potentially both valid for different years rather than as conflicting information.
+2026-09-16T04:52:45.3817864Z 
+2026-09-16T04:52:45.3817963Z answer:
+2026-09-16T04:52:45.3819173Z Los documentos oficiales muestran dos decretos distintos con cifras diferentes para el tramo exento del impuesto sobre la renta de personas físicas con actividad lucrativa, y ninguno indica expresamente que uno sustituye al otro:
+2026-09-16T04:52:45.3819970Z 
+2026-09-16T04:52:45.3820342Z - Decreto Ejecutivo 44000 (tramos 2026): exento hasta ¢4.094.000 anuales [1].
+2026-09-16T04:52:45.3820988Z - Decreto Ejecutivo 43500 (tramos 2025): exento hasta ¢3.947.000 anuales [2].
+2026-09-16T04:52:45.3821274Z 
+2026-09-16T04:52:45.3831796Z Al tratarse de dos decretos con números distintos, no puedo asumir cuál rige actualmente ni promediar ni escoger uno por ser más reciente. Le recomiendo verificar directamente cuál decreto está vigente en el Ministerio de Hacienda, a través de https://www.hacienda.go.cr, antes de aplicar la cifra a su declaración.: expected 'fail' to be 'pass' // Object.is equality
+2026-09-16T04:52:45.3833864Z 
+2026-09-16T04:52:45.3834166Z Expected: "pass"
+2026-09-16T04:52:45.3834665Z Received: "fail"
+2026-09-16T04:52:45.3834915Z 
+2026-09-16T04:52:45.3835538Z  ❯ src/lib/eval/conflicting-sources.eval.test.ts:65:63
+2026-09-16T04:52:45.3836266Z      63|
+2026-09-16T04:52:45.3837238Z      64|   it("states the discrepancy and cites both sources", () => {
+2026-09-16T04:52:45.3838356Z      65|     expect(verdict, `judge: ${reason}\n\nanswer:\n${answer}`).toBe("pa…
+2026-09-16T04:52:45.3839295Z        |                                                               ^
+2026-09-16T04:52:45.3839909Z      66|   });
+2026-09-16T04:52:45.3840382Z      67|
+2026-09-16T04:52:45.3840589Z 
+2026-09-16T04:52:45.3841299Z ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+2026-09-16T04:52:45.3841969Z 
+2026-09-16T04:52:45.3843546Z  FAIL   eval  src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > every tier 1 case states all of its required claims and steps
+2026-09-16T04:52:45.4002248Z AssertionError: inadequate tier 1 answers: ccss-pedir-prescripcion-cuotas (Si la deuda está en verificación, la nota se presenta ante la unidad o sucursal financiera de la CCSS a cargo del procedimiento e incluye lugar y fecha, identificación del caso si existe, nombre e identificación, condición en que actúa, periodos solicitados, medio para notificaciones y firma.; Si la deuda ya está en cobro, la solicitud puede enviarse a cobros@ccss.sa.cr; si no tiene firma digital, debe firmarla en papel, escanearla, adjuntar la identificación por ambos lados y luego presentarse a firmar cuando la CCSS lo cite.; El canal correcto según la fase del caso — la unidad o sucursal financiera si está en verificación, cobros@ccss.sa.cr si ya está en cobro — y el plazo en que la Administración resuelve.); ccss-obligacion-ingreso-bajo (Dónde se hace la afiliación y qué se declara: el ingreso de referencia, en la sucursal de la CCSS que corresponda a la zona de adscripción.; La cuota se calcula sobre un ingreso de referencia que no baja de la base mínima contributiva, fijada en 0,9295 salarios mínimos para el Seguro de Salud. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent)); desinscripcion-dejar-actividad (Al cesar la actividad económica hay que desinscribirse del Registro de Contribuyentes; no basta con dejar de facturar.; Mientras la persona siga inscrita conserva sus obligaciones de declarar, y omitir una declaración se sanciona aunque no haya habido ingresos.; La desinscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, en «Mis datos» → «Solicitar desinscripción», indicando motivo y fecha de cese; el antiguo formulario D-140 ya no existe.; Al desinscribirse del IVA hay que liquidar el impuesto sobre las existencias de bienes y los bienes afectos que queden, salvo que opere la continuidad del negocio.; Los pasos en la OVi: dónde está la solicitud, qué campos son obligatorios y cuál es el efecto (estado «Desinscrito», con posibilidad de reinscribirse).); multa-iva-no-declarado (La sanción se reduce si se subsana antes de que la Administración Tributaria actúe (CNPT artículo 88).; Cómo regularizar: presentar las declaraciones omitidas y pagar en TRIBU-CR, y que hacerlo antes de cualquier actuación de la Administración rebaja la sanción.; El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent)); inscripcion-tardia-sancion (Subsanar de forma espontánea, antes de cualquier actuación de la Administración, rebaja la sanción en un setenta y cinco por ciento (75 %), u ochenta por ciento (80 %) si se autoliquida y paga en ese momento (CNPT artículo 88).; Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.; El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent)); ho-hacienda-solo-cliente-eeuu (Facturar sólo a clientes del exterior no exime de inscribirse: aunque el servicio llegue a calificar como exportación exenta —lo que depende de que se consuma fuera de Costa Rica—, estar exento no es lo mismo que no ser contribuyente.; La inscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, como declaración de inscripción del Registro Único Tributario.; Omitir la declaración de inscripción se sanciona con el cincuenta por ciento (50 %) de un salario base por cada mes o fracción de atraso. (50 % | 50% | cincuenta por ciento: absent)); ho-trabajitos-por-mi-cuenta (Sí: iniciar una actividad lucrativa por cuenta propia obliga a inscribirse ante la Administración Tributaria al momento de iniciarla, sin importar lo pequeña que sea.; La persona física con actividad lucrativa es contribuyente del impuesto sobre las utilidades y, si presta servicios gravados, también del IVA.; La inscripción ante Hacienda no sustituye el aseguramiento ante la CCSS como trabajador independiente: son dos obligaciones distintas.; Los dos trámites que siguen: la declaración de inscripción del RUT en la Oficina Virtual de TRIBU-CR y la afiliación como trabajador independiente en la CCSS.); ho-donde-inscribo-ya-no-atv (El camino dentro de la OVi hasta la declaración de inscripción y qué datos pide (actividad, fecha de inicio, domicilio).); ho-desde-cuanta-plata-caja (Cómo se declara el ingreso de referencia y dónde se paga la cuota.; La base mínima contributiva del Seguro de IVM es 0,87 salarios mínimos. (0,87 SM | 0,87 salarios mínimos | 0.87 SM: absent); El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico, ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent)); ho-donde-me-afilio-caja (La cuota se paga mensualmente, dentro de la fecha que corresponde según la primera letra del primer apellido.); ho-tiquete-en-vez-de-factura (Los únicos comprobantes autorizados para cumplir obligaciones tributarias son los que lista el artículo 9 del Reglamento de Comprobantes Electrónicos: factura electrónica, factura electrónica de compra, factura electrónica de exportación, tiquete electrónico, recibo electrónico de pago y las notas de crédito y débito.; Quien emite comprobantes electrónicos debe estar inscrito en el Registro Único Tributario y tener registrado un correo electrónico válido ante la Administración Tributaria.); ho-factura-electronica-o-recibo (Con qué emitir: el facturador gratuito de Hacienda o un proveedor de sistemas de comprobantes electrónicos.; Los comprobantes electrónicos y sus documentos asociados deben almacenarse y conservarse por un plazo de cinco años. (cinco años | 5 años: absent)); ho-cabys-paginas-web (El detalle del comprobante lleva, por cada bien o servicio, un código de producto junto con la descripción, la cantidad y el precio unitario.; Dónde consultar el catálogo CABYS cuando la actividad no está en el subconjunto curado.); ho-cliente-espana-lleva-iva (La exención aplica a los servicios prestados por contribuyentes del impuesto cuando son consumidos fuera del territorio nacional.; La operación exenta se documenta igual, con el comprobante electrónico que corresponda.; Qué comprobante emitir y qué conservar como prueba de que el servicio se consumió fuera del país.; Si el servicio se consume en Costa Rica, la tarifa general del impuesto es del 13 %. (13 % | 13% | trece por ciento: absent)); ho-iva-en-cero-sin-facturar (Dónde se presenta la declaración hoy y qué pasa si ya venció el plazo.; El plazo vence el decimoquinto día natural del mes siguiente. (decimoquinto día natural | día 15 | 15 de cada mes: absent); Omitir la declaración dentro del plazo legal se sanciona con una multa del cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent)); ho-rebajar-25-sin-facturas (La deducción única fue incorporada por la Ley 10818 del 13 de noviembre de 2025, así que rige para los períodos que esa reforma alcanza.); ho-minimo-renta-2026 (Los tramos son anuales y se aplican sobre la renta neta, no sobre los ingresos brutos.; El período del impuesto va del 1 de enero al 31 de diciembre.; Dónde se consultan los tramos vigentes cuando cambia el decreto anual.); ho-ademas-tengo-salario (Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.; Qué se declara en la declaración anual cuando hay salario y actividad, y cómo se tratan las retenciones ya soportadas.; Los pagos parciales: cuándo se pagan y que puede pedirse su rebaja cuando la renta del período va a ser menor.; La declaración anual y el pago vencen dentro de los dos meses y quince días naturales siguientes al cierre del período. (dos meses y quince días | 2 meses y 15 días: absent)); ho-minimo-caja-independiente-2026 (Cómo se declara y se actualiza el ingreso de referencia sobre el que se aplican esos porcentajes.; El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico: ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent); La base mínima contributiva es 0,9295 salarios mínimos en el Seguro de Salud y 0,87 salarios mínimos en el de IVM. (0,9295 SM | 0,9295 salarios mínimos: absent)); ho-tambien-asegurado-por-patrono (Qué hay que hacer ante la CCSS para quedar registrado en las dos condiciones.); ho-desinscribir-debiendo-declaraciones (Desinscribirse no borra las obligaciones ya devengadas: las declaraciones pendientes siguen debiéndose y se sancionan igual.; Mientras la persona siga inscrita, la obligación de declarar continúa aunque ya no facture.; El orden recomendado: presentar lo pendiente y después solicitar la desinscripción indicando el motivo y la fecha de cese.; Cada declaración omitida dentro del plazo legal se sanciona con el cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent)): expected [ …(21) ] to deeply equal []
+2026-09-16T04:52:45.4145043Z 
+2026-09-16T04:52:45.4145464Z - Expected
+2026-09-16T04:52:45.4145799Z + Received
+2026-09-16T04:52:45.4145953Z 
+2026-09-16T04:52:45.4146076Z - []
+2026-09-16T04:52:45.4146320Z + [
+2026-09-16T04:52:45.4150261Z +   "ccss-pedir-prescripcion-cuotas (Si la deuda está en verificación, la nota se presenta ante la unidad o sucursal financiera de la CCSS a cargo del procedimiento e incluye lugar y fecha, identificación del caso si existe, nombre e identificación, condición en que actúa, periodos solicitados, medio para notificaciones y firma.; Si la deuda ya está en cobro, la solicitud puede enviarse a cobros@ccss.sa.cr; si no tiene firma digital, debe firmarla en papel, escanearla, adjuntar la identificación por ambos lados y luego presentarse a firmar cuando la CCSS lo cite.; El canal correcto según la fase del caso — la unidad o sucursal financiera si está en verificación, cobros@ccss.sa.cr si ya está en cobro — y el plazo en que la Administración resuelve.)",
+2026-09-16T04:52:45.4157159Z +   "ccss-obligacion-ingreso-bajo (Dónde se hace la afiliación y qué se declara: el ingreso de referencia, en la sucursal de la CCSS que corresponda a la zona de adscripción.; La cuota se calcula sobre un ingreso de referencia que no baja de la base mínima contributiva, fijada en 0,9295 salarios mínimos para el Seguro de Salud. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent))",
+2026-09-16T04:52:45.4184260Z +   "desinscripcion-dejar-actividad (Al cesar la actividad económica hay que desinscribirse del Registro de Contribuyentes; no basta con dejar de facturar.; Mientras la persona siga inscrita conserva sus obligaciones de declarar, y omitir una declaración se sanciona aunque no haya habido ingresos.; La desinscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, en «Mis datos» → «Solicitar desinscripción», indicando motivo y fecha de cese; el antiguo formulario D-140 ya no existe.; Al desinscribirse del IVA hay que liquidar el impuesto sobre las existencias de bienes y los bienes afectos que queden, salvo que opere la continuidad del negocio.; Los pasos en la OVi: dónde está la solicitud, qué campos son obligatorios y cuál es el efecto (estado «Desinscrito», con posibilidad de reinscribirse).)",
+2026-09-16T04:52:45.4192570Z +   "multa-iva-no-declarado (La sanción se reduce si se subsana antes de que la Administración Tributaria actúe (CNPT artículo 88).; Cómo regularizar: presentar las declaraciones omitidas y pagar en TRIBU-CR, y que hacerlo antes de cualquier actuación de la Administración rebaja la sanción.; El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent))",
+2026-09-16T04:52:45.4205273Z +   "inscripcion-tardia-sancion (Subsanar de forma espontánea, antes de cualquier actuación de la Administración, rebaja la sanción en un setenta y cinco por ciento (75 %), u ochenta por ciento (80 %) si se autoliquida y paga en ese momento (CNPT artículo 88).; Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.; El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent))",
+2026-09-16T04:52:45.4226254Z +   "ho-hacienda-solo-cliente-eeuu (Facturar sólo a clientes del exterior no exime de inscribirse: aunque el servicio llegue a calificar como exportación exenta —lo que depende de que se consuma fuera de Costa Rica—, estar exento no es lo mismo que no ser contribuyente.; La inscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, como declaración de inscripción del Registro Único Tributario.; Omitir la declaración de inscripción se sanciona con el cincuenta por ciento (50 %) de un salario base por cada mes o fracción de atraso. (50 % | 50% | cincuenta por ciento: absent))",
+2026-09-16T04:52:45.4234799Z +   "ho-trabajitos-por-mi-cuenta (Sí: iniciar una actividad lucrativa por cuenta propia obliga a inscribirse ante la Administración Tributaria al momento de iniciarla, sin importar lo pequeña que sea.; La persona física con actividad lucrativa es contribuyente del impuesto sobre las utilidades y, si presta servicios gravados, también del IVA.; La inscripción ante Hacienda no sustituye el aseguramiento ante la CCSS como trabajador independiente: son dos obligaciones distintas.; Los dos trámites que siguen: la declaración de inscripción del RUT en la Oficina Virtual de TRIBU-CR y la afiliación como trabajador independiente en la CCSS.)",
+2026-09-16T04:52:45.4239949Z +   "ho-donde-inscribo-ya-no-atv (El camino dentro de la OVi hasta la declaración de inscripción y qué datos pide (actividad, fecha de inicio, domicilio).)",
+2026-09-16T04:52:45.4244443Z +   "ho-desde-cuanta-plata-caja (Cómo se declara el ingreso de referencia y dónde se paga la cuota.; La base mínima contributiva del Seguro de IVM es 0,87 salarios mínimos. (0,87 SM | 0,87 salarios mínimos | 0.87 SM: absent); El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico, ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent))",
+2026-09-16T04:52:45.4247743Z +   "ho-donde-me-afilio-caja (La cuota se paga mensualmente, dentro de la fecha que corresponde según la primera letra del primer apellido.)",
+2026-09-16T04:52:45.4253541Z +   "ho-tiquete-en-vez-de-factura (Los únicos comprobantes autorizados para cumplir obligaciones tributarias son los que lista el artículo 9 del Reglamento de Comprobantes Electrónicos: factura electrónica, factura electrónica de compra, factura electrónica de exportación, tiquete electrónico, recibo electrónico de pago y las notas de crédito y débito.; Quien emite comprobantes electrónicos debe estar inscrito en el Registro Único Tributario y tener registrado un correo electrónico válido ante la Administración Tributaria.)",
+2026-09-16T04:52:45.4259107Z +   "ho-factura-electronica-o-recibo (Con qué emitir: el facturador gratuito de Hacienda o un proveedor de sistemas de comprobantes electrónicos.; Los comprobantes electrónicos y sus documentos asociados deben almacenarse y conservarse por un plazo de cinco años. (cinco años | 5 años: absent))",
+2026-09-16T04:52:45.4263176Z +   "ho-cabys-paginas-web (El detalle del comprobante lleva, por cada bien o servicio, un código de producto junto con la descripción, la cantidad y el precio unitario.; Dónde consultar el catálogo CABYS cuando la actividad no está en el subconjunto curado.)",
+2026-09-16T04:52:45.4268647Z +   "ho-cliente-espana-lleva-iva (La exención aplica a los servicios prestados por contribuyentes del impuesto cuando son consumidos fuera del territorio nacional.; La operación exenta se documenta igual, con el comprobante electrónico que corresponda.; Qué comprobante emitir y qué conservar como prueba de que el servicio se consumió fuera del país.; Si el servicio se consume en Costa Rica, la tarifa general del impuesto es del 13 %. (13 % | 13% | trece por ciento: absent))",
+2026-09-16T04:52:45.4275085Z +   "ho-iva-en-cero-sin-facturar (Dónde se presenta la declaración hoy y qué pasa si ya venció el plazo.; El plazo vence el decimoquinto día natural del mes siguiente. (decimoquinto día natural | día 15 | 15 de cada mes: absent); Omitir la declaración dentro del plazo legal se sanciona con una multa del cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent))",
+2026-09-16T04:52:45.4278750Z +   "ho-rebajar-25-sin-facturas (La deducción única fue incorporada por la Ley 10818 del 13 de noviembre de 2025, así que rige para los períodos que esa reforma alcanza.)",
+2026-09-16T04:52:45.4281961Z +   "ho-minimo-renta-2026 (Los tramos son anuales y se aplican sobre la renta neta, no sobre los ingresos brutos.; El período del impuesto va del 1 de enero al 31 de diciembre.; Dónde se consultan los tramos vigentes cuando cambia el decreto anual.)",
+2026-09-16T04:52:45.4288549Z +   "ho-ademas-tengo-salario (Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.; Qué se declara en la declaración anual cuando hay salario y actividad, y cómo se tratan las retenciones ya soportadas.; Los pagos parciales: cuándo se pagan y que puede pedirse su rebaja cuando la renta del período va a ser menor.; La declaración anual y el pago vencen dentro de los dos meses y quince días naturales siguientes al cierre del período. (dos meses y quince días | 2 meses y 15 días: absent))",
+2026-09-16T04:52:45.4296108Z +   "ho-minimo-caja-independiente-2026 (Cómo se declara y se actualiza el ingreso de referencia sobre el que se aplican esos porcentajes.; El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico: ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent); La base mínima contributiva es 0,9295 salarios mínimos en el Seguro de Salud y 0,87 salarios mínimos en el de IVM. (0,9295 SM | 0,9295 salarios mínimos: absent))",
+2026-09-16T04:52:45.4299760Z +   "ho-tambien-asegurado-por-patrono (Qué hay que hacer ante la CCSS para quedar registrado en las dos condiciones.)",
+2026-09-16T04:52:45.4305232Z +   "ho-desinscribir-debiendo-declaraciones (Desinscribirse no borra las obligaciones ya devengadas: las declaraciones pendientes siguen debiéndose y se sancionan igual.; Mientras la persona siga inscrita, la obligación de declarar continúa aunque ya no facture.; El orden recomendado: presentar lo pendiente y después solicitar la desinscripción indicando el motivo y la fecha de cese.; Cada declaración omitida dentro del plazo legal se sanciona con el cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent))",
+2026-09-16T04:52:45.4308658Z + ]
+2026-09-16T04:52:45.4308946Z 
+2026-09-16T04:52:45.4309585Z  ❯ src/lib/eval/groundedness.eval.test.ts:395:71
+2026-09-16T04:52:45.4311171Z  ✓  eval  src/lib/eval/dataset-satisfiability.eval.test.ts (3 tests) 735ms
+2026-09-16T04:52:45.4313319Z     393|       .filter((r) => r.evalCase.tier === 1 && adequacyFailed(r))
+2026-09-16T04:52:45.4315449Z     394|       .map((r) => `${r.evalCase.id} (${adequacyReason(r)})`);
+2026-09-16T04:52:45.4316978Z     395|     expect(failed, `inadequate tier 1 answers: ${failed.join("; ")}`).…
+2026-09-16T04:52:45.4317934Z        |                                                                       ^
+2026-09-16T04:52:45.4318862Z     396|       [],
+2026-09-16T04:52:45.4319683Z     397|     );
+2026-09-16T04:52:45.4319957Z 
+2026-09-16T04:52:45.4320402Z ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+2026-09-16T04:52:45.4320727Z 
+2026-09-16T04:52:45.4322616Z  FAIL   eval  src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > ships no answer the runtime citation invariant would refuse
+2026-09-16T04:52:45.4324779Z AssertionError: citation violations: ho-tiquete-en-vez-de-factura (unresolved_markers): expected [ Array(1) ] to deeply equal []
+2026-09-16T04:52:45.4325634Z 
+2026-09-16T04:52:45.4325834Z - Expected
+2026-09-16T04:52:45.4326237Z + Received
+2026-09-16T04:52:45.4326439Z 
+2026-09-16T04:52:45.4326603Z - []
+2026-09-16T04:52:45.4326932Z + [
+2026-09-16T04:52:45.4327812Z +   "ho-tiquete-en-vez-de-factura (unresolved_markers)",
+2026-09-16T04:52:45.4328390Z + ]
+2026-09-16T04:52:45.4328556Z 
+2026-09-16T04:52:45.4329096Z  ❯ src/lib/eval/groundedness.eval.test.ts:427:65
+2026-09-16T04:52:45.4330042Z     425|           `${r.evalCase.id} (${(r.citations as Exclude<CitationVerdict…
+2026-09-16T04:52:45.4330739Z     426|       );
+2026-09-16T04:52:45.4331780Z     427|     expect(failed, `citation violations: ${failed.join("; ")}`).toEqua…
+2026-09-16T04:52:45.4332680Z        |                                                                 ^
+2026-09-16T04:52:45.4333288Z     428|   });
+2026-09-16T04:52:45.4333691Z     429|
+2026-09-16T04:52:45.4333881Z 
+2026-09-16T04:52:45.4334233Z ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+2026-09-16T04:52:45.4334543Z 
+2026-09-16T04:52:45.4336033Z  FAIL   eval  src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > every blocking case's answer is supported by its retrieved chunks
+2026-09-16T04:52:45.4350097Z AssertionError: ungrounded blocking answers: iva-clientes-fuera-cr (The answer states that the Factura Electrónica de Exportación must be used for exempt services consumed abroad, but fragment [8] only defines that document type for 'exportación de mercancías' and services/intangibles 'hacia el exterior,' without explicitly requiring it for all exempt services under article 8(1) of the IVA law.); ho-cliente-espana-lleva-iva (The answer claims the service is taxed in Costa Rica because the provider is located there, but fragment [5] establishes two alternative criteria where the second requires the recipient to be a contributor in Costa Rica, which is not the case here (the client is in Spain), and the answer does not adequately address whether the first criterion alone suffices when the service is consumed abroad.); ho-rebajar-25-sin-facturas (The answer states that the 25% deduction applies to 'profesionales, técnicos, agentes vendedores, comisionistas y de seguros' and cites fragment [8], but fragment [8] (article 8 inciso s) only mentions 'personas físicas que presten sus servicios, tanto los profesionales como los técnicos, y cualquier otro sujeto pasivo que preste servicios personales, sin que medie relación de dependencia con sus clientes, así como los agentes vendedores, agentes comisionistas y agentes de seguros'; the answer's phrasing suggests the 25% applies to all these categories, but the fragment structure ('personas físicas que presten sus servicios... así como los agentes...') may be read as two groups, and the answer does not clarify this ambiguity or acknowledge that the scope is uncertain from the text alone.): expected [ …(3) ] to deeply equal []
+2026-09-16T04:52:45.4363058Z 
+2026-09-16T04:52:45.4363353Z - Expected
+2026-09-16T04:52:45.4363765Z + Received
+2026-09-16T04:52:45.4363993Z 
+2026-09-16T04:52:45.4364162Z - []
+2026-09-16T04:52:45.4364500Z + [
+2026-09-16T04:52:45.4367970Z +   "iva-clientes-fuera-cr (The answer states that the Factura Electrónica de Exportación must be used for exempt services consumed abroad, but fragment [8] only defines that document type for 'exportación de mercancías' and services/intangibles 'hacia el exterior,' without explicitly requiring it for all exempt services under article 8(1) of the IVA law.)",
+2026-09-16T04:52:45.4373734Z +   "ho-cliente-espana-lleva-iva (The answer claims the service is taxed in Costa Rica because the provider is located there, but fragment [5] establishes two alternative criteria where the second requires the recipient to be a contributor in Costa Rica, which is not the case here (the client is in Spain), and the answer does not adequately address whether the first criterion alone suffices when the service is consumed abroad.)",
+2026-09-16T04:52:45.4383245Z +   "ho-rebajar-25-sin-facturas (The answer states that the 25% deduction applies to 'profesionales, técnicos, agentes vendedores, comisionistas y de seguros' and cites fragment [8], but fragment [8] (article 8 inciso s) only mentions 'personas físicas que presten sus servicios, tanto los profesionales como los técnicos, y cualquier otro sujeto pasivo que preste servicios personales, sin que medie relación de dependencia con sus clientes, así como los agentes vendedores, agentes comisionistas y agentes de seguros'; the answer's phrasing suggests the 25% applies to all these categories, but the fragment structure ('personas físicas que presten sus servicios... así como los agentes...') may be read as two groups, and the answer does not clarify this ambiguity or acknowledge that the scope is uncertain from the text alone.)",
+2026-09-16T04:52:45.4388077Z + ]
+2026-09-16T04:52:45.4388285Z 
+2026-09-16T04:52:45.4388862Z  ❯ src/lib/eval/groundedness.eval.test.ts:436:73
+2026-09-16T04:52:45.4389973Z     434|     // passed it with two Tier 1 held-out cases failing unanimously.
+2026-09-16T04:52:45.4391284Z     435|     const failed = blockingGroundednessFailures(results);
+2026-09-16T04:52:45.4392638Z     436|     expect(failed, `ungrounded blocking answers: ${failed.join("; ")}`…
+2026-09-16T04:52:45.4393576Z        |                                                                         ^
+2026-09-16T04:52:45.4394209Z     437|       [],
+2026-09-16T04:52:45.4394757Z     438|     );
+2026-09-16T04:52:45.4395037Z 
+2026-09-16T04:52:45.4395410Z ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+2026-09-16T04:52:45.4395718Z 
+2026-09-16T04:52:45.4395745Z 
+2026-09-16T04:52:45.4396382Z  Test Files  3 failed | 5 passed (8)
+2026-09-16T04:52:45.4397488Z       Tests  5 failed | 31 passed (36)
+2026-09-16T04:52:45.4398232Z    Start at  04:11:58
+2026-09-16T04:52:45.4399263Z    Duration  2446.58s (transform 440ms, setup 0ms, import 1.73s, tests 2443.66s, environment 1ms)
+2026-09-16T04:52:45.4399886Z 
+2026-09-16T04:52:45.4399897Z 
+2026-09-16T04:52:45.4429718Z ##[error]AssertionError: answered instead of declining: ho-abs-calculo-personalizado (The assistant provided the substantive tax calculation method and tables instead of refusing to perform the personalized calculation.): expected 0.8888888888888888 to be greater than or equal to 0.9
+ ❯ src/lib/eval/abstention.eval.test.ts:212:7
+
+
+2026-09-16T04:52:45.4441165Z 
+2026-09-16T04:52:45.4455846Z ##[error]AssertionError: judge: The answer states the fragments show 'two different decrees with different figures' but does not explicitly say they contradict each other or are inconsistent; it frames them as potentially both valid for different years rather than as conflicting information.
+
+answer:
+Los documentos oficiales muestran dos decretos distintos con cifras diferentes para el tramo exento del impuesto sobre la renta de personas físicas con actividad lucrativa, y ninguno indica expresamente que uno sustituye al otro:
+
+- Decreto Ejecutivo 44000 (tramos 2026): exento hasta ¢4.094.000 anuales [1].
+- Decreto Ejecutivo 43500 (tramos 2025): exento hasta ¢3.947.000 anuales [2].
+
+Al tratarse de dos decretos con números distintos, no puedo asumir cuál rige actualmente ni promediar ni escoger uno por ser más reciente. Le recomiendo verificar directamente cuál decreto está vigente en el Ministerio de Hacienda, a través de https://www.hacienda.go.cr, antes de aplicar la cifra a su declaración.: expected 'fail' to be 'pass' // Object.is equality
+
+Expected: "pass"
+Received: "fail"
+
+ ❯ src/lib/eval/conflicting-sources.eval.test.ts:65:63
+
+
+2026-09-16T04:52:45.4463974Z 
+2026-09-16T04:52:45.4597095Z ##[error]AssertionError: inadequate tier 1 answers: ccss-pedir-prescripcion-cuotas (Si la deuda está en verificación, la nota se presenta ante la unidad o sucursal financiera de la CCSS a cargo del procedimiento e incluye lugar y fecha, identificación del caso si existe, nombre e identificación, condición en que actúa, periodos solicitados, medio para notificaciones y firma.; Si la deuda ya está en cobro, la solicitud puede enviarse a cobros@ccss.sa.cr; si no tiene firma digital, debe firmarla en papel, escanearla, adjuntar la identificación por ambos lados y luego presentarse a firmar cuando la CCSS lo cite.; El canal correcto según la fase del caso — la unidad o sucursal financiera si está en verificación, cobros@ccss.sa.cr si ya está en cobro — y el plazo en que la Administración resuelve.); ccss-obligacion-ingreso-bajo (Dónde se hace la afiliación y qué se declara: el ingreso de referencia, en la sucursal de la CCSS que corresponda a la zona de adscripción.; La cuota se calcula sobre un ingreso de referencia que no baja de la base mínima contributiva, fijada en 0,9295 salarios mínimos para el Seguro de Salud. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent)); desinscripcion-dejar-actividad (Al cesar la actividad económica hay que desinscribirse del Registro de Contribuyentes; no basta con dejar de facturar.; Mientras la persona siga inscrita conserva sus obligaciones de declarar, y omitir una declaración se sanciona aunque no haya habido ingresos.; La desinscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, en «Mis datos» → «Solicitar desinscripción», indicando motivo y fecha de cese; el antiguo formulario D-140 ya no existe.; Al desinscribirse del IVA hay que liquidar el impuesto sobre las existencias de bienes y los bienes afectos que queden, salvo que opere la continuidad del negocio.; Los pasos en la OVi: dónde está la solicitud, qué campos son obligatorios y cuál es el efecto (estado «Desinscrito», con posibilidad de reinscribirse).); multa-iva-no-declarado (La sanción se reduce si se subsana antes de que la Administración Tributaria actúe (CNPT artículo 88).; Cómo regularizar: presentar las declaraciones omitidas y pagar en TRIBU-CR, y que hacerlo antes de cualquier actuación de la Administración rebaja la sanción.; El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent)); inscripcion-tardia-sancion (Subsanar de forma espontánea, antes de cualquier actuación de la Administración, rebaja la sanción en un setenta y cinco por ciento (75 %), u ochenta por ciento (80 %) si se autoliquida y paga en ese momento (CNPT artículo 88).; Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.; El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent)); ho-hacienda-solo-cliente-eeuu (Facturar sólo a clientes del exterior no exime de inscribirse: aunque el servicio llegue a calificar como exportación exenta —lo que depende de que se consuma fuera de Costa Rica—, estar exento no es lo mismo que no ser contribuyente.; La inscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, como declaración de inscripción del Registro Único Tributario.; Omitir la declaración de inscripción se sanciona con el cincuenta por ciento (50 %) de un salario base por cada mes o fracción de atraso. (50 % | 50% | cincuenta por ciento: absent)); ho-trabajitos-por-mi-cuenta (Sí: iniciar una actividad lucrativa por cuenta propia obliga a inscribirse ante la Administración Tributaria al momento de iniciarla, sin importar lo pequeña que sea.; La persona física con actividad lucrativa es contribuyente del impuesto sobre las utilidades y, si presta servicios gravados, también del IVA.; La inscripción ante Hacienda no sustituye el aseguramiento ante la CCSS como trabajador independiente: son dos obligaciones distintas.; Los dos trámites que siguen: la declaración de inscripción del RUT en la 
+2026-09-16T04:52:45.4622106Z 
+2026-09-16T04:52:45.4626313Z ##[error]AssertionError: citation violations: ho-tiquete-en-vez-de-factura (unresolved_markers): expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "ho-tiquete-en-vez-de-factura (unresolved_markers)",
++ ]
+
+ ❯ src/lib/eval/groundedness.eval.test.ts:427:65
+
+
+2026-09-16T04:52:45.4628823Z 
+2026-09-16T04:52:45.4668546Z ##[error]AssertionError: ungrounded blocking answers: iva-clientes-fuera-cr (The answer states that the Factura Electrónica de Exportación must be used for exempt services consumed abroad, but fragment [8] only defines that document type for 'exportación de mercancías' and services/intangibles 'hacia el exterior,' without explicitly requiring it for all exempt services under article 8(1) of the IVA law.); ho-cliente-espana-lleva-iva (The answer claims the service is taxed in Costa Rica because the provider is located there, but fragment [5] establishes two alternative criteria where the second requires the recipient to be a contributor in Costa Rica, which is not the case here (the client is in Spain), and the answer does not adequately address whether the first criterion alone suffices when the service is consumed abroad.); ho-rebajar-25-sin-facturas (The answer states that the 25% deduction applies to 'profesionales, técnicos, agentes vendedores, comisionistas y de seguros' and cites fragment [8], but fragment [8] (article 8 inciso s) only mentions 'personas físicas que presten sus servicios, tanto los profesionales como los técnicos, y cualquier otro sujeto pasivo que preste servicios personales, sin que medie relación de dependencia con sus clientes, así como los agentes vendedores, agentes comisionistas y agentes de seguros'; the answer's phrasing suggests the 25% applies to all these categories, but the fragment structure ('personas físicas que presten sus servicios... así como los agentes...') may be read as two groups, and the answer does not clarify this ambiguity or acknowledge that the scope is uncertain from the text alone.): expected [ …(3) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "iva-clientes-fuera-cr (The answer states that the Factura Electrónica de Exportación must be used for exempt services consumed abroad, but fragment [8] only defines that document type for 'exportación de mercancías' and services/intangibles 'hacia el exterior,' without explicitly requiring it for all exempt services under article 8(1) of the IVA law.)",
++   "ho-cliente-espana-lleva-iva (The answer claims the service is taxed in Costa Rica because the provider is located there, but fragment [5] establishes two alternative criteria where the second requires the recipient to be a contributor in Costa Rica, which is not the case here (the client is in Spain), and the answer does not adequately address whether the first criterion alone suffices when the service is consumed abroad.)",
++   "ho-rebajar-25-sin-facturas (The answer states that the 25% deduction applies to 'profesionales, técnicos, agentes vendedores, comisionistas y de seguros' and cites fragment [8], but fragment [8] (article 8 inciso s) only mentions 'personas físicas que presten sus servicios, tanto los profesionales como los técnicos, y cualquier otro sujeto pasivo que preste servicios personales, sin que medie relación de dependencia con sus clientes, así como los agentes vendedores, agentes comisionistas y agentes de seguros'; the answer's phrasing suggests the 25% applies to all these categories, but the fragment structure ('personas físicas que presten sus servicios... así como los agentes...') may be read as two groups, and the answer does not clarify this ambiguity or acknowledge that the scope is uncertain from the text alone.)",
++ ]
+
+ ❯ src/lib/eval/groundedness.eval.test.ts:436:73
+
+
+2026-09-16T04:52:45.4720422Z [ELIFECYCLE] Command failed with exit code 1.
+2026-09-16T04:52:45.5038255Z ##[error]Process completed with exit code 1.
+2026-09-16T04:52:45.5126816Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

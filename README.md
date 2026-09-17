@@ -78,25 +78,38 @@ corpus, the question history and the quota, all behind row-level security.
 
 ## The numbers
 
-The corpus is 23 official documents in 871 chunks. The eval set is 73 hand-written cases,
+The corpus is 23 official documents in 876 chunks. The eval set is 73 hand-written cases,
 each with the artículo the answer must cite and, for the 40 that carry them, the claims a
 complete answer must make. Every case is run through the production pipeline and judged by
-a second model at temperature 0. The tables below are from the closing run of 2026-09-11,
-published with transcripts in [`eval/runs/2026-09-11-closing/`](eval/runs/2026-09-11-closing/).
+a second model at temperature 0. The table carries the three full runs since the pipeline
+was frozen: the closing run of 2026-09-11
+([`eval/runs/2026-09-11-closing/`](eval/runs/2026-09-11-closing/)), the record run of
+2026-09-15 that measured the last knob and left it where it was
+([`eval/runs/2026-09-15-top-k/`](eval/runs/2026-09-15-top-k/)), and the first run against
+the deployed stack on 2026-09-16, executed by the eval workflow on GitHub Actions
+([`eval/runs/2026-09-16-production/`](eval/runs/2026-09-16-production/)).
 
-| Gate                                            | Baseline (2026-09-05) | Closing run (2026-09-11) | Threshold |
-| ----------------------------------------------- | --------------------- | ------------------------ | --------- |
-| Retrieval hit-rate (cited artículo in top 8)    | 63/73                 | **70/73**                | ≥ 0.92    |
-| Groundedness (answer supported by its chunks)   | 70/73                 | **70/73**                | ≥ 0.94    |
-| Adequacy, Tier 2 (every required claim present) | 9/13                  | **12/13**                | ≥ 0.84    |
-| Abstention (declines when it should)            | 4/7                   | **9/9**                  | ≥ 0.90    |
+| Gate                                            | Baseline (2026-09-05) | Closing run (2026-09-11) | Record (2026-09-15) | Production (2026-09-16) | Threshold |
+| ----------------------------------------------- | --------------------- | ------------------------ | ------------------- | ----------------------- | --------- |
+| Retrieval hit-rate (cited artículo in top 8)    | 63/73                 | 70/73                    | 72/73               | **70/73**               | ≥ 0.92    |
+| Groundedness (answer supported by its chunks)   | 70/73                 | 70/73                    | 69/73               | **69/73**               | ≥ 0.94    |
+| Adequacy, Tier 2 (every required claim present) | 9/13                  | 12/13                    | 10/13               | **12/13**               | ≥ 0.84    |
+| Abstention (declines when it should)            | 4/7                   | 9/9                      | 9/9                 | **8/9**                 | ≥ 0.90    |
+| Adequacy, Tier 1 (every required claim present) | —                     | 5/27                     | 3/27                | **6/27**                | 27/27     |
+| Blocking cases that fail groundedness           | —                     | 2                        | 3                   | **2**                   | 0         |
+| Answers with an unresolved citation marker      | —                     | 0                        | 2                   | **1**                   | 0         |
 
-Tier 1, the 27 cases the product promise depends on, is fully adequate in 5 of 27: the
-answers are cited and grounded but miss required steps or figures. That is the open work
-([#305](https://github.com/rjwrld/tramitico/issues/305),
-[#311](https://github.com/rjwrld/tramitico/issues/311)), and it is recorded as an accepted,
-dated risk rather than hidden by an aggregate. A full run costs about US$6 in provider
-spend; the runs behind these tables cost on the order of US$30 in total.
+The last three rows are the per-case gates added after the baseline; the closing run's
+values are read from its transcripts. Read the three dated columns as a band, not a trend:
+the pipeline barely changed between them, and Tier 1 moved by three cases, hit-rate and
+groundedness by one or two. A single reading is a point inside that band.
+
+Tier 1, the 27 cases the product promise depends on, is fully adequate in 6 of 27 on the
+production run: the answers are cited and grounded but miss required steps or figures. That
+is the open work ([#352](https://github.com/rjwrld/tramitico/issues/352), with
+[#311](https://github.com/rjwrld/tramitico/issues/311) measured inside its next run), and it
+is recorded as an accepted, dated risk rather than hidden by an aggregate. A full run costs
+about US$6 in provider spend.
 
 How the gates are defined, how thresholds ratchet and never lower, and every run since the
 first are in [`eval/README.md`](eval/README.md).
@@ -112,11 +125,23 @@ The full account, including what was lost and what the gates failed to say, is i
 
 ## Limitations
 
-- Tier 1 adequacy is 5 of 27. Answers in those families are cited and grounded but
-  incomplete.
-- Two Tier 1 groundedness failures remain in the closing run, both wrong statements rather
-  than missing ones ([#324](https://github.com/rjwrld/tramitico/issues/324)). The per-case
-  gate that now names them was added after that run.
+- Four eval gates are red on the production run. Tier 1 adequacy and the per-case
+  groundedness gate were red on the two runs before it; abstention and the citation
+  invariant were clean on the closing run and have slipped by one case since. They are the
+  open work in [#352](https://github.com/rjwrld/tramitico/issues/352):
+  - Tier 1 adequacy is 6 of 27. Answers in those families are cited and grounded but
+    incomplete.
+  - Two Tier 1 answers fail groundedness, both on IVA for services sold abroad, both wrong
+    statements rather than missing ones
+    ([#324](https://github.com/rjwrld/tramitico/issues/324)). One of them has failed on every
+    run since the per-case gate was added.
+  - One of nine abstention cases answers: asked for a personalised calculation, the model
+    gives the method and the tables instead of declining.
+  - One answer carried a citation marker that points at no source. The runtime contract
+    should refuse it before it ships; the invariant caught it at eval time.
+- The adversarial conflicting-sources case also failed on the production run, on the judge's
+  reading of one sentence rather than on a wrong claim. [#352](https://github.com/rjwrld/tramitico/issues/352) re-judges it before spending
+  anything on it.
 - No one outside the author has used it, and the author wrote the eval set. Peer questions
   are the next dataset.
 - The corpus has annual obligations, tramos, minimum wage, contribution scales, that a
