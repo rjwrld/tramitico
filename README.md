@@ -125,8 +125,10 @@ The full account, including what was lost and what the gates failed to say, is i
 
 ## Limitations
 
-- Four eval gates are red on the production run, and were red on the two runs before it.
-  They are the open work in [#352](https://github.com/rjwrld/tramitico/issues/352):
+- Four eval gates are red on the production run. Tier 1 adequacy and the per-case
+  groundedness gate were red on the two runs before it; abstention and the citation
+  invariant were clean on the closing run and have slipped by one case since. They are the
+  open work in [#352](https://github.com/rjwrld/tramitico/issues/352):
   - Tier 1 adequacy is 6 of 27. Answers in those families are cited and grounded but
     incomplete.
   - Two Tier 1 answers fail groundedness, both on IVA for services sold abroad, both wrong
@@ -137,6 +139,9 @@ The full account, including what was lost and what the gates failed to say, is i
     gives the method and the tables instead of declining.
   - One answer carried a citation marker that points at no source. The runtime contract
     should refuse it before it ships; the invariant caught it at eval time.
+- The adversarial conflicting-sources case also failed on the production run, on the judge's
+  reading of one sentence rather than on a wrong claim. [#352](https://github.com/rjwrld/tramitico/issues/352) re-judges it before spending
+  anything on it.
 - No one outside the author has used it, and the author wrote the eval set. Peer questions
   are the next dataset.
 - The corpus has annual obligations, tramos, minimum wage, contribution scales, that a
