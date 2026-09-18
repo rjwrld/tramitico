@@ -192,7 +192,8 @@ finish() {
 # scanned and what it found — is docs/audits/2026-09-17-public-release-review.md.
 # The order matters: stages 2–4 work on a private repository, stages 6–8 are
 # features GitHub only offers a public one on the free plan, so they follow
-# the flip in stage 5. START_STAGE=N resumes at stage N.
+# the flip in stage 5. START_STAGE=N resumes at stage N — after stage 1, which
+# always runs, so no resume skips the fetch and the secret scan.
 # ──────────────────────────────────────────────────────────────────────────
 
 ENV_FILE=".env.release" # never written; keeps the library's `ask` defaults inert
@@ -347,8 +348,18 @@ say "  - issues, PRs and their comments are public"
 say "  - stars and forks start from zero; nothing else about the repo changes"
 say ""
 if confirm "Make ${REPO} public now?"; then
-  run_gh "visibility → public" gh repo edit "$REPO" --visibility public --accept-visibility-change-consequences || true
-  show "visibility" "$(visibility)"
+  # Stages 6–8 only make sense on a public repository, and stages 10–11 would
+  # tag and sign off a flip that never happened, so this one is a hard gate.
+  if ! run_gh "visibility → public" gh repo edit "$REPO" --visibility public --accept-visibility-change-consequences; then
+    warn "the visibility change failed; stopping before the public-only stages."
+    exit 1
+  fi
+  local now; now=$(visibility)
+  show "visibility" "$now"
+  if [[ "$now" != "public" ]]; then
+    warn "the API still reports '${now}'; stopping before the public-only stages."
+    exit 1
+  fi
 else
   say "Not flipped. Stages 6–8 need a public repository; stopping here."
   finish; exit 0
@@ -517,5 +528,10 @@ rm -f "$body"
 }
 
 banner "Tramitico → public: the #252 visibility flip"
-for n in $(seq "$START_STAGE" "$TOTAL_STAGES"); do "stage_$n"; done
+# Pre-flight runs on every invocation, resumed or not: START_STAGE=5 must not
+# be a way to flip the repository without this run's fetch and secret scan.
+stage_1
+FIRST_STAGE=$(( START_STAGE < 2 ? 2 : START_STAGE ))
+_STAGE_INDEX=$((FIRST_STAGE - 1))
+for n in $(seq "$FIRST_STAGE" "$TOTAL_STAGES"); do "stage_$n"; done
 finish
