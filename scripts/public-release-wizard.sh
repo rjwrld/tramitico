@@ -316,8 +316,8 @@ show "alerts (now)" "$(dependabot_alerts)"
 show "security updates (now)" "$(security_fixes)"
 say ""
 if confirm "Enable both?"; then
-  run_gh "Dependabot alerts" gh api -X PUT "repos/${REPO}/vulnerability-alerts" --silent || true
-  run_gh "Dependabot security updates" gh api -X PUT "repos/${REPO}/automated-security-fixes" --silent || true
+  run_gh "Dependabot alerts" gh api -X PUT "repos/${REPO}/vulnerability-alerts" --silent || exit 1
+  run_gh "Dependabot security updates" gh api -X PUT "repos/${REPO}/automated-security-fixes" --silent || exit 1
   show "alerts" "$(dependabot_alerts)"
   show "security updates" "$(security_fixes)"
 fi
@@ -375,7 +375,7 @@ show "secret scanning (now)" "$(secret_scanning)"
 show "push protection (now)" "$(push_protection)"
 say ""
 if confirm "Enable both?"; then
-  run_gh "secret scanning + push protection" gh api -X PATCH "repos/${REPO}" --silent --input - <<'JSON' || true
+  run_gh "secret scanning + push protection" gh api -X PATCH "repos/${REPO}" --silent --input - <<'JSON' || exit 1
 {"security_and_analysis":{"secret_scanning":{"status":"enabled"},"secret_scanning_push_protection":{"status":"enabled"}}}
 JSON
   show "secret scanning" "$(secret_scanning)"
@@ -392,7 +392,7 @@ say "This is the switch that makes that button exist."
 show "PVR (now)" "$(pvr)"
 say ""
 if confirm "Enable?"; then
-  run_gh "private vulnerability reporting" gh api -X PUT "repos/${REPO}/private-vulnerability-reporting" --silent || true
+  run_gh "private vulnerability reporting" gh api -X PUT "repos/${REPO}/private-vulnerability-reporting" --silent || exit 1
   show "PVR" "$(pvr)"
 fi
 pause
@@ -411,7 +411,7 @@ say "  - CodeRabbit NOT required: it reports on PRs only, and a bot outage must 
 show "protection (now)" "$(protection)"
 say ""
 if confirm "Apply?"; then
-  run_gh "branch protection on main" gh api -X PUT "repos/${REPO}/branches/main/protection" --silent --input - <<JSON || true
+  run_gh "branch protection on main" gh api -X PUT "repos/${REPO}/branches/main/protection" --silent --input - <<JSON || exit 1
 {
   "required_status_checks": { "strict": false, "contexts": ${PROTECTION_CONTEXTS} },
   "enforce_admins": true,
@@ -445,6 +445,13 @@ pause "All three look right? (Enter)"
 # ── 10 ────────────────────────────────────────────────────────────────────
 stage_10() {
 stage "Tag ${TAG} and the first release"
+# A resumed run (START_STAGE=10) never passed stage 5's gate, so read it again:
+# the first *public* release cannot go on a private repository.
+local now; now=$(visibility)
+if [[ "$now" != "public" ]]; then
+  warn "the repository is '${now}', not public; stopping before the release."
+  exit 1
+fi
 say "The tag goes on the commit main is at now; the release notes point at the README"
 say "rather than listing 350 pull requests."
 git fetch -q origin main
