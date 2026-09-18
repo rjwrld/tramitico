@@ -30,6 +30,8 @@ original scope (its §5 OUT-list is binding).
 | `supabase/migrations/`                                 | schema, applied to the shared local stack                                                                                      |
 | `supabase/tests/`                                      | pgTAP: the SQL-level least-privilege guard (`pnpm test:db`)                                                                    |
 | `e2e/`                                                 | Playwright on placeholder env; `*.local.spec.ts` via `playwright.local.config.ts`                                              |
+| `scripts/public-release-wizard.sh` + `docs/audits/`    | the #252 visibility flip: the owner-run settings pass, and the review record of what was scanned before it                     |
+| `.gitleaks.toml`                                       | `gitleaks git --log-opts=--all .` must stay at zero leaks; the allowlist covers corpus `doc_key` slugs, nothing else           |
 
 `/privacidad` names the subprocessors a question actually passes through (#136), so adding or
 removing one MUST update that page in the same change — the page is a claim about the code.

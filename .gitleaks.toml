@@ -1,0 +1,28 @@
+# The full-history secret scan behind the public-release review (#252).
+#
+#   gitleaks git --log-opts=--all .
+#
+# must report zero leaks on every branch and tag. Once the repository is
+# public, GitHub secret scanning and push protection watch new pushes; this
+# file is how the same scan is re-run locally, before a visibility change or
+# after a history rewrite.
+#
+# Every finding on the 2026-09-17 pass was the same false positive: the
+# generic-api-key rule sees `doc_key`/`docKey` followed by a long lowercase
+# slug (`reglamento-iva-vigente`, ...) and reads it as a credential. Those are
+# corpus document keys from `corpus/manifest.json`. The exception is scoped to
+# that one rule and anchored to its whole match, so a real secret on the same
+# line — or the same slug shape under any other rule — still fires.
+
+title = "tramitico"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
+description = "Corpus document keys (`doc_key` in manifest/index JSON, `docKey` in TypeScript) are slugs, not credentials."
+regexTarget = "match"
+regexes = ['''^doc_?[kK]ey"?\s*[:=]\s*"[a-z0-9-]+"$''']
