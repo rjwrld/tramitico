@@ -212,7 +212,6 @@ if [[ ! "$START_STAGE" =~ ^[0-9]+$ ]] ||
   exit 2
 fi
 START_STAGE=$((10#$START_STAGE))
-_STAGE_INDEX=$((START_STAGE - 1))
 
 # show LABEL VALUE prints one read-back line: what the API says now.
 show() { printf '  %s%-28s%s %s\n' "$DIM" "$1" "$RESET" "$2"; }
