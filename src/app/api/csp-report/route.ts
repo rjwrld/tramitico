@@ -3,10 +3,11 @@ import type { NextRequest } from "next/server";
 import { REDACTED } from "@/lib/log-redaction";
 
 /**
- * POST /api/csp-report — the reporting destination for the report-only policy
- * set in `next.config.ts` (#137). Reports are logged, nothing is stored: the
- * signal we need before promoting the CSP to enforced is "does the happy path
- * violate it", which the platform log answers for free.
+ * POST /api/csp-report — the reporting destination for the policy set in
+ * `next.config.ts` (#137, enforced since #121's coverage pass). Reports are
+ * logged, nothing is stored: the signal is "does the happy path violate it",
+ * which the platform log answers for free — and under enforcement a report is
+ * also a page that broke for someone, so a violation line is a bug report.
  *
  * This endpoint is unauthenticated and advertised on every response via
  * `Reporting-Endpoints`, so its body is attacker-controlled text arriving at

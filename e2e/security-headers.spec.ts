@@ -33,14 +33,15 @@ for (const [path, label] of [
       expect(headers[key], `${key} on ${path}`).toBe(value);
     }
 
-    const csp = headers["content-security-policy-report-only"];
-    expect(csp, `CSP-Report-Only on ${path}`).toBeTruthy();
+    const csp = headers["content-security-policy"];
+    expect(csp, `CSP on ${path}`).toBeTruthy();
     expect(csp).toContain("default-src 'self'");
     expect(csp).toContain("object-src 'none'");
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).toContain("report-uri /api/csp-report");
-    // Report-only never enforces — nothing must be sent as enforced yet (#121).
-    expect(headers["content-security-policy"]).toBeUndefined();
+    // Enforced since the #121 coverage pass — the report-only header must not
+    // come back beside it, or a regression would log instead of block.
+    expect(headers["content-security-policy-report-only"]).toBeUndefined();
     // poweredByHeader: false (#210) — no framework fingerprint.
     expect(headers["x-powered-by"]).toBeUndefined();
   });
