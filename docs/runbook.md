@@ -206,8 +206,8 @@ result count over the selected timeline.
 | Q11 | Asks the internal deadline killed    | `"abort":"deadline"` — any at all means the pipeline exhausted its internal budget; use `stages` to locate the delay                                                                               |
 | Q12 | Which stage consumes the budget?     | On instrumented lines, group `stages.retrieve`, `stages.rerank`, `stages.generate`, `stages.validate`, `stages.persist` (and `condense`) by bucket; keep failures and nulls visible                |
 | Q13 | Provider wait or output generation?  | Compare `generations[0].firstText` with `generations[0].latency`; inspect the second attempt separately when present                                                                               |
-| Q12 | Why the limiter is 503ing            | `rate limit: unavailable` — read the `error=` tokens off the matching lines                                                                                                                        |
-| Q13 | Declines by routing category (#264)  | `"routedCategory":"municipal"` (one query per category; `"routedCategory":"general"` is the unrouted default) — the content-free counter the decision record on #254 sets Tier 2 promotion against |
+| Q14 | Why the limiter is 503ing            | `rate limit: unavailable` — read the `error=` tokens off the matching lines                                                                                                                        |
+| Q15 | Declines by routing category (#264)  | `"routedCategory":"municipal"` (one query per category; `"routedCategory":"general"` is the unrouted default) — the content-free counter the decision record on #254 sets Tier 2 promotion against |
 
 **Error rate = Q2 ÷ Q1** over the same timeline. That is the number §4 is written against.
 Note what is deliberately _not_ in the numerator: `declined` (including the honest decline
