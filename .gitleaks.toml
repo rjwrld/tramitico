@@ -10,15 +10,19 @@
 # Every finding on the 2026-09-17 pass was the same false positive: the
 # generic-api-key rule sees `doc_key`/`docKey` followed by a long lowercase
 # slug (`reglamento-iva-vigente`, ...) and reads it as a credential. Those are
-# corpus document keys from `corpus/manifest.json`. The allowlist matches the
-# line, not the value, so a real secret assigned to any other name still fires.
+# corpus document keys from `corpus/manifest.json`. The exception is scoped to
+# that one rule and anchored to its whole match, so a real secret on the same
+# line — or the same slug shape under any other rule — still fires.
 
 title = "tramitico"
 
 [extend]
 useDefault = true
 
-[[allowlists]]
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
 description = "Corpus document keys (`doc_key` in manifest/index JSON, `docKey` in TypeScript) are slugs, not credentials."
-regexTarget = "line"
-regexes = ['''\bdoc_?[kK]ey"?\s*[:=]\s*"[a-z0-9-]+"''']
+regexTarget = "match"
+regexes = ['''^doc_?[kK]ey"?\s*[:=]\s*"[a-z0-9-]+"$''']

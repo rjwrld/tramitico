@@ -259,21 +259,29 @@ say ""
 local branch; branch=$(git rev-parse --abbrev-ref HEAD)
 show "branch" "$branch"
 show "working tree" "$(git status --porcelain | wc -l | tr -d ' ') uncommitted path(s)"
-git fetch -q origin main
+# Every branch and tag on the remote becomes public, so every one of them is
+# fetched before the scan: gitleaks only sees refs that exist locally.
+if ! git fetch -q --prune origin \
+  '+refs/heads/*:refs/remotes/origin/*' \
+  '+refs/tags/*:refs/tags/*'; then
+  warn "could not fetch every branch and tag from origin; stopping."
+  exit 1
+fi
+show "refs fetched" "$(git for-each-ref --format='%(refname)' refs/remotes/origin refs/tags | wc -l | tr -d ' ') (branches + tags)"
 show "main vs origin/main" "$(git rev-list --left-right --count main...origin/main | awk '{print "ahead "$1", behind "$2}')"
 show "last CI on main" "$(gh run list -R "$REPO" --branch main --workflow CI --limit 1 --json conclusion,headSha --jq '.[0] | "\(.conclusion) @ \(.headSha[0:7])"')"
 say ""
-if command -v gitleaks >/dev/null 2>&1; then
-  step "Full-history secret scan (every branch and tag, .gitleaks.toml allowlist):"
-  if gitleaks git --log-opts=--all --no-banner . >/dev/null 2>&1; then
-    printf '  %s✓%s gitleaks: no leaks found\n' "$GREEN" "$RESET"
-  else
-    warn "gitleaks reported findings — stop here and read them: gitleaks git --log-opts=--all ."
-    SKIPPED+=("gitleaks reported findings on the full history")
-  fi
+if ! command -v gitleaks >/dev/null 2>&1; then
+  warn "gitleaks is not installed (brew install gitleaks). The scan is the gate; stopping."
+  exit 1
+fi
+step "Full-history secret scan (every branch and tag, .gitleaks.toml allowlist):"
+if gitleaks git --log-opts=--all --no-banner . >/dev/null 2>&1; then
+  printf '  %s✓%s gitleaks: no leaks found\n' "$GREEN" "$RESET"
 else
-  warn "gitleaks is not installed (brew install gitleaks); the 2026-09-17 pass is recorded in ${REVIEW_DOC}"
-  SKIPPED+=("re-run the gitleaks full-history scan")
+  warn "gitleaks reported findings or failed to run. Read them before anything goes public:"
+  say "    gitleaks git --log-opts=--all ."
+  exit 1
 fi
 say ""
 step "Read ${REVIEW_DOC}: it says what was scanned, what was found, and what this wizard changes."
@@ -450,9 +458,19 @@ every material claim cited to the official Hacienda, CCSS, SINALEVI or BCCR text
 Tramitico is not legal or tax advice. Official sources change; the answer cites the
 version it read.
 NOTES
-  run_gh "tag ${TAG}" git tag -a "$TAG" "$sha" -m "Tramitico ${TAG} — first public release" || true
-  run_gh "push tag" git push origin "refs/tags/${TAG}" || true
-  run_gh "GitHub release" gh release create "$TAG" -R "$REPO" --title "Tramitico ${TAG}" --notes-file "$notes" --latest || true
+  # Fail-fast on purpose: without a pushed tag, `gh release create` would mint
+  # one from the default branch's tip, which may not be $sha. `--verify-tag`
+  # makes it refuse instead.
+  if ! run_gh "tag ${TAG}" git tag -a "$TAG" "$sha" -m "Tramitico ${TAG} — first public release"; then
+    rm -f "$notes"; return 1
+  fi
+  if ! run_gh "push tag" git push origin "refs/tags/${TAG}"; then
+    rm -f "$notes"; return 1
+  fi
+  if ! run_gh "GitHub release" gh release create "$TAG" -R "$REPO" \
+    --title "Tramitico ${TAG}" --notes-file "$notes" --latest --verify-tag; then
+    rm -f "$notes"; return 1
+  fi
   rm -f "$notes"
   show "release" "$(gh release view "$TAG" -R "$REPO" --json url --jq .url 2>/dev/null || printf '—')"
 fi
