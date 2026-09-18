@@ -89,6 +89,15 @@ export function latencyBucket(ms: number): LatencyBucket {
  */
 export type AskAbort = "client" | "deadline";
 
+export type AskStage =
+  "condense" | "retrieve" | "rerank" | "generate" | "validate" | "persist";
+
+export interface GenerationTiming {
+  latency: LatencyBucket;
+  /** Time to first nonempty text delta; null if none arrived. */
+  firstText: LatencyBucket | null;
+}
+
 /**
  * The event, in full. Every field is content-free by construction; see the
  * module note. `providerError` is `describeError`'s token — a class name and
@@ -98,6 +107,8 @@ export interface AskEvent {
   event: "ask";
   outcome: AskOutcome;
   latency: LatencyBucket;
+  stages: Record<AskStage, LatencyBucket | null>;
+  generations: GenerationTiming[];
   providerError: string | null;
   citationFailure: boolean;
   quotaHit: boolean;
@@ -179,6 +190,11 @@ function askOutcome(facts: AskFacts): AskOutcome {
  * runbook queries are written against.
  */
 export interface AskTelemetry {
+  /** Cumulative elapsed time per stage. Call the once-only stop in finally. */
+  startStage: (stage: AskStage) => () => void;
+  /** Measures one buffered attempt, including provider errors and cancellation. */
+  startGeneration: () => { firstText: () => void; finish: () => void };
+
   /** An answer was written to the wire. */
   answered: () => void;
   /** The vector leg was dropped for this ask (#127). */
@@ -209,7 +225,9 @@ export interface AskTelemetry {
  * Starts the clock. `now` is injectable so a test can pin a latency bucket
  * without waiting out a real ten seconds.
  */
-export function createAskTelemetry(now: () => number = Date.now): AskTelemetry {
+export function createAskTelemetry(
+  now: () => number = () => performance.now(),
+): AskTelemetry {
   const startedAt = now();
   const facts: AskFacts = {
     answered: false,
@@ -221,8 +239,47 @@ export function createAskTelemetry(now: () => number = Date.now): AskTelemetry {
     abort: null,
     routedCategory: null,
   };
+  const durations: Record<AskStage, number | null> = {
+    condense: null,
+    retrieve: null,
+    rerank: null,
+    generate: null,
+    validate: null,
+    persist: null,
+  };
+  const generations: GenerationTiming[] = [];
+  const startStage = (stage: AskStage): (() => void) => {
+    const start = now();
+    let stopped = false;
+    return () => {
+      if (stopped) return;
+      stopped = true;
+      durations[stage] = (durations[stage] ?? 0) + Math.max(0, now() - start);
+    };
+  };
   let emitted = false;
   return {
+    startStage,
+    startGeneration: () => {
+      const start = now();
+      const stop = startStage("generate");
+      let firstText: LatencyBucket | null = null;
+      let finished = false;
+      return {
+        firstText: () => {
+          if (!finished) firstText ??= latencyBucket(now() - start);
+        },
+        finish: () => {
+          if (finished) return;
+          finished = true;
+          stop();
+          generations.push({
+            latency: latencyBucket(now() - start),
+            firstText,
+          });
+        },
+      };
+    },
     answered: () => {
       facts.answered = true;
     },
@@ -257,6 +314,31 @@ export function createAskTelemetry(now: () => number = Date.now): AskTelemetry {
         event: "ask",
         outcome: askOutcome(facts),
         latency: latencyBucket(now() - startedAt),
+        stages: {
+          condense:
+            durations.condense === null
+              ? null
+              : latencyBucket(durations.condense),
+          retrieve:
+            durations.retrieve === null
+              ? null
+              : latencyBucket(durations.retrieve),
+          rerank:
+            durations.rerank === null ? null : latencyBucket(durations.rerank),
+          generate:
+            durations.generate === null
+              ? null
+              : latencyBucket(durations.generate),
+          validate:
+            durations.validate === null
+              ? null
+              : latencyBucket(durations.validate),
+          persist:
+            durations.persist === null
+              ? null
+              : latencyBucket(durations.persist),
+        },
+        generations,
         providerError: facts.providerError,
         citationFailure: facts.citationFailure,
         quotaHit: facts.quotaHit,

@@ -1156,7 +1156,12 @@ describe("POST /api/ask", () => {
         expect(telemetryLine).toBeDefined();
         expect(
           JSON.parse(telemetryLine!.slice(TELEMETRY_PREFIX.length + 1)),
-        ).toMatchObject({ outcome: "refunded_error", abort: "deadline" });
+        ).toMatchObject({
+          outcome: "refunded_error",
+          abort: "deadline",
+          stages: { generate: "gte_30s", validate: null, persist: null },
+          generations: [{ latency: "gte_30s", firstText: null }],
+        });
         spy.mockRestore();
       } finally {
         vi.useRealTimers();
@@ -1851,11 +1856,95 @@ describe("POST /api/ask", () => {
         event: "ask",
         outcome: "ok",
         latency: "lt_1s",
+        stages: {
+          condense: "lt_1s",
+          retrieve: "lt_1s",
+          rerank: "lt_1s",
+          generate: "lt_1s",
+          validate: "lt_1s",
+          persist: null,
+        },
+        generations: [{ latency: "lt_1s", firstText: "lt_1s" }],
         providerError: null,
         citationFailure: false,
         quotaHit: false,
         abort: null,
         routedCategory: null,
+      });
+    });
+
+    it("separates retrieval, first text, generation and failed persistence (#356)", async () => {
+      const capture = captureTelemetry();
+      let elapsed = 0;
+      vi.spyOn(performance, "now").mockImplementation(() => elapsed);
+      allowRateLimit();
+      vi.mocked(getUserId).mockResolvedValue("user-123");
+      vi.mocked(retrieve).mockImplementation(async () => {
+        elapsed += 4_000;
+        return retrievalResult();
+      });
+      vi.mocked(saveQuestion).mockImplementation(async () => {
+        elapsed += 2_000;
+        throw new Error("save failed");
+      });
+      vi.mocked(getAnswerModel).mockReturnValue(
+        new MockLanguageModelV4({
+          doStream: async () => ({
+            stream: new ReadableStream<LanguageModelV4StreamPart>({
+              async start(controller) {
+                controller.enqueue({ type: "text-start", id: "t1" });
+                elapsed += 500;
+                controller.enqueue({ type: "text-delta", id: "t1", delta: "" });
+                await new Promise((resolve) => setTimeout(resolve, 0));
+                elapsed += 1_500;
+                controller.enqueue({
+                  type: "text-delta",
+                  id: "t1",
+                  delta: "La tarifa ",
+                });
+                await new Promise((resolve) => setTimeout(resolve, 0));
+                elapsed += 31_000;
+                controller.enqueue({
+                  type: "text-delta",
+                  id: "t1",
+                  delta: "es 13% [1].",
+                });
+                controller.enqueue({ type: "text-end", id: "t1" });
+                controller.close();
+              },
+            }),
+          }),
+        }),
+      );
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+      expect(soleEvent(capture)).toMatchObject({
+        outcome: "ok",
+        stages: {
+          retrieve: "3s_10s",
+          generate: "gte_30s",
+          validate: "lt_1s",
+          persist: "1s_3s",
+        },
+        generations: [{ latency: "gte_30s", firstText: "1s_3s" }],
+      });
+    });
+
+    it("keeps both generation attempts after a citation retry (#356)", async () => {
+      const capture = captureTelemetry();
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModelSequence("Uncited answer.", ANSWER);
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+      expect(soleEvent(capture)).toMatchObject({
+        outcome: "ok",
+        generations: [
+          { latency: "lt_1s", firstText: "lt_1s" },
+          { latency: "lt_1s", firstText: "lt_1s" },
+        ],
       });
     });
 
@@ -1887,6 +1976,31 @@ describe("POST /api/ask", () => {
         outcome: "declined",
         citationFailure: false,
         routedCategory: "general",
+      });
+    });
+
+    it("times saved weak-retrieval declines without inventing generation (#356)", async () => {
+      const capture = captureTelemetry();
+      let elapsed = 0;
+      vi.spyOn(performance, "now").mockImplementation(() => elapsed);
+      allowRateLimit();
+      vi.mocked(getUserId).mockResolvedValue("user-123");
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult({ isWeak: true }));
+      vi.mocked(saveQuestion).mockImplementation(async () => {
+        elapsed += 4_000;
+        return true;
+      });
+      await readEvents(await POST(askRequest({ question: "asdf qwerty zzz" })));
+      expect(soleEvent(capture)).toMatchObject({
+        stages: {
+          condense: "lt_1s",
+          retrieve: "lt_1s",
+          rerank: null,
+          generate: null,
+          validate: null,
+          persist: "3s_10s",
+        },
+        generations: [],
       });
     });
 
@@ -2083,11 +2197,13 @@ describe("POST /api/ask", () => {
         "abort",
         "citationFailure",
         "event",
+        "generations",
         "latency",
         "outcome",
         "providerError",
         "quotaHit",
         "routedCategory",
+        "stages",
       ]);
     });
   });
