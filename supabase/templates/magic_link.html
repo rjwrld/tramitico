@@ -1,33 +1,410 @@
-<h2>Entrar a Tramitico</h2>
+<!doctype html>
+<!--
+  The sign-in email (#350). Used by two Supabase Auth templates, magic_link
+  and confirmation, both declared in supabase/config.toml and pushed to the
+  hosted project verbatim by scripts/push-email-templates.ts. The hosted
+  project sends *this file*: `git grep` is the record of what production mails.
 
-<p>Siga este enlace para iniciar sesión:</p>
-<p>
-  <a
-    href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/"
-    >Iniciar sesión</a
-  >
-</p>
-<p>
-  ¿Abrió este correo en otro navegador? Ingrese este código en la pestaña donde
-  lo pidió:
-</p>
-<p>
-  <code
+  Contract (src/app/auth/confirm/route.ts, src/components/auth/sign-in-form.tsx):
+  the link is SiteURL + /auth/confirm?token_hash=TokenHash&type=email&next=/
+  and the code is Token. Never the default ConfirmationURL variable: its
+  route bypasses /auth/confirm and nobody gets a session. Go expands template
+  expressions inside HTML comments too, so this comment names no variable.
+
+  DESIGN.md, literally: table layout, every style inline, palette tokens as
+  hex (email has no custom properties), the wordmark in the serif face with its
+  fallback stack, red in exactly two places (the `tico` syllable and the one
+  primary action). No remote font or image: the email fetches nothing when
+  opened. Dark mode via the meta pair + a prefers-color-scheme block for the
+  clients that honour it; every text sits on an explicit ground, so the ones
+  that invert on their own (Gmail) have something to invert.
+
+  Supabase Auth sends a single text/html part, so there is no separate
+  plain-text alternative: the document order below *is* the text a stripped
+  render shows (`pnpm email:preview --text`).
+-->
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="supported-color-schemes" content="light dark" />
+    <title>Su enlace para entrar a Tramitico</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        supported-color-schemes: light dark;
+      }
+      @media (prefers-color-scheme: dark) {
+        .t-ground {
+          background-color: #18181e !important;
+        }
+        .t-sheet {
+          background-color: #212128 !important;
+          border-color: #323239 !important;
+        }
+        .t-ink {
+          color: #dddde3 !important;
+        }
+        .t-muted {
+          color: #919199 !important;
+        }
+        .t-brand {
+          color: #db6c66 !important;
+        }
+        .t-button {
+          background-color: #db6c66 !important;
+        }
+        .t-button a {
+          color: #1d0c0b !important;
+        }
+        .t-code {
+          background-color: #26262d !important;
+          border-color: #323239 !important;
+          color: #dddde3 !important;
+        }
+        .t-rule {
+          border-color: #323239 !important;
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="t-ground"
     style="
-      font-family:
-        &quot;Geist Mono&quot;, ui-monospace, SFMono-Regular, Menlo, Consolas,
-        monospace;
-      font-size: 22px;
-      font-weight: 600;
-      letter-spacing: 0.2em;
-      color: #1e1e26;
-      background: #f6f3f1;
-      border: 1px solid #dcdce0;
-      border-radius: 6px;
-      padding: 8px 16px;
-      display: inline-block;
+      margin: 0;
+      padding: 0;
+      background-color: #f6f3f1;
+      -webkit-text-size-adjust: 100%;
     "
-    >{{ .Token }}</code
   >
-</p>
-<p>Si usted no pidió este correo, puede ignorarlo.</p>
+    <div
+      style="
+        display: none;
+        max-height: 0;
+        overflow: hidden;
+        mso-hide: all;
+        font-size: 1px;
+        line-height: 1px;
+        color: #f6f3f1;
+      "
+    >
+      Su enlace y su código para entrar. Vencen en una hora.
+    </div>
+    <table
+      role="presentation"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      class="t-ground"
+      style="background-color: #f6f3f1"
+    >
+      <tr>
+        <td align="center" style="padding: 32px 16px">
+          <!--[if mso]><table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+          <table
+            role="presentation"
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            class="t-sheet"
+            style="
+              max-width: 560px;
+              background-color: #ffffff;
+              border: 1px solid #dcdce0;
+              border-radius: 4px;
+            "
+          >
+            <tr>
+              <td style="padding: 32px 32px 0">
+                <span
+                  class="t-ink"
+                  style="
+                    font-family:
+                      &quot;Source Serif 4&quot;, &quot;Source Serif Pro&quot;,
+                      Georgia, &quot;Times New Roman&quot;, serif;
+                    font-size: 24px;
+                    font-weight: 600;
+                    line-height: 1;
+                    letter-spacing: -0.02em;
+                    color: #1e1e26;
+                  "
+                  >trami<span class="t-brand" style="color: #aa342e"
+                    >tico</span
+                  ></span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 32px 32px 0">
+                <h1
+                  class="t-ink"
+                  style="
+                    margin: 0;
+                    font-family:
+                      &quot;Source Serif 4&quot;, &quot;Source Serif Pro&quot;,
+                      Georgia, &quot;Times New Roman&quot;, serif;
+                    font-size: 24px;
+                    font-weight: 600;
+                    line-height: 1.3;
+                    letter-spacing: -0.02em;
+                    color: #1e1e26;
+                  "
+                >
+                  Su enlace para entrar
+                </h1>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 12px 32px 0">
+                <p
+                  class="t-ink"
+                  style="
+                    margin: 0;
+                    font-family:
+                      Geist,
+                      &quot;Geist Sans&quot;,
+                      -apple-system,
+                      BlinkMacSystemFont,
+                      &quot;Segoe UI&quot;,
+                      Helvetica,
+                      Arial,
+                      sans-serif;
+                    font-size: 15px;
+                    line-height: 1.6;
+                    color: #1e1e26;
+                  "
+                >
+                  Use el enlace para entrar a Tramitico. Vence en una hora y
+                  sirve una sola vez.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 24px 32px 0">
+                <table
+                  role="presentation"
+                  cellpadding="0"
+                  cellspacing="0"
+                  border="0"
+                >
+                  <tr>
+                    <td
+                      class="t-button"
+                      style="background-color: #aa342e; border-radius: 4px"
+                    >
+                      <a
+                        href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/"
+                        style="
+                          display: inline-block;
+                          padding: 12px 20px;
+                          font-family:
+                            Geist,
+                            &quot;Geist Sans&quot;,
+                            -apple-system,
+                            BlinkMacSystemFont,
+                            &quot;Segoe UI&quot;,
+                            Helvetica,
+                            Arial,
+                            sans-serif;
+                          font-size: 15px;
+                          font-weight: 500;
+                          line-height: 1.2;
+                          color: #fcf7f6;
+                          text-decoration: none;
+                        "
+                        >Iniciar sesión</a
+                      >
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 16px 32px 0">
+                <p
+                  class="t-muted"
+                  style="
+                    margin: 0;
+                    font-family:
+                      Geist,
+                      &quot;Geist Sans&quot;,
+                      -apple-system,
+                      BlinkMacSystemFont,
+                      &quot;Segoe UI&quot;,
+                      Helvetica,
+                      Arial,
+                      sans-serif;
+                    font-size: 13px;
+                    line-height: 1.6;
+                    color: #62626c;
+                  "
+                >
+                  Si el botón no responde, copie este enlace en su navegador:
+                </p>
+                <p
+                  style="
+                    margin: 4px 0 0;
+                    font-family:
+                      &quot;Geist Mono&quot;, ui-monospace, SFMono-Regular,
+                      Menlo, Consolas, monospace;
+                    font-size: 12px;
+                    line-height: 1.6;
+                    word-break: break-all;
+                  "
+                >
+                  <a
+                    class="t-muted"
+                    href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/"
+                    style="color: #62626c; text-decoration: underline"
+                    >{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash
+                    }}&type=email&next=/</a
+                  >
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 24px 32px 0">
+                <div
+                  class="t-rule"
+                  style="
+                    border-top: 1px solid #dcdce0;
+                    font-size: 0;
+                    line-height: 0;
+                  "
+                >
+                  &nbsp;
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 24px 32px 0">
+                <p
+                  class="t-ink"
+                  style="
+                    margin: 0;
+                    font-family:
+                      Geist,
+                      &quot;Geist Sans&quot;,
+                      -apple-system,
+                      BlinkMacSystemFont,
+                      &quot;Segoe UI&quot;,
+                      Helvetica,
+                      Arial,
+                      sans-serif;
+                    font-size: 15px;
+                    line-height: 1.6;
+                    color: #1e1e26;
+                  "
+                >
+                  ¿Abrió este correo en otro navegador? Ingrese este código en
+                  la pestaña donde lo pidió:
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 12px 32px 0">
+                <table
+                  role="presentation"
+                  cellpadding="0"
+                  cellspacing="0"
+                  border="0"
+                >
+                  <tr>
+                    <td
+                      class="t-code"
+                      style="
+                        background-color: #f6f3f1;
+                        border: 1px solid #dcdce0;
+                        border-radius: 4px;
+                        padding: 10px 16px;
+                        font-family:
+                          &quot;Geist Mono&quot;, ui-monospace, SFMono-Regular,
+                          Menlo, Consolas, monospace;
+                        font-size: 22px;
+                        font-weight: 600;
+                        line-height: 1.2;
+                        letter-spacing: 0.2em;
+                        color: #1e1e26;
+                      "
+                    >
+                      {{ .Token }}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 32px 32px 32px">
+                <p
+                  class="t-muted"
+                  style="
+                    margin: 0;
+                    font-family:
+                      Geist,
+                      &quot;Geist Sans&quot;,
+                      -apple-system,
+                      BlinkMacSystemFont,
+                      &quot;Segoe UI&quot;,
+                      Helvetica,
+                      Arial,
+                      sans-serif;
+                    font-size: 13px;
+                    line-height: 1.6;
+                    color: #62626c;
+                  "
+                >
+                  Si usted no pidió este correo, puede ignorarlo. Nadie entra
+                  sin el enlace o el código.
+                </p>
+              </td>
+            </tr>
+          </table>
+          <!--[if mso]></td></tr></table><![endif]-->
+          <table
+            role="presentation"
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            style="max-width: 560px"
+          >
+            <tr>
+              <td style="padding: 16px 8px 0">
+                <p
+                  class="t-muted"
+                  style="
+                    margin: 0;
+                    font-family:
+                      Geist,
+                      &quot;Geist Sans&quot;,
+                      -apple-system,
+                      BlinkMacSystemFont,
+                      &quot;Segoe UI&quot;,
+                      Helvetica,
+                      Arial,
+                      sans-serif;
+                    font-size: 12px;
+                    line-height: 1.6;
+                    color: #62626c;
+                  "
+                >
+                  Tramitico responde sobre trámites de Hacienda y la CCSS,
+                  citando la fuente oficial. No es asesoría legal ni contable.
+                  <a
+                    class="t-muted"
+                    href="{{ .SiteURL }}/privacidad"
+                    style="color: #62626c; text-decoration: underline"
+                    >Privacidad</a
+                  >
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

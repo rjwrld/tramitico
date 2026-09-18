@@ -409,10 +409,22 @@ step "Email provider panel: Email OTP length 6 (hosted default is 8; the sign-in
 step "GitHub: enable · Client ID ${GITHUB_OAUTH_CLIENT_ID} · secret from stage 7."
 step "Google: enable · Client ID ${GOOGLE_OAUTH_CLIENT_ID} · secret from stage 8."
 pause "All three providers saved? (Enter)"
-open_url "https://supabase.com/dashboard/project/${SUPABASE_PROJECT_REF}/auth/templates"
-step "Magic Link template: mirror supabase/config.toml's [auth.email.template.magic_link] —"
-step "  the link must land on ${SITE_URL}/auth/confirm with the token hash (see supabase/templates/)."
-pause "Template saved? (Enter)"
+say ""
+say "Email templates come from the repo, not the dashboard (#350): supabase/templates/ is what"
+say "production sends, pushed field-by-field through the Management API — never 'config push'."
+open_url "https://supabase.com/dashboard/account/tokens"
+step "Generate a personal access token, name 'tramitico email templates'. It can do anything"
+step "  your account can: it lives in ${ENV_FILE} only — never Vercel, never a GitHub secret."
+ask_secret SUPABASE_ACCESS_TOKEN "Paste the access token:"
+write_env SUPABASE_ACCESS_TOKEN "$SUPABASE_ACCESS_TOKEN"
+if SUPABASE_PROJECT_REF="$SUPABASE_PROJECT_REF" SUPABASE_ACCESS_TOKEN="$SUPABASE_ACCESS_TOKEN" \
+   pnpm email:push; then
+  say "✓ templates pushed; 'pnpm email:push --check' verifies at any later time."
+else
+  warn "push failed — fix the token or ref, then: set -a; source ${ENV_FILE}; pnpm email:push"
+  SKIPPED+=("Auth email templates: set -a; source ${ENV_FILE}; pnpm email:push")
+fi
+pause
 }
 
 # ── 10 ────────────────────────────────────────────────────────────────────
