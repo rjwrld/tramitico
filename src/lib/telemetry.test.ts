@@ -70,6 +70,15 @@ describe("emitAskEvent", () => {
     event: "ask",
     outcome: "ok",
     latency: "1s_3s",
+    stages: {
+      condense: null,
+      retrieve: null,
+      rerank: null,
+      generate: null,
+      validate: null,
+      persist: null,
+    },
+    generations: [],
     providerError: null,
     citationFailure: false,
     quotaHit: false,
@@ -81,9 +90,7 @@ describe("emitAskEvent", () => {
     const capture = captureEvents();
     emitAskEvent(event);
     expect(capture.lines).toEqual([
-      `${TELEMETRY_PREFIX} {"event":"ask","outcome":"ok","latency":"1s_3s",` +
-        `"providerError":null,"citationFailure":false,"quotaHit":false,` +
-        `"abort":null,"routedCategory":null}`,
+      `${TELEMETRY_PREFIX} ${JSON.stringify(event)}`,
     ]);
   });
 
@@ -100,6 +107,48 @@ describe("createAskTelemetry", () => {
 
   beforeEach(() => {
     capture = captureEvents();
+  });
+
+  it("accumulates repeated stages, leaves skipped stages null, and stops once", () => {
+    const clock = fakeClock();
+    const telemetry = createAskTelemetry(clock.now);
+    const finish = telemetry.startStage("generate");
+    clock.advance(2_000);
+    finish();
+    clock.advance(9_000);
+    finish();
+    const retry = telemetry.startStage("generate");
+    clock.advance(2_000);
+    retry();
+    telemetry.emit();
+    expect(capture.events()[0].stages).toEqual({
+      condense: null,
+      retrieve: null,
+      rerank: null,
+      generate: "3s_10s",
+      validate: null,
+      persist: null,
+    });
+  });
+
+  it("records first nonempty text separately for each generation, including no-text failure", () => {
+    const clock = fakeClock();
+    const telemetry = createAskTelemetry(clock.now);
+    const first = telemetry.startGeneration();
+    clock.advance(2_000);
+    first.firstText();
+    clock.advance(30_000);
+    first.firstText();
+    first.finish();
+    const retry = telemetry.startGeneration();
+    clock.advance(4_000);
+    retry.finish();
+    telemetry.emit();
+    expect(capture.events()[0].generations).toEqual([
+      { latency: "gte_30s", firstText: "1s_3s" },
+      { latency: "3s_10s", firstText: null },
+    ]);
+    expect(capture.events()[0].stages.generate).toBe("gte_30s");
   });
 
   it("emits nothing until asked", () => {
@@ -121,6 +170,15 @@ describe("createAskTelemetry", () => {
     const telemetry = createAskTelemetry();
     telemetry.emit();
     expect(capture.events()[0].outcome).toBe("declined");
+    expect(capture.events()[0].stages).toEqual({
+      condense: null,
+      retrieve: null,
+      rerank: null,
+      generate: null,
+      validate: null,
+      persist: null,
+    });
+    expect(capture.events()[0].generations).toEqual([]);
   });
 
   it("lets a degraded answer outrank ok", () => {
@@ -304,11 +362,13 @@ describe("no telemetry event can carry content (#141)", () => {
       "abort",
       "citationFailure",
       "event",
+      "generations",
       "latency",
       "outcome",
       "providerError",
       "quotaHit",
       "routedCategory",
+      "stages",
     ]);
   });
 });

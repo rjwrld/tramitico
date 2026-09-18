@@ -327,14 +327,18 @@ async function persistExchange(
   writer: Writer,
   kind: SavedAnswerKind,
   input: SaveQuestionInput,
+  telemetry: AskTelemetry,
 ): Promise<void> {
   let saved: boolean;
+  const stop = telemetry.startStage("persist");
   try {
     saved = await saveQuestion(input);
   } catch (error) {
     recordHistorySaveFailure({ kind, error });
     writeUnsaved(writer);
     return;
+  } finally {
+    stop();
   }
   if (!saved) {
     recordHistorySaveFailure({ kind });
@@ -434,6 +438,7 @@ async function streamHonestDecline(
   writer: Writer,
   asked: AskedQuestion,
   userId: string | null,
+  telemetry: AskTelemetry,
   routed: RoutedCategory | null = null,
 ): Promise<void> {
   const id = "fallback";
@@ -454,13 +459,18 @@ async function streamHonestDecline(
     // that in their history as much as any other exchange. `finish` waits for
     // the save (it used to precede it) so a `data-unsaved` part still has a
     // message to attach to.
-    await persistExchange(writer, "decline", {
-      userId,
-      question: asked.question,
-      condensedQuestion: asked.condensed,
-      answer: text,
-      citations: [],
-    });
+    await persistExchange(
+      writer,
+      "decline",
+      {
+        userId,
+        question: asked.question,
+        condensedQuestion: asked.condensed,
+        answer: text,
+        citations: [],
+      },
+      telemetry,
+    );
   }
   writer.write({ type: "finish" });
 }
@@ -496,29 +506,38 @@ async function generateAnswer(
   derivedFigures: readonly ResolvedDerivedFigure[],
   signal: AbortSignal,
   attempt: number,
+  telemetry: AskTelemetry,
 ): Promise<string> {
   // Both doors a model failure can come through, closed onto one exit. A
   // stream-stopping error rejects the iteration below; a recoverable one
   // arrives as an error part, which `textStream` drops on the floor — so it is
   // captured here and rethrown, rather than letting a truncated answer be
   // mistaken for a complete one and judged on its citations.
-  let failure: unknown = null;
-  const result = streamText({
-    model: getAnswerModel(),
-    system: ANSWER_SYSTEM_PROMPT,
-    prompt: buildUserPrompt(question, chunks, {
-      citationRetry: attempt > 1,
-      derivedFigures,
-    }),
-    abortSignal: signal,
-    onError: ({ error }) => {
-      failure ??= error;
-    },
-  });
-  let text = "";
-  for await (const delta of result.textStream) text += delta;
-  if (failure !== null) throw failure;
-  return text;
+  const timing = telemetry.startGeneration();
+  try {
+    let failure: unknown = null;
+    const result = streamText({
+      model: getAnswerModel(),
+      system: ANSWER_SYSTEM_PROMPT,
+      prompt: buildUserPrompt(question, chunks, {
+        citationRetry: attempt > 1,
+        derivedFigures,
+      }),
+      abortSignal: signal,
+      onError: ({ error }) => {
+        failure ??= error;
+      },
+    });
+    let text = "";
+    for await (const delta of result.textStream) {
+      if (delta.length > 0) timing.firstText();
+      text += delta;
+    }
+    if (failure !== null) throw failure;
+    return text;
+  } finally {
+    timing.finish();
+  }
 }
 
 /**
@@ -687,10 +706,18 @@ export async function POST(request: Request): Promise<Response> {
     // watching. A first turn makes no call at all, and a condensation that
     // fails hands the literal question back (condense.ts), so this line can
     // slow an ask down but can never fail one.
-    const { query, condensed } = await condenseQuestion(literal, history);
+    const stopCondense = telemetry.startStage("condense");
+    let condensation;
+    try {
+      condensation = await condenseQuestion(literal, history);
+    } finally {
+      stopCondense();
+    }
+    const { query, condensed } = condensation;
     const asked: AskedQuestion = { question: literal, condensed, query };
 
     let retrieval;
+    const stopRetrieve = telemetry.startStage("retrieve");
     try {
       retrieval = await retrieve(asked.query, { matchCount: RERANK_POOL });
     } catch (error) {
@@ -703,6 +730,8 @@ export async function POST(request: Request): Promise<Response> {
         quota,
       );
       return;
+    } finally {
+      stopRetrieve();
     }
     // A reader who left during condensation or retrieval gets their slot
     // back (#205) — nothing below is on their behalf, and nothing was
@@ -723,7 +752,7 @@ export async function POST(request: Request): Promise<Response> {
       // so a follow-up («¿y la patente?») is routed on what it resolved to.
       const routed = classifyRouting(asked.query);
       telemetry.routed(routed);
-      await streamHonestDecline(writer, asked, userId, routed);
+      await streamHonestDecline(writer, asked, userId, telemetry, routed);
       return;
     }
 
@@ -735,13 +764,19 @@ export async function POST(request: Request): Promise<Response> {
     // #286: the reranker scores the question *and* its corpus-register
     // expansion, for the same reason the fused legs do — and, since #304,
     // the step catalogue's sentences when retrieval ran a probe.
-    const chunks = pinDerivedFigureInputs(
-      await rerankChunks(asked.query, retrieval.chunks, {
-        expansion: retrieval.expansion,
-        steps: retrieval.steps?.sentences ?? null,
-      }),
-      retrieval.chunks,
-    );
+    const stopRerank = telemetry.startStage("rerank");
+    let chunks;
+    try {
+      chunks = pinDerivedFigureInputs(
+        await rerankChunks(asked.query, retrieval.chunks, {
+          expansion: retrieval.expansion,
+          steps: retrieval.steps?.sentences ?? null,
+        }),
+        retrieval.chunks,
+      );
+    } finally {
+      stopRerank();
+    }
     if (cutShort()) return;
     const derivedFigures = resolveDerivedFigures(chunks);
     writeStatus(writer, "redactando");
@@ -768,6 +803,7 @@ export async function POST(request: Request): Promise<Response> {
           derivedFigures,
           generationSignal,
           attempt,
+          telemetry,
         );
       } catch (error) {
         // An aborted generation arrives here as a rejection. Which signal
@@ -793,10 +829,17 @@ export async function POST(request: Request): Promise<Response> {
       // stage. The check itself takes microseconds — the client is the one
       // that holds the label on screen long enough to be legible.
       writeStatus(writer, "verificando");
-      const verdict = validateCitations(text, chunks.length);
-      const incompleteDerived = verdict.ok
-        ? incompletelyCitedDerivedFigures(text, derivedFigures)
-        : [];
+      const stopValidate = telemetry.startStage("validate");
+      let verdict;
+      let incompleteDerived;
+      try {
+        verdict = validateCitations(text, chunks.length);
+        incompleteDerived = verdict.ok
+          ? incompletelyCitedDerivedFigures(text, derivedFigures)
+          : [];
+      } finally {
+        stopValidate();
+      }
       if (verdict.ok && incompleteDerived.length === 0) {
         answer = text;
         break;
@@ -824,7 +867,7 @@ export async function POST(request: Request): Promise<Response> {
     // time a badly-behaved model misbehaves, which is a hole whose shape we
     // do not control.
     if (answer === null) {
-      await streamHonestDecline(writer, asked, userId);
+      await streamHonestDecline(writer, asked, userId, telemetry);
       return;
     }
 
@@ -839,17 +882,22 @@ export async function POST(request: Request): Promise<Response> {
     telemetry.answered();
 
     if (userId) {
-      await persistExchange(writer, "answer", {
-        userId,
-        question: asked.question,
-        condensedQuestion: asked.condensed,
-        // History stores the reader's numbering, not the wire's: the
-        // markers are rewritten to seal ordinals here (#133) so a restored
-        // answer carries its superscripts without needing the chunk map,
-        // which is not persisted.
-        answer: renumberCitationMarkers(answer, tracker.ordinals()),
-        citations: tracker.used(),
-      });
+      await persistExchange(
+        writer,
+        "answer",
+        {
+          userId,
+          question: asked.question,
+          condensedQuestion: asked.condensed,
+          // History stores the reader's numbering, not the wire's: the
+          // markers are rewritten to seal ordinals here (#133) so a restored
+          // answer carries its superscripts without needing the chunk map,
+          // which is not persisted.
+          answer: renumberCitationMarkers(answer, tracker.ordinals()),
+          citations: tracker.used(),
+        },
+        telemetry,
+      );
     }
     writer.write({ type: "finish" });
   };

@@ -29,7 +29,7 @@ One line per request to `/api/ask`, whatever the request did, written from
 `src/lib/telemetry.ts`:
 
 ```
-tramitico.event {"event":"ask","outcome":"ok","latency":"1s_3s","providerError":null,"citationFailure":false,"quotaHit":false,"abort":null,"routedCategory":null}
+tramitico.event {"event":"ask","outcome":"ok","latency":"1s_3s","stages":{"condense":"lt_1s","retrieve":"lt_1s","rerank":"lt_1s","generate":"1s_3s","validate":"lt_1s","persist":null},"generations":[{"latency":"1s_3s","firstText":"lt_1s"}],"providerError":null,"citationFailure":false,"quotaHit":false,"abort":null,"routedCategory":null}
 ```
 
 | Field             | Values                                                                                                                                | Means                                                                                                                                                                                                                                                                                                                                                                                              |
@@ -39,6 +39,8 @@ tramitico.event {"event":"ask","outcome":"ok","latency":"1s_3s","providerError":
 |                   | `degraded`                                                                                                                            | delivered without the vector leg — the embedding provider was down (#127)                                                                                                                                                                                                                                                                                                                          |
 |                   | `refunded_error`                                                                                                                      | **our side broke**; the ask was refunded or never charged                                                                                                                                                                                                                                                                                                                                          |
 | `latency`         | `lt_1s` `1s_3s` `3s_10s` `10s_30s` `gte_30s`                                                                                          | whole request, auth and rate limit included                                                                                                                                                                                                                                                                                                                                                        |
+| `stages`          | fixed keys `condense`, `retrieve`, `rerank`, `generate`, `validate`, `persist`; each a latency bucket or `null`                       | elapsed stage time, summed across citation retries before bucketing; `null` means the stage never ran. Failures and aborted generation retain their elapsed time                                                                                                                                                                                                                                   |
+| `generations`     | ordered array, one entry per answer attempt (at most two): `latency` bucket and `firstText` bucket or `null`                          | per-attempt total and time to first nonempty text delta at the server; `null` means no text arrived. This is not time to first visible text: the citation invariant still buffers the answer                                                                                                                                                                                                       |
 | `providerError`   | a `describeError` token (`APICallError#429`) or `null`                                                                                | error _class_, never an error message                                                                                                                                                                                                                                                                                                                                                              |
 | `citationFailure` | `true` / `false`                                                                                                                      | the citation invariant rejected at least one generation this ask (#131)                                                                                                                                                                                                                                                                                                                            |
 | `quotaHit`        | `true` / `false`                                                                                                                      | denied because the caller's daily quota was spent (#126)                                                                                                                                                                                                                                                                                                                                           |
@@ -51,6 +53,52 @@ quoted in every query below, and renaming it silently breaks all of them.
 `outcome` is one class per ask, by precedence: `refunded_error` > `degraded` > `ok` >
 `declined`. So `degraded` counts a degraded ask that then declined, and `declined` is the
 default for an ask that delivered nothing at all.
+
+#### Stage timing and the #356 measurement pass
+
+Timing uses a monotonic clock. `condense` includes the no-op on first turns;
+`retrieve` includes expansion, embedding and all search legs; `rerank` includes
+fallback and derived-input pinning; `generate` includes prompt setup, provider wait,
+SDK retries and draining the buffered text; `validate` includes citation and derived
+figure checks; `persist` measures the history save on answers **and declines**.
+Anonymous asks never persist. The stages exclude auth, quota checks, delivery and
+refund settlement, so their sum is not the whole-request latency. Buckets cannot be
+subtracted to obtain exact token throughput. A killed process still cannot emit a line.
+
+After deploying the instrumentation, capture a bounded UTC window and deployment ID.
+Use the nine questions in `src/components/chat/seed-prompts.tsx`, then a fixed Tier 2
+comparison set from `eval/dataset.jsonl` (`tier: 2`). Send asks sequentially, with no
+history for first-turn comparisons, respecting the normal quota. Record the first ask
+after idle separately from warm asks; repeat on another day if quota is exhausted.
+For follow-ups, use the dataset's history and report them separately.
+
+For each controlled ask, keep its case/family and tier in the measurement worksheet,
+then copy only the corresponding `tramitico.event` line from Vercel's request logs.
+Do not add question text, case IDs, user identifiers or exact durations to production
+telemetry. Arbitrary production traffic cannot reliably be divided by tier from these
+content-free events; use the controlled pass for that comparison. Do not equate a
+missing line with success, and exclude pre-instrumentation lines from stage counts.
+
+Report, by tier, the sample count, outcome counts, stage bucket distributions, both
+attempts' `firstText` and total buckets, citation retries, and **the count of
+`abort: "deadline"` across all asks in the window**, not just successful probes.
+Keep `null` separate from `lt_1s`. Record missing lines and interrupted probes too.
+
+Record the decision and evidence on #356 after the pass:
+
+- Fast first text but slow full generation supports testing shorter answers or a
+  faster model. Compare required claims/steps, groundedness, citation validity and
+  abstention against the current baseline; Tier 1 adequacy must not regress.
+- Slow first text supports investigating provider/prompt latency and testing caching
+  or a model change with the same eval gates. These buckets alone do not prove that
+  prompt size caused the delay.
+- Slow retrieval or rerank warrants an experiment in that stage before altering the
+  answer prompt. Re-run retrieval and adequacy gates for any search change.
+- Draft streaming requires a separate decision revisiting #131's citation invariant.
+  A larger deadline only adds headroom; it does not fix time to visible text.
+
+The instrumentation change is acceptance item 1. Items 2–3 remain open until this
+production pass (or a week of usable production evidence) and its decision are recorded.
 
 ### 1.2 The detail lines
 
@@ -155,7 +203,9 @@ result count over the selected timeline.
 | Q8  | Quota denials                        | `"quotaHit":true`                                                                                                                                                                                  |
 | Q9  | Slow asks                            | `"latency":"gte_30s"`                                                                                                                                                                              |
 | Q10 | Asks cut short by the reader/network | `"abort":"client"`                                                                                                                                                                                 |
-| Q11 | Asks the internal deadline killed    | `"abort":"deadline"` — any at all means generation is running against `maxDuration`                                                                                                                |
+| Q11 | Asks the internal deadline killed    | `"abort":"deadline"` — any at all means the pipeline exhausted its internal budget; use `stages` to locate the delay                                                                               |
+| Q12 | Which stage consumes the budget?     | On instrumented lines, group `stages.retrieve`, `stages.rerank`, `stages.generate`, `stages.validate`, `stages.persist` (and `condense`) by bucket; keep failures and nulls visible                |
+| Q13 | Provider wait or output generation?  | Compare `generations[0].firstText` with `generations[0].latency`; inspect the second attempt separately when present                                                                               |
 | Q12 | Why the limiter is 503ing            | `rate limit: unavailable` — read the `error=` tokens off the matching lines                                                                                                                        |
 | Q13 | Declines by routing category (#264)  | `"routedCategory":"municipal"` (one query per category; `"routedCategory":"general"` is the unrouted default) — the content-free counter the decision record on #254 sets Tier 2 promotion against |
 
