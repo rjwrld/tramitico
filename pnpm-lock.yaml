@@ -6050,18 +6050,6 @@ snapshots:
     optionalDependencies:
       picomatch: 4.0.7
 
-  fdir@6.5.0(picomatch@4.0.7):
-    optionalDependencies:
-      picomatch: 4.0.7
-
-  fdir@6.5.0(picomatch@4.0.7):
-    optionalDependencies:
-      picomatch: 4.0.7
-
-  fdir@6.5.0(picomatch@4.0.7):
-    optionalDependencies:
-      picomatch: 4.0.7
-
   figures@6.1.0:
     dependencies:
       is-unicode-supported: 2.1.0
