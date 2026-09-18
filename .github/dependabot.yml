@@ -1,0 +1,40 @@
+# Dependabot version updates (#252). Security alerts and security updates are
+# repository settings, switched on by scripts/public-release-wizard.sh; this
+# file is the schedule for ordinary version bumps.
+#
+# One grouped pull request per ecosystem per week keeps a single-maintainer
+# repository from drowning in one-line PRs, and every bump still runs the
+# full `suites` job (integration + pgTAP + local e2e) before it can merge.
+# Major versions stay separate: a Next.js or Base UI major is a review, not a
+# rubber stamp.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Costa_Rica
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    labels:
+      - dependencies
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Costa_Rica
+    groups:
+      actions:
+        patterns:
+          - "*"
+    labels:
+      - dependencies
