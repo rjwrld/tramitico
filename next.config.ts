@@ -21,11 +21,15 @@ function supabaseOrigin(): string | null {
 }
 
 /**
- * Report-only for now. `script-src` cannot drop `'unsafe-inline'` while the
- * policy is static: the App Router streams its RSC payload through inline
- * `<script>` tags and next-themes injects one more, and neither is hashable.
- * Promotion to enforced runs through a per-request nonce set in `src/proxy.ts`
- * — criteria recorded on #121.
+ * Enforced since the 2026-09-17 coverage pass on #121 (report-only from #137
+ * until then). `script-src` still carries `'unsafe-inline'`: the App Router
+ * streams its RSC payload through inline `<script>` tags and next-themes
+ * injects one more, and neither is hashable while the policy is static.
+ * Dropping it runs through a per-request nonce set in `src/proxy.ts` — an
+ * accepted risk on #121 until that lands, expiring 2026-11-12. Everything
+ * else here blocks: a violation is a broken page now, not a log line, so a
+ * new origin the browser dials (analytics, error reporting) goes into
+ * `connect-src` in the same change that adds it.
  */
 function contentSecurityPolicy(): string {
   const supabase = supabaseOrigin();
@@ -39,8 +43,8 @@ function contentSecurityPolicy(): string {
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
-    // Enforces nothing under Report-Only — X-Frame-Options below is the live
-    // clickjacking control. Kept here so promotion exercises it first.
+    // The modern clickjacking control; X-Frame-Options below stays for the
+    // browsers that predate it.
     "frame-ancestors 'none'",
     "report-uri /api/csp-report",
     "report-to csp-endpoint",
@@ -66,7 +70,7 @@ const securityHeaders = [
   },
   { key: "Reporting-Endpoints", value: 'csp-endpoint="/api/csp-report"' },
   {
-    key: "Content-Security-Policy-Report-Only",
+    key: "Content-Security-Policy",
     value: contentSecurityPolicy(),
   },
 ];
