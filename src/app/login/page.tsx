@@ -14,7 +14,9 @@ import { sessionUserId } from "@/lib/history";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "Iniciar sesión — Tramitico",
+  title: "Iniciar sesión",
+  // A sign-in form is not a search result; robots.txt disallows it too.
+  robots: { index: false, follow: true },
 };
 
 export default async function LoginPage() {

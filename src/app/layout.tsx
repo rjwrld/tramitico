@@ -4,6 +4,13 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import {
+  DEFAULT_TITLE,
+  SITE_NAME,
+  SITE_ORIGIN,
+  TITLE_TEMPLATE,
+  structuredDataJson,
+} from "@/lib/site";
 import "./globals.css";
 
 /**
@@ -39,17 +46,23 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+/**
+ * `/` gets the keyworded default title; every child page fills the template
+ * with its own short name. Canonicals are per page (`alternates.canonical`
+ * in each `page.tsx`), never here — a layout-level canonical would inherit
+ * onto every route and point them all at `/`.
+ */
 export const metadata: Metadata = {
-  metadataBase: new URL("https://tramitico.com"),
-  title: "Tramitico",
+  metadataBase: new URL(SITE_ORIGIN),
+  title: { default: DEFAULT_TITLE, template: TITLE_TEMPLATE },
   description:
     "Impuestos y trámites para quien trabaja por cuenta propia en Costa Rica. Cada respuesta, sellada a su fuente oficial.",
   openGraph: {
     title: "Tramitico",
     description:
       "Impuestos y trámites para quien trabaja por cuenta propia en Costa Rica. Cada respuesta, sellada a su fuente oficial.",
-    url: "https://tramitico.com",
-    siteName: "Tramitico",
+    url: SITE_ORIGIN,
+    siteName: SITE_NAME,
     locale: "es_CR",
     type: "website",
   },
@@ -70,6 +83,16 @@ export default function RootLayout({
       className={`${GeistSans.variable} ${GeistMono.variable} ${sourceSerif.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/*
+          WebSite + Organization JSON-LD on every page. A plain `<script>`,
+          not `next/script`: this is data, never executed, so the CSP's
+          script-src does not apply and the pending nonce work (#121) does
+          not need to cover it.
+        */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: structuredDataJson() }}
+        />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
           {/*

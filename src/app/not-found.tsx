@@ -11,7 +11,7 @@ import Link from "next/link";
  * theme.
  */
 export const metadata: Metadata = {
-  title: "Página no encontrada — Tramitico",
+  title: "Página no encontrada",
 };
 
 export default function NotFound() {

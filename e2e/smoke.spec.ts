@@ -121,3 +121,70 @@ test("the about page renders keyless with an honest empty source list (#328)", a
     page.getByRole("link", { name: "Código y documentación" }),
   ).toHaveAttribute("href", "https://github.com/rjwrld/tramitico");
 });
+
+test.describe("crawl surface", () => {
+  test("robots.txt allows the site, hides sign-in and the API, and names the sitemap", async ({
+    request,
+  }) => {
+    const response = await request.get("/robots.txt");
+    expect(response.status()).toBe(200);
+    const body = await response.text();
+    expect(body).toContain("Allow: /");
+    expect(body).toContain("Disallow: /login");
+    expect(body).toContain("Disallow: /api/");
+    expect(body).toContain("Sitemap: https://tramitico.com/sitemap.xml");
+  });
+
+  test("sitemap.xml lists the four public pages", async ({ request }) => {
+    const response = await request.get("/sitemap.xml");
+    expect(response.status()).toBe(200);
+    const body = await response.text();
+    // The root is the bare origin, matching the canonical Next.js emits.
+    for (const path of ["", "/acerca", "/privacidad", "/terminos"]) {
+      expect(body).toContain(`<loc>https://tramitico.com${path}</loc>`);
+    }
+    expect(body).not.toContain("/login");
+  });
+
+  test("the landing carries a keyworded title, a canonical and site JSON-LD", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await expect(page).toHaveTitle(
+      "Tramitico — Hacienda y CCSS para trabajadores independientes",
+    );
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      "https://tramitico.com",
+    );
+    const jsonLd = await page
+      .locator('script[type="application/ld+json"]')
+      .first()
+      .textContent();
+    const graph = JSON.parse(jsonLd ?? "{}")["@graph"] as Array<{
+      "@type": string;
+    }>;
+    expect(graph.map((node) => node["@type"])).toEqual([
+      "WebSite",
+      "Organization",
+    ]);
+  });
+
+  test("child pages fill the title template and the sign-in form is noindex", async ({
+    page,
+  }) => {
+    await page.goto("/acerca");
+    await expect(page).toHaveTitle("Acerca — Tramitico");
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      "https://tramitico.com/acerca",
+    );
+
+    await page.goto("/login");
+    await expect(page).toHaveTitle("Iniciar sesión — Tramitico");
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      "content",
+      "noindex, follow",
+    );
+  });
+});

@@ -29,7 +29,8 @@ import { NON_PROMISE_ITEMS, PROMISE_SENTENCE } from "@/lib/promise";
  */
 
 export const metadata: Metadata = {
-  title: "Acerca — Tramitico",
+  title: "Acerca",
+  alternates: { canonical: "/acerca" },
   description:
     "Qué es Tramitico, cómo responde, de qué documentos oficiales responde y quién lo hizo.",
 };

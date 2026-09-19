@@ -21,7 +21,8 @@ import { limitFor } from "@/lib/rate-limit";
  */
 
 export const metadata: Metadata = {
-  title: "Términos de uso — Tramitico",
+  title: "Términos de uso",
+  alternates: { canonical: "/terminos" },
   description:
     "Qué es Tramitico, qué no es, y las condiciones bajo las que se ofrece.",
 };

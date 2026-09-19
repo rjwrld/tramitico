@@ -20,7 +20,7 @@ describe("NotFound", () => {
       screen.getByRole("heading", { level: 1, name: "Esta página no existe" }),
     ).toBeDefined();
     expect(screen.getByText("Error 404")).toBeDefined();
-    expect(metadata.title).toBe("Página no encontrada — Tramitico");
+    expect(metadata.title).toBe("Página no encontrada");
   });
 
   it("offers a way home", () => {

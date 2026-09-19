@@ -18,6 +18,17 @@ const DESCRIPTION =
   "Impuestos y trámites para quien trabaja por cuenta propia en Costa Rica. Cada respuesta, sellada a su fuente oficial.";
 
 describe("root metadata", () => {
+  it("gives / a keyworded title and child pages the wordmark suffix", () => {
+    expect(metadata.title).toEqual({
+      default: "Tramitico — Hacienda y CCSS para trabajadores independientes",
+      template: "%s — Tramitico",
+    });
+  });
+
+  it("sets no canonical — that is each page's own", () => {
+    expect(metadata.alternates).toBeUndefined();
+  });
+
   it("describes the production site for Open Graph and Twitter cards", () => {
     expect(metadata.metadataBase).toEqual(new URL("https://tramitico.com"));
     expect(metadata.description).toBe(DESCRIPTION);
