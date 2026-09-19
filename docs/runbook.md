@@ -521,10 +521,12 @@ pnpm email:preview                 # render with sample values to .email-preview
 
 The script sends _only_ those keys through the Management API's auth-config endpoint —
 it is the sanctioned counterpart of the `supabase config push` ban above, which would
-upload the whole `[auth]` section, localhost `site_url` included. The token is a personal
-access token from the Supabase account page; the deploy wizard's stage 9 captures it into
-`.env.prod` and runs the push. It can do anything the account can, so it goes nowhere
-else: not Vercel, not a GitHub secret. Editing a template in the dashboard is the drift
+upload the whole `[auth]` section, localhost `site_url` included. The token is a scoped
+access token from the Supabase account page — resource access _Project_ → the production
+project only; permissions _Application services → Auth configuration_, read and write;
+everything else None; not a legacy full-account token. The deploy wizard's stage 9 captures
+it into `.env.prod` and runs the push. Even scoped it can rewrite production's auth
+settings, so it goes nowhere else: not Vercel, not a GitHub secret. Editing a template in the dashboard is the drift
 `--check` exists to catch; edit the file, push, and the diff is in git. Supabase Auth
 sends a single `text/html` part, so there is no plain-text alternative to keep in step:
 the file reads in order when tags are stripped, and `--text` shows that read.
