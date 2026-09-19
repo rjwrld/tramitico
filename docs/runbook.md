@@ -523,8 +523,10 @@ The script sends _only_ those keys through the Management API's auth-config endp
 it is the sanctioned counterpart of the `supabase config push` ban above, which would
 upload the whole `[auth]` section, localhost `site_url` included. The token is a scoped
 access token from the Supabase account page — resource access _Project_ → the production
-project only; permissions _Application services → Auth configuration_, read and write;
-everything else None; not a legacy full-account token. The deploy wizard's stage 9 captures
+project only; permissions _Auth Config_ read-write **and** the project admin capability
+read-write — the Management API checks `auth_config_write` and `project_admin_write` together
+on `PATCH /config/auth`, so Auth Config alone reads but gets a 403 on write; everything else
+None; not a legacy full-account token. The deploy wizard's stage 9 captures
 it into `.env.prod` and runs the push. Even scoped it can rewrite production's auth
 settings, so it goes nowhere else: not Vercel, not a GitHub secret. Editing a template in the dashboard is the drift
 `--check` exists to catch; edit the file, push, and the diff is in git. Supabase Auth

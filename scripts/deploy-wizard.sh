@@ -414,7 +414,7 @@ say "Email templates come from the repo, not the dashboard (#350): supabase/temp
 say "production sends, pushed field-by-field through the Management API — never 'config push'."
 open_url "https://supabase.com/dashboard/account/tokens"
 step "Generate a token named 'tramitico email templates', scoped: Project → the production project;"
-step "  Permissions → Application services → Auth configuration, read and write; all else None."
+step "  Permissions: Auth Config read-write AND project admin read-write (PATCH needs both); all else None."
 step "  Not a legacy token. It lives in ${ENV_FILE} only — never Vercel, never a GitHub secret."
 ask_secret SUPABASE_ACCESS_TOKEN "Paste the access token:"
 write_env SUPABASE_ACCESS_TOKEN "$SUPABASE_ACCESS_TOKEN"
