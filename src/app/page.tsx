@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { UserMenu } from "@/components/auth/user-menu";
@@ -7,6 +8,11 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
 import { CORPUS_DOCUMENT_COUNT, corpusCaption } from "@/lib/corpus-summary";
 import { createClient } from "@/lib/supabase/server";
+
+/** Title and description come from the root layout; only the canonical is ours. */
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default async function Home() {
   const supabase = await createClient();

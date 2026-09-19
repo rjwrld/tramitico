@@ -25,7 +25,8 @@ import {
  */
 
 export const metadata: Metadata = {
-  title: "Privacidad — Tramitico",
+  title: "Privacidad",
+  alternates: { canonical: "/privacidad" },
   description:
     "Qué pasa con sus preguntas: a quién se envían, qué se guarda, por cuánto tiempo y cómo eliminarlo.",
 };

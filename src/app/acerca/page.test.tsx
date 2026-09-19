@@ -169,6 +169,7 @@ describe("acerca page", () => {
   });
 
   it("titles itself in Spanish for the tab and for search", () => {
-    expect(metadata.title).toBe("Acerca — Tramitico");
+    expect(metadata.title).toBe("Acerca");
+    expect(metadata.alternates).toEqual({ canonical: "/acerca" });
   });
 });

@@ -92,6 +92,7 @@ describe("terms page", () => {
   });
 
   it("titles itself for the tab and for search", () => {
-    expect(metadata.title).toBe("Términos de uso — Tramitico");
+    expect(metadata.title).toBe("Términos de uso");
+    expect(metadata.alternates).toEqual({ canonical: "/terminos" });
   });
 });
