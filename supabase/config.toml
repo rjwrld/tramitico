@@ -257,7 +257,8 @@ otp_expiry = 3600
 # localhost `additional_redirect_urls` above included — and overwrites the
 # dashboard, so every production magic link would point at localhost (#29).
 # This file describes the local stack; the hosted project is configured by
-# hand and the wizard is the record of what was set.
+# hand and the wizard is the record of what was set. The one exception is the
+# email templates, which `pnpm email:push` sends field-by-field (#350).
 # [auth.email.smtp]
 # enabled = true
 # host = "smtp.resend.com"
@@ -273,8 +274,22 @@ otp_expiry = 3600
 # content_path = "./supabase/templates/invite.html"
 
 # Magic link lands on /auth/confirm with a token hash (PKCE-safe; issue #23).
+# The hosted project sends the same file: `pnpm email:push` reads every
+# [auth.email.template.*] section below and PATCHes only those keys through
+# the Management API — the sanctioned way to update production's templates
+# (#350), unlike `supabase config push` above. `pnpm email:push --check` says
+# whether production still matches git.
 [auth.email.template.magic_link]
 subject = "Su enlace para entrar a Tramitico"
+content_path = "./supabase/templates/magic_link.html"
+
+# Confirmations are off (enable_confirmations = false), so this template is
+# never sent today. It is declared anyway (#350 req. 4): if the toggle is ever
+# turned back on, a new address would otherwise get Supabase's default —
+# whose {{ .ConfirmationURL }} bypasses /auth/confirm and grants no session.
+# Same file as the magic link: same contract, same design, zero drift.
+[auth.email.template.confirmation]
+subject = "Confirme su correo para entrar a Tramitico"
 content_path = "./supabase/templates/magic_link.html"
 
 # Uncomment to customize notification email template

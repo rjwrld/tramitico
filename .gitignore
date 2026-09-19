@@ -78,3 +78,7 @@ corpus/cache/
 
 # Written by the Claude Code desktop app's preview tool; per-machine state.
 .claude/launch.json
+
+# Rendered auth-email previews (`pnpm email:preview`, #350): a review aid with
+# sample values, regenerated from supabase/templates/ on every run.
+/.email-preview/

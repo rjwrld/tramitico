@@ -29,6 +29,7 @@ original scope (its §5 OUT-list is binding).
 | `src/lib/telemetry.ts` + `docs/runbook.md`                     | the content-free per-ask event; what to watch, and when to roll back                                                                    |
 | `src/lib/site.ts` + `src/app/robots.ts` + `src/app/sitemap.ts` | the crawl surface: origin, public page list, title template, JSON-LD; a new public page joins `PUBLIC_PATHS` and sets its own canonical |
 | `supabase/migrations/`                                         | schema, applied to the shared local stack                                                                                               |
+| `supabase/templates/` + `pnpm email:push`                      | what production mails; `email:push` sends only the `mailer_*` keys (never `config push`), `email:push --check` reads back               |
 | `supabase/tests/`                                              | pgTAP: the SQL-level least-privilege guard (`pnpm test:db`)                                                                             |
 | `e2e/`                                                         | Playwright on placeholder env; `*.local.spec.ts` via `playwright.local.config.ts`                                                       |
 | `scripts/public-release-wizard.sh` + `docs/audits/`            | the #252 visibility flip: the owner-run settings pass, and the review record of what was scanned before it                              |

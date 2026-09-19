@@ -506,3 +506,29 @@ so its SPF/DKIM records never touch the apex, whose MX records the `privacidad@`
 needs. `/privacidad` names Resend as the sign-in email provider (#327 req. 7): it holds the
 address of everyone who signs in by magic link, which is personal data even though it
 never sees a question.
+
+**Email templates (#350).** What production mails is `supabase/templates/magic_link.html`,
+declared twice in `supabase/config.toml` (`magic_link`, and `confirmation` so a re-enabled
+signup confirmation never falls back to Supabase's default, whose link bypasses
+`/auth/confirm`). The hosted project gets it from the repo, not the dashboard:
+
+```sh
+set -a; source .env.prod; set +a   # SUPABASE_PROJECT_REF + SUPABASE_ACCESS_TOKEN
+pnpm email:push --check            # read-only: does production send git's copy?
+pnpm email:push                    # PATCH the mailer_subjects_* / mailer_templates_* keys
+pnpm email:preview                 # render with sample values to .email-preview/ (--text for the stripped read)
+```
+
+The script sends _only_ those keys through the Management API's auth-config endpoint —
+it is the sanctioned counterpart of the `supabase config push` ban above, which would
+upload the whole `[auth]` section, localhost `site_url` included. The token is a scoped
+access token from the Supabase account page — resource access _Project_ → the production
+project only; permissions _Auth Config_ read-write **and** the project admin capability
+read-write — the Management API checks `auth_config_write` and `project_admin_write` together
+on `PATCH /config/auth`, so Auth Config alone reads but gets a 403 on write; everything else
+None; not a legacy full-account token. The deploy wizard's stage 9 captures
+it into `.env.prod` and runs the push. Even scoped it can rewrite production's auth
+settings, so it goes nowhere else: not Vercel, not a GitHub secret. Editing a template in the dashboard is the drift
+`--check` exists to catch; edit the file, push, and the diff is in git. Supabase Auth
+sends a single `text/html` part, so there is no plain-text alternative to keep in step:
+the file reads in order when tags are stripped, and `--text` shows that read.
