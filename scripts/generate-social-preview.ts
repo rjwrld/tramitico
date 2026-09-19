@@ -1,6 +1,8 @@
 /**
- * Renders the repository's social preview (#252) — the 1280×640 card GitHub
- * shows when the repository URL is shared — into `docs/assets/social-preview.png`.
+ * Renders the repository and site's social preview (#252, #370) — the 1280×640
+ * card shown when a repository or site URL is shared — into
+ * `docs/assets/social-preview.png`, `src/app/opengraph-image.png`, and
+ * `src/app/twitter-image.png`.
  *
  * GitHub has no API for the social preview: the owner uploads the file by hand
  * in Settings → General → Social preview (scripts/public-release-wizard.sh
@@ -13,8 +15,9 @@
  * re-running this script rather than by memory.
  *
  * Rasterised with the Playwright Chromium the e2e lane already installs; the
- * PNG is committed and re-derived on demand, not drift-tested — nothing serves
- * it, and Chromium's text rendering is not byte-stable across platforms.
+ * All three PNGs are committed and re-derived together on demand. They are not
+ * drift-tested because Chromium's text rendering is not byte-stable across
+ * platforms.
  *
  * Run: `pnpm exec tsx scripts/generate-social-preview.ts`
  */
@@ -32,10 +35,11 @@ const REPO_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
-export const SOCIAL_PREVIEW_PNG = path.join(
-  REPO_ROOT,
-  "docs/assets/social-preview.png",
-);
+export const SOCIAL_PREVIEW_PNGS = [
+  path.join(REPO_ROOT, "docs/assets/social-preview.png"),
+  path.join(REPO_ROOT, "src/app/opengraph-image.png"),
+  path.join(REPO_ROOT, "src/app/twitter-image.png"),
+] as const;
 
 /** GitHub's recommended size; anything smaller is upscaled and blurred. */
 const WIDTH = 1280;
@@ -190,9 +194,11 @@ const invokedDirectly =
 
 if (invokedDirectly) {
   renderPng().then((png) => {
-    writeFileSync(SOCIAL_PREVIEW_PNG, png);
-    console.log(
-      `wrote ${path.relative(REPO_ROOT, SOCIAL_PREVIEW_PNG)} (${png.length} B, ${WIDTH}×${HEIGHT})`,
-    );
+    for (const output of SOCIAL_PREVIEW_PNGS) {
+      writeFileSync(output, png);
+      console.log(
+        `wrote ${path.relative(REPO_ROOT, output)} (${png.length} B, ${WIDTH}×${HEIGHT})`,
+      );
+    }
   });
 }
