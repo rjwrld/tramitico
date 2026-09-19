@@ -40,9 +40,22 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://tramitico.com"),
   title: "Tramitico",
   description:
-    "Respuestas sobre impuestos y trámites para desarrolladores independientes en Costa Rica — con cita al artículo oficial.",
+    "Impuestos y trámites para quien trabaja por cuenta propia en Costa Rica. Cada respuesta, sellada a su fuente oficial.",
+  openGraph: {
+    title: "Tramitico",
+    description:
+      "Impuestos y trámites para quien trabaja por cuenta propia en Costa Rica. Cada respuesta, sellada a su fuente oficial.",
+    url: "https://tramitico.com",
+    siteName: "Tramitico",
+    locale: "es_CR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default function RootLayout({
