@@ -3,7 +3,7 @@ import type { LanguageModelV4StreamPart } from "@ai-sdk/provider";
 import { MockLanguageModelV4 } from "ai/test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { RetrievalResult, RetrievedChunk } from "@/lib/retrieval";
-import { POST } from "./route";
+import { ANSWER_MAX_OUTPUT_TOKENS, POST } from "./route";
 
 vi.mock("@/lib/retrieval", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/retrieval")>()),
@@ -559,6 +559,27 @@ describe("POST /api/ask", () => {
     const final = events.filter((e) => e.type === "data-citations").at(-1)!
       .data as { docKey: string }[];
     expect(final.map((c) => c.docKey)).toEqual(["doc-2", "doc-1"]);
+  });
+
+  it("caps the answer generation's output tokens, far below the model default", async () => {
+    allowRateLimit();
+    vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+    const model = mockModel("La tarifa es 13% para servicios [1].");
+
+    await readEvents(
+      await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+    );
+
+    // The SDK forwards `maxOutputTokens` to the provider call as-is; with none
+    // the provider would substitute the model's own ceiling (128k for the
+    // shipped default), leaving the deadline as the only bound on a runaway
+    // generation. The cap is generous against the longest eval answer on
+    // record (~1.6k tokens) and small against that ceiling.
+    expect(model.doStreamCalls[0].maxOutputTokens).toBe(
+      ANSWER_MAX_OUTPUT_TOKENS,
+    );
+    expect(ANSWER_MAX_OUTPUT_TOKENS).toBeGreaterThanOrEqual(2048);
+    expect(ANSWER_MAX_OUTPUT_TOKENS).toBeLessThanOrEqual(8192);
   });
 
   it("streams the honest fallback with zero citations on weak retrieval, without calling the model", async () => {
