@@ -90,9 +90,16 @@ export function asHistoryClient(
 export async function sessionUserId(
   client: SessionClient,
 ): Promise<string | null> {
-  const { data, error } = await client.auth.getClaims();
-  if (error || !data?.claims.sub) return null;
-  return data.claims.sub;
+  try {
+    const { data, error } = await client.auth.getClaims();
+    if (error || !data?.claims.sub) return null;
+    return data.claims.sub;
+  } catch {
+    // A malformed session cookie makes `getClaims()` throw rather than return
+    // `{ error }`; either way the caller is anonymous (see
+    // `cookieUserId` in answer/user.ts, which already degrades the same way).
+    return null;
+  }
 }
 
 // Newest first, scoped to one owner. The service role bypasses RLS, so this
