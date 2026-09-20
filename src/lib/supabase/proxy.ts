@@ -32,7 +32,16 @@ export async function updateSession(request: NextRequest) {
   // Validates the JWT and refreshes an expired session; the setAll above
   // writes the refreshed cookies onto the response. No redirect on signed-out:
   // every MVP surface works anonymously (SPEC §7).
-  await supabase.auth.getClaims();
+  //
+  // `getClaims()` reports most failures as `{ error }`, but a cookie whose JWT
+  // header names an algorithm it cannot verify makes it *throw* a plain Error
+  // instead. A visitor who presents such a cookie is signed out, not a 500 —
+  // the same degrade-to-anonymous `cookieUserId` applies on /api/ask.
+  try {
+    await supabase.auth.getClaims();
+  } catch {
+    // Treated as no session; the response carries whatever cookies were set.
+  }
 
   return supabaseResponse;
 }

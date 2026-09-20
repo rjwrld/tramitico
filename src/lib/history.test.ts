@@ -87,6 +87,17 @@ describe("sessionUserId", () => {
   it("returns null when there is no session", async () => {
     expect(await sessionUserId(fakeSession(null))).toBeNull();
   });
+
+  it("returns null when getClaims throws on a malformed cookie", async () => {
+    const throwing: SessionClient = {
+      auth: {
+        getClaims: async () => {
+          throw new Error("Invalid alg claim");
+        },
+      },
+    };
+    expect(await sessionUserId(throwing)).toBeNull();
+  });
 });
 
 describe("listQuestions", () => {
