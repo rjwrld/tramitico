@@ -7,9 +7,10 @@ import { config } from "./proxy";
  * Compiles the matcher with Next's own path-to-regexp wrapper (the same
  * grammar `tryToParsePath` applies to `config.matcher`), then asks which
  * paths reach the proxy. The
- * session-free public surface must not: `/acerca` is ISR and the sitemap and
- * robots routes are static, so a refreshed session cookie written there would
- * sit on a response the framework labels CDN-cacheable.
+ * session-free public surface must not: `/acerca` is ISR, `/privacidad` and
+ * `/terminos` are fully static, and so are the sitemap and robots routes, so
+ * a refreshed session cookie written there would sit on a response the
+ * framework labels CDN-cacheable.
  */
 const matchers = config.matcher.map((source) => getPathMatch(source));
 const reachesProxy = (path: string) =>
@@ -20,7 +21,6 @@ describe("proxy matcher", () => {
     "/",
     "/login",
     "/historial",
-    "/privacidad",
     "/api/ask",
     "/api/history",
     "/api/history/abc-123",
@@ -34,6 +34,8 @@ describe("proxy matcher", () => {
 
   it.each([
     "/acerca",
+    "/privacidad",
+    "/terminos",
     "/sitemap.xml",
     "/robots.txt",
     "/favicon.ico",
@@ -50,5 +52,9 @@ describe("proxy matcher", () => {
     // The exclusions are anchored: an `acerca` *prefix* is not the page.
     expect(reachesProxy("/acercade")).toBe(true);
     expect(reachesProxy("/acerca/algo")).toBe(true);
+    expect(reachesProxy("/privacidad/x")).toBe(true);
+    expect(reachesProxy("/privacidadx")).toBe(true);
+    expect(reachesProxy("/terminos/x")).toBe(true);
+    expect(reachesProxy("/terminosx")).toBe(true);
   });
 });
