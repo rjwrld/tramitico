@@ -203,6 +203,18 @@ interface AskedQuestion {
  */
 const MAX_ANSWER_ATTEMPTS = 2;
 
+/**
+ * Output ceiling for one answer generation. Without it the provider fills in
+ * the model's own maximum (128k tokens for the shipped default), so the only
+ * bound on a generation's cost was the wall-clock deadline. The longest of
+ * the 125 answers in the eval transcripts is ~5.6k characters (~1.6k tokens);
+ * this is ~2.5× that, so a citation-compliant answer never hits it, and a
+ * runaway one is cut here rather than at the deadline. Condense and expand
+ * carry their own, smaller caps (`CONDENSE_MAX_OUTPUT_TOKENS`,
+ * `EXPAND_MAX_OUTPUT_TOKENS`).
+ */
+export const ANSWER_MAX_OUTPUT_TOKENS = 4096;
+
 const INVALID_QUESTION_MESSAGE =
   "Falta la pregunta o es demasiado larga. Escriba su pregunta en el cuadro de texto e intente de nuevo.";
 
@@ -523,6 +535,7 @@ async function generateAnswer(
         citationRetry: attempt > 1,
         derivedFigures,
       }),
+      maxOutputTokens: ANSWER_MAX_OUTPUT_TOKENS,
       abortSignal: signal,
       onError: ({ error }) => {
         failure ??= error;
