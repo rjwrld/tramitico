@@ -22,6 +22,11 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # @types/node tracks the runtime, not the newest Node: bump it by hand
+      # when the Vercel project's Node version moves (24.x as of 2026-09-21).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     labels:
       - dependencies
 
