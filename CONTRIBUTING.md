@@ -13,7 +13,7 @@ Security problems go through [SECURITY.md](SECURITY.md), not the issue tracker.
 
 ## Running the project locally
 
-Requirements: Node 22, [pnpm](https://pnpm.io), and, for anything that touches the
+Requirements: Node 24 (`.nvmrc`; `fnm use` or `nvm use` picks it up), [pnpm](https://pnpm.io), and, for anything that touches the
 database, the [Supabase CLI](https://supabase.com/docs/guides/cli) with Docker.
 
 ```bash
