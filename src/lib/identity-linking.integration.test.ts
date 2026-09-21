@@ -15,7 +15,10 @@
  * provider tokens against Google's JWKS, and the admin API has no endpoint
  * that fabricates an OAuth identity (checked against supabase-js 2.112's
  * auth.admin surface). Fabricating identity rows over SQL would only assert
- * state we wrote ourselves. Recorded in #84 alongside the decision.
+ * state we wrote ourselves. Recorded in #84 alongside the decision, and as
+ * the trust boundary in docs/adr/0022-identity-linking-trust-boundary.md
+ * (#381) — the provider-list guard that CAN run without a stack is
+ * src/components/auth/sign-in-providers.test.ts.
  *
  * Env-gated like history.integration.test.ts: skipped locally without
  * SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY and
