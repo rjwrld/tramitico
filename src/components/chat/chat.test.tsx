@@ -134,6 +134,7 @@ class StubIntersectionObserver implements IntersectionObserver {
   readonly root = null;
   readonly rootMargin = "";
   readonly thresholds: readonly number[] = [];
+  readonly scrollMargin = "";
   readonly targets = new Set<Element>();
   constructor(private readonly callback: IntersectionCallback) {
     observers.push(this);
