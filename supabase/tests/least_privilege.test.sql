@@ -22,7 +22,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(18);
+select plan(19);
 
 -- 1. Tables, views and sequences: no privilege of any kind, for either Data
 --    API role or for PUBLIC. A NULL relacl means "owner only", which is why
@@ -76,12 +76,14 @@ select is_empty(
 --    migrations run as `postgres`, so this is the entry that governs what a
 --    new table inherits.
 --
---    Scope note: pg_default_acl also carries a `supabase_admin` entry for
---    `public` that still names anon/authenticated. That row is
---    platform-owned — it governs objects supabase_admin creates, which our
---    migrations never do — and `auto_expose_new_tables = false` in
---    supabase/config.toml is the platform-side half of the same control.
---    Asserting on it would be asserting on Supabase's internals.
+--    `auto_expose_new_tables = false` in supabase/config.toml, and the hosted
+--    project's "Automatically expose new tables" toggle it mirrors (off since
+--    2026-09-19), edit exactly this `postgres` row and nothing else: the CLI
+--    implements the setting as `alter default privileges for role postgres in
+--    schema public revoke ... from anon, authenticated, service_role`, and
+--    the platform does the same at project creation. That means the toggle
+--    and 20260812120000_least_privilege.sql are two ways of writing the same
+--    row, and this check is what notices if either is undone.
 select is_empty(
   $$
     select
@@ -95,6 +97,59 @@ select is_empty(
       and (a.grantee = 0 or pg_get_userbyid(a.grantee) in ('anon', 'authenticated'))
   $$,
   'default privileges for role postgres in public grant nothing to anon/authenticated/PUBLIC'
+);
+
+-- 4b. Every other owner (#382). pg_default_acl in `public` carries a second
+--     set of rows, owned by `supabase_admin`, that still grant ALL on future
+--     tables, sequences and functions to anon/authenticated. Characterised on
+--     the local stack (Postgres 17, supabase_admin is the image's superuser):
+--
+--       supabase_admin | public | r | {postgres=arwdDxtm/supabase_admin,anon=arwdDxtm/...,authenticated=arwdDxtm/...,service_role=...}
+--       supabase_admin | public | S | {postgres=rwU/supabase_admin,anon=rwU/...,authenticated=rwU/...,service_role=...}
+--       supabase_admin | public | f | {postgres=X/supabase_admin,anon=X/...,authenticated=X/...,service_role=...}
+--
+--     A migration cannot remove them: `alter default privileges for role
+--     supabase_admin` needs membership in that role, migrations run as
+--     `postgres`, and `postgres` is not a member — locally the statement
+--     fails with "permission denied to change default privileges", and the
+--     hosted project never hands out supabase_admin at all. The rows are
+--     written by the image's init scripts, so a `db reset` would recreate
+--     them anyway. They govern only objects supabase_admin itself creates,
+--     which none of our migrations do, and neither the config.toml setting
+--     nor the hosted toggle touches them (see check 4).
+--
+--     So instead of "no row, any owner" — which would fail on every stack —
+--     this pins the *exact* set of (owner, object type, grantee) triples in
+--     `public` that grant to anon/authenticated/PUBLIC, and expects it to be
+--     precisely those six platform rows. Any addition fails it: a regenerated
+--     dump re-granting on the `postgres` row (also caught by check 4), a
+--     PUBLIC grantee, or a new owner. A row *disappearing* fails it too, on
+--     purpose — that is the platform removing its half, and the day it does
+--     this check should tighten to is_empty rather than keep pinning.
+--     Privilege names are deliberately left out of the key: MAINTAIN ('m') is
+--     Postgres 17+, and a major-version bump should not fail a guard that is
+--     about *who* is granted, not *what*.
+select set_eq(
+  $$
+    select distinct
+      pg_get_userbyid(d.defaclrole)::text
+        || ' ' || d.defaclobjtype::text
+        || ' -> ' || case when a.grantee = 0 then 'PUBLIC' else pg_get_userbyid(a.grantee)::text end
+    from pg_default_acl d
+    join pg_namespace n on n.oid = d.defaclnamespace
+    cross join lateral aclexplode(d.defaclacl) a
+    where n.nspname = 'public'
+      and (a.grantee = 0 or pg_get_userbyid(a.grantee) in ('anon', 'authenticated'))
+  $$,
+  array[
+    'supabase_admin S -> anon',
+    'supabase_admin S -> authenticated',
+    'supabase_admin f -> anon',
+    'supabase_admin f -> authenticated',
+    'supabase_admin r -> anon',
+    'supabase_admin r -> authenticated'
+  ]::text[],
+  'the only default privileges in public reaching anon/authenticated/PUBLIC are the six platform-owned supabase_admin rows'
 );
 
 -- 5. Positive control. A lockdown that also locked out `service_role` would
