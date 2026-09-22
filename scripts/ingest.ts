@@ -146,8 +146,10 @@ interface ManifestDoc {
    * pinned to the bytes' SHA-256 (#301). Present → the chunk carries the
    * transcribed text in place of the «Imagen incluida» notice, ingestion
    * fails loudly when the bytes change or the crawl no longer links the
-   * image, and `extract` refuses the field on any other entry rather than
-   * silently ignore it. Absent → image answers keep the notice and the link.
+   * image. The `html` branch refuses it on its sibling extractor, and the
+   * static guard in manifest-fields.test.ts refuses it on every other kind,
+   * so it cannot sit in the manifest and never reach a chunk. Absent → image
+   * answers keep the notice and the link.
    */
   imageTranscriptions?: FaqImageTranscription[];
   /**

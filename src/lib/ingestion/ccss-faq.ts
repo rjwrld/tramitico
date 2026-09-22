@@ -36,11 +36,19 @@ export interface CcssFaqOptions {
   onDuplicate?: (dropped: Chunk, kept: Chunk) => void;
 }
 
-const RELEVANT_CATEGORIES = new Set([
-  "Cobros",
-  "Seguro voluntario",
-  "Trabajador Independiente",
-]);
+/**
+ * The FAQ categories this corpus ingests, ranked by specificity for the
+ * body-duplicate tie-break (#301). The page publishes the same answer under
+ * «Seguro voluntario» and «Trabajador Independiente»; the independent-worker
+ * section is the one this corpus exists for, and Cobros is the catch-all.
+ * One table, so a category cannot be relevant without a rank or vice versa.
+ */
+const CATEGORY_RANK: Record<string, number> = {
+  "Trabajador Independiente": 2,
+  "Seguro voluntario": 1,
+  Cobros: 0,
+};
+const RELEVANT_CATEGORIES = new Set(Object.keys(CATEGORY_RANK));
 
 const DEFAULT_MINIMUM = 25;
 const QUESTION_BLOCK_RE =
@@ -134,22 +142,14 @@ function answerOf(
   return [text, ...imageText].filter(Boolean).join(" ");
 }
 
-/**
- * Section specificity for the body-duplicate tie-break (#301). The page
- * publishes the same answer under «Seguro voluntario» and «Trabajador
- * Independiente»; the independent-worker section is the one this corpus
- * exists for, and Cobros is the catch-all.
- */
-const CATEGORY_RANK: Record<string, number> = {
-  "Trabajador Independiente": 2,
-  "Seguro voluntario": 1,
-  Cobros: 0,
-};
+/** A chunk beside the answer text it was built from, before the header. */
+interface ExtractedAnswer {
+  chunk: Chunk;
+  body: string;
+}
 
-const bodyOf = (chunk: Chunk) => chunk.content.replace(/^\[[^\]]*\]\s*/, "");
-
-const rank = (chunk: Chunk) =>
-  (CATEGORY_RANK[chunk.path[0]] ?? -1) * 1_000 + (chunk.articulo?.length ?? 0);
+const rank = ({ chunk }: ExtractedAnswer) =>
+  CATEGORY_RANK[chunk.path[0]] * 1_000 + (chunk.articulo?.length ?? 0);
 
 /**
  * Keep one chunk per answer body (#301). Four bodies on the live page are
@@ -160,20 +160,21 @@ const rank = (chunk: Chunk) =>
  * then the one with the longer heading, then the first published.
  */
 function dedupeBodies(
-  chunks: readonly Chunk[],
+  answers: readonly ExtractedAnswer[],
   onDuplicate?: (dropped: Chunk, kept: Chunk) => void,
 ): Chunk[] {
-  const winners = new Map<string, Chunk>();
-  for (const chunk of chunks) {
-    const body = bodyOf(chunk);
-    const current = winners.get(body);
-    if (!current || rank(chunk) > rank(current)) winners.set(body, chunk);
+  const winners = new Map<string, ExtractedAnswer>();
+  for (const answer of answers) {
+    const current = winners.get(answer.body);
+    if (!current || rank(answer) > rank(current))
+      winners.set(answer.body, answer);
   }
   const kept = new Set(winners.values());
-  for (const chunk of chunks) {
-    if (!kept.has(chunk)) onDuplicate?.(chunk, winners.get(bodyOf(chunk))!);
+  for (const answer of answers) {
+    if (!kept.has(answer))
+      onDuplicate?.(answer.chunk, winners.get(answer.body)!.chunk);
   }
-  return chunks.filter((chunk) => kept.has(chunk));
+  return answers.filter((a) => kept.has(a)).map((a) => a.chunk);
 }
 
 function idPattern(id: string): RegExp {
@@ -206,7 +207,7 @@ export function extractCcssFaqChunks(
   const transcribed = new Map(transcriptions.map((t) => [t.src, t]));
   const seenTranscriptions = new Set<string>();
 
-  const extracted: Chunk[] = [];
+  const extracted: ExtractedAnswer[] = [];
   QUESTION_BLOCK_RE.lastIndex = 0;
   for (
     let match = QUESTION_BLOCK_RE.exec(html);
@@ -259,11 +260,14 @@ export function extractCcssFaqChunks(
       throw new Error(`${docKey}: empty modal answer for "${heading}"`);
 
     extracted.push({
-      docKey,
-      articulo: heading,
-      path: [category],
-      part: 0,
-      content: `[${title} — ${category} — ${heading}] ${answer}`,
+      body: answer,
+      chunk: {
+        docKey,
+        articulo: heading,
+        path: [category],
+        part: 0,
+        content: `[${title} — ${category} — ${heading}] ${answer}`,
+      },
     });
     QUESTION_BLOCK_RE.lastIndex = block.end;
   }
