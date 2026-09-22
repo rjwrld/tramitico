@@ -142,11 +142,13 @@ export default function PrivacyPage() {
           <strong className="font-medium text-foreground">
             El conteo del límite diario.
           </strong>{" "}
-          Si consulta sin iniciar sesión, el límite se lleva contra un
-          identificador derivado de su dirección IP y su navegador mediante una
-          función hash con clave secreta. No se guarda la dirección IP, y del
-          identificador no se puede volver a ella ni llegar a las preguntas: no
-          quedan asociadas a él.
+          Si consulta sin iniciar sesión, el límite se lleva contra dos
+          identificadores derivados mediante una función hash con clave secreta:
+          uno de su dirección IP junto con su navegador, y otro de la dirección
+          IP sola, que fija un tope compartido por todos los navegadores de esa
+          dirección. No se guarda la dirección IP, y de los identificadores no
+          se puede volver a ella ni llegar a las preguntas: no quedan asociadas
+          a ellos.
         </p>
       </Section>
 

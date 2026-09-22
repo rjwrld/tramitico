@@ -307,6 +307,13 @@ _(pinned here per #10)_
 - **Anonymous: 10 questions/day** per subject = `HMAC-SHA256(RATE_LIMIT_SUBJECT_SECRET,
 crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed from an IP,
   date-scoped so it doesn't link across days). **Authed: 50/day** per user.
+- **Per-IP umbrella (#383):** every anonymous ask is also counted against
+  `HMAC-SHA256(RATE_LIMIT_SUBJECT_SECRET, crDate + IP)` — one row per IP that all browser
+  families share — with a ceiling of `RATE_LIMIT_ANON_IP` (default 3 × the anonymous
+  limit). The family fold stays, so a shared NAT still gets separate buckets; the umbrella
+  bounds what the fold can add. Checked only after the subject counter allowed, so a spent
+  family never burns its neighbours' share. Either counter tripping is the same 429 and the
+  same reset; the telemetry event's `quotaReason` says which. A refund gives both back.
 - "Day" = the **Costa Rica calendar day** (UTC-6, no DST), both tiers — quotas reset at local
   midnight, not at 18:00 local (#125).
 - Mechanism: fixed-window counter in the `rate_limits` Postgres table, checked in `/api/ask` —

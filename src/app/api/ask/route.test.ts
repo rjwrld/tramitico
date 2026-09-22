@@ -97,6 +97,7 @@ function allowRateLimit(): ReturnType<typeof vi.fn> {
     remaining: 9,
     resetAt: new Date(),
     reason: "ok",
+    counter: null,
     message: null,
     refund,
   });
@@ -605,6 +606,7 @@ describe("POST /api/ask", () => {
       remaining: 0,
       resetAt: new Date(),
       reason: "rate_limited",
+      counter: "subject",
       message: "Alcanzó el límite de 10 preguntas gratis por hoy.",
       refund: NO_REFUND,
     });
@@ -625,6 +627,7 @@ describe("POST /api/ask", () => {
       remaining: 0,
       resetAt: new Date(),
       reason: "unavailable",
+      counter: null,
       message: "No pudimos verificar su límite de preguntas en este momento.",
       refund: NO_REFUND,
     });
@@ -691,6 +694,36 @@ describe("POST /api/ask", () => {
     // (mockModel appends a trailing space to every word.)
     expect(saved.answer).toBe("Aplica el 13%[1]. ");
     expect(saved.citations.map((c) => c.docKey)).toEqual(["doc-1"]);
+  });
+
+  it("checks an anonymous ask against its subject and the per-IP umbrella (#383)", async () => {
+    allowRateLimit();
+    vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+    mockModel("Aplica el 13% [1].");
+
+    const request = new Request("http://localhost/api/ask", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-for": "203.0.113.5, 10.0.0.1",
+        "user-agent": "Mozilla/5.0 Gecko/20100101 Firefox/121.0",
+      },
+      body: JSON.stringify({ question: "¿Cuánto es el IVA?" }),
+    });
+    await readEvents(await POST(request));
+
+    // Both digests, one clock read, neither the raw IP: the umbrella rides as
+    // the fifth argument and is checked inside the limiter, not here.
+    expect(vi.mocked(checkRateLimit)).toHaveBeenCalledWith(
+      expect.stringMatching(/^anon:[0-9a-f]{64}$/),
+      "anon",
+      undefined,
+      expect.any(Date),
+      expect.stringMatching(/^anon-ip:[0-9a-f]{64}$/),
+    );
+    const [subject, , , , umbrella] = vi.mocked(checkRateLimit).mock.calls[0];
+    expect(subject).not.toContain("203.0.113.5");
+    expect(umbrella).not.toContain("203.0.113.5");
   });
 
   it("persists the honest fallback for signed-in users on weak retrieval", async () => {
@@ -967,6 +1000,7 @@ describe("POST /api/ask", () => {
         remaining: 9,
         resetAt: new Date(),
         reason: "ok",
+        counter: null,
         message: null,
         refund,
       });
@@ -1889,6 +1923,7 @@ describe("POST /api/ask", () => {
         providerError: null,
         citationFailure: false,
         quotaHit: false,
+        quotaReason: null,
         abort: null,
         routedCategory: null,
       });
@@ -2126,6 +2161,7 @@ describe("POST /api/ask", () => {
         remaining: 0,
         resetAt: new Date(),
         reason: "rate_limited",
+        counter: "subject",
         message: "Alcanzó el límite de 10 preguntas gratis por hoy.",
         refund: NO_REFUND,
       });
@@ -2137,6 +2173,36 @@ describe("POST /api/ask", () => {
       expect(soleEvent(capture)).toMatchObject({
         outcome: "declined",
         quotaHit: true,
+        quotaReason: "subject",
+      });
+    });
+
+    it("names the per-IP umbrella when that is the counter that tripped (#383)", async () => {
+      const capture = captureTelemetry();
+      vi.mocked(checkRateLimit).mockResolvedValue({
+        allowed: false,
+        remaining: 0,
+        resetAt: new Date(),
+        reason: "rate_limited",
+        counter: "ip",
+        message: "Alcanzó el límite de 10 preguntas gratis por hoy.",
+        refund: NO_REFUND,
+      });
+
+      const response = await POST(
+        askRequest({ question: "¿Cuánto es el IVA?" }),
+      );
+
+      // Same 429, same body, same code as a per-subject denial: the umbrella
+      // is an internal bound, not a second quota the reader is told about.
+      expect(response.status).toBe(429);
+      expect(((await response.json()) as { error: string }).error).toBe(
+        "rate_limited",
+      );
+      expect(soleEvent(capture)).toMatchObject({
+        outcome: "declined",
+        quotaHit: true,
+        quotaReason: "ip",
       });
     });
 
@@ -2147,6 +2213,7 @@ describe("POST /api/ask", () => {
         remaining: 0,
         resetAt: new Date(),
         reason: "unavailable",
+        counter: null,
         message: "No pudimos verificar su límite de preguntas en este momento.",
         refund: NO_REFUND,
       });
@@ -2156,6 +2223,7 @@ describe("POST /api/ask", () => {
       expect(soleEvent(capture)).toMatchObject({
         outcome: "refunded_error",
         quotaHit: false,
+        quotaReason: null,
       });
     });
 
@@ -2223,6 +2291,7 @@ describe("POST /api/ask", () => {
         "outcome",
         "providerError",
         "quotaHit",
+        "quotaReason",
         "routedCategory",
         "stages",
       ]);

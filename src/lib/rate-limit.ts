@@ -12,6 +12,13 @@
  * "Daily" means a Costa Rica calendar day (#125): the window opens at 00:00
  * America/Costa_Rica, so a quota resets overnight for the people using this,
  * not at 18:00 local.
+ *
+ * An anonymous ask is counted twice (#383): once against its subject — IP and
+ * coarse browser family — and once against a per-IP umbrella that every
+ * family on that IP shares. The family fold exists so a shared CR NAT does
+ * not starve its users of each other's quota, but it also hands one IP up to
+ * seven independent buckets a day; the umbrella caps what the fold can add
+ * without giving the fold up.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createHmac } from "node:crypto";
@@ -22,11 +29,22 @@ import { serviceClient } from "./supabase/service";
 
 export type RateLimitTier = "anon" | "authed";
 
+/**
+ * Which counter a denial came from (#383): `subject` is the per-caller row —
+ * the user id, or the anonymous IP + family digest — and `ip` is the
+ * anonymous per-IP umbrella. Content-free by construction, so it may ride on
+ * the telemetry event; the subject itself never does.
+ */
+export type RateLimitCounter = "subject" | "ip";
+
 export interface RateLimitResult {
   allowed: boolean;
+  /** Asks left before the next denial — the tighter of the counters checked. */
   remaining: number;
   resetAt: Date;
   reason: "ok" | "rate_limited" | "unavailable";
+  /** The counter that tripped; `null` unless `reason` is `rate_limited`. */
+  counter: RateLimitCounter | null;
   /** Ready-to-render ES copy for the 429 body; null when allowed. */
   message: string | null;
   /**
@@ -114,6 +132,22 @@ export function limitFor(tier: RateLimitTier): number {
   return Number.isFinite(n) && n > 0 ? n : DEFAULT_LIMITS[tier];
 }
 
+const ANON_IP_MULTIPLIER = 3;
+
+/**
+ * The daily ceiling one IP's anonymous asks share across every browser family
+ * (#383): `RATE_LIMIT_ANON_IP` when set, else three times the anonymous
+ * limit. Derived from `limitFor("anon")` rather than a fixed number so the
+ * same-day dial on the per-subject quota moves the umbrella with it.
+ */
+export function limitForAnonIp(): number {
+  const raw = process.env.RATE_LIMIT_ANON_IP;
+  const fallback = limitFor("anon") * ANON_IP_MULTIPLIER;
+  if (!raw) return fallback;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
 /** The current date in Costa Rica as `YYYY-MM-DD` (#125). */
 export function crDate(now = new Date()): string {
   return new Date(now.getTime() - CR_UTC_OFFSET_MS).toISOString().slice(0, 10);
@@ -176,17 +210,31 @@ export function subjectForAnon(
   userAgent: string,
   now = new Date(),
 ): string {
+  const family = coarseUserAgent(userAgent);
+  return `anon:${anonDigest(`${crDate(now)}|${ip}|${family}`)}`;
+}
+
+/**
+ * The per-IP umbrella subject (#383): the same keyed, date-scoped digest as
+ * `subjectForAnon` over `date|ip` alone, so every browser family on one IP
+ * lands on the same row. Its own prefix keeps the two key spaces apart — a
+ * subject digest and an umbrella digest can never collide, and a sweep or a
+ * test can address either family of rows by prefix.
+ *
+ * Throws without the secret, exactly as `subjectForAnon` does.
+ */
+export function subjectForAnonIp(ip: string, now = new Date()): string {
+  return `anon-ip:${anonDigest(`${crDate(now)}|${ip}`)}`;
+}
+
+function anonDigest(material: string): string {
   const secret = process.env.RATE_LIMIT_SUBJECT_SECRET;
   if (!secret) {
     throw new Error(
       "RATE_LIMIT_SUBJECT_SECRET is required to derive anonymous rate-limit subjects",
     );
   }
-  const family = coarseUserAgent(userAgent);
-  const mac = createHmac("sha256", secret)
-    .update(`${crDate(now)}|${ip}|${family}`)
-    .digest("hex");
-  return `anon:${mac}`;
+  return createHmac("sha256", secret).update(material).digest("hex");
 }
 
 export const RATE_LIMIT_UNAVAILABLE_MESSAGE =
@@ -258,32 +306,54 @@ function refundHandle(
   };
 }
 
+/**
+ * One `rate_limit_increment` round trip: the subject's count after this ask,
+ * or a throw for every way the limiter can fail to answer.
+ */
+async function increment(
+  client: RpcClient,
+  subject: string,
+  windowStart: Date,
+  cutoff: Date,
+): Promise<number> {
+  const { data, error } = await client.rpc("rate_limit_increment", {
+    p_subject: subject,
+    p_window_start: windowStart.toISOString(),
+    p_cutoff: cutoff.toISOString(),
+  });
+  if (error || !data)
+    throw error ?? new Error("rate_limit_increment: no row returned");
+  return data.count;
+}
+
+/**
+ * Charges `subject` one ask for the CR day containing `now` and, when
+ * `umbrella` is given, the anonymous per-IP umbrella too (#383).
+ *
+ * The umbrella is checked second, and only once the subject allowed: a
+ * family that has already spent its own quota does not go on burning the
+ * umbrella its NAT neighbours share, which is the whole reason the family
+ * fold exists. The cost is one extra RPC on the anonymous asks that get that
+ * far, none on the ones the subject counter already turned away.
+ *
+ * When the umbrella trips, the subject increment that preceded it stays on
+ * the row: both counters reset at the same instant, so no ask this subject
+ * could make before then would have been allowed anyway — the same
+ * "indistinguishable from not counting it" reading as any other denial.
+ */
 export async function checkRateLimit(
   subject: string,
   tier: RateLimitTier,
   client?: RpcClient,
   now = new Date(),
+  umbrella?: string,
 ): Promise<RateLimitResult> {
   const windowStart = crDayStart(now);
   const resetAt = new Date(windowStart.getTime() + DAY_MS);
   const cutoff = new Date(windowStart.getTime() - RETENTION_DAYS * DAY_MS);
   const limit = limitFor(tier);
 
-  let count: number;
-  // Resolved inside the try: `defaultClient()` throws on missing Supabase
-  // credentials, which is one of the fail-closed cases below.
-  let rpcClient: RpcClient;
-  try {
-    rpcClient = client ?? defaultClient();
-    const { data, error } = await rpcClient.rpc("rate_limit_increment", {
-      p_subject: subject,
-      p_window_start: windowStart.toISOString(),
-      p_cutoff: cutoff.toISOString(),
-    });
-    if (error || !data)
-      throw error ?? new Error("rate_limit_increment: no row returned");
-    count = data.count;
-  } catch (error) {
+  const unavailable = (error: unknown): RateLimitResult => {
     // Fail-closed means every ask 503s until this clears, and the ask event
     // carries no error field of its own for this door (telemetry.ts) — so
     // this line is the only diagnosable signal there is. Its prefix is what
@@ -294,34 +364,75 @@ export async function checkRateLimit(
       remaining: 0,
       resetAt,
       reason: "unavailable",
+      counter: null,
       message: RATE_LIMIT_UNAVAILABLE_MESSAGE,
       // Nothing was consumed — an increment that never landed has nothing to
       // give back, and refunding here would decrement someone else's ask.
       refund: NO_REFUND,
     };
-  }
+  };
 
   // A denial past the limit still incremented the row, by design: the counter
   // is what makes the window fixed. But the caller got no answer out of it,
   // and the count is already past the limit, so refunding it would be
-  // indistinguishable from not counting the attempt at all.
-  if (count > limit) {
-    return {
-      allowed: false,
-      remaining: 0,
-      resetAt,
-      reason: "rate_limited",
-      message: rateLimitReachedMessage(tier, resetAt),
-      refund: NO_REFUND,
-    };
+  // indistinguishable from not counting the attempt at all. The 429 reads the
+  // same whichever counter tripped (#383): the umbrella is an internal bound,
+  // not a second quota the reader is asked to reason about.
+  const denied = (counter: RateLimitCounter): RateLimitResult => ({
+    allowed: false,
+    remaining: 0,
+    resetAt,
+    reason: "rate_limited",
+    counter,
+    message: rateLimitReachedMessage(tier, resetAt),
+    refund: NO_REFUND,
+  });
+
+  // Resolved inside the try: `defaultClient()` throws on missing Supabase
+  // credentials, which is one of the fail-closed cases.
+  let rpcClient: RpcClient;
+  let count: number;
+  try {
+    rpcClient = client ?? defaultClient();
+    count = await increment(rpcClient, subject, windowStart, cutoff);
+  } catch (error) {
+    return unavailable(error);
+  }
+  if (count > limit) return denied("subject");
+
+  const refunds = [refundHandle(rpcClient, subject, windowStart)];
+  let remaining = limit - count;
+
+  if (umbrella !== undefined) {
+    const umbrellaLimit = limitForAnonIp();
+    let umbrellaCount: number;
+    try {
+      umbrellaCount = await increment(rpcClient, umbrella, windowStart, cutoff);
+    } catch (error) {
+      // The subject increment landed but the ask is now a 503, and
+      // `unavailable` promises the caller was never charged (telemetry.ts).
+      // Give the subject's ask back before saying so; if that fails too it is
+      // logged and the ask is lost, which is the cheaper bug.
+      await refunds[0]();
+      return unavailable(error);
+    }
+    if (umbrellaCount > umbrellaLimit) return denied("ip");
+    refunds.push(refundHandle(rpcClient, umbrella, windowStart));
+    remaining = Math.min(remaining, umbrellaLimit - umbrellaCount);
   }
 
   return {
     allowed: true,
-    remaining: limit - count,
+    remaining,
     resetAt,
     reason: "ok",
+    counter: null,
     message: null,
-    refund: refundHandle(rpcClient, subject, windowStart),
+    // Every row this check charged is given back together (#127 semantics):
+    // each handle is once-only and swallows its own failure, so a second call
+    // is a no-op and one failed refund never blocks the other.
+    refund: async () => {
+      await Promise.all(refunds.map((refund) => refund()));
+    },
   };
 }

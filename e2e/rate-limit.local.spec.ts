@@ -38,7 +38,9 @@ test.beforeEach(async () => {
   const { error } = await admin
     .from("rate_limits")
     .delete()
-    .like("subject", "anon:%");
+    // Both anonymous key spaces (#383): the per-subject rows and the per-IP
+    // umbrella every spec in this lane shares through 127.0.0.1.
+    .or("subject.like.anon:%,subject.like.anon-ip:%");
   expect(error).toBeNull();
 });
 

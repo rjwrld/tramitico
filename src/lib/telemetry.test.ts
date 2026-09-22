@@ -82,6 +82,7 @@ describe("emitAskEvent", () => {
     providerError: null,
     citationFailure: false,
     quotaHit: false,
+    quotaReason: null,
     abort: null,
     routedCategory: null,
   };
@@ -236,11 +237,33 @@ describe("createAskTelemetry", () => {
   it("carries the two flags independently of the outcome", () => {
     const telemetry = createAskTelemetry();
     telemetry.citationFailure();
-    telemetry.quotaHit();
+    telemetry.quotaHit("subject");
     telemetry.emit();
     expect(capture.events()[0]).toMatchObject({
       citationFailure: true,
       quotaHit: true,
+      quotaReason: "subject",
+    });
+  });
+
+  it("names the anonymous per-IP umbrella as its own quota reason (#383)", () => {
+    const telemetry = createAskTelemetry();
+    telemetry.quotaHit("ip");
+    telemetry.emit();
+    expect(capture.events()[0]).toMatchObject({
+      outcome: "declined",
+      quotaHit: true,
+      quotaReason: "ip",
+    });
+  });
+
+  it("leaves the quota reason null on an ask no counter denied", () => {
+    const telemetry = createAskTelemetry();
+    telemetry.answered();
+    telemetry.emit();
+    expect(capture.events()[0]).toMatchObject({
+      quotaHit: false,
+      quotaReason: null,
     });
   });
 
@@ -367,6 +390,7 @@ describe("no telemetry event can carry content (#141)", () => {
       "outcome",
       "providerError",
       "quotaHit",
+      "quotaReason",
       "routedCategory",
       "stages",
     ]);
