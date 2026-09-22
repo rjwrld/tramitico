@@ -134,6 +134,43 @@ describe("UserMenu", () => {
     expect(refresh).toHaveBeenCalled();
   });
 
+  it("on 409 disables the entry and shows the server's waiting-period sentence, without signing out (#384)", async () => {
+    const sentence =
+      "Una cuenta se puede eliminar a partir de una hora después de crearla; antes, la opción no está disponible.";
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 409,
+      json: async () => ({ error: sentence, code: "account_too_young" }),
+    });
+    render(<UserMenu email="dev@example.com" />);
+    await openMenu();
+
+    await userEvent.click(
+      await screen.findByRole("menuitem", { name: "Eliminar cuenta" }),
+    );
+    await userEvent.click(
+      screen.getByRole("button", {
+        name: "Eliminar cuenta y todo el historial",
+      }),
+    );
+
+    expect(await screen.findByText(sentence)).toBeTruthy();
+    const item = screen.getByRole("menuitem", { name: "Eliminar cuenta" });
+    expect(item.getAttribute("aria-disabled")).toBe("true");
+    expect(
+      screen.queryByText(/Esto elimina su cuenta y todo su historial/),
+    ).toBe(null);
+    expect(signOut).not.toHaveBeenCalled();
+    expect(push).not.toHaveBeenCalled();
+
+    // Disabled means disabled: another click does not re-arm the confirm.
+    await userEvent.click(item);
+    expect(
+      screen.queryByText(/Esto elimina su cuenta y todo su historial/),
+    ).toBe(null);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("keeps the account when the endpoint fails, and does not sign out", async () => {
     fetchMock.mockResolvedValue({ ok: false, status: 500 });
     render(<UserMenu email="dev@example.com" />);

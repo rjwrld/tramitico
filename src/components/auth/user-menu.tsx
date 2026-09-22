@@ -22,6 +22,11 @@ export function UserMenu({ email }: { email: string }) {
   const router = useRouter();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  // The waiting-period sentence from a 409 (#384). The server is the only
+  // source of the account's age — the page renders from claims, which carry
+  // no `created_at` — so the entry is disabled once the route has said so,
+  // and the sentence it returned is shown beneath, verbatim.
+  const [tooYoung, setTooYoung] = useState<string | null>(null);
 
   async function signOut() {
     const supabase = createClient();
@@ -37,6 +42,16 @@ export function UserMenu({ email }: { email: string }) {
     setDeleting(true);
     try {
       const response = await fetch("/api/account/delete", { method: "POST" });
+      if (response.status === 409) {
+        const body = (await response.json()) as { error?: string };
+        setTooYoung(
+          body.error ||
+            "La cuenta es demasiado reciente para eliminarla. Intente más tarde.",
+        );
+        setDeleting(false);
+        setConfirmingDelete(false);
+        return;
+      }
       if (!response.ok) throw new Error(String(response.status));
       const supabase = createClient();
       await supabase.auth.signOut();
@@ -99,10 +114,16 @@ export function UserMenu({ email }: { email: string }) {
             <DropdownMenuItem
               variant="destructive"
               closeOnClick={false}
+              disabled={tooYoung !== null}
               onClick={() => setConfirmingDelete(true)}
             >
               Eliminar cuenta
             </DropdownMenuItem>
+          )}
+          {tooYoung !== null && (
+            <p className="px-1.5 py-1 text-xs text-muted-foreground">
+              {tooYoung}
+            </p>
           )}
         </DropdownMenuGroup>
       </DropdownMenuContent>

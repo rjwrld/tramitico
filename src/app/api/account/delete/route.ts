@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 
+import {
+  accountDeleteMinAgeMinutes,
+  accountDeleteWaitCopy,
+  isAccountTooYoung,
+} from "@/lib/account-delete";
 import { describeError } from "@/lib/log-redaction";
 import { createClient } from "@/lib/supabase/server";
 import { serviceClient } from "@/lib/supabase/service";
@@ -19,6 +24,14 @@ import { serviceClient } from "@/lib/supabase/service";
 // rejects it. Global scope kills every refresh token of the account, not just
 // the initiating browser's.
 //
+// Before any of that, the account must be old enough (#384, #358 row 7):
+// delete + re-signup mints a fresh `auth.users.id` and with it a fresh authed
+// quota, so a young account is refused with a 409 whose body is the sentence
+// the menu then shows under the disabled entry. The client cannot know the
+// age up front — the home page reads claims, and the JWT carries no
+// `created_at` — so the 409 is the one source of that state; the menu never
+// guesses.
+//
 // Deleting the auth user is admin-only, so it cannot happen from the browser
 // client. `questions.user_id` has ON DELETE CASCADE (core_schema.sql), so
 // history disappears atomically with the account. No request body: the session
@@ -27,11 +40,20 @@ export async function POST() {
   const supabase = await createClient();
 
   const { data: userData, error: userError } = await supabase.auth.getUser();
-  const userId = userError ? null : userData.user?.id;
-  if (!userId) {
+  const user = userError ? null : userData.user;
+  const userId = user?.id;
+  if (!user || !userId) {
     return NextResponse.json(
       { error: "Inicie sesión para eliminar su cuenta." },
       { status: 401 },
+    );
+  }
+
+  const minAge = accountDeleteMinAgeMinutes();
+  if (isAccountTooYoung(user.created_at, minAge)) {
+    return NextResponse.json(
+      { error: accountDeleteWaitCopy(minAge), code: "account_too_young" },
+      { status: 409 },
     );
   }
 
