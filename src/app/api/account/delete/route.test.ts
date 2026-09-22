@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // The narrow slice of the cookie-scoped client the route uses. Route files
 // cannot export extra symbols (Next type-checks them), so the shape is
@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 interface AccountClient {
   auth: {
     getUser(): Promise<{
-      data: { user: { id: string } | null };
+      data: { user: { id: string; created_at: string } | null };
       error: { message: string } | null;
     }>;
     getSession(): Promise<{
@@ -31,15 +31,22 @@ vi.mock("@/lib/supabase/service", () => ({
 
 import { POST } from "./route";
 
+/** An account old enough for the #384 waiting period on every default path. */
+const OLD_ENOUGH = new Date(Date.now() - 24 * 60 * 60_000).toISOString();
+
 function fakeClient(
   userId: string | null,
   accessToken: string | null = "token-a",
+  createdAt: string = OLD_ENOUGH,
 ): AccountClient {
   return {
     auth: {
       getUser: async () =>
         userId
-          ? { data: { user: { id: userId } }, error: null }
+          ? {
+              data: { user: { id: userId, created_at: createdAt } },
+              error: null,
+            }
           : {
               data: { user: null },
               error: { message: "Auth session missing" },
@@ -51,6 +58,16 @@ function fakeClient(
     },
   };
 }
+
+const ORIGINAL_MIN_AGE = process.env.ACCOUNT_DELETE_MIN_AGE_MINUTES;
+
+afterEach(() => {
+  if (ORIGINAL_MIN_AGE === undefined) {
+    delete process.env.ACCOUNT_DELETE_MIN_AGE_MINUTES;
+  } else {
+    process.env.ACCOUNT_DELETE_MIN_AGE_MINUTES = ORIGINAL_MIN_AGE;
+  }
+});
 
 beforeEach(() => {
   mockCreateClient.mockReset();
@@ -121,6 +138,35 @@ describe("POST /api/account/delete", () => {
     expect(mockSignOut).not.toHaveBeenCalled();
     expect(mockDeleteUser).toHaveBeenCalledWith("user-a");
     expect(response.status).toBe(200);
+  });
+
+  it("refuses a young account with 409 and the waiting-period sentence, touching neither admin call (#384)", async () => {
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60_000).toISOString();
+    mockCreateClient.mockResolvedValue(
+      fakeClient("user-a", "token-a", tenMinutesAgo),
+    );
+
+    const response = await POST();
+
+    expect(response.status).toBe(409);
+    const body = await response.json();
+    expect(body.code).toBe("account_too_young");
+    expect(body.error).toMatch(/a partir de una hora después de crearla/);
+    expect(mockDeleteUser).not.toHaveBeenCalled();
+    expect(mockSignOut).not.toHaveBeenCalled();
+  });
+
+  it("honours ACCOUNT_DELETE_MIN_AGE_MINUTES: a ten-minute-old account passes a five-minute wait", async () => {
+    process.env.ACCOUNT_DELETE_MIN_AGE_MINUTES = "5";
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60_000).toISOString();
+    mockCreateClient.mockResolvedValue(
+      fakeClient("user-a", "token-a", tenMinutesAgo),
+    );
+
+    const response = await POST();
+
+    expect(response.status).toBe(200);
+    expect(mockDeleteUser).toHaveBeenCalledWith("user-a");
   });
 
   it("returns 500 with ES copy when the admin delete fails", async () => {

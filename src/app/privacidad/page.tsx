@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { accountDeleteWaitCopy } from "@/lib/account-delete";
+
 import {
   ACERCA_PATH,
   PRIVACY_PATH,
@@ -160,7 +162,8 @@ export default function PrivacyPage() {
         </p>
         <p className="mt-4">
           Eliminar la cuenta, desde el menú de su correo, borra la cuenta y todo
-          su historial en la misma operación. Es irreversible.
+          su historial en la misma operación. Es irreversible.{" "}
+          {accountDeleteWaitCopy()}
         </p>
         <p className="mt-4">
           Los registros operativos no llevan contenido suyo, así que no hay nada

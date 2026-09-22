@@ -316,6 +316,10 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   same reset; the telemetry event's `quotaReason` says which. A refund gives both back.
 - "Day" = the **Costa Rica calendar day** (UTC-6, no DST), both tiers — quotas reset at local
   midnight, not at 18:00 local (#125).
+- **Minimum account age before self-service delete (#384):** `/api/account/delete` refuses
+  (409, the same sentence `/privacidad` and the menu show) while `auth.users.created_at` is
+  younger than `ACCOUNT_DELETE_MIN_AGE_MINUTES` (default 60). Delete + re-signup mints a fresh
+  `user_id` and a fresh authed quota; the wait prices that reset in hours, not clicks.
 - Mechanism: fixed-window counter in the `rate_limits` Postgres table, checked in `/api/ask` —
   no extra vendor. On limit: friendly ES message + sign-in nudge. **Fail-closed** (LLM cost is
   the thing being protected).
