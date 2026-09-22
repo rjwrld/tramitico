@@ -34,6 +34,7 @@
  */
 
 import { describeError } from "./log-redaction";
+import type { RateLimitCounter } from "./rate-limit";
 import type { RoutedCategory } from "./routing";
 
 /**
@@ -112,6 +113,14 @@ export interface AskEvent {
   providerError: string | null;
   citationFailure: boolean;
   quotaHit: boolean;
+  /**
+   * Which counter denied the ask (#383) — `subject` for the caller's own
+   * daily quota (a user, or an anonymous IP + browser family), `ip` for the
+   * anonymous per-IP umbrella that every family on one IP shares. Non-null
+   * exactly when `quotaHit` is true. A value from `rate-limit.ts`'s closed
+   * set; the subject it names never rides here.
+   */
+  quotaReason: RateLimitCounter | null;
   abort: AskAbort | null;
   /**
    * Which institution the honest decline was routed to (#264) — a value from
@@ -151,6 +160,7 @@ interface AskFacts {
   failed: boolean;
   citationFailure: boolean;
   quotaHit: boolean;
+  quotaReason: RateLimitCounter | null;
   providerError: string | null;
   abort: AskAbort | null;
   routedCategory: RoutedCategory | null;
@@ -207,8 +217,11 @@ export interface AskTelemetry {
   failed: (error?: unknown) => void;
   /** The citation invariant rejected at least one generation (#131). */
   citationFailure: () => void;
-  /** The ask was denied because the caller's daily quota was spent (#126). */
-  quotaHit: () => void;
+  /**
+   * The ask was denied because a daily quota was spent (#126): the caller's
+   * own, or the anonymous per-IP umbrella (#383).
+   */
+  quotaHit: (counter: RateLimitCounter) => void;
   /**
    * The ask was cut short (#205). First reason wins: an ask can trip the
    * deadline and then see the client's signal fire as the stream tears down,
@@ -235,6 +248,7 @@ export function createAskTelemetry(
     failed: false,
     citationFailure: false,
     quotaHit: false,
+    quotaReason: null,
     providerError: null,
     abort: null,
     routedCategory: null,
@@ -298,8 +312,9 @@ export function createAskTelemetry(
     citationFailure: () => {
       facts.citationFailure = true;
     },
-    quotaHit: () => {
+    quotaHit: (counter: RateLimitCounter) => {
       facts.quotaHit = true;
+      facts.quotaReason = counter;
     },
     aborted: (reason: AskAbort) => {
       facts.abort ??= reason;
@@ -342,6 +357,7 @@ export function createAskTelemetry(
         providerError: facts.providerError,
         citationFailure: facts.citationFailure,
         quotaHit: facts.quotaHit,
+        quotaReason: facts.quotaReason,
         abort: facts.abort,
         routedCategory: facts.routedCategory,
       });

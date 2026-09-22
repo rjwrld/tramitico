@@ -13,6 +13,7 @@ import {
   checkRateLimit,
   RATE_LIMIT_UNAVAILABLE_MESSAGE,
   subjectForAnon,
+  subjectForAnonIp,
   subjectForUser,
   supabaseRpcClient,
   type RateLimitResult,
@@ -215,6 +216,112 @@ describeDb("checkRateLimit — integration (Postgres)", () => {
         expect(await countOf(subject)).toBe(1); // untouched
       } finally {
         await cleanup(subject);
+      }
+    });
+  });
+
+  describe("the per-IP umbrella (#383)", () => {
+    // A private-range IP no request ever forwards, so the umbrella row can
+    // only be this suite's — and a fresh one per test, since the digest is
+    // date-scoped and the rows outlive a run.
+    const ip = () => `itest-${randomUUID()}`;
+    const CHROME = "Mozilla/5.0 AppleWebKit/537.36 Chrome/120.0 Safari/537.36";
+    const FIREFOX = "Mozilla/5.0 Windows NT 10.0 Gecko/20100101 Firefox/121.0";
+
+    it("lands the extra row beside the subject's, and the refund gives both back", async () => {
+      const addr = ip();
+      const subject = subjectForAnon(addr, CHROME);
+      const umbrella = subjectForAnonIp(addr);
+      try {
+        const result = await checkRateLimit(
+          subject,
+          "anon",
+          rpcClient,
+          undefined,
+          umbrella,
+        );
+        expect(result.allowed).toBe(true);
+        expect(await countOf(subject)).toBe(1);
+        expect(await countOf(umbrella)).toBe(1);
+        await result.refund();
+        expect(await countOf(subject)).toBe(0);
+        expect(await countOf(umbrella)).toBe(0);
+      } finally {
+        await cleanup(subject);
+        await cleanup(umbrella);
+      }
+    });
+
+    it("denies a second family once the IP's shared ceiling is spent", async () => {
+      process.env.RATE_LIMIT_ANON = "2";
+      process.env.RATE_LIMIT_ANON_IP = "3";
+      const addr = ip();
+      const chrome = subjectForAnon(addr, CHROME);
+      const firefox = subjectForAnon(addr, FIREFOX);
+      const umbrella = subjectForAnonIp(addr);
+      try {
+        const c1 = await checkRateLimit(
+          chrome,
+          "anon",
+          rpcClient,
+          undefined,
+          umbrella,
+        );
+        const c2 = await checkRateLimit(
+          chrome,
+          "anon",
+          rpcClient,
+          undefined,
+          umbrella,
+        );
+        const f1 = await checkRateLimit(
+          firefox,
+          "anon",
+          rpcClient,
+          undefined,
+          umbrella,
+        );
+        const f2 = await checkRateLimit(
+          firefox,
+          "anon",
+          rpcClient,
+          undefined,
+          umbrella,
+        );
+        expect([c1, c2, f1].every((r) => r.allowed)).toBe(true);
+        expect(f2.allowed).toBe(false);
+        expect(f2.reason).toBe("rate_limited");
+        expect(f2.counter).toBe("ip");
+        // Firefox had one of its own two left; the umbrella is what said no.
+        expect(await countOf(firefox)).toBe(2);
+        expect(await countOf(umbrella)).toBe(4);
+      } finally {
+        delete process.env.RATE_LIMIT_ANON;
+        delete process.env.RATE_LIMIT_ANON_IP;
+        await cleanup(chrome);
+        await cleanup(firefox);
+        await cleanup(umbrella);
+      }
+    });
+
+    it("is swept with the rest once it is past retention", async () => {
+      const stale = `anon-ip:stale:${randomUUID()}`;
+      const staleWindow = new Date(
+        Date.now() - 3 * 24 * 60 * 60 * 1000,
+      ).toISOString();
+      await client
+        .from("rate_limits")
+        .upsert({ subject: stale, window_start: staleWindow, count: 5 });
+      const addr = ip();
+      const subject = subjectForAnon(addr, CHROME);
+      const umbrella = subjectForAnonIp(addr);
+      try {
+        await checkRateLimit(subject, "anon", rpcClient, undefined, umbrella);
+        expect(await countOf(stale)).toBeNull();
+      } finally {
+        await cleanup(stale);
+        await cleanup(subject);
+        await cleanup(umbrella);
       }
     });
   });

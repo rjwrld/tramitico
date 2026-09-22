@@ -166,6 +166,7 @@ import {
   NO_REFUND,
   RATE_LIMIT_UNAVAILABLE_MESSAGE,
   subjectForAnon,
+  subjectForAnonIp,
   subjectForUser,
   type RateLimitResult,
 } from "@/lib/rate-limit";
@@ -236,24 +237,28 @@ function clientIp(request: Request): string {
 }
 
 /**
- * Deriving the anonymous subject needs RATE_LIMIT_SUBJECT_SECRET (#125) and
+ * Deriving the anonymous subjects needs RATE_LIMIT_SUBJECT_SECRET (#125) and
  * throws without it. That is the same class of misconfiguration as missing
  * Supabase credentials, which `checkRateLimit` already reports as
  * `unavailable` — so catch it here and fail closed the same way, rather than
  * letting an unhandled throw turn into a 500 the client contract doesn't
  * describe.
+ *
+ * Two subjects (#383): the IP + family digest the quota is keyed on, and the
+ * per-IP umbrella every family on that IP shares. Both are derived here and
+ * both are checked inside `checkRateLimit`, so the route never sees either
+ * again — the refund handle it hands back covers both rows.
  */
 async function anonRateLimit(
   request: Request,
   now: Date,
 ): Promise<RateLimitResult> {
   let subject: string;
+  let umbrella: string;
   try {
-    subject = subjectForAnon(
-      clientIp(request),
-      request.headers.get("user-agent") ?? "",
-      now,
-    );
+    const ip = clientIp(request);
+    subject = subjectForAnon(ip, request.headers.get("user-agent") ?? "", now);
+    umbrella = subjectForAnonIp(ip, now);
   } catch (error) {
     console.error(
       `ask: anonymous rate-limit subject unavailable: ${describeError(error)}`,
@@ -263,11 +268,12 @@ async function anonRateLimit(
       remaining: 0,
       resetAt: now,
       reason: "unavailable",
+      counter: null,
       message: RATE_LIMIT_UNAVAILABLE_MESSAGE,
       refund: NO_REFUND,
     };
   }
-  return checkRateLimit(subject, "anon", undefined, now);
+  return checkRateLimit(subject, "anon", undefined, now, umbrella);
 }
 
 type Writer = UIMessageStreamWriter<AskUIMessage>;
@@ -631,7 +637,7 @@ export async function POST(request: Request): Promise<Response> {
     // and it never charged the ask, so it is `refunded_error` by the same
     // reading (#141).
     if (unavailable) telemetry.failed();
-    else telemetry.quotaHit();
+    else telemetry.quotaHit(limit.counter ?? "subject");
     telemetry.emit();
     return jsonError(
       unavailable ? "rate_limit_unavailable" : "rate_limited",

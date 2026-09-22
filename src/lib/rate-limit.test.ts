@@ -4,9 +4,11 @@ import {
   checkRateLimit,
   coarseUserAgent,
   crDate,
+  limitForAnonIp,
   rateLimitReachedMessage,
   RATE_LIMIT_UNAVAILABLE_MESSAGE,
   subjectForAnon,
+  subjectForAnonIp,
   subjectForUser,
   type RpcClient,
 } from "./rate-limit";
@@ -150,6 +152,92 @@ describe("subjectForAnon", () => {
     expect(subject).not.toContain("203.0.113.5");
     expect(subject).not.toContain("Chrome");
     expect(subject).toMatch(/^anon:[0-9a-f]{64}$/);
+  });
+});
+
+describe("subjectForAnonIp (#383)", () => {
+  const noon = new Date("2026-08-12T18:00:00Z");
+  const chrome = "Mozilla/5.0 AppleWebKit/537.36 Chrome/120.0 Safari/537.36";
+  const firefox = "Mozilla/5.0 Windows NT 10.0 Gecko/20100101 Firefox/121.0";
+
+  it("is the same row for every browser family on one IP", () => {
+    // The whole point: the subject splits by family, the umbrella does not.
+    expect(subjectForAnon("203.0.113.5", chrome, noon)).not.toBe(
+      subjectForAnon("203.0.113.5", firefox, noon),
+    );
+    expect(subjectForAnonIp("203.0.113.5", noon)).toBe(
+      subjectForAnonIp("203.0.113.5", noon),
+    );
+  });
+
+  it("differs across IPs and across CR dates", () => {
+    expect(subjectForAnonIp("203.0.113.5", noon)).not.toBe(
+      subjectForAnonIp("203.0.113.6", noon),
+    );
+    expect(subjectForAnonIp("203.0.113.5", noon)).not.toBe(
+      subjectForAnonIp("203.0.113.5", new Date("2026-08-13T18:00:00Z")),
+    );
+  });
+
+  it("lives in its own key space — a distinct prefix, never a subject digest", () => {
+    const umbrella = subjectForAnonIp("203.0.113.5", noon);
+    expect(umbrella).toMatch(/^anon-ip:[0-9a-f]{64}$/);
+    expect(umbrella).not.toContain("203.0.113.5");
+    // Not the digest any family's subject would land on either.
+    for (const ua of [chrome, firefox, ""]) {
+      expect(umbrella.slice("anon-ip:".length)).not.toBe(
+        subjectForAnon("203.0.113.5", ua, noon).slice("anon:".length),
+      );
+    }
+  });
+
+  it("is keyed — a different secret is a different umbrella", () => {
+    const saved = process.env.RATE_LIMIT_SUBJECT_SECRET;
+    try {
+      process.env.RATE_LIMIT_SUBJECT_SECRET = "secret-a";
+      const a = subjectForAnonIp("203.0.113.5", noon);
+      process.env.RATE_LIMIT_SUBJECT_SECRET = "secret-b";
+      expect(subjectForAnonIp("203.0.113.5", noon)).not.toBe(a);
+    } finally {
+      process.env.RATE_LIMIT_SUBJECT_SECRET = saved;
+    }
+  });
+
+  it("throws when the secret is unset — the caller must fail closed", () => {
+    const saved = process.env.RATE_LIMIT_SUBJECT_SECRET;
+    delete process.env.RATE_LIMIT_SUBJECT_SECRET;
+    try {
+      expect(() => subjectForAnonIp("203.0.113.5", noon)).toThrow(
+        /RATE_LIMIT_SUBJECT_SECRET/,
+      );
+    } finally {
+      process.env.RATE_LIMIT_SUBJECT_SECRET = saved;
+    }
+  });
+});
+
+describe("limitForAnonIp (#383)", () => {
+  afterEach(() => {
+    delete process.env.RATE_LIMIT_ANON;
+    delete process.env.RATE_LIMIT_ANON_IP;
+  });
+
+  it("defaults to three times the anonymous limit, and follows its dial", () => {
+    expect(limitForAnonIp()).toBe(30);
+    process.env.RATE_LIMIT_ANON = "4";
+    expect(limitForAnonIp()).toBe(12);
+  });
+
+  it("takes RATE_LIMIT_ANON_IP over the multiple", () => {
+    process.env.RATE_LIMIT_ANON_IP = "7";
+    expect(limitForAnonIp()).toBe(7);
+  });
+
+  it("falls back on a garbage override", () => {
+    process.env.RATE_LIMIT_ANON_IP = "many";
+    expect(limitForAnonIp()).toBe(30);
+    process.env.RATE_LIMIT_ANON_IP = "0";
+    expect(limitForAnonIp()).toBe(30);
   });
 });
 
@@ -495,5 +583,277 @@ describe("checkRateLimit — the unavailable log line", () => {
     await checkRateLimit("anon:x", "anon", fakeClient({ count: 1 }));
 
     expect(console.error).not.toHaveBeenCalled();
+  });
+});
+
+describe("checkRateLimit — the per-IP umbrella (#383)", () => {
+  /** An in-memory `rate_limits` table: counts by subject, refunds honoured. */
+  function tableClient(): {
+    client: RpcClient;
+    counts: Map<string, number>;
+    calls: { fn: string; subject: string }[];
+  } {
+    const counts = new Map<string, number>();
+    const calls: { fn: string; subject: string }[] = [];
+    return {
+      counts,
+      calls,
+      client: {
+        rpc: async (fn, args) => {
+          calls.push({ fn, subject: args.p_subject });
+          const current = counts.get(args.p_subject) ?? 0;
+          const next =
+            fn === "rate_limit_increment"
+              ? current + 1
+              : Math.max(current - 1, 0);
+          counts.set(args.p_subject, next);
+          return { data: { count: next }, error: null };
+        },
+      },
+    };
+  }
+
+  const noon = new Date("2026-08-12T18:00:00Z");
+  const ip = "203.0.113.5";
+  // Every family `coarseUserAgent` can produce — one IP, seven subjects.
+  const FAMILIES = [
+    "Chrome/120.0 Safari/537.36 Edg/120.0",
+    "Chrome/120.0 Safari/537.36 OPR/100.0",
+    "Chrome/120.0 Safari/537.36 SamsungBrowser/23.0",
+    "Gecko/20100101 Firefox/121.0",
+    "Chrome/120.0 Safari/537.36",
+    "Version/17.0 Safari/605.1.15",
+    "SomeCrawler/1.0",
+  ];
+  const subjects = FAMILIES.map((ua) => subjectForAnon(ip, ua, noon));
+  const umbrella = subjectForAnonIp(ip, noon);
+
+  beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    delete process.env.RATE_LIMIT_ANON;
+    delete process.env.RATE_LIMIT_ANON_IP;
+  });
+
+  it("seven families on one IP share the umbrella; exhausting it denies the eighth ask, whichever family carries it", async () => {
+    expect(new Set(subjects).size).toBe(7);
+    process.env.RATE_LIMIT_ANON_IP = "7";
+    const { client, counts } = tableClient();
+
+    for (const subject of subjects) {
+      const result = await checkRateLimit(
+        subject,
+        "anon",
+        client,
+        noon,
+        umbrella,
+      );
+      expect(result.allowed).toBe(true);
+    }
+    expect(counts.get(umbrella)).toBe(7);
+
+    // Each family has nine of its own ten left; none of that matters now.
+    const eighth = await checkRateLimit(
+      subjects[0],
+      "anon",
+      client,
+      noon,
+      umbrella,
+    );
+    expect(eighth.allowed).toBe(false);
+    expect(eighth.reason).toBe("rate_limited");
+    expect(eighth.counter).toBe("ip");
+    expect(eighth.remaining).toBe(0);
+  });
+
+  it("reads the 429 exactly as a per-subject denial does — same copy, same reset", async () => {
+    process.env.RATE_LIMIT_ANON = "1";
+    process.env.RATE_LIMIT_ANON_IP = "1";
+    const { client } = tableClient();
+    await checkRateLimit(subjects[0], "anon", client, noon, umbrella);
+    const bySubject = await checkRateLimit(
+      subjects[0],
+      "anon",
+      client,
+      noon,
+      umbrella,
+    );
+    const byUmbrella = await checkRateLimit(
+      subjects[1],
+      "anon",
+      client,
+      noon,
+      umbrella,
+    );
+    expect(bySubject.counter).toBe("subject");
+    expect(byUmbrella.counter).toBe("ip");
+    expect(byUmbrella.message).toBe(bySubject.message);
+    expect(byUmbrella.resetAt).toEqual(bySubject.resetAt);
+    expect(byUmbrella.reason).toBe(bySubject.reason);
+  });
+
+  it("defaults the umbrella to three times the anonymous limit", async () => {
+    process.env.RATE_LIMIT_ANON = "2";
+    const { client } = tableClient();
+    const results = [];
+    // Four families spending their own two each: 8 asks against an umbrella
+    // of 6, so the fourth family never gets its first.
+    for (const subject of subjects.slice(0, 4)) {
+      for (let i = 0; i < 2; i++) {
+        results.push(
+          await checkRateLimit(subject, "anon", client, noon, umbrella),
+        );
+      }
+    }
+    expect(results.map((r) => r.counter)).toEqual([
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "ip",
+      "ip",
+    ]);
+  });
+
+  it("does not touch the umbrella once the subject has denied — a spent family cannot burn its neighbours' share", async () => {
+    process.env.RATE_LIMIT_ANON = "1";
+    const { client, counts, calls } = tableClient();
+    await checkRateLimit(subjects[0], "anon", client, noon, umbrella);
+    const denied = await checkRateLimit(
+      subjects[0],
+      "anon",
+      client,
+      noon,
+      umbrella,
+    );
+    expect(denied.counter).toBe("subject");
+    expect(counts.get(umbrella)).toBe(1);
+    expect(calls.filter((c) => c.subject === umbrella)).toHaveLength(1);
+  });
+
+  it("reports the tighter of the two counters as remaining", async () => {
+    process.env.RATE_LIMIT_ANON = "10";
+    process.env.RATE_LIMIT_ANON_IP = "3";
+    const { client } = tableClient();
+    await checkRateLimit(subjects[0], "anon", client, noon, umbrella);
+    const second = await checkRateLimit(
+      subjects[1],
+      "anon",
+      client,
+      noon,
+      umbrella,
+    );
+    expect(second.remaining).toBe(1); // umbrella: 3 - 2; the subject would say 9
+  });
+
+  it("leaves the authed tier and a call without an umbrella at one RPC", async () => {
+    const { client, calls } = tableClient();
+    await checkRateLimit("user:1", "authed", client, noon);
+    expect(calls).toEqual([{ fn: "rate_limit_increment", subject: "user:1" }]);
+  });
+
+  describe("refund covers both counters", () => {
+    it("gives the ask back on both rows, once", async () => {
+      const { client, counts, calls } = tableClient();
+      const result = await checkRateLimit(
+        subjects[0],
+        "anon",
+        client,
+        noon,
+        umbrella,
+      );
+      expect(counts.get(subjects[0])).toBe(1);
+      expect(counts.get(umbrella)).toBe(1);
+      await result.refund();
+      await result.refund();
+      expect(counts.get(subjects[0])).toBe(0);
+      expect(counts.get(umbrella)).toBe(0);
+      expect(
+        calls.filter((c) => c.fn === "rate_limit_refund").map((c) => c.subject),
+      ).toEqual([subjects[0], umbrella]);
+    });
+
+    it("refunds the other row even when one refund fails", async () => {
+      const { client, counts } = tableClient();
+      const flaky: RpcClient = {
+        rpc: async (fn, args) => {
+          if (fn === "rate_limit_refund" && args.p_subject === subjects[0]) {
+            throw new Error("boom");
+          }
+          return client.rpc(fn, args);
+        },
+      };
+      const result = await checkRateLimit(
+        subjects[0],
+        "anon",
+        flaky,
+        noon,
+        umbrella,
+      );
+      await expect(result.refund()).resolves.toBeUndefined();
+      expect(counts.get(subjects[0])).toBe(1); // the failed one stays consumed
+      expect(counts.get(umbrella)).toBe(0);
+    });
+
+    it("refunds nothing when the umbrella denied", async () => {
+      process.env.RATE_LIMIT_ANON_IP = "1";
+      const { client, counts, calls } = tableClient();
+      await checkRateLimit(subjects[0], "anon", client, noon, umbrella);
+      const denied = await checkRateLimit(
+        subjects[1],
+        "anon",
+        client,
+        noon,
+        umbrella,
+      );
+      expect(denied.counter).toBe("ip");
+      await denied.refund();
+      expect(calls.filter((c) => c.fn === "rate_limit_refund")).toHaveLength(0);
+      // The denied attempt stays counted on both rows, like any other denial.
+      expect(counts.get(subjects[1])).toBe(1);
+      expect(counts.get(umbrella)).toBe(2);
+    });
+  });
+
+  it("fails closed when the umbrella RPC fails — and gives the subject's ask back first", async () => {
+    const { client, counts } = tableClient();
+    const calls: string[] = [];
+    const halfDown: RpcClient = {
+      rpc: async (fn, args) => {
+        calls.push(fn);
+        if (fn === "rate_limit_increment" && args.p_subject === umbrella) {
+          return { data: null, error: { message: "connection refused" } };
+        }
+        return client.rpc(fn, args);
+      },
+    };
+    const result = await checkRateLimit(
+      subjects[0],
+      "anon",
+      halfDown,
+      noon,
+      umbrella,
+    );
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe("unavailable");
+    expect(result.message).toBe(RATE_LIMIT_UNAVAILABLE_MESSAGE);
+    // `unavailable` means never charged: the landed increment was undone.
+    expect(counts.get(subjects[0])).toBe(0);
+    expect(calls).toEqual([
+      "rate_limit_increment",
+      "rate_limit_increment",
+      "rate_limit_refund",
+    ]);
+    // And the handle handed back has nothing left to give.
+    await result.refund();
+    expect(calls.filter((fn) => fn === "rate_limit_refund")).toHaveLength(1);
+    expect(console.error).toHaveBeenCalledWith(
+      "rate limit: unavailable — error=Object",
+    );
   });
 });
