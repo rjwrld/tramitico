@@ -162,7 +162,11 @@ export default function PrivacyPage() {
         </p>
         <p className="mt-4">
           Los registros operativos no llevan contenido suyo, así que no hay nada
-          que eliminar en ellos; expiran solos.
+          que eliminar en ellos; expiran solos. Lo mismo vale para la memoria
+          temporal de búsqueda: el servidor recuerda durante unos diez minutos
+          el vector de una pregunta reciente, guardado bajo una huella hash de
+          su texto y no el texto, para no volver a calcularlo si se repite;
+          caduca sola.
         </p>
       </Section>
 
