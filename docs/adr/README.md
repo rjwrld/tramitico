@@ -33,6 +33,7 @@ Status is `accepted` unless a later record says otherwise.
 | 0019 | [The question is asked twice: expansion legs, not a different search](0019-query-expansion-legs.md)                               | 2026-09-05 | accepted                     | SPEC §5                | #286, #267       |
 | 0020 | [The step the reader did not ask for: a hand-written catalogue per family](0020-step-catalogue-legs.md)                           | 2026-09-07 | accepted                     | SPEC §5                | #304, #303       |
 | 0021 | [The app chrome is Spanish, everywhere](0021-spanish-chrome.md)                                                                   | 2026-08-28 | accepted                     | SPEC §1, §8; DESIGN §9 | #215             |
+| 0022 | [Identity linking is delegated to GoTrue and the provider](0022-identity-linking-trust-boundary.md)                               | 2026-09-21 | accepted                     | SPEC §7 (records)      | #381, #84        |
 
 0021 was written on 2026-08-28 as a second "0013" and renumbered on 2026-09-14 (#28); its
 date is the original one. `0008-answer-markdown-rendering/` holds the screenshots that

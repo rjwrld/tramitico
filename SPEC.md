@@ -301,7 +301,9 @@ _(pinned here per #10)_
   email delivery). The history table keeps its per-user RLS policies as defense in depth behind
   the grant lockdown (#123); the enforced boundary is the routes' `user_id` filter.
 - Same verified email across providers resolves to one `user_id` (Supabase automatic
-  linking); unverified-email collisions stay separate accounts by design (#84).
+  linking); unverified-email collisions stay separate accounts by design (#84). The
+  "both sides verified" guarantee is delegated to GoTrue and the provider, bounded to the
+  providers **[ADR 0022](docs/adr/0022-identity-linking-trust-boundary.md)** lists (#381).
 - **Anonymous: 10 questions/day** per subject = `HMAC-SHA256(RATE_LIMIT_SUBJECT_SECRET,
 crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed from an IP,
   date-scoped so it doesn't link across days). **Authed: 50/day** per user.
