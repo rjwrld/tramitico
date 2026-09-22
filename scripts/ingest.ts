@@ -26,6 +26,8 @@ import {
   faqCountMessage,
   extractCcssFaqChunks,
   fetchCcssFaq,
+  verifyImageTranscriptions,
+  type FaqImageTranscription,
 } from "../src/lib/ingestion/ccss-faq";
 import {
   extractCcssPrescripcionChunks,
@@ -138,6 +140,16 @@ interface ManifestDoc {
    * audit never saw. Absent → the payload is warned about every run (#177).
    */
   imagesAudited?: string[];
+  /**
+   * `html` + `ccss-faq-modals` only: a human's transcription of each FAQ
+   * answer that the page publishes as a picture, keyed by the image's URL and
+   * pinned to the bytes' SHA-256 (#301). Present → the chunk carries the
+   * transcribed text in place of the «Imagen incluida» notice, ingestion
+   * fails loudly when the bytes change or the crawl no longer links the
+   * image, and `extract` refuses the field on any other entry rather than
+   * silently ignore it. Absent → image answers keep the notice and the link.
+   */
+  imageTranscriptions?: FaqImageTranscription[];
   /**
    * Column labels for one column-aligned table in this document, read off the
    * PDF by a human (#179). Present → that table is re-extracted as one
@@ -437,9 +449,22 @@ async function extract(doc: ManifestDoc): Promise<ExtractedContent | null> {
       const cachePath = path.join(CACHE, `${doc.doc_key}.html`);
       const prescription =
         doc.source.extractor === "ccss-prescripcion-headings";
+      if (prescription && doc.imageTranscriptions) {
+        throw new Error(
+          `${doc.doc_key}: imageTranscriptions is only honoured by the ccss-faq-modals extractor`,
+        );
+      }
       const html = prescription
         ? await fetchCcssPrescripcion(url)
         : await fetchCcssFaq(url);
+      // Before extraction: a transcription is the chunk's whole content, so a
+      // republished image must stop the run, not ingest last year's numbers.
+      for (const receipt of await verifyImageTranscriptions(
+        doc.doc_key,
+        doc.imageTranscriptions ?? [],
+      )) {
+        console.log(`  ${receipt}`);
+      }
       const extractChunks = (source: string, minimum?: number) =>
         prescription
           ? extractCcssPrescripcionChunks(
@@ -449,7 +474,14 @@ async function extract(doc: ManifestDoc): Promise<ExtractedContent | null> {
               url,
               minimum,
             )
-          : extractCcssFaqChunks(doc.doc_key, doc.title, source, url, minimum);
+          : extractCcssFaqChunks(doc.doc_key, doc.title, source, url, {
+              minimum,
+              transcriptions: doc.imageTranscriptions,
+              onDuplicate: (dropped, kept) =>
+                console.log(
+                  `  ${doc.doc_key}: dropped body duplicate «${dropped.articulo}» (${dropped.path.join("/")}) — kept «${kept.articulo}» (${kept.path.join("/")}) (#301)`,
+                ),
+            });
       const chunks = extractChunks(html);
       let previous: number | undefined;
       if (existsSync(cachePath)) {

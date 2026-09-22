@@ -17,7 +17,18 @@ import { describe, expect, it } from "vitest";
 
 interface ManifestEntry {
   doc_key: string;
-  source: { kind: string; sha256?: string; keepArticulos?: string[] };
+  source: {
+    kind: string;
+    extractor?: string;
+    sha256?: string;
+    keepArticulos?: string[];
+  };
+  imageTranscriptions?: {
+    src: string;
+    sha256: string;
+    text: string;
+    fetchFrom?: string;
+  }[];
 }
 
 const manifest = JSON.parse(
@@ -53,11 +64,42 @@ describe("corpus/manifest.json source fields match their kind", () => {
     expect(malformed).toEqual([]);
   });
 
+  it("keeps imageTranscriptions on the ccss-faq-modals extractor only", () => {
+    // Only that extractor reads the field; on any other entry the text would
+    // sit in the manifest and never reach a chunk (#301).
+    const misplaced = manifest.documents
+      .filter((d) => d.imageTranscriptions !== undefined)
+      .filter((d) => d.source.extractor !== "ccss-faq-modals")
+      .map((d) => `${d.doc_key} (${d.source.kind})`);
+    expect(misplaced).toEqual([]);
+  });
+
+  it("pins every image transcription to an absolute src and a well-formed hash", () => {
+    // verifyImageTranscriptions throws on a malformed hash, but only once a
+    // run reaches the FAQ; a relative src would never match the extractor's
+    // resolved URLs and the transcription would fail as orphaned instead.
+    const malformed = manifest.documents
+      .flatMap((d) => d.imageTranscriptions ?? [])
+      .filter(
+        (t) =>
+          !/^https:\/\//.test(t.src) ||
+          (t.fetchFrom !== undefined && !/^https:\/\//.test(t.fetchFrom)) ||
+          !/^[a-f0-9]{64}$/.test(t.sha256) ||
+          t.text.trim().length === 0,
+      )
+      .map((t) => t.src);
+    expect(malformed).toEqual([]);
+  });
+
   it("still covers the entries these invariants exist for", () => {
     // A rename that emptied both sets would leave three vacuously green tests.
     expect(withField("keepArticulos").map((d) => d.doc_key)).toContain("cnpt");
     expect(withField("sha256").map((d) => d.doc_key)).toContain(
       "salario-base-2026",
     );
+    expect(
+      manifest.documents.find((d) => d.doc_key === "ccss-faq")
+        ?.imageTranscriptions,
+    ).toHaveLength(2);
   });
 });
