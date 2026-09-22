@@ -115,6 +115,14 @@ and Trabajador Independiente, and `ccss-reglamento-ti`, the vigente SINALEVI reg
 independent-worker affiliation and contribution. The FAQ supplies the procedural text absent
 from the normative corpus; rates continue to come from the CCSS actas, not its image table.
 
+Amended by [#301](https://github.com/rjwrld/tramitico/issues/301): `ccss-faq` count unchanged, but
+its four image-only answers — the January 2026 Salud/IVM escala (`av_tv_2026.png`) and the payment
+calendar by first surname letter (`fechas_aseg_vol.jpg`) — are now ingested as human transcriptions
+recorded in the manifest and pinned to the images' SHA-256, and the extractor keeps one chunk per
+answer body so a FAQ published under two sections no longer takes two retrieval slots. Every rate
+in the transcribed table was checked against the actas before it was recorded, so the FAQ restates
+the actas rather than competing with them.
+
 Amended by [#259](https://github.com/rjwrld/tramitico/issues/259): **two docs added, count 20 →
 22** — `cnpt`, restricted to the seven articles needed for basic registration, filing, payment,
 interest, and voluntary-compliance consequences, and `salario-base-2026`, the current primary

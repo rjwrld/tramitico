@@ -1234,7 +1234,9 @@ entry — «¿Cuál es el porcentaje de cotización … y cómo se determina el 
 de referencia?», ingested twice under two section paths — whose body is a source
 line, a nota explicativa and a link to `av_tv_2026.png`. **The answer is an
 image.** Four `ccss-faq` bodies are image-only in this way and four are
-near-duplicates across sections; both are ingestion work, filed separately.
+near-duplicates across sections; both are ingestion work, filed separately as
+#301 (fixed: the images are transcribed in the manifest and the extractor keeps
+one chunk per body).
 
 ### Presentation is not presence: A3 moved to the deterministic owner (#289)
 

@@ -1,12 +1,54 @@
+import { createHash } from "node:crypto";
 import { decodeHTML } from "entities";
 import type { Chunk } from "./chunker";
 import { BROWSER_UA, type FetchLike } from "./official-http";
 
-const RELEVANT_CATEGORIES = new Set([
-  "Cobros",
-  "Seguro voluntario",
-  "Trabajador Independiente",
-]);
+/**
+ * A human's reading of one FAQ image, recorded in the manifest (#301). Four
+ * of the page's answers are pictures — the 2026 contribution-rate table and
+ * the payment-date calendar by first surname letter — so their chunks used to
+ * carry a heading, a source line and a link, and win top-8 slots they could
+ * not use. The transcription is a claim about specific bytes: `sha256` is
+ * what makes a silently republished image fail ingestion instead of carrying
+ * last year's numbers forward under this year's heading.
+ */
+export interface FaqImageTranscription {
+  /** The image URL as the page links it, resolved against the page. */
+  src: string;
+  /** SHA-256 of the transcribed bytes, 64 lowercase hex digits. */
+  sha256: string;
+  /** The image's content as text, in the source's own words. */
+  text: string;
+  /**
+   * Where the bytes actually serve when the page's `src` is dead. The chunk
+   * keeps the page's URL, because that is what the official page says; the
+   * hash check goes where the bytes are.
+   */
+  fetchFrom?: string;
+}
+
+export interface CcssFaqOptions {
+  /** Relevant-question floor below which ingestion refuses to replace rows. */
+  minimum?: number;
+  /** Every image transcription the manifest carries for this page. */
+  transcriptions?: readonly FaqImageTranscription[];
+  /** Called once per chunk dropped as a body duplicate, with its survivor. */
+  onDuplicate?: (dropped: Chunk, kept: Chunk) => void;
+}
+
+/**
+ * The FAQ categories this corpus ingests, ranked by specificity for the
+ * body-duplicate tie-break (#301). The page publishes the same answer under
+ * «Seguro voluntario» and «Trabajador Independiente»; the independent-worker
+ * section is the one this corpus exists for, and Cobros is the catch-all.
+ * One table, so a category cannot be relevant without a rank or vice versa.
+ */
+const CATEGORY_RANK: Record<string, number> = {
+  "Trabajador Independiente": 2,
+  "Seguro voluntario": 1,
+  Cobros: 0,
+};
+const RELEVANT_CATEGORIES = new Set(Object.keys(CATEGORY_RANK));
 
 const DEFAULT_MINIMUM = 25;
 const QUESTION_BLOCK_RE =
@@ -64,7 +106,12 @@ function absoluteUrl(value: string, pageUrl: string): string {
   }
 }
 
-function answerOf(bodyHtml: string, pageUrl: string): string {
+function answerOf(
+  bodyHtml: string,
+  pageUrl: string,
+  transcriptions: ReadonlyMap<string, FaqImageTranscription>,
+  seen: Set<string>,
+): string {
   const images = [...bodyHtml.matchAll(/<img\b[^>]*>/gi)]
     .map(([tag]) => attribute(tag, "src"))
     .filter((src): src is string => src !== null)
@@ -80,12 +127,54 @@ function answerOf(bodyHtml: string, pageUrl: string): string {
     },
   );
   const text = textOf(withLinks.replace(/<img\b[^>]*>/gi, " "));
-  const imageNotice = images.map((url) =>
-    text.length === 0
+  const imageText = images.map((url) => {
+    const transcription = transcriptions.get(url);
+    if (transcription) {
+      seen.add(url);
+      return text.length === 0
+        ? `Transcripción de la imagen que constituye la respuesta oficial (${url}): ${transcription.text}`
+        : `Transcripción de la imagen incluida en la respuesta oficial (${url}): ${transcription.text}`;
+    }
+    return text.length === 0
       ? `La respuesta oficial está publicada como imagen: ${url}.`
-      : `Imagen incluida en la respuesta oficial: ${url}.`,
-  );
-  return [text, ...imageNotice].filter(Boolean).join(" ");
+      : `Imagen incluida en la respuesta oficial: ${url}.`;
+  });
+  return [text, ...imageText].filter(Boolean).join(" ");
+}
+
+/** A chunk beside the answer text it was built from, before the header. */
+interface ExtractedAnswer {
+  chunk: Chunk;
+  body: string;
+}
+
+const rank = ({ chunk }: ExtractedAnswer) =>
+  CATEGORY_RANK[chunk.path[0]] * 1_000 + (chunk.articulo?.length ?? 0);
+
+/**
+ * Keep one chunk per answer body (#301). Four bodies on the live page are
+ * byte-identical once the bracketed header is stripped — the same FAQ
+ * published under two sections, or under two headings in one section — so
+ * exact-duplicate detection never saw them and one answer took two of eight
+ * retrieval slots. The survivor is the copy in the more specific section,
+ * then the one with the longer heading, then the first published.
+ */
+function dedupeBodies(
+  answers: readonly ExtractedAnswer[],
+  onDuplicate?: (dropped: Chunk, kept: Chunk) => void,
+): Chunk[] {
+  const winners = new Map<string, ExtractedAnswer>();
+  for (const answer of answers) {
+    const current = winners.get(answer.body);
+    if (!current || rank(answer) > rank(current))
+      winners.set(answer.body, answer);
+  }
+  const kept = new Set(winners.values());
+  for (const answer of answers) {
+    if (!kept.has(answer))
+      onDuplicate?.(answer.chunk, winners.get(answer.body)!.chunk);
+  }
+  return answers.filter((a) => kept.has(a)).map((a) => a.chunk);
 }
 
 function idPattern(id: string): RegExp {
@@ -106,13 +195,19 @@ export function extractCcssFaqChunks(
   title: string,
   html: string,
   pageUrl: string,
-  minimum = DEFAULT_MINIMUM,
+  {
+    minimum = DEFAULT_MINIMUM,
+    transcriptions = [],
+    onDuplicate,
+  }: CcssFaqOptions = {},
 ): Chunk[] {
   if (!Number.isInteger(minimum) || minimum < 1) {
     throw new Error(`${docKey}: question minimum must be a positive integer`);
   }
+  const transcribed = new Map(transcriptions.map((t) => [t.src, t]));
+  const seenTranscriptions = new Set<string>();
 
-  const chunks: Chunk[] = [];
+  const extracted: ExtractedAnswer[] = [];
   QUESTION_BLOCK_RE.lastIndex = 0;
   for (
     let match = QUESTION_BLOCK_RE.exec(html);
@@ -155,26 +250,87 @@ export function extractCcssFaqChunks(
       throw new Error(`${docKey}: modal body not found for "${heading}"`);
     }
     const body = balancedDiv(html, bodyOpen.index, MODAL_BODY_RE.lastIndex);
-    const answer = answerOf(body.inner, pageUrl);
+    const answer = answerOf(
+      body.inner,
+      pageUrl,
+      transcribed,
+      seenTranscriptions,
+    );
     if (!answer)
       throw new Error(`${docKey}: empty modal answer for "${heading}"`);
 
-    chunks.push({
-      docKey,
-      articulo: heading,
-      path: [category],
-      part: 0,
-      content: `[${title} — ${category} — ${heading}] ${answer}`,
+    extracted.push({
+      body: answer,
+      chunk: {
+        docKey,
+        articulo: heading,
+        path: [category],
+        part: 0,
+        content: `[${title} — ${category} — ${heading}] ${answer}`,
+      },
     });
     QUESTION_BLOCK_RE.lastIndex = block.end;
   }
 
+  // A transcription no relevant answer links any more means the image was
+  // replaced (av_tv_2026.png → av_tv_2027.png): the text on file describes an
+  // answer the page no longer gives, so it must be re-read, not carried over.
+  const orphaned = transcriptions.filter((t) => !seenTranscriptions.has(t.src));
+  if (orphaned.length > 0) {
+    throw new Error(
+      `${docKey}: image transcription for ${orphaned.map((t) => t.src).join(", ")} matches no image in a relevant FAQ answer — the image was replaced; re-read it and update the manifest (#301)`,
+    );
+  }
+
+  const chunks = dedupeBodies(extracted, onDuplicate);
   if (chunks.length < minimum) {
     throw new Error(
       `${docKey}: found ${chunks.length} relevant FAQ questions; expected at least ${minimum}`,
     );
   }
   return chunks;
+}
+
+/**
+ * Prove each transcription still describes the bytes the page serves (#301).
+ * Runs before the page is extracted, so a republished image fails the run
+ * rather than ingesting a transcription of something nobody has looked at.
+ * Unlike a PDF `sha256` this is a failure, not a warning: the transcription
+ * *is* the chunk's content, and there is no honest text to fall back to.
+ */
+export async function verifyImageTranscriptions(
+  docKey: string,
+  transcriptions: readonly FaqImageTranscription[],
+  fetchFn: FetchLike = fetch,
+): Promise<string[]> {
+  for (const { src, sha256 } of transcriptions) {
+    if (!/^[a-f0-9]{64}$/.test(sha256)) {
+      throw new Error(
+        `${docKey}: imageTranscriptions sha256 for ${src} must be 64 lowercase hex digits`,
+      );
+    }
+  }
+  const receipts: string[] = [];
+  for (const { src, sha256, fetchFrom } of transcriptions) {
+    const response = await fetchFn(fetchFrom ?? src, {
+      headers: { "User-Agent": BROWSER_UA },
+    });
+    if (!response.ok) {
+      throw new Error(
+        `${docKey}: transcribed image ${fetchFrom ?? src}: HTTP ${response.status}`,
+      );
+    }
+    const actual = createHash("sha256")
+      .update(Buffer.from(await response.arrayBuffer()))
+      .digest("hex");
+    if (actual !== sha256) {
+      throw new Error(
+        `${docKey}: image ${src} changed since it was transcribed — manifest ${sha256}, fetched ${actual}; re-read it and update the manifest (#301)`,
+      );
+    }
+    receipts.push(`${docKey}: image ${src} SHA-256 matches its transcription`);
+  }
+  return receipts;
 }
 
 export async function fetchCcssFaq(
