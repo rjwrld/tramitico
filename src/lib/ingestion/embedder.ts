@@ -9,6 +9,8 @@
  * provider switch as a migration + full re-embed; the adapter comes back in
  * that PR, alongside the /privacidad edit.
  */
+import { createHash } from "node:crypto";
+
 import { EMBEDDING_DIMENSIONS } from "../embedding-dimensions";
 
 export interface Embedder {
@@ -44,15 +46,39 @@ export const INTERACTIVE_EMBED_TIMEOUT_MS = 5_000;
 // Single-text embeds repeat heavily — the seeded one-click prompts (SPEC §8)
 // and test suites ask the same questions again and again — and every Voyage
 // request is precious at 3/min. Memoize lone-query embeddings module-wide.
+//
+// Two things keep the memo from being a copy of what a user asked (#380):
+// the key is a SHA-256 of the text, so no question is resident as a string
+// here, and an entry lives {@link QUERY_CACHE_TTL_MS} at most, so the memo
+// is a window over the last few minutes of traffic rather than the process's
+// lifetime. Both are the minimum that keeps the 3/min rationale true: the
+// one-click prompts and an eval run repeat within seconds, not hours.
+// `/privacidad` describes this window in one sentence; the TTL is the number
+// that sentence relies on.
 const QUERY_CACHE_MAX = 500;
-const queryCache = new Map<string, number[]>();
+/** How long a memoised query vector may be served before it is re-fetched. */
+export const QUERY_CACHE_TTL_MS = 10 * 60 * 1_000;
+
+interface QueryCacheEntry {
+  vector: number[];
+  expiresAt: number;
+}
+
+const queryCache = new Map<string, QueryCacheEntry>();
 
 function cacheKey(provider: string, text: string): string {
-  return `${provider}::${text}`;
+  return `${provider}::${createHash("sha256").update(text).digest("hex")}`;
 }
 
 function cacheGet(provider: string, text: string): number[] | undefined {
-  return queryCache.get(cacheKey(provider, text));
+  const key = cacheKey(provider, text);
+  const entry = queryCache.get(key);
+  if (!entry) return undefined;
+  if (entry.expiresAt <= Date.now()) {
+    queryCache.delete(key);
+    return undefined;
+  }
+  return entry.vector;
 }
 
 function cachePut(provider: string, text: string, vector: number[]): void {
@@ -60,7 +86,24 @@ function cachePut(provider: string, text: string, vector: number[]): void {
     const oldest = queryCache.keys().next().value;
     if (oldest !== undefined) queryCache.delete(oldest);
   }
-  queryCache.set(cacheKey(provider, text), vector);
+  queryCache.set(cacheKey(provider, text), {
+    vector,
+    expiresAt: Date.now() + QUERY_CACHE_TTL_MS,
+  });
+}
+
+/**
+ * Test seams for the module-scoped memo (#380). `queryCacheKeys` is what lets
+ * a test assert that no key carries the question; `clearQueryCache` is how a
+ * suite starts from an empty memo instead of inheriting the previous case's.
+ * Nothing on the ask path calls either.
+ */
+export function queryCacheKeys(): string[] {
+  return [...queryCache.keys()];
+}
+
+export function clearQueryCache(): void {
+  queryCache.clear();
 }
 
 /**

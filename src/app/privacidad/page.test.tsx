@@ -99,6 +99,15 @@ describe("privacy page", () => {
     expect(text).toContain("Eliminar la cuenta");
   });
 
+  it("describes the short-lived query-embedding memo the deletion routes do not reach (#380)", () => {
+    render(<PrivacyPage />);
+    const text = document.body.textContent ?? "";
+
+    expect(text).toContain("memoria temporal de búsqueda");
+    expect(text).toContain("unos diez minutos");
+    expect(text).toContain("huella hash de su texto y no el texto");
+  });
+
   it("gives an address for privacy requests", () => {
     render(<PrivacyPage />);
 

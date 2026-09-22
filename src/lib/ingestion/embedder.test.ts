@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createEmbedder, INTERACTIVE_EMBED_TIMEOUT_MS } from "./embedder";
+import {
+  clearQueryCache,
+  createEmbedder,
+  INTERACTIVE_EMBED_TIMEOUT_MS,
+  QUERY_CACHE_TTL_MS,
+  queryCacheKeys,
+} from "./embedder";
 import { EMBEDDING_DIMENSIONS } from "../embedding-dimensions";
 
 /**
@@ -73,6 +79,9 @@ describe("createEmbedder", () => {
     vi.unstubAllEnvs();
     vi.useRealTimers();
     vi.restoreAllMocks();
+    // The memo is module-scoped by design (#380 documents it below); a case
+    // that asserts a fetch count must not inherit another case's entries.
+    clearQueryCache();
   });
 
   it("defaults to stub when EMBEDDINGS_PROVIDER is unset", () => {
@@ -378,6 +387,66 @@ describe("createEmbedder", () => {
       const first = await embedder.embedQuery("Consulta memorizada");
       expect(await embedder.embedQuery("Consulta memorizada")).toEqual(first);
       expect(fetchImpl).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  /**
+   * The memo's retention shape (#380). It is module-wide on purpose — every
+   * request in a process shares it, which is what makes the 3/min rationale
+   * hold across lambdas' warm invocations — so what these cases pin is the
+   * two limits on that: nothing in it is the question, and nothing in it
+   * outlives the TTL.
+   */
+  describe("query cache retention (#380)", () => {
+    it("is shared by independent embedder instances", async () => {
+      vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+      const first = createEmbedder("voyage", {
+        fetchImpl: fakeEmbeddingsFetch(),
+      });
+      const secondFetch = fakeEmbeddingsFetch();
+      const second = createEmbedder("voyage", { fetchImpl: secondFetch });
+      const vector = await first.embedQuery("Pregunta compartida");
+      expect(await second.embedQuery("Pregunta compartida")).toEqual(vector);
+      expect(secondFetch).not.toHaveBeenCalled();
+    });
+
+    it("re-fetches a repeat once the TTL has passed", async () => {
+      vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-09-21T12:00:00Z"));
+      const fetchImpl = fakeEmbeddingsFetch();
+      const embedder = createEmbedder("voyage", { fetchImpl });
+      await embedder.embedQuery("Pregunta que caduca");
+      // Inside the window: still the memo.
+      vi.setSystemTime(Date.now() + QUERY_CACHE_TTL_MS - 1);
+      await embedder.embedQuery("Pregunta que caduca");
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
+      // At the window's edge: expired, so the provider is asked again.
+      vi.setSystemTime(Date.now() + 1);
+      await embedder.embedQuery("Pregunta que caduca");
+      expect(fetchImpl).toHaveBeenCalledTimes(2);
+      expect(queryCacheKeys()).toHaveLength(1);
+    });
+
+    it("keeps no question text as a key", async () => {
+      vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+      const embedder = createEmbedder("voyage", {
+        fetchImpl: fakeEmbeddingsFetch(),
+      });
+      const questions = [
+        "¿Cuánto es el IVA para un desarrollador independiente?",
+        "Cómo me inscribo en la CCSS",
+      ];
+      for (const q of questions) {
+        await embedder.embedQuery(q);
+        await embedder.embed([q]);
+      }
+      const keys = queryCacheKeys();
+      expect(keys).toHaveLength(questions.length);
+      for (const key of keys) {
+        expect(key).toMatch(/^voyage::[0-9a-f]{64}$/);
+        for (const q of questions) expect(key).not.toContain(q);
+      }
     });
   });
 });
