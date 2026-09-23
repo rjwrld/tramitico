@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-16T00:05:05.036Z",
-  "chunkCount": 876,
+  "generatedAt": "2026-09-22T16:33:18.840Z",
+  "chunkCount": 873,
   "entries": [
     {
       "docKey": "cabys-dev",
@@ -118,13 +118,6 @@
       "docKey": "ccss-faq",
       "articulo": "¿Cuál es el plazo para que un convenio de pago sea finalizado por incumplimiento?",
       "path": ["Cobros"],
-      "chunks": 1,
-      "parts": 1
-    },
-    {
-      "docKey": "ccss-faq",
-      "articulo": "¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?",
-      "path": ["Seguro voluntario"],
       "chunks": 1,
       "parts": 1
     },
@@ -278,13 +271,6 @@
     {
       "docKey": "ccss-faq",
       "articulo": "¿Dónde puedo pagar mi seguro si me encuentro atrasado en mis pagos de seguro voluntario o seguro migrante?",
-      "path": ["Seguro voluntario"],
-      "chunks": 1,
-      "parts": 1
-    },
-    {
-      "docKey": "ccss-faq",
-      "articulo": "¿Dónde puedo pagar mi seguro si me encuentro atrasado en mis pagos?",
       "path": ["Seguro voluntario"],
       "chunks": 1,
       "parts": 1
@@ -559,13 +545,6 @@
       "docKey": "ccss-faq",
       "articulo": "¿Se pueden realizar pagos parciales a la deuda?",
       "path": ["Cobros"],
-      "chunks": 1,
-      "parts": 1
-    },
-    {
-      "docKey": "ccss-faq",
-      "articulo": "¿Se realizan revisiones periódicas a los montos de aseguramiento?",
-      "path": ["Seguro voluntario"],
       "chunks": 1,
       "parts": 1
     },
