@@ -44,6 +44,54 @@ export function getAnswerModel(): LanguageModel {
   return anthropic(process.env.ANSWER_MODEL || DEFAULT_ANSWER_MODEL);
 }
 
+/**
+ * Adaptive-thinking effort for the answer call (#356). `claude-sonnet-5`
+ * thinks adaptively when a request omits `thinking`, at effort `high`, and
+ * streams no reasoning text — so the reasoning shows up as silence before the
+ * first text delta: 11–28 s on five of the nine seed prompts in the
+ * 2026-09-22 probe, against ~1.5 s at `medium`.
+ *
+ * `ANSWER_EFFORT` sets it for a measured run or a deploy; unset, empty (what
+ * `eval.yml` interpolates for an unset repository variable) and anything
+ * unrecognised all mean "send nothing", which is the provider default —
+ * ignored rather than trusted, the reading `answerTopK` gives its knob.
+ */
+export const ANSWER_EFFORTS = [
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "max",
+] as const;
+export type AnswerEffort = (typeof ANSWER_EFFORTS)[number];
+
+export function answerEffort(): AnswerEffort | null {
+  const raw = process.env.ANSWER_EFFORT;
+  return ANSWER_EFFORTS.find((effort) => effort === raw) ?? null;
+}
+
+/**
+ * The `providerOptions` every answer call passes — the route and every eval
+ * lane that writes an answer, so an effort arm measures what it names rather
+ * than the default. `undefined` when no effort is set.
+ */
+export function answerProviderOptions():
+  { anthropic: { effort: AnswerEffort } } | undefined {
+  const effort = answerEffort();
+  return effort === null ? undefined : { anthropic: { effort } };
+}
+
+/**
+ * The answer configuration as one label, for transcript names and run logs:
+ * the model, plus `-effort-<level>` when one is set. Two arms that differ
+ * only in effort must not leave files that read as the same run.
+ */
+export function answerModelLabel(): string {
+  const model = process.env.ANSWER_MODEL || DEFAULT_ANSWER_MODEL;
+  const effort = answerEffort();
+  return effort === null ? model : `${model}-effort-${effort}`;
+}
+
 export function getCondenseModel(): LanguageModel {
   const anthropic = createAnthropic();
   return anthropic(process.env.CONDENSE_MODEL || DEFAULT_CONDENSE_MODEL);

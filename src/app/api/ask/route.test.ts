@@ -14,6 +14,7 @@ vi.mock("@/lib/rate-limit", async (importOriginal) => ({
   checkRateLimit: vi.fn(),
 }));
 vi.mock("@/lib/answer/model", () => ({
+  answerProviderOptions: vi.fn(),
   getAnswerModel: vi.fn(),
   getCondenseModel: vi.fn(),
 }));
@@ -40,7 +41,11 @@ import {
 import { declineAnswer } from "@/lib/routing";
 import { saveQuestion } from "@/lib/answer/persist";
 import { condenseFailures, resetCondenseFailures } from "@/lib/answer/condense";
-import { getAnswerModel, getCondenseModel } from "@/lib/answer/model";
+import {
+  answerProviderOptions,
+  getAnswerModel,
+  getCondenseModel,
+} from "@/lib/answer/model";
 import { getUserId } from "@/lib/answer/user";
 import { checkRateLimit, NO_REFUND } from "@/lib/rate-limit";
 import { RERANK_POOL } from "@/lib/answer/rerank";
@@ -581,6 +586,23 @@ describe("POST /api/ask", () => {
     );
     expect(ANSWER_MAX_OUTPUT_TOKENS).toBeGreaterThanOrEqual(2048);
     expect(ANSWER_MAX_OUTPUT_TOKENS).toBeLessThanOrEqual(8192);
+  });
+
+  it("passes the answer effort through to the provider call (#356)", async () => {
+    allowRateLimit();
+    vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+    vi.mocked(answerProviderOptions).mockReturnValue({
+      anthropic: { effort: "medium" },
+    });
+    const model = mockModel("La tarifa es 13% para servicios [1].");
+
+    await readEvents(
+      await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+    );
+
+    expect(model.doStreamCalls[0].providerOptions).toEqual({
+      anthropic: { effort: "medium" },
+    });
   });
 
   it("streams the honest fallback with zero citations on weak retrieval, without calling the model", async () => {

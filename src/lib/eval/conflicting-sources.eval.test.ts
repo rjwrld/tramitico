@@ -17,7 +17,11 @@
  */
 import { generateText } from "ai";
 import { beforeAll, expect, it } from "vitest";
-import { DEFAULT_ANSWER_MODEL, getAnswerModel } from "../answer/model";
+import {
+  answerModelLabel,
+  answerProviderOptions,
+  getAnswerModel,
+} from "../answer/model";
 import { ANSWER_SYSTEM_PROMPT, buildUserPrompt } from "../answer/prompt";
 import {
   conflictJudgeOnce,
@@ -33,7 +37,7 @@ import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 // failure mode #129 exists to prevent. The shared gate skips locally and
 // *fails*, naming ANTHROPIC_API_KEY, under CI.
 const describeEval = integrationSuite(envPrereqs("ANTHROPIC_API_KEY"));
-const answerModelId = process.env.ANSWER_MODEL ?? DEFAULT_ANSWER_MODEL;
+const answerModelId = answerModelLabel();
 
 describeEval("conflicting sources (#135)", () => {
   let answer = "";
@@ -44,6 +48,7 @@ describeEval("conflicting sources (#135)", () => {
   beforeAll(async () => {
     const generated = await generateText({
       model: getAnswerModel(),
+      providerOptions: answerProviderOptions(),
       system: ANSWER_SYSTEM_PROMPT,
       prompt: buildUserPrompt(CONFLICT_QUESTION, CONFLICT_CHUNKS),
     });

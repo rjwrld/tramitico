@@ -37,7 +37,11 @@ import {
   resolveDerivedFigures,
   type ResolvedDerivedFigure,
 } from "../answer/derived";
-import { getAnswerModel, DEFAULT_ANSWER_MODEL } from "../answer/model";
+import {
+  answerModelLabel,
+  answerProviderOptions,
+  getAnswerModel,
+} from "../answer/model";
 import {
   ANSWER_SYSTEM_PROMPT,
   buildUserPrompt,
@@ -90,7 +94,7 @@ const describeEval = integrationSuite({
   [REAL_EMBEDDINGS]: realEmbedderConfigured(),
 });
 
-const answerModelId = process.env.ANSWER_MODEL ?? DEFAULT_ANSWER_MODEL;
+const answerModelId = answerModelLabel();
 
 interface CaseResult {
   evalCase: EvalCase;
@@ -244,6 +248,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
       const derivedFigures = resolveDerivedFigures(chunks);
       const { text: answer } = await generateText({
         model: getAnswerModel(),
+        providerOptions: answerProviderOptions(),
         system: ANSWER_SYSTEM_PROMPT,
         prompt: buildUserPrompt(query, chunks, { derivedFigures }),
       });

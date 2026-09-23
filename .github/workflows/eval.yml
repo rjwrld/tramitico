@@ -59,6 +59,7 @@ jobs:
       # authorized run, and a run must never eat production's budget.
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       ANSWER_MODEL: ${{ vars.ANSWER_MODEL }}
+      ANSWER_EFFORT: ${{ vars.ANSWER_EFFORT }}
       EXPAND_MODEL: ${{ vars.EXPAND_MODEL }}
     steps:
       # Fail in seconds rather than after an install and a 90-minute
