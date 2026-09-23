@@ -27,7 +27,11 @@
  */
 import { generateText } from "ai";
 import { beforeAll, expect, it } from "vitest";
-import { DEFAULT_ANSWER_MODEL, getAnswerModel } from "../answer/model";
+import {
+  answerModelLabel,
+  answerProviderOptions,
+  getAnswerModel,
+} from "../answer/model";
 import { ANSWER_SYSTEM_PROMPT, buildUserPrompt } from "../answer/prompt";
 import {
   amendingJudgeOnce,
@@ -39,7 +43,7 @@ import { judgeAnswer, JUDGE_MODEL, type Verdict } from "./groundedness";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 
 const describeEval = integrationSuite(envPrereqs("ANTHROPIC_API_KEY"));
-const answerModelId = process.env.ANSWER_MODEL ?? DEFAULT_ANSWER_MODEL;
+const answerModelId = answerModelLabel();
 
 describeEval("consolidated law beside its reform (#182)", () => {
   let answer = "";
@@ -50,6 +54,7 @@ describeEval("consolidated law beside its reform (#182)", () => {
   beforeAll(async () => {
     const generated = await generateText({
       model: getAnswerModel(),
+      providerOptions: answerProviderOptions(),
       system: ANSWER_SYSTEM_PROMPT,
       prompt: buildUserPrompt(AMENDING_QUESTION, AMENDING_CHUNKS),
     });

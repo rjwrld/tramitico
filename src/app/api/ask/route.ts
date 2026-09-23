@@ -142,7 +142,7 @@ import {
   type ResolvedDerivedFigure,
 } from "@/lib/answer/derived";
 import { startAskDeadline } from "@/lib/answer/deadline";
-import { getAnswerModel } from "@/lib/answer/model";
+import { answerProviderOptions, getAnswerModel } from "@/lib/answer/model";
 import { describeError } from "@/lib/log-redaction";
 import { saveQuestion, type SaveQuestionInput } from "@/lib/answer/persist";
 import {
@@ -542,6 +542,7 @@ async function generateAnswer(
         derivedFigures,
       }),
       maxOutputTokens: ANSWER_MAX_OUTPUT_TOKENS,
+      providerOptions: answerProviderOptions(),
       abortSignal: signal,
       onError: ({ error }) => {
         failure ??= error;

@@ -2305,3 +2305,54 @@ What it says:
   passes at 94.5 %; the per-case Tier 1 assertion #324 added on top of it
   does not.** That was true on 2026-09-14 as well. Whether the bar means the
   rate or the assertion is the owner's reading, recorded on #29.
+
+## The answer-effort reading (2026-09-22, #356)
+
+> **Measured 2026-09-22 (23:44–23:58 UTC) on the local stack, the 27 Tier 1
+> cases (`EVAL_CASES`) plus the nine abstention cases, answer
+> `claude-sonnet-5` at `ANSWER_EFFORT=medium`, everything else as the
+> production run.** A subset read, not a gate: compared per case against the
+> 2026-09-16 rows, with no answer-path, dataset or corpus change between the
+> two. Rows and log in
+> [`eval/runs/2026-09-22-effort-medium/`](runs/2026-09-22-effort-medium/).
+
+Why it ran: a production pass over the nine seed prompts found three of them
+waiting 20–32 s for their first text delta. `claude-sonnet-5` thinks
+adaptively when a request omits `thinking`, at effort `high`, and streams no
+reasoning text, so the reasoning is silence before the answer.
+`pnpm answer-latency-probe` confirmed it: the default spent 800–2 300
+reasoning tokens on five of nine prompts (first text 11–28 s, median total
+20.2 s, worst 41.8 s); `medium` spent none (first text ~1.2 s, median 13.1 s,
+worst 19.6 s). `ANSWER_EFFORT` now reaches the route and every eval lane that
+writes an answer.
+
+| Read (27 Tier 1 + 9 abstention) | production, 2026-09-16 (default) | `medium`, this run |
+| ------------------------------- | -------------------------------- | ------------------ |
+| Tier 1 grounded                 | 25/27                            | 24/27              |
+| Tier 1 adequate                 | 6/27                             | 4/27               |
+| Requirements missed, total      | 43                               | 45                 |
+| Citation-invariant violations   | 1                                | **0**              |
+| Abstention                      | 8/9                              | **9/9**            |
+| Answer characters, total        | 66 686                           | 57 445             |
+
+What it says:
+
+- **No regression the reading can separate from noise.** Adequacy moves by
+  ±4 on an identical pipeline; 6 → 4 is inside it, and no case gained or lost
+  more than one requirement except by judge wording. Groundedness trades
+  cases: `medium` fixes `ho-cliente-espana-lleva-iva` (blocking in the
+  production run) and `ho-rebajar-25-sin-facturas`, and fails three.
+- **The three new groundedness fails.** `ho-rebajar-multa-si-pago-ya` gives a
+  reason the fragments do not state — the same case failed the #305 arm A
+  reading on the default, so it flips between readings. `ho-minimo-caja-independiente-2026`
+  is a judgement on framing. `ho-800-mil-que-porcentaje-caja` is a real
+  error: the chunk writes `₡746,186.000` and the answer rendered it
+  `₡746.186.000`. It is the one to watch on the next full run.
+- **T1-F's derived figures are not an effort question.** The probe's T1-F
+  repeat left the BMC figures (`bmc-ivm-2026`, `bmc-sem-2026`) incompletely
+  cited on 5/5 drafts at `medium` _and_ 3/5 at the default, with two more
+  default drafts failing the marker check — no reasoning tokens in any of
+  them.
+
+Decision (#356): ship `ANSWER_EFFORT=medium`. The #352 re-run then measures
+it as production runs it.
