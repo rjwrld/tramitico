@@ -2573,12 +2573,10 @@ ccss-faq`; the invariant change ships with the deploy.
 > numbered chunk list its answer was handed, and a chunk outside that list
 > was looked up in the local corpus (which production matches).
 
-Tier 1 was 4/27 on that run. 22 cases failed the adequacy judge or a literal
-check. The 23rd, `ho-minimo-caja-independiente-2026`, passed the judge and
-missed two literals. Together they have 54 missing requirements. A
-requirement that was half carried is split into two rows, so the table
-below has 59. The buckets are #289's, plus one for requirements the answer
-does state:
+Tier 1 was 4/27 on that run. 22 cases failed the adequacy judge. The 23rd,
+`ho-minimo-caja-independiente-2026`, passed the judge and missed two
+literals. Together they have 54 missing requirements. A requirement that was
+half stated or half carried is split into two rows, so the table below has 62. The buckets are #289's, plus one for requirements the answer does state:
 
 - **retrieval**: the corpus carries it, but no chunk in the answer set does.
 - **prompt**: a chunk in the answer set carries it, and the answer does not
@@ -2591,13 +2589,13 @@ does state:
 | Case                                       | Missing | retrieval | prompt | corpus | judge/literal | What carries it (or why nothing does)                                                                                                                                                                                                                    |
 | ------------------------------------------ | ------: | --------: | -----: | -----: | ------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | A `ho-hacienda-solo-cliente-eeuu`          |       2 |         2 |        |        |               | `tribu-cr-faq` Declaraciones del RUT · 2 (OVi, TRIBU-CR) · `cnpt` 78 (50 % per month)                                                                                                                                                                    |
-| A `ho-trabajitos-por-mi-cuenta`            |       1 |         1 |        |        |               | Hacienda half: `tribu-cr-faq` RUT · 2. The CCSS half is stated                                                                                                                                                                                           |
-| A `ho-donde-inscribo-ya-no-atv`            |       2 |         2 |        |        |               | `tribu-cr-faq` OVI · 1 (username = cédula/DIMEX/NITE) · RUT · 10/13/14 (the data the declaration asks for). The path is stated                                                                                                                           |
+| A `ho-trabajitos-por-mi-cuenta`            |       1 |         1 |        |        |             1 | Hacienda half: `tribu-cr-faq` RUT · 2. The CCSS half is stated                                                                                                                                                                                           |
+| A `ho-donde-inscribo-ya-no-atv`            |       2 |         2 |        |        |             1 | `tribu-cr-faq` OVI · 1 (username = cédula/DIMEX/NITE) · RUT · 10/13/14 (the data the declaration asks for). The path is stated                                                                                                                           |
 | B `ccss-obligacion-ingreso-bajo`           |       3 |         1 |      2 |        |               | prompt: `ccss-escala-salud` at [5], the note «la primera categoría es exclusivamente para…» and «0.9295 SM». retrieval: `ccss-faq` «¿Dónde me corresponde realizar el trámite de afiliación?»                                                            |
 | B `ho-desde-cuanta-plata-caja`             |       3 |         1 |        |        |             2 | literal: the answer writes «0,9295 × ¢373.092,30» and «0,87 × …» (the derived figure's formula), and the check wants «0,9295 SM». retrieval: `ccss-reglamento-ti` 7/10 · `ccss-faq` «¿Dónde puedo pagar mi seguro?»                                      |
 | B `ho-donde-me-afilio-caja`                |       1 |         1 |        |        |               | `ccss-faq` «¿Cuándo me corresponde pagar…?» (day by first surname)                                                                                                                                                                                       |
 | C `ho-tiquete-en-vez-de-factura`           |       3 |         1 |      2 |        |               | prompt: `reglamento-comprobantes` 9 at [4], cited and the list not given; the «autorizado» status from [3]/[4]. retrieval: `reglamento-comprobantes` 4 (RUT + valid email)                                                                               |
-| C `ho-factura-electronica-o-recibo`        |       2 |         2 |        |        |               | `reglamento-comprobantes` 16 (facturador gratuito) · 22 (cinco años). The provider half is stated                                                                                                                                                        |
+| C `ho-factura-electronica-o-recibo`        |       2 |         2 |        |        |             1 | `reglamento-comprobantes` 16 (facturador gratuito) · 22 (cinco años). The provider half is stated                                                                                                                                                        |
 | C `ho-cabys-paginas-web`                   |       1 |           |        |      1 |               | The BCCR catalogue URL is only in the manifest's `source.catalog` metadata, never in chunk text                                                                                                                                                          |
 | D `ho-cliente-espana-lleva-iva`            |       5 |         4 |      1 |      1 |               | prompt: `ley-iva` 3 at [2] (hecho generador, «el acto que se realice primero»). retrieval: `ley-iva` 8, `reglamento-iva` 11, `reglamento-comprobantes` 2 inc. 14, `ley-iva` 10 (13 %). corpus: proof of consumption abroad                               |
 | D `ho-iva-en-cero-sin-facturar`            |       2 |         2 |        |        |               | `tribu-cr-res-0011-2025` 2 (TRIBU-CR) + `cnpt` 79/88 · `cnpt` 79 (50 %)                                                                                                                                                                                  |
@@ -2613,11 +2611,11 @@ does state:
 | I `multa-iva-no-declarado`                 |       3 |         3 |        |        |             1 | `cnpt` 57 (interest) · 88 · `salario-base-2026`. judge: the 80 bis half of the first claim is stated                                                                                                                                                     |
 | I `inscripcion-tardia-sancion`             |       3 |         3 |        |        |               | `cnpt` 88 (×2, the second with `tribu-cr-faq` RUT · 2) · `salario-base-2026`                                                                                                                                                                             |
 | I `ho-rebajar-multa-si-pago-ya`            |       1 |         1 |        |        |             1 | The substance is stated. The channel is not: TRIBU-CR (`tribu-cr-res-0011-2025` 2) against the answer's «portal de Hacienda»                                                                                                                             |
-| **Total**                                  |  **54** |    **38** | **10** |  **6** |         **5** | 59 rows                                                                                                                                                                                                                                                  |
+| **Total**                                  |  **54** |    **38** | **10** |  **6** |         **8** | 62 rows                                                                                                                                                                                                                                                  |
 
 What it says:
 
-- **Retrieval is most of it: 38 of 59 rows.** In 13 cases retrieval is the
+- **Retrieval is most of it: 38 of 62 rows.** In 13 cases retrieval is the
   only cause, not counting the judge/literal halves. The same documents keep
   going missing: `cnpt` 79 or 88 in five cases, the TRIBU-CR channel
   (`tribu-cr-faq` RUT · 2, `tribu-cr-res-0011-2025` 2) in six, a `ccss-faq`
@@ -2660,11 +2658,13 @@ re-run is what measures them.
   wrote «con dos hijos … ¢41.040,00 en total»: the cited ¢20.520,00 per
   hijo, times the asker's own count. No document carries ¢41.040,00, so the
   figure gate counts it as invented. Rule 3 now says a document's figure is
-  not applied to the person's data (multiplied by their hijos, added to their
-  income, taken off their tax). The figure is given as the documents give it.
-  Rule 6c now says a liquidación personalizada is declined even when the
-  documents carry every tarifa, tramo and monto in it, «ni siquiera en
-  parte».
+  not operated with the person's data (multiplied by their hijos, added to
+  their income, taken off their tax). The figure is given as the documents
+  give it. Placing the person in a tramo or categoría is comparison, not
+  arithmetic, and stays allowed: `ho-800-mil-que-porcentaje-caja` requires
+  it, and rule 9 gives the escala so the reader can be placed in it. Rule 6c
+  now says a liquidación personalizada is declined even when the documents
+  carry every tarifa, tramo and monto in it, «ni siquiera en parte».
 - **The marker is the document's number, never an artículo's.**
   `ho-cliente-espana-lleva-iva` wrote «[6][47]». `reglamento-iva` art. 47
   was at [5] in its 8-chunk set. Rule 2 now says the bracket number is the

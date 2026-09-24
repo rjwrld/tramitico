@@ -237,9 +237,9 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
    * lane's figure gate counts it invented. Rule 3's «nunca calcule» did not
    * read as covering arithmetic on the person's own data.
    */
-  it("forbids applying a document's figure to the person's own data (#352)", () => {
+  it("forbids arithmetic on the person's own data (#352)", () => {
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
-      /3\. [^\n]*Tampoco aplique una cifra de los documentos a los datos de la persona/,
+      /3\. [^\n]*Tampoco opere una cifra de los documentos con los datos de la persona/,
     );
     // The shape that failed, by name: a per-unit amount times the asker's count.
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/3\. [^\n]*por su número de hijos/);
@@ -249,13 +249,25 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     );
   });
 
+  it("keeps placing the person in a tramo allowed (#352 vs #289)", () => {
+    // The clause is about arithmetic, not comparison: `ho-800-mil-que-
+    // porcentaje-caja` requires «¢800.000 … cae en la categoría 3», and rule
+    // 9 asks for the escala precisely so the reader can be placed in it. A
+    // rule 3 that read «apply» broadly would forbid what rule 9 asks for.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /3\. [^\n]*Ubicar un dato que la persona dio en un tramo o una categoría de los documentos no es calcular/,
+    );
+  });
+
   it("declines a personalised calculation even when the documents carry its inputs (#352)", () => {
     // 6c already named «una liquidación personalizada»; what it did not say is
     // that having every input in hand does not make it the answer's to do.
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
       /6c\. [^\n]*aunque los documentos provistos traigan las tarifas, los tramos o los montos/,
     );
-    expect(ANSWER_SYSTEM_PROMPT).toMatch(/6c\. [^\n]*ni siquiera en parte/);
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /6c\. [^\n]*no opere con los datos de la persona, ni siquiera en parte/,
+    );
   });
 
   /**
@@ -461,7 +473,7 @@ describe("buildUserPrompt on the citation retry (#131)", () => {
   });
 
   it("names the artículo-number marker on the retry (#352)", () => {
-    // The violation that retries most since #411 is a closed «[47]» for
+    // The one invariant violation of the run after #411 was a closed «[47]» for
     // «artículo 47»; a note that only says «ningún otro número es válido»
     // leaves the model to rediscover which number it got wrong.
     expect(CITATION_RETRY_NOTE).toMatch(/número de un artículo/);
