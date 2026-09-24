@@ -109,6 +109,10 @@ export const ANSWER_DOC_CAP = Infinity;
  *   model mis-indexing them — so this is its smallest version: +1 fragment,
  *   on an ask that classifies. A sentence whose best chunk is already in the
  *   cut is covered, so the one append goes to a step the cut left out.
+ *   Measured beside `off` on 2026-09-24 (eval/README.md, #311): groundedness
+ *   64/73 → 67/73, adequacy 16/40 → 18/40, and no new failure cites the
+ *   appended fragment. Still under the 0.94 gate, as `off` is, so it stays
+ *   off by #311's rule until the baseline is back over the gate.
  * - `max` — the sentences are readings like the expansion's, fused by the
  *   higher score (#296). Measured first, and what it does is in
  *   eval/README.md: the step chunks reach #1–#2, and the question's own

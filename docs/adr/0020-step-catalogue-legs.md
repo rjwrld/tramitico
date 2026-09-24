@@ -62,7 +62,11 @@ sentence. At the rerank they fill the pool and nothing more, by default.**
 at the price of the release gate does not ship. `pin1`
 ([#311](https://github.com/rjwrld/tramitico/issues/311)) is the follow-up: `pin`'s picks, but
 only the highest-scoring one the cut did not already take reaches the prompt — +1 fragment
-instead of up to three.
+instead of up to three. Measured beside `off` on 2026-09-24: groundedness 64/73 → 67/73, adequacy 16/40
+→ 18/40, and none of the new groundedness failures cites the appended fragment. Both arms are
+under the 0.94 gate, the shipped default included (71/73 at #304), so `off` stays the default by
+#311's rule, and `pin1` is the first thing to re-read once the baseline is back over the gate
+(eval/README.md, «One step pick, not one per sentence»).
 
 **Rejected: the sentences as rerank queries fused by max, as the issue proposed.** Measured
 first on the #303 six: the step chunks reach reranked #1–#3, and the question's own chunks move
