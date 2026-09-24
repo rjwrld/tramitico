@@ -91,6 +91,17 @@ describe("corpus/manifest.json source fields match their kind", () => {
     expect(malformed).toEqual([]);
   });
 
+  it("writes every colón amount in an image transcription in Costa Rican notation", () => {
+    // av_tv_2026.png prints «₡346,789.999»; a transcription that kept it was
+    // the corpus's only US-notation amount, and answers rendered it
+    // «₡346.789.999» — a threshold read a thousand times too large (#407).
+    const usNotation = manifest.documents
+      .flatMap((d) => d.imageTranscriptions ?? [])
+      .flatMap((t) => t.text.match(/₡\s?\d[\d.,]*\d/g) ?? [])
+      .filter((amount) => !/^₡\s?\d{1,3}(?:\.\d{3})*(?:,\d+)?$/.test(amount));
+    expect(usNotation).toEqual([]);
+  });
+
   it("still covers the entries these invariants exist for", () => {
     // A rename that emptied both sets would leave three vacuously green tests.
     expect(withField("keepArticulos").map((d) => d.doc_key)).toContain("cnpt");
