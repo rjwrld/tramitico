@@ -8,6 +8,7 @@ import {
   parseDerivedFigures,
   pinDerivedFigureInputs,
   pinEnabled,
+  quotesDerivedFigure,
   resolveDerivedFigures,
   type DerivedFigure,
   type ResolvedDerivedFigure,
@@ -197,7 +198,7 @@ describe("incompletelyCitedDerivedFigures", () => {
     [BMC_IVM],
   );
 
-  it("requires every input marker in the paragraph that quotes a figure", () => {
+  it("requires every input marker in the sentence that quotes a figure", () => {
     expect(
       incompletelyCitedDerivedFigures("La base es ¢324.590 [1].", resolved),
     ).toEqual(["bmc-ivm-2026"]);
@@ -209,6 +210,63 @@ describe("incompletelyCitedDerivedFigures", () => {
     ).toEqual([]);
   });
 
+  // #403: #401's FAQ transcription carries the escala tables, and a T1-F
+  // draft copies them — «hasta ¢324.590,999» is the categoría 1 ceiling,
+  // cited under the table, not the BMC figure.
+  it("does not read a longer number that starts with the figure as a quote", () => {
+    expect(
+      incompletelyCitedDerivedFigures(
+        "| 1 | hasta ¢324.590,999 | 4.16% |\n| 2 | ¢324.590.000 | 5.65% |\n\n[3]",
+        resolved,
+      ),
+    ).toEqual([]);
+  });
+
+  it("still reads the figure with zero decimals as a quote", () => {
+    expect(
+      incompletelyCitedDerivedFigures("La base es ¢324.590,00 [1].", resolved),
+    ).toEqual(["bmc-ivm-2026"]);
+  });
+
+  it("reads the colón sign ₡ as ¢", () => {
+    expect(
+      incompletelyCitedDerivedFigures("La base es ₡324.590 [1].", resolved),
+    ).toEqual(["bmc-ivm-2026"]);
+    expect(
+      incompletelyCitedDerivedFigures("La base es ₡324.590 [1][2].", resolved),
+    ).toEqual([]);
+  });
+
+  it("still checks a real quote beside a skipped table row", () => {
+    expect(
+      incompletelyCitedDerivedFigures(
+        "| 1 | hasta ¢324.590,999 | 4.16% |\n\n[3]\n\nLa base es ¢324.590 [1].",
+        resolved,
+      ),
+    ).toEqual(["bmc-ivm-2026"]);
+  });
+
+  it("reads a figure with decimals only to its last decimal", () => {
+    const withDecimals: ResolvedDerivedFigure[] = [
+      { ...resolved[0], formattedValue: "¢373.092,30", decimals: 2 },
+    ];
+    expect(
+      incompletelyCitedDerivedFigures("Son ¢373.092,305 [1].", withDecimals),
+    ).toEqual([]);
+    expect(
+      incompletelyCitedDerivedFigures("Son ¢373.092,30 [1].", withDecimals),
+    ).toEqual(["bmc-ivm-2026"]);
+  });
+
+  it("still checks the quote at the end of a sentence", () => {
+    expect(
+      incompletelyCitedDerivedFigures(
+        "La base es ¢324.590. Así lo fija la escala [1][2].",
+        resolved,
+      ),
+    ).toEqual(["bmc-ivm-2026"]);
+  });
+
   it("does not require markers for a figure the answer does not quote", () => {
     expect(
       incompletelyCitedDerivedFigures(
@@ -218,7 +276,7 @@ describe("incompletelyCitedDerivedFigures", () => {
     ).toEqual([]);
   });
 
-  it("checks every occurrence in one paragraph independently", () => {
+  it("checks every occurrence independently", () => {
     expect(
       incompletelyCitedDerivedFigures(
         "La base es ¢324.590 [1][2]. Repetimos: ¢324.590 [1].",
@@ -373,5 +431,22 @@ describe("pinDerivedFigureInputs", () => {
     expect(
       pinDerivedFigureInputs([escala], [escala, salarios], [BMC_IVM]),
     ).toEqual([escala]);
+  });
+});
+
+describe("quotesDerivedFigure", () => {
+  const figure = { formattedValue: "¢324.590", decimals: 0 };
+
+  it("reads the figure the way the citation check does (#403)", () => {
+    expect(quotesDerivedFigure("La base es ₡324.590 [1][2].", figure)).toBe(
+      true,
+    );
+    expect(quotesDerivedFigure("La base es ¢324.590,00.", figure)).toBe(true);
+    expect(quotesDerivedFigure("| 1 | hasta ¢324.590,999 |", figure)).toBe(
+      false,
+    );
+    expect(quotesDerivedFigure("La escala tiene tramos [1].", figure)).toBe(
+      false,
+    );
   });
 });

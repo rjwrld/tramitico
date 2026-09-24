@@ -2358,3 +2358,42 @@ What it says:
 
 Decision (#356): ship `ANSWER_EFFORT=medium`. The #352 re-run then measures
 it as production runs it.
+
+## The derived-figure check read a table row as a quote (2026-09-23, #403)
+
+> **Measured 2026-09-23 on the local stack carrying #401's corpus, the T1-F
+> seed prompt only, answer `claude-sonnet-5` at `ANSWER_EFFORT=medium`, ten
+> drafts per side, no judge.** Rows in
+> [`eval/runs/2026-09-23-t1f-derived-check/`](runs/2026-09-23-t1f-derived-check/).
+
+The reading above left T1-F refused on most local drafts at any effort, and
+production passing it. The two were not on the same corpus: production still
+holds the 2026-09-16 ingest (876 chunks, 91 `ccss-faq`, no image
+transcription), local holds #401's (873, 88, and the `av_tv_2026.png` escala
+tables as text). `--keep-text` showed what the refused drafts wrote:
+
+- **Every BMC sentence was completely cited** — «la base mínima contributiva
+  de IVM para 2026 es de ¢324.590 [7][9], y la de Salud (SEM) es de ¢346.789
+  [4][9]», on all ten drafts.
+- **Every draft also copied the FAQ's escala table**, whose categoría 1 row
+  reads «hasta ¢324.590,999», cited to the FAQ under the table. The check
+  found figures by prefix, read that row as an uncited BMC quote, and refused
+  the draft — 7/10.
+- **The three that passed wrote ₡**, which the check did not read at all.
+
+Fix: a quote is the figure as a whole number (ADR 0018, «What counts as a
+quote»), and ₡ reads as ¢; F1's «both BMC figures quoted» assertion reads a
+quote the same way (`quotesDerivedFigure`). Replayed, the ten refused-side
+drafts — both figures resolved — pass 10/10. Ten fresh drafts pass 10/10, but
+read only half of it: that retrieval left `ccss-escala-ivm` outside the top 8
+(the reranker question #287 owns), so only `bmc-sem-2026` resolved, quoted
+completely cited on all ten («¢346.789 [6][9]», one of them with ₡). #403's
+bar was ≥ 9/10. A second fresh ten, with both figures resolved: 10/10
+pass, nine of them quoting both figures («¢324.590 [7][9]», «¢346.789
+[4][9]», one with ₡) and one quoting neither. F1 on the next full
+run is the other half.
+
+Not covered: a draft that copies the FAQ's en-US digits for the figure itself
+(«¢324,590») is still not read as a quote — none of the thirty did.
+
+Production still has to take #401's ingest; this change should reach it first.

@@ -105,7 +105,7 @@ function joinSpanish(items: readonly string[]): string {
  * The rule is written for *any* number of figures in one sentence, not the
  * two that motivated it: this function formats however many resolved figures
  * it is handed, and `incompletelyCitedDerivedFigures` checks each of them
- * against the same paragraph, so a three-figure sentence fails exactly the
+ * against its own sentence, so a three-figure sentence fails exactly the
  * same way.
  */
 export function formatDerivedFigures(
