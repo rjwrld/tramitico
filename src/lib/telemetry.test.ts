@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  cacheUse,
   createAskTelemetry,
   emitAskEvent,
   latencyBucket,
@@ -146,10 +147,41 @@ describe("createAskTelemetry", () => {
     retry.finish();
     telemetry.emit();
     expect(capture.events()[0].generations).toEqual([
-      { latency: "gte_30s", firstText: "1s_3s" },
-      { latency: "3s_10s", firstText: null },
+      { latency: "gte_30s", firstText: "1s_3s", cache: null },
+      { latency: "3s_10s", firstText: null, cache: null },
     ]);
     expect(capture.events()[0].stages.generate).toBe("gte_30s");
+  });
+
+  it("records each generation's prompt-cache use when it is reported (#413)", () => {
+    const telemetry = createAskTelemetry();
+    const first = telemetry.startGeneration();
+    first.cache("write");
+    first.finish();
+    const retry = telemetry.startGeneration();
+    retry.cache("read");
+    retry.finish();
+    const failed = telemetry.startGeneration();
+    failed.finish();
+    telemetry.emit();
+    expect(
+      capture.events()[0].generations.map((generation) => generation.cache),
+    ).toEqual(["write", "read", null]);
+  });
+
+  it("reads cache use from the provider's token counts, not the counts themselves (#413)", () => {
+    // A closed enum, per the module note: a token count is a number nobody
+    // needs, and the hit rate is a count of «read» lines.
+    expect(cacheUse({ cacheReadTokens: 2_800, cacheWriteTokens: 0 })).toBe(
+      "read",
+    );
+    expect(cacheUse({ cacheReadTokens: 0, cacheWriteTokens: 2_800 })).toBe(
+      "write",
+    );
+    expect(cacheUse({ cacheReadTokens: 0, cacheWriteTokens: 0 })).toBe("none");
+    expect(
+      cacheUse({ cacheReadTokens: undefined, cacheWriteTokens: undefined }),
+    ).toBe("none");
   });
 
   it("emits nothing until asked", () => {

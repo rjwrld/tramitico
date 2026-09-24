@@ -53,10 +53,7 @@ import {
 } from "../src/lib/answer/derived";
 import { validateCitations } from "../src/lib/answer/invariant";
 import { DEFAULT_ANSWER_MODEL } from "../src/lib/answer/model";
-import {
-  ANSWER_SYSTEM_PROMPT,
-  buildUserPrompt,
-} from "../src/lib/answer/prompt";
+import { ANSWER_SYSTEM, buildUserPrompt } from "../src/lib/answer/prompt";
 import { RERANK_POOL, rerankChunks } from "../src/lib/answer/rerank";
 import { createEmbedder } from "../src/lib/ingestion/embedder";
 import { retrieve } from "../src/lib/retrieval";
@@ -212,7 +209,7 @@ async function main(): Promise<void> {
         try {
           const result = streamText({
             model: anthropic(arm.model),
-            system: ANSWER_SYSTEM_PROMPT,
+            system: ANSWER_SYSTEM,
             prompt,
             maxOutputTokens: ANSWER_MAX_OUTPUT_TOKENS,
             ...(arm.anthropic

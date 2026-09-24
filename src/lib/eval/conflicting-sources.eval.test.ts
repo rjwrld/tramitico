@@ -22,7 +22,7 @@ import {
   answerProviderOptions,
   getAnswerModel,
 } from "../answer/model";
-import { ANSWER_SYSTEM_PROMPT, buildUserPrompt } from "../answer/prompt";
+import { ANSWER_SYSTEM, buildUserPrompt } from "../answer/prompt";
 import {
   conflictJudgeOnce,
   CONFLICT_CHUNKS,
@@ -49,7 +49,7 @@ describeEval("conflicting sources (#135)", () => {
     const generated = await generateText({
       model: getAnswerModel(),
       providerOptions: answerProviderOptions(),
-      system: ANSWER_SYSTEM_PROMPT,
+      system: ANSWER_SYSTEM,
       prompt: buildUserPrompt(CONFLICT_QUESTION, CONFLICT_CHUNKS),
     });
     answer = generated.text;

@@ -3,6 +3,7 @@ import type { RetrievedChunk } from "../retrieval";
 import { declineAnswer, ROUTING, routingEntry } from "../routing";
 import type { ResolvedDerivedFigure } from "./derived";
 import {
+  ANSWER_SYSTEM,
   ANSWER_SYSTEM_PROMPT,
   buildUserPrompt,
   CCSS_URL,
@@ -378,6 +379,21 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
       /viñetas consecutivas van en líneas consecutivas/i,
     );
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/sin línea en blanco entre ellas/i);
+  });
+});
+
+describe("ANSWER_SYSTEM (#413)", () => {
+  it("is the system prompt, unchanged, as one cache breakpoint", () => {
+    // Every answer call shares these ≈2.8k tokens, above claude-sonnet-5's
+    // 1,024-token caching minimum; the chunks after them differ per question
+    // and are deliberately left unmarked (a write premium nothing reads).
+    expect(ANSWER_SYSTEM).toEqual({
+      role: "system",
+      content: ANSWER_SYSTEM_PROMPT,
+      providerOptions: {
+        anthropic: { cacheControl: { type: "ephemeral" } },
+      },
+    });
   });
 });
 

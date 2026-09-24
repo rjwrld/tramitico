@@ -35,6 +35,7 @@ import {
 } from "@/lib/answer/persist-failure";
 import { ASK_DEADLINE_MS } from "@/lib/answer/deadline";
 import {
+  ANSWER_SYSTEM_PROMPT,
   CITATION_RETRY_NOTE,
   WEAK_RETRIEVAL_ANSWER,
 } from "@/lib/answer/prompt";
@@ -124,6 +125,7 @@ function allowRateLimit(): ReturnType<typeof vi.fn> {
 function providerStream(
   deltas: readonly string[],
   chunkDelayInMs = 0,
+  cacheRead = 0,
 ): ReadableStream<LanguageModelV4StreamPart> {
   return simulateReadableStream<LanguageModelV4StreamPart>({
     chunkDelayInMs,
@@ -141,9 +143,9 @@ function providerStream(
         finishReason: { unified: "stop" as const, raw: "end_turn" },
         usage: {
           inputTokens: {
-            total: 1,
+            total: 1 + cacheRead,
             noCache: 1,
-            cacheRead: 0,
+            cacheRead,
             cacheWrite: 0,
           },
           outputTokens: { total: 1, text: 1, reasoning: 0 },
@@ -905,6 +907,28 @@ describe("POST /api/ask", () => {
     expect(errorMessages(events)).toEqual([ASK_FALLBACK_ERROR_MESSAGE]);
     expect(events.some((e) => e.errorText?.includes("ANTHROPIC"))).toBe(false);
     spy.mockRestore();
+  });
+
+  it("sends the system prompt as the one prompt-cache breakpoint (#413)", async () => {
+    allowRateLimit();
+    vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+    const model = mockModel("La tarifa es 13% [1].");
+
+    await readEvents(
+      await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+    );
+
+    const [system, ...rest] = model.doStreamCalls[0].prompt;
+    expect(system).toEqual({
+      role: "system",
+      content: ANSWER_SYSTEM_PROMPT,
+      providerOptions: {
+        anthropic: { cacheControl: { type: "ephemeral" } },
+      },
+    });
+    // The question and its chunks differ on every ask: a breakpoint there
+    // would pay the write premium for an entry nothing ever reads.
+    expect(JSON.stringify(rest)).not.toContain("cacheControl");
   });
 
   // #74/F-11: the client's abort must reach the paid provider call, not just
@@ -1941,7 +1965,7 @@ describe("POST /api/ask", () => {
           validate: "lt_1s",
           persist: null,
         },
-        generations: [{ latency: "lt_1s", firstText: "lt_1s" }],
+        generations: [{ latency: "lt_1s", firstText: "lt_1s", cache: "none" }],
         providerError: null,
         citationFailure: false,
         quotaHit: false,
@@ -2006,6 +2030,24 @@ describe("POST /api/ask", () => {
           persist: "1s_3s",
         },
         generations: [{ latency: "gte_30s", firstText: "1s_3s" }],
+      });
+    });
+
+    it("records a prompt-cache read on the generation (#413)", async () => {
+      const capture = captureTelemetry();
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      vi.mocked(getAnswerModel).mockReturnValue(
+        new MockLanguageModelV4({
+          doStream: { stream: providerStream(splitWords(ANSWER), 0, 2_800) },
+        }),
+      );
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+      expect(soleEvent(capture)).toMatchObject({
+        outcome: "ok",
+        generations: [{ cache: "read" }],
       });
     });
 

@@ -32,7 +32,7 @@ import {
   answerProviderOptions,
   getAnswerModel,
 } from "../answer/model";
-import { ANSWER_SYSTEM_PROMPT, buildUserPrompt } from "../answer/prompt";
+import { ANSWER_SYSTEM, buildUserPrompt } from "../answer/prompt";
 import {
   amendingJudgeOnce,
   AMENDING_CHUNKS,
@@ -55,7 +55,7 @@ describeEval("consolidated law beside its reform (#182)", () => {
     const generated = await generateText({
       model: getAnswerModel(),
       providerOptions: answerProviderOptions(),
-      system: ANSWER_SYSTEM_PROMPT,
+      system: ANSWER_SYSTEM,
       prompt: buildUserPrompt(AMENDING_QUESTION, AMENDING_CHUNKS),
     });
     answer = generated.text;
