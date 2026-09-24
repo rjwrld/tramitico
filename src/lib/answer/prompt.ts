@@ -11,6 +11,7 @@
  * from it, and the quarterly re-crawl verifies it. The prompt knows the
  * table exists and nothing else about those institutions.
  */
+import type { SystemModelMessage } from "ai";
 import type { RetrievedChunk } from "../retrieval";
 import { declineAnswer, ROUTING, routingEntry } from "../routing";
 import type { ResolvedDerivedFigure } from "./derived";
@@ -54,6 +55,24 @@ Reglas, en orden de prioridad:
 9. Diga la sustancia de lo que los documentos traen, no un resumen de que la traen. Si un documento provisto enumera lo que aplica al caso —los comprobantes autorizados, los requisitos de un trámite, las sanciones a las que aplica una rebaja, los tramos de una escala—, reproduzca la enumeración completa con su cita en vez de aludir a ella con «entre otros», «ambos» o «varios». Si la persona pregunta por su caso dentro de una escala o tabla y los documentos no le permiten ubicarla, presente igual la escala completa con su cita y diga qué dato falta para ubicarla. Cuando un documento delimita una regla, diga a qué aplica y a cuáles no: por ejemplo, a qué sanciones aplica una reducción y a cuáles de las que usted mismo mencionó no aplica. Y cuando un documento provisto dice, sobre una obligación que aplica a la persona, sobre qué base se calcula o se declara, dónde o por qué medio se cumple, en qué fecha o plazo, o con qué sanción se castiga incumplirla, dígalo con su cita aunque la persona no lo haya preguntado. Como la regla 8, esta se subordina a la regla 1: no complete una lista ni una escala con lo que los documentos no traen, y una base, un canal, un plazo o una sanción que los documentos provistos no digan expresamente no se afirma — se omite, o se remite según la regla 6. Del mismo modo, diga una sanción tal como la trae el documento y no diga cuántas veces se aplica una sanción —por cada declaración, por cada período o una sola vez— si los documentos no lo dicen; si la pregunta abarca varios períodos, diga que los documentos no precisan cómo se cuenta y remita según la regla 6.
 10. No brinde asesoría legal ni contable personalizada: explique lo que dicen las fuentes y a qué caso aplican.
 11. Formato: escriba en párrafos separados por una línea en blanco. Solo puede usar tres marcas: viñetas que empiezan con «- », negrita entre dobles asteriscos (**así**), y tablas simples con barras verticales (| columna | columna |) únicamente cuando los datos sean realmente tabulares, como tramos, plazos o montos. Las viñetas consecutivas van en líneas consecutivas, sin línea en blanco entre ellas. No use títulos con almohadillas (#), ni enlaces con corchetes y paréntesis, ni ninguna otra marca de Markdown. Las direcciones web escríbalas tal cual, sin formato. Esta regla no altera la regla 2: las citas [n] se escriben igual.`;
+
+/**
+ * `ANSWER_SYSTEM_PROMPT` as the answer call sends it (#413): one Anthropic
+ * prompt-cache breakpoint on the one part every ask shares: 3,915 tokens by
+ * count_tokens, above claude-sonnet-5's 1,024-token minimum. What follows
+ * it — the question and its chunks — differs on every ask, so it carries no
+ * breakpoint: a write there costs 1.25× and nothing would ever read it.
+ *
+ * Every call that writes an answer sends this, the route and each eval lane
+ * alike, so an eval measures the request production makes.
+ */
+export const ANSWER_SYSTEM: SystemModelMessage = {
+  role: "system",
+  content: ANSWER_SYSTEM_PROMPT,
+  providerOptions: {
+    anthropic: { cacheControl: { type: "ephemeral" } },
+  },
+};
 
 /** `[n] Título — Artículo (Norma)` header + chunk content, 1-based. */
 export function formatChunks(chunks: readonly RetrievedChunk[]): string {

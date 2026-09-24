@@ -36,7 +36,7 @@ import { beforeAll, expect, it } from "vitest";
 import { condenseQuestion } from "../answer/condense";
 import { answerProviderOptions, getAnswerModel } from "../answer/model";
 import {
-  ANSWER_SYSTEM_PROMPT,
+  ANSWER_SYSTEM,
   buildUserPrompt,
   WEAK_RETRIEVAL_ANSWER,
 } from "../answer/prompt";
@@ -160,7 +160,7 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
           await generateText({
             model: getAnswerModel(),
             providerOptions: answerProviderOptions(),
-            system: ANSWER_SYSTEM_PROMPT,
+            system: ANSWER_SYSTEM,
             prompt: buildUserPrompt(query, chunks, { derivedFigures }),
           })
         ).text;

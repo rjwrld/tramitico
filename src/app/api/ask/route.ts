@@ -150,7 +150,7 @@ import {
   type SavedAnswerKind,
 } from "@/lib/answer/persist-failure";
 import {
-  ANSWER_SYSTEM_PROMPT,
+  ANSWER_SYSTEM,
   buildUserPrompt,
   WEAK_RETRIEVAL_ANSWER,
 } from "@/lib/answer/prompt";
@@ -171,7 +171,11 @@ import {
   type RateLimitResult,
 } from "@/lib/rate-limit";
 import { retrieve, type RetrievedChunk } from "@/lib/retrieval";
-import { createAskTelemetry, type AskTelemetry } from "@/lib/telemetry";
+import {
+  cacheUse,
+  createAskTelemetry,
+  type AskTelemetry,
+} from "@/lib/telemetry";
 
 export const maxDuration = 60;
 
@@ -536,7 +540,7 @@ async function generateAnswer(
     let failure: unknown = null;
     const result = streamText({
       model: getAnswerModel(),
-      system: ANSWER_SYSTEM_PROMPT,
+      system: ANSWER_SYSTEM,
       prompt: buildUserPrompt(question, chunks, {
         citationRetry: attempt > 1,
         derivedFigures,
@@ -554,6 +558,11 @@ async function generateAnswer(
       text += delta;
     }
     if (failure !== null) throw failure;
+    try {
+      timing.cache(cacheUse((await result.usage).inputTokenDetails));
+    } catch {
+      // Telemetry never fails an ask (#141): the answer is already in hand.
+    }
     return text;
   } finally {
     timing.finish();

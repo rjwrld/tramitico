@@ -93,10 +93,30 @@ export type AskAbort = "client" | "deadline";
 export type AskStage =
   "condense" | "retrieve" | "rerank" | "generate" | "validate" | "persist";
 
+/**
+ * What the attempt did with the prompt cache (#413): read the cached system
+ * prompt, wrote it (the first ask after the entry expired), or neither. A
+ * closed set rather than the token counts behind it — the hit rate is a count
+ * of `read` lines, and a count of tokens is a number nothing here needs.
+ */
+export type CacheUse = "read" | "write" | "none";
+
+/** The provider's cache token counts, as the AI SDK reports them. */
+export function cacheUse(details: {
+  cacheReadTokens: number | undefined;
+  cacheWriteTokens: number | undefined;
+}): CacheUse {
+  if ((details.cacheReadTokens ?? 0) > 0) return "read";
+  if ((details.cacheWriteTokens ?? 0) > 0) return "write";
+  return "none";
+}
+
 export interface GenerationTiming {
   latency: LatencyBucket;
   /** Time to first nonempty text delta; null if none arrived. */
   firstText: LatencyBucket | null;
+  /** Prompt-cache use; null when the attempt never reported usage. */
+  cache: CacheUse | null;
 }
 
 /**
@@ -203,7 +223,11 @@ export interface AskTelemetry {
   /** Cumulative elapsed time per stage. Call the once-only stop in finally. */
   startStage: (stage: AskStage) => () => void;
   /** Measures one buffered attempt, including provider errors and cancellation. */
-  startGeneration: () => { firstText: () => void; finish: () => void };
+  startGeneration: () => {
+    firstText: () => void;
+    cache: (use: CacheUse) => void;
+    finish: () => void;
+  };
 
   /** An answer was written to the wire. */
   answered: () => void;
@@ -278,10 +302,14 @@ export function createAskTelemetry(
       const start = now();
       const stop = startStage("generate");
       let firstText: LatencyBucket | null = null;
+      let cache: CacheUse | null = null;
       let finished = false;
       return {
         firstText: () => {
           if (!finished) firstText ??= latencyBucket(now() - start);
+        },
+        cache: (use: CacheUse) => {
+          if (!finished) cache = use;
         },
         finish: () => {
           if (finished) return;
@@ -290,6 +318,7 @@ export function createAskTelemetry(
           generations.push({
             latency: latencyBucket(now() - start),
             firstText,
+            cache,
           });
         },
       };
