@@ -27,6 +27,17 @@ describe("validateCitations", () => {
     ).toEqual({ ok: false, violation: "unresolved_markers", unresolved: [9] });
   });
 
+  it("rejects an artículo number written as a marker (#352)", () => {
+    // `ho-cliente-espana-lleva-iva`, 2026-09-24: reglamento-iva art. 47 sat at
+    // [5] of 8, and the model wrote its artículo number instead.
+    expect(
+      validateCitations(
+        "Esto es distinto de los servicios digitales transfronterizos [6][47].",
+        8,
+      ),
+    ).toEqual({ ok: false, violation: "unresolved_markers", unresolved: [47] });
+  });
+
   it("rejects [0] — the numbering the prompt hands the model is 1-based", () => {
     expect(validateCitations("Base [1], y algo más [0].", 3)).toEqual({
       ok: false,

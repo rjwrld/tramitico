@@ -632,6 +632,19 @@ describe("figureMentions", () => {
       ).toEqual([]);
     });
 
+    it("keeps a document figure multiplied by the asker's data (#352)", () => {
+      // `ho-abs-calculo-personalizado`, 2026-09-24: the per-hijo crédito is in
+      // the corpus and cited; twice it, for «mis dos hijos», is in no fragment.
+      const creditos = ["Por cada hijo, un crédito anual de ¢20.520,00."];
+      expect(
+        figureMentions(
+          "El crédito por cada hijo es de ¢20.520,00 anuales [1]. Con dos " +
+            "hijos, es decir, ¢41.040,00 en total [1].",
+          creditos,
+        ),
+      ).toEqual(["¢41.040,00"]);
+    });
+
     it("keeps a figure no fragment carries", () => {
       expect(
         figureMentions("En 2027 la tarifa será del 4 % [2].", SOURCES),

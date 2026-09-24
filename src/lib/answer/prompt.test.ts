@@ -228,6 +228,89 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     );
   });
 
+  /**
+   * #352 req. 3: `ho-abs-calculo-personalizado` («con mis ingresos y mis dos
+   * hijos, calcúleme exactamente…») declined the liquidación, gave the escala
+   * with its citation — rule 9 working — and then wrote «con dos hijos … es
+   * decir, ¢41.040,00 en total»: the cited ¢20.520,00 per hijo, multiplied by
+   * the asker's own count. No document carries that figure, so the abstention
+   * lane's figure gate counts it invented. Rule 3's «nunca calcule» did not
+   * read as covering arithmetic on the person's own data.
+   */
+  it("forbids arithmetic on the person's own data (#352)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /3\. [^\n]*Tampoco opere una cifra de los documentos con los datos de la persona/,
+    );
+    // The shape that failed, by name: a per-unit amount times the asker's count.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/3\. [^\n]*por su número de hijos/);
+    // What to do instead: the figure as the documents give it, cited.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /3\. [^\n]*tal como la traen los documentos/,
+    );
+  });
+
+  it("keeps placing the person in a tramo allowed (#352 vs #289)", () => {
+    // The clause is about arithmetic, not comparison: `ho-800-mil-que-
+    // porcentaje-caja` requires «¢800.000 … cae en la categoría 3», and rule
+    // 9 asks for the escala precisely so the reader can be placed in it. A
+    // rule 3 that read «apply» broadly would forbid what rule 9 asks for.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /3\. [^\n]*Ubicar un dato que la persona dio en un tramo o una categoría de los documentos no es calcular/,
+    );
+  });
+
+  it("declines a personalised calculation even when the documents carry its inputs (#352)", () => {
+    // 6c already named «una liquidación personalizada»; what it did not say is
+    // that having every input in hand does not make it the answer's to do.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /6c\. [^\n]*aunque los documentos provistos traigan las tarifas, los tramos o los montos/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /6c\. [^\n]*no opere con los datos de la persona, ni siquiera en parte/,
+    );
+  });
+
+  /**
+   * #352 req. 4: `ho-cliente-espana-lleva-iva` cited «[6][47]» on an 8-chunk
+   * answer — reglamento-iva art. 47 was in the set at [5], and the model wrote
+   * the artículo's number where the document's belonged. The invariant
+   * catches it and the route retries; rule 2 should keep it from being
+   * written in the first place.
+   */
+  it("says a marker is the document's number, never an artículo's (#352)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /2\. [^\n]*nunca el número de un artículo, una ley o un decreto/,
+    );
+    // The worked form of the rule: which [n] to use for «artículo 47».
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /2\. [^\n]*el número del documento que lo contiene/,
+    );
+  });
+
+  /**
+   * #352, `multa-iva-no-declarado` (blocking): cnpt art. 79 gives «una multa
+   * equivalente al cincuenta por ciento (50%) del salario base» to whoever
+   * omits «las declaraciones», and never says how it is counted. The judge
+   * failed «se aplica por cada declaración omitida» 3/3 on one reading and
+   * «multa fija … no se calcula por cada mes» 3/3 on the next: it rejects a
+   * count in either direction, because the article states none. Rule 9's
+   * subordination clause already names base, canal, plazo and sanción; the
+   * count of a sanction is the one it did not name.
+   */
+  it("keeps out a count of a sanction the documents do not state (#352)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /9\. [^\n]*no diga cuántas veces se aplica una sanción/,
+    );
+    // Both directions the judge failed, by name.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /9\. [^\n]*por cada declaración, por cada período o una sola vez/,
+    );
+    // What to do instead, for a question about several periods.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /9\. [^\n]*diga que los documentos no precisan cómo se cuenta/,
+    );
+  });
+
   it("speaks of documentos oficiales, never of RAG-internal material (#75)", () => {
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/documentos oficiales/i);
     expect(ANSWER_SYSTEM_PROMPT).not.toMatch(/fragmento|chunk/i);
@@ -411,5 +494,12 @@ describe("buildUserPrompt on the citation retry (#131)", () => {
     expect(CITATION_RETRY_NOTE).toContain("regla 2");
     expect(CITATION_RETRY_NOTE).toContain("regla 6");
     expect(ANSWER_SYSTEM_PROMPT).toContain("2. Cite cada afirmación");
+  });
+
+  it("names the artículo-number marker on the retry (#352)", () => {
+    // The one invariant violation of the run after #411 was a closed «[47]» for
+    // «artículo 47»; a note that only says «ningún otro número es válido»
+    // leaves the model to rediscover which number it got wrong.
+    expect(CITATION_RETRY_NOTE).toMatch(/número de un artículo/);
   });
 });
