@@ -2650,7 +2650,7 @@ What it says:
 
 ### Three prompt rules, not yet measured (#352 req. 3, 4 and the blocking case)
 
-Both are read from the same run and changed with no paid call. The req. 5
+All three are read from the same run and changed with no paid call. The req. 5
 re-run is what measures them.
 
 - **No arithmetic on the asker's data.** `ho-abs-calculo-personalizado`
