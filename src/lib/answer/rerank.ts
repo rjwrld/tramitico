@@ -102,8 +102,13 @@ export const ANSWER_DOC_CAP = Infinity;
  *   past the cut** when it is not already in the set, the way #287 pins a
  *   derived figure's missing input. Nothing the reranker chose for the
  *   question is displaced; the prompt grows by at most one chunk per
- *   sentence, only on an ask that classified to a family. Kept for the
- *   follow-up that measures pinning one chunk instead of three.
+ *   sentence, only on an ask that classified to a family.
+ * - `pin1` — `pin`'s picks, but only **one** of them reaches the prompt: the
+ *   highest-scoring pick the cut did not already take (#311). `pin`'s cost
+ *   was the answer set's size — ten or eleven overlapping fragments, and the
+ *   model mis-indexing them — so this is its smallest version: +1 fragment,
+ *   on an ask that classifies. A sentence whose best chunk is already in the
+ *   cut is covered, so the one append goes to a step the cut left out.
  * - `max` — the sentences are readings like the expansion's, fused by the
  *   higher score (#296). Measured first, and what it does is in
  *   eval/README.md: the step chunks reach #1–#2, and the question's own
@@ -114,7 +119,7 @@ export const ANSWER_DOC_CAP = Infinity;
  *
  * `STEPS_RERANK` in the environment overrides the constant for a measured run.
  */
-export type StepRerankMode = "pin" | "max" | "off";
+export type StepRerankMode = "pin" | "pin1" | "max" | "off";
 
 export const STEP_RERANK_MODE: StepRerankMode = "off";
 
@@ -243,9 +248,14 @@ export interface RerankedChunk {
 /** The step-rerank mode in force; anything unrecognised is the constant. */
 export function stepRerankMode(): StepRerankMode {
   const raw = process.env.STEPS_RERANK;
-  return raw === "pin" || raw === "max" || raw === "off"
+  return raw === "pin" || raw === "pin1" || raw === "max" || raw === "off"
     ? raw
     : STEP_RERANK_MODE;
+}
+
+/** Whether the mode in force pins step picks past the cut at all. */
+function pinsSteps(mode: StepRerankMode): boolean {
+  return mode === "pin" || mode === "pin1";
 }
 
 /**
@@ -370,9 +380,11 @@ export interface RerankOutcome {
    */
   order: RerankedChunk[];
   /**
-   * Under `pin` (#304): the best chunk of each sentence's reading, in
-   * sentence order and without repeats, carrying that reading's score and
-   * the rank `order` gave it. Empty in the other modes and with no probe.
+   * Under `pin` and `pin1` (#304, #311): the best chunk of each sentence's
+   * reading, in sentence order and without repeats, carrying that reading's
+   * score and the rank `order` gave it. Empty in the other modes and with no
+   * probe. How many of them reach the prompt is `answerSetFromOrder`'s call,
+   * because only the cut knows which are already in.
    */
   stepPicks: RerankedChunk[];
 }
@@ -387,7 +399,7 @@ export interface RerankOutcome {
  * sentence to the same batch (#304), read as `stepRerankMode` says. The
  * degradation is the same policy one call down: every reading back → fused;
  * some back → those alone, which is still better than the fused order;
- * none → `null`. Under `pin`, a batch where only sentence readings came
+ * none → `null`. Under `pin`/`pin1`, a batch where only sentence readings came
  * back falls back to fusing those — one reading of the pool is still better
  * than none, and the picks are then empty because there is no question
  * order to pin them past.
@@ -420,7 +432,7 @@ export async function rerankReadings(
   const questionReadings = scored.slice(0, scored.length - sentences.length);
   const stepReadings = scored.slice(scored.length - sentences.length);
   const pinning =
-    mode === "pin" && questionReadings.some((reading) => reading !== null);
+    pinsSteps(mode) && questionReadings.some((reading) => reading !== null);
   // Passed with the question's slot intact, `null` and all: `fuseByMaxScore`
   // reads position 0 as the question's for its tiebreak, and a call that did
   // not come back must not silently promote the expansion into that slot.
@@ -479,7 +491,9 @@ export async function rerankOrder(
  * made, so the eval harness and the route agree by construction — and the
  * cap applies to whichever order is being cut, since the fused head has the
  * same FAQ-page shape (#303). A pick is an append, like #287's derived
- * inputs: nothing the cut chose is displaced.
+ * inputs: nothing the cut chose is displaced. Under `pin1` (#311) only one
+ * pick is appended — the highest-scoring one the cut did not take; ties keep
+ * sentence order.
  */
 export function answerSetFromOrder(
   order: readonly RerankedChunk[] | null,
@@ -491,7 +505,12 @@ export function answerSetFromOrder(
   const ranked = order ?? fused.map((chunk) => ({ chunk }));
   const cut = capPerDocument(ranked, topK, cap).map(({ chunk }) => chunk);
   const taken = new Set(cut.map((chunk) => chunk.chunkId));
-  for (const { chunk } of stepPicks) {
+  const fresh = stepPicks.filter(({ chunk }) => !taken.has(chunk.chunkId));
+  const appended =
+    stepRerankMode() === "pin1"
+      ? [...fresh].sort((a, b) => b.score - a.score).slice(0, 1)
+      : fresh;
+  for (const { chunk } of appended) {
     if (taken.has(chunk.chunkId)) continue;
     taken.add(chunk.chunkId);
     cut.push(chunk);
