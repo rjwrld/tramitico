@@ -16,7 +16,7 @@
  * exact input markers and separately refuses to publish the quoted result when
  * one is absent.
  */
-import { citationMarkers } from "./citations";
+import { citationMarkers, unclosedMarkers } from "./citations";
 
 /**
  * Why an answer fails the invariant.
@@ -24,7 +24,8 @@ import { citationMarkers } from "./citations";
  * - `no_markers` — nothing a reader can follow to a source. Includes the
  *   answer whose only markers are all dangling: it cites nothing *real*.
  * - `unresolved_markers` — at least one usable citation, but also a marker
- *   pointing outside the retrieval set.
+ *   pointing outside the retrieval set, or one the model never closed
+ *   («[49 tomando…», #352): neither renders as a seal a reader can follow.
  * - `incomplete_derived_markers` — a system-calculated figure was quoted
  *   without every marker for the inputs used to calculate it.
  */
@@ -61,6 +62,9 @@ export function validateCitations(
     } else if (!unresolved.includes(marker)) {
       unresolved.push(marker);
     }
+  }
+  for (const marker of unclosedMarkers(answer)) {
+    if (!unresolved.includes(marker)) unresolved.push(marker);
   }
   if (resolved === 0) return { ok: false, violation: "no_markers", unresolved };
   if (unresolved.length > 0) {

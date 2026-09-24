@@ -62,6 +62,30 @@ describe("validateCitations", () => {
     });
   });
 
+  it("rejects a marker the model never closed (#352)", () => {
+    // The 2026-09-24 full run: «…de la transacción [1] [3] [49 tomando base
+    // el monto total…». No `]`, so it was no marker to the check and no
+    // marker to the renumbering either — the reader would see «[49» as text.
+    expect(
+      validateCitations(
+        "cobra el IVA [1] [3] [49 tomando base el monto total [6].",
+        8,
+      ),
+    ).toEqual({ ok: false, violation: "unresolved_markers", unresolved: [49] });
+    // In range or not: an unclosed «[4» renders no seal either.
+    expect(validateCitations("Aplica [4 al servicio [2].", 8)).toEqual({
+      ok: false,
+      violation: "unresolved_markers",
+      unresolved: [4],
+    });
+    // Alone, it is still no usable citation.
+    expect(validateCitations("Aplica [4 al servicio.", 8)).toEqual({
+      ok: false,
+      violation: "no_markers",
+      unresolved: [4],
+    });
+  });
+
   it("rejects any marker when nothing was retrieved", () => {
     expect(validateCitations("La tarifa es 13% [1].", 0)).toEqual({
       ok: false,
