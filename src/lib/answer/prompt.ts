@@ -58,10 +58,10 @@ Reglas, en orden de prioridad:
 
 /**
  * `ANSWER_SYSTEM_PROMPT` as the answer call sends it (#413): one Anthropic
- * prompt-cache breakpoint on the one part every ask shares. ≈3.9k tokens (3,915 by count_tokens),
- * above claude-sonnet-5's 1,024-token minimum. What follows it — the question
- * and its chunks — differs on every ask, so it carries no breakpoint: a write
- * there costs 1.25× and nothing would ever read it.
+ * prompt-cache breakpoint on the one part every ask shares: 3,915 tokens by
+ * count_tokens, above claude-sonnet-5's 1,024-token minimum. What follows
+ * it — the question and its chunks — differs on every ask, so it carries no
+ * breakpoint: a write there costs 1.25× and nothing would ever read it.
  *
  * Every call that writes an answer sends this, the route and each eval lane
  * alike, so an eval measures the request production makes.
