@@ -346,6 +346,7 @@
               "value": 373092.3,
               "decimals": 2,
               "currency": true,
+              "symbol": "SM",
               "docKey": "salarios-minimos",
               "articulo": "Artículo 1"
             }
@@ -416,6 +417,7 @@
               "value": 373092.3,
               "decimals": 2,
               "currency": true,
+              "symbol": "SM",
               "docKey": "salarios-minimos",
               "articulo": "Artículo 1"
             }

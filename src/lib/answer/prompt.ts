@@ -127,6 +127,10 @@ function joinSpanish(items: readonly string[]): string {
  * it is handed, and `incompletelyCitedDerivedFigures` checks each of them
  * against its own sentence, so a three-figure sentence fails exactly the
  * same way.
+ *
+ * The basis line (#352): «¢346.789» alone does not say it is 0,9295 of a
+ * salario mínimo, and three Tier 1 answers printed it that way. The block
+ * offered the basis in parentheses and never asked for it.
  */
 export function formatDerivedFigures(
   figures: readonly ResolvedDerivedFigure[],
@@ -143,6 +147,9 @@ export function formatDerivedFigures(
   return (
     `Cifras derivadas (calculadas por el sistema a partir de ${joinSpanish(markers)}):\n` +
     "Puede citar estos resultados tal como aparecen; no los recalcule ni los actualice.\n" +
+    "Cuando mencione una de estas cifras, dé también la base que aparece " +
+    "entre paréntesis junto a ella, en la misma oración: la cifra sola no " +
+    "dice de qué se calculó.\n" +
     "La oración en que mencione una de estas cifras debe llevar todos los " +
     "marcadores que aparecen junto a ella en esta lista; si menciona varias " +
     "cifras en una misma oración, lleve los marcadores de todas ellas.\n" +

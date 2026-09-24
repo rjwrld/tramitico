@@ -1,5 +1,8 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
-import type { EvalCase } from "./dataset";
+import { resolveDerivedFigures } from "../answer/derived";
+import type { RetrievedChunk } from "../retrieval";
+import { DATASET_PATH, parseDataset, type EvalCase } from "./dataset";
 import {
   ADEQUACY_REPORT_SCHEMA,
   buildAbstentionPrompt,
@@ -314,6 +317,58 @@ describe("checkLiterals", () => {
     expect(
       literalFailures(checkLiterals("Sin cifras.", CASE.requiredClaims!)),
     ).toEqual(["la tarifa general es 13 % (13 % | 13%: absent)"]);
+  });
+});
+
+describe("the BMC figures' display against the dataset literals (#352)", () => {
+  // Three Tier 1 answers gave ¢346.789 without «0,9295 SM», or copied the old
+  // display «0,9295 × ¢373.092,30», which no literal accepts. An answer that
+  // quotes the figure line as the prompt hands it must now carry the basis.
+  function chunk(docKey: string, articulo: string): RetrievedChunk {
+    return {
+      chunkId: docKey,
+      docKey,
+      docTitle: docKey,
+      norma: null,
+      articulo,
+      path: [],
+      part: 0,
+      content: "",
+      source: {},
+      fetchedAt: "2026-09-24T00:00:00Z",
+      score: 0.1,
+      vectorRank: 1,
+      lexicalRank: 1,
+    };
+  }
+
+  const figures = resolveDerivedFigures([
+    chunk("ccss-escala-ivm", "Artículo 4°, sesión 9570"),
+    chunk("ccss-escala-salud", "Artículo 30°, sesión 8999"),
+    chunk("salarios-minimos", "Artículo 1"),
+  ]);
+  const answer = figures
+    .map(
+      (figure) =>
+        `La ${figure.label} es ${figure.formattedValue} ` +
+        `(${figure.formattedFormula}) ` +
+        figure.citationMarkers.map((marker) => `[${marker}]`).join("") +
+        ".",
+    )
+    .join(" ");
+  const cases = parseDataset(readFileSync(DATASET_PATH, "utf8"));
+
+  it.each([
+    ["ho-minimo-caja-independiente-2026", ["¢373.092,30", "0,9295 SM"]],
+    ["ccss-obligacion-ingreso-bajo", ["0,9295 SM"]],
+    ["ho-desde-cuanta-plata-caja", ["0,9295 SM", "0,87 SM", "¢373.092,30"]],
+  ])("%s: the quoted figures carry %j, cited", (id, spellings) => {
+    const evalCase = cases.find((candidate) => candidate.id === id);
+    const checks = checkLiterals(answer, evalCase!.requiredClaims!);
+    for (const spelling of spellings) {
+      const check = checks.find((row) => row.variants.includes(spelling));
+      expect(check, spelling).toMatchObject({ found: true, cited: true });
+    }
   });
 });
 

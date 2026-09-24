@@ -136,6 +136,65 @@ describe("resolveDerivedFigures", () => {
       "cnpt-articulo-79-multa-declaracion-2026": "¢231.100",
     });
   });
+
+  it("shows a symbolled input as its source writes the multiple (#352)", () => {
+    // The escala states «0.9295 SM», not «0,9295 × ¢373.092,30»: an answer
+    // that copied the arithmetic spelling carried the number without saying
+    // it was a multiple of the salario mínimo.
+    const [figure] = resolveDerivedFigures(
+      [
+        chunk("ccss-escala-ivm", "Artículo 4°, sesión 9570"),
+        chunk("salarios-minimos", "Artículo 1"),
+      ],
+      [
+        {
+          ...BMC_IVM,
+          inputs: [BMC_IVM.inputs[0], { ...BMC_IVM.inputs[1], symbol: "SM" }],
+        },
+      ],
+    );
+
+    expect(figure.formattedFormula).toBe("0,87 SM; SM = ¢373.092,30");
+    expect(figure.value).toBeCloseTo(324_590.301);
+  });
+
+  it("keeps the × where juxtaposing the symbol would misread the product", () => {
+    // «2 ÷ 4 SM» reads as 2 ÷ (4 SM); the formula is (2 ÷ 4) × SM.
+    const [figure] = resolveDerivedFigures(
+      [
+        chunk("ccss-escala-ivm", "Artículo 4°, sesión 9570"),
+        chunk("salarios-minimos", "Artículo 1"),
+      ],
+      [
+        {
+          ...BMC_IVM,
+          formula: "2 / 4 * sm.tonc",
+          inputs: [{ ...BMC_IVM.inputs[1], symbol: "SM" }],
+        },
+      ],
+    );
+
+    expect(figure.formattedFormula).toBe("2 ÷ 4 × SM; SM = ¢373.092,30");
+  });
+
+  it("displays the manifest's BMC figures with their salario-mínimo basis", () => {
+    const formulas = Object.fromEntries(
+      resolveDerivedFigures([
+        chunk("ccss-escala-ivm", "Artículo 4°, sesión 9570"),
+        chunk("ccss-escala-salud", "Artículo 30°, sesión 8999"),
+        chunk("salarios-minimos", "Artículo 1"),
+        chunk("cnpt", "Artículo 78"),
+        chunk("salario-base-2026", "Circular 246-2025"),
+      ]).map((figure) => [figure.id, figure.formattedFormula]),
+    );
+
+    expect(formulas["bmc-ivm-2026"]).toBe("0,87 SM; SM = ¢373.092,30");
+    expect(formulas["bmc-sem-2026"]).toBe("0,9295 SM; SM = ¢373.092,30");
+    // No symbol declared: the arithmetic spelling stands.
+    expect(formulas["cnpt-articulo-78-multa-mensual-2026"]).toBe(
+      "0,50 × ¢462.200",
+    );
+  });
 });
 
 describe("parseDerivedFigures", () => {
@@ -155,6 +214,26 @@ describe("parseDerivedFigures", () => {
       }),
     ).toThrow(/artículo/i);
   });
+
+  it.each(["", 5])(
+    "rejects an input symbol that is not a word: %j",
+    (symbol) => {
+      expect(() =>
+        parseDerivedFigures({
+          documents: [
+            {
+              derivedFigures: [
+                {
+                  ...BMC_IVM,
+                  inputs: [BMC_IVM.inputs[0], { ...BMC_IVM.inputs[1], symbol }],
+                },
+              ],
+            },
+          ],
+        }),
+      ).toThrow(/symbol/i);
+    },
+  );
 
   it.each([-1, 11])("rejects output precision %i outside 0..10", (decimals) => {
     expect(() =>
