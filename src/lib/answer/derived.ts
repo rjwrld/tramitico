@@ -294,15 +294,30 @@ export function resolveDerivedFigures(
   });
 }
 
+/** A quote that runs on into more digits is a different, longer number. */
+const LONGER_NUMBER = /^(?:\d|[.,]\d)/;
+/** «¢324.590,00» is still ¢324.590 — only zero decimals follow. */
+const ZERO_DECIMALS = /^,0+(?!\d)/;
+
 /**
- * Return quoted figures whose own paragraph does not carry every input marker.
+ * Return quoted figures whose own sentence — from the figure to the next
+ * sentence end or line break — does not carry every input marker.
  * A figure the model does not use creates no obligation; ordinary citation
  * validation still requires the rest of the answer to be cited.
+ *
+ * A quote is the figure as a whole number (#403): «hasta ¢324.590,999» is the
+ * escala's categoría 1 ceiling, which a T1-F draft copies from `ccss-faq`'s
+ * transcribed table under that table's own marker, not the BMC figure — read
+ * as a prefix match it failed seven of ten correctly cited drafts. The colón
+ * sign is read either way, ₡ or ¢: a draft that wrote ₡ escaped the check
+ * altogether.
  */
 export function incompletelyCitedDerivedFigures(
-  answer: string,
+  draft: string,
   figures: readonly ResolvedDerivedFigure[],
 ): string[] {
+  // Same length either way, so every index below holds in both.
+  const answer = draft.replaceAll("₡", "¢");
   const byValue = new Map<string, ResolvedDerivedFigure[]>();
   for (const figure of figures) {
     const group = byValue.get(figure.formattedValue) ?? [];
@@ -318,6 +333,13 @@ export function incompletelyCitedDerivedFigures(
       if (occurrence < 0) break;
       const afterValue = occurrence + formattedValue.length;
       const remainder = answer.slice(afterValue);
+      searchFrom = afterValue;
+      if (
+        LONGER_NUMBER.test(remainder) &&
+        (formattedValue.includes(",") || !ZERO_DECIMALS.test(remainder))
+      ) {
+        continue;
+      }
       const boundary = remainder.search(/[.!?](?=\s|$)|\n/);
       const claim = boundary < 0 ? remainder : remainder.slice(0, boundary);
       const markers = new Set(citationMarkers(claim));
@@ -342,7 +364,6 @@ export function incompletelyCitedDerivedFigures(
           incomplete.add(figure.id);
         }
       }
-      searchFrom = afterValue;
     }
   }
   return figures.map((figure) => figure.id).filter((id) => incomplete.has(id));

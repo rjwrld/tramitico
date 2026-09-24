@@ -1,0 +1,239 @@
+{
+  "ranAt": "2026-09-24T02:16:57.483Z",
+  "contexts": [
+    {
+      "prompt": 6,
+      "chunks": [
+        {
+          "n": 1,
+          "docKey": "ccss-reglamento-ti",
+          "articulo": "Artículo 6"
+        },
+        {
+          "n": 2,
+          "docKey": "ccss-faq",
+          "articulo": "¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?"
+        },
+        {
+          "n": 3,
+          "docKey": "ccss-reglamento-ti",
+          "articulo": "Artículo 10"
+        },
+        {
+          "n": 4,
+          "docKey": "ccss-escala-salud",
+          "articulo": "Artículo 30°, sesión 8999"
+        },
+        {
+          "n": 5,
+          "docKey": "ccss-reglamento-ti",
+          "articulo": "Artículo 1"
+        },
+        {
+          "n": 6,
+          "docKey": "ccss-faq",
+          "articulo": "¿Quién es un Trabajador Independiente?"
+        },
+        {
+          "n": 7,
+          "docKey": "ccss-escala-ivm",
+          "articulo": "Artículo 4°, sesión 9570"
+        },
+        {
+          "n": 8,
+          "docKey": "ccss-reglamento-ti",
+          "articulo": "Artículo 12"
+        },
+        {
+          "n": 9,
+          "docKey": "salarios-minimos",
+          "articulo": "Artículo 1"
+        }
+      ],
+      "derivedFigures": [
+        {
+          "id": "bmc-ivm-2026",
+          "formattedValue": "¢324.590",
+          "citationMarkers": [7, 9]
+        },
+        {
+          "id": "bmc-sem-2026",
+          "formattedValue": "¢346.789",
+          "citationMarkers": [4, 9]
+        }
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "prompt": 6,
+      "arm": "medium",
+      "repeat": 1,
+      "firstReasoning": null,
+      "firstText": 1.01,
+      "total": 15.73,
+      "outputTokens": 1624,
+      "reasoningTokens": 0,
+      "textTokens": 1624,
+      "chars": 3530,
+      "citationsOk": true,
+      "derivedOk": true,
+      "derivedMissing": [],
+      "error": null,
+      "text": "Como trabajador independiente, usted debe cotizar tanto para el Seguro de Salud como para el Seguro de Invalidez, Vejez y Muerte (IVM) [5][6]. La cotización se calcula sobre el total de los ingresos que perciba [6], entendidos como ingreso neto, es decir, el ingreso bruto menos los gastos propios, necesarios, razonables y congruentes con el giro de la actividad [3][6].\n\nCómo se determina la base de ingresos:\n\n- Los ingresos brutos y netos se fijan con base en la información y prueba que usted aporte al momento de la afiliación o mientras mantenga la actividad [3].\n- La CCSS puede usar diversos métodos y fuentes de información para corroborar los montos reportados, incluyendo la declaración de renta, salarios mínimos según ocupación e información sobre sus operaciones [3].\n- Si está iniciando actividad y no cuenta con documentos para fijar su ingreso neto, se le asignará un ingreso por base presunta, definida a partir de la información que usted suministre y las revisiones que haga la CCSS [3].\n- Usted puede gestionar el ajuste de su ingreso cotizable en los primeros 3 días hábiles del mes, de forma presencial o mediante las plataformas electrónicas que la CCSS habilite; debe conservar documentos que sustenten el ajuste, y la resolución debe darse en un plazo máximo de diez días hábiles, aplicándose en la siguiente facturación [8].\n- Si sus ingresos netos mensuales no superan la Base Mínima Contributiva (BMC), puede optar de forma voluntaria y por única vez a afiliarse cotizando solo para Salud, o bien cotizar también para IVM durante los primeros 6 meses; a partir del sétimo mes será obligatorio cotizar para ambos seguros [1]. Quienes no alcanzan el ingreso mínimo de contribución fijado por la Junta Directiva no son asegurados obligatorios [5].\n\nCuánto se paga (porcentajes según nivel de ingreso, escala vigente enero 2026):\n\nSeguro de Salud [2]:\n\n| Categoría | Nivel de ingreso (colones) | Afiliado | Estado | Conjunto |\n|---|---|---|---|---|\n| 1 | hasta ₡346.789,999 | 2,89% | 9,11% | 12,00% |\n| 2 | ₡346.790,000 a ₡746.185,999 | 4,33% | 7,67% | 12,00% |\n| 3 | ₡746.186,000 a ₡1.492.369,999 | 6,24% | 5,76% | 12,00% |\n| 4 | ₡1.492.370,000 a ₡2.238.554,999 | 8,02% | 3,98% | 12,00% |\n| 5 | ₡2.238.555,000 en adelante | 10,69% | 1,31% | 12,00% |\n\nSeguro de IVM [2][7]:\n\n| Categoría | Nivel de ingreso (colones) | Afiliado | Estado | Art. 78 | Conjunto |\n|---|---|---|---|---|---|\n| 1 | hasta ₡324.590,999 | 4,16% | 5,45% | 0,30% | 9,91% |\n| 2 | ₡324.591,000 a ₡746.185,999 | 5,65% | 4,26% | — | 9,91% |\n| 3 | ₡746.186,000 a ₡1.492.369,999 | 7,53% | 2,38% | — | 9,91% |\n| 4 | ₡1.492.370,000 a ₡2.238.554,999 | 7,98% | 1,93% | — | 9,91% |\n| 5 | ₡2.238.555,000 en adelante | 8,42% | 1,49% | — | 9,91% |\n\nLa parte que usted paga como afiliado corresponde a las columnas \"Afiliado\" de cada tabla, según la categoría en la que se ubique su ingreso neto mensual [2]. Para 2026, la base mínima contributiva de IVM es de ¢324.590 y la de Salud (SEM) es de ¢346.789 [7][9][4].\n\nUn dato adicional: los trabajadores independientes de 50 años o más que no cumplan con el número de cuotas establecidas no cotizan al Seguro de IVM [6].\n\nPara tramitar su afiliación, el ajuste de sus ingresos o consultar su categoría específica, el paso siguiente es acudir a las oficinas de la CCSS, los centros designados o las plataformas electrónicas de autogestión que la institución habilite, indicando su ingreso neto y aportando la documentación que lo sustente [8]. Puede obtener más información en https://www.ccss.sa.cr."
+    },
+    {
+      "prompt": 6,
+      "arm": "medium",
+      "repeat": 2,
+      "firstReasoning": null,
+      "firstText": 1.02,
+      "total": 19.83,
+      "outputTokens": 2004,
+      "reasoningTokens": 0,
+      "textTokens": 2004,
+      "chars": 4392,
+      "citationsOk": true,
+      "derivedOk": false,
+      "derivedMissing": ["bmc-ivm-2026", "bmc-sem-2026"],
+      "error": null,
+      "text": "Como trabajador independiente, usted está obligado a cotizar tanto al Seguro de Salud como al de Invalidez, Vejez y Muerte (IVM), calculando la cotización sobre el total de sus ingresos [6].\n\n**Cómo se calcula la base (el ingreso de referencia)**\n\nLa base de cotización es el ingreso neto, es decir, el ingreso bruto de su actividad menos los gastos propios y necesarios para operarla, siempre que sean razonables y congruentes con el giro del negocio [1][3][6]. Los ingresos brutos y netos se fijan con la información y prueba que usted aporte al afiliarse o en cualquier momento posterior, y la CCSS puede corroborarlos con otros medios (por ejemplo, declaración de renta, salarios mínimos según ocupación, información sobre sus operaciones, etc.) [3]. Si apenas inicia actividad y no tiene documentos para fijar el ingreso neto, o se encuentra en alguno de los supuestos excepcionales del reglamento de inspección, la CCSS usará un ingreso por base presunta, construido con la información que usted suministre y la que la propia CCSS obtenga [3].\n\nSi sus ingresos netos mensuales no superan la Base Mínima Contributiva (BMC), puede afiliarse voluntariamente y, por única vez, decidir si cotiza solo para Salud o también para IVM durante los primeros 6 meses; a partir del sétimo mes la cotización a ambos seguros se vuelve obligatoria de forma automática [1]. Si en ese primer periodo cae en mora por tres meses, queda excluido de este aseguramiento como trabajador independiente, sin perjuicio de que deba asegurarse bajo la condición ordinaria si le corresponde [1]. Quienes no alcanzan el monto mínimo de contribución fijado por la Junta Directiva no son asegurados obligatorios [5].\n\nUsted puede pedir el ajuste del ingreso sobre el que se calculan sus cuotas dentro de los primeros 3 días hábiles del mes, de forma presencial en oficinas o centros designados, o mediante los mecanismos electrónicos que la CCSS habilite; la solicitud debe resolverse en un máximo de 10 días hábiles y se aplica en la facturación siguiente [8].\n\n**Cuánto se paga (porcentajes según nivel de ingreso)**\n\nLa cotización se calcula por categorías, según el nivel de ingreso expresado en salarios mínimos (SM) del trabajador no calificado genérico [4][7]. Para 2026, las escalas vigentes son:\n\nSeguro de Salud (SEM), enero 2026:\n\n| Categoría | Nivel de ingreso | Afiliado | Estado | Conjunto |\n|---|---|---|---|---|\n| 1 | hasta ¢346.789,999 | 2.89% | 9.11% | 12.00% |\n| 2 | ¢346.790,000 a ¢746.185,999 | 4.33% | 7.67% | 12.00% |\n| 3 | ¢746.186,000 a ¢1.492.369,999 | 6.24% | 5.76% | 12.00% |\n| 4 | ¢1.492.370,000 a ¢2.238.554,999 | 8.02% | 3.98% | 12.00% |\n| 5 | ¢2.238.555,000 en adelante | 10.69% | 1.31% | 12.00% |\n\n[2] La base mínima contributiva de Salud para 2026 es ¢346.789 (0,9295 × salario mínimo del trabajador no calificado genérico) [4][9].\n\nSeguro de IVM, a partir de enero 2026:\n\n| Categoría | Nivel de ingreso | Afiliado | Estado | Art. 78 | Conjunto |\n|---|---|---|---|---|---|\n| 1 | hasta ¢324.590,999 | 4.16% | 5.45% | 0.30% | 9.91% |\n| 2 | ¢324.591,000 a ¢746.185,999 | 5.65% | 4.26% | — | 9.91% |\n| 3 | ¢746.186,000 a ¢1.492.369,999 | 7.53% | 2.38% | — | 9.91% |\n| 4 | ¢1.492.370,000 a ¢2.238.554,999 | 7.98% | 1.93% | — | 9.91% |\n| 5 | ¢2.238.555,000 en adelante | 8.42% | 1.49% | — | 9.91% |\n\n[2][7] La base mínima contributiva de IVM para 2026 es ¢324.590 (0,87 × salario mínimo del trabajador no calificado genérico) [7][9]. Adicionalmente, el Estado como tal aporta 1.75% en IVM y 0.25% en Salud, montos que no se deducen de su cuota [4][7].\n\nSu cuota mensual es la que corresponde a la columna \"Afiliado\" de la categoría en la que se ubique su ingreso neto, tanto para Salud como para IVM; la diferencia hasta el porcentaje conjunto la aporta el Estado [2][4][7]. Note que si sus ingresos son inferiores a la BMC, aplica lo señalado antes sobre afiliación voluntaria y el esquema de los primeros 6 meses [1].\n\n**Paso siguiente**\n\nPara afiliarse, ajustar su ingreso reportado o consultar la categoría exacta que le corresponde según su ingreso neto actual, debe presentar la documentación de sus ingresos y gastos en las oficinas o centros designados por la CCSS, o mediante las plataformas electrónicas que esta habilite, dentro de los primeros 3 días hábiles del mes si busca un ajuste [8]. Para más detalle sobre su caso particular, consulte con la CCSS: https://www.ccss.sa.cr."
+    },
+    {
+      "prompt": 6,
+      "arm": "medium",
+      "repeat": 3,
+      "firstReasoning": null,
+      "firstText": 1.29,
+      "total": 19.5,
+      "outputTokens": 1930,
+      "reasoningTokens": 0,
+      "textTokens": 1930,
+      "chars": 4414,
+      "citationsOk": true,
+      "derivedOk": false,
+      "derivedMissing": ["bmc-ivm-2026", "bmc-sem-2026"],
+      "error": null,
+      "text": "Como trabajador independiente, usted está obligado a cotizar tanto al Seguro de Salud como al Seguro de Invalidez, Vejez y Muerte (IVM), calculando la cotización sobre el total de los ingresos que perciba [6].\n\n**Cómo se calcula la base (el ingreso de referencia)**\n\nLa base de cotización no es su ingreso bruto, sino el ingreso neto: el ingreso bruto (total derivado de su actividad económica) menos los gastos propios de la operación, siempre que sean necesarios, razonables y congruentes con el giro de su actividad [3][6]. Ese ingreso neto es el que se fija, en principio, con la información y prueba que usted mismo aporte a la CCSS, ya sea al momento de afiliarse o después mientras mantenga la actividad [3].\n\nSi usted está iniciando su actividad y no tiene aún documentos para justificar su ingreso neto, o si se da alguno de los supuestos excepcionales previstos, la CCSS usará un ingreso por base presunta, construido con la información que usted suministre al afiliarse, más otras fuentes como la declaración de renta, los salarios mínimos según ocupación, información sobre sus operaciones o servicios, y cualquier otro medio de prueba que la CCSS obtenga [3]. En todos los casos usted debe conservar y aportar los documentos que sustenten su ingreso cuando la CCSS lo requiera [3].\n\nSi desea ajustar el ingreso sobre el cual se calculan sus contribuciones, debe gestionarlo en los primeros 3 días hábiles del mes, de forma presencial en las oficinas o centros designados, o por los mecanismos electrónicos y de autogestión que la CCSS habilite; la solicitud debe resolverse en un plazo máximo de diez días hábiles contados desde el día siguiente hábil de su recepción, y se aplica en la facturación siguiente [8].\n\n**Cuánto se paga: la escala de porcentajes**\n\nSus contribuciones se calculan aplicando un porcentaje sobre ese ingreso neto, según la categoría en la que se ubique. Para enero de 2026, la escala vigente es la siguiente:\n\nSeguro de Salud, por categoría y nivel de ingreso mensual (afiliado / conjunto):\n\n| Categoría | Nivel de ingreso (colones) | Afiliado | Conjunto |\n|---|---|---|---|\n| 1 | hasta ¢346.789,999 | 2,89% | 12,00% |\n| 2 | ¢346.790,000 a ¢746.185,999 | 4,33% | 12,00% |\n| 3 | ¢746.186,000 a ¢1.492.369,999 | 6,24% | 12,00% |\n| 4 | ¢1.492.370,000 a ¢2.238.554,999 | 8,02% | 12,00% |\n| 5 | ¢2.238.555,000 en adelante | 10,69% | 12,00% |\n\nSeguro de IVM, por categoría y nivel de ingreso mensual (afiliado / conjunto):\n\n| Categoría | Nivel de ingreso (colones) | Afiliado | Conjunto |\n|---|---|---|---|\n| 1 | hasta ¢324.590,999 | 4,16% | 9,91% |\n| 2 | ¢324.591,000 a ¢746.185,999 | 5,65% | 9,91% |\n| 3 | ¢746.186,000 a ¢1.492.369,999 | 7,53% | 9,91% |\n| 4 | ¢1.492.370,000 a ¢2.238.554,999 | 7,98% | 9,91% |\n| 5 | ¢2.238.555,000 en adelante | 8,42% | 9,91% |\n\n[2]\n\nNote que el porcentaje que usted aporta (\"afiliado\") es solo una parte; el resto lo cubre el Estado, hasta completar el porcentaje conjunto de cada seguro [2]. La categoría 1 de Salud aplica desde ¢346.789 aproximadamente (0,9295 del salario mínimo de referencia), mientras que la categoría 1 de IVM aplica desde ¢324.590 aproximadamente (0,87 del mismo salario mínimo), es decir, las bases mínimas de ambos seguros no coinciden [7][9][4].\n\n**Condiciones especiales**\n\nSi sus ingresos netos mensuales no superan la Base Mínima Contributiva vigente, usted puede optar voluntariamente por afiliarse, y decidir en ese momento si cotiza solo para Salud, o si además cotiza para IVM durante los primeros 6 meses; a partir del sétimo mes la contribución a ambos seguros se vuelve obligatoria automáticamente [1]. Si en ese primer período incurre en morosidad de tres meses, quedará excluido de este aseguramiento como trabajador independiente [1]. Si declara ingresos falsos, procede la factura adicional correspondiente en ambos regímenes [1]. También, no cotizan al Seguro de IVM los trabajadores independientes de 50 años o más que no cumplan con el número de cuotas establecidas, condición que debe corroborar el funcionario de la CCSS al entrevistarlo [6].\n\n**Siguiente paso**\n\nPara afiliarse, ajustar su ingreso o consultar su categoría, el trámite se hace en las oficinas o centros designados de la CCSS, o mediante los mecanismos electrónicos y de autogestión que la institución habilite [8]. Para información adicional o dudas específicas sobre su caso, puede consultar directamente en https://www.ccss.sa.cr."
+    },
+    {
+      "prompt": 6,
+      "arm": "medium",
+      "repeat": 4,
+      "firstReasoning": null,
+      "firstText": 1.07,
+      "total": 19,
+      "outputTokens": 1891,
+      "reasoningTokens": 0,
+      "textTokens": 1891,
+      "chars": 4171,
+      "citationsOk": true,
+      "derivedOk": false,
+      "derivedMissing": ["bmc-ivm-2026", "bmc-sem-2026"],
+      "error": null,
+      "text": "Como trabajador independiente, usted está obligado a cotizar tanto para el Seguro de Salud como para el Seguro de Invalidez, Vejez y Muerte (IVM), salvo que sus ingresos netos mensuales no superen la Base Mínima Contributiva, en cuyo caso el aseguramiento es voluntario en las condiciones que se explican más abajo [1][5][6].\n\nCómo se calcula la base de cotización\n\nLa cuota se calcula sobre sus **ingresos netos**, es decir, el ingreso bruto (el total que genera su actividad económica) menos los gastos propios de la operación, siempre que sean necesarios, razonables y congruentes con el giro del negocio [3][6]. Si usted apenas inicia su actividad y no cuenta con documentos para fijar ese ingreso neto, la CCSS puede usar un ingreso por base presunta, determinado con la información que usted aporte al afiliarse, la declaración de renta, salarios mínimos según ocupación, información sobre sus operaciones u otros medios de prueba que la CCSS obtenga [3]. Usted debe conservar y aportar los documentos que sustenten sus ingresos cuando la CCSS lo requiera [3].\n\nUna vez fijado el ingreso, este se ubica en una categoría de la escala contributiva, y usted puede gestionar ajustes de ese ingreso en los primeros 3 días hábiles del mes, de forma presencial en oficinas o centros designados, o mediante los mecanismos electrónicos de autogestión que la CCSS habilite; la solicitud debe resolverse en un plazo máximo de diez días hábiles y se aplica en la siguiente facturación [8].\n\nEscala de cotización vigente\n\nPara el Seguro de Salud, por categoría de ingreso mensual (en colones), el aporte del afiliado, el del Estado y el conjunto son [2]:\n\n| Categoría | Nivel de ingreso | Afiliado | Estado | Conjunto |\n|---|---|---|---|---|\n| 1 | hasta ¢346.789,999 | 2.89% | 9.11% | 12.00% |\n| 2 | ¢346.790,000 a ¢746.185,999 | 4.33% | 7.67% | 12.00% |\n| 3 | ¢746.186,000 a ¢1.492.369,999 | 6.24% | 5.76% | 12.00% |\n| 4 | ¢1.492.370,000 a ¢2.238.554,999 | 8.02% | 3.98% | 12.00% |\n| 5 | ¢2.238.555,000 en adelante | 10.69% | 1.31% | 12.00% |\n\nPara el Seguro de IVM, por categoría de ingreso mensual (en colones) [2]:\n\n| Categoría | Nivel de ingreso | Afiliado | Estado | 78° LPT | Conjunto |\n|---|---|---|---|---|---|\n| 1 | hasta ¢324.590,999 | 4.16% | 5.45% | 0.30% | 9.91% |\n| 2 | ¢324.591,000 a ¢746.185,999 | 5.65% | 4.26% | 0.00% | 9.91% |\n| 3 | ¢746.186,000 a ¢1.492.369,999 | 7.53% | 2.38% | 0.00% | 9.91% |\n| 4 | ¢1.492.370,000 a ¢2.238.554,999 | 7.98% | 1.93% | 0.00% | 9.91% |\n| 5 | ¢2.238.555,000 en adelante | 8.42% | 1.49% | 0.00% | 9.91% |\n\nEstas escalas rigen a partir de enero de 2026, según el decreto de salarios mínimos y los acuerdos de Junta Directiva citados [2].\n\nPara ubicarse en una categoría específica de la tabla, hace falta conocer su ingreso neto mensual; con ese dato usted puede identificar en cuál rango cae según las tablas anteriores.\n\nCaso de ingresos bajos (Base Mínima Contributiva)\n\nSi sus ingresos netos mensuales no superan la Base Mínima Contributiva vigente —para 2026, ¢324.590 para IVM y ¢346.789 para Salud [7][9][4][9]—, usted puede afiliarse de forma voluntaria por única vez y elegir en ese momento cotizar solo para Salud, o cotizar también para IVM durante los primeros 6 meses; a partir del sétimo mes la contribución a ambos seguros se vuelve obligatoria de forma automática [1]. Sus contribuciones en este caso se calculan sobre el monto de la BMC, ajustándose si ese valor cambia [1]. Si en ese primer período incurre en morosidad por tres meses, quedará excluido automáticamente del aseguramiento como independiente, sin perjuicio de que pueda asegurarse bajo la condición ordinaria si califica [1]. Declarar ingresos falsos da lugar a factura adicional en ambos regímenes [1].\n\nPaso siguiente\n\nSi necesita afiliarse, ajustar su ingreso o corroborar su categoría, el trámite se hace ante la CCSS, de forma presencial en sus oficinas o centros designados, o mediante las plataformas electrónicas de autogestión que la institución habilite, dentro de los primeros 3 días hábiles del mes para los ajustes de ingreso [8]. Para más detalle sobre su situación particular puede consultar directamente en https://www.ccss.sa.cr."
+    },
+    {
+      "prompt": 6,
+      "arm": "medium",
+      "repeat": 5,
+      "firstReasoning": null,
+      "firstText": 1.26,
+      "total": 18.41,
+      "outputTokens": 1848,
+      "reasoningTokens": 0,
+      "textTokens": 1848,
+      "chars": 4034,
+      "citationsOk": true,
+      "derivedOk": false,
+      "derivedMissing": ["bmc-ivm-2026", "bmc-sem-2026"],
+      "error": null,
+      "text": "Como trabajador independiente, debe cotizar tanto para el Seguro de Salud (SEM) como para el Seguro de Invalidez, Vejez y Muerte (IVM), ya que toda persona que desarrolla por cuenta propia una actividad generadora de ingresos está obligada a afiliarse y contribuir a ambos regímenes [6][5].\n\n**Cómo se calcula la base (el ingreso de referencia)**\n\nLa cotización se calcula sobre sus ingresos netos, es decir, el ingreso bruto de su actividad menos los gastos propios de operación que sean necesarios, razonables y congruentes con su giro de negocio [3][6]. Estos ingresos brutos y netos se fijan con base en la información y prueba que usted aporte al momento de afiliarse o después, aunque la CCSS puede usar otros métodos y fuentes (por ejemplo, declaración de renta, salarios mínimos según ocupación, información de sus operaciones) para corroborar lo declarado [3].\n\nSi está iniciando actividad y no cuenta con documentos que permitan fijar su ingreso neto, la CCSS usará un ingreso por base presunta, definido con la información que usted suministre al afiliarse y con otros elementos que la institución recabe [3]. Si posteriormente sus ingresos cambian, usted debe gestionar el ajuste en los primeros 3 días hábiles del mes, de forma presencial o por los medios electrónicos que la CCSS habilite; ese ajuste se aplica en la facturación siguiente, y la CCSS resuelve la solicitud en un plazo máximo de diez días hábiles [8].\n\n**Cuánto se paga: escala de contribución**\n\nSi sus ingresos netos mensuales no superan la Base Mínima Contributiva (BMC), puede optar de forma voluntaria por afiliarse solo al Seguro de Salud, o cotizar también a IVM durante los primeros 6 meses; a partir del sétimo mes la contribución a ambos seguros pasa a ser obligatoria de forma automática [1]. En ese caso, su contribución se calcula sobre el monto de la BMC, y se ajusta si ese valor cambia [1].\n\nPara 2026, la base mínima contributiva de IVM es de ¢324.590 [7][9] y la base mínima contributiva de Salud (SEM) es de ¢346.789 [4][9]; la obligatoriedad de cotizar rige a partir de la BMC de menor cuantía [2].\n\nPor encima de esos mínimos, el porcentaje que paga depende de en cuál categoría de ingreso se ubique, según la siguiente escala vigente desde enero de 2026:\n\nSeguro de Salud (SEM):\n\n| Categoría | Nivel de ingreso (colones) | Afiliado | Estado | Conjunto |\n|---|---|---|---|---|\n| 1 | hasta ¢346.789,999 | 2.89% | 9.11% | 12.00% |\n| 2 | de ¢346.790,000 a ¢746.185,999 | 4.33% | 7.67% | 12.00% |\n| 3 | de ¢746.186,000 a ¢1.492.369,999 | 6.24% | 5.76% | 12.00% |\n| 4 | de ¢1.492.370,000 a ¢2.238.554,999 | 8.02% | 3.98% | 12.00% |\n| 5 | de ¢2.238.555,000 en adelante | 10.69% | 1.31% | 12.00% |\n\n[2]\n\nSeguro de IVM:\n\n| Categoría | Nivel de ingreso (colones) | Afiliado | Estado | 78° LPT | Conjunto |\n|---|---|---|---|---|---|\n| 1 | hasta ¢324.590,999 | 4.16% | 5.45% | 0.30% | 9.91% |\n| 2 | de ¢324.591,000 a ¢746.185,999 | 5.65% | 4.26% | 0.00% | 9.91% |\n| 3 | de ¢746.186,000 a ¢1.492.369,999 | 7.53% | 2.38% | 0.00% | 9.91% |\n| 4 | de ¢1.492.370,000 a ¢2.238.554,999 | 7.98% | 1.93% | 0.00% | 9.91% |\n| 5 | de ¢2.238.555,000 en adelante | 8.42% | 1.49% | 0.00% | 9.91% |\n\n[2]\n\nCon estas tablas, usted paga el porcentaje \"afiliado\" que corresponda a la categoría en la que caiga su ingreso neto mensual; los documentos no me indican su ingreso neto específico, así que no puedo decirle en cuál categoría se ubica. Además, quienes tienen 50 años o más no cotizarán a IVM si no cumplen con el número de cuotas establecidas, condición que debe corroborar el funcionario de la CCSS en la entrevista [6].\n\nSi es asalariado y además trabaja por cuenta propia, la condición de asalariado no lo exime de cotizar también como trabajador independiente por esa segunda actividad [5]. Para gestionar su afiliación, el ajuste de ingresos o resolver dudas sobre su categoría específica, el trámite se hace en las oficinas de la CCSS o mediante las plataformas electrónicas que la institución habilite, según lo indicado (https://www.ccss.sa.cr) [8]."
+    },
+    {
+      "prompt": 6,
+      "arm": "medium",
+      "repeat": 6,
+      "firstReasoning": null,
+      "firstText": 0.88,
+      "total": 17.55,
+      "outputTokens": 1831,
+      "reasoningTokens": 0,
+      "textTokens": 1831,
+      "chars": 4024,
+      "citationsOk": true,
+      "derivedOk": false,
+      "derivedMissing": ["bmc-ivm-2026", "bmc-sem-2026"],
+      "error": null,
+      "text": "Como trabajador independiente, usted está obligado a cotizar tanto para el Seguro de Salud como para el Seguro de Invalidez, Vejez y Muerte (IVM), calculándose la cotización sobre el total de los ingresos que perciba [6][5].\n\n**Cómo se calcula la base (el ingreso de referencia)**\n\nLa base de cálculo es el ingreso neto, no el ingreso bruto [3][10 no existe, cito 3]. Es decir: se toma el ingreso bruto (el ingreso total derivado de su actividad económica) y se le restan los gastos propios de la operación, siempre que sean necesarios, razonables y congruentes con el giro de la actividad [3][6]. Esos ingresos y gastos se fijan con base en la información y prueba que usted aporte al momento de afiliarse o después, aunque la CCSS puede usar otros métodos y fuentes (por ejemplo, declaración de renta, salarios mínimos según ocupación, información sobre sus operaciones) para corroborar lo declarado [3].\n\nSi usted está iniciando su actividad y no cuenta con documentos para fijar su ingreso neto, o se encuentra en alguno de los supuestos excepcionales previstos en la normativa, la CCSS le asignará un ingreso por \"base presunta\", determinada a partir de la información que usted suministre al afiliarse y de otros elementos que la institución recabe [3]. En todo caso, usted debe conservar los documentos y pruebas necesarios y aportarlos cuando la CCSS los requiera [3].\n\nSi sus ingresos netos mensuales no superan la Base Mínima Contributiva (BMC), puede optar voluntariamente por afiliarse por única vez, y decidir si cotiza solo para Salud, o también para IVM durante los primeros 6 meses; a partir del sétimo mes la contribución a ambos seguros se vuelve obligatoria automáticamente [1]. En ese caso, la contribución se calcula sobre el monto de la BMC [1].\n\nUsted puede pedir el ajuste del ingreso sobre el cual se calculan sus cuotas dentro de los primeros 3 días hábiles del mes, de forma presencial en oficinas o centros designados, o mediante las plataformas electrónicas que la CCSS habilite; la solicitud debe resolverse en un plazo máximo de 10 días hábiles y se aplica en la facturación siguiente [8].\n\n**Cuánto se paga: escalas de porcentaje según el nivel de ingreso**\n\nPara Salud, la escala vigente desde enero de 2026 es:\n\n| Categoría | Nivel de ingreso (colones) | Afiliado | Estado | Conjunto |\n|---|---|---|---|---|\n| 1 | hasta ¢346.789,999 | 2.89% | 9.11% | 12.00% |\n| 2 | de ¢346.790,000 a ¢746.185,999 | 4.33% | 7.67% | 12.00% |\n| 3 | de ¢746.186,000 a ¢1.492.369,999 | 6.24% | 5.76% | 12.00% |\n| 4 | de ¢1.492.370,000 a ¢2.238.554,999 | 8.02% | 3.98% | 12.00% |\n| 5 | de ¢2.238.555,000 en adelante | 10.69% | 1.31% | 12.00% |\n\n[2]\n\nPara IVM, la escala vigente desde enero de 2026 es:\n\n| Categoría | Nivel de ingreso (colones) | Afiliado | Estado | Art. 78 | Conjunto |\n|---|---|---|---|---|---|\n| 1 | hasta ¢324.590,999 | 4.16% | 5.45% | 0.30% | 9.91% |\n| 2 | de ¢324.591,000 a ¢746.185,999 | 5.65% | 4.26% | — | 9.91% |\n| 3 | de ¢746.186,000 a ¢1.492.369,999 | 7.53% | 2.38% | — | 9.91% |\n| 4 | de ¢1.492.370,000 a ¢2.238.554,999 | 7.98% | 1.93% | — | 9.91% |\n| 5 | de ¢2.238.555,000 en adelante | 8.42% | 1.49% | — | 9.91% |\n\n[2][7]\n\nEn concreto, la base mínima contributiva de IVM para 2026 es de ¢324.590 [7][9], y la base mínima contributiva de Salud (SEM) para 2026 es de ¢346.789 [4][9]. Note que los umbrales de ambas escalas no coinciden exactamente, porque cada seguro usa su propia base mínima de referencia [2][7].\n\nSi usted tiene 50 años o más y no cumple con el número de cuotas establecidas, no cotizará al Seguro de IVM, condición que debe corroborar el funcionario de la CCSS que lo entreviste [6].\n\n**Paso siguiente**\n\nPara afiliarse, ajustar su ingreso reportado o consultar en cuál categoría se ubica, el trámite se hace de forma presencial en las oficinas o centros designados de la CCSS, o mediante las plataformas electrónicas que la institución habilite [8]. Si tiene dudas específicas sobre su situación, puede consultar directamente en la CCSS: https://www.ccss.sa.cr."
+    },
+    {
+      "prompt": 6,
+      "arm": "medium",
+      "repeat": 7,
+      "firstReasoning": null,
+      "firstText": 0.98,
+      "total": 20.37,
+      "outputTokens": 1996,
+      "reasoningTokens": 0,
+      "textTokens": 1996,
+      "chars": 4429,
+      "citationsOk": true,
+      "derivedOk": true,
+      "derivedMissing": [],
+      "error": null,
+      "text": "Como trabajador independiente, usted está obligado a cotizar tanto para el Seguro de Salud como para el Seguro de Invalidez, Vejez y Muerte (IVM) [5][6], siempre que sus ingresos superen la Base Mínima Contributiva (BMC) que fija la Junta Directiva de la CCSS [1][5].\n\n**Cómo se calcula la base (el ingreso de referencia)**\n\nLa cotización no se calcula sobre lo que usted factura, sino sobre su ingreso neto: el ingreso bruto (el total que genera su actividad económica) menos los gastos propios, necesarios, razonables y congruentes con esa actividad [3][6]. Los ingresos brutos y netos se fijan con la información y prueba que usted aporte al afiliarse o mientras mantenga la actividad, pero la CCSS puede corroborarlos con otros métodos y fuentes (por ejemplo, declaración de renta, salarios mínimos según ocupación, información sobre sus operaciones) [3].\n\nSi usted apenas inicia actividad y no tiene aún documentos que respalden su ingreso neto, o está en alguno de los supuestos excepcionales que prevé la normativa de inspección, la CCSS le asignará un ingreso por base presunta, definida con la información que usted suministre al afiliarse y con lo que la CCSS obtenga en sus revisiones [3].\n\nUsted mismo puede gestionar el ajuste de ese ingreso cotizable dentro de los primeros 3 días hábiles del mes, de forma presencial en oficinas o centros designados de la CCSS, o mediante los mecanismos electrónicos de autogestión que la institución habilite; debe respaldarlo con documentos y prueba cuando la CCSS lo requiera, y la solicitud debe quedar resuelta en un plazo máximo de diez días hábiles, aplicándose el cambio en la facturación siguiente [8].\n\n**Cuánto paga: escalas de contribución 2026**\n\nLa contribución se calcula aplicando un porcentaje según la categoría de ingreso en que usted se ubique, tanto para Salud como para IVM. Para enero de 2026, las escalas son:\n\nSeguro de Salud (SEM):\n\n| Categoría | Nivel de ingreso | Afiliado | Estado | Conjunto |\n|---|---|---|---|---|\n| 1 | hasta ₡346.789,999 | 2.89% | 9.11% | 12.00% |\n| 2 | ₡346.790,000 a ₡746.185,999 | 4.33% | 7.67% | 12.00% |\n| 3 | ₡746.186,000 a ₡1.492.369,999 | 6.24% | 5.76% | 12.00% |\n| 4 | ₡1.492.370,000 a ₡2.238.554,999 | 8.02% | 3.98% | 12.00% |\n| 5 | ₡2.238.555,000 en adelante | 10.69% | 1.31% | 12.00% |\n\n[2]\n\nSeguro de IVM:\n\n| Categoría | Nivel de ingreso | Afiliado | Estado | Art. 78 | Conjunto |\n|---|---|---|---|---|---|\n| 1 | hasta ₡324.590,999 | 4.16% | 5.45% | 0.30% | 9.91% |\n| 2 | ₡324.591,000 a ₡746.185,999 | 5.65% | 4.26% | — | 9.91% |\n| 3 | ₡746.186,000 a ₡1.492.369,999 | 7.53% | 2.38% | — | 9.91% |\n| 4 | ₡1.492.370,000 a ₡2.238.554,999 | 7.98% | 1.93% | — | 9.91% |\n| 5 | ₡2.238.555,000 en adelante | 8.42% | 1.49% | — | 9.91% |\n\n[2][7]\n\nAdicionalmente, el Estado como tal aporta 0.25% en Salud [4] y 1.75% en IVM [7], contribuciones que no forman parte de la cuota que usted paga.\n\nPara 2026, la Base Mínima Contributiva de IVM es de ₡324.590 y la de Salud (SEM) es de ₡346.789 [7][9][4]; la obligatoriedad de cotizar inicia con la BMC de menor cuantía [4].\n\n**Casos especiales**\n\nSi su ingreso neto mensual no supera la BMC vigente, puede afiliarse de forma voluntaria por única vez y, en ese momento, decidir cotizar solo para Salud, o también para IVM durante los primeros 6 meses; a partir del séptimo mes la cotización a ambos seguros se vuelve obligatoria automáticamente [1]. Si en ese primer período incurre en morosidad de tres meses, quedará excluido del aseguramiento como independiente [1]. Si declara ingresos falsos, procede el cobro de la factura adicional correspondiente en ambos regímenes [1].\n\nTambién debe saber que si usted es asalariado y a la vez trabajador independiente, la condición de asalariado no lo exime de cotizar también como independiente [5], y que los trabajadores independientes de 50 años o más que no completen el número de cuotas establecido no cotizan al Seguro de IVM [6].\n\n**Paso siguiente**\n\nPara afiliarse, ajustar su ingreso reportado o consultar en cuál categoría le corresponde cotizar según su ingreso neto real, debe gestionarlo ante la CCSS, de forma presencial en sus oficinas o centros designados, o mediante las plataformas electrónicas de autogestión que la institución habilite, dentro de los primeros 3 días hábiles del mes si busca un ajuste de ingreso [8]. Para más detalle sobre su situación particular, puede consultar directamente en https://www.ccss.sa.cr."
+    },
+    {
+      "prompt": 6,
+      "arm": "medium",
+      "repeat": 8,
+      "firstReasoning": null,
+      "firstText": 1.04,
+      "total": 16.25,
+      "outputTokens": 1702,
+      "reasoningTokens": 0,
+      "textTokens": 1702,
+      "chars": 3633,
+      "citationsOk": true,
+      "derivedOk": false,
+      "derivedMissing": ["bmc-ivm-2026", "bmc-sem-2026"],
+      "error": null,
+      "text": "Como trabajador independiente en Costa Rica, usted está obligado a cotizar tanto al Seguro de Salud como al Seguro de Invalidez, Vejez y Muerte (IVM) [5][6], calculado sobre sus ingresos [6].\n\n**Cómo se calcula la base (el ingreso de referencia)**\n\nLa cotización se calcula sobre el ingreso neto, es decir, el ingreso bruto de su actividad menos los gastos propios de operación que sean necesarios, razonables y congruentes con el giro del negocio [3][6]. Estos ingresos se determinan con base en la información y prueba que usted mismo aporte al afiliarse o en cualquier momento posterior, aunque la CCSS puede usar otras fuentes (por ejemplo declaración de renta, salarios mínimos según ocupación, información de sus operaciones) para corroborarlos [3]. Si usted está iniciando actividad y no cuenta con documentos que justifiquen su ingreso neto, la CCSS le asignará un ingreso por base presunta, construido con la información que usted suministre al afiliarse y con las revisiones posteriores que haga la institución [3].\n\nSi sus ingresos netos mensuales no superan la Base Mínima Contributiva (BMC), puede afiliarse de forma voluntaria; en ese caso puede optar por cotizar únicamente al Seguro de Salud, o cotizar también a IVM durante los primeros 6 meses. A partir del sétimo mes de afiliación, la cotización a ambos seguros se vuelve obligatoria de forma automática [1]. Por debajo de ese monto mínimo, no se es asegurado obligatorio [5].\n\n**Cuánto se paga: escalas vigentes**\n\nLas cuotas se calculan según una escala por categorías de ingreso, con porcentaje a cargo del afiliado, del Estado y el porcentaje conjunto. Para el Seguro de Salud, la escala vigente en enero de 2026 es:\n\n| Categoría | Nivel de ingreso (colones) | Afiliado | Estado | Conjunto |\n|---|---|---|---|---|\n| 1 | hasta ¢346.789,999 | 2.89% | 9.11% | 12.00% |\n| 2 | ¢346.790,000 a ¢746.185,999 | 4.33% | 7.67% | 12.00% |\n| 3 | ¢746.186,000 a ¢1.492.369,999 | 6.24% | 5.76% | 12.00% |\n| 4 | ¢1.492.370,000 a ¢2.238.554,999 | 8.02% | 3.98% | 12.00% |\n| 5 | ¢2.238.555,000 en adelante | 10.69% | 1.31% | 12.00% |\n\n[2]\n\nPara el Seguro de IVM, la escala vigente desde el 1 de enero de 2026 es:\n\n| Categoría | Nivel de ingreso (colones) | Afiliado | Estado | Art. 78 | Conjunto |\n|---|---|---|---|---|---|\n| 1 | hasta ¢324.590,999 | 4.16% | 5.45% | 0.30% | 9.91% |\n| 2 | ¢324.591,000 a ¢746.185,999 | 5.65% | 4.26% | 0.00% | 9.91% |\n| 3 | ¢746.186,000 a ¢1.492.369,999 | 7.53% | 2.38% | 0.00% | 9.91% |\n| 4 | ¢1.492.370,000 a ¢2.238.554,999 | 7.98% | 1.93% | 0.00% | 9.91% |\n| 5 | ¢2.238.555,000 en adelante | 8.42% | 1.49% | 0.00% | 9.91% |\n\n[2][7]\n\nCon esto, la base mínima contributiva de IVM para 2026 es de ¢324.590 [7][9], y la base mínima contributiva de Salud (SEM) para 2026 es de ¢346.789 [4][9]. Para ubicar su categoría exacta necesita conocer su ingreso neto mensual calculado según lo explicado arriba; los documentos no permiten calcularlo por usted.\n\n**Ajuste del ingreso**\n\nSi su ingreso neto cambia, usted debe gestionar el ajuste del monto sobre el cual se calculan sus contribuciones dentro de los primeros 3 días hábiles del mes, de forma presencial en oficinas o centros designados, o mediante los mecanismos electrónicos de autogestión que la CCSS habilite [8]. La solicitud debe resolverse en un plazo máximo de 10 días hábiles desde el día siguiente a su recepción, y el ajuste se aplica en la facturación siguiente [8]. Usted debe conservar los documentos que sustenten el ajuste y aportarlos si la CCSS los solicita [8]; además, es su obligación comunicar oportunamente cualquier variación en su actividad, ingresos o domicilio [6]."
+    },
+    {
+      "prompt": 6,
+      "arm": "medium",
+      "repeat": 9,
+      "firstReasoning": null,
+      "firstText": 0.92,
+      "total": 20.44,
+      "outputTokens": 1971,
+      "reasoningTokens": 0,
+      "textTokens": 1971,
+      "chars": 4249,
+      "citationsOk": true,
+      "derivedOk": false,
+      "derivedMissing": ["bmc-ivm-2026", "bmc-sem-2026"],
+      "error": null,
+      "text": "Como trabajador independiente, usted está obligado a cotizar tanto al Seguro de Salud como al Seguro de Invalidez, Vejez y Muerte (IVM) [5][6], salvo que sus ingresos netos mensuales estén por debajo de la Base Mínima Contributiva (BMC), caso en el cual la afiliación es voluntaria en ciertas condiciones [1][5].\n\nCálculo de la base (el ingreso de referencia)\n\nLa cuota no se calcula sobre su ingreso bruto, sino sobre el ingreso neto: el ingreso bruto (el total que factura por su actividad) menos los gastos necesarios, razonables y proporcionales al giro de su negocio [3][6]. Si usted apenas inicia actividad y no tiene documentos para sustentar ese ingreso neto, la CCSS puede fijarle un ingreso por base presunta, usando información que usted mismo aporte, su declaración de renta, salarios mínimos según ocupación u otros medios de prueba [3]. Con independencia del método usado, usted debe conservar la documentación de respaldo y presentarla cuando la CCSS lo requiera [3].\n\nUsted puede gestionar un ajuste de ese ingreso cotizable dentro de los primeros 3 días hábiles del mes, de forma presencial en oficinas o centros designados, o mediante las plataformas electrónicas de autogestión que la CCSS habilite [8]. Si la CCSS le pide aclaraciones sobre el ajuste, lo hará por escrito y de forma motivada, dándole 5 días hábiles para responder; en todo caso, la solicitud de ajuste debe quedar resuelta en un plazo máximo de 10 días hábiles desde su recepción, y se aplicará en la facturación siguiente [8].\n\nPorcentajes de cotización (escala vigente 2026)\n\nLa cuota se calcula aplicando un porcentaje sobre ese ingreso neto de referencia, según la categoría en que usted se ubique. Para el Seguro de Salud:\n\n| Categoría | Nivel de ingreso | Afiliado | Estado | Conjunto |\n|---|---|---|---|---|\n| 1 | hasta ¢346.789,999 | 2.89% | 9.11% | 12.00% |\n| 2 | ¢346.790,000 a ¢746.185,999 | 4.33% | 7.67% | 12.00% |\n| 3 | ¢746.186,000 a ¢1.492.369,999 | 6.24% | 5.76% | 12.00% |\n| 4 | ¢1.492.370,000 a ¢2.238.554,999 | 8.02% | 3.98% | 12.00% |\n| 5 | ¢2.238.555,000 en adelante | 10.69% | 1.31% | 12.00% |\n\n[2]\n\nPara el Seguro de IVM:\n\n| Categoría | Nivel de ingreso | Afiliado | Estado | Art. 78 LPT | Conjunto |\n|---|---|---|---|---|---|\n| 1 | hasta ¢324.590,999 | 4.16% | 5.45% | 0.30% | 9.91% |\n| 2 | ¢324.591,000 a ¢746.185,999 | 5.65% | 4.26% | 0.00% | 9.91% |\n| 3 | ¢746.186,000 a ¢1.492.369,999 | 7.53% | 2.38% | 0.00% | 9.91% |\n| 4 | ¢1.492.370,000 a ¢2.238.554,999 | 7.98% | 1.93% | 0.00% | 9.91% |\n| 5 | ¢2.238.555,000 en adelante | 8.42% | 1.49% | 0.00% | 9.91% |\n\n[2][7]\n\nLo que usted realmente paga es únicamente la columna «afiliado»; el resto lo cubre el Estado (y, en la categoría 1 de IVM, un aporte adicional bajo el artículo 78 de la Ley de Protección al Trabajador) [2][7].\n\nSobre la BMC de referencia para 2026: la base mínima contributiva de IVM es de ¢324.590 [7][9], y la de Salud (SEM) es de ¢346.789 [4][9]; la obligatoriedad de cotizar rige a partir de la BMC de menor cuantía [2].\n\nRégimen especial para ingresos bajos\n\nSi sus ingresos netos mensuales no superan la BMC, puede optar voluntariamente, por única vez al afiliarse, por cotizar solo para Salud, o cotizar también para IVM durante los primeros 6 meses de afiliación [1]. A partir del sétimo mes, la cotización a ambos seguros se vuelve obligatoria automáticamente [1]. En ese período inicial, si cae en morosidad por tres meses, queda excluido de la afiliación como trabajador independiente, salvo que califique para la afiliación ordinaria obligatoria [1]. Si se comprueba falsedad sobre los ingresos declarados, procede el cobro adicional correspondiente en ambos regímenes [1].\n\nAdemás, si tiene 50 años o más y no completa el número de cuotas establecidas, no cotiza al Seguro de IVM, según indican las fuentes (esto debe corroborarlo el funcionario que le atienda) [6].\n\nPaso siguiente\n\nPara afiliarse, ajustar su ingreso cotizable o resolver dudas sobre su categoría, el trámite se hace en las oficinas o centros designados de la CCSS, o mediante las plataformas electrónicas de autogestión que la institución habilite, dentro de los primeros 3 días hábiles del mes si busca ajustar el ingreso [8]. Puede obtener más información en https://www.ccss.sa.cr."
+    },
+    {
+      "prompt": 6,
+      "arm": "medium",
+      "repeat": 10,
+      "firstReasoning": null,
+      "firstText": 0.91,
+      "total": 18.74,
+      "outputTokens": 1889,
+      "reasoningTokens": 0,
+      "textTokens": 1889,
+      "chars": 4141,
+      "citationsOk": true,
+      "derivedOk": true,
+      "derivedMissing": [],
+      "error": null,
+      "text": "Como trabajador independiente, usted debe cotizar tanto al Seguro de Salud (SEM) como al Seguro de Invalidez, Vejez y Muerte (IVM), calculando la contribución sobre sus ingresos netos [6][3].\n\n**Cómo se calcula la base (el ingreso de referencia)**\n\nLa base no es el ingreso bruto, sino el ingreso neto: el ingreso bruto derivado de su actividad económica, menos los gastos propios de operación que sean necesarios, razonables y congruentes con el giro del negocio [3][6]. Estos montos se fijan con la información y prueba que usted aporte al afiliarse o en cualquier momento posterior, y la CCSS puede usar otras fuentes (por ejemplo, declaración de renta, salarios mínimos según ocupación, información sobre sus operaciones) para corroborarlos [3]. Si usted apenas inicia actividad y no tiene documentos para sustentar su ingreso neto, o está en algún supuesto excepcional, la CCSS le asignará un ingreso por base presunta con la información disponible [3].\n\nSi sus ingresos netos mensuales no superan la Base Mínima Contributiva (BMC) vigente, puede optar voluntariamente, por única vez al afiliarse, entre cotizar solo para Salud, o cotizar también para IVM durante los primeros 6 meses; a partir del sétimo mes la contribución a ambos seguros se vuelve obligatoria de forma automática [1]. En ese caso especial, las contribuciones se calculan sobre el monto de la BMC, ajustándose si ese valor cambia [1]. Si en ese primer período incurre en morosidad de tres meses, quedará excluido del aseguramiento como independiente, sin que esto le impida asegurarse bajo la condición ordinaria si califica [1].\n\nPuede ajustar el ingreso sobre el que se calculan sus cuotas en los primeros 3 días hábiles del mes, de forma presencial o mediante los mecanismos electrónicos que la CCSS habilite; debe respaldar el ajuste con documentos y aportarlos si la institución lo requiere, y la solicitud debe resolverse en un plazo máximo de 10 días hábiles, aplicándose en la siguiente facturación [8].\n\n**Cuánto se paga: escalas de contribución**\n\nLos porcentajes se aplican por categoría de ingreso. Para el Seguro de Salud, vigente desde enero 2026:\n\n| Categoría | Nivel de ingreso | Afiliado | Estado | Conjunto |\n|---|---|---|---|---|\n| 1 | hasta ₡346.789,999 | 2.89% | 9.11% | 12.00% |\n| 2 | ₡346.790,000 a ₡746.185,999 | 4.33% | 7.67% | 12.00% |\n| 3 | ₡746.186,000 a ₡1.492.369,999 | 6.24% | 5.76% | 12.00% |\n| 4 | ₡1.492.370,000 a ₡2.238.554,999 | 8.02% | 3.98% | 12.00% |\n| 5 | ₡2.238.555,000 en adelante | 10.69% | 1.31% | 12.00% |\n\n[2]\n\nPara el Seguro de IVM, también vigente desde enero 2026:\n\n| Categoría | Nivel de ingreso | Afiliado | Estado | Art. 78 | Conjunto |\n|---|---|---|---|---|---|\n| 1 | hasta ₡324.590,999 | 4.16% | 5.45% | 0.30% | 9.91% |\n| 2 | ₡324.591,000 a ₡746.185,999 | 5.65% | 4.26% | — | 9.91% |\n| 3 | ₡746.186,000 a ₡1.492.369,999 | 7.53% | 2.38% | — | 9.91% |\n| 4 | ₡1.492.370,000 a ₡2.238.554,999 | 7.98% | 1.93% | — | 9.91% |\n| 5 | ₡2.238.555,000 en adelante | 8.42% | 1.49% | — | 9.91% |\n\n[2][7]\n\nLa Base Mínima Contributiva (BMC) de IVM para 2026 es ₡324.590 [7][9], y la BMC de Salud (SEM) para 2026 es ₡346.789 [4][9]. Como la obligatoriedad de cotizar se determina con la BMC de menor cuantía, la de IVM es la que marca el umbral de obligatoriedad [2].\n\n**Cuál categoría le corresponde a usted**\n\nLos documentos no permiten determinar su categoría específica porque esta depende de su ingreso neto mensual real, dato que usted debe reportar y sustentar ante la CCSS [3][6]. Para ubicarse en una de las categorías anteriores, necesita conocer su ingreso neto mensual (ingreso bruto menos gastos necesarios de operación) [3].\n\n**Siguiente paso**\n\nSi aún no está afiliado o necesita ajustar su ingreso reportado, el trámite se hace de forma presencial en las oficinas o centros designados de la CCSS, o mediante los mecanismos electrónicos y de autogestión que la institución habilite, dentro de los primeros 3 días hábiles del mes para que el ajuste aplique en la siguiente facturación [8]. Para más detalle sobre el trámite y los canales disponibles, puede consultar directamente con la CCSS: https://www.ccss.sa.cr."
+    }
+  ]
+}

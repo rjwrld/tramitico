@@ -17,14 +17,18 @@
  * gate — a faster arm still needs an eval arm against the #352 gates.
  *
  *   pnpm answer-latency-probe [out.json] [--arms=default,medium,low,off]
- *     [--prompts=1,6] [--repeat=N]
+ *     [--prompts=1,6] [--repeat=N] [--keep-text]
+ *
+ * `--keep-text` (#403) also writes each draft's text and, per prompt, the
+ * numbered answer set and the resolved derived figures — enough to read which
+ * `[n]` a failing draft put on a figure's clause.
  *
  * Writes to `eval/transcripts/` by default: gitignored and worktree-local, so
  * copy it to the main checkout before removing a worktree.
  *
  * Arms run interleaved per prompt, so provider load drift hits every arm alike.
  */
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 /** `.env.local`, the way `ingest.ts` loads it — never over an exported value. */
 function loadDotEnvLocal(): void {
@@ -105,6 +109,19 @@ interface Row {
   /** What `incompletelyCitedDerivedFigures` named, when `derivedOk` is false. */
   derivedMissing: string[];
   error: string | null;
+  /** The draft itself, under `--keep-text` only. */
+  text?: string;
+}
+
+/** What a draft's markers point at, under `--keep-text` only. */
+interface PromptContext {
+  prompt: number;
+  chunks: { n: number; docKey: string; articulo: string | null }[];
+  derivedFigures: {
+    id: string;
+    formattedValue: string;
+    citationMarkers: number[];
+  }[];
 }
 
 function arg(name: string): string | undefined {
@@ -126,6 +143,8 @@ async function main(): Promise<void> {
   const anthropic = createAnthropic();
   const embedder = createEmbedder();
   const rows: Row[] = [];
+  const keepText = process.argv.includes("--keep-text");
+  const contexts: PromptContext[] = [];
 
   // 1-based seed-prompt numbers, e.g. `--prompts=6`; all nine when absent.
   const only = arg("prompts")?.split(",").map(Number);
@@ -151,6 +170,21 @@ async function main(): Promise<void> {
     );
     const derivedFigures = resolveDerivedFigures(chunks);
     const prompt = buildUserPrompt(question, chunks, { derivedFigures });
+    if (keepText) {
+      contexts.push({
+        prompt: i + 1,
+        chunks: chunks.map((chunk, n) => ({
+          n: n + 1,
+          docKey: chunk.docKey,
+          articulo: chunk.articulo,
+        })),
+        derivedFigures: derivedFigures.map((figure) => ({
+          id: figure.id,
+          formattedValue: figure.formattedValue,
+          citationMarkers: figure.citationMarkers,
+        })),
+      });
+    }
 
     for (let r = 1; r <= repeat; r += 1) {
       for (const arm of arms) {
@@ -197,6 +231,7 @@ async function main(): Promise<void> {
             usage.outputTokenDetails.reasoningTokens ?? null;
           row.textTokens = usage.outputTokenDetails.textTokens ?? null;
           row.chars = text.length;
+          if (keepText) row.text = text;
           row.citationsOk = validateCitations(text, chunks.length).ok;
           row.derivedMissing = incompletelyCitedDerivedFigures(
             text,
@@ -215,9 +250,18 @@ async function main(): Promise<void> {
     }
   }
 
+  mkdirSync(path.dirname(out), { recursive: true });
   writeFileSync(
     out,
-    JSON.stringify({ ranAt: new Date().toISOString(), rows }, null, 1),
+    JSON.stringify(
+      {
+        ranAt: new Date().toISOString(),
+        ...(keepText ? { contexts } : {}),
+        rows,
+      },
+      null,
+      1,
+    ),
   );
   console.log(`\nper arm (median over ${rows.length / arms.length} runs):`);
   const median = (xs: number[]) => {
