@@ -288,11 +288,20 @@ test.describe("history sheet at a phone viewport", () => {
       );
 
       await remove.tap();
+      // The row leaves the list before its DELETE is sent, so a hidden row
+      // proves only the optimistic half; reloading then can abort the request
+      // and bring the row back. Wait for the server's answer first.
+      const deleted = page.waitForResponse(
+        (response) =>
+          response.request().method() === "DELETE" &&
+          response.url().includes("/api/history/"),
+      );
       await sheet(page)
         .getByRole("button", { name: "Eliminar", exact: true })
         .tap();
       await expect(sheet(page).getByText(SEEDED[1].question)).toBeHidden();
       await expect(sheet(page).getByText(SEEDED[0].question)).toBeVisible();
+      expect((await deleted).ok()).toBe(true);
 
       // Gone on the server too, not just optimistically.
       await page.reload();
