@@ -484,6 +484,43 @@ describe("the step catalogue at the rerank (#304)", () => {
     ).toEqual(["c1", "c3"]);
   });
 
+  it("pin1: a chunk two sentences share carries the higher of their scores", async () => {
+    vi.stubEnv("STEPS_RERANK", "pin1");
+    vi.stubEnv("ANSWER_TOP_K", "1");
+    const verdicts: Record<
+      string,
+      { index: number; relevance_score: number }[]
+    > = {
+      pregunta: [{ index: 0, relevance_score: 0.9 }],
+      "paso a": [{ index: 2, relevance_score: 0.5 }],
+      "paso b": [{ index: 2, relevance_score: 0.95 }],
+      "paso c": [{ index: 3, relevance_score: 0.8 }],
+    };
+    const fetchImpl = (async (_url: string, init: RequestInit) => {
+      const { query } = JSON.parse(init.body as string);
+      return new Response(JSON.stringify({ data: verdicts[query] ?? [] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }) as unknown as typeof fetch;
+    const four = [chunk(1), chunk(2), chunk(3), chunk(4)];
+    const outcome = await rerankReadings("pregunta", four, {
+      fetchImpl,
+      steps: ["paso a", "paso b", "paso c"],
+    });
+    // c3 keeps its first sentence's place but paso b's 0.95, so it — not
+    // c4 at 0.8 — is the one append.
+    expect(outcome?.stepPicks.map((r) => [r.chunk.chunkId, r.score])).toEqual([
+      ["c3", 0.95],
+      ["c4", 0.8],
+    ]);
+    expect(
+      answerSetFromOrder(outcome!.order, four, outcome!.stepPicks).map(
+        (c) => c.chunkId,
+      ),
+    ).toEqual(["c1", "c3"]);
+  });
+
   it("pin1: the one pick is the best not already in the cut, by score and not sentence order", () => {
     vi.stubEnv("STEPS_RERANK", "pin1");
     vi.stubEnv("ANSWER_TOP_K", "2");
@@ -508,6 +545,17 @@ describe("the step catalogue at the rerank (#304)", () => {
     expect(
       answerSetFromOrder(order, [], [picks[1]]).map((c) => c.chunkId),
     ).toEqual(["c1", "c2"]);
+    // A tie keeps sentence order.
+    expect(
+      answerSetFromOrder(
+        order,
+        [],
+        [
+          { ...order[3], score: 0.8 },
+          { ...order[2], score: 0.8 },
+        ],
+      ).map((c) => c.chunkId),
+    ).toEqual(["c1", "c2", "c4"]);
     // Under `pin` the same picks all go in, in sentence order.
     vi.stubEnv("STEPS_RERANK", "pin");
     expect(answerSetFromOrder(order, [], picks).map((c) => c.chunkId)).toEqual([

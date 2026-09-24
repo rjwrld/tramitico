@@ -449,7 +449,7 @@ export async function rerankReadings(
 
   const stepPicks: RerankedChunk[] = [];
   if (pinning) {
-    const picked = new Set<number>();
+    const picked = new Map<number, RerankedChunk>();
     for (const reading of stepReadings) {
       // Voyage returns best first, but the pick is by score, not position —
       // the verdict is typed, not trusted (`scorePool`).
@@ -460,15 +460,26 @@ export async function rerankReadings(
         (top, entry) => (top === null || entry.score > top.score ? entry : top),
         null,
       );
-      if (best === null || picked.has(best.index)) continue;
-      picked.add(best.index);
+      if (best === null) continue;
+      // Two sentences agreeing on a chunk pick it once, in the first one's
+      // place and with the higher of their scores — `pin1` ranks the picks
+      // by score, so the first sentence's must not stand in for both (#311).
+      const already = picked.get(best.index);
+      if (already !== undefined) {
+        already.score = Math.max(already.score, best.score);
+        continue;
+      }
       const inOrder = byIndex.get(best.index);
       const chunk = chunks[best.index];
-      if (inOrder !== undefined) {
-        stepPicks.push({ ...inOrder, score: best.score });
-      } else if (chunk !== undefined) {
-        stepPicks.push({ chunk, score: best.score, rank: order.length + 1 });
-      }
+      const pick =
+        inOrder !== undefined
+          ? { ...inOrder, score: best.score }
+          : chunk !== undefined
+            ? { chunk, score: best.score, rank: order.length + 1 }
+            : null;
+      if (pick === null) continue;
+      picked.set(best.index, pick);
+      stepPicks.push(pick);
     }
   }
   return { order, stepPicks };
@@ -511,6 +522,7 @@ export function answerSetFromOrder(
       ? [...fresh].sort((a, b) => b.score - a.score).slice(0, 1)
       : fresh;
   for (const { chunk } of appended) {
+    // A caller's picks may repeat a chunk; it still goes in once.
     if (taken.has(chunk.chunkId)) continue;
     taken.add(chunk.chunkId);
     cut.push(chunk);
