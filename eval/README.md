@@ -2397,3 +2397,15 @@ Not covered: a draft that copies the FAQ's en-US digits for the figure itself
 («¢324,590») is still not read as a quote — none of the thirty did.
 
 Production still has to take #401's ingest; this change should reach it first.
+
+### The FAQ escala in Costa Rican notation (2026-09-24, #407)
+
+After #401's corpus reached production, the live T1-F answer copied the FAQ
+escala as «hasta ₡346.789.999» — 346 million in Costa Rican notation. The
+image prints its colón bounds in US notation («₡346,789.999»), the
+transcription kept them, and the model swapped the thousands comma but kept
+the `.999`. The same shape is the `ho-800-mil-que-porcentaje-caja` error in
+the reading above. The transcription now writes them in Costa Rican notation,
+value for value, and a manifest guard refuses a US-notation amount. Five fresh
+T1-F drafts all copy «hasta ₡346.789,999», none misread. Rows in
+[`eval/runs/2026-09-24-faq-cr-notation/`](runs/2026-09-24-faq-cr-notation/).
