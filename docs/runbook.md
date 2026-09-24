@@ -242,6 +242,23 @@ new fiscal year can serve an answer. The manifest vigencia test turns red on 1 J
 5. Query `documents` for the annual keys and verify their `effective_date` and `fetched_at`; open
    one live answer and one history answer to confirm both sello dates render.
 
+### 2.3 Quarterly re-crawl (owner-run, #405)
+
+`.github/workflows/recrawl.yml` opens «Quarterly recrawl due YYYY-MM-01» on the 25th of
+Dec/Mar/Jun/Sep and comments on it on the 1st if it is still open. The re-crawl itself cannot run
+in Actions: GitHub-hosted runners time out on `www.ccss.sa.cr` and get a 400 from
+`www.hacienda.go.cr`, the hosts behind six documents. From the main checkout, on `main`:
+
+```
+pnpm recrawl              # or: pnpm recrawl <doc_key…>
+```
+
+`scripts/recrawl.sh` checks the routing front doors, runs the manifest vigencia test, ingests into
+production with Voyage embeddings (reading the deploy wizard's env file), and compares
+`eval/corpus-index.json` by content: an unchanged corpus is restored, a changed one is formatted
+for the PR #163 requires. Between November and January, §2.2 comes first. Close the issue with
+one line: what ingested, whether the corpus changed.
+
 ---
 
 ## 3. Alerts to create (#29 provisioning step)

@@ -26,6 +26,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "ingest": "tsx scripts/ingest.ts",
+    "recrawl": "bash scripts/recrawl.sh",
     "check:routing": "tsx scripts/check-routing-urls.ts",
     "pool-dump": "tsx scripts/pool-dump.ts",
     "answer-set-probe": "tsx scripts/answer-set-probe.ts",

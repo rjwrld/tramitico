@@ -1,7 +1,7 @@
 /**
  * Verifies every URL in the routing table still serves its front door (#264,
- * decision record on #254 Q3). Runs as a step of the quarterly re-crawl
- * (`.github/workflows/recrawl.yml`): the table is the one place the honest
+ * decision record on #254 Q3). Runs as the first step of the quarterly
+ * re-crawl (`pnpm recrawl`, owner-run since #405): the table is the one place the honest
  * decline and the prompt take an institution's URL from, and a portal that
  * moved is a link the reader follows to a dead page — an operational failure
  * a human classifies, like a document that stopped ingesting.

@@ -14,10 +14,9 @@ name: Keepalive
 # cannot fix: GitHub disables *every* scheduled workflow in a repo after 60
 # days without a commit, so a quiet repo loses this and recrawl.yml together.
 #
-# The read goes through the service-role key eval.yml and recrawl.yml already
-# hold: the #123 lockdown leaves `anon` and `authenticated` with no privilege
+# The read goes through the service-role key eval.yml already holds: the #123 lockdown leaves `anon` and `authenticated` with no privilege
 # on anything in `public`, so there is no cheaper credential that can read a
-# row. A failed read fails the workflow and files an issue, like recrawl.yml
+# row. A failed read fails the workflow and files an issue
 # — a scheduled workflow's own failure email reaches one inbox and is easy to
 # miss, and a keep-alive that fails quietly is the pause with extra steps.
 on:

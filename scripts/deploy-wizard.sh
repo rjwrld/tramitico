@@ -186,8 +186,9 @@ finish() {
 # file Next.js loads — `.env.prod` is outside its `.env.{development,
 # production}[.local]` set — so `pnpm build`/`pnpm dev` never pick up
 # production keys by accident. Phase 4 (migration + ingest) reads it with
-# `set -a; source .env.prod`. GitHub secrets are set for eval.yml,
-# keepalive.yml and recrawl.yml. The decisions behind every value are in
+# `set -a; source .env.prod`. GitHub secrets are set for eval.yml
+# and keepalive.yml (recrawl.yml only reminds since #405 — the re-crawl is
+# `pnpm recrawl`, owner-run, reading the same file). The decisions behind every value are in
 # issue #29 (comments of 2026-09-12/14/15) and docs/runbook.md §7.
 # ──────────────────────────────────────────────────────────────────────────
 
@@ -239,7 +240,7 @@ SMTP_ADMIN_EMAIL="${SMTP_ADMIN_EMAIL:-no-reply@${MAIL_DOMAIN}}"
 # ── 1 ─────────────────────────────────────────────────────────────────────
 stage_1() {
 stage "Supabase: the production project"
-say "One free project; production, eval.yml, keepalive.yml and recrawl.yml all use it."
+say "One free project; production, eval.yml and keepalive.yml all use it."
 open_url "https://supabase.com/dashboard/new"
 step "Name: tramitico · Region: East US (North Virginia), us-east-1 — same place as Vercel's iad1."
 step "Generate a database password and keep it: the CLI needs it to link."
@@ -430,7 +431,7 @@ pause
 
 # ── 10 ────────────────────────────────────────────────────────────────────
 stage_10() {
-stage "GitHub Actions: secrets and variables for eval.yml / keepalive.yml / recrawl.yml"
+stage "GitHub Actions: secrets and variables for eval.yml / keepalive.yml"
 say "These workflows read production directly (runbook §7). Names must match exactly."
 set_secret SUPABASE_URL "$SUPABASE_URL"
 set_secret SUPABASE_SERVICE_ROLE_KEY "$SUPABASE_SERVICE_ROLE_KEY"
