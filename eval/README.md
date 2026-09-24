@@ -2648,7 +2648,7 @@ What it says:
   have no retrieval or corpus row. The other 21 do. Tier 1 27/27 cannot be
   reached from the answer side.
 
-### Two prompt rules, not yet measured (#352 req. 3 and 4)
+### Three prompt rules, not yet measured (#352 req. 3, 4 and the blocking case)
 
 Both are read from the same run and changed with no paid call. The req. 5
 re-run is what measures them.
@@ -2672,6 +2672,20 @@ re-run is what measures them.
   decreto, and gives the art. 47 example. The citation retry note says the
   same, so the one retry the route allows names the mistake.
 
-`multa-iva-no-declarado`, the one blocking groundedness failure left, is
-waiting on an owner decision (see #352). The dataset and the judge are
-unchanged.
+- **No count of a sanction the documents do not state.**
+  `multa-iva-no-declarado` is the one blocking groundedness failure left.
+  `cnpt` art. 79 gives «una multa equivalente al cincuenta por ciento (50%)
+  del salario base» to whoever omits «las declaraciones», and says nothing
+  about how it is counted. The judge failed «se aplica por cada declaración
+  omitida» 3/3 on the scoped read, and «multa fija … no se calcula por cada
+  mes» 3/3 on the full lane. It rejects a count in either direction. The
+  hedged «en principio … por cada una» passed 3/3 on 2026-09-09/11. The
+  dataset's «Cada declaración omitida…» wording on this case and on
+  `ho-desinscribir-debiendo-declaraciones` is on literal-typed claims, which
+  the judge never reads (`adequacy.ts`), so only «50 %» is scored. The owner
+  ruled for a prompt fix: rule 9's closing clause now says a sanction is
+  stated as the document gives it, never counted «por cada declaración, por
+  cada período o una sola vez» unless the documents say so, and a question
+  spanning several periods is told that the documents do not specify the
+  count and is referred on under rule 6. The dataset and the judge are
+  unchanged.

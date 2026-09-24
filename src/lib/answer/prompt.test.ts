@@ -287,6 +287,30 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     );
   });
 
+  /**
+   * #352, `multa-iva-no-declarado` (blocking): cnpt art. 79 gives «una multa
+   * equivalente al cincuenta por ciento (50%) del salario base» to whoever
+   * omits «las declaraciones», and never says how it is counted. The judge
+   * failed «se aplica por cada declaración omitida» 3/3 on one reading and
+   * «multa fija … no se calcula por cada mes» 3/3 on the next: it rejects a
+   * count in either direction, because the article states none. Rule 9's
+   * subordination clause already names base, canal, plazo and sanción; the
+   * count of a sanction is the one it did not name.
+   */
+  it("keeps out a count of a sanction the documents do not state (#352)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /9\. [^\n]*no diga cuántas veces se aplica una sanción/,
+    );
+    // Both directions the judge failed, by name.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /9\. [^\n]*por cada declaración, por cada período o una sola vez/,
+    );
+    // What to do instead, for a question about several periods.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /9\. [^\n]*diga que los documentos no precisan cómo se cuenta/,
+    );
+  });
+
   it("speaks of documentos oficiales, never of RAG-internal material (#75)", () => {
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/documentos oficiales/i);
     expect(ANSWER_SYSTEM_PROMPT).not.toMatch(/fragmento|chunk/i);
