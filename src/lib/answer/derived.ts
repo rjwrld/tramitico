@@ -11,6 +11,13 @@ export interface DerivedFigureInput {
   /** Display precision when the formula is shown to the model. */
   decimals: number;
   currency?: boolean;
+  /**
+   * The unit the sources count in, when this input is one («SM», the
+   * salario mínimo): the formula then shows the multiple the way the escala
+   * writes it, «0,9295 SM; SM = ¢373.092,30», and not the bare product
+   * «0,9295 × ¢373.092,30» that drops what 0,9295 is a multiple of (#352).
+   */
+  symbol?: string;
   docKey: string;
   articulo: string;
 }
@@ -167,25 +174,47 @@ function displayInput(input: DerivedFigureInput): string {
 
 function displayFormula(figure: DerivedFigure): string {
   const inputs = new Map(figure.inputs.map((input) => [input.name, input]));
-  return tokenize(figure.formula)
-    .filter((token) => token.type !== "end")
-    .map((token) => {
-      if (token.type === "identifier") {
-        const input = inputs.get(token.text);
-        if (!input)
-          throw new Error(`Unknown derived formula input: ${token.text}`);
-        return displayInput(input);
+  const tokens = tokenize(figure.formula).filter(
+    (token) => token.type !== "end",
+  );
+  const symbolled = new Set<DerivedFigureInput>();
+  const parts = tokens.map((token, i) => {
+    if (token.type === "identifier") {
+      const input = inputs.get(token.text);
+      if (!input)
+        throw new Error(`Unknown derived formula input: ${token.text}`);
+      if (input.symbol === undefined) return displayInput(input);
+      symbolled.add(input);
+      return input.symbol;
+    }
+    if (token.type === "operator") {
+      if (token.text === "*") {
+        // «0,9295 SM»: a single operand times a unit is written as the
+        // sources write it. Only where nothing binds tighter to the left —
+        // «2 ÷ 4 SM» would read as 2 ÷ (4 SM).
+        const next = tokens[i + 1];
+        const before = tokens[i - 2];
+        const juxtapose =
+          next?.type === "identifier" &&
+          inputs.get(next.text)?.symbol !== undefined &&
+          tokens[i - 1]?.type !== "operator" &&
+          (before === undefined || ["(", "+", "-"].includes(before.text));
+        return juxtapose ? "" : "×";
       }
-      if (token.type === "operator") {
-        if (token.text === "*") return "×";
-        if (token.text === "/") return "÷";
-        if (token.text === "-") return "−";
-      }
-      return token.text.replace(".", ",");
-    })
+      if (token.text === "/") return "÷";
+      if (token.text === "-") return "−";
+    }
+    return token.text.replace(".", ",");
+  });
+  const expression = parts
+    .filter((part) => part !== "")
     .join(" ")
     .replace(/\( /g, "(")
     .replace(/ \)/g, ")");
+  const definitions = [...symbolled].map(
+    (input) => `${input.symbol} = ${displayInput(input)}`,
+  );
+  return [expression, ...definitions].join("; ");
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -237,6 +266,9 @@ export function parseDerivedFigures(value: unknown): DerivedFigure[] {
           throw new Error(
             "Each derived figure input requires a name, value, docKey and artículo",
           );
+        }
+        if (input.symbol !== undefined && !nonEmptyString(input.symbol)) {
+          throw new Error("A derived figure input symbol must be a word");
         }
       }
       figures.push(candidate as unknown as DerivedFigure);

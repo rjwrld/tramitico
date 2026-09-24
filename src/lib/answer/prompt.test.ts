@@ -129,6 +129,18 @@ describe("formatDerivedFigures", () => {
     expect(block).toContain("los marcadores de todas ellas");
   });
 
+  it("asks for the figure's basis beside it, not the figure alone (#352)", () => {
+    // Three Tier 1 answers printed «¢346.789» and dropped the «0,9295 SM» it
+    // is a multiple of: the block offered the basis and never asked for it.
+    const block = formatDerivedFigures([
+      { ...DERIVED_FIGURE, formattedFormula: "0,87 SM; SM = ¢373.092,30" },
+    ]);
+    expect(block).toContain("¢324.590 (0,87 SM; SM = ¢373.092,30) [1][2]");
+    expect(block).toContain(
+      "dé también la base que aparece entre paréntesis junto a ella",
+    );
+  });
+
   it("states it for any number of figures in one sentence, not two", () => {
     // `formatDerivedFigures` formats however many figures it is handed and
     // `incompletelyCitedDerivedFigures` checks each against the same
