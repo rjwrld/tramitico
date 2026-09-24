@@ -2564,3 +2564,114 @@ What moved, and what did not:
 
 Production takes the corpus change with the owner-run `pnpm recrawl
 ccss-faq`; the invariant change ships with the deploy.
+
+### The 23 Tier 1 misses, classified (2026-09-24, #352 req. 1)
+
+> **Read from the committed rows, no run.** Source:
+> [`groundedness-…-20260924T081540Z.jsonl`](runs/2026-09-24-352/groundedness-claude-sonnet-5-effort-medium-20260924T081540Z.jsonl),
+> the full lane above. Every missing requirement was read against the
+> numbered chunk list its answer was handed, and a chunk outside that list
+> was looked up in the local corpus (which production matches).
+
+Tier 1 was 4/27 on that run. 22 cases failed the adequacy judge or a literal
+check. The 23rd, `ho-minimo-caja-independiente-2026`, passed the judge and
+missed two literals. Together they have 54 missing requirements. A
+requirement that was half carried is split into two rows, so the table
+below has 59. The buckets are #289's, plus one for requirements the answer
+does state:
+
+- **retrieval**: the corpus carries it, but no chunk in the answer set does.
+- **prompt**: a chunk in the answer set carries it, and the answer does not
+  state it.
+- **corpus**: no document carries it, or a document says less than the
+  requirement asks for.
+- **judge/literal**: the answer states it. Either the judge missed it, or
+  the literal check does not accept the spelling the answer used.
+
+| Case                                       | Missing | retrieval | prompt | corpus | judge/literal | What carries it (or why nothing does)                                                                                                                                                                                                                    |
+| ------------------------------------------ | ------: | --------: | -----: | -----: | ------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A `ho-hacienda-solo-cliente-eeuu`          |       2 |         2 |        |        |               | `tribu-cr-faq` Declaraciones del RUT · 2 (OVi, TRIBU-CR) · `cnpt` 78 (50 % per month)                                                                                                                                                                    |
+| A `ho-trabajitos-por-mi-cuenta`            |       1 |         1 |        |        |               | Hacienda half: `tribu-cr-faq` RUT · 2. The CCSS half is stated                                                                                                                                                                                           |
+| A `ho-donde-inscribo-ya-no-atv`            |       2 |         2 |        |        |               | `tribu-cr-faq` OVI · 1 (username = cédula/DIMEX/NITE) · RUT · 10/13/14 (the data the declaration asks for). The path is stated                                                                                                                           |
+| B `ccss-obligacion-ingreso-bajo`           |       3 |         1 |      2 |        |               | prompt: `ccss-escala-salud` at [5], the note «la primera categoría es exclusivamente para…» and «0.9295 SM». retrieval: `ccss-faq` «¿Dónde me corresponde realizar el trámite de afiliación?»                                                            |
+| B `ho-desde-cuanta-plata-caja`             |       3 |         1 |        |        |             2 | literal: the answer writes «0,9295 × ¢373.092,30» and «0,87 × …» (the derived figure's formula), and the check wants «0,9295 SM». retrieval: `ccss-reglamento-ti` 7/10 · `ccss-faq` «¿Dónde puedo pagar mi seguro?»                                      |
+| B `ho-donde-me-afilio-caja`                |       1 |         1 |        |        |               | `ccss-faq` «¿Cuándo me corresponde pagar…?» (day by first surname)                                                                                                                                                                                       |
+| C `ho-tiquete-en-vez-de-factura`           |       3 |         1 |      2 |        |               | prompt: `reglamento-comprobantes` 9 at [4], cited and the list not given; the «autorizado» status from [3]/[4]. retrieval: `reglamento-comprobantes` 4 (RUT + valid email)                                                                               |
+| C `ho-factura-electronica-o-recibo`        |       2 |         2 |        |        |               | `reglamento-comprobantes` 16 (facturador gratuito) · 22 (cinco años). The provider half is stated                                                                                                                                                        |
+| C `ho-cabys-paginas-web`                   |       1 |           |        |      1 |               | The BCCR catalogue URL is only in the manifest's `source.catalog` metadata, never in chunk text                                                                                                                                                          |
+| D `ho-cliente-espana-lleva-iva`            |       5 |         4 |      1 |      1 |               | prompt: `ley-iva` 3 at [2] (hecho generador, «el acto que se realice primero»). retrieval: `ley-iva` 8, `reglamento-iva` 11, `reglamento-comprobantes` 2 inc. 14, `ley-iva` 10 (13 %). corpus: proof of consumption abroad                               |
+| D `ho-iva-en-cero-sin-facturar`            |       2 |         2 |        |        |               | `tribu-cr-res-0011-2025` 2 (TRIBU-CR) + `cnpt` 79/88 · `cnpt` 79 (50 %)                                                                                                                                                                                  |
+| E `ho-rebajar-25-sin-facturas`             |       2 |         1 |      1 |      1 |               | prompt: `ley-renta` 8 s) at [2] carries «Ley N° 10818 del 13 de noviembre de 2025». retrieval: the channel (`tribu-cr-res-0011-2025` 2). corpus: where in the return the option is chosen                                                                |
+| E `ho-minimo-renta-2026`                   |       2 |         1 |        |      1 |               | retrieval: `ley-renta` 4 (1 Jan–31 Dec). corpus: where the tramos are published. The URL is only in the manifest                                                                                                                                         |
+| E `ho-ademas-tengo-salario`                |       5 |         4 |      1 |        |               | prompt, borderline as in #289: both escalas at [1]/[3], «escalas distintas» never said. retrieval: `ley-renta` 22 (×2), 24 · `reglamento-renta` 26/28/30                                                                                                 |
+| F `ho-800-mil-que-porcentaje-caja`         |       1 |         1 |        |        |               | `ccss-faq` «¿Cómo procedo si mis ingresos han variado?»                                                                                                                                                                                                  |
+| F `ho-minimo-caja-independiente-2026`      |       2 |           |      2 |        |               | `salarios-minimos` 1 at [7] (¢373.092,30) · escalas at [3]/[5] (0.9295 SM, 0.87 SM). The answer gives only the derived ¢346.789/¢324.590                                                                                                                 |
+| F `ho-tambien-asegurado-por-patrono`       |       1 |           |      1 |        |               | `ccss-reglamento-ti` 1 at [4] (the salary side) beside art. 10 at [7]. The answer puts all ¢800.000 on the TI escala                                                                                                                                     |
+| G `ccss-pedir-prescripcion-cuotas`         |       3 |         3 |        |        |             1 | `ccss-prescripcion` Guía «¿Cómo se solicita…?» / «¿Dónde presento…?» (the channel per phase, cobros@ccss.sa.cr). The recrawled `ccss-faq` Ley 10.363 entry on where to file was not in the set. judge: the step's plazo half is stated (20 días hábiles) |
+| H `desinscripcion-dejar-actividad`         |       2 |         2 |        |        |               | `ley-iva` 27 (the duty lasts until desinscripción) + `cnpt` 79 · `reglamento-iva` 67 (existencias)                                                                                                                                                       |
+| H `ho-desinscribir-debiendo-declaraciones` |       4 |         2 |        |      2 |               | retrieval: `ley-iva` 27 · `cnpt` 79. corpus: no document says that desinscripción leaves accrued obligations in place, or that pending declarations are filed first                                                                                      |
+| I `multa-iva-no-declarado`                 |       3 |         3 |        |        |             1 | `cnpt` 57 (interest) · 88 · `salario-base-2026`. judge: the 80 bis half of the first claim is stated                                                                                                                                                     |
+| I `inscripcion-tardia-sancion`             |       3 |         3 |        |        |               | `cnpt` 88 (×2, the second with `tribu-cr-faq` RUT · 2) · `salario-base-2026`                                                                                                                                                                             |
+| I `ho-rebajar-multa-si-pago-ya`            |       1 |         1 |        |        |             1 | The substance is stated. The channel is not: TRIBU-CR (`tribu-cr-res-0011-2025` 2) against the answer's «portal de Hacienda»                                                                                                                             |
+| **Total**                                  |  **54** |    **38** | **10** |  **6** |         **5** | 59 rows                                                                                                                                                                                                                                                  |
+
+What it says:
+
+- **Retrieval is most of it: 38 of 59 rows.** In 13 cases retrieval is the
+  only cause, not counting the judge/literal halves. The same documents keep
+  going missing: `cnpt` 79 or 88 in five cases, the TRIBU-CR channel
+  (`tribu-cr-faq` RUT · 2, `tribu-cr-res-0011-2025` 2) in six, a `ccss-faq`
+  entry on affiliation, payment or changing the declared income in four, and
+  `salario-base-2026` in both T1-I cases that ask for it. Almost every
+  carrying chunk is in the case's own `expected` list, or is the article one
+  of those points to. That is #287's territory and the step catalogue's, not
+  the prompt's.
+- **The prompt misses 10 rows over 7 cases. Three are one shape: a derived
+  figure quoted without what it was derived from.** The derived-figure block
+  gives the model «¢346.789 (0,9295 × ¢373.092,30)». The answers quote the
+  colones and drop «0,9295 SM», «0,87 SM» and the ¢373.092,30 salario mínimo
+  (`ho-minimo-caja-independiente-2026` ×2, `ccss-obligacion-ingreso-bajo`).
+  `ho-desde-cuanta-plata-caja`'s two literal rows are the same shape from the
+  other side: the answer copies the formula's spelling, «0,9295 × …», which
+  the literal check does not accept. The other seven are rule 9's shape
+  again: a cited list not given (art. 9) and a status it implies, a delimiting
+  clause not stated (categoría 1's exclusivity, hecho generador, two escalas,
+  the salary side), and the Ley 10818 note.
+- **Six rows the corpus cannot satisfy as written.** The CABYS and tramos
+  «where to look it up» steps point at URLs that exist only in manifest
+  metadata. `ho-desinscribir-debiendo-declaraciones` asserts two things no
+  document says: that desinscripción leaves accrued obligations in place, and
+  that pending declarations are filed first. The T1-D and T1-E steps ask for
+  proof of consumption abroad and for form mechanics that the corpus does not
+  describe. Each needs a dataset ruling or a new source; the prompt cannot fix
+  them. The dataset is unchanged here.
+- **A perfect prompt would lift two cases.** Only
+  `ho-minimo-caja-independiente-2026` and `ho-tambien-asegurado-por-patrono`
+  have no retrieval or corpus row. The other 21 do. Tier 1 27/27 cannot be
+  reached from the answer side.
+
+### Two prompt rules, not yet measured (#352 req. 3 and 4)
+
+Both are read from the same run and changed with no paid call. The req. 5
+re-run is what measures them.
+
+- **No arithmetic on the asker's data.** `ho-abs-calculo-personalizado`
+  declined the liquidación and gave the escala with its citation. Then it
+  wrote «con dos hijos … ¢41.040,00 en total»: the cited ¢20.520,00 per
+  hijo, times the asker's own count. No document carries ¢41.040,00, so the
+  figure gate counts it as invented. Rule 3 now says a document's figure is
+  not applied to the person's data (multiplied by their hijos, added to their
+  income, taken off their tax). The figure is given as the documents give it.
+  Rule 6c now says a liquidación personalizada is declined even when the
+  documents carry every tarifa, tramo and monto in it, «ni siquiera en
+  parte».
+- **The marker is the document's number, never an artículo's.**
+  `ho-cliente-espana-lleva-iva` wrote «[6][47]». `reglamento-iva` art. 47
+  was at [5] in its 8-chunk set. Rule 2 now says the bracket number is the
+  document's position in the list, never the number of an artículo, ley or
+  decreto, and gives the art. 47 example. The citation retry note says the
+  same, so the one retry the route allows names the mistake.
+
+`multa-iva-no-declarado`, the one blocking groundedness failure left, is
+waiting on an owner decision (see #352). The dataset and the judge are
+unchanged.
