@@ -2382,9 +2382,16 @@ tables as text). `--keep-text` showed what the refused drafts wrote:
 - **The three that passed wrote ₡**, which the check did not read at all.
 
 Fix: a quote is the figure as a whole number (ADR 0018, «What counts as a
-quote»), and ₡ reads as ¢. Replayed, the ten refused-side drafts pass 10/10;
-ten fresh drafts pass 10/10, six of them written with ₡ and so checked for the
-first time. #403's bar was ≥ 9/10. F1 on the next full run is the other half
-of it.
+quote»), and ₡ reads as ¢; F1's «both BMC figures quoted» assertion reads a
+quote the same way (`quotesDerivedFigure`). Replayed, the ten refused-side
+drafts — both figures resolved — pass 10/10. Ten fresh drafts pass 10/10, but
+read only half of it: that retrieval left `ccss-escala-ivm` outside the top 8
+(the reranker question #287 owns), so only `bmc-sem-2026` resolved, quoted
+completely cited on all ten («¢346.789 [6][9]», one of them with ₡). #403's
+bar was ≥ 9/10; the IVM half of it rests on the replay. F1 on the next full
+run is the other half.
+
+Not covered: a draft that copies the FAQ's en-US digits for the figure itself
+(«¢324,590») is still not read as a quote — none of the twenty did.
 
 Production still has to take #401's ingest; this change should reach it first.

@@ -115,11 +115,13 @@ interface Row {
 
 /** What a draft's markers point at, under `--keep-text` only. */
 interface PromptContext {
-  prompt: number;
-  chunks: { n: number; docKey: string; articulo: string | null }[];
+  /** 1-based seed-prompt number, as `Row.prompt`. */
+  seed: number;
+  chunks: { marker: number; docKey: string; articulo: string | null }[];
   derivedFigures: {
     id: string;
     formattedValue: string;
+    decimals: number;
     citationMarkers: number[];
   }[];
 }
@@ -172,15 +174,16 @@ async function main(): Promise<void> {
     const prompt = buildUserPrompt(question, chunks, { derivedFigures });
     if (keepText) {
       contexts.push({
-        prompt: i + 1,
-        chunks: chunks.map((chunk, n) => ({
-          n: n + 1,
+        seed: i + 1,
+        chunks: chunks.map((chunk, index) => ({
+          marker: index + 1,
           docKey: chunk.docKey,
           articulo: chunk.articulo,
         })),
         derivedFigures: derivedFigures.map((figure) => ({
           id: figure.id,
           formattedValue: figure.formattedValue,
+          decimals: figure.decimals,
           citationMarkers: figure.citationMarkers,
         })),
       });

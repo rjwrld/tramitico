@@ -8,6 +8,7 @@ import {
   parseDerivedFigures,
   pinDerivedFigureInputs,
   pinEnabled,
+  quotesDerivedFigure,
   resolveDerivedFigures,
   type DerivedFigure,
   type ResolvedDerivedFigure,
@@ -236,6 +237,27 @@ describe("incompletelyCitedDerivedFigures", () => {
     ).toEqual([]);
   });
 
+  it("still checks a real quote beside a skipped table row", () => {
+    expect(
+      incompletelyCitedDerivedFigures(
+        "| 1 | hasta ¢324.590,999 | 4.16% |\n\n[3]\n\nLa base es ¢324.590 [1].",
+        resolved,
+      ),
+    ).toEqual(["bmc-ivm-2026"]);
+  });
+
+  it("reads a figure with decimals only to its last decimal", () => {
+    const withDecimals: ResolvedDerivedFigure[] = [
+      { ...resolved[0], formattedValue: "¢373.092,30", decimals: 2 },
+    ];
+    expect(
+      incompletelyCitedDerivedFigures("Son ¢373.092,305 [1].", withDecimals),
+    ).toEqual([]);
+    expect(
+      incompletelyCitedDerivedFigures("Son ¢373.092,30 [1].", withDecimals),
+    ).toEqual(["bmc-ivm-2026"]);
+  });
+
   it("still checks the quote at the end of a sentence", () => {
     expect(
       incompletelyCitedDerivedFigures(
@@ -254,7 +276,7 @@ describe("incompletelyCitedDerivedFigures", () => {
     ).toEqual([]);
   });
 
-  it("checks every occurrence in one paragraph independently", () => {
+  it("checks every occurrence independently", () => {
     expect(
       incompletelyCitedDerivedFigures(
         "La base es ¢324.590 [1][2]. Repetimos: ¢324.590 [1].",
@@ -409,5 +431,22 @@ describe("pinDerivedFigureInputs", () => {
     expect(
       pinDerivedFigureInputs([escala], [escala, salarios], [BMC_IVM]),
     ).toEqual([escala]);
+  });
+});
+
+describe("quotesDerivedFigure", () => {
+  const figure = { formattedValue: "¢324.590", decimals: 0 };
+
+  it("reads the figure the way the citation check does (#403)", () => {
+    expect(quotesDerivedFigure("La base es ₡324.590 [1][2].", figure)).toBe(
+      true,
+    );
+    expect(quotesDerivedFigure("La base es ¢324.590,00.", figure)).toBe(true);
+    expect(quotesDerivedFigure("| 1 | hasta ¢324.590,999 |", figure)).toBe(
+      false,
+    );
+    expect(quotesDerivedFigure("La escala tiene tramos [1].", figure)).toBe(
+      false,
+    );
   });
 });

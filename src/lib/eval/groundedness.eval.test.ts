@@ -34,6 +34,7 @@ import { condenseQuestion } from "../answer/condense";
 import {
   incompletelyCitedDerivedFigures,
   pinDerivedFigureInputs,
+  quotesDerivedFigure,
   resolveDerivedFigures,
   type ResolvedDerivedFigure,
 } from "../answer/derived";
@@ -499,7 +500,12 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
         figure,
         `${id} was not resolved from the answer chunks`,
       ).toBeDefined();
-      expect(result!.answer).toContain(figure!.formattedValue);
+      // The runtime check's reading of a quote (#403): ₡ counts, and a longer
+      // number that starts with the figure does not.
+      expect(
+        quotesDerivedFigure(result!.answer, figure!),
+        `${id} (${figure!.formattedValue}) is not quoted`,
+      ).toBe(true);
       expect(
         incompletelyCitedDerivedFigures(result!.answer, [figure!]),
       ).toEqual([]);

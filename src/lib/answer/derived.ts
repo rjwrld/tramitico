@@ -300,24 +300,49 @@ const LONGER_NUMBER = /^(?:\d|[.,]\d)/;
 const ZERO_DECIMALS = /^,0+(?!\d)/;
 
 /**
+ * Where each quote of a figure ends in `answer`, as a whole number (#403):
+ * «hasta ¢324.590,999» is the escala's categoría 1 ceiling, which a T1-F
+ * draft copies from `ccss-faq`'s transcribed table under that table's own
+ * marker, not the BMC figure — read as a prefix match it failed seven of ten
+ * correctly cited drafts. The colón sign is read either way, ₡ or ¢: a draft
+ * that wrote ₡ escaped the check altogether.
+ */
+function* quoteEnds(
+  answer: string,
+  figure: Pick<ResolvedDerivedFigure, "formattedValue" | "decimals">,
+): Generator<number> {
+  // ₡ and ¢ are one UTF-16 unit each, so indices hold in the original too.
+  const text = answer.replaceAll("₡", "¢");
+  let searchFrom = 0;
+  for (;;) {
+    const occurrence = text.indexOf(figure.formattedValue, searchFrom);
+    if (occurrence < 0) return;
+    searchFrom = occurrence + figure.formattedValue.length;
+    const rest = text.slice(searchFrom);
+    const zeroDecimals = figure.decimals === 0 && ZERO_DECIMALS.test(rest);
+    if (!LONGER_NUMBER.test(rest) || zeroDecimals) yield searchFrom;
+  }
+}
+
+/** Whether `answer` quotes the figure, read the way the citation check reads it. */
+export function quotesDerivedFigure(
+  answer: string,
+  figure: Pick<ResolvedDerivedFigure, "formattedValue" | "decimals">,
+): boolean {
+  return !quoteEnds(answer, figure).next().done;
+}
+
+/**
  * Return quoted figures whose own sentence — from the figure to the next
- * sentence end or line break — does not carry every input marker.
+ * sentence end or line break — does not carry every input marker. What
+ * counts as a quote is `quoteEnds`'s reading.
  * A figure the model does not use creates no obligation; ordinary citation
  * validation still requires the rest of the answer to be cited.
- *
- * A quote is the figure as a whole number (#403): «hasta ¢324.590,999» is the
- * escala's categoría 1 ceiling, which a T1-F draft copies from `ccss-faq`'s
- * transcribed table under that table's own marker, not the BMC figure — read
- * as a prefix match it failed seven of ten correctly cited drafts. The colón
- * sign is read either way, ₡ or ¢: a draft that wrote ₡ escaped the check
- * altogether.
  */
 export function incompletelyCitedDerivedFigures(
-  draft: string,
+  answer: string,
   figures: readonly ResolvedDerivedFigure[],
 ): string[] {
-  // Same length either way, so every index below holds in both.
-  const answer = draft.replaceAll("₡", "¢");
   const byValue = new Map<string, ResolvedDerivedFigure[]>();
   for (const figure of figures) {
     const group = byValue.get(figure.formattedValue) ?? [];
@@ -326,20 +351,9 @@ export function incompletelyCitedDerivedFigures(
   }
 
   const incomplete = new Set<string>();
-  for (const [formattedValue, group] of byValue) {
-    let searchFrom = 0;
-    for (;;) {
-      const occurrence = answer.indexOf(formattedValue, searchFrom);
-      if (occurrence < 0) break;
-      const afterValue = occurrence + formattedValue.length;
+  for (const group of byValue.values()) {
+    for (const afterValue of quoteEnds(answer, group[0])) {
       const remainder = answer.slice(afterValue);
-      searchFrom = afterValue;
-      if (
-        LONGER_NUMBER.test(remainder) &&
-        (formattedValue.includes(",") || !ZERO_DECIMALS.test(remainder))
-      ) {
-        continue;
-      }
       const boundary = remainder.search(/[.!?](?=\s|$)|\n/);
       const claim = boundary < 0 ? remainder : remainder.slice(0, boundary);
       const markers = new Set(citationMarkers(claim));

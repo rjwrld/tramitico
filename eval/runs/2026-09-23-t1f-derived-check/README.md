@@ -10,4 +10,7 @@ on, top 8. No judge.
 | File                                                 | What it is                                                                                                                                                                                                       |
 | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `answer-latency-probe-2026-09-23-t1f-keep-text.json` | `pnpm answer-latency-probe --prompts=6 --arms=medium --repeat=10 --keep-text` before the fix: the numbered answer set, the resolved figures, and ten drafts — 7/10 refused by `incompletelyCitedDerivedFigures`. |
-| `answer-latency-probe-2026-09-23-t1f-fixed.json`     | The same command after the fix, fresh drafts: 10/10 pass both of the route's checks.                                                                                                                             |
+| `answer-latency-probe-2026-09-23-t1f-fixed.json`     | The same command after the fix, fresh drafts: 10/10 pass both of the route's checks — on `bmc-sem-2026` only, the one figure this retrieval resolved (`ccss-escala-ivm` fell outside the top 8).                 |
+
+Both files' `contexts` use the probe's field names at the time, `prompt` and
+`n`; the probe now writes `seed` and `marker`.
