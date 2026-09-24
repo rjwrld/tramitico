@@ -1,0 +1,28 @@
+
+ RUN  v4.1.11 <worktree>
+
+ ❯ |eval| src/lib/eval/groundedness.eval.test.ts (7 tests | 7 skipped) 1440756ms
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl)
+AI_APICallError: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.
+ ❯ node_modules/.pnpm/@ai-sdk+provider-utils@5.0.45_zod@4.6.5/node_modules/@ai-sdk/provider-utils/src/response-handler.ts:144:15
+ ❯ postToApi node_modules/.pnpm/@ai-sdk+provider-utils@5.0.45_zod@4.6.5/node_modules/@ai-sdk/provider-utils/src/post-to-api.ts:118:27
+ ❯ postJsonToApi node_modules/.pnpm/@ai-sdk+provider-utils@5.0.45_zod@4.6.5/node_modules/@ai-sdk/provider-utils/src/post-to-api.ts:31:2
+ ❯ _AnthropicLanguageModel.doGenerate node_modules/.pnpm/@ai-sdk+anthropic@4.0.58_zod@4.6.5/node_modules/@ai-sdk/anthropic/src/anthropic-language-model.ts:1058:8
+ ❯ execute node_modules/.pnpm/ai@7.0.107_zod@4.6.5/node_modules/ai/src/generate-text/generate-text.ts:1044:22
+ ❯ runWithTracingChannelSpan node_modules/.pnpm/ai@7.0.107_zod@4.6.5/node_modules/ai/src/telemetry/tracing-channel-publisher.ts:76:11
+ ❯ executeLanguageModelCall node_modules/.pnpm/ai@7.0.107_zod@4.6.5/node_modules/ai/src/telemetry/create-telemetry-dispatcher.ts:184:13
+ ❯ node_modules/.pnpm/ai@7.0.107_zod@4.6.5/node_modules/ai/src/generate-text/generate-text.ts:1040:31
+ ❯ retryWithExponentialBackoffInternal node_modules/.pnpm/@ai-sdk+provider-utils@5.0.45_zod@4.6.5/node_modules/@ai-sdk/provider-utils/src/retry-with-exponential-backoff.ts:87:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 skipped (7)
+   Start at  00:11:03
+   Duration  1441.18s (transform 103ms, setup 0ms, import 229ms, tests 1440.76s, environment 0ms)
+
+exit 1

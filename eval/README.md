@@ -1505,8 +1505,9 @@ shipped in size and shape. Confirmed on its own full run: groundedness 71/73
 and hit-rate 71/73 with every gate the baseline holds, adequacy 16/40 and
 Tier 1 5/27 against the baseline's 15/40 and 3/27 — the two G cases whose
 step chunk (the 20 días hábiles) the reranker now reaches from the pool. A
-step in the prompt at the price of the release gate does not ship. The follow-up is to measure pinning **one** chunk per ask
-rather than one per sentence, with these transcripts as the baseline.
+step in the prompt at the price of the release gate does not ship. The follow-up measured pinning **one** chunk per ask
+rather than one per sentence (#311, «One step pick, not one per sentence»
+below).
 
 The `STEPS_RERANK=max` reading is also why the classifier is conservative:
 every ask that classifies pays one rerank call per sentence and up to three
@@ -2409,3 +2410,79 @@ the reading above. The transcription now writes them in Costa Rican notation,
 value for value, and a manifest guard refuses a US-notation amount. Five fresh
 T1-F drafts all copy «hasta ₡346.789,999», none misread. Rows in
 [`eval/runs/2026-09-24-faq-cr-notation/`](runs/2026-09-24-faq-cr-notation/).
+
+## One step pick, not one per sentence (2026-09-24, #311)
+
+> **Measured 2026-09-24 on the local stack carrying #408's corpus, answer
+> `claude-sonnet-5` at `ANSWER_EFFORT=medium`, judge `claude-sonnet-4-5`, two
+> arms the same night.** Rows in
+> [`eval/runs/2026-09-24-pin1/`](runs/2026-09-24-pin1/).
+
+#304's `STEPS_RERANK=pin` bought three adequacy cases and lost the
+groundedness gate with them: ten or eleven overlapping fragments, and the
+answer mis-citing them. #311 measures the smallest version of the same move.
+`STEPS_RERANK=pin1` makes `pin`'s picks and appends only **one**: the
+highest-scoring pick the cut did not already take, so the prompt grows by one
+fragment. #304's transcripts are gone, and the pipeline has moved since
+(#401/#408 corpus, #403, `ANSWER_EFFORT=medium`), so the shipped default was
+re-run beside it instead of read off #304's table.
+
+| Gate                             | #304 `off` | #304 `pin` | `off`, today | `pin1`, today | Gate          |
+| -------------------------------- | ---------- | ---------- | ------------ | ------------- | ------------- |
+| Hit-rate                         | 71/73      | 71/73      | 71/73        | 71/73         | ≥ 0.92, pass  |
+| Groundedness                     | 71/73      | 67/73      | **64/73**    | **67/73**     | ≥ 0.94, fails |
+| Adequacy, cases with claims      | 16/40      | 18/40      | 16/40        | **18/40**     | —             |
+| Tier 1 adequate                  | 5/27       | 5/27       | 5/27         | **7/27**      | 27/27, fails  |
+| Tier 2 adequate                  | pass       | pass       | 11/13        | 11/13         | ≥ 0.8, pass   |
+| Abstention                       | —          | 3/7        | 9/9          | 8/9           | ≥ 0.9         |
+| Derived figures completely cited | —          | —          | red          | **green**     | none uncited  |
+
+`pin1` appended a chunk on 60 of the 73 asks (61 classified to a family; on
+one, every pick was already in the cut). The per-case read:
+
+- **Gained where the append carries the missing requirement.**
+  `multa-iva-no-declarado` goes grounded and adequate with `cnpt` 88 appended.
+  It was one of `pin`'s four groundedness failures in #304.
+  `inscripcion-tardia-sancion` goes adequate on the same chunk (the art. 88
+  rebaja). `ccss-reglamento-ti` 12 appended takes
+  `ho-800-mil-que-porcentaje-caja` to grounded and adequate, and
+  `ho-minimo-caja-independiente-2026` and `ho-tambien-asegurado-por-patrono`
+  to adequate.
+- **Lost, and not on the appended fragment.** Four answers are newly
+  ungrounded (`factura-primera-cabys`, `ho-desinscribir-debiendo-declaraciones`,
+  `ho-t2-hosting-extranjero`, `ho-t2-salir-del-pais-seguro`). None of the
+  judges' reasons cites [9], the appended fragment. The one that could be
+  pin-shaped is `ho-desinscribir-debiendo-declaraciones`: an over-reading
+  («sí puede desinscribirse aunque tenga declaraciones pendientes») beside the
+  appended `cnpt` 79. `ho-tambien-asegurado-por-patrono` fails in both arms;
+  under `pin1` it mis-cites [10], which is `salarios-minimos`, the
+  derived-input pin, not `pin1`'s.
+- **Noise.** The two arms' answer sets differ on 67 of 73 cases, not only by
+  the append: the expansion rewrite is a model call and moves the pool from
+  run to run, and adequacy moves ±4 on an identical pipeline. A +3/+2 at the
+  gate is inside that. The per-case read is what says the mechanism holds:
+  `pin`'s failures were the answer mis-indexing the extra fragments, and
+  here no new failure cites the one extra fragment.
+- The abstention case that flipped (`ho-abs-me-conviene-sociedad`) classifies
+  to no family, so `pin1` did not change what it was handed.
+
+**Decision: the default stays `off`.** #311's rule was to ship only if
+groundedness stays ≥ 0.94 _and_ adequacy beats 16/40. Adequacy does (18/40);
+groundedness does not (67/73 = 0.918). What the run adds is that the shipped
+default is itself at **64/73**, down from 71/73 at #304, and neither arm
+controls that: `ccss-ventana-prescripcion-24-meses` infers today's date,
+`iva-servicios-extranjero-comprados` cites a «[49]» that is an artículo
+number, the escala answers copy category bounds. That regression belongs to
+#352's red gates and comes first. `pin1` stays measurable
+(`STEPS_RERANK=pin1`) as the first thing to re-read once the baseline is back
+over 0.94. On this run it beat `off` on every gate it moved.
+
+**The harness.** `pin1`'s first groundedness lane died 26 minutes in. A judge
+wrote a complete verdict followed by text carrying a brace, and
+`parseJudgeVerdict`'s greedy first-`{`-to-last-`}` match spanned both.
+`JSON.parse` threw inside `beforeAll` and took the whole lane with it.
+`adequacy.ts` had already fixed that shape with `firstJsonObject`; the
+groundedness and abstention parsers now use it too. The re-run's first attempt
+then ran the Anthropic balance dry. **Cost:** ≈US$6 for the `off` arm, ≈US$5
+for the lane that crashed, ≈US$4–5 for the attempt the balance ended, ≈US$5
+for the lane that counted, and cents for a three-case smoke read in between.

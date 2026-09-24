@@ -1,0 +1,222 @@
+
+ RUN  v4.1.11 <worktree>
+
+ask: expansion failed — reason=timeout error=DOMException.TimeoutError#23
+
+transcript (#289): eval/transcripts/311-pin1/groundedness-claude-sonnet-5-effort-medium-20260924T071937Z.jsonl
+
+groundedness (answer=claude-sonnet-5-effort-medium, judge=claude-sonnet-4-5): 67/73
+  pass  inscripcion-hacienda-clientes-extranjero
+  pass  iva-clientes-fuera-cr
+  pass  cabys-desarrollo-software
+  pass  ccss-cuanto-pago-base
+  pass  ccss-cobro-retroactivo
+  pass  ccss-pedir-prescripcion-cuotas
+  pass  ccss-ventana-prescripcion-24-meses
+  pass  ccss-obligacion-ingreso-bajo
+  pass  ccss-asalariado-y-freelance
+  pass  ccss-cese-actividad
+  pass  ccss-arreglo-pago
+  pass  ccss-suspension-seguro-ti
+  pass  factura-electronica-v44
+  pass  desinscripcion-dejar-actividad
+  pass  renta-persona-fisica-deduccion
+  pass  regimen-simplificado-programador
+  pass  tribu-cr-declarar-pagar
+  pass  iva-servicios-extranjero-comprados
+  pass  iva-credito-fiscal-compras
+  pass  iva-declaracion-mensual
+  pass  iva-tarifa-general
+  pass  iva-tarifas-reducidas
+  pass  iva-momento-hecho-generador
+  pass  renta-bruta-que-incluye
+  pass  renta-tramos-2026
+  pass  renta-declaracion-plazo
+  pass  renta-pagos-parciales-retenciones
+  pass  renta-salario-y-actividad
+  pass  comprobantes-plazo-conservacion
+  pass  comprobantes-factura-vs-tiquete
+  pass  exportacion-servicios-comprobante
+  pass  iva-facturas-en-dolares
+  pass  ccss-asalariado-followup
+  pass  exportacion-comprobante-followup
+  pass  renta-plazo-followup
+  pass  iva-ajuste-bien-de-capital
+  pass  iva-retencion-tarjetas-porcentaje
+  pass  inscripcion-tribu-cr
+  pass  multa-iva-no-declarado
+  pass  inscripcion-tardia-sancion
+  FAIL [fail/fail/fail]  factura-primera-cabys  — The answer states that fragment [3] requires 'código de producto' in the invoice detail, but the actual text of fragment [3] says 'código de producto' without identifying it as CABYS; the answer then correctly notes no official basis exists in the fragments for CABYS specifics, but the initial claim that [3] mandates a 'código de producto' as part of invoice content is supported, so the failure is elsewhere: the answer instructs the user to consult https://www.hacienda.go.cr twice, a specific URL not provided in any fragment.
+  pass  ho-hacienda-solo-cliente-eeuu
+  pass  ho-trabajitos-por-mi-cuenta
+  pass  ho-donde-inscribo-ya-no-atv
+  pass  ho-desde-cuanta-plata-caja
+  pass  ho-donde-me-afilio-caja
+  pass  ho-tiquete-en-vez-de-factura
+  pass  ho-factura-electronica-o-recibo
+  pass  ho-cabys-paginas-web
+  pass  ho-cliente-espana-lleva-iva
+  pass  ho-iva-en-cero-sin-facturar
+  pass  ho-hasta-que-dia-tengo-iva
+  pass  ho-rebajar-25-sin-facturas
+  pass  ho-minimo-renta-2026
+  pass  ho-ademas-tengo-salario
+  FAIL [fail/fail/fail]  ho-minimo-caja-independiente-2026  — The answer does not state the minimum amount payable; it only provides the BMC figures and percentages but never calculates or states the resulting monthly payment in colones.
+  pass  ho-800-mil-que-porcentaje-caja
+  FAIL [fail/fail/fail]  ho-tambien-asegurado-por-patrono  — El fragmento [10] citado en la respuesta trata sobre salarios mínimos, no sobre el cálculo de ingreso neto; la definición de ingreso neto aparece en [7], no en [10].
+  pass  ho-cobrar-8-anos-atras-caja
+  FAIL [fail/fail/fail]  ho-desinscribir-debiendo-declaraciones  — The answer claims 'Sí puede desinscribirse aunque tenga declaraciones pendientes' but no fragment explicitly states that desinscription is permitted when declarations are owed.
+  pass  ho-rebajar-multa-si-pago-ya
+  pass  ho-t2-credito-iva-compras
+  FAIL [fail/fail/fail]  ho-t2-hosting-extranjero  — The answer cites fragment [6] in the context of digital services and perception mechanisms, but fragment [6] concerns credit fiscal rules for operations giving right to tax credit, not the perception mechanism for digital cross-border services.
+  pass  ho-t2-retencion-tarjetas
+  pass  ho-t2-compu-cara-iva
+  pass  ho-t2-tipo-de-cambio
+  pass  ho-t2-panaderia-simplificado
+  pass  ho-t2-arreglo-pago-caja
+  FAIL [fail/fail/fail]  ho-t2-salir-del-pais-seguro  — The answer conflates 'suspensión' (temporary suspension) with 'desafiliación' (permanent de-affiliation) and incorrectly applies Article 8 requirements—which govern desafiliación—to the suspension-for-travel scenario described in fragment [1], which requires only tickets and does not mention declaración jurada or poder.
+  pass  ho-t2-pensionado-con-actividad
+  pass  ho-t2-autorizar-contador
+  pass  ho-t2-constancia-al-dia
+  pass  ho-t2-payoneer
+groundedness by exposure (#267):
+  first-exposure  27/32
+  promoted        7/7
+  corpus-derived  33/34
+
+adequacy (#130): 18/40
+  FAIL  tier 1  T1-G  ccss-pedir-prescripcion-cuotas  — missing: Si la deuda está en verificación, la nota se presenta ante la unidad o sucursal financiera de la CCSS a cargo del procedimiento e incluye lugar y fecha, identificación del caso si existe, nombre e identificación, condición en que actúa, periodos solicitados, medio para notificaciones y firma.; Si la deuda ya está en cobro, la solicitud puede enviarse a cobros@ccss.sa.cr; si no tiene firma digital, debe firmarla en papel, escanearla, adjuntar la identificación por ambos lados y luego presentarse a firmar cuando la CCSS lo cite.; El canal correcto según la fase del caso — la unidad o sucursal financiera si está en verificación, cobros@ccss.sa.cr si ya está en cobro — y el plazo en que la Administración resuelve.
+  pass  tier 1  T1-G  ccss-ventana-prescripcion-24-meses
+  FAIL  tier 1  T1-B  ccss-obligacion-ingreso-bajo  — missing: La obligatoriedad está en la Ley Constitutiva de la CCSS y en el Reglamento para el aseguramiento de los trabajadores independientes, no en una decisión voluntaria de la persona.; Quien tiene muy escasa capacidad contributiva se ubica en la categoría 1 de la escala, que es exclusiva de trabajadores independientes y asegurados voluntarios.; La cuota se calcula sobre un ingreso de referencia que no baja de la base mínima contributiva, fijada en 0,9295 salarios mínimos para el Seguro de Salud. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent)
+  pass  tier 1  T1-H  ccss-cese-actividad
+  FAIL  tier 1  T1-H  desinscripcion-dejar-actividad  — missing: Los pasos en la OVi: dónde está la solicitud, qué campos son obligatorios y cuál es el efecto (estado «Desinscrito», con posibilidad de reinscribirse).
+  pass  tier 2  —  tribu-cr-declarar-pagar
+  FAIL  tier 1  T1-I  multa-iva-no-declarado  — missing: El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent)
+  FAIL  tier 1  T1-I  inscripcion-tardia-sancion  — missing: El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent)
+  FAIL  tier 1  T1-A  ho-hacienda-solo-cliente-eeuu  — missing: La inscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, como declaración de inscripción del Registro Único Tributario.
+  FAIL  tier 1  T1-A  ho-trabajitos-por-mi-cuenta  — missing: Sí: iniciar una actividad lucrativa por cuenta propia obliga a inscribirse ante la Administración Tributaria al momento de iniciarla, sin importar lo pequeña que sea.; La persona física con actividad lucrativa es contribuyente del impuesto sobre las utilidades y, si presta servicios gravados, también del IVA.; La inscripción ante Hacienda no sustituye el aseguramiento ante la CCSS como trabajador independiente: son dos obligaciones distintas.; Los dos trámites que siguen: la declaración de inscripción del RUT en la Oficina Virtual de TRIBU-CR y la afiliación como trabajador independiente en la CCSS.
+  FAIL  tier 1  T1-A  ho-donde-inscribo-ya-no-atv  — missing: El usuario de la Oficina Virtual es el número de identificación de la persona: cédula, DIMEX o NITE.; El camino dentro de la OVi hasta la declaración de inscripción y qué datos pide (actividad, fecha de inicio, domicilio).
+  FAIL  tier 1  T1-B  ho-desde-cuanta-plata-caja  — missing: Lo que sí tiene un piso es la base de cálculo: la base mínima contributiva del Seguro de Salud es 0,9295 salarios mínimos. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent); La base mínima contributiva del Seguro de IVM es 0,87 salarios mínimos. (0,87 SM | 0,87 salarios mínimos | 0.87 SM: absent); El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico, ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent)
+  FAIL  tier 1  T1-B  ho-donde-me-afilio-caja  — missing: La cuota se paga mensualmente, dentro de la fecha que corresponde según la primera letra del primer apellido.
+  FAIL  tier 1  T1-C  ho-tiquete-en-vez-de-factura  — missing: Los únicos comprobantes autorizados para cumplir obligaciones tributarias son los que lista el artículo 9 del Reglamento de Comprobantes Electrónicos: factura electrónica, factura electrónica de compra, factura electrónica de exportación, tiquete electrónico, recibo electrónico de pago y las notas de crédito y débito.; Quien emite comprobantes electrónicos debe estar inscrito en el Registro Único Tributario y tener registrado un correo electrónico válido ante la Administración Tributaria.
+  FAIL  tier 1  T1-C  ho-factura-electronica-o-recibo  — missing: Con qué emitir: el facturador gratuito de Hacienda o un proveedor de sistemas de comprobantes electrónicos.; Los comprobantes electrónicos y sus documentos asociados deben almacenarse y conservarse por un plazo de cinco años. (cinco años | 5 años: absent)
+  FAIL  tier 1  T1-C  ho-cabys-paginas-web  — missing: El detalle del comprobante lleva, por cada bien o servicio, un código de producto junto con la descripción, la cantidad y el precio unitario.; Dónde consultar el catálogo CABYS cuando la actividad no está en el subconjunto curado.
+  FAIL  tier 1  T1-D  ho-cliente-espana-lleva-iva  — missing: La exención aplica a los servicios prestados por contribuyentes del impuesto cuando son consumidos fuera del territorio nacional.; La operación exenta se documenta igual, con el comprobante electrónico que corresponda.; El hecho generador ocurre al facturar o al prestar el servicio, el acto que se realice primero, no cuando el cliente paga.; Qué comprobante emitir y qué conservar como prueba de que el servicio se consumió fuera del país.; Si el servicio se consume en Costa Rica, la tarifa general del impuesto es del 13 %. (13 % | 13% | trece por ciento: absent)
+  pass  tier 1  T1-D  ho-iva-en-cero-sin-facturar
+  pass  tier 1  T1-D  ho-hasta-que-dia-tengo-iva
+  FAIL  tier 1  T1-E  ho-rebajar-25-sin-facturas  — missing: La deducción única fue incorporada por la Ley 10818 del 13 de noviembre de 2025, así que rige para los períodos que esa reforma alcanza.; Dónde se aplica la opción al presentar la declaración anual.
+  FAIL  tier 1  T1-E  ho-minimo-renta-2026  — missing: Los tramos son anuales y se aplican sobre la renta neta, no sobre los ingresos brutos.; El período del impuesto va del 1 de enero al 31 de diciembre.; Dónde se consultan los tramos vigentes cuando cambia el decreto anual.
+  FAIL  tier 1  T1-E  ho-ademas-tengo-salario  — missing: El salario y la actividad lucrativa tributan por escalas distintas: el salario por la escala mensual de rentas del trabajo y la actividad por la escala anual de personas físicas con actividad lucrativa.; Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.; Qué se declara en la declaración anual cuando hay salario y actividad, y cómo se tratan las retenciones ya soportadas.; Los pagos parciales: cuándo se pagan y que puede pedirse su rebaja cuando la renta del período va a ser menor.; La declaración anual y el pago vencen dentro de los dos meses y quince días naturales siguientes al cierre del período. (dos meses y quince días | 2 meses y 15 días: absent)
+  FAIL  tier 1  T1-F  ho-minimo-caja-independiente-2026  — missing: El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico: ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent); La base mínima contributiva es 0,9295 salarios mínimos en el Seguro de Salud y 0,87 salarios mínimos en el de IVM. (0,9295 SM | 0,9295 salarios mínimos: absent)
+  pass  tier 1  T1-F  ho-800-mil-que-porcentaje-caja
+  pass  tier 1  T1-F  ho-tambien-asegurado-por-patrono
+  pass  tier 1  T1-G  ho-cobrar-8-anos-atras-caja
+  FAIL  tier 1  T1-H  ho-desinscribir-debiendo-declaraciones  — missing: Mientras la persona siga inscrita, la obligación de declarar continúa aunque ya no facture.; El orden recomendado: presentar lo pendiente y después solicitar la desinscripción indicando el motivo y la fecha de cese.
+  FAIL  tier 1  T1-I  ho-rebajar-multa-si-pago-ya  — missing: Cómo se regulariza: presentar lo omitido y pagar en TRIBU-CR antes de cualquier actuación de la Administración.
+  pass  tier 2  —  ho-t2-credito-iva-compras
+  pass  tier 2  —  ho-t2-hosting-extranjero
+  pass  tier 2  —  ho-t2-retencion-tarjetas
+  pass  tier 2  —  ho-t2-compu-cara-iva
+  pass  tier 2  —  ho-t2-tipo-de-cambio
+  pass  tier 2  —  ho-t2-panaderia-simplificado
+  pass  tier 2  —  ho-t2-arreglo-pago-caja
+  FAIL  tier 2  —  ho-t2-salir-del-pais-seguro  — missing: La suspensión del seguro de trabajador independiente se hace a solicitud de la persona y no ocurre de forma automática.
+  pass  tier 2  —  ho-t2-pensionado-con-actividad
+  pass  tier 2  —  ho-t2-autorizar-contador
+  FAIL  tier 2  —  ho-t2-constancia-al-dia  — missing: La situación tributaria se consulta en la OVi pública de TRIBU-CR, sin necesidad de usuario.
+  pass  tier 2  —  ho-t2-payoneer
+adequacy by exposure (#267):
+  first-exposure  15/32
+  promoted        2/7
+  corpus-derived  1/1
+
+citation invariant (#168): 0 violation(s)
+ ❯ |eval| src/lib/eval/groundedness.eval.test.ts (7 tests | 3 failed) 1701500ms
+     × every tier 1 case states all of its required claims and steps 7ms
+     × every blocking case's answer is supported by its retrieved chunks 1ms
+     × at least 94% of answers are supported by their retrieved chunks 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > every tier 1 case states all of its required claims and steps
+AssertionError: inadequate tier 1 answers: ccss-pedir-prescripcion-cuotas (Si la deuda está en verificación, la nota se presenta ante la unidad o sucursal financiera de la CCSS a cargo del procedimiento e incluye lugar y fecha, identificación del caso si existe, nombre e identificación, condición en que actúa, periodos solicitados, medio para notificaciones y firma.; Si la deuda ya está en cobro, la solicitud puede enviarse a cobros@ccss.sa.cr; si no tiene firma digital, debe firmarla en papel, escanearla, adjuntar la identificación por ambos lados y luego presentarse a firmar cuando la CCSS lo cite.; El canal correcto según la fase del caso — la unidad o sucursal financiera si está en verificación, cobros@ccss.sa.cr si ya está en cobro — y el plazo en que la Administración resuelve.); ccss-obligacion-ingreso-bajo (La obligatoriedad está en la Ley Constitutiva de la CCSS y en el Reglamento para el aseguramiento de los trabajadores independientes, no en una decisión voluntaria de la persona.; Quien tiene muy escasa capacidad contributiva se ubica en la categoría 1 de la escala, que es exclusiva de trabajadores independientes y asegurados voluntarios.; La cuota se calcula sobre un ingreso de referencia que no baja de la base mínima contributiva, fijada en 0,9295 salarios mínimos para el Seguro de Salud. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent)); desinscripcion-dejar-actividad (Los pasos en la OVi: dónde está la solicitud, qué campos son obligatorios y cuál es el efecto (estado «Desinscrito», con posibilidad de reinscribirse).); multa-iva-no-declarado (El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent)); inscripcion-tardia-sancion (El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent)); ho-hacienda-solo-cliente-eeuu (La inscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, como declaración de inscripción del Registro Único Tributario.); ho-trabajitos-por-mi-cuenta (Sí: iniciar una actividad lucrativa por cuenta propia obliga a inscribirse ante la Administración Tributaria al momento de iniciarla, sin importar lo pequeña que sea.; La persona física con actividad lucrativa es contribuyente del impuesto sobre las utilidades y, si presta servicios gravados, también del IVA.; La inscripción ante Hacienda no sustituye el aseguramiento ante la CCSS como trabajador independiente: son dos obligaciones distintas.; Los dos trámites que siguen: la declaración de inscripción del RUT en la Oficina Virtual de TRIBU-CR y la afiliación como trabajador independiente en la CCSS.); ho-donde-inscribo-ya-no-atv (El usuario de la Oficina Virtual es el número de identificación de la persona: cédula, DIMEX o NITE.; El camino dentro de la OVi hasta la declaración de inscripción y qué datos pide (actividad, fecha de inicio, domicilio).); ho-desde-cuanta-plata-caja (Lo que sí tiene un piso es la base de cálculo: la base mínima contributiva del Seguro de Salud es 0,9295 salarios mínimos. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent); La base mínima contributiva del Seguro de IVM es 0,87 salarios mínimos. (0,87 SM | 0,87 salarios mínimos | 0.87 SM: absent); El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico, ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent)); ho-donde-me-afilio-caja (La cuota se paga mensualmente, dentro de la fecha que corresponde según la primera letra del primer apellido.); ho-tiquete-en-vez-de-factura (Los únicos comprobantes autorizados para cumplir obligaciones tributarias son los que lista el artículo 9 del Reglamento de Comprobantes Electrónicos: factura electrónica, factura electrónica de compra, factura electrónica de exportación, tiquete electrónico, recibo electrónico de pago y las notas de crédito y débito.; Quien emite comprobantes electrónicos debe estar inscrito en el Registro Único Tributario y tener registrado un correo electrónico válido ante la Administración Tributaria.); ho-factura-electronica-o-recibo (Con qué emitir: el facturador gratuito de Hacienda o un proveedor de sistemas de comprobantes electrónicos.; Los comprobantes electrónicos y sus documentos asociados deben almacenarse y conservarse por un plazo de cinco años. (cinco años | 5 años: absent)); ho-cabys-paginas-web (El detalle del comprobante lleva, por cada bien o servicio, un código de producto junto con la descripción, la cantidad y el precio unitario.; Dónde consultar el catálogo CABYS cuando la actividad no está en el subconjunto curado.); ho-cliente-espana-lleva-iva (La exención aplica a los servicios prestados por contribuyentes del impuesto cuando son consumidos fuera del territorio nacional.; La operación exenta se documenta igual, con el comprobante electrónico que corresponda.; El hecho generador ocurre al facturar o al prestar el servicio, el acto que se realice primero, no cuando el cliente paga.; Qué comprobante emitir y qué conservar como prueba de que el servicio se consumió fuera del país.; Si el servicio se consume en Costa Rica, la tarifa general del impuesto es del 13 %. (13 % | 13% | trece por ciento: absent)); ho-rebajar-25-sin-facturas (La deducción única fue incorporada por la Ley 10818 del 13 de noviembre de 2025, así que rige para los períodos que esa reforma alcanza.; Dónde se aplica la opción al presentar la declaración anual.); ho-minimo-renta-2026 (Los tramos son anuales y se aplican sobre la renta neta, no sobre los ingresos brutos.; El período del impuesto va del 1 de enero al 31 de diciembre.; Dónde se consultan los tramos vigentes cuando cambia el decreto anual.); ho-ademas-tengo-salario (El salario y la actividad lucrativa tributan por escalas distintas: el salario por la escala mensual de rentas del trabajo y la actividad por la escala anual de personas físicas con actividad lucrativa.; Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.; Qué se declara en la declaración anual cuando hay salario y actividad, y cómo se tratan las retenciones ya soportadas.; Los pagos parciales: cuándo se pagan y que puede pedirse su rebaja cuando la renta del período va a ser menor.; La declaración anual y el pago vencen dentro de los dos meses y quince días naturales siguientes al cierre del período. (dos meses y quince días | 2 meses y 15 días: absent)); ho-minimo-caja-independiente-2026 (El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico: ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent); La base mínima contributiva es 0,9295 salarios mínimos en el Seguro de Salud y 0,87 salarios mínimos en el de IVM. (0,9295 SM | 0,9295 salarios mínimos: absent)); ho-desinscribir-debiendo-declaraciones (Mientras la persona siga inscrita, la obligación de declarar continúa aunque ya no facture.; El orden recomendado: presentar lo pendiente y después solicitar la desinscripción indicando el motivo y la fecha de cese.); ho-rebajar-multa-si-pago-ya (Cómo se regulariza: presentar lo omitido y pagar en TRIBU-CR antes de cualquier actuación de la Administración.): expected [ …(20) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "ccss-pedir-prescripcion-cuotas (Si la deuda está en verificación, la nota se presenta ante la unidad o sucursal financiera de la CCSS a cargo del procedimiento e incluye lugar y fecha, identificación del caso si existe, nombre e identificación, condición en que actúa, periodos solicitados, medio para notificaciones y firma.; Si la deuda ya está en cobro, la solicitud puede enviarse a cobros@ccss.sa.cr; si no tiene firma digital, debe firmarla en papel, escanearla, adjuntar la identificación por ambos lados y luego presentarse a firmar cuando la CCSS lo cite.; El canal correcto según la fase del caso — la unidad o sucursal financiera si está en verificación, cobros@ccss.sa.cr si ya está en cobro — y el plazo en que la Administración resuelve.)",
++   "ccss-obligacion-ingreso-bajo (La obligatoriedad está en la Ley Constitutiva de la CCSS y en el Reglamento para el aseguramiento de los trabajadores independientes, no en una decisión voluntaria de la persona.; Quien tiene muy escasa capacidad contributiva se ubica en la categoría 1 de la escala, que es exclusiva de trabajadores independientes y asegurados voluntarios.; La cuota se calcula sobre un ingreso de referencia que no baja de la base mínima contributiva, fijada en 0,9295 salarios mínimos para el Seguro de Salud. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent))",
++   "desinscripcion-dejar-actividad (Los pasos en la OVi: dónde está la solicitud, qué campos son obligatorios y cuál es el efecto (estado «Desinscrito», con posibilidad de reinscribirse).)",
++   "multa-iva-no-declarado (El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent))",
++   "inscripcion-tardia-sancion (El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent))",
++   "ho-hacienda-solo-cliente-eeuu (La inscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, como declaración de inscripción del Registro Único Tributario.)",
++   "ho-trabajitos-por-mi-cuenta (Sí: iniciar una actividad lucrativa por cuenta propia obliga a inscribirse ante la Administración Tributaria al momento de iniciarla, sin importar lo pequeña que sea.; La persona física con actividad lucrativa es contribuyente del impuesto sobre las utilidades y, si presta servicios gravados, también del IVA.; La inscripción ante Hacienda no sustituye el aseguramiento ante la CCSS como trabajador independiente: son dos obligaciones distintas.; Los dos trámites que siguen: la declaración de inscripción del RUT en la Oficina Virtual de TRIBU-CR y la afiliación como trabajador independiente en la CCSS.)",
++   "ho-donde-inscribo-ya-no-atv (El usuario de la Oficina Virtual es el número de identificación de la persona: cédula, DIMEX o NITE.; El camino dentro de la OVi hasta la declaración de inscripción y qué datos pide (actividad, fecha de inicio, domicilio).)",
++   "ho-desde-cuanta-plata-caja (Lo que sí tiene un piso es la base de cálculo: la base mínima contributiva del Seguro de Salud es 0,9295 salarios mínimos. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent); La base mínima contributiva del Seguro de IVM es 0,87 salarios mínimos. (0,87 SM | 0,87 salarios mínimos | 0.87 SM: absent); El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico, ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent))",
++   "ho-donde-me-afilio-caja (La cuota se paga mensualmente, dentro de la fecha que corresponde según la primera letra del primer apellido.)",
++   "ho-tiquete-en-vez-de-factura (Los únicos comprobantes autorizados para cumplir obligaciones tributarias son los que lista el artículo 9 del Reglamento de Comprobantes Electrónicos: factura electrónica, factura electrónica de compra, factura electrónica de exportación, tiquete electrónico, recibo electrónico de pago y las notas de crédito y débito.; Quien emite comprobantes electrónicos debe estar inscrito en el Registro Único Tributario y tener registrado un correo electrónico válido ante la Administración Tributaria.)",
++   "ho-factura-electronica-o-recibo (Con qué emitir: el facturador gratuito de Hacienda o un proveedor de sistemas de comprobantes electrónicos.; Los comprobantes electrónicos y sus documentos asociados deben almacenarse y conservarse por un plazo de cinco años. (cinco años | 5 años: absent))",
++   "ho-cabys-paginas-web (El detalle del comprobante lleva, por cada bien o servicio, un código de producto junto con la descripción, la cantidad y el precio unitario.; Dónde consultar el catálogo CABYS cuando la actividad no está en el subconjunto curado.)",
++   "ho-cliente-espana-lleva-iva (La exención aplica a los servicios prestados por contribuyentes del impuesto cuando son consumidos fuera del territorio nacional.; La operación exenta se documenta igual, con el comprobante electrónico que corresponda.; El hecho generador ocurre al facturar o al prestar el servicio, el acto que se realice primero, no cuando el cliente paga.; Qué comprobante emitir y qué conservar como prueba de que el servicio se consumió fuera del país.; Si el servicio se consume en Costa Rica, la tarifa general del impuesto es del 13 %. (13 % | 13% | trece por ciento: absent))",
++   "ho-rebajar-25-sin-facturas (La deducción única fue incorporada por la Ley 10818 del 13 de noviembre de 2025, así que rige para los períodos que esa reforma alcanza.; Dónde se aplica la opción al presentar la declaración anual.)",
++   "ho-minimo-renta-2026 (Los tramos son anuales y se aplican sobre la renta neta, no sobre los ingresos brutos.; El período del impuesto va del 1 de enero al 31 de diciembre.; Dónde se consultan los tramos vigentes cuando cambia el decreto anual.)",
++   "ho-ademas-tengo-salario (El salario y la actividad lucrativa tributan por escalas distintas: el salario por la escala mensual de rentas del trabajo y la actividad por la escala anual de personas físicas con actividad lucrativa.; Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.; Qué se declara en la declaración anual cuando hay salario y actividad, y cómo se tratan las retenciones ya soportadas.; Los pagos parciales: cuándo se pagan y que puede pedirse su rebaja cuando la renta del período va a ser menor.; La declaración anual y el pago vencen dentro de los dos meses y quince días naturales siguientes al cierre del período. (dos meses y quince días | 2 meses y 15 días: absent))",
++   "ho-minimo-caja-independiente-2026 (El salario mínimo de referencia es el del trabajador en ocupación no calificada genérico: ¢373.092,30 mensuales en 2026. (¢373.092,30 | 373.092,30: absent); La base mínima contributiva es 0,9295 salarios mínimos en el Seguro de Salud y 0,87 salarios mínimos en el de IVM. (0,9295 SM | 0,9295 salarios mínimos: absent))",
++   "ho-desinscribir-debiendo-declaraciones (Mientras la persona siga inscrita, la obligación de declarar continúa aunque ya no facture.; El orden recomendado: presentar lo pendiente y después solicitar la desinscripción indicando el motivo y la fecha de cese.)",
++   "ho-rebajar-multa-si-pago-ya (Cómo se regulariza: presentar lo omitido y pagar en TRIBU-CR antes de cualquier actuación de la Administración.)",
++ ]
+
+ ❯ src/lib/eval/groundedness.eval.test.ts:401:71
+    399|       .filter((r) => r.evalCase.tier === 1 && adequacyFailed(r))
+    400|       .map((r) => `${r.evalCase.id} (${adequacyReason(r)})`);
+    401|     expect(failed, `inadequate tier 1 answers: ${failed.join("; ")}`).…
+       |                                                                       ^
+    402|       [],
+    403|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > every blocking case's answer is supported by its retrieved chunks
+AssertionError: ungrounded blocking answers: ho-minimo-caja-independiente-2026 (The answer does not state the minimum amount payable; it only provides the BMC figures and percentages but never calculates or states the resulting monthly payment in colones.); ho-tambien-asegurado-por-patrono (El fragmento [10] citado en la respuesta trata sobre salarios mínimos, no sobre el cálculo de ingreso neto; la definición de ingreso neto aparece en [7], no en [10].); ho-desinscribir-debiendo-declaraciones (The answer claims 'Sí puede desinscribirse aunque tenga declaraciones pendientes' but no fragment explicitly states that desinscription is permitted when declarations are owed.): expected [ …(3) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "ho-minimo-caja-independiente-2026 (The answer does not state the minimum amount payable; it only provides the BMC figures and percentages but never calculates or states the resulting monthly payment in colones.)",
++   "ho-tambien-asegurado-por-patrono (El fragmento [10] citado en la respuesta trata sobre salarios mínimos, no sobre el cálculo de ingreso neto; la definición de ingreso neto aparece en [7], no en [10].)",
++   "ho-desinscribir-debiendo-declaraciones (The answer claims 'Sí puede desinscribirse aunque tenga declaraciones pendientes' but no fragment explicitly states that desinscription is permitted when declarations are owed.)",
++ ]
+
+ ❯ src/lib/eval/groundedness.eval.test.ts:442:73
+    440|     // passed it with two Tier 1 held-out cases failing unanimously.
+    441|     const failed = blockingGroundednessFailures(results);
+    442|     expect(failed, `ungrounded blocking answers: ${failed.join("; ")}`…
+       |                                                                         ^
+    443|       [],
+    444|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > at least 94% of answers are supported by their retrieved chunks
+AssertionError: ungrounded answers: factura-primera-cabys (The answer states that fragment [3] requires 'código de producto' in the invoice detail, but the actual text of fragment [3] says 'código de producto' without identifying it as CABYS; the answer then correctly notes no official basis exists in the fragments for CABYS specifics, but the initial claim that [3] mandates a 'código de producto' as part of invoice content is supported, so the failure is elsewhere: the answer instructs the user to consult https://www.hacienda.go.cr twice, a specific URL not provided in any fragment.); ho-minimo-caja-independiente-2026 (The answer does not state the minimum amount payable; it only provides the BMC figures and percentages but never calculates or states the resulting monthly payment in colones.); ho-tambien-asegurado-por-patrono (El fragmento [10] citado en la respuesta trata sobre salarios mínimos, no sobre el cálculo de ingreso neto; la definición de ingreso neto aparece en [7], no en [10].); ho-desinscribir-debiendo-declaraciones (The answer claims 'Sí puede desinscribirse aunque tenga declaraciones pendientes' but no fragment explicitly states that desinscription is permitted when declarations are owed.); ho-t2-hosting-extranjero (The answer cites fragment [6] in the context of digital services and perception mechanisms, but fragment [6] concerns credit fiscal rules for operations giving right to tax credit, not the perception mechanism for digital cross-border services.); ho-t2-salir-del-pais-seguro (The answer conflates 'suspensión' (temporary suspension) with 'desafiliación' (permanent de-affiliation) and incorrectly applies Article 8 requirements—which govern desafiliación—to the suspension-for-travel scenario described in fragment [1], which requires only tickets and does not mention declaración jurada or poder.): expected 0.9178082191780822 to be greater than or equal to 0.94
+ ❯ src/lib/eval/groundedness.eval.test.ts:456:7
+    454|       passes / results.length,
+    455|       `ungrounded answers: ${failed.join("; ")}`,
+    456|     ).toBeGreaterThanOrEqual(GROUNDEDNESS_GATE);
+       |       ^
+    457|   });
+    458|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 4 passed (7)
+   Start at  00:51:15
+   Duration  1701.76s (transform 83ms, setup 0ms, import 177ms, tests 1701.50s, environment 0ms)
+
+exit 1

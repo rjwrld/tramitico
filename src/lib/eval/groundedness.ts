@@ -80,30 +80,62 @@ export function buildJudgePrompt(
 }
 
 /**
+ * The first balanced `{…}` in `text`, or null.
+ *
+ * A greedy `/\{[\s\S]*\}/` runs to the *last* brace in the response, so a
+ * judge that prints its object and then a sentence containing a brace hands
+ * the parser the object plus that prose, and `JSON.parse` fails on text that
+ * had a perfectly good object at the front of it. Counting depth — and
+ * skipping braces inside strings, where a `reason` may quote one — takes the
+ * object and stops. Shared by every judge parser: #311's pin1 arm lost its
+ * groundedness lane to exactly this reply shape.
+ */
+export function firstJsonObject(text: string): string | null {
+  const start = text.indexOf("{");
+  if (start === -1) return null;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (inString) {
+      if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') inString = true;
+    else if (ch === "{") depth++;
+    else if (ch === "}" && --depth === 0) return text.slice(start, i + 1);
+  }
+  return null;
+}
+
+/**
  * Extract the judge's JSON verdict. Tolerates fenced code blocks and
  * surrounding prose (first `{...}` object wins); throws on anything that
  * isn't a well-formed verdict so a misbehaving judge fails loudly instead of
  * counting as a pass or fail.
  */
 export function parseJudgeVerdict(text: string): JudgeVerdict {
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) {
+  const object = firstJsonObject(text);
+  if (object === null) {
     throw new Error(`judge output has no JSON object: ${text.slice(0, 200)}`);
   }
   let raw: unknown;
   try {
-    raw = JSON.parse(match[0]);
+    raw = JSON.parse(object);
   } catch (cause) {
-    throw new Error(
-      `judge output is malformed JSON: ${match[0].slice(0, 200)}`,
-      {
-        cause,
-      },
-    );
+    throw new Error(`judge output is malformed JSON: ${object.slice(0, 200)}`, {
+      cause,
+    });
   }
   const entry = raw as { verdict?: unknown; reason?: unknown };
   if (entry.verdict !== "pass" && entry.verdict !== "fail") {
-    throw new Error(`judge verdict must be "pass" or "fail": ${match[0]}`);
+    throw new Error(`judge verdict must be "pass" or "fail": ${object}`);
   }
   return {
     verdict: entry.verdict,

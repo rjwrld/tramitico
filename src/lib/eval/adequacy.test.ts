@@ -8,7 +8,6 @@ import {
   checkLiterals,
   declineAdequacy,
   figureMentions,
-  firstJsonObject,
   judgeAbstention,
   judgeAdequacy,
   judgedRequirements,
@@ -20,6 +19,7 @@ import {
   type Requirement,
   type RequirementVerdict,
 } from "./adequacy";
+import { firstJsonObject } from "./groundedness";
 
 const CASE: EvalCase = {
   id: "iva-tarifa",

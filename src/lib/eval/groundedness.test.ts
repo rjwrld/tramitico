@@ -68,6 +68,24 @@ describe("parseJudgeVerdict", () => {
     expect(parseJudgeVerdict(text).verdict).toBe("pass");
   });
 
+  it("reads the first object when the judge writes more after it (#311)", () => {
+    // The shape that aborted #311's pin1 arm: a complete verdict, then
+    // prose carrying braces of its own. Greedy first-{-to-last-} spans both.
+    const text =
+      '{\n  "verdict": "fail",\n  "reason": "fragment [2} is misquoted"\n}\n\n' +
+      'Nota: {"verdict": "pass"} sería incorrecto aquí.';
+    expect(parseJudgeVerdict(text)).toEqual({
+      verdict: "fail",
+      reason: "fragment [2} is misquoted",
+    });
+  });
+
+  it("rejects an object that never closes", () => {
+    expect(() => parseJudgeVerdict('{"verdict": "pass", "reason": "')).toThrow(
+      /no JSON object/,
+    );
+  });
+
   it("rejects text without a JSON object", () => {
     expect(() => parseJudgeVerdict("the answer looks fine")).toThrow(
       /no JSON object/,
