@@ -163,7 +163,8 @@ Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3))
 - Every doc records `effective_date` + `fetched_at`; `effective_date` is mandatory for a source
   carrying a figure or deadline, and `annualChurn` marks sources that must belong to the current
   fiscal period. Annual-churn sources are re-verified for each period; every other source is
-  re-verified by the **quarterly re-crawl**, automated as `.github/workflows/recrawl.yml`
+  re-verified by the **quarterly re-crawl**, owner-run as `pnpm recrawl` on the reminder
+  `.github/workflows/recrawl.yml` opens
   ([ADR 0010](docs/adr/0010-cli-ingestion-authoritative.md),
   [ADR 0016](docs/adr/0016-source-freshness-policy.md)).
   The current annual set is tramos, salario base, salarios mínimos, both CCSS escalas, and the
@@ -298,8 +299,9 @@ Every route reads and writes the database with `service_role`, server-side only:
 `authenticated` hold no privileges on `public` (#123), so no browser or cookie-scoped client
 touches the Data API. Each route takes the user id from the verified session and filters on it.
 
-Ingestion has **no HTTP route**. It runs as `pnpm ingest [doc_key…]` from a developer shell or
-from the scheduled re-crawl workflow (`.github/workflows/recrawl.yml`) — see
+Ingestion has **no HTTP route**. It runs as `pnpm ingest [doc_key…]` from a developer shell — the
+quarterly re-crawl included, as `pnpm recrawl`, because GitHub-hosted runners cannot reach two of
+its source hosts (#405) — see
 [ADR 0010](docs/adr/0010-cli-ingestion-authoritative.md), which drops the `POST /api/ingest` this
 section used to promise and records why: the route would be an internet-reachable write path
 holding the service-role key.

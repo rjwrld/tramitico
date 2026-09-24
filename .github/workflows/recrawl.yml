@@ -1,79 +1,56 @@
-name: Recrawl
+name: Recrawl reminder
 
-# The quarterly re-crawl of SPEC §3, made real: annual decree churn (tramos,
-# BMC) reaches the corpus only by re-running ingestion. CLI/CI ingestion is the
-# authoritative mechanism — there is no HTTP route (ADR 0010).
+# The quarterly re-crawl of SPEC §3 is owner-run (#405, ADR 0010 amendment):
+# GitHub-hosted runners cannot reach www.ccss.sa.cr or www.hacienda.go.cr, the
+# hosts behind six of the corpus's documents, so this workflow no longer
+# ingests. It reminds: on the 25th of the month before, it opens an issue with
+# the checklist; on the 1st, it comments on that issue if it is still open (or
+# opens it, if the 25th's run did not). The work itself is `pnpm recrawl` from
+# the main checkout — `scripts/recrawl.sh`.
 on:
   schedule:
-    # 06:00 UTC on the 1st of Jan/Apr/Jul/Oct — quarterly, matching the review
-    # cycle #121 asks its accepted risks to be re-examined on.
-    - cron: "0 6 1 1,4,7,10 *"
+    # 12:00 UTC (06:00 in Costa Rica) on the 25th of Dec/Mar/Jun/Sep — early
+    # warning — and on the 1st of Jan/Apr/Jul/Oct, the due date, matching the
+    # review cycle #121 asks its accepted risks to be re-examined on.
+    - cron: "0 12 25 3,6,9,12 *"
+    - cron: "0 12 1 1,4,7,10 *"
   workflow_dispatch:
 
 jobs:
-  ingest:
+  remind:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      # The failure step files an issue: a scheduled workflow's own failure
-      # email reaches one person and is easy to miss.
       issues: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      # hacienda-pdf sources are extracted by shelling out to pdftotext;
-      # ubuntu-latest does not ship poppler.
-      - run: sudo apt-get update && sudo apt-get install -y poppler-utils
-      # createEmbedder() falls back to the stub provider when
-      # EMBEDDINGS_PROVIDER is unset. Here that is not a skip — it would upsert
-      # meaningless vectors over a working corpus — so refuse before writing.
-      # (Missing Supabase credentials already throw inside the script.)
-      - name: Require a real embedding provider
-        env:
-          EMBEDDINGS_PROVIDER: ${{ vars.EMBEDDINGS_PROVIDER }}
-        run: |
-          if [ -z "$EMBEDDINGS_PROVIDER" ] || [ "$EMBEDDINGS_PROVIDER" = "stub" ]; then
-            echo "EMBEDDINGS_PROVIDER is unset or 'stub' — refusing to write stub embeddings." >&2
-            exit 1
-          fi
-      # #264: the honest decline sends readers to the institutions in
-      # src/lib/routing.ts. A front door that moved (DNS gone, 404, 5xx) is
-      # caught here, on the same quarterly cadence as the corpus, and files
-      # the same issue. A Cloudflare 403 or an incomplete certificate chain
-      # is printed as a warning, not a failure — a browser gets those pages;
-      # a script does not (see the script header).
-      - name: Verify routing URLs still serve their front door
-        run: pnpm check:routing
-      # The ingestion log includes a loud manifest-vs-fetched SHA-256 warning
-      # for silently republished sources such as the TRIBU-CR FAQ (#257).
-      - name: pnpm ingest (including upstream hash checks)
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          EMBEDDINGS_PROVIDER: ${{ vars.EMBEDDINGS_PROVIDER }}
-          VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
-        run: pnpm ingest
-      - name: Report failure
-        if: failure()
+      - name: Open or bump the quarterly recrawl issue
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
-          RUN_ID: ${{ github.run_id }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          printf '%s\n\n%s\n\n%s\n' \
-            'The scheduled corpus re-crawl failed; the run log names the step. If it was `pnpm check:routing`, a routing-table URL in `src/lib/routing.ts` no longer serves its front door and the honest decline links a dead page. If it was `pnpm ingest`, the corpus keeps its previous version of whatever did not ingest, so answers keep citing stale text. An earlier step (install, poppler, the embedding-provider guard) means nothing ran at all.' \
-            'Contract: [SPEC §3](../blob/main/SPEC.md) (quarterly re-crawl) · [ADR 0010](../blob/main/docs/adr/0010-cli-ingestion-authoritative.md).' \
-            "Run log: $RUN_URL" > body.md
-          # needs-triage, not build: this is an operational failure a human
-          # classifies, not planned build work (docs/agents/issue-tracker.md
-          # reserves `build` for milestone-carrying spec work).
-          gh issue create \
-            --title "Recrawl failed — run $RUN_ID" \
-            --label needs-triage \
-            --body-file body.md
+          # From the 15th on, the due date is next month's 1st; before it,
+          # this month's. The 25th's run and the 1st's run name the same date.
+          if [ "$(date -u +%d)" -ge 15 ]; then
+            due=$(date -u -d "$(date -u +%Y-%m-01) +1 month" +%Y-%m-%d)
+          else
+            due=$(date -u +%Y-%m-01)
+          fi
+          title="Quarterly recrawl due $due"
+
+          existing=$(gh issue list --state open --search "\"$title\" in:title" \
+            --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -n 1)
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" \
+              --body "Due today ($due) and still open. \`pnpm recrawl\` from the main checkout; the checklist is above."
+            exit 0
+          fi
+
+          cat > body.md <<EOF
+          The quarterly re-crawl ([SPEC §3](../blob/main/SPEC.md), [ADR 0010](../blob/main/docs/adr/0010-cli-ingestion-authoritative.md)) is due **$due**. It is owner-run: GitHub-hosted runners cannot reach \`www.ccss.sa.cr\` or \`www.hacienda.go.cr\` (#405).
+
+          - [ ] From the main checkout on \`main\`, with the deploy wizard's env file beside it: \`pnpm recrawl\`. It checks the routing front doors, the manifest vigencia, ingests into production with Voyage embeddings, and compares \`eval/corpus-index.json\` by content.
+          - [ ] If it says the corpus changed: commit \`eval/corpus-index.json\` on a branch and open a PR (#163).
+          - [ ] If a routing URL failed: open it in a browser before editing \`src/lib/routing.ts\` — a Cloudflare 403 or an incomplete certificate chain is a warning, not a dead page.
+          - [ ] Between November and January, the annual churn pass comes first ([runbook §2.2](../blob/main/docs/runbook.md)).
+          - [ ] Close this issue with a one-line note: documents ingested, corpus changed or not.
+          EOF
+          gh issue create --title "$title" --label ready-for-human --body-file body.md

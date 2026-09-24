@@ -18,7 +18,7 @@ original scope (its §5 OUT-list is binding).
 | `src/lib/answer/`                                              | prompt, model call, condensation (#132), query expansion (#286), step catalogue (#304), rerank, citation contract, persistence           |
 | `src/lib/rate-limit.ts`                                        | daily quota via RPC; refunds on system failure                                                                                           |
 | `src/lib/routing.ts` + `scripts/check-routing-urls.ts`         | institution table + keyword classifier behind the routed decline; URLs verified by the re-crawl                                          |
-| `src/lib/ingestion/` + `scripts/ingest.ts`                     | corpus fetch → extract → chunk → embed, CLI-driven                                                                                       |
+| `src/lib/ingestion/` + `scripts/ingest.ts`                     | corpus fetch → extract → chunk → embed, CLI-driven; quarterly re-crawl is owner-run `pnpm recrawl` (#405)                                |
 | `corpus/manifest.json`                                         | which official docs are ingested, and from where                                                                                         |
 | `src/lib/eval/` + `eval/dataset.jsonl`                         | release gates: groundedness, hit-rate, conflicting sources                                                                               |
 | `eval/corpus-index.json`                                       | committed corpus coverage dump; makes the satisfiability census a per-PR unit test                                                       |

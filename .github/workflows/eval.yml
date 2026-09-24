@@ -17,7 +17,7 @@ name: Eval
 # Anthropic + Voyage — measured in the 2026 baseline (#267) — so a weekly cron
 # would run ≈US$40/month for a regression tripwire against an answer model
 # that does not change on a schedule at all, and the corpus itself only
-# changes quarterly (recrawl.yml). The PR gates already run on every change to
+# changes quarterly (the owner-run recrawl, #405). The PR gates already run on every change to
 # the code these suites read, so a schedule would be buying coverage nothing
 # here moves fast enough to need. Re-adding one later is a single line under
 # `on:`; monthly (`0 5 1 * *`) is the recommended first step when the time
@@ -38,7 +38,7 @@ jobs:
       # ingested copy). These suites read `chunks` and write nothing — the
       # eval clients never touch `questions` or `rate_limits` — so pointing
       # them at production costs nothing but the read. Same secret names as
-      # keepalive.yml and recrawl.yml; #29 sets the values once.
+      # keepalive.yml; #29 sets the values once.
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       # retrieval.eval.test.ts's `grants` suite reads the legacy
@@ -63,9 +63,9 @@ jobs:
       EXPAND_MODEL: ${{ vars.EXPAND_MODEL }}
     steps:
       # Fail in seconds rather than after an install and a 90-minute
-      # groundedness timeout, and name every missing variable at once. Mirrors
-      # recrawl.yml's "refuse before doing the expensive thing" guard; the
-      # in-suite gate (#129) remains the real backstop.
+      # groundedness timeout, and name every missing variable at once: refuse
+      # before doing the expensive thing. The in-suite gate (#129) remains the
+      # real backstop.
       - name: Require the eval environment
         run: |
           missing=""

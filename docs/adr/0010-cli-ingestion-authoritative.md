@@ -57,3 +57,22 @@ inside the script.
   (production Supabase + provider keys). Until then a scheduled run fails at the guard or at the
   script's credential check — loudly, which is the intended behaviour, but the first real
   end-to-end proof is a manual dispatch after #29 lands.
+
+## Amendment (2026-09-24, issue [#405](https://github.com/rjwrld/tramitico/issues/405))
+
+**The scheduled re-crawl is owner-run; the workflow only reminds.** The first dispatch of
+`recrawl.yml`, after #29's secrets landed, failed twice at the routing check: from GitHub-hosted
+runners `www.hacienda.go.cr` answered 400 and `www.ccss.sa.cr` and `www.meic.go.cr` timed out,
+while all three answered a Costa Rican connection the same hour. `pnpm ingest` fetches six
+documents from the first two, so the runner could not have ingested them either. The
+alternatives were weighed on #405 — a self-hosted runner (advised against on a public
+repository: code a fork can trigger would reach the owner's machine), a Costa Rican egress (a
+paid third party in the data path, against #327's free stack), another US cloud (likely the same
+block, and new infrastructure) — and none buys enough for a job that runs four times a year.
+
+So `recrawl.yml` opens «Quarterly recrawl due YYYY-MM-01» on the 25th of the month before and
+comments on it on the 1st, and holds no secret. The re-crawl is `pnpm recrawl`
+(`scripts/recrawl.sh`) from the main checkout: routing check, manifest vigencia, `pnpm ingest`
+against production, and the #163 index comparison by content. The decision above is unchanged —
+ingestion has no HTTP route, and triggering is a developer shell — but "from CI" now means only
+the reminder, and re-crawl evidence is the issue the owner closes, not an Actions log.
