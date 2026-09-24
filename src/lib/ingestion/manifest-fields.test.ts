@@ -91,15 +91,19 @@ describe("corpus/manifest.json source fields match their kind", () => {
     expect(malformed).toEqual([]);
   });
 
-  it("writes every colón amount in an image transcription in Costa Rican notation", () => {
+  it("writes every colón amount in an image transcription as whole colones", () => {
     // av_tv_2026.png prints «₡346,789.999»; a transcription that kept it was
     // the corpus's only US-notation amount, and answers rendered it
     // «₡346.789.999» — a threshold read a thousand times too large (#407).
-    const usNotation = manifest.documents
+    // Re-notated «₡746.186,000», the three decimals read as thousands just
+    // the same: the 2026-09-24 full run shows «₡746.186.000» on two T1-F
+    // answers (#352). So a bound is written whole — «menos de ₡746.186» —
+    // with no decimal part left to misread.
+    const notWhole = manifest.documents
       .flatMap((d) => d.imageTranscriptions ?? [])
       .flatMap((t) => t.text.match(/₡\s?\d[\d.,]*\d/g) ?? [])
-      .filter((amount) => !/^₡\s?\d{1,3}(?:\.\d{3})*(?:,\d+)?$/.test(amount));
-    expect(usNotation).toEqual([]);
+      .filter((amount) => !/^₡\s?\d{1,3}(?:\.\d{3})*$/.test(amount));
+    expect(notWhole).toEqual([]);
   });
 
   it("still covers the entries these invariants exist for", () => {

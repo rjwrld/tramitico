@@ -66,6 +66,19 @@ export function citationMarkers(text: string): number[] {
 }
 
 /**
+ * A `[n` the model never closed — the bare integer followed by space or the
+ * end of the text, as in «[49 tomando base…» (#352). It is no marker to
+ * `citationMarkers` and none to the renumbering, so without this it would
+ * reach a reader as literal text. «[12x]» stays prose, as above.
+ */
+const UNCLOSED_MARKER = /\[(\d+)(?=\s|$)/g;
+
+/** The numbers of the unclosed `[n` in `text`, in order of appearance. */
+export function unclosedMarkers(text: string): number[] {
+  return [...text.matchAll(UNCLOSED_MARKER)].map((match) => Number(match[1]));
+}
+
+/**
  * Chunk-index → seal ordinal, indexed by `n - 1`; `0` where no seal applies.
  *
  * The [n] the model writes counts *chunks*; a seal counts *sources*, and the

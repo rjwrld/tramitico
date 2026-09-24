@@ -124,7 +124,11 @@ in the transcribed table was checked against the actas before it was recorded, s
 the actas rather than competing with them. Amended by [#407](https://github.com/rjwrld/tramitico/issues/407): the
 table's colón bounds, which the image prints in US notation, are transcribed in Costa Rican
 notation value for value, so an answer that copies them cannot read a threshold a thousand times
-too large.
+too large. Amended again by [#352](https://github.com/rjwrld/tramitico/issues/352): Costa Rican
+notation with the image's three decimals («₡746.186,000») was still read as thousands on two
+answers of the 2026-09-24 full run, so each bound is written as whole colones — «de ₡746.186 a
+menos de ₡1.492.370», the top category «₡2.238.555 o más» — the same ranges with no decimal part
+to misread.
 
 Amended by [#259](https://github.com/rjwrld/tramitico/issues/259): **two docs added, count 20 →
 22** — `cnpt`, restricted to the seven articles needed for basic registration, filing, payment,

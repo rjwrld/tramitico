@@ -2486,3 +2486,81 @@ groundedness and abstention parsers now use it too. The re-run's first attempt
 then ran the Anthropic balance dry. **Cost:** ≈US$6 for the `off` arm, ≈US$5
 for the lane that crashed, ≈US$4–5 for the attempt the balance ended, ≈US$5
 for the lane that counted, and cents for a three-case smoke read in between.
+
+## Groundedness back over the gate (2026-09-24, #352)
+
+> **Measured 2026-09-24 on the local stack after `pnpm ingest ccss-faq`,
+> answer `claude-sonnet-5` at `ANSWER_EFFORT=medium`, judge
+> `claude-sonnet-4-5`, production knobs.** Rows in
+> [`eval/runs/2026-09-24-352/`](runs/2026-09-24-352/).
+
+#311's `off` arm put the shipped pipeline at groundedness **64/73**, under
+the 0.94 gate and down from 71/73 at #304. Its nine ungrounded answers had
+three shapes:
+
+- **The escala bounds, read a thousand times too large.** #408 had written
+  them `₡746.186,000`, and two T1-F answers still copied «₡746.186.000»
+  (`ho-800-mil-que-porcentaje-caja`, `ho-tambien-asegurado-por-patrono`). The
+  three decimals read as thousands exactly as the US notation had. The
+  transcription now writes each bound as whole colones: «de ₡746.186 a menos
+  de ₡1.492.370», and «₡2.238.555 o más» for the top category. These are the
+  same ranges, and each lower bound is the exclusive upper of the category
+  below. The manifest guard refuses any decimal part.
+- **A marker the model never closed.** `iva-servicios-extranjero-comprados`
+  wrote «[1] [3] [49 tomando base…». With no `]`, the invariant read 0
+  violations and the renumbering left it alone, so the route would have shown
+  «[49» to a reader instead of retrying. `validateCitations` now reads an
+  unclosed `[n` (a bare integer, then space or the end of the text) as an
+  unresolved marker, which the route already retries once and then declines.
+- **Over-readings and judge wording.** Among them is the date case
+  (`ccss-ventana-prescripcion-24-meses` says the window «ya venció»; true
+  today, but no fragment carries today's date). It was read before changing
+  anything.
+
+**The scoped read** (the nine plus `ho-desde-cuanta-plata-caja`, ≈US$0.70):
+8/10 grounded. Both escala answers copy «₡746.186» and «₡1.492.370», and
+`ho-800-mil-que-porcentaje-caja` is also adequate. The date case passed as
+written, so the prompt was not given a date on one reading's evidence. The
+two that still fail are judge-side: `multa-iva-no-declarado` (whether the
+art. 79 fine applies per omitted declaration, which the dataset's own claims
+for `ho-desinscribir-debiendo-declaraciones` assert) and
+`ho-minimo-caja-independiente-2026` (BMC wording).
+
+**The full lane** (≈US$6):
+
+| Gate                             | `off`, #311 (baseline) | This run             | Gate                |
+| -------------------------------- | ---------------------- | -------------------- | ------------------- |
+| Hit-rate                         | 71/73                  | 71/73                | ≥ 0.92, pass        |
+| Blocking cases in the top-k      | pass                   | **red**              | all                 |
+| Groundedness                     | 64/73                  | **70/73**            | ≥ 0.94, **pass**    |
+| Blocking cases grounded          | red (2)                | red (1)              | 0 failing           |
+| Adequacy, cases with claims      | 16/40                  | 13/40                | —                   |
+| Tier 1 adequate                  | 5/27                   | 4/27                 | 27/27, fails        |
+| Tier 2 adequate                  | 11/13                  | 9/13                 | ≥ 0.84, **fails**   |
+| Abstention                       | 9/9, figure gate red   | 9/9, figure gate red | ≥ 0.9, zero figures |
+| Citation invariant               | 0                      | 1                    | 0                   |
+| Derived figures completely cited | red                    | red                  | none uncited        |
+
+What moved, and what did not:
+
+- **Groundedness 64 → 70/73, the aggregate gate green.** The three that fail
+  are `multa-iva-no-declarado` (the per-declaration reading again, blocking),
+  `ho-minimo-caja-independiente-2026` (the BMC figures against the derived
+  ones) and `renta-declaracion-plazo` (a Régimen Simplificado fragment cited
+  for the general rule).
+- **The red rows that are not this change.** `ho-factura-electronica-o-recibo`
+  sits at pool #2 in both runs and was reranked out of the top 8 this time,
+  which is expansion variance on a comprobantes question. The five adequacy
+  flips (`ho-rebajar-multa-si-pago-ya`, three Tier 2 losses, one Tier 2 gain)
+  are on cases neither the escala nor the markers touch, inside the ±4 an
+  identical pipeline moves. The invariant's one violation is a _closed_
+  «[47]» on an 8-chunk answer (`ho-cliente-espana-lleva-iva`), an artículo
+  number written as a marker. The route retries it.
+- **Still #352's.** The blocking `multa-iva-no-declarado` reading, the
+  abstention figure gate (`ho-abs-calculo-personalizado` again, now
+  «¢41.040,00»), `ho-desde-cuanta-plata-caja`'s IVM BMC quoted without
+  every input marker (red in both runs; the route refuses that draft), Tier 1
+  adequacy, and the artículo-number-as-marker shape.
+
+Production takes the corpus change with the owner-run `pnpm recrawl
+ccss-faq`; the invariant change ships with the deploy.
