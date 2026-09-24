@@ -37,6 +37,7 @@ import { z } from "zod";
 import {
   getJudgeModel,
   JUDGE_TEMPERATURE,
+  firstJsonObject,
   majorityVerdict,
   REJUDGE_COUNT,
   type Verdict,
@@ -357,40 +358,6 @@ export interface RequirementVerdict {
  * that answered about four of five requirements must not be read as four
  * passes and a silence.
  */
-/**
- * The first balanced `{…}` in `text`, or null.
- *
- * A greedy `/\{[\s\S]*\}/` runs to the *last* brace in the response, so a
- * judge that prints its object and then a sentence containing a brace hands
- * the parser the object plus that prose, and `JSON.parse` fails on text that
- * had a perfectly good object at the front of it. Counting depth — and
- * skipping braces inside strings, where a `reason` may quote one — takes the
- * object and stops.
- */
-export function firstJsonObject(text: string): string | null {
-  const start = text.indexOf("{");
-  if (start === -1) return null;
-  let depth = 0;
-  let inString = false;
-  let escaped = false;
-  for (let i = start; i < text.length; i++) {
-    const ch = text[i];
-    if (escaped) {
-      escaped = false;
-      continue;
-    }
-    if (inString) {
-      if (ch === "\\") escaped = true;
-      else if (ch === '"') inString = false;
-      continue;
-    }
-    if (ch === '"') inString = true;
-    else if (ch === "{") depth++;
-    else if (ch === "}" && --depth === 0) return text.slice(start, i + 1);
-  }
-  return null;
-}
-
 export function parseAdequacyReport(
   text: string,
   count: number,
@@ -641,7 +608,8 @@ export interface AbstentionVerdict {
 }
 
 export function parseAbstentionVerdict(text: string): AbstentionVerdict {
-  const match = text.match(/\{[\s\S]*\}/);
+  const object = firstJsonObject(text);
+  const match = object === null ? null : [object];
   if (!match) {
     throw new Error(
       `abstention judge output has no JSON object: ${text.slice(0, 200)}`,
