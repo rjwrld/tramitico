@@ -301,6 +301,27 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
   });
 
   /**
+   * #427: about 1 answer in 70 (the issue's read of the committed
+   * transcripts) corrects a doubted marker inside the brackets —
+   * «[2][6 no aplica aquí, corrijo: 2]», «[4][6][10 no existe, cito 6]»,
+   * «[7][10 nota: cita 7]». The invariant refuses each and the route spends
+   * its one retry; rule 2 should say a marker holds a number and nothing else,
+   * and that a doubted one is replaced, not annotated.
+   */
+  it("says a marker holds the number and nothing else (#427)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /2\. [^\n]*Cada \[n\] lleva el número del documento y nada más/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /2\. [^\n]*ninguna palabra, nota ni corrección entre los corchetes/,
+    );
+    // The doubted marker: rewritten, not commented on.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /2\. [^\n]*no lo comente ni lo corrija entre corchetes: escriba la oración con el número correcto/,
+    );
+  });
+
+  /**
    * #352, `multa-iva-no-declarado` (blocking): cnpt art. 79 gives «una multa
    * equivalente al cincuenta por ciento (50%) del salario base» to whoever
    * omits «las declaraciones», and never says how it is counted. The judge
@@ -541,5 +562,20 @@ describe("buildUserPrompt on the citation retry (#131)", () => {
     // «artículo 47»; a note that only says «ningún otro número es válido»
     // leaves the model to rediscover which number it got wrong.
     expect(CITATION_RETRY_NOTE).toMatch(/número de un artículo/);
+  });
+
+  it("says a marker holds the number and nothing else on the retry (#427)", () => {
+    // Two of the 2026-09-25 lane's violations were «[10 no existe, cito 6]»
+    // and «[7][10 nota: cita 7]»: a retry that only says which numbers are
+    // valid leaves the annotation itself unnamed.
+    expect(CITATION_RETRY_NOTE).toMatch(
+      /cada \[n\] lleva el número del documento y nada más/,
+    );
+    expect(CITATION_RETRY_NOTE).toMatch(
+      /ninguna palabra, nota ni corrección entre los corchetes/,
+    );
+    expect(CITATION_RETRY_NOTE).toMatch(
+      /no lo comente ni lo corrija entre corchetes: escriba la oración con el número correcto/,
+    );
   });
 });

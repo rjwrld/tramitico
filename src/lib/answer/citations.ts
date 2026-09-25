@@ -66,12 +66,14 @@ export function citationMarkers(text: string): number[] {
 }
 
 /**
- * A `[n` the model never closed — the bare integer followed by space or the
- * end of the text, as in «[49 tomando base…» (#352). It is no marker to
- * `citationMarkers` and none to the renumbering, so without this it would
- * reach a reader as literal text. «[12x]» stays prose, as above.
+ * A `[n` the model never closed — the bare integer followed by space,
+ * punctuation or the end of the text, as in «[49 tomando base…» (#352) or
+ * «[10: cita 7]» (#427). It is no marker to `citationMarkers` and none to the
+ * renumbering, so without this it would reach a reader as literal text.
+ * «[12x]» stays prose, as above, and so does a bracketed figure: a `.` or `,`
+ * followed by a digit («[1.500]», «[13,5]») continues the number.
  */
-const UNCLOSED_MARKER = /\[(\d+)(?=\s|$)/g;
+const UNCLOSED_MARKER = /\[(\d+)(?=\s|[:;—–-]|[.,](?!\d)|$)/g;
 
 /** The numbers of the unclosed `[n` in `text`, in order of appearance. */
 export function unclosedMarkers(text: string): number[] {

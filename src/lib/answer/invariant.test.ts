@@ -71,6 +71,12 @@ describe("validateCitations", () => {
       violation: "no_markers",
       unresolved: [],
     });
+    // Nor a bracketed figure: a decimal point or comma continues the number.
+    expect(validateCitations("Un monto de [1.500] o de [13,5].", 3)).toEqual({
+      ok: false,
+      violation: "no_markers",
+      unresolved: [],
+    });
   });
 
   it("rejects a marker the model never closed (#352)", () => {
@@ -95,6 +101,53 @@ describe("validateCitations", () => {
       violation: "no_markers",
       unresolved: [4],
     });
+  });
+
+  it("rejects a marker the model annotated with its own correction (#427)", () => {
+    // The marker clusters of the three committed answers, verbatim. Refused,
+    // not repaired: in the first the retracted [6] is in range, so a repair
+    // would have to pick which of two numbers the sentence cites from the
+    // model's own prose — the retry decides.
+    expect(
+      validateCitations("…el hosting [2][6 no aplica aquí, corrijo: 2].", 9),
+    ).toEqual({ ok: false, violation: "unresolved_markers", unresolved: [6] });
+    expect(
+      validateCitations("…como asalariado [4][6][10 no existe, cito 6].", 8),
+    ).toEqual({ ok: false, violation: "unresolved_markers", unresolved: [10] });
+    expect(
+      validateCitations("…asegurado por su patrono [7][10 nota: cita 7].", 9),
+    ).toEqual({ ok: false, violation: "unresolved_markers", unresolved: [10] });
+  });
+
+  it("rejects an annotated marker whose number is followed by punctuation (#427)", () => {
+    // Shipped as ok before: the unclosed check wanted a space after the number.
+    // The 2026-09-25 off lane's «[3] [5, ojo: revisar]» on an 8-chunk answer,
+    // and the 2026-09-16 run's «[12, en 2]» — an artículo number with the
+    // document's after it.
+    expect(validateCitations("…gravadas [3] [5, ojo: revisar].", 8)).toEqual({
+      ok: false,
+      violation: "unresolved_markers",
+      unresolved: [5],
+    });
+    expect(
+      validateCitations("…del servicio [1] [12, en 2]. No hay [25, en 1].", 8),
+    ).toEqual({
+      ok: false,
+      violation: "unresolved_markers",
+      unresolved: [12, 25],
+    });
+    for (const annotated of [
+      "[10: cita 7]",
+      "[10; cita 7]",
+      "[10—cita 7]",
+      "[10.",
+    ]) {
+      expect(validateCitations(`Aplica [7]${annotated}`, 9)).toEqual({
+        ok: false,
+        violation: "unresolved_markers",
+        unresolved: [10],
+      });
+    }
   });
 
   it("rejects any marker when nothing was retrieved", () => {
