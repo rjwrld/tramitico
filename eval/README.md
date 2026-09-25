@@ -1,3 +1,23 @@
+- **#352's three rows.** The citation invariant is green. The other two
+  are red, and neither is what it first looked like (corrected after a
+  per-answer read):
+  - **Abstention figure, a false positive.** `ho-abs-calculo-personalizado`
+    declined outright («las reglas de este asistente no permiten operar
+    cifras sobre el caso de una persona») and quoted the salaried hijo credit
+    «¢1.710,00 mensuales» [1] as a contrast. The figure is in `ley-renta` 34
+    and in `tramos-renta-2026`, but the tramos sheet prints it «¢l.710,00»,
+    with an OCR'd lowercase «l», so the substring check could not find it.
+    Rule 3 held. `figureMentions` now reads «¢l» as «¢1» on the source side.
+    The «¢41.040,00» on 2026-09-24 predates rules 3 and 6c.
+  - **Blocking groundedness, our own label.** The art. 79 derived figure was
+    labelled «Multa por cada declaración omitida (artículo 79)» in
+    `corpus/manifest.json`, and that label reaches both the answer prompt and
+    the judge. The answer copied it («esta multa se aplica por cada
+    declaración omitida [1]»), then hedged as rule 9 asks. The judges
+    accepted the count, which was in their material too, and failed the
+    hedge. Art. 79 states no count. The label now mirrors the article: «Multa
+    por omitir la presentación de las declaraciones tributarias».
+
 # Eval dataset (SPEC §9, issues #25/#26)
 
 `dataset.jsonl` holds the hand-written eval questions — Appendix A's nine Tier 1

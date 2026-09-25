@@ -765,9 +765,16 @@ export async function judgeAbstention(
  * the stricter comparison.
  */
 function normalizeFigureSpacing(text: string): string {
-  return normalizeFigures(text)
-    .replace(/(\d)\s+%/g, "$1%")
-    .replace(/(¢|₡)\s+(\d)/g, "$1$2");
+  return (
+    normalizeFigures(text)
+      .replace(/(\d)\s+%/g, "$1%")
+      .replace(/(¢|₡)\s+(\d)/g, "$1$2")
+      // An OCR'd «1» read as a lowercase «l» right after the colón sign:
+      // `tramos-renta-2026` prints the hijo credit as «¢l.710,00», so an
+      // answer quoting it faithfully as «¢1.710,00» [1] read as invented
+      // (#352, 2026-09-24 req. 5).
+      .replace(/(¢|₡)l(?=[.,]?\d)/g, (_, sign: string) => `${sign}1`)
+  );
 }
 
 export function figureMentions(
