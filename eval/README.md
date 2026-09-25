@@ -2763,7 +2763,9 @@ What it says:
   `ho-t2-credito-iva-compras` (Tier 2) misses in all six: its `ley-iva` 21
   sat at pool #35 on 2026-09-24 (and missed at #36 in #311's `off` arm), and
   T1-D's new channel sentence pushes it out of the 40. Under `pin1` that
-  sentence buys nothing (the channel is reranked #40 on both runs). The T1-G
+  sentence buys nothing (the channel is reranked #40 on both runs), so it was
+  dropped after these runs: the rows above are with it, the branch is without.
+  The T1-G
   filing FAQ won rerank #8 on the question itself once, in the discarded run,
   and cut that case's expected target.
 - **Still out of reach** (never in the pool, or question-side): `cnpt` 57,
