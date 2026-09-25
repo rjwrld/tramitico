@@ -16,6 +16,7 @@ import {
   rerankQueries,
   rerankReadings,
   STEP_RERANK_MODE,
+  STEP_SLOTS,
   stepRerankMode,
 } from "./rerank";
 
@@ -320,7 +321,7 @@ describe("the step catalogue at the rerank (#304)", () => {
   it("reads STEPS_RERANK, defaulting to the constant", () => {
     vi.stubEnv("STEPS_RERANK", "");
     expect(stepRerankMode()).toBe(STEP_RERANK_MODE);
-    for (const mode of ["pin", "pin1", "max", "off"] as const) {
+    for (const mode of ["pin", "pin1", "slot", "max", "off"] as const) {
       vi.stubEnv("STEPS_RERANK", mode);
       expect(stepRerankMode()).toBe(mode);
     }
@@ -564,6 +565,121 @@ describe("the step catalogue at the rerank (#304)", () => {
       "c4",
       "c3",
     ]);
+  });
+});
+
+describe("STEPS_RERANK=slot (#287)", () => {
+  beforeEach(() => {
+    vi.unstubAllEnvs();
+    vi.stubEnv("STEPS_RERANK", "slot");
+    vi.stubEnv("ANSWER_TOP_K", "4");
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  const ranked = (chunks: RetrievedChunk[]): RerankedChunk[] =>
+    chunks.map((c, i) => ({ chunk: c, score: 1 - i / 10, rank: i + 1 }));
+  const ids = (chunks: RetrievedChunk[]) => chunks.map((c) => c.chunkId);
+
+  it("gives the cut's last STEP_SLOTS places to the best fresh picks, keeping its size", () => {
+    expect(STEP_SLOTS).toBe(2);
+    const order = ranked(Array.from({ length: 8 }, (_, i) => chunk(i + 1)));
+    // c2 is already in the cut and takes no slot; c7 outscores c6 though
+    // its sentence came second; c8 is the third fresh pick and gets none.
+    const picks = [
+      { ...order[5], score: 0.6 },
+      { ...order[1], score: 0.99 },
+      { ...order[6], score: 0.7 },
+      { ...order[7], score: 0.5 },
+    ];
+    expect(ids(answerSetFromOrder(order, [], picks))).toEqual([
+      "c1",
+      "c2",
+      "c7",
+      "c6",
+    ]);
+    // No fresh pick: the cut exactly as `off` makes it.
+    expect(ids(answerSetFromOrder(order, [], [picks[1]]))).toEqual([
+      "c1",
+      "c2",
+      "c3",
+      "c4",
+    ]);
+  });
+
+  it("never displaces a derived figure's input, and drops a pick rather than grow", () => {
+    const escala: RetrievedChunk = {
+      ...chunk(3),
+      docKey: "ccss-escala-ivm",
+      articulo: "Artículo 4°, sesión 9570",
+    };
+    const salarios: RetrievedChunk = {
+      ...chunk(4),
+      docKey: "salarios-minimos",
+      articulo: "Artículo 1",
+    };
+    const order = ranked([
+      chunk(1),
+      chunk(2),
+      escala,
+      salarios,
+      chunk(5),
+      chunk(6),
+    ]);
+    const picks = [
+      { ...order[4], score: 0.9 },
+      { ...order[5], score: 0.8 },
+    ];
+    // The two inputs hold #3 and #4, so the slots go to #2 and then #1.
+    expect(ids(answerSetFromOrder(order, [], picks))).toEqual([
+      "c3",
+      "c4",
+      "c5",
+      "c6",
+    ]);
+    vi.stubEnv("ANSWER_TOP_K", "3");
+    // Only c2 can give way: one pick placed, the other dropped, size 3.
+    const tight = ranked([escala, chunk(2), salarios, chunk(5), chunk(6)]);
+    expect(
+      ids(
+        answerSetFromOrder(
+          tight,
+          [],
+          [
+            { ...tight[3], score: 0.9 },
+            { ...tight[4], score: 0.8 },
+          ],
+        ),
+      ),
+    ).toEqual(["c3", "c4", "c5"]);
+  });
+
+  it("scores the sentences at the rerank, as pin and pin1 do", async () => {
+    const fetchImpl = vi.fn(async (_url: string, init: RequestInit) => {
+      const { query } = JSON.parse(init.body as string);
+      const data =
+        query === "paso"
+          ? [{ index: 2, relevance_score: 0.9 }]
+          : [
+              { index: 0, relevance_score: 0.9 },
+              { index: 1, relevance_score: 0.8 },
+              { index: 2, relevance_score: 0.1 },
+            ];
+      return new Response(JSON.stringify({ data }), { status: 200 });
+    }) as unknown as typeof fetch;
+    vi.stubEnv("RERANK", "voyage");
+    vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+    vi.stubEnv("ANSWER_TOP_K", "2");
+    const pool = [chunk(1), chunk(2), chunk(3)];
+    const outcome = await rerankReadings("pregunta", pool, {
+      steps: ["paso"],
+      fetchImpl,
+    });
+    expect(outcome!.stepPicks.map((p) => p.chunk.chunkId)).toEqual(["c3"]);
+    expect(
+      ids(answerSetFromOrder(outcome!.order, pool, outcome!.stepPicks)),
+    ).toEqual(["c1", "c3"]);
   });
 });
 

@@ -2689,3 +2689,89 @@ re-run is what measures them.
   spanning several periods is told that the documents do not specify the
   count and is referred on under rule 6. The dataset and the judge are
   unchanged.
+
+## The carrying chunks at the cut (2026-09-24, #287)
+
+> **Retrieval only: no answer model, no judge.** Six hit-rate lanes on the
+> local stack carrying the 2026-09-24 ingest, production retrieval knobs, only
+> `STEPS_RERANK` moved. ≈US$2.35 including one discarded run. Rows in
+> [`eval/runs/2026-09-24-287-carriers/`](runs/2026-09-24-287-carriers/).
+
+#412's classification named, per Tier 1 case, the chunk that carries each
+requirement the answer lacked. They are committed as
+[`tier1-carriers.json`](tier1-carriers.json) (47 chunks over 20 cases, plus
+F1's two BMC inputs), and the hit-rate lane now prints where each one sat and
+how many reached the answer set. The before-state is free: on the 2026-09-24
+full lane's transcript, 2 of the 47 are in the answer set (F1's two), and the
+lane's log places 15 of the others **in the fused 40 and reranked out**
+(`cnpt` 79 pool #2 → rerank #33, `cnpt` 88 pool #7 → #27). So with
+`STEPS_RERANK=off` a catalogue edit cannot move the answer set: the reranker
+scores each chunk alone, and pool order does not reach it.
+
+**What changed on this branch.**
+
+- **Catalogue** (`step-catalogue.json`, every family still ≤ 4 sentences):
+  the TRIBU-CR channel (`tribu-cr-res-0011-2025` 2) for T1-D, T1-E (in the
+  tramos sentence's place: the question's own legs carry tramos-renta-2026 to
+  the top-8 on all three T1-E cases) and T1-I (in place of a sentence that
+  quoted no chunk); the OVi inscription path (`tribu-cr-faq` Declaraciones del
+  RUT · 2) for T1-A; `salario-base-2026` for T1-I; `ley-iva` 27 for T1-H; the
+  Ley 10.363 filing FAQ for T1-G; the five-year retention (art. 22) for T1-C.
+  Each was checked for free first: its `websearch_to_tsquery` matches its
+  target at lexical rank 1.
+- **`salario-base-2026` rides the existing pin.** It is the declared input of
+  `cnpt` 78/79's fines, and the 2026-09-24 answers to `multa-iva-no-declarado`
+  (79 at [1]) and `inscripcion-tardia-sancion` (78 at [2]) resolved no figure
+  only because the circular was not in the pool.
+- **A BMC figure group** (`corpus/manifest.json`): the IVM and SEM bases share
+  `group: "bmc-2026"`, so one surviving the rerank makes the other eligible
+  for the pin. #403's losing run is exactly the SEM half present and the IVM
+  escala cut.
+- **`STEPS_RERANK=slot`** (rerank.ts): the best two step picks take the cut's
+  last two places instead of growing it. A derived figure's input is never
+  displaced.
+
+| Arm (production knobs)             | `off` r2 · r3  | `pin1` r1 · r2 | `slot` r1 · r2 |
+| ---------------------------------- | -------------- | -------------- | -------------- |
+| Carrying chunks in the answer set  | 5 · 5 /47      | 14 · 14 /47    | 23 · 24 /47    |
+| Hit-rate                           | 71 · 70 /73    | 71 · 71 /73    | 71 · 71 /73    |
+| Blocking-case gate                 | green · red    | green · green  | red · green    |
+| Expected targets in the answer set | 128 · 126 /187 | 136 · 135 /187 | 133 · 129 /187 |
+| Prompt size on a classified ask    | 8              | 9              | 8              |
+
+What it says:
+
+- **The catalogue fills the pool; it does not reach the model on its own.**
+  Every new sentence carries its chunk into the 40 (Declaraciones del RUT · 2
+  at pool #4–8, the channel at #14–24, art. 22 at #6–22, the filing FAQ at
+  #1), and the reranker still places them mostly #13–#40. Under `off` the only
+  carrier gain is `salario-base-2026`, through the pin: the three T1-I cases
+  now resolve their fine figures (none did on 2026-09-24).
+- **`pin1` doubles `off` with no hit-rate cost.** 14/47 on both runs, every
+  gate green on both, and it holds `ho-factura-electronica-o-recibo`: that
+  case's target is also T1-C's first catalogue pick, so the one append
+  rescues the blocking case `off` loses one run in two.
+- **`slot` reaches the most, and pays at #8.** 23–24/47, but on r1 a step pick
+  displaced `ccss-pedir-prescripcion-cuotas`' only surviving target from #8,
+  a blocking red, and it holds 3–7 fewer expected targets than `pin1`. That
+  is the risk the mode's comment names, measured.
+- **F1 did not move, and did not need to.** `ccss-escala-ivm` was at rerank #7
+  and `salarios-minimos` pinned in all six runs, so the group rule never
+  fired. #403's 1-in-3 loss is not reproduced here. The group stays as
+  insurance, unit-tested but not yet seen firing.
+- **Two side effects, both from the catalogue.**
+  `ho-t2-credito-iva-compras` (Tier 2) misses in all six: its `ley-iva` 21
+  sat at pool #35 on 2026-09-24 (and missed at #36 in #311's `off` arm), and
+  T1-D's new channel sentence pushes it out of the 40. Under `pin1` that
+  sentence buys nothing (the channel is reranked #40 on both runs). The T1-G
+  filing FAQ won rerank #8 on the question itself once, in the discarded run,
+  and cut that case's expected target.
+- **Still out of reach** (never in the pool, or question-side): `cnpt` 57,
+  `cnpt` 88 for T1-D, ley-iva 8/10 and reglamento-comprobantes 2 for
+  `ho-cliente-espana-lleva-iva`, the RUT detail entries for
+  `ho-donde-inscribo-ya-no-atv`, `ley-renta` 4/24 and reglamento-renta 26,
+  and the two CCSS FAQs T1-B and T1-F would need a fifth sentence for
+  («¿Dónde puedo pagar…?», «¿…ingresos han variado?»).
+
+None of this reads groundedness or adequacy: those need the answer model and
+the judge, one full lane per arm (≈US$6). The shipped default stays `off`.

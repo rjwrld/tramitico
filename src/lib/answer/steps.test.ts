@@ -69,6 +69,23 @@ describe("the step catalogue (#304)", () => {
     }
   });
 
+  it("keeps T1-I's salario base equal to the audited fine input (#287)", () => {
+    // The same shape one decree over: `salario-base-2026` is the input of
+    // cnpt 78/79's fines, and T1-I's sentence reaches it by the circular's
+    // own figure. The annual circular fails here, not in a pool rank.
+    const input = DERIVED_FIGURES.flatMap((figure) => figure.inputs).find(
+      (candidate) => candidate.docKey === "salario-base-2026",
+    );
+    expect(input, "no salario-base-2026 input in the manifest").toBeDefined();
+    const quoting = STEP_CATALOGUE["T1-I"].steps.filter((sentence) =>
+      sentence.includes("el salario base que se debe aplicar"),
+    );
+    expect(quoting.length).toBe(1);
+    expect(quoting[0]).toContain(
+      formatCostaRicanColones(input!.value, input!.decimals),
+    );
+  });
+
   it("names chunks the committed corpus actually holds", () => {
     // The committed coverage dump (#163) is what makes this a unit test: a
     // catalogue sentence aimed at a chunk that was renamed or dropped is a

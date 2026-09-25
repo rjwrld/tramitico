@@ -1,0 +1,84 @@
+{
+  "$comment": "The carrying chunks of #412's Tier 1 miss classification (eval/README.md «The 23 Tier 1 misses, classified»), for #287's retrieval-only read: each case's retrieval rows mapped to the chunk that carries the missing requirement, plus F1's two BMC inputs. `retrieval-hitrate.eval.test.ts` prints, per case, where each one sat — fused pool, reranked order, answer set — and how many reached the answer set. A diagnostic, not a gate: the rows come from one run's answers, and a case whose answer now states the requirement from another chunk is still read here by this chunk.",
+  "cases": {
+    "ho-hacienda-solo-cliente-eeuu": [
+      "tribu-cr-faq · Declaraciones del RUT · 2",
+      "cnpt · Artículo 78"
+    ],
+    "ho-trabajitos-por-mi-cuenta": ["tribu-cr-faq · Declaraciones del RUT · 2"],
+    "ho-donde-inscribo-ya-no-atv": [
+      "tribu-cr-faq · Ingreso a la Oficina Virtual (OVI) · 1",
+      "tribu-cr-faq · Declaraciones del RUT · 10",
+      "tribu-cr-faq · Declaraciones del RUT · 13",
+      "tribu-cr-faq · Declaraciones del RUT · 14"
+    ],
+    "ccss-obligacion-ingreso-bajo": [
+      "ccss-faq · ¿Dónde me corresponde realizar el trámite de afiliación?"
+    ],
+    "ho-desde-cuanta-plata-caja": [
+      "ccss-reglamento-ti · Artículo 7",
+      "ccss-reglamento-ti · Artículo 10",
+      "ccss-faq · ¿Dónde puedo pagar mi seguro?"
+    ],
+    "ho-donde-me-afilio-caja": [
+      "ccss-faq · ¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente?"
+    ],
+    "ho-tiquete-en-vez-de-factura": ["reglamento-comprobantes · Artículo 4"],
+    "ho-factura-electronica-o-recibo": [
+      "reglamento-comprobantes · Artículo 16",
+      "reglamento-comprobantes · Artículo 22"
+    ],
+    "ho-cliente-espana-lleva-iva": [
+      "ley-iva · Artículo 8",
+      "reglamento-iva · Artículo 11",
+      "reglamento-comprobantes · Artículo 2",
+      "ley-iva · Artículo 10"
+    ],
+    "ho-iva-en-cero-sin-facturar": [
+      "tribu-cr-res-0011-2025 · Artículo 2",
+      "cnpt · Artículo 79",
+      "cnpt · Artículo 88"
+    ],
+    "ho-rebajar-25-sin-facturas": ["tribu-cr-res-0011-2025 · Artículo 2"],
+    "ho-minimo-renta-2026": ["ley-renta · Artículo 4"],
+    "ho-ademas-tengo-salario": [
+      "ley-renta · ARTICULO 22",
+      "ley-renta · Artículo 24",
+      "reglamento-renta · Artículo 26",
+      "reglamento-renta · Artículo 28",
+      "reglamento-renta · Artículo 30"
+    ],
+    "ho-800-mil-que-porcentaje-caja": [
+      "ccss-faq · ¿Cómo procedo si mis ingresos han variado?"
+    ],
+    "ccss-pedir-prescripcion-cuotas": [
+      "ccss-prescripcion · ¿Cómo se solicita la prescripción?",
+      "ccss-prescripcion · ¿Dónde presento la solicitud?",
+      "ccss-faq · ¿Dónde puedo solicitar la prescripción de cuotas de trabajador independiente pendientes de pago (Ley N°10.363)?"
+    ],
+    "desinscripcion-dejar-actividad": [
+      "ley-iva · Artículo 27",
+      "cnpt · Artículo 79",
+      "reglamento-iva · Artículo 67"
+    ],
+    "ho-desinscribir-debiendo-declaraciones": [
+      "ley-iva · Artículo 27",
+      "cnpt · Artículo 79"
+    ],
+    "multa-iva-no-declarado": [
+      "cnpt · Artículo 57",
+      "cnpt · Artículo 88",
+      "salario-base-2026 · Circular 246-2025"
+    ],
+    "inscripcion-tardia-sancion": [
+      "cnpt · Artículo 88",
+      "tribu-cr-faq · Declaraciones del RUT · 2",
+      "salario-base-2026 · Circular 246-2025"
+    ],
+    "ho-rebajar-multa-si-pago-ya": ["tribu-cr-res-0011-2025 · Artículo 2"],
+    "ccss-cuanto-pago-base": [
+      "ccss-escala-ivm · Artículo 4°, sesión 9570",
+      "salarios-minimos · Artículo 1"
+    ]
+  }
+}

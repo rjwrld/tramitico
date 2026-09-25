@@ -30,6 +30,12 @@ export interface DerivedFigure {
   /** Display precision for the result. */
   decimals: number;
   inputs: DerivedFigureInput[];
+  /**
+   * Figures that are halves of one claim share a group (#287): the BMC's IVM
+   * and SEM bases are both «lo mínimo que se paga», so one surviving the
+   * rerank makes the other eligible for the pin (`pinDerivedFigureInputs`).
+   */
+  group?: string;
 }
 
 export interface ResolvedDerivedFigure extends DerivedFigure {
@@ -252,6 +258,9 @@ export function parseDerivedFigures(value: unknown): DerivedFigure[] {
       ) {
         throw new Error("Invalid derived figure declaration");
       }
+      if (candidate.group !== undefined && !nonEmptyString(candidate.group)) {
+        throw new Error("A derived figure group must be a word");
+      }
       for (const input of candidate.inputs) {
         if (
           !isRecord(input) ||
@@ -289,6 +298,20 @@ function statesInput(
   input: DerivedFigureInput,
 ): boolean {
   return chunk.docKey === input.docKey && chunk.articulo === input.articulo;
+}
+
+/**
+ * Whether a chunk is the audited source of any declared figure's input. The
+ * step slots (`STEPS_RERANK=slot`, rerank.ts) never displace one: a figure is
+ * arithmetic over every input, and one missing chunk deletes it.
+ */
+export function isDerivedFigureInput(
+  chunk: RetrievedChunk,
+  figures: readonly DerivedFigure[] = DERIVED_FIGURES,
+): boolean {
+  return figures.some((figure) =>
+    figure.inputs.some((input) => statesInput(chunk, input)),
+  );
 }
 
 /** Resolve figures against the exact chunks that will be numbered in the prompt. */
@@ -466,8 +489,20 @@ export function pinDerivedFigureInputs(
     // reading `pinned` here would let figure [A, B] pull in B and figure
     // [B, C] then ride on it — pinning C for a figure the rerank never
     // reached at all. One append may not become a chain.
-    const survived = figure.inputs.some((input) =>
-      answerSet.some((chunk) => statesInput(chunk, input)),
+    // A declared group widens what counts as surviving, never what counts
+    // as present: the BMC's IVM base is eligible when its SEM half survived
+    // the rerank (#287, #403 — `ccss-escala-ivm` lost its slot one run in
+    // three and the figure went unprinted beside a resolved SEM base). Still
+    // judged against the rerank's own output, so no chain.
+    const kin = figures.filter(
+      (other) =>
+        other === figure ||
+        (figure.group !== undefined && other.group === figure.group),
+    );
+    const survived = kin.some((member) =>
+      member.inputs.some((input) =>
+        answerSet.some((chunk) => statesInput(chunk, input)),
+      ),
     );
     // Nothing present: not this question's figure, and pinning every half
     // would invent a claim.

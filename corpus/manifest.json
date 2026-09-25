@@ -330,6 +330,7 @@
       "derivedFigures": [
         {
           "id": "bmc-ivm-2026",
+          "group": "bmc-2026",
           "label": "Base mínima contributiva de IVM 2026",
           "formula": "factor * sm.tonc",
           "decimals": 0,
@@ -401,6 +402,7 @@
       "derivedFigures": [
         {
           "id": "bmc-sem-2026",
+          "group": "bmc-2026",
           "label": "Base mínima contributiva de SEM (Salud) 2026",
           "formula": "factor * sm.tonc",
           "decimals": 0,

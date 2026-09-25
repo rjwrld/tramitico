@@ -5,6 +5,7 @@ import {
   evaluateFormula,
   formatCostaRicanColones,
   incompletelyCitedDerivedFigures,
+  isDerivedFigureInput,
   parseDerivedFigures,
   pinDerivedFigureInputs,
   pinEnabled,
@@ -234,6 +235,14 @@ describe("parseDerivedFigures", () => {
       ).toThrow(/symbol/i);
     },
   );
+
+  it.each(["", 5])("rejects a group that is not a word: %j", (group) => {
+    expect(() =>
+      parseDerivedFigures({
+        documents: [{ derivedFigures: [{ ...BMC_IVM, group }] }],
+      }),
+    ).toThrow(/group/i);
+  });
 
   it.each([-1, 11])("rejects output precision %i outside 0..10", (decimals) => {
     expect(() =>
@@ -490,6 +499,74 @@ describe("pinDerivedFigureInputs", () => {
       [BMC_IVM, bmcSem],
     );
     expect(pinned).toEqual([escala, salud, salarios]);
+  });
+
+  describe("a declared group (#287)", () => {
+    const salud = chunk("ccss-escala-salud", "Artículo 30°, sesión 8999");
+    const bmcSem: DerivedFigure = {
+      ...BMC_IVM,
+      id: "bmc-sem-2026",
+      inputs: [
+        {
+          ...BMC_IVM.inputs[0],
+          docKey: "ccss-escala-salud",
+          articulo: "Artículo 30°, sesión 8999",
+        },
+        BMC_IVM.inputs[1],
+      ],
+    };
+    const grouped = [
+      { ...BMC_IVM, group: "bmc-2026" },
+      { ...bmcSem, group: "bmc-2026" },
+    ];
+
+    it("makes a figure eligible when its group's other half survived (#403's losing run)", () => {
+      // The rerank kept the SEM escala and cut the IVM one; salarios-minimos
+      // is in the pool. Ungrouped, only SEM resolves and the IVM base is
+      // never printed.
+      expect(
+        pinDerivedFigureInputs(
+          [other, salud],
+          [other, salud, salarios, escala],
+          [BMC_IVM, bmcSem],
+        ),
+      ).toEqual([other, salud, salarios]);
+      const pinned = pinDerivedFigureInputs(
+        [other, salud],
+        [other, salud, salarios, escala],
+        grouped,
+      );
+      expect(pinned).toEqual([other, salud, escala, salarios]);
+      expect(
+        resolveDerivedFigures(pinned, grouped).map((figure) => figure.id),
+      ).toEqual(["bmc-ivm-2026", "bmc-sem-2026"]);
+    });
+
+    it("still pins nothing when no member of the group survived", () => {
+      expect(
+        pinDerivedFigureInputs(
+          [other],
+          [other, salud, salarios, escala],
+          grouped,
+        ),
+      ).toEqual([other]);
+    });
+
+    it("is declared in the manifest for the two BMC bases", () => {
+      const groups = DERIVED_FIGURES.filter((figure) =>
+        figure.id.startsWith("bmc-"),
+      ).map((figure) => figure.group);
+      expect(groups).toEqual(["bmc-2026", "bmc-2026"]);
+    });
+  });
+
+  it("isDerivedFigureInput names the audited sources of every declared input", () => {
+    expect(isDerivedFigureInput(escala, [BMC_IVM])).toBe(true);
+    expect(isDerivedFigureInput(salarios, [BMC_IVM])).toBe(true);
+    expect(isDerivedFigureInput(other, [BMC_IVM])).toBe(false);
+    expect(
+      isDerivedFigureInput(chunk("salario-base-2026", "Circular 246-2025")),
+    ).toBe(true);
   });
 
   it("is on by default, and when CI interpolates an unset variable as empty", () => {

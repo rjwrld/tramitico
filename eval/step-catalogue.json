@@ -1,11 +1,12 @@
 {
-  "$comment": "Hand-written step catalogue per Tier 1 family (#304). Each family carries two to four sentences naming what a complete answer needs and the question never asks for — where to go, when to pay, what the sanction is, how to adjust a figure, and (#312) the *input* of a figure the answer derives rather than quotes: `ccss-cuanto-pago-base`'s BMC in colones is 0,9295 SM × the salario mínimo, and the reader who asks «¿cuánto pago?» never names the decree that fixes it, so `salarios-minimos` art. 1 sat at fused #122 and the derivation could not resolve. That fourth sentence is the decree's own table line, and it is a fourth rather than a replacement because the three steps it joins each still carry a chunk of their own. Each sentence is written in the words of the one chunk it is meant to reach, one step per sentence and no second clause: `search_chunks` searches the sentences one by one (src/lib/answer/steps.ts), and a sentence that mirrors its chunk wins the lexical leg's strict AND branch outright, while a sentence that also says something else falls to the OR branch and loses that chunk to longer ones (the first draft carried `cnpt` art. 79 at fused #49 for exactly that reason). `cases` names the dataset rows each entry was written for and `reaches` the chunks it is meant to carry into the pool. Verified against public.chunks, not written from memory: every figure below is in the chunk it names.",
+  "$comment": "Hand-written step catalogue per Tier 1 family (#304). Each family carries two to four sentences naming what a complete answer needs and the question never asks for — where to go, when to pay, what the sanction is, how to adjust a figure, and (#312) the *input* of a figure the answer derives rather than quotes: `ccss-cuanto-pago-base`'s BMC in colones is 0,9295 SM × the salario mínimo, and the reader who asks «¿cuánto pago?» never names the decree that fixes it, so `salarios-minimos` art. 1 sat at fused #122 and the derivation could not resolve. That fourth sentence is the decree's own table line, and it is a fourth rather than a replacement because the three steps it joins each still carry a chunk of their own. Each sentence is written in the words of the one chunk it is meant to reach, one step per sentence and no second clause: `search_chunks` searches the sentences one by one (src/lib/answer/steps.ts), and a sentence that mirrors its chunk wins the lexical leg's strict AND branch outright, while a sentence that also says something else falls to the OR branch and loses that chunk to longer ones (the first draft carried `cnpt` art. 79 at fused #49 for exactly that reason). `cases` names the dataset rows each entry was written for and `reaches` the chunks it is meant to carry into the pool. Verified against public.chunks, not written from memory: every figure below is in the chunk it names. #287 added the sentences for carrying chunks #412's classification found missing from the answer set (the TRIBU-CR channel, the OVi inscription path, salario-base-2026, ley-iva 27 for T1-H, the Ley 10.363 filing FAQ, the five-year retention), each checked the same way: its websearch_to_tsquery matches its target at lexical rank 1. T1-E's tramos sentence gave its place to the channel: the question's own legs already carry tramos-renta-2026 to the top-8 on all three T1-E cases. salario-base-2026 is a derived-figure input (cnpt 78/79's fines), so once the catalogue puts it in the pool the #287 pin carries it to the model.",
   "families": {
     "T1-A": {
       "steps": [
         "Una persona física puede presentar la declaración de inscripción en el Registro Tributario mediante la Oficina Virtual de TRIBU-CR, con su cédula de identidad, el DIMEX o el NITE.",
         "Todo trabajador independiente, costarricense o extranjero que resida en el país, debe cumplir sus obligaciones de afiliación y contribución con el Seguro de Salud y el Seguro de Invalidez, Vejez y Muerte de la CCSS.",
-        "Quienes omitan presentar la declaración de inscripción, desinscripción o modificación deberán liquidar y pagar una sanción equivalente al cincuenta por ciento (50%) de un salario base por cada mes o fracción de mes."
+        "Quienes omitan presentar la declaración de inscripción, desinscripción o modificación deberán liquidar y pagar una sanción equivalente al cincuenta por ciento (50%) de un salario base por cada mes o fracción de mes.",
+        "Para realizar la declaración de inscripción se debe ingresar a la Oficina Virtual, hacer clic en la pestaña «Mis datos» y seleccionar el botón «Realizar declaración de inscripción»."
       ],
       "cases": [
         "ho-trabajitos-por-mi-cuenta",
@@ -16,7 +17,8 @@
         "tribu-cr-faq · Registro Único Tributario (RUT) · 1",
         "tribu-cr-faq · Registro Único Tributario (RUT) · 2",
         "ccss-reglamento-ti · Artículo 1",
-        "cnpt · Artículo 78"
+        "cnpt · Artículo 78",
+        "tribu-cr-faq · Declaraciones del RUT · 2"
       ]
     },
     "T1-B": {
@@ -42,7 +44,8 @@
       "steps": [
         "El emisor receptor electrónico debe estar inscrito en el Registro Único Tributario, tener registrado un correo electrónico válido ante la Administración Tributaria y disponer de un sistema para la emisión y recepción de comprobantes electrónicos.",
         "Los comprobantes electrónicos autorizados por la Administración Tributaria son la factura electrónica, la factura electrónica de compra, la factura electrónica de exportación, el tiquete electrónico y el recibo electrónico de pago.",
-        "Los códigos CABYS relevantes para desarrollo de software y TI: paquete de software de herramientas de desarrollo y lenguajes de programación, servicios de consultoría en software y licenciamiento de uso de programas informáticos."
+        "Los códigos CABYS relevantes para desarrollo de software y TI: paquete de software de herramientas de desarrollo y lenguajes de programación, servicios de consultoría en software y licenciamiento de uso de programas informáticos.",
+        "Los emisores deberán almacenar y conservar todos los comprobantes electrónicos generados, enviados y recibidos por un plazo de cinco años."
       ],
       "cases": [
         "ho-factura-electronica-o-recibo",
@@ -52,14 +55,16 @@
       "reaches": [
         "reglamento-comprobantes · Artículo 4",
         "reglamento-comprobantes · Artículo 9",
-        "cabys-dev"
+        "cabys-dev",
+        "reglamento-comprobantes · Artículo 22"
       ]
     },
     "T1-D": {
       "steps": [
         "Los contribuyentes deben liquidar el impuesto a más tardar el decimoquinto día natural de cada mes mediante declaración jurada, y la obligación de presentar la declaración subsiste aun cuando no se pague el impuesto.",
         "Los sujetos pasivos que omitan presentar las declaraciones de autoliquidación de obligaciones tributarias dentro del plazo legal establecido tendrán una multa equivalente al cincuenta por ciento (50%) del salario base.",
-        "Está exenta del impuesto la prestación de servicios por contribuyentes del impuesto cuando sean consumidos fuera del territorio nacional, y se documenta con factura electrónica de exportación."
+        "Está exenta del impuesto la prestación de servicios por contribuyentes del impuesto cuando sean consumidos fuera del territorio nacional, y se documenta con factura electrónica de exportación.",
+        "El Sistema Integrado de Gestión Tributaria TRIBU-CR es la única plataforma digital tributaria que se utilizará para la gestión de trámites y el cumplimiento de los deberes formales y materiales."
       ],
       "cases": [
         "ho-iva-en-cero-sin-facturar",
@@ -70,14 +75,15 @@
         "ley-iva · Artículo 27",
         "reglamento-iva · Artículo 40",
         "cnpt · Artículo 79",
-        "reglamento-iva · Artículo 11"
+        "reglamento-iva · Artículo 11",
+        "tribu-cr-res-0011-2025 · Artículo 2"
       ]
     },
     "T1-E": {
       "steps": [
         "Los contribuyentes del impuesto sobre las utilidades deberán presentar una declaración jurada de autoliquidación del impuesto y pagar la respectiva deuda tributaria dentro de los dos meses y quince días naturales siguientes al cierre del período fiscal.",
         "Los contribuyentes están obligados a efectuar pagos parciales a cuenta del impuesto de cada período fiscal, calculados sobre el impuesto determinado en el año inmediato anterior o el promedio de los tres últimos períodos fiscales.",
-        "Tramos del impuesto sobre la renta para el período fiscal: las rentas de hasta el monto mensual exento no están sujetas al impuesto, y sobre el exceso aplica la tasa de impuesto de cada tramo.",
+        "El Sistema Integrado de Gestión Tributaria TRIBU-CR es la única plataforma digital tributaria que se utilizará para la gestión de trámites y el cumplimiento de los deberes formales y materiales.",
         "Las personas físicas que presten servicios personales sin relación de dependencia podrán acogerse a una deducción única, sin necesidad de prueba alguna, del veinticinco por ciento (25%) de los ingresos brutos de la actividad."
       ],
       "cases": [
@@ -88,8 +94,8 @@
       "reaches": [
         "reglamento-renta · Artículo 28",
         "ley-renta · ARTICULO 22",
-        "tramos-renta-2026",
-        "ley-renta · ARTICULO 8"
+        "ley-renta · ARTICULO 8",
+        "tribu-cr-res-0011-2025 · Artículo 2"
       ]
     },
     "T1-F": {
@@ -115,7 +121,8 @@
       "steps": [
         "La solicitud de prescripción se presenta por escrito ante la unidad o sucursal financiera de la CCSS a cargo del procedimiento de verificación de obligaciones, o en la cuenta de correo cobros@ccss.sa.cr cuando la deuda está en proceso de cobro.",
         "El plazo otorgado a la Administración para resolver la prescripción en sede administrativa es de 20 días hábiles, contados a partir del siguiente día hábil de recibida la solicitud.",
-        "El trabajador independiente puede solicitar la prescripción en cualquier fase del procedimiento de verificación de obligaciones o cuando la deuda está en proceso de cobro."
+        "El trabajador independiente puede solicitar la prescripción en cualquier fase del procedimiento de verificación de obligaciones o cuando la deuda está en proceso de cobro.",
+        "La solicitud de prescripción de cuotas de trabajador independiente se puede presentar en la sucursal de la CCSS más cerca o enviar al correo electrónico cobros@ccss.sa.cr."
       ],
       "cases": [
         "ccss-pedir-prescripcion-cuotas",
@@ -125,14 +132,16 @@
       "reaches": [
         "ccss-prescripcion · ¿Dónde presento la solicitud?",
         "ccss-prescripcion · ¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración?",
-        "ccss-prescripcion · ¿En qué momento puedo solicitar la prescripción de las deudas?"
+        "ccss-prescripcion · ¿En qué momento puedo solicitar la prescripción de las deudas?",
+        "ccss-faq · ¿Dónde puedo solicitar la prescripción de cuotas de trabajador independiente pendientes de pago (Ley N°10.363)?"
       ]
     },
     "T1-H": {
       "steps": [
         "Para solicitar la desinscripción del sistema TRIBU-CR se ingresa a la Oficina Virtual, en «Mis datos» se selecciona «Solicitar desinscripción» y, con «Cierre de negocio» como motivo, se completa la fecha de fin de actividades económicas.",
         "Los sujetos pasivos que omitan presentar las declaraciones de autoliquidación de obligaciones tributarias dentro del plazo legal establecido tendrán una multa equivalente al cincuenta por ciento (50%) del salario base.",
-        "En caso de que el trabajador independiente suspenda la actividad generadora de ingresos, debe comunicarlo de forma inmediata a la sucursal donde se afilió para la suspensión de la facturación, demostrando que cesó la actividad económica propia."
+        "En caso de que el trabajador independiente suspenda la actividad generadora de ingresos, debe comunicarlo de forma inmediata a la sucursal donde se afilió para la suspensión de la facturación, demostrando que cesó la actividad económica propia.",
+        "Los contribuyentes deben liquidar el impuesto a más tardar el decimoquinto día natural de cada mes mediante declaración jurada, y la obligación de presentar la declaración subsiste aun cuando no se pague el impuesto."
       ],
       "cases": [
         "ho-desinscribir-debiendo-declaraciones",
@@ -144,14 +153,16 @@
         "tribu-cr-faq · Declaraciones del RUT · 43",
         "cnpt · Artículo 79",
         "ccss-faq · ¿Qué debo hacer si dejo de trabajar de forma Independiente?",
-        "ccss-faq · ¿Se puede suspender el seguro de trabajador independiente?"
+        "ccss-faq · ¿Se puede suspender el seguro de trabajador independiente?",
+        "ley-iva · Artículo 27"
       ]
     },
     "T1-I": {
       "steps": [
         "Las sanciones se reducirán cuando el infractor subsane de forma espontánea su incumplimiento sin que medie ninguna actuación de la Administración, y la reducción es mayor si autoliquida y paga la sanción en el momento de subsanar el incumplimiento.",
-        "Las declaraciones omitidas y la declaración de inscripción se presentan en la Oficina Virtual de TRIBU-CR, donde también se autoliquida y paga la sanción.",
-        "Quienes omitan presentar la declaración de inscripción deberán liquidar y pagar una sanción del cincuenta por ciento (50%) de un salario base por cada mes o fracción de mes, y quienes omitan presentar las declaraciones tributarias tendrán una multa del cincuenta por ciento (50%) del salario base."
+        "El Sistema Integrado de Gestión Tributaria TRIBU-CR es la única plataforma digital tributaria que se utilizará para la gestión de trámites y el cumplimiento de los deberes formales y materiales.",
+        "Quienes omitan presentar la declaración de inscripción deberán liquidar y pagar una sanción del cincuenta por ciento (50%) de un salario base por cada mes o fracción de mes, y quienes omitan presentar las declaraciones tributarias tendrán una multa del cincuenta por ciento (50%) del salario base.",
+        "A partir del 1° de enero del 2026, el salario base que se debe aplicar para definir las penas es de ¢462.200."
       ],
       "cases": [
         "inscripcion-tardia-sancion",
@@ -161,7 +172,9 @@
       "reaches": [
         "cnpt · Artículo 88",
         "cnpt · Artículo 78",
-        "cnpt · Artículo 79"
+        "cnpt · Artículo 79",
+        "tribu-cr-res-0011-2025 · Artículo 2",
+        "salario-base-2026 · Circular 246-2025"
       ]
     }
   }
