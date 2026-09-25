@@ -68,8 +68,8 @@ under the 0.94 gate, the shipped default included (71/73 at #304), so `off` stay
 #311's rule, and `pin1` is the first thing to re-read once the baseline is back over the gate
 (eval/README.md, «One step pick, not one per sentence»).
 Re-read on #352's req. 5 run (2026-09-24, [#287](https://github.com/rjwrld/tramitico/issues/287)):
-groundedness 67/73 again, Tier 1 requirements stated 70/118 against `off`'s 64/118 on the day's
-earlier lane, and again no failure cites the appended fragment. Still under 0.94, so still not
+groundedness 67/73 again against `off`'s 70/73 on `main` earlier that day (one run each),
+Tier 1 requirements stated 70/118 against 64/118, and again no failure cites the appended fragment. Still under 0.94, so still not
 the default by the same rule. `slot` (#287) is the other follow-up: the best two picks take the
 cut's last two places, so the prompt keeps its size; on retrieval-only lanes it put 23–24 of
 #412's 47 carrying chunks in front of the model against `pin1`'s 14, and once displaced a
