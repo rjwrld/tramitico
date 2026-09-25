@@ -67,6 +67,14 @@ instead of up to three. Measured beside `off` on 2026-09-24: groundedness 64/73 
 under the 0.94 gate, the shipped default included (71/73 at #304), so `off` stays the default by
 #311's rule, and `pin1` is the first thing to re-read once the baseline is back over the gate
 (eval/README.md, «One step pick, not one per sentence»).
+Re-read on #352's req. 5 run (2026-09-24, [#287](https://github.com/rjwrld/tramitico/issues/287)):
+groundedness 67/73 again, Tier 1 requirements stated 70/118 against `off`'s 64/118 on the day's
+earlier lane, and again no failure cites the appended fragment. Still under 0.94, so still not
+the default by the same rule. `slot` (#287) is the other follow-up: the best two picks take the
+cut's last two places, so the prompt keeps its size; on retrieval-only lanes it put 23–24 of
+#412's 47 carrying chunks in front of the model against `pin1`'s 14, and once displaced a
+blocking case's only target from #8. Measurable, not measured on the answer side
+(eval/README.md, «The carrying chunks at the cut» and «Req. 5 on `pin1`»).
 
 **Rejected: the sentences as rerank queries fused by max, as the issue proposed.** Measured
 first on the #303 six: the step chunks reach reranked #1–#3, and the question's own chunks move

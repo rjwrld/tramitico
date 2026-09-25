@@ -2777,3 +2777,72 @@ What it says:
 
 None of this reads groundedness or adequacy: those need the answer model and
 the judge, one full lane per arm (≈US$6). The shipped default stays `off`.
+
+## Req. 5 on `pin1` (2026-09-24, #352, #287)
+
+> **One full lane, owner-approved as #352's req. 5**: this branch (#287's
+> catalogue, the BMC group, the carrier printer), production knobs plus
+> `STEPS_RERANK=pin1`, answer `claude-sonnet-5` at `ANSWER_EFFORT=medium`,
+> judge `claude-sonnet-4-5`, the same 873-chunk ingest as the 2026-09-24
+> lane. ≈US$6, after a three-case smoke. Rows in
+> [`eval/runs/2026-09-24-352-req5/`](runs/2026-09-24-352-req5/). One
+> expansion timed out early in the groundedness lane; nothing else degraded.
+
+| Gate                              | 2026-09-24 (`off`, `main`) | This run (`pin1`, branch) | Gate                |
+| --------------------------------- | -------------------------- | ------------------------- | ------------------- |
+| Hit-rate                          | 71/73                      | **72/73**                 | ≥ 0.92, pass        |
+| Blocking cases in the top-k       | red                        | **green**                 | all                 |
+| Carrying chunks in the answer set | ≥ 3/47 (log)               | **16/47**                 | —                   |
+| Groundedness                      | 70/73                      | **67/73**                 | ≥ 0.94, **fails**   |
+| Blocking cases grounded           | red (1)                    | red (1)                   | 0 failing           |
+| Citation invariant                | 1                          | **0**                     | 0, **pass**         |
+| Abstention                        | 9/9, figure gate red       | 9/9, figure gate red      | ≥ 0.9, zero figures |
+| Derived figures completely cited  | red                        | red                       | none uncited        |
+| Adequacy, cases with claims       | 13/40                      | **16/40**                 | —                   |
+| Tier 1 adequate                   | 4/27                       | **6/27**                  | 27/27, fails        |
+| Tier 1 requirements stated        | 64/118                     | **70/118**                | —                   |
+| Tier 2 adequate                   | 9/13                       | 10/13                     | ≥ 0.84, fails       |
+
+**The per-case read.** `pin1` appended a chunk on 47 of the 73 answers,
+and the answer cited it on 29.
+
+- **No groundedness failure is the appended fragment's.** The six:
+  `multa-iva-no-declarado` is the standing judge-vs-dataset conflict (the
+  answer counts the art. 79 fine per declaration; red on 2026-09-24 too).
+  `ho-desinscribir-debiendo-declaraciones` over-reads what desinscripción
+  leaves in place. It had no append, and it is one of #416's corpus rows.
+  `iva-servicios-extranjero-comprados` mis-cites [4], and it failed in
+  #311's `off` arm as well. `iva-facturas-en-dolares` and `ho-t2-payoneer`
+  paraphrase the tipo-de-cambio fragment past what it says.
+  `exportacion-comprobante-followup` states a Código de Trabajo rule that no
+  fragment carries. None of the judges' reasons names [9], and the same rule
+  held on #311's `pin1` arm: two runs, zero failures on the appended
+  fragment. Groundedness on `off` itself moved 64 → 70 between two lanes the
+  same day. 67 is inside that spread, and it is still under the gate.
+- **Two of the three Tier 1 gains are the append.** `multa-iva-no-declarado`
+  (`cnpt` 88 at [9], the reduction and the art. 57/80 bis charges) and
+  `ho-800-mil-que-porcentaje-caja` (`ccss-reglamento-ti` 12 at [9], how the
+  declared income is adjusted) go adequate. `ho-iva-en-cero-sin-facturar` goes
+  adequate from its cut. `ccss-ventana-prescripcion-24-meses` goes
+  inadequate on the requirement it has flipped on before: the end date of the
+  window.
+- **The BMC group fired once, as designed.** On `ho-desde-cuanta-plata-caja`
+  the SEM escala survived at [5], the IVM escala was cut, and the group
+  pinned it at [10] beside `salarios-minimos` at [11]. The answer states
+  both bases with «[10][11]» and «[5][11]». The derived-figure gate is red
+  on that case for another reason, as it was on 2026-09-24: the answer
+  repeats «¢324.590» later in the paragraph with no marker.
+- **#352's three rows.** The citation invariant is green. The abstention
+  figure gate is red again on `ho-abs-calculo-personalizado`: «¢1.710,00»
+  this time, against «¢41.040,00» before, so rule 3 changed the figure and
+  did not stop the arithmetic. The blocking groundedness row is red on
+  `multa-iva-no-declarado`: the answer still counts the fine «por cada
+  declaración omitida», and rule 9's closing clause did not hold.
+
+**Decision: the default stays `off`.** The rule set before the run was:
+groundedness ≥ 0.94, no failure on the appended fragment, and no blocking
+hit-rate red caused by `pin1`. Groundedness is 0.918. The other two
+conditions hold. `pin1`'s answer-side record is now two runs at 67/73, zero
+failures on the appended fragment, and +6 to +14 Tier 1 requirements over the
+nearest `off` lane. Whether that is enough to ship it under a gate the
+baseline itself misses is an owner call. This PR does not make it.
