@@ -19,6 +19,8 @@ import {
   parseAbstentionVerdict,
   parseAdequacyReport,
   reportVerdict,
+  requirementCoverage,
+  requirementTotal,
   type Requirement,
   type RequirementVerdict,
 } from "./adequacy";
@@ -786,5 +788,53 @@ describe("finding the judge's object in what it actually said (#286 harness)", (
   it("tolerates fences and surrounding prose, as before", () => {
     expect(firstJsonObject("```json\n" + report + "\n```")).toBe(report);
     expect(firstJsonObject("no hay objeto aquí")).toBeNull();
+  });
+});
+
+describe("requirementCoverage (#287)", () => {
+  const base: EvalCase = {
+    id: "cov",
+    seed: "held-out",
+    question: "¿?",
+    expected: [{ docKey: "ley-iva" }],
+    blocking: false,
+    tier: 1,
+    heldOut: false,
+    requiredClaims: [
+      { claim: "la tarifa es 13 %", literal: ["13 %", "13%"] },
+      { claim: "grava servicios" },
+    ],
+    requiredSteps: ["inscribirse en TRIBU-CR"],
+  };
+
+  it("counts judged requirements and literal claims alike", () => {
+    expect(requirementTotal(base)).toBe(3);
+    expect(
+      requirementCoverage([
+        {
+          evalCase: base,
+          adequacy: { missing: ["inscribirse en TRIBU-CR"], literals: [] },
+        },
+        {
+          evalCase: { ...base, id: "cov-2" },
+          adequacy: {
+            missing: [],
+            literals: ["la tarifa es 13 % (…: absent)"],
+          },
+        },
+      ]),
+    ).toEqual({ stated: 4, total: 6 });
+  });
+
+  it("skips a case that declares nothing, and never counts below zero", () => {
+    expect(
+      requirementCoverage([
+        { evalCase: base, adequacy: null },
+        {
+          evalCase: base,
+          adequacy: { missing: ["a", "b", "c"], literals: ["d"] },
+        },
+      ]),
+    ).toEqual({ stated: 0, total: 3 });
   });
 });

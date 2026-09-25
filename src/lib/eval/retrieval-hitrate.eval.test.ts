@@ -34,7 +34,11 @@
 import { readFileSync } from "node:fs";
 import { beforeAll, expect, it } from "vitest";
 import { condenseQuestion } from "../answer/condense";
-import { pinDerivedFigureInputs, pinEnabled } from "../answer/derived";
+import {
+  pinDerivedFigureInputs,
+  pinEnabled,
+  resolveDerivedFigures,
+} from "../answer/derived";
 import { expansionEnabled } from "../answer/expand";
 import { STEP_CATALOGUE, stepsEnabled } from "../answer/steps";
 import {
@@ -58,6 +62,7 @@ import {
   retrievalCases,
   type EvalCase,
 } from "./dataset";
+import { CARRIERS_PATH, parseCarriers, parseChunkRef } from "./carriers";
 import { formatExposureTally, tallyByExposure } from "./exposure";
 import {
   selectCases,
@@ -144,7 +149,11 @@ interface CaseResult {
     rerankRank: number | null;
     /** In the answer set's top-k, appended past it, or not in it at all. */
     place: "top" | "pinned" | "cut";
+    /** One of #412's carrying chunks (`eval/tier1-carriers.json`, #287). */
+    carrier: boolean;
   }[];
+  /** The derived figures the answer set resolves (#287: F1, the fines). */
+  figures: string[];
 }
 
 describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
@@ -165,6 +174,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
   const stepsMode = stepsEnabled() ? `on(${stepRerankMode()})` : "off";
   const topKSize = answerTopK();
   const docCap = answerDocCap();
+  const carriers = parseCarriers(readFileSync(CARRIERS_PATH, "utf8"));
 
   function assertFullRun(): void {
     if (subset !== null) throw new Error(subsetGateFailure(subset));
@@ -224,40 +234,42 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
       const reaches =
         family === undefined
           ? []
-          : STEP_CATALOGUE[family].reaches.map((entry) => {
-              // First separator only: a FAQ entry's articulo carries its own
-              // (`Registro Único Tributario (RUT) · 1`).
-              const at = entry.indexOf(" · ");
-              const docKey = at === -1 ? entry : entry.slice(0, at);
-              const articulo = at === -1 ? undefined : entry.slice(at + 3);
-              return {
-                docKey,
-                ...(articulo === undefined ? {} : { articulo }),
-                fromCatalogue: true,
-              };
-            });
-      const targets = [...evalCase.expected, ...reaches].map((target) => {
-        const inAnswer = topK.findIndex((c) => chunkMatchesTarget(c, target));
-        return {
-          target:
-            `${target.docKey} · ${target.articulo ?? "*"}` +
-            ("fromCatalogue" in target ? " (catálogo)" : ""),
-          poolRank: rankOf(
-            retrieval.chunks.findIndex((c) => chunkMatchesTarget(c, target)),
-          ),
-          rerankRank:
-            order === null
-              ? null
-              : rankOf(
-                  order.findIndex((r) => chunkMatchesTarget(r.chunk, target)),
-                ),
-          place: (inAnswer === -1
-            ? "cut"
-            : inAnswer < topKSize
-              ? "top"
-              : "pinned") as "top" | "pinned" | "cut",
-        };
-      });
+          : STEP_CATALOGUE[family].reaches.map((entry) => ({
+              ...parseChunkRef(entry),
+              fromCatalogue: true,
+            }));
+      // #287: the chunks #412 found carrying a missing requirement, read the
+      // same way, so a retrieval knob is judged on what the answers lacked.
+      const carried = (carriers.get(evalCase.id) ?? []).map((target) => ({
+        ...target,
+        carrier: true,
+      }));
+      const targets = [...evalCase.expected, ...reaches, ...carried].map(
+        (target) => {
+          const inAnswer = topK.findIndex((c) => chunkMatchesTarget(c, target));
+          return {
+            target:
+              `${target.docKey} · ${target.articulo ?? "*"}` +
+              ("fromCatalogue" in target ? " (catálogo)" : "") +
+              ("carrier" in target ? " (carrier)" : ""),
+            poolRank: rankOf(
+              retrieval.chunks.findIndex((c) => chunkMatchesTarget(c, target)),
+            ),
+            rerankRank:
+              order === null
+                ? null
+                : rankOf(
+                    order.findIndex((r) => chunkMatchesTarget(r.chunk, target)),
+                  ),
+            place: (inAnswer === -1
+              ? "cut"
+              : inAnswer < topKSize
+                ? "top"
+                : "pinned") as "top" | "pinned" | "cut",
+            carrier: "carrier" in target,
+          };
+        },
+      );
       // Requirement 1 of #287: the marginal survivor — the chunk holding the
       // last answer-set place — is what a target ranked below it lost to.
       const marginal = order === null ? undefined : order[topKSize - 1];
@@ -275,6 +287,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
         expansion: retrieval.expansion,
         stepFamily: retrieval.steps?.family ?? null,
         targets,
+        figures: resolveDerivedFigures(topK).map((figure) => figure.id),
       });
     }
     const hits = results.filter((r) => r.hit).length;
@@ -301,6 +314,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
           (r.evalCase.family === undefined
             ? ""
             : ` (dataset ${r.evalCase.family})`) +
+          (r.figures.length === 0 ? "" : ` · figures=${r.figures.join(",")}`) +
           r.targets
             .map(
               (t) =>
@@ -327,6 +341,28 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
         const label = index < topKSize ? `#${index + 1}` : "pinned";
         console.log(`    ${label} ${describeChunk(chunk)}`);
       });
+    }
+    // #287's read: how many of #412's carrying chunks reached the model, by
+    // where each sat, beside the derived figures the answer set resolves.
+    const carried = results.flatMap((r) =>
+      r.targets.filter((t) => t.carrier).map((t) => ({ r, t })),
+    );
+    if (carried.length > 0) {
+      const inSet = carried.filter(({ t }) => t.place !== "cut").length;
+      const cutInPool = carried.filter(
+        ({ t }) => t.place === "cut" && t.poolRank !== null,
+      ).length;
+      console.log(
+        `\ncarrying chunks (#287, eval/tier1-carriers.json): ${inSet}/${carried.length} in the answer set, ` +
+          `${cutInPool} in the pool and cut, ${carried.length - inSet - cutInPool} not in the pool`,
+      );
+      for (const r of results.filter((r) => r.targets.some((t) => t.carrier))) {
+        const mine = r.targets.filter((t) => t.carrier);
+        console.log(
+          `  ${mine.filter((t) => t.place !== "cut").length}/${mine.length}  ${r.evalCase.id}` +
+            (r.figures.length === 0 ? "" : `  figures=${r.figures.join(",")}`),
+        );
+      }
     }
     console.log(
       formatExposureTally(

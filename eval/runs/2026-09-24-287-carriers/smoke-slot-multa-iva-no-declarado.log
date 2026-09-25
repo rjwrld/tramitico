@@ -1,0 +1,82 @@
+
+ RUN  v4.1.11 <worktree>
+
+
+EVAL_CASES: 1/73 case(s) — multa-iva-no-declarado. Gates will fail: a subset run is a transcript read, not a measurement.
+
+retrieval hit-rate (rerank=voyage rerank-2.5-lite, pool 40 → top 8, cap=off/doc, expand=on, steps=on(slot), pin=on): 1/1
+  hit   pool#4  top=0.0810  multa-iva-no-declarado
+        ⤳ Infracción por omisión de declaración de impuesto: la falta de presentación de la declaración del Impuesto sobre el Valor Agregado dentro del plazo establecido constituye una infracción tributaria sujeta a multa, cuyo monto se determina conforme a las disposiciones del Código de Normas y Procedimientos Tributarios y se calcula sobre la base del salario base para multas y penas vigente en el período en que se incurrió en la infracción.
+        ⊕ steps=T1-I (dataset T1-I) · figures=cnpt-articulo-78-multa-mensual-2026,cnpt-articulo-78-tope-2026,cnpt-articulo-79-multa-declaracion-2026
+          pool#4  rr#1  top    cnpt · Artículo 79
+          pool#17 rr#14 top    salario-base-2026 · *
+          pool#10 rr#9  cut    cnpt · Artículo 80 bis
+          pool#—  rr#—  cut    cnpt · Artículo 57
+          pool#20 rr#15 top    cnpt · Artículo 88
+          pool#20 rr#15 top    cnpt · Artículo 88 (catálogo)
+          pool#2  rr#3  top    cnpt · Artículo 78 (catálogo)
+          pool#4  rr#1  top    cnpt · Artículo 79 (catálogo)
+          pool#18 rr#39 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+          pool#17 rr#14 top    salario-base-2026 · Circular 246-2025 (catálogo)
+          pool#—  rr#—  cut    cnpt · Artículo 57 (carrier)
+          pool#20 rr#15 top    cnpt · Artículo 88 (carrier)
+          pool#17 rr#14 top    salario-base-2026 · Circular 246-2025 (carrier)
+
+carrying chunks (#287, eval/tier1-carriers.json): 2/3 in the answer set, 0 in the pool and cut, 1 not in the pool
+  2/3  multa-iva-no-declarado  figures=cnpt-articulo-78-multa-mensual-2026,cnpt-articulo-78-tope-2026,cnpt-articulo-79-multa-declaracion-2026
+hit-rate by exposure (#267):
+  first-exposure  0/0
+  promoted        1/1
+  corpus-derived  0/0
+ ❯ |eval| src/lib/eval/retrieval-hitrate.eval.test.ts (3 tests | 3 failed) 4173ms
+     × finds every blocking case's artículo in the answer top-k 4ms
+     × hits at least 92% of expected artículos in the answer top-k 0ms
+     × never trips the weak-retrieval fallback on a legitimate question 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |eval| src/lib/eval/retrieval-hitrate.eval.test.ts > retrieval hit-rate (eval/dataset.jsonl) > finds every blocking case's artículo in the answer top-k
+Error: EVAL_CASES selected 1 case(s) — multa-iva-no-declarado. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/retrieval-hitrate.eval.test.ts:180:32
+    178|
+    179|   function assertFullRun(): void {
+    180|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    181|   }
+    182|
+ ❯ src/lib/eval/retrieval-hitrate.eval.test.ts:382:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  |eval| src/lib/eval/retrieval-hitrate.eval.test.ts > retrieval hit-rate (eval/dataset.jsonl) > hits at least 92% of expected artículos in the answer top-k
+Error: EVAL_CASES selected 1 case(s) — multa-iva-no-declarado. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/retrieval-hitrate.eval.test.ts:180:32
+    178|
+    179|   function assertFullRun(): void {
+    180|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    181|   }
+    182|
+ ❯ src/lib/eval/retrieval-hitrate.eval.test.ts:392:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  |eval| src/lib/eval/retrieval-hitrate.eval.test.ts > retrieval hit-rate (eval/dataset.jsonl) > never trips the weak-retrieval fallback on a legitimate question
+Error: EVAL_CASES selected 1 case(s) — multa-iva-no-declarado. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/retrieval-hitrate.eval.test.ts:180:32
+    178|
+    179|   function assertFullRun(): void {
+    180|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    181|   }
+    182|
+ ❯ src/lib/eval/retrieval-hitrate.eval.test.ts:398:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  17:58:09
+   Duration  4.45s (transform 76ms, setup 0ms, import 161ms, tests 4.17s, environment 0ms)
+

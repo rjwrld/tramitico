@@ -59,6 +59,7 @@ import {
   declineAdequacy,
   judgeAdequacy,
   judgedRequirements,
+  requirementCoverage,
   literalFailures,
   type AdequacyOutcome,
 } from "./adequacy";
@@ -362,6 +363,15 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
           (adequacyFailed(r) ? `  — missing: ${adequacyReason(r)}` : ""),
       );
     }
+
+    // #287: the requirement-level count beside the per-case gate — the
+    // Tier 1 gate cannot show a change smaller than a whole case.
+    const tier1Coverage = requirementCoverage(
+      judgedForAdequacy.filter((r) => r.evalCase.tier === 1),
+    );
+    console.log(
+      `tier 1 requirements stated (#287): ${tier1Coverage.stated}/${tier1Coverage.total}`,
+    );
 
     console.log(
       formatExposureTally(

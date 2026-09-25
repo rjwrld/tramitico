@@ -50,6 +50,7 @@
  * lost a case that concatenation held.
  */
 import type { RetrievedChunk } from "../retrieval";
+import { isDerivedFigureInput } from "./derived";
 
 /**
  * Fused candidates fetched per question. 40, not 30, since #51: ley-iva
@@ -113,6 +114,17 @@ export const ANSWER_DOC_CAP = Infinity;
  *   64/73 → 67/73, adequacy 16/40 → 18/40, and no new failure cites the
  *   appended fragment. Still under the 0.94 gate, as `off` is, so it stays
  *   off by #311's rule until the baseline is back over the gate.
+ * - `slot` — `pin`'s picks, taking the **last places of the cut** instead of
+ *   growing it (#287): the best `STEP_SLOTS` picks the cut did not take
+ *   displace its lowest-ranked chunks, so the prompt stays at the answer
+ *   top-k. `pin` and `pin1` both grow the prompt, and a larger, overlapping
+ *   answer set is what `pin` paid for in groundedness; the cut's tail, on the
+ *   2026-09-24 transcript, is mostly filler (`reglamento-iva` 60 in four
+ *   unrelated answer sets, preámbulos, «¿Horario de Atención?»). A derived
+ *   figure's input is never displaced (`isDerivedFigureInput`): a figure is
+ *   arithmetic over every input, and the #403 slot loss is exactly that.
+ *   The risk is the question's own target at #7/#8, which the hit-rate lane
+ *   reads on the same run.
  * - `max` — the sentences are readings like the expansion's, fused by the
  *   higher score (#296). Measured first, and what it does is in
  *   eval/README.md: the step chunks reach #1–#2, and the question's own
@@ -123,9 +135,12 @@ export const ANSWER_DOC_CAP = Infinity;
  *
  * `STEPS_RERANK` in the environment overrides the constant for a measured run.
  */
-export type StepRerankMode = "pin" | "pin1" | "max" | "off";
+export type StepRerankMode = "pin" | "pin1" | "slot" | "max" | "off";
 
 export const STEP_RERANK_MODE: StepRerankMode = "off";
+
+/** Places of the cut `STEPS_RERANK=slot` gives to step picks (#287). */
+export const STEP_SLOTS = 2;
 
 /** Rerank model of record; `RERANK_MODEL` swaps it for a measured run (#287). */
 export const RERANK_MODEL = "rerank-2.5-lite";
@@ -252,14 +267,18 @@ export interface RerankedChunk {
 /** The step-rerank mode in force; anything unrecognised is the constant. */
 export function stepRerankMode(): StepRerankMode {
   const raw = process.env.STEPS_RERANK;
-  return raw === "pin" || raw === "pin1" || raw === "max" || raw === "off"
+  return raw === "pin" ||
+    raw === "pin1" ||
+    raw === "slot" ||
+    raw === "max" ||
+    raw === "off"
     ? raw
     : STEP_RERANK_MODE;
 }
 
 /** Whether the mode in force pins step picks past the cut at all. */
 function pinsSteps(mode: StepRerankMode): boolean {
-  return mode === "pin" || mode === "pin1";
+  return mode === "pin" || mode === "pin1" || mode === "slot";
 }
 
 /**
@@ -384,7 +403,7 @@ export interface RerankOutcome {
    */
   order: RerankedChunk[];
   /**
-   * Under `pin` and `pin1` (#304, #311): the best chunk of each sentence's
+   * Under `pin`, `pin1` and `slot` (#304, #311, #287): the best chunk of each sentence's
    * reading, in sentence order and without repeats, carrying that reading's
    * score and the rank `order` gave it. Empty in the other modes and with no
    * probe. How many of them reach the prompt is `answerSetFromOrder`'s call,
@@ -403,7 +422,7 @@ export interface RerankOutcome {
  * sentence to the same batch (#304), read as `stepRerankMode` says. The
  * degradation is the same policy one call down: every reading back → fused;
  * some back → those alone, which is still better than the fused order;
- * none → `null`. Under `pin`/`pin1`, a batch where only sentence readings came
+ * none → `null`. Under `pin`/`pin1`/`slot`, a batch where only sentence readings came
  * back falls back to fusing those — one reading of the pool is still better
  * than none, and the picks are then empty because there is no question
  * order to pin them past.
@@ -508,7 +527,8 @@ export async function rerankOrder(
  * same FAQ-page shape (#303). A pick is an append, like #287's derived
  * inputs: nothing the cut chose is displaced. Under `pin1` (#311) only one
  * pick is appended — the highest-scoring one the cut did not take; ties keep
- * sentence order.
+ * sentence order. Under `slot` (#287) the picks take the cut's last places
+ * instead (`slotSteps`), and the set keeps its size.
  */
 export function answerSetFromOrder(
   order: readonly RerankedChunk[] | null,
@@ -521,6 +541,7 @@ export function answerSetFromOrder(
   const cut = capPerDocument(ranked, topK, cap).map(({ chunk }) => chunk);
   const taken = new Set(cut.map((chunk) => chunk.chunkId));
   const fresh = stepPicks.filter(({ chunk }) => !taken.has(chunk.chunkId));
+  if (stepRerankMode() === "slot") return slotSteps(cut, fresh);
   const appended =
     stepRerankMode() === "pin1"
       ? [...fresh].sort((a, b) => b.score - a.score).slice(0, 1)
@@ -532,6 +553,38 @@ export function answerSetFromOrder(
     cut.push(chunk);
   }
   return cut;
+}
+
+/**
+ * `STEPS_RERANK=slot` (#287): the best `STEP_SLOTS` fresh picks, by score
+ * with ties in sentence order, each displacing the lowest-ranked chunk of the
+ * cut that is neither a derived figure's input nor an earlier pick. No such
+ * chunk left → the pick is dropped, never appended: the set does not grow.
+ */
+function slotSteps(
+  cut: RetrievedChunk[],
+  fresh: readonly RerankedChunk[],
+): RetrievedChunk[] {
+  const set = [...cut];
+  const placed = new Set<string>();
+  const picks = [...fresh].sort((a, b) => b.score - a.score);
+  for (const { chunk } of picks) {
+    if (placed.size === STEP_SLOTS) break;
+    // A caller's picks may repeat a chunk; it still goes in once.
+    if (placed.has(chunk.chunkId)) continue;
+    let victim = -1;
+    for (let i = set.length - 1; i >= 0; i--) {
+      const held = set[i];
+      if (placed.has(held.chunkId) || isDerivedFigureInput(held)) continue;
+      victim = i;
+      break;
+    }
+    if (victim === -1) break;
+    set.splice(victim, 1);
+    set.push(chunk);
+    placed.add(chunk.chunkId);
+  }
+  return set;
 }
 
 export async function rerankChunks(
