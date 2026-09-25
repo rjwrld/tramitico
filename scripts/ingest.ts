@@ -14,8 +14,11 @@ import { createClient } from "@supabase/supabase-js";
 import {
   buildCorpusIndex,
   CORPUS_INDEX_PATH,
+  type CorpusIndex,
   fetchCorpusChunks,
-  serializeCorpusIndex,
+  formatCorpusIndex,
+  parseCorpusIndex,
+  sameCoverage,
 } from "../src/lib/eval/corpus-index";
 import {
   chunkDocument,
@@ -271,16 +274,36 @@ async function main() {
   // documents this run touched — so the per-PR satisfiability census reads a
   // fixture that matches the corpus as it now stands (#163). A partial run
   // still leaves the table complete, so the full dump is right either way.
+  // Written only when the coverage changed, and prettier-formatted, so an
+  // unchanged corpus leaves a clean tree and a changed one is ready to commit.
   const index = buildCorpusIndex(
     await fetchCorpusChunks(supabase),
     new Date().toISOString(),
   );
-  writeFileSync(CORPUS_INDEX_PATH, serializeCorpusIndex(index));
-  console.log(
-    `corpus index: ${index.entries.length} distinct targets from ${index.chunkCount} chunks → ${path.relative(ROOT, CORPUS_INDEX_PATH)}`,
-  );
+  const indexPath = path.relative(ROOT, CORPUS_INDEX_PATH);
+  const committed = readCommittedIndex();
+  if (committed && sameCoverage(committed, index)) {
+    console.log(
+      `corpus index: unchanged — ${index.entries.length} distinct targets from ${index.chunkCount} chunks; ${indexPath} left as is`,
+    );
+  } else {
+    writeFileSync(CORPUS_INDEX_PATH, await formatCorpusIndex(index));
+    console.log(
+      `corpus index: CHANGED — ${index.entries.length} distinct targets from ${index.chunkCount} chunks → ${indexPath}; commit it with this corpus change (#163)`,
+    );
+  }
 
   console.log(`done — ${ingested} ingested, ${skipped.length} skipped`);
+}
+
+/** The index on disk, or null when there is none or it does not parse. */
+function readCommittedIndex(): CorpusIndex | null {
+  if (!existsSync(CORPUS_INDEX_PATH)) return null;
+  try {
+    return parseCorpusIndex(readFileSync(CORPUS_INDEX_PATH, "utf8"));
+  } catch {
+    return null;
+  }
 }
 
 /**

@@ -5,7 +5,9 @@ import {
   collidingEntries,
   CORPUS_INDEX_PATH,
   describeEntry,
+  formatCorpusIndex,
   parseCorpusIndex,
+  sameCoverage,
   serializeCorpusIndex,
 } from "./corpus-index";
 
@@ -144,6 +146,40 @@ describe("parseCorpusIndex", () => {
     ],
   ])("rejects %s", (json, message) => {
     expect(() => parseCorpusIndex(json)).toThrow(message);
+  });
+});
+
+describe("sameCoverage", () => {
+  const at = "2026-09-25T00:00:00.000Z";
+  const base = buildCorpusIndex([chunk("a-doc", "Artículo 1")], at);
+
+  it("ignores when the dump was taken", () => {
+    const later = buildCorpusIndex(
+      [chunk("a-doc", "Artículo 1")],
+      "2026-10-01T00:00:00.000Z",
+    );
+    expect(sameCoverage(base, later)).toBe(true);
+  });
+
+  it("sees a new target, a lost one, and a changed chunk count", () => {
+    const added = buildCorpusIndex(
+      [chunk("a-doc", "Artículo 1"), chunk("a-doc", "Artículo 2")],
+      at,
+    );
+    const split = buildCorpusIndex(
+      [chunk("a-doc", "Artículo 1"), chunk("a-doc", "Artículo 1", [], 1)],
+      at,
+    );
+    expect(sameCoverage(base, added)).toBe(false);
+    expect(sameCoverage(added, base)).toBe(false);
+    expect(sameCoverage(base, split)).toBe(false);
+  });
+});
+
+describe("formatCorpusIndex", () => {
+  it("reproduces the committed file byte for byte, so a re-dump passes format:check", async () => {
+    const onDisk = readFileSync(CORPUS_INDEX_PATH, "utf8");
+    expect(await formatCorpusIndex(parseCorpusIndex(onDisk))).toBe(onDisk);
   });
 });
 

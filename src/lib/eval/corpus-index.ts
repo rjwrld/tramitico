@@ -110,6 +110,31 @@ export function serializeCorpusIndex(index: CorpusIndex): string {
   return `${JSON.stringify(index, null, 2)}\n`;
 }
 
+/**
+ * The dump as the repo commits it: prettier's JSON layout, so a re-dump passes
+ * `format:check` without a separate `--write`.
+ */
+export async function formatCorpusIndex(index: CorpusIndex): Promise<string> {
+  const { format, resolveConfig } = await import("prettier");
+  const options = await resolveConfig(CORPUS_INDEX_PATH);
+  return format(serializeCorpusIndex(index), {
+    ...options,
+    filepath: CORPUS_INDEX_PATH,
+  });
+}
+
+/**
+ * Whether two dumps record the same coverage. `generatedAt` says when a dump
+ * was taken, not what it holds, so it is left out: an ingest that changes no
+ * coverage leaves the committed file alone.
+ */
+export function sameCoverage(a: CorpusIndex, b: CorpusIndex): boolean {
+  return (
+    a.chunkCount === b.chunkCount &&
+    JSON.stringify(a.entries) === JSON.stringify(b.entries)
+  );
+}
+
 export function parseCorpusIndex(json: string): CorpusIndex {
   let raw: unknown;
   try {
