@@ -263,10 +263,11 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   no model call; `search_chunks` runs one more hybrid pair over the sentences **one by one**,
   interleaved by best rank per sentence into one leg pair of the same weight as the expansion's.
   A question naming no family, or `STEPS=off`, leaves the search exactly as it was. The
-  catalogue's legs never witness corroboration. At the rerank the sentences are **not scored by
-  default** (`STEPS_RERANK=off`): pinning each sentence's best chunk past the cut was measured
-  on the full run to lift adequacy and to cost groundedness its 0.94 gate, so the catalogue
-  fills the pool and the question's own readings decide what reaches the model —
+  catalogue's legs never witness corroboration. At the rerank the question's own readings decide
+  the order and the cut, and since 2026-09-25 **one** step pick the cut left out is appended past
+  it (`STEPS_RERANK=pin1`, #287): pinning every sentence's best chunk cost groundedness its 0.94
+  gate, while one pick tied the unpinned mode on groundedness and stated 83/116 Tier 1
+  requirements against 71/116 —
   **[ADR 0020](docs/adr/0020-step-catalogue-legs.md)**.
 - **Answer assembly:** Claude **Sonnet by default, model as env var** — Week 3 runs Haiku 4.5
   through the same groundedness gate as a cost/quality comparison (portfolio material either way).

@@ -1,0 +1,135 @@
+
+ RUN  v4.1.11 <worktree>
+
+
+EVAL_CASES: 3/73 case(s) — ccss-cuanto-pago-base, multa-iva-no-declarado, ho-iva-en-cero-sin-facturar. Gates will fail: a subset run is a transcript read, not a measurement.
+
+transcript (#289): eval/runs/2026-09-25-off-lane/groundedness-claude-sonnet-5-effort-medium-subset-20260925T190334Z.jsonl
+
+groundedness (answer=claude-sonnet-5-effort-medium, judge=claude-sonnet-4-5): 3/3
+  pass  ccss-cuanto-pago-base
+  pass  multa-iva-no-declarado
+  pass  ho-iva-en-cero-sin-facturar
+groundedness by exposure (#267):
+  first-exposure  1/1
+  promoted        1/1
+  corpus-derived  1/1
+
+adequacy (#130): 0/2
+  FAIL  tier 1  T1-I  multa-iva-no-declarado  — missing: La sanción se reduce si se subsana antes de que la Administración Tributaria actúe (CNPT artículo 88).; Cómo regularizar: presentar las declaraciones omitidas y pagar en TRIBU-CR, y que hacerlo antes de cualquier actuación de la Administración rebaja la sanción.
+  FAIL  tier 1  T1-D  ho-iva-en-cero-sin-facturar  — missing: Omitir la declaración dentro del plazo legal se sanciona con una multa del cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent)
+tier 1 requirements stated (#287): 6/9
+adequacy by exposure (#267):
+  first-exposure  0/1
+  promoted        0/1
+  corpus-derived  0/0
+
+citation invariant (#168): 0 violation(s)
+ ❯ |eval| src/lib/eval/groundedness.eval.test.ts (7 tests | 7 failed) 70810ms
+     × every tier 1 case states all of its required claims and steps 2ms
+     × at least 84% of tier 2 cases with required claims are adequate 0ms
+     × ships no answer the runtime citation invariant would refuse 0ms
+     × every blocking case's answer is supported by its retrieved chunks 0ms
+     × at least 94% of answers are supported by their retrieved chunks 0ms
+     × ships no answer whose derived figures are incompletely cited 0ms
+     × answers F1 with both BMC figures and citations to every input 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > every tier 1 case states all of its required claims and steps
+Error: EVAL_CASES selected 3 case(s) — multa-iva-no-declarado, ccss-cuanto-pago-base, ho-iva-en-cero-sin-facturar. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:187:32
+    185|    */
+    186|   function assertFullRun(): void {
+    187|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    188|   }
+    189|
+ ❯ src/lib/eval/groundedness.eval.test.ts:407:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > at least 84% of tier 2 cases with required claims are adequate
+Error: EVAL_CASES selected 3 case(s) — multa-iva-no-declarado, ccss-cuanto-pago-base, ho-iva-en-cero-sin-facturar. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:187:32
+    185|    */
+    186|   function assertFullRun(): void {
+    187|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    188|   }
+    189|
+ ❯ src/lib/eval/groundedness.eval.test.ts:417:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > ships no answer the runtime citation invariant would refuse
+Error: EVAL_CASES selected 3 case(s) — multa-iva-no-declarado, ccss-cuanto-pago-base, ho-iva-en-cero-sin-facturar. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:187:32
+    185|    */
+    186|   function assertFullRun(): void {
+    187|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    188|   }
+    189|
+ ❯ src/lib/eval/groundedness.eval.test.ts:433:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > every blocking case's answer is supported by its retrieved chunks
+Error: EVAL_CASES selected 3 case(s) — multa-iva-no-declarado, ccss-cuanto-pago-base, ho-iva-en-cero-sin-facturar. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:187:32
+    185|    */
+    186|   function assertFullRun(): void {
+    187|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    188|   }
+    189|
+ ❯ src/lib/eval/groundedness.eval.test.ts:447:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > at least 94% of answers are supported by their retrieved chunks
+Error: EVAL_CASES selected 3 case(s) — multa-iva-no-declarado, ccss-cuanto-pago-base, ho-iva-en-cero-sin-facturar. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:187:32
+    185|    */
+    186|   function assertFullRun(): void {
+    187|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    188|   }
+    189|
+ ❯ src/lib/eval/groundedness.eval.test.ts:458:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > ships no answer whose derived figures are incompletely cited
+Error: EVAL_CASES selected 3 case(s) — multa-iva-no-declarado, ccss-cuanto-pago-base, ho-iva-en-cero-sin-facturar. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:187:32
+    185|    */
+    186|   function assertFullRun(): void {
+    187|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    188|   }
+    189|
+ ❯ src/lib/eval/groundedness.eval.test.ts:470:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > answers F1 with both BMC figures and citations to every input
+Error: EVAL_CASES selected 3 case(s) — multa-iva-no-declarado, ccss-cuanto-pago-base, ho-iva-en-cero-sin-facturar. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:187:32
+    185|    */
+    186|   function assertFullRun(): void {
+    187|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    188|   }
+    189|
+ ❯ src/lib/eval/groundedness.eval.test.ts:498:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed (7)
+   Start at  13:02:23
+   Duration  71.14s (transform 115ms, setup 0ms, import 237ms, tests 70.81s, environment 0ms)
+

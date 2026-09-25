@@ -48,7 +48,8 @@ sentence. At the rerank they fill the pool and nothing more, by default.**
    catalogue's legs are **no witness to corroboration** ([ADR 0019](0019-query-expansion-legs.md)'s
    #307 rule, applied): the probe is the same text for every question in the family, so it can
    fill a pool and never move `isWeak`.
-5. At the rerank the sentences are **not scored by default** (`STEPS_RERANK=off`): the pool
+5. At the rerank the sentences were **not scored by default** (`STEPS_RERANK=off`, the default
+   until the 2026-09-25 amendment below made it `pin1`): the pool
    carries the step chunks, and the question's readings decide the order and the cut exactly as
    #296 left them. Two alternatives stay measurable behind the knob. `pin` scores each sentence
    as its own Voyage query in the same batch and appends the best chunk of each reading past the
@@ -75,6 +76,15 @@ cut's last two places, so the prompt keeps its size; on retrieval-only lanes it 
 #412's 47 carrying chunks in front of the model against `pin1`'s 14, and once displaced a
 blocking case's only target from #8. Measurable, not measured on the answer side
 (eval/README.md, «The carrying chunks at the cut» and «Req. 5 on `pin1`»).
+
+**Amended 2026-09-25: `pin1` is the default** (owner decision, [#287](https://github.com/rjwrld/tramitico/issues/287)).
+A same-evening pair on current code (b903427 and 1e11248, which differ only in rule 9's art. 79
+wording): groundedness **68/73 on both**, so `pin1` costs nothing the gate reads, and neither
+mode clears 0.94. `pin1` states 83/116 Tier 1 requirements against 71/116 and 11/27 Tier 1 cases
+against 4/27; carrying chunks 17/47 against 6/47; citation invariant 0 against 2; blocking
+hit-rate green against red. #311's rule asked for 0.94 before the flip; its purpose, that one
+pick must not cost groundedness, is met on this pair, and the rule's letter is met by neither
+mode (eval/README.md, «`pin1` becomes the default»).
 
 **Rejected: the sentences as rerank queries fused by max, as the issue proposed.** Measured
 first on the #303 six: the step chunks reach reranked #1–#3, and the question's own chunks move

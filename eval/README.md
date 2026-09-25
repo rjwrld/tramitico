@@ -2926,3 +2926,50 @@ the next lane that runs for another reason.
 - **The Tier 1 floor is not set from this run.** It was measured on `pin1`,
   and the shipped default is `off`; a floor of 80 would gate a config
   production does not run. It is set from the next `off` lane.
+
+## `pin1` becomes the default (2026-09-25, #287, #352)
+
+> **One full lane on `main` with `STEPS_RERANK=off`**, owner-approved, an hour
+> after the `pin1` lane above and on the same code but for rule 9's art. 79
+> wording (#425). ≈US$6 after a three-case smoke. Rows in
+> [`eval/runs/2026-09-25-off-lane/`](runs/2026-09-25-off-lane/). Nothing
+> degraded.
+
+| Gate                              | `pin1` (b903427)               | `off` (1e11248)                             | Gate                |
+| --------------------------------- | ------------------------------ | ------------------------------------------- | ------------------- |
+| Hit-rate                          | 71/73                          | 71/73                                       | ≥ 0.92, pass        |
+| Blocking cases in the top-k       | green                          | **red** (`ho-factura-electronica-o-recibo`) | all                 |
+| Carrying chunks in the answer set | **17/47**                      | 6/47                                        | —                   |
+| Groundedness                      | 68/73                          | 68/73                                       | ≥ 0.94, fails both  |
+| Blocking cases grounded           | red (`multa-iva-no-declarado`) | red (`ho-cabys-paginas-web`)                | 0 failing           |
+| Citation invariant                | **0**                          | 2                                           | 0                   |
+| Abstention                        | 9/9, green                     | 9/9, green                                  | ≥ 0.9, zero figures |
+| Adequacy, cases with claims       | **24/40**                      | 16/40                                       | —                   |
+| Tier 1 adequate                   | **11/27**                      | 4/27                                        | goal                |
+| Tier 1 requirements stated        | **83/116**                     | 71/116                                      | ≥ 80 from now       |
+| Tier 2 adequate                   | **13/13**                      | 12/13                                       | ≥ 0.84              |
+
+- **Decision (owner): `pin1` is the default.** #311's rule asked for 0.94
+  before the flip. Neither mode clears it, and on this pair `pin1` costs
+  nothing the gate reads (68/73 each) while winning or tying every other row.
+  `STEP_RERANK_MODE` is `pin1`; SPEC §5 and ADR 0020 are amended. The prompt
+  grows by one fragment on an ask that classifies to a family.
+- **The Tier 1 gate is the requirement count.** `TIER1_REQUIREMENT_FLOOR`
+  is 80 (83 measured on `pin1`, minus 3), ratchet only; the per-case
+  «every tier 1 case» test is replaced by it, and 27/27 is reported as the
+  goal. `off`'s 71/116 would fail it; `pin1`'s 83/116 passes.
+- **Art. 79 passed on `off`.** The answer said «en principio, a ¢231.100»
+  and still hedged the count; the judges passed it 3/3, and the three-case
+  smoke passed it too. One run cannot separate #425's wording from the
+  judges' variance on this case.
+- **The failing sets move.** `off`'s five groundedness failures share no
+  case with `pin1`'s five: `inscripcion-hacienda-clientes-extranjero`
+  cites a fragment for a claim it does not carry, `ho-cabys-paginas-web`
+  (blocking) conflates CABYS with the actividad económica code,
+  `ho-t2-salir-del-pais-seguro` applies art. 8's procedure to a travel
+  suspension, and `ccss-asalariado-y-freelance` and
+  `ho-tambien-asegurado-por-patrono` cite a nonexistent «[10]» with a
+  self-correction inside the bracket («[10 no existe, cito 6]», «[10 nota:
+  cita 7]») — the two citation-invariant violations. Across the four
+  answer-side runs on current code, groundedness is 67–70/73 around a 69/73
+  line and the blocking red changes case each time.
