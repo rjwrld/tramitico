@@ -325,11 +325,13 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
   });
 
   // #352, 2026-09-25: the owner ruled art. 79 applies per omitted declaration,
-  // and the derived figure's label says so. A count a derived figure states is
-  // said, with its markers, rather than hedged — the hedge failed 3/3.
-  it("says a sanction's count when its derived figure states one (#352)", () => {
+  // and the derived figure's label says so. No official document states that
+  // count (searched 2026-09-25), so the answer says it in the label's words
+  // with «en principio» — the one wording the judges have passed 3/3 — and
+  // never extends it: «tres infracciones separadas» failed 3/3 on the lane.
+  it("says a sanction's count only in its derived figure's words (#352)", () => {
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
-      /9\. [^\n]*si ni los documentos ni la cifra derivada que la calcula lo dicen; si lo dice la cifra derivada, dígalo así, con sus marcadores/,
+      /9\. [^\n]*si ni los documentos ni la cifra derivada que la calcula lo dicen; si lo dice la cifra derivada, dígalo con las palabras de su etiqueta, precedido de «en principio» y con sus marcadores, sin extenderlo a un número de infracciones ni a un total/,
     );
   });
 
