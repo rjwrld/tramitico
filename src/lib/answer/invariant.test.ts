@@ -97,6 +97,22 @@ describe("validateCitations", () => {
     });
   });
 
+  it("rejects a marker the model annotated with its own correction (#427)", () => {
+    // The marker clusters of the three committed answers, verbatim. Refused,
+    // not repaired: in the first the retracted [6] is in range, so a repair
+    // would have to pick which of two numbers the sentence cites from the
+    // model's own prose — the retry decides.
+    expect(
+      validateCitations("…el hosting [2][6 no aplica aquí, corrijo: 2].", 9),
+    ).toEqual({ ok: false, violation: "unresolved_markers", unresolved: [6] });
+    expect(
+      validateCitations("…como asalariado [4][6][10 no existe, cito 6].", 8),
+    ).toEqual({ ok: false, violation: "unresolved_markers", unresolved: [10] });
+    expect(
+      validateCitations("…asegurado por su patrono [7][10 nota: cita 7].", 9),
+    ).toEqual({ ok: false, violation: "unresolved_markers", unresolved: [10] });
+  });
+
   it("rejects any marker when nothing was retrieved", () => {
     expect(validateCitations("La tarifa es 13% [1].", 0)).toEqual({
       ok: false,
