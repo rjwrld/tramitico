@@ -560,16 +560,17 @@ describe("pinDerivedFigureInputs", () => {
     });
   });
 
-  it("labels the art. 79 fine without a count the article does not state (#352)", () => {
+  it("labels the art. 79 fine per omitted declaration, the owner's reading (#352)", () => {
     // Art. 79 fines «los sujetos pasivos que omitan presentar las
-    // declaraciones» and says nothing about how many times. The label is
-    // handed to both the answer and the judge; «por cada declaración omitida»
-    // there was copied into the answer as a count, and the judge accepted it.
+    // declaraciones»; each periodic return is its own declaration, so the
+    // owner ruled (2026-09-25) that the fine applies to each one omitted. The
+    // label is handed to both the answer and the judge, and rule 9 lets the
+    // answer state a count a derived figure states. #419's count-free label
+    // left the answer hedging, and the judges failed the hedge 3/3.
     const label = DERIVED_FIGURES.find(
       (figure) => figure.id === "cnpt-articulo-79-multa-declaracion-2026",
     )?.label;
-    expect(label).toBeDefined();
-    expect(label).not.toMatch(/por cada|cada declaración|por declaración/i);
+    expect(label).toMatch(/por cada declaración tributaria omitida/);
   });
 
   it("isDerivedFigureInput names the audited sources of every declared input", () => {

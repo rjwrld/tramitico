@@ -1,23 +1,3 @@
-- **#352's three rows.** The citation invariant is green. The other two
-  are red, and neither is what it first looked like (corrected after a
-  per-answer read):
-  - **Abstention figure, a false positive.** `ho-abs-calculo-personalizado`
-    declined outright («las reglas de este asistente no permiten operar
-    cifras sobre el caso de una persona») and quoted the salaried hijo credit
-    «¢1.710,00 mensuales» [1] as a contrast. The figure is in `ley-renta` 34
-    and in `tramos-renta-2026`, but the tramos sheet prints it «¢l.710,00»,
-    with an OCR'd lowercase «l», so the substring check could not find it.
-    Rule 3 held. `figureMentions` now reads «¢l» as «¢1» on the source side.
-    The «¢41.040,00» on 2026-09-24 predates rules 3 and 6c.
-  - **Blocking groundedness, our own label.** The art. 79 derived figure was
-    labelled «Multa por cada declaración omitida (artículo 79)» in
-    `corpus/manifest.json`, and that label reaches both the answer prompt and
-    the judge. The answer copied it («esta multa se aplica por cada
-    declaración omitida [1]»), then hedged as rule 9 asks. The judges
-    accepted the count, which was in their material too, and failed the
-    hedge. Art. 79 states no count. The label now mirrors the article: «Multa
-    por omitir la presentación de las declaraciones tributarias».
-
 # Eval dataset (SPEC §9, issues #25/#26)
 
 `dataset.jsonl` holds the hand-written eval questions — Appendix A's nine Tier 1
@@ -2857,12 +2837,25 @@ and the answer cited it on 29.
   both bases with «[10][11]» and «[5][11]». The derived-figure gate is red
   on that case for another reason, as it was on 2026-09-24: the answer
   repeats «¢324.590» later in the paragraph with no marker.
-- **#352's three rows.** The citation invariant is green. The abstention
-  figure gate is red again on `ho-abs-calculo-personalizado`: «¢1.710,00»
-  this time, against «¢41.040,00» before, so rule 3 changed the figure and
-  did not stop the arithmetic. The blocking groundedness row is red on
-  `multa-iva-no-declarado`: the answer still counts the fine «por cada
-  declaración omitida», and rule 9's closing clause did not hold.
+- **#352's three rows.** The citation invariant is green. The other two
+  are red, and neither is what it first looked like (corrected after a
+  per-answer read):
+  - **Abstention figure, a false positive.** `ho-abs-calculo-personalizado`
+    declined outright («las reglas de este asistente no permiten operar
+    cifras sobre el caso de una persona») and quoted the salaried hijo credit
+    «¢1.710,00 mensuales» [1] as a contrast. The figure is in `ley-renta` 34
+    and in `tramos-renta-2026`, but the tramos sheet prints it «¢l.710,00»,
+    with an OCR'd lowercase «l», so the substring check could not find it.
+    Rule 3 held. `figureMentions` now reads «¢l» as «¢1» on the source side.
+    The «¢41.040,00» on 2026-09-24 predates rules 3 and 6c.
+  - **Blocking groundedness, our own label.** The art. 79 derived figure was
+    labelled «Multa por cada declaración omitida (artículo 79)» in
+    `corpus/manifest.json`, and that label reaches both the answer prompt and
+    the judge. The answer copied it («esta multa se aplica por cada
+    declaración omitida [1]»), then hedged as rule 9 asks. The judges
+    accepted the count, which was in their material too, and failed the
+    hedge. Art. 79 states no count. The label now mirrors the article: «Multa
+    por omitir la presentación de las declaraciones tributarias».
 
 **Decision: the default stays `off`.** The rule set before the run was:
 groundedness ≥ 0.94, no failure on the appended fragment, and no blocking
@@ -2874,3 +2867,62 @@ fragment, and it states more Tier 1 requirements: 70/118 here against `off`'s
 64/118 on current code, and 72/118 against 58/118 on #311's night. Settling
 the groundedness question takes a same-night pair, and the cheapest one is
 the next lane that runs for another reason.
+
+## The next authorized lane (2026-09-25, #352, #287)
+
+> **One full lane on `main` + the art. 79 ruling**, owner-approved: commit
+> b903427, the same knobs as req. 5 (`STEPS_RERANK=pin1`, production
+> otherwise, `ANSWER_EFFORT=medium`), judge `claude-sonnet-4-5`, the 873-chunk
+> local ingest carrying #420's «¢1.710,00». ≈US$7 with the reads before it:
+> a three-case smoke, a `RERANK_MODEL=rerank-2.5` retrieval-only lane, and
+> two one-case smokes of the art. 79 change. Rows in
+> [`eval/runs/2026-09-25-lane/`](runs/2026-09-25-lane/). Nothing degraded.
+
+| Gate                              | Req. 5 (`pin1`, 09-24) | This run (`pin1`) | Gate                |
+| --------------------------------- | ---------------------- | ----------------- | ------------------- |
+| Hit-rate                          | 72/73                  | 71/73             | ≥ 0.92, pass        |
+| Blocking cases in the top-k       | green                  | green             | all                 |
+| Carrying chunks in the answer set | 16/47                  | **17/47**         | —                   |
+| Groundedness                      | 67/73                  | 68/73             | ≥ 0.94, **fails**   |
+| Blocking cases grounded           | red (1)                | red (1)           | 0 failing           |
+| Citation invariant                | 0                      | **0**             | 0, **pass**         |
+| Abstention                        | 9/9, figure gate red   | **9/9, green**    | ≥ 0.9, zero figures |
+| Derived figures completely cited  | red                    | **green**         | none uncited        |
+| Adequacy, cases with claims       | 16/40                  | **24/40**         | —                   |
+| Tier 1 adequate                   | 6/27 (7/27 re-scored)  | **11/27**         | goal, not a gate    |
+| Tier 1 requirements stated        | 73/118 (re-scored)     | **83/116**        | #287's floor        |
+| Tier 2 adequate                   | 10/13                  | **13/13**         | ≥ 0.84, **pass**    |
+
+- **`rerank-2.5` is not adopted.** Rule set before the read: hit-rate holds,
+  blocking stays green, carriers up past noise. It scored 72/73 and 15/47
+  carriers (against `pin1`'s 71/73 and 14/47 twice on 2026-09-24), but cut
+  the blocking `ho-cliente-espana-lleva-iva` from pool #2 out of the top-8,
+  and moved neither question-side miss. The lane ran on `rerank-2.5-lite`.
+- **Art. 79, the owner's ruling.** The three-case smoke failed
+  `multa-iva-no-declarado` 3/3 on the hedge rule 9 asks for, as req. 5 did.
+  The owner ruled that art. 79's fine applies per omitted declaration: the
+  derived figure's label says so again («Multa por cada declaración
+  tributaria omitida»), and rule 9 lets the answer state a count its derived
+  figure states. Two one-case smokes passed 2/2. On the lane the answer
+  stated the count and went past it — «cada una de esas tres declaraciones
+  omitidas constituye una infracción separada» — and the judges failed it
+  3/3: «the provided fragments do not explicitly confirm» the count. Over
+  five readings the judges have failed the hedge, the bare count and this
+  extended count; only «en principio … por cada una» has passed 3/3. The
+  count is in our label, not in an official fragment, and that is the root:
+  the fix is an official source that states it, not another wording.
+- **The other four groundedness failures are one-offs.**
+  `iva-facturas-en-dolares` narrows art. 81's scope,
+  `exportacion-comprobante-followup` says «trabajadores independientes» where
+  the article says «contribuyentes del artículo 2» and gives a URL no
+  fragment has, `ho-rebajar-25-sin-facturas` reads «o bien» as «no
+  acumulativa», and `ho-desinscribir-debiendo-declaraciones` hedges the art.
+  79 count under rule 9. Only that last one involves `pin1`'s appended
+  fragment: art. 79 reached it at [9]. `pin1` appended a chunk on 61 of 73
+  answers. Across the three `pin1`/`off` runs on current code the failing
+  sets barely overlap, and groundedness sits at 67–70/73 around a 69/73
+  line.
+- **Decision: the default stays `off`** by the pre-set rule (0.932 < 0.94).
+- **The Tier 1 floor is not set from this run.** It was measured on `pin1`,
+  and the shipped default is `off`; a floor of 80 would gate a config
+  production does not run. It is set from the next `off` lane.
