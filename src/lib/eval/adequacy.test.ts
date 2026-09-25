@@ -663,6 +663,56 @@ describe("checkLiteral on a table whose citation precedes it (#290)", () => {
   });
 });
 
+describe("checkLiteral on a salario-mínimo multiple (#287)", () => {
+  const IVM = ["0,87 SM", "0,87 salarios mínimos", "0.87 SM"];
+
+  it("accepts the reader's wording of the multiple, cited (req. 5's answers)", () => {
+    expect(
+      checkLiteral(
+        "La BMC de IVM es ¢324.590 (equivalente a 0,87 del salario mínimo, " +
+          "que es ¢373.092,30) [10][11], y la de Salud es otra.",
+        IVM,
+      ),
+    ).toEqual({ found: true, cited: true });
+    expect(
+      checkLiteral(
+        "La base es de ¢346.789 (equivalente a 0,9295 de ese mismo salario " +
+          "mínimo) [3][7].",
+        ["0,9295 SM", "0,9295 salarios mínimos"],
+      ),
+    ).toEqual({ found: true, cited: true });
+  });
+
+  it("still scores the escala's own spellings, and an uncited one as uncited", () => {
+    expect(checkLiteral("La base es 0,87 SM [2].", IVM)).toEqual({
+      found: true,
+      cited: true,
+    });
+    expect(checkLiteral("La base es 0.87 salarios mínimos.", IVM)).toEqual({
+      found: true,
+      cited: false,
+    });
+  });
+
+  it("does not reach across a sentence, past four words, or into a longer figure", () => {
+    expect(
+      checkLiteral(
+        "Aporta 0,87 de su ingreso. El salario mínimo es otro [1].",
+        IVM,
+      ).found,
+    ).toBe(false);
+    expect(
+      checkLiteral(
+        "Es 0,87 de lo que la ley llama en general salario mínimo [1].",
+        IVM,
+      ).found,
+    ).toBe(false);
+    expect(checkLiteral("Es 10,87 del salario mínimo [1].", IVM).found).toBe(
+      false,
+    );
+  });
+});
+
 describe("figureMentions", () => {
   it("finds colón amounts and percentages, deduped", () => {
     expect(

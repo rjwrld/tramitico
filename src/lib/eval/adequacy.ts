@@ -297,6 +297,28 @@ function onTableRow(haystack: string, index: number): boolean {
  * shipping and #261 req. 3 exists to stop from scoring. The one exception is
  * a figure in a table row; see `tableWindow`.
  */
+/**
+ * A literal written as a multiple of the salario mínimo — «0,87 SM», «0,9295
+ * salarios mínimos» — names a figure and its unit, and an answer states the
+ * same thing in the reader's words as often as in the escala's: «0,87 del
+ * salario mínimo», «0,9295 de ese mismo salario mínimo» (#287, 2026-09-24
+ * req. 5: both correct, cited, and scored absent). So such a variant matches
+ * the figure followed, within four words that stay in its sentence, by «SM»,
+ * «salario mínimo» or «salarios mínimos». The figure itself is still matched
+ * as written, never as the tail of a longer one («10,87»), and the citation
+ * window is unchanged.
+ */
+const SM_MULTIPLE = /^(\S+)\s+(?:SM|salarios? mínimos?)$/i;
+
+function literalPattern(needle: string): RegExp {
+  const multiple = needle.match(SM_MULTIPLE);
+  if (multiple === null) return new RegExp(escapeRegExp(needle), "gi");
+  return new RegExp(
+    `(?<![\\d.])${escapeRegExp(multiple[1]!)}(?:\\s+[^\\s.!?]+){0,4}?\\s+(?:SM\\b|salarios?\\s+mínimos?)`,
+    "gi",
+  );
+}
+
 export function checkLiteral(
   answer: string,
   variants: readonly string[],
@@ -306,7 +328,7 @@ export function checkLiteral(
   for (const variant of variants) {
     const needle = normalizeFigures(variant);
     if (needle === "") continue;
-    const pattern = new RegExp(escapeRegExp(needle), "gi");
+    const pattern = literalPattern(needle);
     for (const match of haystack.matchAll(pattern)) {
       found = true;
       const rest = haystack.slice(match.index + match[0].length);
