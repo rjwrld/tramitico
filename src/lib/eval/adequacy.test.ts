@@ -702,6 +702,27 @@ describe("figureMentions", () => {
       ).toEqual(["¢41.040,00"]);
     });
 
+    it("clears a figure the source OCR'd with a lowercase «l» (#352)", () => {
+      // `ho-abs-calculo-personalizado`, req. 5: the answer quotes the
+      // salaried hijo credit as «¢1.710,00 mensuales» [1]; `tramos-renta-2026`
+      // carries it as «¢l.710,00». Same figure, cited: not invented.
+      expect(
+        figureMentions(
+          "Note que el crédito por hijo de asalariados, jubilados y " +
+            "pensionados (¢1.710,00 mensuales) es de otro régimen [1].",
+          [
+            "Crédito fiscal mensual Hijo ¢l.710,00 mil setecientos diez colones",
+          ],
+        ),
+      ).toEqual([]);
+      // Only after a colón sign: a word that starts with «l» is untouched.
+      expect(
+        figureMentions("En 2027 la cuota será de ¢1.710,00 [1].", [
+          "la.710,00 no es una cifra",
+        ]),
+      ).toEqual(["¢1.710,00"]);
+    });
+
     it("keeps a figure no fragment carries", () => {
       expect(
         figureMentions("En 2027 la tarifa será del 4 % [2].", SOURCES),
