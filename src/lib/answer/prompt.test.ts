@@ -324,6 +324,15 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     );
   });
 
+  // #352, 2026-09-25: the owner ruled art. 79 applies per omitted declaration,
+  // and the derived figure's label says so. A count a derived figure states is
+  // said, with its markers, rather than hedged — the hedge failed 3/3.
+  it("says a sanction's count when its derived figure states one (#352)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /9\. [^\n]*si ni los documentos ni la cifra derivada que la calcula lo dicen; si lo dice la cifra derivada, dígalo así, con sus marcadores/,
+    );
+  });
+
   it("speaks of documentos oficiales, never of RAG-internal material (#75)", () => {
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/documentos oficiales/i);
     expect(ANSWER_SYSTEM_PROMPT).not.toMatch(/fragmento|chunk/i);
