@@ -193,7 +193,7 @@
         },
         {
           "id": "cnpt-articulo-79-multa-declaracion-2026",
-          "label": "Multa por cada declaración omitida (artículo 79)",
+          "label": "Multa por omitir la presentación de las declaraciones tributarias (artículo 79)",
           "formula": "factor * salario.base",
           "decimals": 0,
           "inputs": [

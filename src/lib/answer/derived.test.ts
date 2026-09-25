@@ -560,6 +560,18 @@ describe("pinDerivedFigureInputs", () => {
     });
   });
 
+  it("labels the art. 79 fine without a count the article does not state (#352)", () => {
+    // Art. 79 fines «los sujetos pasivos que omitan presentar las
+    // declaraciones» and says nothing about how many times. The label is
+    // handed to both the answer and the judge; «por cada declaración omitida»
+    // there was copied into the answer as a count, and the judge accepted it.
+    const label = DERIVED_FIGURES.find(
+      (figure) => figure.id === "cnpt-articulo-79-multa-declaracion-2026",
+    )?.label;
+    expect(label).toBeDefined();
+    expect(label).not.toMatch(/por cada|cada declaración|por declaración/i);
+  });
+
   it("isDerivedFigureInput names the audited sources of every declared input", () => {
     expect(isDerivedFigureInput(escala, [BMC_IVM])).toBe(true);
     expect(isDerivedFigureInput(salarios, [BMC_IVM])).toBe(true);

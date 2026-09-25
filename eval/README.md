@@ -1,3 +1,23 @@
+- **#352's three rows.** The citation invariant is green. The other two
+  are red, and neither is what it first looked like (corrected after a
+  per-answer read):
+  - **Abstention figure, a false positive.** `ho-abs-calculo-personalizado`
+    declined outright («las reglas de este asistente no permiten operar
+    cifras sobre el caso de una persona») and quoted the salaried hijo credit
+    «¢1.710,00 mensuales» [1] as a contrast. The figure is in `ley-renta` 34
+    and in `tramos-renta-2026`, but the tramos sheet prints it «¢l.710,00»,
+    with an OCR'd lowercase «l», so the substring check could not find it.
+    Rule 3 held. `figureMentions` now reads «¢l» as «¢1» on the source side.
+    The «¢41.040,00» on 2026-09-24 predates rules 3 and 6c.
+  - **Blocking groundedness, our own label.** The art. 79 derived figure was
+    labelled «Multa por cada declaración omitida (artículo 79)» in
+    `corpus/manifest.json`, and that label reaches both the answer prompt and
+    the judge. The answer copied it («esta multa se aplica por cada
+    declaración omitida [1]»), then hedged as rule 9 asks. The judges
+    accepted the count, which was in their material too, and failed the
+    hedge. Art. 79 states no count. The label now mirrors the article: «Multa
+    por omitir la presentación de las declaraciones tributarias».
+
 # Eval dataset (SPEC §9, issues #25/#26)
 
 `dataset.jsonl` holds the hand-written eval questions — Appendix A's nine Tier 1
@@ -2817,8 +2837,13 @@ and the answer cited it on 29.
   `exportacion-comprobante-followup` states a Código de Trabajo rule that no
   fragment carries. None of the judges' reasons names [9], and the same rule
   held on #311's `pin1` arm: two runs, zero failures on the appended
-  fragment. Groundedness on `off` itself moved 64 → 70 between two lanes the
-  same day. 67 is inside that spread, and it is still under the gate.
+  fragment. But the comparison on current code is one run each: `off` 70/73
+  on the 2026-09-24 lane (after #411), `pin1` 67/73 here. #311's `off` 64/73
+  predates #411 and is not a like-for-like baseline. Every failure in both
+  runs is unanimous (3/3 votes), and the failing sets barely overlap (only
+  `multa-iva-no-declarado` is in both), which points to answer-to-answer
+  variance. One run each cannot say whether the 3-case gap is that variance
+  or `pin1`'s larger prompt.
 - **Two of the three Tier 1 gains are the append.** `multa-iva-no-declarado`
   (`cnpt` 88 at [9], the reduction and the art. 57/80 bis charges) and
   `ho-800-mil-que-porcentaje-caja` (`ccss-reglamento-ti` 12 at [9], how the
@@ -2842,7 +2867,10 @@ and the answer cited it on 29.
 **Decision: the default stays `off`.** The rule set before the run was:
 groundedness ≥ 0.94, no failure on the appended fragment, and no blocking
 hit-rate red caused by `pin1`. Groundedness is 0.918. The other two
-conditions hold. `pin1`'s answer-side record is now two runs at 67/73, zero
-failures on the appended fragment, and +6 to +14 Tier 1 requirements over the
-nearest `off` lane. Whether that is enough to ship it under a gate the
-baseline itself misses is an owner call. This PR does not make it.
+conditions hold. `pin1` has not passed the gate in either of its answer-side
+runs (67/73 twice, the first before #411), and `off` passed it on the one run
+after #411 (70/73). Against that, `pin1` has never failed on the appended
+fragment, and it states more Tier 1 requirements: 70/118 here against `off`'s
+64/118 on current code, and 72/118 against 58/118 on #311's night. Settling
+the groundedness question takes a same-night pair, and the cheapest one is
+the next lane that runs for another reason.
