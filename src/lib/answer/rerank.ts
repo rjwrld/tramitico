@@ -112,8 +112,14 @@ export const ANSWER_DOC_CAP = Infinity;
  *   cut is covered, so the one append goes to a step the cut left out.
  *   Measured beside `off` on 2026-09-24 (eval/README.md, #311): groundedness
  *   64/73 → 67/73, adequacy 16/40 → 18/40, and no new failure cites the
- *   appended fragment. Still under the 0.94 gate, as `off` is, so it stays
- *   off by #311's rule until the baseline is back over the gate.
+ *   appended fragment. Still under the 0.94 gate, as `off` is, so it stayed
+ *   off by #311's rule until the baseline was back over the gate.
+ *   **The default since 2026-09-25** (owner decision, #287): on a
+ *   same-evening pair on current code `pin1` and `off` tie on groundedness
+ *   (68/73 each, neither over 0.94), and `pin1` states 83/116 Tier 1
+ *   requirements against 71/116, 11/27 Tier 1 cases against 4/27, with the
+ *   citation invariant and the blocking hit-rate green where `off` has them
+ *   red (eval/README.md, «`pin1` becomes the default»).
  * - `slot` — `pin`'s picks, taking the **last places of the cut** instead of
  *   growing it (#287): the best `STEP_SLOTS` picks the cut did not take
  *   displace its lowest-ranked chunks, so the prompt stays at the answer
@@ -137,7 +143,7 @@ export const ANSWER_DOC_CAP = Infinity;
  */
 export type StepRerankMode = "pin" | "pin1" | "slot" | "max" | "off";
 
-export const STEP_RERANK_MODE: StepRerankMode = "off";
+export const STEP_RERANK_MODE: StepRerankMode = "pin1";
 
 /** Places of the cut `STEPS_RERANK=slot` gives to step picks (#287). */
 export const STEP_SLOTS = 2;

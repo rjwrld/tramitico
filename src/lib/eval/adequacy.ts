@@ -45,12 +45,23 @@ import {
 import type { EvalCase, RequiredClaim } from "./dataset";
 
 /**
- * Tier 1 is 100% per case — it is blocking, so there is no rate to set. This
+ * Tier 1 is gated by requirement count (`TIER1_REQUIREMENT_FLOOR`, below). This
  * is the Tier 2 aggregate of the trust contract (#254 §A3). Ratchet up:
  * 0.8 from the baseline, 0.84 from the closing run of 2026-09-11 (12/13,
  * minus one case = 0.846, floored — eval/README.md, «The closing run»).
  */
 export const ADEQUACY_TIER2_GATE = 0.84;
+
+/**
+ * The Tier 1 gate since #287's re-scope (2026-09-25): Tier 1 requirements
+ * stated across the whole lane, not Tier 1 cases adequate. The per-case count
+ * moves ±4 between identical runs and one missing requirement fails a case, so
+ * it cannot show progress; 27/27 stays the goal and is reported, not gated.
+ * Set from the first full lane on the shipped config (`pin1`, 2026-09-25):
+ * 83/116 measured, minus 3 — about one case's worth of noise. Ratchet only,
+ * the way `HIT_RATE_GATE` moves: raised when a run beats it, never lowered.
+ */
+export const TIER1_REQUIREMENT_FLOOR = 80;
 
 /** Where a requirement came from — the judge is told which it is reading. */
 export type RequirementKind = "claim" | "step";
