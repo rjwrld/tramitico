@@ -63,7 +63,7 @@ for a place in the fused top-8 (#279).
 
 The per-PR census of `eval/dataset.jsonl` is the one suite that straddles that
 question by carrying its answer: `eval/corpus-index.json` is a committed dump of
-the coverage in `public.chunks`, rewritten by `pnpm ingest` on every run, so a
+the coverage in `public.chunks`, rewritten by `pnpm ingest` whenever it changes, so a
 corpus change MUST commit the re-dump with it (#163). The eval lane's
 real-table census is the backstop that fails when it drifts.
 

@@ -19,9 +19,8 @@
 #   1. the routing table's front doors still answer (`pnpm check:routing`);
 #   2. no annualChurn entry names a past fiscal year (manifest vigencia test);
 #   3. `pnpm ingest` against production, with Voyage embeddings;
-#   4. `eval/corpus-index.json` compared by content: the ingest rewrites it
-#      unformatted with a new timestamp, so an unchanged corpus is restored and
-#      a changed one is formatted for the PR #163 requires.
+#   4. `eval/corpus-index.json`: the ingest writes it, formatted, only when
+#      the coverage changed, so a dirty file is the PR #163 requires.
 
 set -euo pipefail
 
@@ -60,17 +59,9 @@ echo "── 3/4 ingest into production"
 )
 
 echo "── 4/4 corpus index"
-if git show "HEAD:$INDEX" | node -e '
-  const fs = require("node:fs");
-  const strip = ({ generatedAt, ...rest }) => rest;
-  const before = strip(JSON.parse(fs.readFileSync(0, "utf8")));
-  const after = strip(JSON.parse(fs.readFileSync(process.argv[1], "utf8")));
-  process.exit(JSON.stringify(before) === JSON.stringify(after) ? 0 : 1);
-' "$INDEX"; then
-  git restore -- "$INDEX"
+if git diff --quiet -- "$INDEX"; then
   echo "✓ corpus unchanged: production holds the corpus $INDEX records."
 else
-  pnpm exec prettier --write "$INDEX" >/dev/null
   echo "⚠ the corpus changed: commit $INDEX on a branch and open a PR (#163)."
   git diff --stat -- "$INDEX"
 fi
