@@ -31,6 +31,27 @@ describe("cleanParagraphs", () => {
   it("collapses whitespace and drops empty paragraphs", () => {
     expect(cleanParagraphs(["  a \t b\n c  ", "   ", ""])).toEqual(["a b c"]);
   });
+
+  it("reads a colón figure's leading «l» as the 1 it is (#420)", () => {
+    expect(
+      cleanParagraphs([
+        "Crédito por: Monto mensual Hijo ¢l.710,00 mil setecientos diez colones Por cónyuge ¢2.590",
+      ]),
+    ).toEqual([
+      "Crédito por: Monto mensual Hijo ¢1.710,00 mil setecientos diez colones Por cónyuge ¢2.590",
+    ]);
+    expect(cleanParagraphs(["₡ l710 y ₡l,5"])).toEqual(["₡ 1710 y ₡1,5"]);
+  });
+
+  it("leaves an «l» that does not open a figure alone (#420)", () => {
+    const untouched = [
+      "¢1.710,00 ya estaba bien",
+      "el monto en ¢ lo fija el decreto",
+      "¢l. y nada más",
+      "total 5l.710 sin signo",
+    ];
+    expect(cleanParagraphs(untouched)).toEqual(untouched);
+  });
 });
 
 describe("htmlToParagraphs", () => {

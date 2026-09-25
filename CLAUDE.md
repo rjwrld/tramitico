@@ -97,6 +97,12 @@ can't click. Pattern: `// @vitest-environment jsdom` + Testing Library + `afterE
 mock `@/lib/supabase/client` and `next/navigation` at the module boundary
 (see `src/components/auth/user-menu.test.tsx`).
 
+Done means: `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm test:unit` and
+`gitleaks git --log-opts=main..HEAD .` pass locally — CI's `checks` job runs prettier as its
+own step, and ad hoc vitest runs always take `--project unit`, since a path filter still pulls
+in the paid `*.eval.test.ts`. After pushing, the PR is still open (the owner merges fast, and a
+push to a merged PR's branch goes nowhere), its head matches local HEAD, and CI is green.
+
 ## Worktrees (Orca)
 
 Development happens in Orca worktrees off `main`; `scripts/orca-setup.sh` runs on create
@@ -111,6 +117,13 @@ with the worktree that produced it. Copy it to the main checkout's `eval/transcr
 before the worktree is removed — #304's three full-run transcripts (~US$30) were lost that
 way on 2026-09-08, and `eval/README.md` still cites them by name. A transcript filename in
 the README is not a promise the file is on disk: check, and re-run if you need the rows.
+
+## Reporting
+
+At the end of any run that commits, opens a PR, or spends paid API calls, report under three
+headings, in this order: **Blocked on me** (decisions left open, `!` commands only the owner
+can run, paid runs awaiting OK), **Changed** (branches, PRs, commits, shared-db or prod
+state), **Found** (bugs, drift, stale docs — spotted but not fixed).
 
 ## Agent skills
 
