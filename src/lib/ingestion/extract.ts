@@ -134,10 +134,22 @@ function warningLines(
   return [headline, ...srcs.map((src) => `    ${src}`)].join("\n");
 }
 
+/**
+ * A lowercase «l» read where a figure's leading 1 is printed: `tramos-renta-2026`'s
+ * text layer carries the hijo credit as «¢l.710,00» (#420). Scoped to a colón sign
+ * followed by the «l» and a digit, optionally across a thousands or decimal separator,
+ * so no word is touched.
+ */
+const COLON_ONE_RE = /([¢₡]\s?)l(?=[.,]?\d)/g;
+
 export function cleanParagraphs(paragraphs: string[]): string[] {
   const out: string[] = [];
   for (const raw of paragraphs) {
-    const p = raw.replace(FICHA_RE, " ").replace(/\s+/g, " ").trim();
+    const p = raw
+      .replace(FICHA_RE, " ")
+      .replace(COLON_ONE_RE, "$11")
+      .replace(/\s+/g, " ")
+      .trim();
     if (p && !CHROME_RE.test(p)) out.push(p);
   }
   return out;
