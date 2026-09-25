@@ -77,6 +77,49 @@ export function judgedRequirements(evalCase: EvalCase): Requirement[] {
   return [...claims, ...steps];
 }
 
+/**
+ * How many requirements a case declares: every judged one, plus every claim
+ * a literal check decides (#287).
+ */
+export function requirementTotal(evalCase: EvalCase): number {
+  const literals = (evalCase.requiredClaims ?? []).filter(
+    (claim) => claim.literal !== undefined,
+  ).length;
+  return judgedRequirements(evalCase).length + literals;
+}
+
+/** What a case's adequacy read left missing — the transcript's own shape. */
+export interface AdequacyMisses {
+  missing: readonly string[];
+  literals: readonly string[];
+}
+
+/**
+ * Requirements stated over requirements declared, summed over the cases
+ * (#287). The Tier 1 gate is all-or-nothing per case, and adequacy moves ±4
+ * cases on an identical pipeline, so a change that states three more
+ * requirements across nine cases can read as no change at all. This is the
+ * finer count beside it: a missing judged requirement or a failed literal
+ * check is one requirement not stated. A case that declares none (`null`)
+ * adds nothing.
+ */
+export function requirementCoverage(
+  rows: readonly { evalCase: EvalCase; adequacy: AdequacyMisses | null }[],
+): { stated: number; total: number } {
+  let stated = 0;
+  let total = 0;
+  for (const { evalCase, adequacy } of rows) {
+    if (adequacy === null) continue;
+    const declared = requirementTotal(evalCase);
+    total += declared;
+    stated += Math.max(
+      0,
+      declared - adequacy.missing.length - adequacy.literals.length,
+    );
+  }
+  return { stated, total };
+}
+
 // ---------------------------------------------------------------------------
 // 1. Deterministic figure/date checks (#261 req. 3)
 // ---------------------------------------------------------------------------
