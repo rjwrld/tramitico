@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { decodeHTML } from "entities";
 import type { Chunk } from "./chunker";
+import { httpsUrl } from "./https-link";
 import { BROWSER_UA, type FetchLike } from "./official-http";
 
 /**
@@ -22,7 +23,9 @@ export interface FaqImageTranscription {
   /**
    * Where the bytes actually serve when the page's `src` is dead. The chunk
    * keeps the page's URL, because that is what the official page says; the
-   * hash check goes where the bytes are.
+   * hash check goes where the bytes are. The `src` must stay dead: the day it
+   * answers again, it may be serving an image nobody has read, so ingestion
+   * fails until the transcription is re-read against it.
    */
   fetchFrom?: string;
 }
@@ -98,46 +101,40 @@ function attribute(tag: string, name: string): string | null {
   return match ? decodeHTML(match[1] ?? match[2] ?? match[3]) : null;
 }
 
-function absoluteUrl(value: string, pageUrl: string): string {
-  try {
-    return new URL(value, pageUrl).toString();
-  } catch {
-    throw new Error(`CCSS FAQ: invalid linked URL "${value}"`);
-  }
-}
-
 function answerOf(
   bodyHtml: string,
   pageUrl: string,
   transcriptions: ReadonlyMap<string, FaqImageTranscription>,
   seen: Set<string>,
 ): string {
+  // An image whose src is not https still says the answer is a picture; it
+  // just loses the URL, as a link loses its href below.
   const images = [...bodyHtml.matchAll(/<img\b[^>]*>/gi)]
     .map(([tag]) => attribute(tag, "src"))
     .filter((src): src is string => src !== null)
-    .map((src) => absoluteUrl(src, pageUrl));
+    .map((src) => httpsUrl(src, pageUrl));
 
   const withLinks = bodyHtml.replace(
     /<a\b([^>]*)>([\s\S]*?)<\/a>/gi,
     (tag, attrs: string, label: string) => {
       const href = attribute(`<a ${attrs}>`, "href");
-      return href
-        ? `${textOf(label)} (${absoluteUrl(href, pageUrl)})`
-        : textOf(tag);
+      const url = href ? httpsUrl(href, pageUrl) : null;
+      return url ? `${textOf(label)} (${url})` : textOf(tag);
     },
   );
   const text = textOf(withLinks.replace(/<img\b[^>]*>/gi, " "));
   const imageText = images.map((url) => {
-    const transcription = transcriptions.get(url);
-    if (transcription) {
+    const transcription = url === null ? undefined : transcriptions.get(url);
+    if (url !== null && transcription) {
       seen.add(url);
       return text.length === 0
         ? `Transcripción de la imagen que constituye la respuesta oficial (${url}): ${transcription.text}`
         : `Transcripción de la imagen incluida en la respuesta oficial (${url}): ${transcription.text}`;
     }
+    const where = url === null ? "" : `: ${url}`;
     return text.length === 0
-      ? `La respuesta oficial está publicada como imagen: ${url}.`
-      : `Imagen incluida en la respuesta oficial: ${url}.`;
+      ? `La respuesta oficial está publicada como imagen${where}.`
+      : `Imagen incluida en la respuesta oficial${where}.`;
   });
   return [text, ...imageText].filter(Boolean).join(" ");
 }
@@ -295,8 +292,8 @@ export function extractCcssFaqChunks(
  * Prove each transcription still describes the bytes the page serves (#301).
  * Runs before the page is extracted, so a republished image fails the run
  * rather than ingesting a transcription of something nobody has looked at.
- * Unlike a PDF `sha256` this is a failure, not a warning: the transcription
- * *is* the chunk's content, and there is no honest text to fall back to.
+ * Unlike a PDF `sha256`, no flag accepts a mismatch: the transcription *is*
+ * the chunk's content, and there is no honest text to fall back to.
  */
 export async function verifyImageTranscriptions(
   docKey: string,
@@ -312,6 +309,9 @@ export async function verifyImageTranscriptions(
   }
   const receipts: string[] = [];
   for (const { src, sha256, fetchFrom } of transcriptions) {
+    if (fetchFrom !== undefined) {
+      await assertSrcStillDead(docKey, src, fetchFrom, fetchFn);
+    }
     const response = await fetchFn(fetchFrom ?? src, {
       headers: { "User-Agent": BROWSER_UA },
     });
@@ -331,6 +331,32 @@ export async function verifyImageTranscriptions(
     receipts.push(`${docKey}: image ${src} SHA-256 matches its transcription`);
   }
   return receipts;
+}
+
+/**
+ * A `fetchFrom` hash binds the mirror's bytes, not the page's: it speaks for
+ * the page's `src` only while that URL is dead. If CCSS serves `src` again —
+ * with this year's calendar, say — the mirror's transcription would ride on
+ * under it unread, so a live `src` fails the document. A network error counts
+ * as dead, like a non-2xx: either way the page's reader gets no image.
+ */
+async function assertSrcStillDead(
+  docKey: string,
+  src: string,
+  fetchFrom: string,
+  fetchFn: FetchLike,
+): Promise<void> {
+  let response: Response;
+  try {
+    response = await fetchFn(src, { headers: { "User-Agent": BROWSER_UA } });
+  } catch {
+    return;
+  }
+  if (response.ok) {
+    throw new Error(
+      `${docKey}: image ${src} answers again (HTTP ${response.status}), but its transcription was checked against fetchFrom ${fetchFrom} — the page may now serve a different image; re-read it, update the manifest and drop fetchFrom (#301)`,
+    );
+  }
 }
 
 export async function fetchCcssFaq(

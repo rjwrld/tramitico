@@ -37,9 +37,34 @@ describe("extractCcssPrescripcionChunks", () => {
     expect(chunks[0].content).toContain("periodos que solicita");
     expect(chunks[0].content).toContain("https://www.ccss.sa.cr/oficinas");
     expect(chunks[2].content).toContain("20 días hábiles");
-    expect(chunks[3].content).toContain("mailto:cobros@ccss.sa.cr");
+    expect(chunks[3].content).toContain("Envíela a cobros@ccss.sa.cr.");
+    expect(chunks[3].content).not.toContain("mailto:");
     expect(chunks.map((item) => item.content).join(" ")).not.toContain(
       "próximos 24 meses",
+    );
+  });
+
+  it("keeps only https URLs beside their link text", () => {
+    const [guide] = extractCcssPrescripcionChunks(
+      "ccss-prescripcion",
+      "CCSS — Prescripción de deudas",
+      `<h3>¿Dónde consulto?</h3>
+      <p>
+        <a href="https://www.ccss.sa.cr/segura">la guía</a>,
+        <a href="/oficinas">las oficinas</a>,
+        <a href="http://www.ccss.sa.cr/plana">la versión plana</a>,
+        <a href="javascript:alert(1)">el enlace</a>,
+        <a href="data:text/html;base64,PGI+eDwvYj4=">los datos</a>,
+        <a href="mailto:cobros@ccss.sa.cr">cobros@ccss.sa.cr</a>.
+      </p>
+      <section id="why-us"></section>`,
+      PAGE_URL,
+      1,
+    );
+    expect(guide.content.replace(/^\[[^\]]*\]\s*/, "")).toBe(
+      "la guía (https://www.ccss.sa.cr/segura), " +
+        "las oficinas (https://www.ccss.sa.cr/oficinas), " +
+        "la versión plana, el enlace, los datos, cobros@ccss.sa.cr.",
     );
   });
 

@@ -68,6 +68,44 @@ describe("extractCcssFaqChunks", () => {
     );
   });
 
+  describe("linked URLs", () => {
+    const answer = (body: string) =>
+      extractCcssFaqChunks(
+        "ccss-faq",
+        TITLE,
+        `<div class="faq-question-text"><strong>¿Dónde consulto?</strong><small>Cobros</small></div>
+        <button data-bs-target="#m1">Leer</button>
+        <div class="modal" id="m1"><div class="modal-body">${body}</div></div>`,
+        PAGE_URL,
+        { minimum: 1 },
+      )[0].content.replace(/^\[[^\]]*\]\s*/, "");
+
+    it("keeps only https URLs beside their link text", () => {
+      expect(
+        answer(`
+          <a href="https://www.ccss.sa.cr/segura">la guía</a>,
+          <a href="/requisitos">los requisitos</a>,
+          <a href="http://www.ccss.sa.cr/plana">la versión plana</a>,
+          <a href="javascript:alert(1)">el enlace</a>,
+          <a href="data:text/html;base64,PGI+eDwvYj4=">los datos</a>,
+          <a href="mailto:cobros@ccss.sa.cr">cobros@ccss.sa.cr</a>.`),
+      ).toBe(
+        "la guía (https://www.ccss.sa.cr/segura), " +
+          "los requisitos (https://www.ccss.sa.cr/requisitos), " +
+          "la versión plana, el enlace, los datos, cobros@ccss.sa.cr.",
+      );
+    });
+
+    it("keeps the image notice but not a non-https image URL", () => {
+      expect(answer(`<img src="data:image/png;base64,iVBORw0KGgo=">`)).toBe(
+        "La respuesta oficial está publicada como imagen.",
+      );
+      expect(
+        answer(`Vea el calendario: <img src="http://www.ccss.sa.cr/f.jpg">`),
+      ).toBe("Vea el calendario: Imagen incluida en la respuesta oficial.");
+    });
+  });
+
   describe("body duplicates (#301)", () => {
     // The fixture publishes «¿Debo asegurarme?» under both Seguro voluntario
     // and Trabajador Independiente with the same modal text. Only the section
@@ -204,17 +242,63 @@ describe("verifyImageTranscriptions", () => {
     ]);
   });
 
-  it("fetches from fetchFrom when the page's src is dead, keyed by the src", async () => {
+  describe("fetchFrom", () => {
     // The live page links assets/images/faq/fechas_aseg_vol.jpg, which 404s;
     // the same bytes serve from assets/img/faq/. The chunk keeps the page's
-    // URL; the hash check goes where the bytes are.
-    const fake = vi.fn<FetchLike>(async () => new Response(bytes));
-    await verifyImageTranscriptions(
-      "ccss-faq",
-      [{ ...transcription, fetchFrom: "https://www.ccss.sa.cr/mirror.png" }],
-      fake,
-    );
-    expect(fake.mock.calls[0][0]).toBe("https://www.ccss.sa.cr/mirror.png");
+    // URL; the hash check goes where the bytes are — for as long as the
+    // page's own URL stays dead.
+    const mirror = "https://www.ccss.sa.cr/mirror.png";
+    const mirrored = { ...transcription, fetchFrom: mirror };
+    const serving =
+      (src: () => Promise<Response>, mirrorBytes = bytes): FetchLike =>
+      async (url) =>
+        url === mirror ? new Response(mirrorBytes) : src();
+
+    it("hashes the fetchFrom bytes while the page's src is dead, keyed by the src", async () => {
+      const fake = vi.fn<FetchLike>(
+        serving(async () => new Response("gone", { status: 404 })),
+      );
+      const receipts = await verifyImageTranscriptions(
+        "ccss-faq",
+        [mirrored],
+        fake,
+      );
+      expect(fake.mock.calls.map(([url]) => url)).toEqual([
+        transcription.src,
+        mirror,
+      ]);
+      expect(receipts).toEqual([
+        `ccss-faq: image ${transcription.src} SHA-256 matches its transcription`,
+      ]);
+    });
+
+    it("counts a src that cannot be reached at all as dead", async () => {
+      const fake = serving(async () => {
+        throw new TypeError("fetch failed");
+      });
+      await expect(
+        verifyImageTranscriptions("ccss-faq", [mirrored], fake),
+      ).resolves.toHaveLength(1);
+    });
+
+    it("fails when the page's src answers again, even if the mirror still matches", async () => {
+      const fake = serving(async () => new Response("new calendar"));
+      await expect(
+        verifyImageTranscriptions("ccss-faq", [mirrored], fake),
+      ).rejects.toThrow(
+        /cuotas\.png answers again \(HTTP 200\), but its transcription was checked against fetchFrom https:\/\/www\.ccss\.sa\.cr\/mirror\.png — .*re-read it, update the manifest and drop fetchFrom \(#301\)/,
+      );
+    });
+
+    it("fails when the fetchFrom bytes no longer match", async () => {
+      const fake = serving(
+        async () => new Response("gone", { status: 404 }),
+        "new-bytes",
+      );
+      await expect(
+        verifyImageTranscriptions("ccss-faq", [mirrored], fake),
+      ).rejects.toThrow(/cuotas\.png changed since it was transcribed/);
+    });
   });
 
   it("fails when the bytes no longer match the transcribed image", async () => {
