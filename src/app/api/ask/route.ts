@@ -141,6 +141,7 @@ import {
   resolveDerivedFigures,
   type ResolvedDerivedFigure,
 } from "@/lib/answer/derived";
+import { hasUnstorableText, isCrossSiteAsk } from "@/lib/answer/admission";
 import { startAskDeadline } from "@/lib/answer/deadline";
 import { answerProviderOptions, getAnswerModel } from "@/lib/answer/model";
 import { describeError } from "@/lib/log-redaction";
@@ -222,6 +223,9 @@ export const ANSWER_MAX_OUTPUT_TOKENS = 4096;
 
 const INVALID_QUESTION_MESSAGE =
   "Falta la pregunta o es demasiado larga. Escriba su pregunta en el cuadro de texto e intente de nuevo.";
+
+const CROSS_SITE_MESSAGE =
+  "Esta solicitud no viene de Tramitico. Escriba su pregunta en tramitico.com.";
 
 /**
  * Non-OK body per the client contract (contract.ts): `error` is a stable
@@ -387,6 +391,7 @@ async function persistExchange(
  */
 const REFUNDS_ASK: Record<AskErrorCode, boolean> = {
   invalid_question: false, // pre-stream, and nothing was consumed yet
+  cross_site_request: false, // pre-stream, before the body is even read
   rate_limited: false, // pre-stream; the counter is the point
   rate_limit_unavailable: false, // pre-stream; no increment landed
   retrieval_failed: true,
@@ -599,6 +604,13 @@ export async function POST(request: Request): Promise<Response> {
   // Started here so the latency bucket covers the whole request, including the
   // auth and rate-limit work #71 kept in front of the 200 (telemetry.ts, #141).
   const telemetry = createAskTelemetry();
+  // Before the body is read (admission.ts): another site's page can make a
+  // visitor's browser send this POST, and the anonymous quota it would charge
+  // is keyed on that visitor.
+  if (isCrossSiteAsk(request)) {
+    telemetry.emit();
+    return jsonError("cross_site_request", CROSS_SITE_MESSAGE, 403);
+  }
   let question: unknown;
   let rawHistory: unknown;
   try {
@@ -613,7 +625,8 @@ export async function POST(request: Request): Promise<Response> {
   if (
     typeof question !== "string" ||
     question.trim() === "" ||
-    question.length > MAX_QUESTION_LENGTH
+    question.length > MAX_QUESTION_LENGTH ||
+    hasUnstorableText(question)
   ) {
     telemetry.emit();
     return jsonError("invalid_question", INVALID_QUESTION_MESSAGE, 400);
