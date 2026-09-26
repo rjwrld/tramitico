@@ -12,11 +12,20 @@ export interface PdfHashNotice {
   message: string;
 }
 
-/** Compare a fetched, silently-republished PDF with its audited manifest hash. */
+/**
+ * Compare a fetched, silently-republished PDF with its audited manifest hash.
+ *
+ * A mismatch fails the document: the hash records the bytes a human read, and
+ * a warning let a republished PDF's unread figures ingest under the audited
+ * entry with nobody obliged to look. `accepted` holds the doc_keys the owner
+ * has named on this run (`pnpm ingest --accept-pdf-hash <doc_key>`), each
+ * accepted on its own, so taking one republication waves no other through.
+ */
 export function pdfHashNotice(
   docKey: string,
   pdf: Buffer,
   expected: string,
+  accepted: ReadonlySet<string> = new Set(),
 ): PdfHashNotice {
   if (!/^[a-f0-9]{64}$/.test(expected)) {
     throw new Error(`${docKey}: source.sha256 must be 64 lowercase hex digits`);
@@ -28,9 +37,15 @@ export function pdfHashNotice(
       message: `${docKey}: PDF SHA-256 ${actual} matches manifest`,
     };
   }
+  const changed = `${docKey}: PDF SHA-256 changed — manifest ${expected}, fetched ${actual}`;
+  if (!accepted.has(docKey)) {
+    throw new Error(
+      `${changed}. The source was republished: read the new PDF, then set source.sha256 to ${actual} in corpus/manifest.json, or ingest these bytes once with --accept-pdf-hash ${docKey}`,
+    );
+  }
   return {
     level: "warn",
-    message: `${docKey}: PDF SHA-256 changed — manifest ${expected}, fetched ${actual}`,
+    message: `${changed}; ingesting anyway (--accept-pdf-hash ${docKey}) — set source.sha256 to ${actual} in corpus/manifest.json once the new PDF is audited`,
   };
 }
 

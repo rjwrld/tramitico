@@ -1,5 +1,6 @@
 import { decodeHTML } from "entities";
 import type { Chunk } from "./chunker";
+import { httpsUrl } from "./https-link";
 import { BROWSER_UA, type FetchLike } from "./official-http";
 
 const DEFAULT_MINIMUM = 20;
@@ -38,21 +39,13 @@ function attribute(tag: string, name: string): string | null {
   return match ? decodeHTML(match[1] ?? match[2] ?? match[3]) : null;
 }
 
-function absoluteUrl(value: string, pageUrl: string): string {
-  try {
-    return new URL(value, pageUrl).toString();
-  } catch {
-    throw new Error(`CCSS prescripción: invalid linked URL "${value}"`);
-  }
-}
-
 function textOf(html: string, pageUrl: string): string {
   const withLinks = html.replace(
     /<a\b([^>]*)>([\s\S]*?)<\/a>/gi,
     (tag, attrs: string, label: string) => {
       const href = attribute(`<a ${attrs}>`, "href");
-      const text = plainText(label);
-      return href ? `${text} (${absoluteUrl(href, pageUrl)})` : plainText(tag);
+      const url = href ? httpsUrl(href, pageUrl) : null;
+      return url ? `${plainText(label)} (${url})` : plainText(tag);
     },
   );
   return plainText(withLinks);

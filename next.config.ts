@@ -78,6 +78,19 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   // No framework fingerprint on responses (#210).
   poweredByHeader: false,
+  experimental: {
+    // To hand one body to both `src/proxy.ts` and the route, Next holds a copy
+    // of it in memory — up to 10 MB by default — before the route reads a
+    // byte, and the proxy matches every route that takes a body. None needs
+    // more than `/api/ask`'s 32 KiB cap: `/api/csp-report` takes 8, account
+    // deletion and the history routes read none, sign-in talks to Supabase
+    // from the browser, and there are no Server Actions. Past this limit Next
+    // truncates instead of refusing, so it sits at twice the largest route
+    // cap and only ever cuts a body its route refuses anyway. A route or
+    // Server Action that needs a larger body raises it in the same change;
+    // `api/ask/route.test.ts` pins it at or above the ask cap.
+    proxyClientMaxBodySize: 64 * 1024,
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

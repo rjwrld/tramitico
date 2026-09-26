@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 
+import { readCappedBody, UNREADABLE } from "@/lib/http/capped-body";
 import { REDACTED } from "@/lib/log-redaction";
 
 /**
@@ -66,35 +67,6 @@ const MAX_PATH = 120;
 const PATH = /^[A-Za-z0-9._~/-]*$/;
 
 type Report = Record<string, unknown>;
-
-/** Distinguishes "the read failed" from "the body was too big" (`null`). */
-const UNREADABLE: unique symbol = Symbol("unreadable");
-
-/** Reads the body with a hard byte cap; null when there is more than that. */
-async function readCappedBody(request: NextRequest): Promise<string | null> {
-  const declared = Number(request.headers.get("content-length"));
-  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) return null;
-
-  const stream = request.body;
-  if (stream === null) return "";
-
-  const reader = stream.getReader();
-  const decoder = new TextDecoder();
-  let text = "";
-  let bytes = 0;
-  try {
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      bytes += value.byteLength;
-      if (bytes > MAX_BODY_BYTES) return null;
-      text += decoder.decode(value, { stream: true });
-    }
-  } finally {
-    void reader.cancel().catch(() => {});
-  }
-  return text + decoder.decode();
-}
 
 function isReport(value: unknown): value is Report {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -199,6 +171,7 @@ export async function POST(request: NextRequest) {
   // is someone sending too much, `unreadable` is a socket giving up.
   const body: string | null | typeof UNREADABLE = await readCappedBody(
     request,
+    MAX_BODY_BYTES,
   ).catch(() => UNREADABLE);
   if (body === null || body === UNREADABLE) {
     recordDropped(body === UNREADABLE ? "unreadable" : "oversized");

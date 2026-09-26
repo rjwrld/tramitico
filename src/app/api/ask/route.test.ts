@@ -3,7 +3,8 @@ import type { LanguageModelV4StreamPart } from "@ai-sdk/provider";
 import { MockLanguageModelV4 } from "ai/test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { RetrievalResult, RetrievedChunk } from "@/lib/retrieval";
-import { ANSWER_MAX_OUTPUT_TOKENS, POST } from "./route";
+import nextConfig from "../../../../next.config";
+import { ANSWER_MAX_OUTPUT_TOKENS, MAX_BODY_BYTES, POST } from "./route";
 
 vi.mock("@/lib/retrieval", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/retrieval")>()),
@@ -24,6 +25,8 @@ vi.mock("@/lib/answer/persist", () => ({ saveQuestion: vi.fn() }));
 import {
   ASK_FALLBACK_ERROR_MESSAGE,
   askErrorMessage,
+  askRequestBody,
+  type AskUIMessage,
 } from "@/lib/answer/contract";
 import {
   citationFailures,
@@ -758,6 +761,174 @@ describe("POST /api/ask", () => {
     expect(response.status).toBe(200);
     await readEvents(response);
     expect(vi.mocked(checkRateLimit)).toHaveBeenCalledTimes(1);
+  });
+
+  describe("request body cap", () => {
+    const bytes = (text: string) => new TextEncoder().encode(text).byteLength;
+
+    /** `{"question": …}` padded with trailing whitespace to exactly `size` bytes. */
+    function paddedBody(size: number): string {
+      const json = JSON.stringify({ question: "¿Cuánto es el IVA?" });
+      return json + " ".repeat(size - bytes(json));
+    }
+
+    /** A chunked body with no Content-Length that never ends on its own. */
+    function endlessBody() {
+      const seen = { pulls: 0, cancelled: false };
+      const kib = new TextEncoder().encode(" ".repeat(1024));
+      const stream = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode('{"question":"'));
+        },
+        pull(controller) {
+          seen.pulls += 1;
+          controller.enqueue(kib);
+        },
+        cancel() {
+          seen.cancelled = true;
+        },
+      });
+      return { stream, seen };
+    }
+
+    function expectNothingRan(): void {
+      expect(vi.mocked(getUserId)).not.toHaveBeenCalled();
+      expect(vi.mocked(checkRateLimit)).not.toHaveBeenCalled();
+      expect(vi.mocked(retrieve)).not.toHaveBeenCalled();
+      expect(vi.mocked(getAnswerModel)).not.toHaveBeenCalled();
+    }
+
+    it("refuses a body over the cap with a 413 before identity, the quota or the pipeline", async () => {
+      const oversized = JSON.stringify({
+        question: "¿Cuánto es el IVA?",
+        history: [{ question: "a".repeat(MAX_BODY_BYTES), answer: "b" }],
+      });
+      // Declared honestly, declared low, and not declared at all.
+      for (const declared of [String(bytes(oversized)), "12", null]) {
+        const response = await POST(
+          new Request("http://localhost/api/ask", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              ...(declared === null ? {} : { "content-length": declared }),
+            },
+            body: oversized,
+          }),
+        );
+        expect(response.status).toBe(413);
+        const parsed = (await response.json()) as {
+          error: string;
+          message: string;
+        };
+        expect(parsed.error).toBe("invalid_question");
+        expect(parsed.message).toMatch(/pregunta/i);
+      }
+      expectNothingRan();
+    });
+
+    it("stops reading a chunked body at the cap instead of waiting for its end", async () => {
+      const { stream, seen } = endlessBody();
+
+      const response = await POST(
+        new Request("http://localhost/api/ask", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: stream,
+          duplex: "half",
+        } as RequestInit),
+      );
+
+      expect(response.status).toBe(413);
+      // 32 KiB of 1 KiB chunks plus the one that crosses it; the stream may
+      // run a pull ahead of the reader, and no further.
+      expect(seen.pulls).toBeLessThanOrEqual(MAX_BODY_BYTES / 1024 + 2);
+      expect(seen.cancelled).toBe(true);
+      expectNothingRan();
+    });
+
+    it("answers a body exactly at the cap as before, and refuses one byte more", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModel("Aplica el 13% [1].");
+
+      const atCap = paddedBody(MAX_BODY_BYTES);
+      expect(bytes(atCap)).toBe(MAX_BODY_BYTES);
+      const response = await POST(
+        new Request("http://localhost/api/ask", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: atCap,
+        }),
+      );
+      expect(response.status).toBe(200);
+      expect(streamedText(await readEvents(response))).toBe(
+        "Aplica el 13% [1]. ",
+      );
+      expect(vi.mocked(checkRateLimit)).toHaveBeenCalledTimes(1);
+
+      const over = await POST(
+        new Request("http://localhost/api/ask", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: paddedBody(MAX_BODY_BYTES + 1),
+        }),
+      );
+      expect(over.status).toBe(413);
+      expect(vi.mocked(checkRateLimit)).toHaveBeenCalledTimes(1);
+    });
+
+    it("keeps a 400 for a body within the cap that is not a JSON object", async () => {
+      for (const body of ["not json", "", "null", '{"question":']) {
+        const response = await POST(
+          new Request("http://localhost/api/ask", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body,
+          }),
+        );
+        expect(response.status).toBe(400);
+        expect(((await response.json()) as { error: string }).error).toBe(
+          "invalid_question",
+        );
+      }
+      expectNothingRan();
+    });
+
+    it("fits the largest body the chat client builds well inside the cap", () => {
+      const msg = (
+        id: string,
+        role: "user" | "assistant",
+        text: string,
+      ): AskUIMessage => ({ id, role, parts: [{ type: "text", text }] });
+      // A full history window with every half past its clamp, and the newest
+      // question at the route's own limit. `typed` fills what the reader
+      // wrote, `written` what the model did.
+      const largest = (typed: string, written: string) =>
+        bytes(
+          JSON.stringify(
+            askRequestBody([
+              ...[1, 2, 3].flatMap((n) => [
+                msg(`u${n}`, "user", typed.repeat(5_000)),
+                msg(`a${n}`, "assistant", written.repeat(5_000)),
+              ]),
+              msg("u4", "user", typed.repeat(1_000)),
+            ]),
+          ),
+        );
+
+      // 3 bytes a unit: the most any printable text costs (the arithmetic
+      // beside MAX_BODY_BYTES).
+      expect(largest("€", "€")).toBe(17_529);
+      // The 6-byte "\u0001" escape in everything the reader typed.
+      expect(largest("\u0001", "€")).toBe(29_529);
+      expect(largest("\u0001", "€")).toBeLessThan(MAX_BODY_BYTES);
+    });
+
+    it("keeps the proxy's body buffer at or above the ask cap (next.config.ts)", () => {
+      const limit = nextConfig.experimental?.proxyClientMaxBodySize;
+      expect(typeof limit).toBe("number");
+      expect(limit as number).toBeGreaterThanOrEqual(MAX_BODY_BYTES);
+    });
   });
 
   it("uses the authed tier and persists question/answer/citations for signed-in users", async () => {

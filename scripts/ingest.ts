@@ -6,6 +6,8 @@
  * Usage:
  *   pnpm ingest              # every ingestable manifest entry
  *   pnpm ingest ley-10363    # one or more doc_keys
+ *   pnpm ingest tribu-cr-faq --accept-pdf-hash tribu-cr-faq
+ *                            # ingest a republished PDF whose sha256 changed
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -56,6 +58,10 @@ import {
   textToParagraphs,
 } from "../src/lib/ingestion/extract";
 import { fetchHaciendaPdf, pdfHashNotice } from "../src/lib/ingestion/hacienda";
+import {
+  assertAcceptedPdfHashes,
+  parseIngestArgs,
+} from "../src/lib/ingestion/ingest-args";
 import type { LayoutTableSpec } from "../src/lib/ingestion/layout-table";
 import { fetchPdfSource } from "../src/lib/ingestion/pdf";
 import { pdfImageNotice } from "../src/lib/ingestion/pdf-images";
@@ -214,7 +220,9 @@ async function main() {
     readFileSync(path.join(ROOT, "corpus", "manifest.json"), "utf8"),
   ) as { retiredDocKeys?: string[]; documents: ManifestDoc[] };
 
-  const wanted = process.argv.slice(2);
+  const { docKeys: wanted, acceptPdfHash } = parseIngestArgs(
+    process.argv.slice(2),
+  );
   const docs = manifest.documents.filter(
     (d) => wanted.length === 0 || wanted.includes(d.doc_key),
   );
@@ -224,13 +232,14 @@ async function main() {
       `Unknown doc_key(s): ${wanted.filter((w) => !known.has(w)).join(", ")}`,
     );
   }
+  assertAcceptedPdfHashes(acceptPdfHash, docs);
 
   mkdirSync(CACHE, { recursive: true });
   let ingested = 0;
   const skipped: string[] = [];
 
   for (const doc of docs) {
-    const extracted = await extract(doc);
+    const extracted = await extract(doc, acceptPdfHash);
     if (extracted === null) {
       skipped.push(doc.doc_key);
       continue;
@@ -352,12 +361,23 @@ function pdfToText(doc: ManifestDoc, pdf: Buffer): string {
  * accepted by the manifest type and then never checked. A shared helper is
  * what stops the two branches drifting again.
  *
- * A mismatch warns rather than fails: the hash records what a human audited,
- * and a republication is a go-look, not proof the new bytes are wrong.
+ * A mismatch fails the document — and so the run — unless this run names it
+ * with `--accept-pdf-hash <doc_key>`: the hash records what a human audited,
+ * and a warning let unread bytes ingest with nobody obliged to look. Accepted,
+ * it still warns, with the hash to write into the manifest.
  */
-function reportPdfHash(doc: ManifestDoc, pdf: Buffer): void {
+function reportPdfHash(
+  doc: ManifestDoc,
+  pdf: Buffer,
+  acceptPdfHash: ReadonlySet<string>,
+): void {
   if (!doc.source.sha256) return;
-  const notice = pdfHashNotice(doc.doc_key, pdf, doc.source.sha256);
+  const notice = pdfHashNotice(
+    doc.doc_key,
+    pdf,
+    doc.source.sha256,
+    acceptPdfHash,
+  );
   if (notice.level === "warn") console.warn(`  ⚠ ${notice.message}`);
   else console.log(`  ${notice.message}`);
 }
@@ -365,7 +385,10 @@ function reportPdfHash(doc: ManifestDoc, pdf: Buffer): void {
 type ExtractedContent =
   { kind: "paragraphs"; value: string[] } | { kind: "chunks"; value: Chunk[] };
 
-async function extract(doc: ManifestDoc): Promise<ExtractedContent | null> {
+async function extract(
+  doc: ManifestDoc,
+  acceptPdfHash: ReadonlySet<string>,
+): Promise<ExtractedContent | null> {
   // `excerpt` narrows a PDF and a ficha alike, so a reader may reasonably
   // expect its sibling to travel as far. It cannot: it filters chunks the
   // artículo chunker labelled, which only a norma has. Refuse it here rather
@@ -520,7 +543,7 @@ async function extract(doc: ManifestDoc): Promise<ExtractedContent | null> {
     }
     case "hacienda-pdf": {
       const pdf = await fetchHaciendaPdf(doc.source.url!);
-      reportPdfHash(doc, pdf);
+      reportPdfHash(doc, pdf, acceptPdfHash);
       return {
         kind: "paragraphs",
         value: textToParagraphs(pdfToText(doc, pdf), {
@@ -538,7 +561,7 @@ async function extract(doc: ManifestDoc): Promise<ExtractedContent | null> {
       );
       // After the zip member is extracted, so the hash covers the bytes this
       // entry actually ingests rather than the archive they arrived in.
-      reportPdfHash(doc, pdf);
+      reportPdfHash(doc, pdf, acceptPdfHash);
       if (doc.source.pages) {
         console.log(`  ${doc.doc_key}: pages ${doc.source.pages}`);
       }
