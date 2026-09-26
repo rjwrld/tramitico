@@ -253,11 +253,17 @@ in Actions: GitHub-hosted runners time out on `www.ccss.sa.cr` and get a 400 fro
 pnpm recrawl              # or: pnpm recrawl <doc_key…>
 ```
 
-`scripts/recrawl.sh` checks the routing front doors, runs the manifest vigencia test, ingests into
-production with Voyage embeddings (reading the deploy wizard's env file), and compares
-`eval/corpus-index.json` by content: an unchanged corpus is restored, a changed one is formatted
-for the PR #163 requires. Between November and January, §2.2 comes first. Close the issue with
-one line: what ingested, whether the corpus changed.
+`scripts/recrawl.sh` refuses to start unless, after `git pull --ff-only`, the checkout is exactly
+`origin/main` — nothing staged, modified or untracked — and runs `pnpm install --frozen-lockfile`
+before it reads any secret. It then checks the routing front doors, runs the manifest vigencia
+test, ingests into production with Voyage embeddings, and compares `eval/corpus-index.json` by
+content: an unchanged corpus is restored, a changed one is formatted for the PR #163 requires. The
+ingest runs under `env -i` with `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` and `VOYAGE_API_KEY`
+parsed out of the deploy wizard's env file (never sourced), `INGEST_NO_DOTENV=1` so the dev
+`.env.local` fills no gap, and otherwise only `PATH`, `HOME` and, if set, `TMPDIR` and
+`PLAYWRIGHT_BROWSERS_PATH`: the file's other secrets never reach its child processes. Between
+November and January, §2.2 comes first. Close the issue with one line: what ingested, whether the
+corpus changed.
 
 ---
 
@@ -439,9 +445,9 @@ function` and recreate `search_chunks` with a **new argument list**. A deploymen
 Check before every deploy that carries a migration: `git diff main -- supabase/migrations/`
 and ask "can the deployment currently in production run against this?". If not, split it.
 
-**A rolled-back app against a re-ingested corpus.** Ingestion (`pnpm ingest`, `recrawl.yml`)
-replaces a document's chunks wholesale, in one transaction per document (`replace_chunks`,
-ADR 0002). Chunk identity is the document plus its label and part, not a stable row id, so
+**A rolled-back app against a re-ingested corpus.** Ingestion (`pnpm ingest`, or the owner-run
+`pnpm recrawl`) replaces a document's chunks wholesale, in one transaction per document
+(`replace_chunks`, ADR 0002). Chunk identity is the document plus its label and part, not a stable row id, so
 after a re-ingest the ids in `chunks` are new. That has two consequences, both benign:
 
 - **History keeps rendering.** `questions.citations` is a JSON snapshot of what was cited —
