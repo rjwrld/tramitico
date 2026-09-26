@@ -259,6 +259,22 @@ production with Voyage embeddings (reading the deploy wizard's env file), and co
 for the PR #163 requires. Between November and January, §2.2 comes first. Close the issue with
 one line: what ingested, whether the corpus changed.
 
+**A pinned source changed.** Two checks stop the run instead of ingesting bytes nobody has read.
+Documents ingested before the stop stay written and the corpus-index step does not run, so
+finish with a complete re-run (ingestion is idempotent per document).
+
+- A PDF whose bytes no longer match its manifest `source.sha256` fails its document; the error
+  names the doc_key and both hashes. Read the new PDF. If it is still the audited instrument,
+  ingest it once with `pnpm recrawl <doc_key> --accept-pdf-hash <doc_key>` — the run warns and
+  continues, and the flag accepts only the doc_key it names (repeat it per document) — then commit
+  the fetched hash to `corpus/manifest.json` in the PR for the re-crawl. If its figures changed,
+  it is a §2.2-style source review first.
+- A transcribed FAQ image (`imageTranscriptions`) has no such flag: its text is the chunk. New
+  bytes, or an image the page no longer links, mean re-read it and update the manifest (#301).
+  An entry with `fetchFrom` also fails when the page's own `src` answers again, since that URL may
+  now serve a different image: re-read the image at `src`, update the transcription and hash, and
+  drop `fetchFrom`.
+
 ---
 
 ## 3. Alerts to create (#29 provisioning step)
