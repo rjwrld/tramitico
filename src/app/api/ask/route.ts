@@ -142,6 +142,7 @@ import {
   type ResolvedDerivedFigure,
 } from "@/lib/answer/derived";
 import { hasUnstorableText, isCrossSiteAsk } from "@/lib/answer/admission";
+import { readCappedBody } from "@/lib/http/capped-body";
 import { startAskDeadline } from "@/lib/answer/deadline";
 import { answerProviderOptions, getAnswerModel } from "@/lib/answer/model";
 import { describeError } from "@/lib/log-redaction";
@@ -181,6 +182,24 @@ import {
 export const maxDuration = 60;
 
 const MAX_QUESTION_LENGTH = 1_000;
+
+/**
+ * The most bytes an ask body may carry, counted before it is parsed
+ * (`capped-body.ts`). `request.json()` would hold whatever a caller sent, up
+ * to the platform's own limit, before the question length — or the quota —
+ * had been looked at.
+ *
+ * The largest body the chat client builds (`askRequestBody`) is the question
+ * plus `MAX_HISTORY_TURNS` clamped exchanges: 1,000 + 3 × (1,001 + 601) =
+ * 5,806 UTF-16 units, `clamp`'s "…" included. At 3 bytes a unit — the most a
+ * BMP character takes in UTF-8, and more than any JSON escape of printable
+ * text — that is 17,418 bytes, plus 111 of JSON envelope: 17,529, just over
+ * half the cap. The one wider encoding is the 6-byte `\u00XX` escape JSON
+ * gives a control character; with all 4,000 units the reader typed escaped
+ * that way and the rest still at 3, the body is 29,529 bytes, still inside.
+ * `route.test.ts` builds both bodies and measures them.
+ */
+export const MAX_BODY_BYTES = 32 * 1024;
 
 /**
  * The question in the two forms this route has needed since #132, carried
@@ -614,11 +633,19 @@ export async function POST(request: Request): Promise<Response> {
   let question: unknown;
   let rawHistory: unknown;
   try {
-    ({ question, history: rawHistory } = (await request.json()) as {
+    // Capped before it is parsed, and before identity or the quota: a body
+    // past `MAX_BODY_BYTES` is refused without being read to its end.
+    const body = await readCappedBody(request, MAX_BODY_BYTES);
+    if (body === null) {
+      telemetry.emit();
+      return jsonError("invalid_question", INVALID_QUESTION_MESSAGE, 413);
+    }
+    ({ question, history: rawHistory } = JSON.parse(body) as {
       question?: unknown;
       history?: unknown;
     });
   } catch {
+    // A body that could not be read, is not JSON, or is JSON `null`.
     telemetry.emit();
     return jsonError("invalid_question", INVALID_QUESTION_MESSAGE, 400);
   }
