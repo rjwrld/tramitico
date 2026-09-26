@@ -85,10 +85,15 @@ jobs:
           fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      # No `cache: pnpm` here, unlike ci.yml: this job holds production keys,
+      # and the pnpm store cache under the lockfile-hash key can be saved by
+      # ci.yml's main-branch jobs after they have run the Supabase CLI and a
+      # Playwright browser download. The store's own integrity check verifies
+      # files against the store's index, not against the lockfile, so a fresh
+      # install from the registry is the one that is bound to pnpm-lock.yaml.
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
-          cache: pnpm
       - run: pnpm install --frozen-lockfile
       # #342: vitest hides a *passing* file's console, so a hit-rate lane that
       # passed inside a full run left no per-case table in the log and #305
