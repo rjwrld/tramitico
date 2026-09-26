@@ -22,6 +22,7 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createHmac } from "node:crypto";
+import { isIPv4, isIPv6 } from "node:net";
 import type { Database } from "./database.types";
 import { CR_TIME_ZONE, CR_UTC_OFFSET_MS } from "./cr-time";
 import { describeError } from "./log-redaction";
@@ -189,6 +190,50 @@ export function coarseUserAgent(userAgent: string): string {
   return "Other";
 }
 
+/**
+ * The network an anonymous ask is counted against. An IPv4 address is its own
+ * network. An IPv6 host is normally handed at least a /64 and can pick a new
+ * source address inside it at will, so keying on the full address would give
+ * it a fresh subject and a fresh umbrella per address; the /64 prefix is the
+ * unit one caller controls. An IPv4-mapped IPv6 address (`::ffff:a.b.c.d`)
+ * counts as its IPv4 address, and every spelling of one IPv6 address lands on
+ * the same key. Anything that is not an IP (`"unknown"`) passes through.
+ */
+export function quotaNetwork(ip: string): string {
+  if (isIPv4(ip)) return ip;
+  const bare = ip.split("%")[0];
+  if (!isIPv6(bare)) return ip;
+  const groups = ipv6Groups(bare);
+  if (groups.slice(0, 5).every((g) => g === 0) && groups[5] === 0xffff) {
+    return [
+      groups[6] >> 8,
+      groups[6] & 0xff,
+      groups[7] >> 8,
+      groups[7] & 0xff,
+    ].join(".");
+  }
+  return `${groups
+    .slice(0, 4)
+    .map((g) => g.toString(16))
+    .join(":")}::/64`;
+}
+
+/** The eight 16-bit groups of a valid IPv6 address, `::` and a dotted tail expanded. */
+function ipv6Groups(ip: string): number[] {
+  let text = ip.toLowerCase();
+  const dotted = /(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(text);
+  if (dotted) {
+    const [a, b, c, d] = dotted.slice(1).map(Number);
+    text = `${text.slice(0, dotted.index)}${((a << 8) | b).toString(16)}:${((c << 8) | d).toString(16)}`;
+  }
+  const [head, tail] = text.includes("::") ? text.split("::") : [text, null];
+  const left = head ? head.split(":") : [];
+  const right = tail ? tail.split(":") : [];
+  const zeros =
+    tail === null ? [] : Array(8 - left.length - right.length).fill("0");
+  return [...left, ...zeros, ...right].map((g) => parseInt(g, 16));
+}
+
 export function subjectForUser(uid: string): string {
   return `user:${uid}`;
 }
@@ -211,7 +256,7 @@ export function subjectForAnon(
   now = new Date(),
 ): string {
   const family = coarseUserAgent(userAgent);
-  return `anon:${anonDigest(`${crDate(now)}|${ip}|${family}`)}`;
+  return `anon:${anonDigest(`${crDate(now)}|${quotaNetwork(ip)}|${family}`)}`;
 }
 
 /**
@@ -224,7 +269,7 @@ export function subjectForAnon(
  * Throws without the secret, exactly as `subjectForAnon` does.
  */
 export function subjectForAnonIp(ip: string, now = new Date()): string {
-  return `anon-ip:${anonDigest(`${crDate(now)}|${ip}`)}`;
+  return `anon-ip:${anonDigest(`${crDate(now)}|${quotaNetwork(ip)}`)}`;
 }
 
 function anonDigest(material: string): string {
