@@ -5,6 +5,7 @@ import {
   coarseUserAgent,
   crDate,
   limitForAnonIp,
+  quotaNetwork,
   rateLimitReachedMessage,
   RATE_LIMIT_UNAVAILABLE_MESSAGE,
   subjectForAnon,
@@ -213,6 +214,50 @@ describe("subjectForAnonIp (#383)", () => {
     } finally {
       process.env.RATE_LIMIT_SUBJECT_SECRET = saved;
     }
+  });
+});
+
+describe("quotaNetwork", () => {
+  it("keeps an IPv4 address and a non-address as they are", () => {
+    expect(quotaNetwork("203.0.113.5")).toBe("203.0.113.5");
+    expect(quotaNetwork("unknown")).toBe("unknown");
+  });
+
+  it("keys an IPv6 address on its /64, whatever the spelling", () => {
+    const net = "2001:db8:1:2::/64";
+    for (const ip of [
+      "2001:db8:1:2::a",
+      "2001:db8:1:2::b",
+      "2001:DB8:1:2:0:0:0:A",
+      "2001:0db8:0001:0002:ffff:ffff:ffff:fffe",
+      "2001:db8:1:2::a%eth0",
+    ]) {
+      expect(quotaNetwork(ip)).toBe(net);
+    }
+    expect(quotaNetwork("2001:db8:1:3::a")).toBe("2001:db8:1:3::/64");
+    expect(quotaNetwork("::1")).toBe("0:0:0:0::/64");
+  });
+
+  it("counts an IPv4-mapped IPv6 address as its IPv4 address", () => {
+    expect(quotaNetwork("::ffff:203.0.113.5")).toBe("203.0.113.5");
+    expect(quotaNetwork("::FFFF:cb00:7105")).toBe("203.0.113.5");
+  });
+
+  it("puts every address of one /64 on one subject and one umbrella", () => {
+    const ua = "Mozilla/5.0 Chrome/141.0 Safari/537.36";
+    const noon = new Date("2026-09-25T18:00:00Z");
+    expect(subjectForAnonIp("2001:db8:1:2::a", noon)).toBe(
+      subjectForAnonIp("2001:db8:1:2:ffff:ffff:ffff:fffe", noon),
+    );
+    expect(subjectForAnon("2001:db8:1:2::a", ua, noon)).toBe(
+      subjectForAnon("2001:DB8:1:2:0:0:0:B", ua, noon),
+    );
+    expect(subjectForAnonIp("::ffff:203.0.113.5", noon)).toBe(
+      subjectForAnonIp("203.0.113.5", noon),
+    );
+    expect(subjectForAnonIp("2001:db8:1:2::a", noon)).not.toBe(
+      subjectForAnonIp("2001:db8:1:3::a", noon),
+    );
   });
 });
 

@@ -292,6 +292,7 @@ export function statusFrom(message: AskUIMessage): AskStatusStage | null {
 /** Stable machine codes on the non-OK / stream-error envelope. */
 export type AskErrorCode =
   | "invalid_question"
+  | "cross_site_request"
   | "rate_limited"
   | "rate_limit_unavailable"
   | "retrieval_failed"

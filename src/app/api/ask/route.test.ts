@@ -691,6 +691,75 @@ describe("POST /api/ask", () => {
     expect(vi.mocked(checkRateLimit)).not.toHaveBeenCalled();
   });
 
+  it("rejects a question Postgres cannot store with a 400, before the quota", async () => {
+    for (const question of [
+      "¿Cuánto es el IVA?\u0000",
+      "¿Cuánto es el IVA? \ud800",
+    ]) {
+      const response = await POST(askRequest({ question }));
+      expect(response.status).toBe(400);
+      expect(((await response.json()) as { error: string }).error).toBe(
+        "invalid_question",
+      );
+    }
+    expect(vi.mocked(checkRateLimit)).not.toHaveBeenCalled();
+    expect(vi.mocked(retrieve)).not.toHaveBeenCalled();
+  });
+
+  it("rejects a cross-site ask with a 403 before reading the body or charging the quota", async () => {
+    const question = JSON.stringify({ question: "¿Cuánto es el IVA?" });
+    const shapes: Record<string, string>[] = [
+      // A text/plain form post and a no-cors fetch: no preflight, no cookie.
+      { "content-type": "text/plain" },
+      { "content-type": "text/plain;charset=UTF-8" },
+      // JSON, but the browser says another site sent it.
+      { "content-type": "application/json", "sec-fetch-site": "cross-site" },
+      {
+        "content-type": "application/json",
+        origin: "https://evil.example",
+        host: "tramitico.com",
+      },
+    ];
+    for (const headers of shapes) {
+      const response = await POST(
+        new Request("http://localhost/api/ask", {
+          method: "POST",
+          headers,
+          body: question,
+        }),
+      );
+      expect(response.status).toBe(403);
+      expect(((await response.json()) as { error: string }).error).toBe(
+        "cross_site_request",
+      );
+    }
+    expect(vi.mocked(getUserId)).not.toHaveBeenCalled();
+    expect(vi.mocked(checkRateLimit)).not.toHaveBeenCalled();
+    expect(vi.mocked(retrieve)).not.toHaveBeenCalled();
+  });
+
+  it("admits the chat client's same-origin JSON ask", async () => {
+    allowRateLimit();
+    vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+    mockModel("Aplica el 13% [1].");
+
+    const response = await POST(
+      new Request("http://localhost/api/ask", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "sec-fetch-site": "same-origin",
+          origin: "https://tramitico.com",
+          host: "tramitico.com",
+        },
+        body: JSON.stringify({ question: "¿Cuánto es el IVA?" }),
+      }),
+    );
+    expect(response.status).toBe(200);
+    await readEvents(response);
+    expect(vi.mocked(checkRateLimit)).toHaveBeenCalledTimes(1);
+  });
+
   it("uses the authed tier and persists question/answer/citations for signed-in users", async () => {
     vi.mocked(getUserId).mockResolvedValue("user-123");
     allowRateLimit();
