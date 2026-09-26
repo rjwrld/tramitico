@@ -148,9 +148,10 @@ export default function PrivacyPage() {
           identificadores derivados mediante una función hash con clave secreta:
           uno de su dirección IP junto con su navegador, y otro de la dirección
           IP sola, que fija un tope compartido por todos los navegadores de esa
-          dirección. No se guarda la dirección IP, y de los identificadores no
-          se puede volver a ella ni llegar a las preguntas: no quedan asociadas
-          a ellos.
+          dirección. Si se conecta por IPv6, en lugar de la dirección completa
+          se usa el prefijo /64 de su red. No se guarda la dirección IP, y de
+          los identificadores no se puede volver a ella ni llegar a las
+          preguntas: no quedan asociadas a ellos.
         </p>
       </Section>
 
