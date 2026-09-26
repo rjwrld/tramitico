@@ -44,6 +44,7 @@ import {
   ingestDocument,
 } from "../src/lib/ingestion/ingest-document";
 import { createEmbedder } from "../src/lib/ingestion/embedder";
+import { loadDotEnvLocal } from "../src/lib/ingestion/dotenv-local";
 import type { DerivedFigure } from "../src/lib/answer/derived";
 import {
   type ExcerptSpec,
@@ -202,17 +203,8 @@ interface ManifestDoc {
 const ROOT = path.resolve(__dirname, "..");
 const CACHE = path.join(ROOT, "corpus", "cache");
 
-function loadDotEnvLocal() {
-  const file = path.join(ROOT, ".env.local");
-  if (!existsSync(file)) return;
-  for (const line of readFileSync(file, "utf8").split("\n")) {
-    const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
-    if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2];
-  }
-}
-
 async function main() {
-  loadDotEnvLocal();
+  loadDotEnvLocal(path.join(ROOT, ".env.local"));
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
