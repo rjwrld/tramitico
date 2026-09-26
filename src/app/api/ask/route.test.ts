@@ -2,7 +2,11 @@ import { simulateReadableStream } from "ai";
 import type { LanguageModelV4StreamPart } from "@ai-sdk/provider";
 import { MockLanguageModelV4 } from "ai/test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { RetrievalResult, RetrievedChunk } from "@/lib/retrieval";
+import {
+  SearchChunksError,
+  type RetrievalResult,
+  type RetrievedChunk,
+} from "@/lib/retrieval";
 import nextConfig from "../../../../next.config";
 import { ANSWER_MAX_OUTPUT_TOKENS, MAX_BODY_BYTES, POST } from "./route";
 
@@ -26,6 +30,7 @@ import {
   ASK_FALLBACK_ERROR_MESSAGE,
   askErrorMessage,
   askRequestBody,
+  RETRIEVAL_FAILED_MESSAGE,
   type AskUIMessage,
 } from "@/lib/answer/contract";
 import {
@@ -51,7 +56,7 @@ import {
   getCondenseModel,
 } from "@/lib/answer/model";
 import { getUserId } from "@/lib/answer/user";
-import { checkRateLimit, NO_REFUND } from "@/lib/rate-limit";
+import { checkRateLimit, NO_REFUND, type RpcClient } from "@/lib/rate-limit";
 import { RERANK_POOL } from "@/lib/answer/rerank";
 import { TELEMETRY_PREFIX } from "@/lib/telemetry";
 import { retrieve } from "@/lib/retrieval";
@@ -220,6 +225,47 @@ function mockDeadCondenser(): MockLanguageModelV4 {
   });
   vi.mocked(getCondenseModel).mockReturnValue(model);
   return model;
+}
+
+/**
+ * A condenser that aborts `controller` while it runs — a reader leaving
+ * during `buscando`, after the quota was charged but before any search has
+ * been paid for (ADR 0013's amendment draws the refund line at `retrieve()`).
+ */
+function mockAbortingCondenser(
+  controller: AbortController,
+  standalone: string,
+): void {
+  vi.mocked(getCondenseModel).mockReturnValue(
+    new MockLanguageModelV4({
+      doGenerate: async () => {
+        controller.abort();
+        return {
+          content: [{ type: "text" as const, text: standalone }],
+          finishReason: { unified: "stop" as const, raw: "end_turn" },
+          usage: {
+            inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 },
+            outputTokens: { total: 1, text: 1, reasoning: 0 },
+          },
+          warnings: [],
+        };
+      },
+    }),
+  );
+}
+
+/** A model call that only ends when its abort signal — client or deadline — fires. */
+function mockHangingModel(): void {
+  vi.mocked(getAnswerModel).mockReturnValue(
+    new MockLanguageModelV4({
+      doStream: ({ abortSignal }) =>
+        new Promise((_, reject) => {
+          abortSignal?.addEventListener("abort", () =>
+            reject(abortSignal.reason ?? new Error("aborted")),
+          );
+        }),
+    }),
+  );
 }
 
 /** Word-sized deltas that concatenate back to exactly `text`. */
@@ -1244,8 +1290,9 @@ describe("POST /api/ask", () => {
         await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
       );
 
-      // Both error doors point at the same mapper; the handle's once-only
-      // guard is what keeps a single failure from refunding twice.
+      // The SDK echoes the route's own error part back into `onError`; that
+      // echo is recognized as already decided, and the handle's once-only
+      // guard backs it up, so a single failure never refunds twice.
       expect(refund).toHaveBeenCalledTimes(1);
       spy.mockRestore();
     });
@@ -1346,7 +1393,7 @@ describe("POST /api/ask", () => {
       spy.mockRestore();
     });
 
-    it("refunds a client abort mid-generation — Detener and a drop look the same (#205)", async () => {
+    it("keeps the charge for a client abort mid-generation — Detener and a drop look the same (ADR 0013)", async () => {
       const refund = allowRateLimit();
       vi.mocked(retrieve).mockResolvedValue(retrievalResult());
       mockModel("La tarifa es 13% para servicios.", undefined, 25);
@@ -1358,25 +1405,108 @@ describe("POST /api/ask", () => {
       const events = await readUntilRedactandoThenAbort(response, controller);
 
       // The server cannot tell a deliberate stop from a WiFi handoff or a
-      // proxy idle-kill, and the reader received no value either way — so
-      // every abort refunds (ADR 0013, replacing ADR 0011's reading).
-      expect(refund).toHaveBeenCalledTimes(1);
+      // proxy idle-kill, so both are treated alike — and since the
+      // amendment to ADR 0013, alike means charged once paid retrieval has
+      // begun: the quota bounds the provider spend, not only the answer.
+      expect(refund).not.toHaveBeenCalled();
       // Still not an error: nothing on our side broke.
       expect(errorMessages(events)).toEqual([]);
+    });
+
+    it("refunds a retrieval outage, whatever shape it arrives in", async () => {
+      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+      // What `search_chunks` rejecting looks like when the database side is
+      // what broke: a fetch that never reached it (postgrest-js reports an
+      // empty code), a statement timeout, an RPC signature the deployment
+      // cannot find, a missing grant — and a throw that is not a search
+      // failure at all.
+      const outages = [
+        new SearchChunksError({ code: "", message: "TypeError: fetch failed" }),
+        new SearchChunksError({ code: "57014", message: "statement timeout" }),
+        new SearchChunksError({ code: "PGRST202", message: "not found" }),
+        new SearchChunksError({ code: "42501", message: "permission denied" }),
+        new SearchChunksError({ message: "Bad Gateway" }),
+        new Error("pgvector down"),
+      ];
+      for (const outage of outages) {
+        const refund = allowRateLimit();
+        vi.mocked(retrieve).mockRejectedValueOnce(outage);
+
+        const events = await readEvents(
+          await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+        );
+
+        expect(errorMessages(events)).toEqual([RETRIEVAL_FAILED_MESSAGE]);
+        expect(refund).toHaveBeenCalledTimes(1);
+      }
+      spy.mockRestore();
+    });
+
+    it("keeps the charge when the search rejects the request's own text (SQLSTATE class 22 or 54)", async () => {
+      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+      // A data exception or a program limit raised by the question itself:
+      // the reader still gets the same error part, but it is not our outage,
+      // and a refund would make such a question free to send again.
+      for (const code of ["22P05", "22021", "54000"]) {
+        const refund = allowRateLimit();
+        vi.mocked(retrieve).mockRejectedValueOnce(
+          new SearchChunksError({ code, message: "rejected input" }),
+        );
+
+        const events = await readEvents(
+          await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+        );
+
+        expect(errorMessages(events)).toEqual([RETRIEVAL_FAILED_MESSAGE]);
+        expect(refund).not.toHaveBeenCalled();
+      }
+      spy.mockRestore();
     });
   });
 
   /**
-   * #205 / ADR 0013: an ask ends in exactly one of three ways — answered and
-   * persisted, refunded, or declined-with-value (the honest declines). A
-   * client disconnect at any point before delivery refunds and persists
-   * nothing; the pipeline's own ~50 s deadline turns the platform's silent
-   * `maxDuration` kill into an observable, refundable system failure.
+   * #205 / ADR 0013: an ask ends in exactly one of four ways — answered and
+   * persisted, refunded, declined-with-value (the honest declines), or cut
+   * short with its charge kept. A client disconnect persists nothing, and
+   * refunds only if it lands before paid retrieval begins; the pipeline's own
+   * ~50 s deadline turns the platform's silent `maxDuration` kill into an
+   * observable system failure, refunded only until generation begins
+   * (the 2026-09-25 amendment).
    */
   describe("disconnects and the internal deadline (#205)", () => {
     const ANSWER = "La tarifa es 13% [1].";
 
-    it("refunds a disconnect during retrieval, and persists nothing", async () => {
+    it("refunds a disconnect that lands before retrieval begins — during condensation", async () => {
+      const refund = allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModel(ANSWER);
+      const controller = new AbortController();
+      // The reader leaves while the follow-up is still being condensed —
+      // `buscando`, but before any search has been paid for.
+      mockAbortingCondenser(controller, "¿Cuánto es el IVA?");
+
+      const events = await readEvents(
+        await POST(
+          askRequest(
+            {
+              question: "¿y para servicios?",
+              history: [
+                { question: "¿Qué es el IVA?", answer: "Un impuesto." },
+              ],
+            },
+            controller.signal,
+          ),
+        ),
+      );
+
+      expect(refund).toHaveBeenCalledTimes(1);
+      expect(vi.mocked(retrieve)).not.toHaveBeenCalled();
+      expect(vi.mocked(getAnswerModel)).not.toHaveBeenCalled();
+      expect(stages(events)).toEqual(["buscando"]);
+      expect(errorMessages(events)).toEqual([]);
+    });
+
+    it("keeps the charge for a disconnect during retrieval, and persists nothing", async () => {
       vi.mocked(getUserId).mockResolvedValue("user-123");
       const refund = allowRateLimit();
       let releaseRetrieval!: (result: RetrievalResult) => void;
@@ -1392,29 +1522,35 @@ describe("POST /api/ask", () => {
         askRequest({ question: "¿Cuánto es el IVA?" }, controller.signal),
       );
       // The reader leaves while retrieval is still in flight…
+      await vi.waitFor(() => expect(vi.mocked(retrieve)).toHaveBeenCalled());
       controller.abort();
       // …and retrieval then completes into a request nobody is waiting on.
       releaseRetrieval(retrievalResult());
       const events = await readEvents(response);
 
-      expect(refund).toHaveBeenCalledTimes(1);
+      // The expansion and the embeds already ran: that spend is what the
+      // quota bounds, so the slot stays spent even though nothing was
+      // delivered — and nothing more is spent on the reader who left.
+      expect(refund).not.toHaveBeenCalled();
       expect(vi.mocked(getAnswerModel)).not.toHaveBeenCalled();
       expect(vi.mocked(saveQuestion)).not.toHaveBeenCalled();
       expect(streamedText(events)).toBe("");
       expect(errorMessages(events)).toEqual([]);
     });
 
-    it("refunds a disconnect between generation and delivery — nothing written, nothing persisted", async () => {
+    it("keeps the charge for a disconnect between generation and delivery — nothing written, nothing persisted", async () => {
       vi.mocked(getUserId).mockResolvedValue("user-123");
       const refund = allowRateLimit();
       vi.mocked(retrieve).mockResolvedValue(retrievalResult());
       const controller = new AbortController();
       // The provider stream completes normally, but the client's signal fires
       // just as the last delta lands — the disconnect the route can only see
-      // *after* generation, at the last-look check before `writeAnswer`.
+      // *after* generation, at the last-look check before `writeAnswer`. The
+      // stream is built inside `doStream` so its `start` — and the abort in
+      // it — runs when generation does, not when the mock is set up.
       vi.mocked(getAnswerModel).mockReturnValue(
         new MockLanguageModelV4({
-          doStream: {
+          doStream: async () => ({
             stream: new ReadableStream<LanguageModelV4StreamPart>({
               start(c) {
                 c.enqueue({ type: "stream-start", warnings: [] });
@@ -1438,7 +1574,7 @@ describe("POST /api/ask", () => {
                 c.close();
               },
             }),
-          },
+          }),
         }),
       );
 
@@ -1448,14 +1584,15 @@ describe("POST /api/ask", () => {
       const events = await readEvents(response);
 
       // A validated answer the reader disconnected in front of is still an
-      // answer they never received.
-      expect(refund).toHaveBeenCalledTimes(1);
+      // answer they never received — but every paid call behind it ran.
+      expect(vi.mocked(getAnswerModel)).toHaveBeenCalled();
+      expect(refund).not.toHaveBeenCalled();
       expect(streamedText(events)).toBe("");
       expect(vi.mocked(saveQuestion)).not.toHaveBeenCalled();
       expect(errorMessages(events)).toEqual([]);
     });
 
-    it("treats the internal deadline as a system failure: error part, refund, telemetry", async () => {
+    it("treats a deadline during generation as a system failure that keeps the charge: error part, telemetry, no refund", async () => {
       vi.useFakeTimers();
       try {
         const refund = allowRateLimit();
@@ -1487,10 +1624,12 @@ describe("POST /api/ask", () => {
 
         // The reader is still connected, so the failure is said in Spanish…
         expect(errorMessages(events)).toEqual([ASK_FALLBACK_ERROR_MESSAGE]);
-        // …the slot comes back…
-        expect(refund).toHaveBeenCalledTimes(1);
+        // …the slot stays spent — the generation had begun, and a question
+        // shaped to run long must not get that spend back…
+        expect(refund).not.toHaveBeenCalled();
         // …and the event records both the failure class and why it ended —
-        // the whole point of expiring before the platform's silent kill.
+        // the whole point of expiring before the platform's silent kill —
+        // without claiming a refund that never ran.
         const telemetryLine = lines.find((l) =>
           l.startsWith(`${TELEMETRY_PREFIX} `),
         );
@@ -1498,7 +1637,7 @@ describe("POST /api/ask", () => {
         expect(
           JSON.parse(telemetryLine!.slice(TELEMETRY_PREFIX.length + 1)),
         ).toMatchObject({
-          outcome: "refunded_error",
+          outcome: "charged_error",
           abort: "deadline",
           stages: { generate: "gte_30s", validate: null, persist: null },
           generations: [{ latency: "gte_30s", firstText: null }],
@@ -1600,6 +1739,180 @@ describe("POST /api/ask", () => {
         await eventsPromise;
 
         expect(vi.mocked(saveQuestion)).not.toHaveBeenCalled();
+        spy.mockRestore();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
+
+  /**
+   * ADR 0013's amendment, against the real limiter: `checkRateLimit` runs
+   * unmocked over an in-memory mirror of `rate_limits`, so "charged" and
+   * "refunded" are row counts on both anonymous counters — the IP + browser
+   * family subject and the per-IP umbrella — rather than a spy on the
+   * refund handle. One IP, one browser, a daily limit of two.
+   */
+  describe("the quota bounds paid work, not only answers (ADR 0013 amendment)", () => {
+    const ANSWER = "La tarifa es 13% [1].";
+    const IP = "203.0.113.7";
+    const UA = "Mozilla/5.0 (X11; Linux x86_64) Gecko/20100101 Firefox/121.0";
+    const HISTORY = [{ question: "¿Qué es el IVA?", answer: "Un impuesto." }];
+
+    let counts: Map<string, number>;
+    let charged: { subject: string; umbrella: string | undefined } | null;
+
+    function anonAsk(
+      signal?: AbortSignal,
+      history?: readonly unknown[],
+    ): Request {
+      return new Request("http://localhost/api/ask", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-forwarded-for": IP,
+          "user-agent": UA,
+        },
+        body: JSON.stringify({ question: "¿Cuánto es el IVA?", history }),
+        signal,
+      });
+    }
+
+    /** Both rows this caller is counted on, as the table holds them now. */
+    function rows(): { subject: number; umbrella: number } {
+      expect(charged?.umbrella).toBeDefined();
+      return {
+        subject: counts.get(charged!.subject) ?? 0,
+        umbrella: counts.get(charged!.umbrella!) ?? 0,
+      };
+    }
+
+    beforeEach(async () => {
+      vi.stubEnv("RATE_LIMIT_ANON", "2");
+      counts = new Map();
+      charged = null;
+      const table: RpcClient = {
+        rpc: async (fn, args) => {
+          const current = counts.get(args.p_subject) ?? 0;
+          const next =
+            fn === "rate_limit_increment"
+              ? current + 1
+              : Math.max(current - 1, 0);
+          counts.set(args.p_subject, next);
+          return { data: { count: next }, error: null };
+        },
+      };
+      const actual =
+        await vi.importActual<typeof import("@/lib/rate-limit")>(
+          "@/lib/rate-limit",
+        );
+      vi.mocked(checkRateLimit).mockImplementation(
+        (subject, tier, _client, now, umbrella) => {
+          charged = { subject, umbrella };
+          return actual.checkRateLimit(subject, tier, table, now, umbrella);
+        },
+      );
+    });
+
+    afterEach(() => {
+      vi.mocked(checkRateLimit).mockReset();
+    });
+
+    it("charges two asks aborted once retrieval had begun, so the third is a 429", async () => {
+      mockModel(ANSWER);
+      for (let ask = 0; ask < 2; ask += 1) {
+        const controller = new AbortController();
+        // The reader leaves while the search is running: the expansion and
+        // the embeds are already paid for.
+        vi.mocked(retrieve).mockImplementationOnce(async () => {
+          controller.abort();
+          return retrievalResult();
+        });
+
+        const response = await POST(anonAsk(controller.signal));
+        expect(response.status).toBe(200);
+        const events = await readEvents(response);
+
+        expect(streamedText(events)).toBe("");
+        expect(errorMessages(events)).toEqual([]);
+      }
+      expect(rows()).toEqual({ subject: 2, umbrella: 2 });
+
+      const third = await POST(anonAsk());
+
+      expect(third.status).toBe(429);
+      expect(((await third.json()) as { error: string }).error).toBe(
+        "rate_limited",
+      );
+      expect(vi.mocked(retrieve)).toHaveBeenCalledTimes(2);
+      expect(vi.mocked(getAnswerModel)).not.toHaveBeenCalled();
+    });
+
+    it("gives both rows back to an ask aborted at buscando, before retrieval is called", async () => {
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModel(ANSWER);
+      // One delivered ask first, so "back" means back to a nonzero count.
+      await readEvents(await POST(anonAsk()));
+      expect(rows()).toEqual({ subject: 1, umbrella: 1 });
+      vi.mocked(retrieve).mockClear();
+
+      const controller = new AbortController();
+      mockAbortingCondenser(controller, "¿Cuánto es el IVA?");
+      const events = await readEvents(
+        await POST(anonAsk(controller.signal, HISTORY)),
+      );
+
+      expect(stages(events)).toEqual(["buscando"]);
+      expect(vi.mocked(retrieve)).not.toHaveBeenCalled();
+      expect(rows()).toEqual({ subject: 1, umbrella: 1 });
+    });
+
+    it("keeps both rows charged when the deadline fires after generation began — and still says so", async () => {
+      vi.useFakeTimers();
+      try {
+        vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+        mockHangingModel();
+        const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+        const eventsPromise = readEvents(await POST(anonAsk()));
+        await vi.advanceTimersByTimeAsync(ASK_DEADLINE_MS);
+        const events = await eventsPromise;
+
+        expect(vi.mocked(getAnswerModel)).toHaveBeenCalled();
+        expect(
+          events
+            .filter((e) => e.type === "error")
+            .map((e) => JSON.parse(e.errorText ?? "") as unknown),
+        ).toEqual([
+          { error: "answer_failed", message: ASK_FALLBACK_ERROR_MESSAGE },
+        ]);
+        expect(rows()).toEqual({ subject: 1, umbrella: 1 });
+        spy.mockRestore();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("gives both rows back when the deadline fires before any generation", async () => {
+      vi.useFakeTimers();
+      try {
+        let releaseRetrieval!: (result: RetrievalResult) => void;
+        vi.mocked(retrieve).mockReturnValue(
+          new Promise<RetrievalResult>((resolve) => {
+            releaseRetrieval = resolve;
+          }),
+        );
+        mockModel(ANSWER);
+        const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+        const eventsPromise = readEvents(await POST(anonAsk()));
+        await vi.advanceTimersByTimeAsync(ASK_DEADLINE_MS);
+        releaseRetrieval(retrievalResult());
+        const events = await eventsPromise;
+
+        expect(errorMessages(events)).toEqual([ASK_FALLBACK_ERROR_MESSAGE]);
+        expect(vi.mocked(getAnswerModel)).not.toHaveBeenCalled();
+        expect(rows()).toEqual({ subject: 0, umbrella: 0 });
         spy.mockRestore();
       } finally {
         vi.useRealTimers();
@@ -2456,6 +2769,53 @@ describe("POST /api/ask", () => {
         outcome: "refunded_error",
         providerError: "TypeError",
       });
+    });
+
+    it("classes a search the request's own text broke as charged_error — an error, not a refund", async () => {
+      const capture = captureTelemetry();
+      allowRateLimit();
+      vi.mocked(retrieve).mockRejectedValue(
+        new SearchChunksError({ code: "22P05", message: "rejected input" }),
+      );
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(soleEvent(capture)).toMatchObject({
+        outcome: "charged_error",
+        providerError: "SearchChunksError<Object#22P05>",
+      });
+    });
+
+    it("keeps refunded_error for a deadline that expired before any generation", async () => {
+      vi.useFakeTimers();
+      try {
+        const capture = captureTelemetry();
+        allowRateLimit();
+        let releaseRetrieval!: (result: RetrievalResult) => void;
+        vi.mocked(retrieve).mockReturnValue(
+          new Promise<RetrievalResult>((resolve) => {
+            releaseRetrieval = resolve;
+          }),
+        );
+        mockModel(ANSWER);
+
+        const eventsPromise = readEvents(
+          await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+        );
+        await vi.advanceTimersByTimeAsync(ASK_DEADLINE_MS);
+        releaseRetrieval(retrievalResult());
+        await eventsPromise;
+
+        expect(soleEvent(capture)).toMatchObject({
+          outcome: "refunded_error",
+          abort: "deadline",
+          generations: [],
+        });
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it("raises the quota flag on a 429, and does not call it an error", async () => {

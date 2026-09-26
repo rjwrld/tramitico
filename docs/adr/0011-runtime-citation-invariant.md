@@ -2,8 +2,9 @@
 
 Date: 2026-08-25 · Status: accepted · Amends
 [ADR 0009](0009-stream-first-ask.md) · Amended by
-[ADR 0013](0013-disconnect-refunds-and-internal-deadline.md) (the abort branch: every
-abort now refunds — the server cannot tell Detener from a network drop) ·
+[ADR 0013](0013-disconnect-refunds-and-internal-deadline.md) (the abort branch: Detener and
+a network drop are one event the server cannot tell apart; since 0013's 2026-09-25 amendment
+an abort refunds only before paid retrieval begins) ·
 Context: issue [#131](https://github.com/rjwrld/tramitico/issues/131), decision on
 [#121](https://github.com/rjwrld/tramitico/issues/121)
 
