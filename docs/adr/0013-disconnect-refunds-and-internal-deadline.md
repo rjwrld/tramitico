@@ -1,4 +1,4 @@
-# ADR 0013 — Every abort refunds, and the pipeline expires before the platform can kill it
+# ADR 0013 — Aborts refund until paid work begins, and the pipeline expires before the platform kills it
 
 Date: 2026-08-28 · Status: accepted, amended 2026-09-25 (see
 [Amendment](#amendment-2026-09-25--the-quota-bounds-paid-work-not-only-delivered-answers)) · Amends
