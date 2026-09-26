@@ -669,7 +669,7 @@ export async function POST(request: Request): Promise<Response> {
     ? boundTurns(rawHistory)
     : [];
 
-  const userId = await getUserId(request);
+  const userId = await getUserId();
   // One clock read for the whole rate-limit decision (#205): the anonymous
   // subject and the quota window each derive a date, and two separate reads
   // straddling CR midnight would key the subject to one day and the window
