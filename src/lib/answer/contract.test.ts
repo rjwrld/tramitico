@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import type { Citation } from "@/lib/retrieval";
 import {
   askErrorMessage,
+  askErrorRecovery,
   askRequestBody,
+  askStreamErrorText,
+  ASK_ERROR_RECOVERY,
   ASK_FALLBACK_ERROR_MESSAGE,
   boundTurns,
   citationsFrom,
@@ -11,6 +14,8 @@ import {
   MAX_TURN_ANSWER_CHARS,
   MAX_TURN_QUESTION_CHARS,
   messageText,
+  RETRIEVAL_FAILED_MESSAGE,
+  UNSEARCHABLE_QUESTION_MESSAGE,
   unsavedFrom,
   type AskUIMessage,
 } from "@/lib/answer/contract";
@@ -112,6 +117,58 @@ describe("askErrorMessage", () => {
       ASK_FALLBACK_ERROR_MESSAGE,
     );
     expect(askErrorMessage(undefined)).toBe(ASK_FALLBACK_ERROR_MESSAGE);
+  });
+});
+
+/**
+ * #436: a search the question's own text broke gets its own code and its own
+ * advice — other words, not a wait — and the client reads that advice back
+ * off the same envelope the route streams.
+ */
+describe("unsearchable_question (#436)", () => {
+  it("asks the reader to rephrase, in usted, instead of waiting", () => {
+    expect(UNSEARCHABLE_QUESTION_MESSAGE).toBe(
+      "No se pudo buscar en los documentos oficiales con el texto de esta pregunta. Escríbala de otra forma y envíela de nuevo.",
+    );
+    expect(UNSEARCHABLE_QUESTION_MESSAGE).not.toMatch(/minutos/);
+    expect(UNSEARCHABLE_QUESTION_MESSAGE).not.toBe(RETRIEVAL_FAILED_MESSAGE);
+  });
+
+  it("round-trips through the stream error envelope", () => {
+    const thrown = new Error(
+      askStreamErrorText(
+        "unsearchable_question",
+        UNSEARCHABLE_QUESTION_MESSAGE,
+      ),
+    );
+    expect(askErrorMessage(thrown)).toBe(UNSEARCHABLE_QUESTION_MESSAGE);
+    expect(askErrorRecovery(thrown)).toBe("rephrase");
+  });
+});
+
+describe("askErrorRecovery (#436)", () => {
+  it("withholds the retry from unsearchable_question alone", () => {
+    const rephrase = Object.entries(ASK_ERROR_RECOVERY)
+      .filter(([, recovery]) => recovery === "rephrase")
+      .map(([code]) => code);
+    expect(rephrase).toEqual(["unsearchable_question"]);
+  });
+
+  it("keeps the retry for an outage", () => {
+    const thrown = new Error(
+      askStreamErrorText("retrieval_failed", RETRIEVAL_FAILED_MESSAGE),
+    );
+    expect(askErrorRecovery(thrown)).toBe("retry");
+  });
+
+  it("keeps the retry for anything without one of our codes", () => {
+    expect(askErrorRecovery(new Error("<html>502</html>"))).toBe("retry");
+    expect(askErrorRecovery(new Error("null"))).toBe("retry");
+    expect(
+      askErrorRecovery(new Error(JSON.stringify({ error: "toString" }))),
+    ).toBe("retry");
+    expect(askErrorRecovery(new TypeError("Failed to fetch"))).toBe("retry");
+    expect(askErrorRecovery(undefined)).toBe("retry");
   });
 });
 

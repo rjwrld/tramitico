@@ -10,10 +10,13 @@ import {
   waitFor,
 } from "@testing-library/react";
 import {
+  askStreamErrorText,
   CITATIONS_PART_ID,
   HISTORY_SAVE_FAILED_NOTE,
+  RETRIEVAL_FAILED_MESSAGE,
   STATUS_PART_ID,
   UNSAVED_PART_ID,
+  UNSEARCHABLE_QUESTION_MESSAGE,
   type AskStatusStage,
   type AskUIMessage,
 } from "@/lib/answer/contract";
@@ -902,6 +905,139 @@ describe("Chat stop and retry controls (#74)", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Enviar" }));
     expect(sendMessageMock).toHaveBeenCalledTimes(2);
+  });
+});
+
+/**
+ * #436: a question whose own text the search could not use. Resending it
+ * fails the same way and is charged again, so the inline error drops
+ * "Reintentar" and the question goes back into the composer, focused, for the
+ * reader to reword. Every other failure keeps the retry exactly as #74 built
+ * it. The errors reach `onError` the way the transport throws them: as an
+ * Error whose message is the route's `{ error, message }` envelope.
+ */
+describe("Chat unsearchable question (#436)", () => {
+  const ASKED = "¿Cuánto es el IVA de los servicios?";
+
+  function composer(): HTMLTextAreaElement {
+    return screen.getByRole("textbox", {
+      name: "Su pregunta",
+    }) as HTMLTextAreaElement;
+  }
+
+  /** Fails the in-flight ask the way the SDK does: `onError`, then `onFinish`. */
+  function failWith(error: Error) {
+    act(() => latestOnError?.(error));
+    act(() =>
+      latestOnFinish?.({
+        message: { id: "a1", role: "assistant", parts: [] },
+        isError: true,
+        isAbort: false,
+        isDisconnect: false,
+      }),
+    );
+  }
+
+  const unsearchable = () =>
+    new Error(
+      askStreamErrorText(
+        "unsearchable_question",
+        UNSEARCHABLE_QUESTION_MESSAGE,
+      ),
+    );
+
+  /** Asks `ASKED` through the real composer, then lands the thread in "error". */
+  function askAndFail(error: Error) {
+    const view = render(<Chat />);
+    fireEvent.change(composer(), { target: { value: ASKED } });
+    fireEvent.click(screen.getByRole("button", { name: "Enviar" }));
+    expect(sendMessageMock).toHaveBeenCalledWith({ text: ASKED });
+    expect(composer().value).toBe("");
+
+    chat.messages = [question("q1", ASKED)];
+    chat.status = "error";
+    view.rerender(<Chat />);
+    // The conversation's composer takes focus as it mounts (#138); drop it,
+    // so a focused composer below is the recovery's doing.
+    composer().blur();
+    failWith(error);
+    return view;
+  }
+
+  it("offers no Reintentar, and hands the question back to the composer, focused", () => {
+    askAndFail(unsearchable());
+
+    const alert = screen.getByRole("alert");
+    expect(alert.textContent).toBe(UNSEARCHABLE_QUESTION_MESSAGE);
+    expect(screen.queryByRole("button", { name: "Reintentar" })).toBeNull();
+    expect(composer().value).toBe(ASKED);
+    expect(document.activeElement).toBe(composer());
+    expect(regenerateMock).not.toHaveBeenCalled();
+    // The failed question stays in the thread, as every failed ask's does.
+    expect(
+      document.querySelector('[data-slot="bubble-content"]')?.textContent,
+    ).toBe(ASKED);
+  });
+
+  it("sends the reworded question as a fresh ask and clears the error", () => {
+    askAndFail(unsearchable());
+
+    fireEvent.change(composer(), { target: { value: "¿Cuánto es el IVA?" } });
+    fireEvent.click(screen.getByRole("button", { name: "Enviar" }));
+
+    expect(sendMessageMock).toHaveBeenLastCalledWith({
+      text: "¿Cuánto es el IVA?",
+    });
+    expect(regenerateMock).not.toHaveBeenCalled();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("keeps a draft the reader started while the failed ask was in flight", () => {
+    const view = render(<Chat />);
+    fireEvent.change(composer(), { target: { value: ASKED } });
+    fireEvent.click(screen.getByRole("button", { name: "Enviar" }));
+    chat.messages = [question("q1", ASKED), statusMessage("a1", "buscando")];
+    chat.status = "streaming";
+    view.rerender(<Chat />);
+    fireEvent.change(composer(), { target: { value: "¿Y la CCSS?" } });
+
+    chat.status = "error";
+    view.rerender(<Chat />);
+    failWith(unsearchable());
+
+    expect(composer().value).toBe("¿Y la CCSS?");
+    expect(screen.queryByRole("button", { name: "Reintentar" })).toBeNull();
+  });
+
+  it("does the same on the empty state's error slot", () => {
+    render(<Chat />);
+    fireEvent.click(screen.getByRole("button", { name: SEED_PROMPTS[0] }));
+    failWith(unsearchable());
+
+    expect(screen.getByRole("alert").textContent).toBe(
+      UNSEARCHABLE_QUESTION_MESSAGE,
+    );
+    expect(screen.queryByRole("button", { name: "Reintentar" })).toBeNull();
+    expect(composer().value).toBe(SEED_PROMPTS[0]);
+    expect(document.activeElement).toBe(composer());
+  });
+
+  it("keeps Reintentar for a retrieval outage, and it resends the question", () => {
+    askAndFail(
+      new Error(
+        askStreamErrorText("retrieval_failed", RETRIEVAL_FAILED_MESSAGE),
+      ),
+    );
+
+    expect(screen.getByRole("alert").textContent).toContain(
+      RETRIEVAL_FAILED_MESSAGE,
+    );
+    // Waiting can fix an outage, so nothing is handed back to edit.
+    expect(composer().value).toBe("");
+
+    fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+    expect(regenerateMock).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });
 
