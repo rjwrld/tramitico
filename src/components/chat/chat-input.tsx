@@ -25,12 +25,25 @@ import { PrivacyNote } from "@/components/chat/privacy-note";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
+/** What `Chat` can do to the composer from outside it (#436). */
+export interface ChatInputHandle {
+  /**
+   * Puts a question back in the field, focused, for the reader to edit — the
+   * recovery for a question whose own text the search could not use. A
+   * draft the reader has already started typing is kept instead: it is newer
+   * than the question that failed.
+   */
+  restore: (text: string) => void;
+}
+
 export function ChatInput({
+  ref,
   onSubmit,
   onStop,
   busy = false,
   focusOnMount = false,
 }: {
+  ref?: React.Ref<ChatInputHandle>;
   onSubmit: (question: string) => void;
   /** Stops the in-flight stream (#74). Only ever invoked while `busy`. */
   onStop: () => void;
@@ -49,6 +62,17 @@ export function ChatInput({
   React.useEffect(() => {
     if (focusOnMount) field.current?.focus();
   }, [focusOnMount]);
+
+  React.useImperativeHandle(
+    ref,
+    () => ({
+      restore: (text) => {
+        setQuestion((current) => (current.trim() === "" ? text : current));
+        field.current?.focus();
+      },
+    }),
+    [],
+  );
 
   const submit = () => {
     const trimmed = question.trim();

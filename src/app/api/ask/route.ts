@@ -108,9 +108,11 @@
  * amendment, 2026-09-25). A client abort refunds only while `retrieve()` has
  * not been called yet, and a deadline expiry only while no generation has;
  * past those lines the ask keeps its charge, and a deadline expiry is
- * reported as `charged_error` rather than `refunded_error`. A
- * `retrieval_failed` refunds an outage but not a search the request's own
- * text broke (a SQLSTATE in class 22 or 54).
+ * reported as `charged_error` rather than `refunded_error`. A search the
+ * request's own text broke (a SQLSTATE in class 22 or 54) keeps its charge
+ * too, and since #436 it is its own code, `unsearchable_question`, whose
+ * message asks the reader to rephrase: `retrieval_failed` is left meaning an
+ * outage, which always refunds.
  */
 import {
   createUIMessageStream,
@@ -128,6 +130,7 @@ import {
   ROUTED_PART_ID,
   STATUS_PART_ID,
   UNSAVED_PART_ID,
+  UNSEARCHABLE_QUESTION_MESSAGE,
   boundTurns,
   type AskErrorCode,
   type AskStatusStage,
@@ -428,7 +431,8 @@ const CALLER_SHAPED_SQLSTATE = /^(?:22|54)[0-9A-Z]{3}$/;
 
 /**
  * Whether a retrieval failure is one the request's own text produced rather
- * than an outage (ADR 0013's amendment). Read off the one field that is safe
+ * than an outage (ADR 0013's amendment) — `unsearchable_question` rather
+ * than `retrieval_failed` (#436). Read off the one field that is safe
  * to read: `retrieve` wraps a rejected RPC in `SearchChunksError`, whose
  * `cause` is the PostgREST error with its SQLSTATE in `code` — the same token
  * `describeError` logs, never the message beside it. An outage has no such
@@ -452,13 +456,14 @@ function isCallerShaped(error: unknown): boolean {
  * boundary becomes a fishing hole: phrase asks so they decline, spend nothing.
  *
  * Since ADR 0013's amendment the quota bounds the paid work an ask sets off,
- * not only the answers it delivers, so two codes decide per failure rather
- * than per code. `retrieval_failed` refunds an outage but not a search the
- * request's own text broke (`isCallerShaped`). `answer_failed` refunds a
- * provider or pipeline failure whenever it lands, but our deadline only
- * until the first generation is called — past that the ask has spent the
- * most expensive thing it can, and a question shaped to run long must not
- * get that spend back.
+ * not only the answers it delivers. A search the request's own text broke
+ * (`isCallerShaped`) is `unsearchable_question` and consumes, so
+ * `retrieval_failed` is only ever an outage and always refunds (#436).
+ * `answer_failed` still decides per failure: it refunds a provider or
+ * pipeline failure whenever it lands, but our deadline only until the first
+ * generation is called — past that the ask has spent the most expensive
+ * thing it can, and a question shaped to run long must not get that spend
+ * back.
  *
  * The degraded cases never reach here. `rerankChunks` swallows a Voyage
  * outage and falls back to the fused order (rerank.ts), and since #127 a dead
@@ -476,8 +481,10 @@ const REFUNDS_ASK: Record<AskErrorCode, (failure: AskFailure) => boolean> = {
   cross_site_request: () => false, // pre-stream, before the body is even read
   rate_limited: () => false, // pre-stream; the counter is the point
   rate_limit_unavailable: () => false, // pre-stream; no increment landed
-  retrieval_failed: (failure) =>
-    failure.kind !== "error" || !isCallerShaped(failure.error),
+  retrieval_failed: () => true, // an outage: our side broke
+  // The question's own text broke the search, after the paid expansion and
+  // embeds had run; a refund would make that text free to send again.
+  unsearchable_question: () => false,
   answer_failed: (failure) =>
     failure.kind !== "deadline" || !failure.generationBegun,
 };
@@ -891,13 +898,13 @@ export async function POST(request: Request): Promise<Response> {
     } catch (error) {
       console.error(`ask: retrieval failed: ${describeError(error)}`);
       telemetry.failed(error);
-      writeStreamError(
-        writer,
-        "retrieval_failed",
-        RETRIEVAL_FAILED_MESSAGE,
-        quota,
-        { kind: "error", error },
-      );
+      // #436: a failure the question's own text caused gets its own code and
+      // advice — other words, not a wait — since resending the same text
+      // fails the same way.
+      const [code, message] = isCallerShaped(error)
+        ? (["unsearchable_question", UNSEARCHABLE_QUESTION_MESSAGE] as const)
+        : (["retrieval_failed", RETRIEVAL_FAILED_MESSAGE] as const);
+      writeStreamError(writer, code, message, quota, { kind: "error", error });
       return;
     } finally {
       stopRetrieve();

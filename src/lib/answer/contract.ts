@@ -296,6 +296,7 @@ export type AskErrorCode =
   | "rate_limited"
   | "rate_limit_unavailable"
   | "retrieval_failed"
+  | "unsearchable_question"
   | "answer_failed";
 
 /** DESIGN §9: what happened + what to do, no apology theater. */
@@ -329,6 +330,16 @@ export const RETRIEVAL_FAILED_MESSAGE =
   "No se pudo buscar en los documentos oficiales. Intente de nuevo en unos minutos.";
 
 /**
+ * The search failed on the question's own text (#436): `search_chunks`
+ * raised a SQLSTATE in class 22 or 54, which an outage cannot produce. DESIGN
+ * §9 voice, and the opposite advice to `RETRIEVAL_FAILED_MESSAGE`: waiting
+ * changes nothing, since the same text fails the same way and is charged
+ * again, so it asks for other words instead.
+ */
+export const UNSEARCHABLE_QUESTION_MESSAGE =
+  "No se pudo buscar en los documentos oficiales con el texto de esta pregunta. Escríbala de otra forma y envíela de nuevo.";
+
+/**
  * Body of a failure the client renders inline: `error` is the machine code,
  * `message` the user-facing Spanish.
  */
@@ -352,26 +363,67 @@ export function askStreamErrorText(
 }
 
 /**
- * User-facing Spanish for a failed ask. The transport surfaces the response
- * body as the Error message; anything without our `{ message }` shape (proxy
- * HTML, network failures) falls back to the generic line.
+ * What the inline error offers the reader once an ask fails: `retry` sends
+ * the same question again ("Reintentar", #74), `rephrase` hands it back to the
+ * composer for editing (#436).
+ */
+export type AskErrorRecovery = "retry" | "rephrase";
+
+/**
+ * Recovery per code. Only `unsearchable_question` withholds the retry: its
+ * failure is the text itself, so resending it fails again and, since the
+ * search already ran, is charged again.
+ *
+ * Exhaustive over `AskErrorCode` for the reason `REFUNDS_ASK` is (route.ts):
+ * a new code cannot reach the client without someone deciding, here, whether
+ * sending the same text again can succeed.
+ */
+export const ASK_ERROR_RECOVERY: Record<AskErrorCode, AskErrorRecovery> = {
+  invalid_question: "retry",
+  cross_site_request: "retry",
+  rate_limited: "retry",
+  rate_limit_unavailable: "retry",
+  retrieval_failed: "retry",
+  unsearchable_question: "rephrase",
+  answer_failed: "retry",
+};
+
+/**
+ * The parsed JSON body behind a failed ask. The transport surfaces the
+ * response body (or a stream `error` part's text) as the Error message, so
+ * anything else — proxy HTML, a network failure — reads as null.
+ */
+function errorEnvelope(error: unknown): Record<string, unknown> | null {
+  if (!(error instanceof Error)) return null;
+  try {
+    const body: unknown = JSON.parse(error.message);
+    return typeof body === "object" && body !== null
+      ? (body as Record<string, unknown>)
+      : null;
+  } catch {
+    return null; // not a JSON body
+  }
+}
+
+/**
+ * User-facing Spanish for a failed ask. Anything without our `{ message }`
+ * shape (proxy HTML, network failures) falls back to the generic line.
  */
 export function askErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    try {
-      const body: unknown = JSON.parse(error.message);
-      if (
-        typeof body === "object" &&
-        body !== null &&
-        "message" in body &&
-        typeof body.message === "string" &&
-        body.message !== ""
-      ) {
-        return body.message;
-      }
-    } catch {
-      // not a JSON body — fall through
-    }
-  }
-  return ASK_FALLBACK_ERROR_MESSAGE;
+  const message = errorEnvelope(error)?.message;
+  return typeof message === "string" && message !== ""
+    ? message
+    : ASK_FALLBACK_ERROR_MESSAGE;
+}
+
+/**
+ * How the reader recovers from a failed ask (#436). A failure without one of
+ * our codes — a network drop, a proxy error page — is nothing the question's
+ * text caused, so it keeps the retry.
+ */
+export function askErrorRecovery(error: unknown): AskErrorRecovery {
+  const code = errorEnvelope(error)?.error;
+  return typeof code === "string" && Object.hasOwn(ASK_ERROR_RECOVERY, code)
+    ? ASK_ERROR_RECOVERY[code as AskErrorCode]
+    : "retry";
 }

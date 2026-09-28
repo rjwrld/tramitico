@@ -31,6 +31,8 @@ import {
   askErrorMessage,
   askRequestBody,
   RETRIEVAL_FAILED_MESSAGE,
+  UNSEARCHABLE_QUESTION_MESSAGE,
+  type AskErrorBody,
   type AskUIMessage,
 } from "@/lib/answer/contract";
 import {
@@ -397,6 +399,13 @@ function errorMessages(events: SseEvent[]): string[] {
   return events
     .filter((e) => e.type === "error")
     .map((e) => askErrorMessage(new Error(e.errorText ?? "")));
+}
+
+/** The whole `{ error, message }` envelope of each `error` part. */
+function errorBodies(events: SseEvent[]): AskErrorBody[] {
+  return events
+    .filter((e) => e.type === "error")
+    .map((e) => JSON.parse(e.errorText ?? "") as AskErrorBody);
 }
 
 /**
@@ -1436,17 +1445,21 @@ describe("POST /api/ask", () => {
           await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
         );
 
-        expect(errorMessages(events)).toEqual([RETRIEVAL_FAILED_MESSAGE]);
+        // The outage keeps its code and its advice to wait (#436).
+        expect(errorBodies(events)).toEqual([
+          { error: "retrieval_failed", message: RETRIEVAL_FAILED_MESSAGE },
+        ]);
         expect(refund).toHaveBeenCalledTimes(1);
       }
       spy.mockRestore();
     });
 
-    it("keeps the charge when the search rejects the request's own text (SQLSTATE class 22 or 54)", async () => {
+    it("streams unsearchable_question and keeps the charge when the search rejects the request's own text (SQLSTATE class 22 or 54, #436)", async () => {
       const spy = vi.spyOn(console, "error").mockImplementation(() => {});
       // A data exception or a program limit raised by the question itself:
-      // the reader still gets the same error part, but it is not our outage,
-      // and a refund would make such a question free to send again.
+      // not our outage, so a refund would make such a question free to send
+      // again — and waiting would not help, so the reader is told to
+      // rephrase rather than to try again in a few minutes.
       for (const code of ["22P05", "22021", "54000"]) {
         const refund = allowRateLimit();
         vi.mocked(retrieve).mockRejectedValueOnce(
@@ -1457,7 +1470,12 @@ describe("POST /api/ask", () => {
           await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
         );
 
-        expect(errorMessages(events)).toEqual([RETRIEVAL_FAILED_MESSAGE]);
+        expect(errorBodies(events)).toEqual([
+          {
+            error: "unsearchable_question",
+            message: UNSEARCHABLE_QUESTION_MESSAGE,
+          },
+        ]);
         expect(refund).not.toHaveBeenCalled();
       }
       spy.mockRestore();
@@ -2771,17 +2789,21 @@ describe("POST /api/ask", () => {
       });
     });
 
-    it("classes a search the request's own text broke as charged_error — an error, not a refund", async () => {
+    it("classes an unsearchable_question as charged_error — an error, not a refund (#436)", async () => {
       const capture = captureTelemetry();
-      allowRateLimit();
+      const refund = allowRateLimit();
       vi.mocked(retrieve).mockRejectedValue(
         new SearchChunksError({ code: "22P05", message: "rejected input" }),
       );
 
-      await readEvents(
+      const events = await readEvents(
         await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
       );
 
+      expect(errorBodies(events).map((body) => body.error)).toEqual([
+        "unsearchable_question",
+      ]);
+      expect(refund).not.toHaveBeenCalled();
       expect(soleEvent(capture)).toMatchObject({
         outcome: "charged_error",
         providerError: "SearchChunksError<Object#22P05>",

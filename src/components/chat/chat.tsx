@@ -14,12 +14,14 @@ import { DefaultChatTransport } from "ai";
 import { toast } from "sonner";
 import {
   askErrorMessage,
+  askErrorRecovery,
   askRequestBody,
   citationsFrom,
   HISTORY_SAVE_FAILED_NOTE,
   messageText,
   statusFrom,
   unsavedFrom,
+  type AskErrorRecovery,
   type AskUIMessage,
 } from "@/lib/answer/contract";
 import { AnswerBlock } from "@/components/chat/answer-block";
@@ -27,7 +29,7 @@ import {
   AskStatus,
   completionAnnouncement,
 } from "@/components/chat/ask-status";
-import { ChatInput } from "@/components/chat/chat-input";
+import { ChatInput, type ChatInputHandle } from "@/components/chat/chat-input";
 import {
   ACERCA_PATH,
   ACERCA_SOURCES_ANCHOR,
@@ -83,6 +85,12 @@ interface Completion {
   text: string;
 }
 
+/** A failed ask as the inline error shows it: the Spanish, and the way back. */
+interface AskFailure {
+  message: string;
+  recovery: AskErrorRecovery;
+}
+
 export function Chat({
   corpusCaption,
 }: {
@@ -94,7 +102,7 @@ export function Chat({
    */
   corpusCaption?: string;
 } = {}) {
-  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const [failure, setFailure] = React.useState<AskFailure | null>(null);
   const [completion, setCompletion] = React.useState<Completion | null>(null);
   // #74 (audit F-49): `status` catches up with a click a render or two
   // later — it rides the same async chain as the network request, so a
@@ -110,10 +118,22 @@ export function Chat({
   // finished exchange tells it to refetch. No-op when signed out — nothing was
   // persisted and no list is mounted.
   const refreshHistory = useHistoryRefresh();
+  // #436: the text of the question in flight, and the composer it came from,
+  // so a question the search could not use goes back where it can be edited.
+  // Refs, because `onError` below is an SDK callback that must not read a
+  // stale render.
+  const askedRef = React.useRef("");
+  const composerRef = React.useRef<ChatInputHandle>(null);
   const { messages, sendMessage, regenerate, stop, status } =
     useChat<AskUIMessage>({
       transport,
-      onError: (error) => setErrorMessage(askErrorMessage(error)),
+      onError: (error) => {
+        const recovery = askErrorRecovery(error);
+        setFailure({ message: askErrorMessage(error), recovery });
+        if (recovery === "rephrase") {
+          composerRef.current?.restore(askedRef.current);
+        }
+      },
       // #72: the one accessible completion signal (audit U-3) — never fired for
       // an aborted request, a stream that ended in an `error` part (ADR 0009),
       // or a dropped connection: none of the three delivered an answer worth
@@ -152,7 +172,8 @@ export function Chat({
   const ask = (question: string) => {
     if (inFlightRef.current) return;
     inFlightRef.current = true;
-    setErrorMessage(null);
+    askedRef.current = question;
+    setFailure(null);
     setCompletion(null);
     void sendMessage({ text: question });
   };
@@ -166,7 +187,7 @@ export function Chat({
   const retry = () => {
     if (inFlightRef.current) return;
     inFlightRef.current = true;
-    setErrorMessage(null);
+    setFailure(null);
     setCompletion(null);
     void regenerate();
   };
@@ -231,14 +252,17 @@ export function Chat({
               </p>
             </div>
             <SeedPrompts onSelect={ask} disabled={busy} />
-            {errorMessage && (
-              <InlineError message={errorMessage} onRetry={retry} />
-            )}
+            {failure && <InlineError failure={failure} onRetry={retry} />}
           </div>
         </div>
         <div className="crossfade-ground border-t border-border bg-background pt-2 pb-safe">
           <div className="mx-auto w-full max-w-[44rem] px-safe">
-            <ChatInput onSubmit={ask} onStop={() => void stop()} busy={busy} />
+            <ChatInput
+              ref={composerRef}
+              onSubmit={ask}
+              onStop={() => void stop()}
+              busy={busy}
+            />
           </div>
         </div>
       </div>
@@ -316,9 +340,9 @@ export function Chat({
                   />
                 </MessageScrollerItem>
               )}
-              {errorMessage && (
+              {failure && (
                 <MessageScrollerItem scrollAnchor className="mt-6">
-                  <InlineError message={errorMessage} onRetry={retry} />
+                  <InlineError failure={failure} onRetry={retry} />
                 </MessageScrollerItem>
               )}
             </MessageScrollerContent>
@@ -331,6 +355,7 @@ export function Chat({
         <div className="crossfade-ground sticky bottom-0 border-t border-border bg-background pt-2 pb-safe">
           <div className="mx-auto w-full max-w-[44rem] px-safe">
             <ChatInput
+              ref={composerRef}
               onSubmit={ask}
               onStop={() => void stop()}
               busy={busy}
@@ -344,24 +369,34 @@ export function Chat({
 }
 
 /**
- * #74 (req 3): "Reintentar" is the one recovery control on any error —
+ * #74 (req 3): "Reintentar" is the one recovery control on an error —
  * outline, verb-first (DESIGN §6), never the filled primary. `role="alert"`
  * on the wrapper (not just the copy) so the button's own accessible name
  * arrives as part of the same announcement.
+ *
+ * Except where resending cannot work (#436): a question whose own text the
+ * search could not use fails the same way again, and is charged again. There
+ * the copy asks for other words, the question is already back in the
+ * composer with focus on it, and a button that resends it would only
+ * contradict the copy. The failed question stays in the thread above, as
+ * every failed ask's does — it is the record of what was sent, and the
+ * history window already leaves an unanswered question out (`conversationTurns`).
  */
 function InlineError({
-  message,
+  failure,
   onRetry,
 }: {
-  message: string;
+  failure: AskFailure;
   onRetry: () => void;
 }) {
   return (
     <div role="alert" className="flex max-w-[68ch] flex-col items-start gap-2">
-      <p className="text-sm text-muted-foreground">{message}</p>
-      <Button type="button" variant="outline" size="sm" onClick={onRetry}>
-        Reintentar
-      </Button>
+      <p className="text-sm text-muted-foreground">{failure.message}</p>
+      {failure.recovery === "retry" && (
+        <Button type="button" variant="outline" size="sm" onClick={onRetry}>
+          Reintentar
+        </Button>
+      )}
     </div>
   );
 }

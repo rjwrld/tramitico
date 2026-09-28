@@ -45,9 +45,11 @@ export function isCrossSiteAsk(request: Request): boolean {
 /**
  * True when the question holds text Postgres cannot store: U+0000, or an
  * unpaired surrogate. Either one passes the length check, is charged, runs
- * the paid expansion and embeds, and then fails the `search_chunks` call as a
- * refunded `retrieval_failed` — paid work the quota never keeps. Rejecting it
- * before the quota makes it an ordinary 400.
+ * the paid expansion and embeds, and then fails the `search_chunks` call with
+ * a class-22 SQLSTATE, which the route answers as `unsearchable_question` and
+ * keeps the charge (#435, #436) — a quota slot and paid calls spent on an ask
+ * that could never be searched. Rejecting it before the quota makes it an
+ * ordinary 400 that costs neither.
  */
 export function hasUnstorableText(text: string): boolean {
   return text.includes("\u0000") || !text.isWellFormed();
