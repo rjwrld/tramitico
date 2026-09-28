@@ -131,16 +131,20 @@ test.describe("ask flow (real route)", () => {
     ).toContainText("Intente de nuevo en unos minutos.");
   });
 
-  test("an overlong question gets the what-happened + what-to-do message inline", async ({
+  test("an overlong question is held in the composer with what to do, not sent", async ({
     page,
   }) => {
     await page.goto("/");
     await page.getByLabel("Su pregunta").fill("¿".repeat(1001));
-    await page.getByRole("button", { name: "Enviar" }).click();
 
+    // The composer knows the route's cap: it counts, says what to do, and
+    // holds the question rather than sending it to be turned away.
     await expect(
-      inlineAlert(page, "Falta la pregunta o es demasiado larga"),
-    ).toContainText("intente de nuevo");
+      page.getByText("Acorte la pregunta para enviarla."),
+    ).toBeVisible();
+    await expect(page.getByText("1001 / 1000")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Enviar" })).toBeDisabled();
+    await expect(page.getByLabel("Su pregunta")).toHaveValue("¿".repeat(1001));
   });
 
   test("the error bodies carry the { error, message } contract", async ({
@@ -154,6 +158,21 @@ test.describe("ask flow (real route)", () => {
     };
     expect(missingBody.error).toBe("invalid_question");
     expect(missingBody.message).toMatch(/pregunta/i);
+
+    // The composer holds an overlong question back, but the route's own cap
+    // is the one that binds: a hand-built request still gets the 400.
+    const overlong = await request.post("/api/ask", {
+      data: { question: "¿".repeat(1001) },
+    });
+    expect(overlong.status()).toBe(400);
+    const overlongBody = (await overlong.json()) as {
+      error: string;
+      message: string;
+    };
+    expect(overlongBody.error).toBe("invalid_question");
+    expect(overlongBody.message).toContain(
+      "Falta la pregunta o es demasiado larga",
+    );
 
     const denied = await request.post("/api/ask", {
       data: { question: "¿Cuánto es el IVA?" },

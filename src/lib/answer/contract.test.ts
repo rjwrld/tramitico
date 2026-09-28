@@ -147,11 +147,22 @@ describe("unsearchable_question (#436)", () => {
 });
 
 describe("askErrorRecovery (#436)", () => {
-  it("withholds the retry from unsearchable_question alone", () => {
+  it("withholds the retry only from the codes the question's own text causes", () => {
     const rephrase = Object.entries(ASK_ERROR_RECOVERY)
       .filter(([, recovery]) => recovery === "rephrase")
       .map(([code]) => code);
-    expect(rephrase).toEqual(["unsearchable_question"]);
+    expect(rephrase).toEqual(["invalid_question", "unsearchable_question"]);
+  });
+
+  it("hands an invalid question back to rephrase: resending the same text is turned away again", () => {
+    // The route's JSON error body, which the transport throws as its message.
+    const thrown = new Error(
+      JSON.stringify({
+        error: "invalid_question",
+        message: "Falta la pregunta o es demasiado larga.",
+      }),
+    );
+    expect(askErrorRecovery(thrown)).toBe("rephrase");
   });
 
   it("keeps the retry for an outage", () => {

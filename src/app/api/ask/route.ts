@@ -126,6 +126,7 @@ import {
   CITATIONS_PART_ID,
   DEGRADED_PART_ID,
   MARKERS_PART_ID,
+  MAX_QUESTION_LENGTH,
   RETRIEVAL_FAILED_MESSAGE,
   ROUTED_PART_ID,
   STATUS_PART_ID,
@@ -196,8 +197,6 @@ import {
 } from "@/lib/telemetry";
 
 export const maxDuration = 60;
-
-const MAX_QUESTION_LENGTH = 1_000;
 
 /**
  * The most bytes an ask body may carry, counted before it is parsed
