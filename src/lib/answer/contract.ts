@@ -365,21 +365,24 @@ export function askStreamErrorText(
 /**
  * What the inline error offers the reader once an ask fails: `retry` sends
  * the same question again ("Reintentar", #74), `rephrase` hands it back to the
- * composer for editing (#436).
+ * composer for editing (#436), for a failure the text itself caused.
  */
 export type AskErrorRecovery = "retry" | "rephrase";
 
 /**
- * Recovery per code. Only `unsearchable_question` withholds the retry: its
- * failure is the text itself, so resending it fails again and, since the
- * search already ran, is charged again.
+ * Recovery per code. Two codes withhold the retry, because their failure is
+ * the text itself and resending it fails the same way: `unsearchable_question`,
+ * which the search already ran on and so is charged again, and
+ * `invalid_question` — a question over the length cap (the composer does not
+ * enforce it) or holding text Postgres cannot store — which is turned away
+ * before the quota, but would be turned away on every retry.
  *
  * Exhaustive over `AskErrorCode` for the reason `REFUNDS_ASK` is (route.ts):
  * a new code cannot reach the client without someone deciding, here, whether
  * sending the same text again can succeed.
  */
 export const ASK_ERROR_RECOVERY: Record<AskErrorCode, AskErrorRecovery> = {
-  invalid_question: "retry",
+  invalid_question: "rephrase",
   cross_site_request: "retry",
   rate_limited: "retry",
   rate_limit_unavailable: "retry",

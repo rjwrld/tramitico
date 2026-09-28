@@ -912,8 +912,9 @@ describe("Chat stop and retry controls (#74)", () => {
  * #436: a question whose own text the search could not use. Resending it
  * fails the same way and is charged again, so the inline error drops
  * "Reintentar" and the question goes back into the composer, focused, for the
- * reader to reword. Every other failure keeps the retry exactly as #74 built
- * it. The errors reach `onError` the way the transport throws them: as an
+ * reader to reword. `invalid_question` gets the same recovery, since resending
+ * the same text is turned away again. Every other failure keeps the retry
+ * exactly as #74 built it. The errors reach `onError` the way the transport throws them: as an
  * Error whose message is the route's `{ error, message }` envelope.
  */
 describe("Chat unsearchable question (#436)", () => {
@@ -1020,6 +1021,24 @@ describe("Chat unsearchable question (#436)", () => {
     expect(screen.queryByRole("button", { name: "Reintentar" })).toBeNull();
     expect(composer().value).toBe(SEED_PROMPTS[0]);
     expect(document.activeElement).toBe(composer());
+  });
+
+  it("hands an over-long question back too: invalid_question would fail every retry", () => {
+    // The composer does not enforce the route's length cap, so a long paste
+    // reaches it and comes back as a 400 `invalid_question` JSON body.
+    askAndFail(
+      new Error(
+        JSON.stringify({
+          error: "invalid_question",
+          message: "Falta la pregunta o es demasiado larga.",
+        }),
+      ),
+    );
+
+    expect(screen.queryByRole("button", { name: "Reintentar" })).toBeNull();
+    expect(composer().value).toBe(ASKED);
+    expect(document.activeElement).toBe(composer());
+    expect(regenerateMock).not.toHaveBeenCalled();
   });
 
   it("keeps Reintentar for a retrieval outage, and it resends the question", () => {

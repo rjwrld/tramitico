@@ -119,7 +119,8 @@ export function Chat({
   // persisted and no list is mounted.
   const refreshHistory = useHistoryRefresh();
   // #436: the text of the question in flight, and the composer it came from,
-  // so a question the search could not use goes back where it can be edited.
+  // so a question whose own text failed (`rephrase`) goes back where it can be
+  // edited.
   // Refs, because `onError` below is an SDK callback that must not read a
   // stale render.
   const askedRef = React.useRef("");
@@ -375,9 +376,10 @@ export function Chat({
  * arrives as part of the same announcement.
  *
  * Except where resending cannot work (#436): a question whose own text the
- * search could not use fails the same way again, and is charged again. There
- * the copy asks for other words, the question is already back in the
- * composer with focus on it, and a button that resends it would only
+ * search could not use fails the same way again, and is charged again; one
+ * the route turned away as invalid (too long, most likely) is turned away
+ * again. There the copy asks for other words, the question is already back
+ * in the composer with focus on it, and a button that resends it would only
  * contradict the copy. The failed question stays in the thread above, as
  * every failed ask's does — it is the record of what was sent, and the
  * history window already leaves an unanswered question out (`conversationTurns`).
