@@ -69,19 +69,40 @@ import {
   type GenerationFinishReason,
 } from "../src/lib/telemetry";
 
+type ArmOptions = AnthropicLanguageModelOptions & JSONObject;
+
 interface Arm {
   name: string;
   /** Omitted: the answer model, resolved once `.env.local` is loaded. */
   model?: string;
-  /** `providerOptions.anthropic` for the call; `undefined` is production. */
-  anthropic?: AnthropicLanguageModelOptions & JSONObject;
+  /**
+   * `providerOptions.anthropic` for the call; `undefined` is production. A
+   * function when the options depend on the model the arm runs.
+   */
+  anthropic?: ArmOptions | ((model: string) => ArmOptions);
+}
+
+/**
+ * The lowest thinking setting `model` accepts. Claude Sonnet 5.5 rejects
+ * `disabled` and takes `between_tools` in its place (no extended thinking;
+ * progress notes between tool calls, of which the answer call makes none) —
+ * a type every other model rejects.
+ */
+function thinkingOff(model: string): ArmOptions {
+  return {
+    thinking: {
+      type: model.startsWith("claude-sonnet-5-5")
+        ? "between_tools"
+        : "disabled",
+    },
+  };
 }
 
 const ARMS: Record<string, Arm> = {
   default: { name: "default" },
   medium: { name: "medium", anthropic: { effort: "medium" } },
   low: { name: "low", anthropic: { effort: "low" } },
-  off: { name: "off", anthropic: { thinking: { type: "disabled" } } },
+  off: { name: "off", anthropic: thinkingOff },
   haiku: { name: "haiku", model: "claude-haiku-4-5" },
 };
 
@@ -208,6 +229,10 @@ async function main(): Promise<void> {
           derivedMissing: [],
           error: null,
         };
+        const options =
+          typeof arm.anthropic === "function"
+            ? arm.anthropic(model)
+            : arm.anthropic;
         const t0 = performance.now();
         const since = () => +((performance.now() - t0) / 1000).toFixed(2);
         try {
@@ -216,9 +241,7 @@ async function main(): Promise<void> {
             system: ANSWER_SYSTEM,
             prompt,
             maxOutputTokens: ANSWER_MAX_OUTPUT_TOKENS,
-            ...(arm.anthropic
-              ? { providerOptions: { anthropic: arm.anthropic } }
-              : {}),
+            ...(options ? { providerOptions: { anthropic: options } } : {}),
           });
           let text = "";
           for await (const part of result.stream) {
