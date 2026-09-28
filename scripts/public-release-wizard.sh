@@ -12,6 +12,7 @@ set -euo pipefail
 # Wizard library: delightful, consistent UX, identical across every wizard.
 # ──────────────────────────────────────────────────────────────────────────
 
+# shellcheck disable=SC2034  # RED completes the palette; not every wizard's stages use it
 if [[ -t 1 ]] && command -v tput >/dev/null 2>&1 && [[ "$(tput colors 2>/dev/null || echo 0)" -ge 8 ]]; then
   BOLD=$(tput bold); DIM=$(tput dim); RESET=$(tput sgr0)
   BLUE=$(tput setaf 4); GREEN=$(tput setaf 2); YELLOW=$(tput setaf 3); RED=$(tput setaf 1)
@@ -522,7 +523,7 @@ Run by $(gh api user --jq .login) via \`scripts/public-release-wizard.sh\`. Agen
 Reviewed by the owner in this run: the public README and demo, the security policy page, the live site. Social preview uploaded by hand.
 RECORD
 say ""
-cat "$body" | sed 's/^/  /'
+sed 's/^/  /' "$body"
 say ""
 if confirm "Post this comment on #252?"; then
   run_gh "comment on #252" gh issue comment 252 -R "$REPO" --body-file "$body" || true
