@@ -12,6 +12,7 @@ set -euo pipefail
 # Wizard library: delightful, consistent UX, identical across every wizard.
 # ──────────────────────────────────────────────────────────────────────────
 
+# shellcheck disable=SC2034  # RED completes the palette; not every wizard's stages use it
 if [[ -t 1 ]] && command -v tput >/dev/null 2>&1 && [[ "$(tput colors 2>/dev/null || echo 0)" -ge 8 ]]; then
   BOLD=$(tput bold); DIM=$(tput dim); RESET=$(tput sgr0)
   BLUE=$(tput setaf 4); GREEN=$(tput setaf 2); YELLOW=$(tput setaf 3); RED=$(tput setaf 1)
@@ -97,6 +98,7 @@ _existing() {
 
 # ask KEY "Prompt" reads a value into $KEY. Offers the existing .env value as
 # a default on re-runs (Enter keeps it). Visible input (non-secret).
+# shellcheck disable=SC2317  # runs as _ask_raw: the stages wrap a declare -f copy of this body
 ask() {
   local key="$1" prompt="$2" current input
   current=$(_existing "$key" || true)
@@ -111,6 +113,7 @@ ask() {
 }
 
 # ask_secret KEY "Prompt" is like ask, but input is hidden.
+# shellcheck disable=SC2317  # runs as _ask_secret_raw, copied the same way as ask above
 ask_secret() {
   local key="$1" prompt="$2" current input
   current=$(_existing "$key" || true)
