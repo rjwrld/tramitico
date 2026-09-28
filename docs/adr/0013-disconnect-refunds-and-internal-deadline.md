@@ -134,6 +134,16 @@ actually did, so the two can never disagree. The runbook's error rate counts bot
 `"abort":"client"`: nothing broke. No new field, and nothing content-bearing: `/privacidad`'s
 description of the operational log is unchanged.
 
+> **Note 2026-09-28 (issue [#436](https://github.com/rjwrld/tramitico/issues/436)).** The
+> boundary above is unchanged; the caller-shaped branch now has a code of its own. A
+> `search_chunks` failure in SQLSTATE class 22 or 54 streams **`unsearchable_question`**, which
+> is always charged (`charged_error`, as above) and whose message asks the reader to rephrase
+> rather than wait. The chat offers no «Reintentar» for it, since resending the same text fails
+> the same way and is charged again. `retrieval_failed` is left meaning an outage and always
+> refunds, so `answer_failed` is the one `REFUNDS_ASK` entry that still decides per failure. The
+> `retrieval_failed` bullet, the "two codes decide per failure" paragraph and the telemetry
+> paragraph above record the decision as it was made on 2026-09-25, and are kept as written.
+
 **Accepted residuals:**
 
 - **Condensation runs before the line.** On a follow-up, `condenseQuestion` — a model call —
