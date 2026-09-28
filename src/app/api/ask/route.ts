@@ -157,7 +157,11 @@ import {
 import { hasUnstorableText, isCrossSiteAsk } from "@/lib/answer/admission";
 import { readCappedBody } from "@/lib/http/capped-body";
 import { startAskDeadline } from "@/lib/answer/deadline";
-import { answerProviderOptions, getAnswerModel } from "@/lib/answer/model";
+import {
+  ANSWER_MAX_OUTPUT_TOKENS,
+  answerProviderOptions,
+  getAnswerModel,
+} from "@/lib/answer/model";
 import { describeError } from "@/lib/log-redaction";
 import { saveQuestion, type SaveQuestionInput } from "@/lib/answer/persist";
 import {
@@ -193,7 +197,10 @@ import {
 import {
   cacheUse,
   createAskTelemetry,
+  generationFinishReason,
+  refusalCategory,
   type AskTelemetry,
+  type GenerationFinishReason,
 } from "@/lib/telemetry";
 
 export const maxDuration = 60;
@@ -242,18 +249,6 @@ interface AskedQuestion {
  * attempt is paid tokens against a 60 s budget.
  */
 const MAX_ANSWER_ATTEMPTS = 2;
-
-/**
- * Output ceiling for one answer generation. Without it the provider fills in
- * the model's own maximum (128k tokens for the shipped default), so the only
- * bound on a generation's cost was the wall-clock deadline. The longest of
- * the 125 answers in the eval transcripts is ~5.6k characters (~1.6k tokens);
- * this is ~2.5× that, so a citation-compliant answer never hits it, and a
- * runaway one is cut here rather than at the deadline. Condense and expand
- * carry their own, smaller caps (`CONDENSE_MAX_OUTPUT_TOKENS`,
- * `EXPAND_MAX_OUTPUT_TOKENS`).
- */
-export const ANSWER_MAX_OUTPUT_TOKENS = 4096;
 
 const INVALID_QUESTION_MESSAGE =
   "Falta la pregunta o es demasiado larga. Escriba su pregunta en el cuadro de texto e intente de nuevo.";
@@ -628,15 +623,20 @@ async function streamHonestDecline(
  * `abortSignal` still goes straight through to the provider (#74/F-11) — the
  * retry hands it the same signal, so a client stop cancels whichever attempt
  * is in flight.
+ *
+ * The draft comes back with why the model stopped, because two endings make
+ * it unusable however well it cites: the output cap cutting it off, and a
+ * safety classifier declining. `null` means the provider reported no reason,
+ * which the caller treats as it treated every draft before it could tell.
  */
 async function generateAnswer(
   question: string,
   chunks: readonly RetrievedChunk[],
   derivedFigures: readonly ResolvedDerivedFigure[],
   signal: AbortSignal,
-  attempt: number,
+  citationRetry: boolean,
   telemetry: AskTelemetry,
-): Promise<string> {
+): Promise<{ text: string; finishReason: GenerationFinishReason | null }> {
   // Both doors a model failure can come through, closed onto one exit. A
   // stream-stopping error rejects the iteration below; a recoverable one
   // arrives as an error part, which `textStream` drops on the floor — so it is
@@ -649,7 +649,7 @@ async function generateAnswer(
       model: getAnswerModel(),
       system: ANSWER_SYSTEM,
       prompt: buildUserPrompt(question, chunks, {
-        citationRetry: attempt > 1,
+        citationRetry,
         derivedFigures,
       }),
       maxOutputTokens: ANSWER_MAX_OUTPUT_TOKENS,
@@ -665,12 +665,20 @@ async function generateAnswer(
       text += delta;
     }
     if (failure !== null) throw failure;
+    let finishReason: GenerationFinishReason | null = null;
+    try {
+      const step = await result.finalStep;
+      finishReason = generationFinishReason(step.finishReason);
+      timing.finishReason(finishReason, refusalCategory(step.providerMetadata));
+    } catch {
+      // No reason reported: the draft goes on to validation as it always did.
+    }
     try {
       timing.cache(cacheUse((await result.usage).inputTokenDetails));
     } catch {
       // Telemetry never fails an ask (#141): the answer is already in hand.
     }
-    return text;
+    return { text, finishReason };
   } finally {
     timing.finish();
   }
@@ -967,21 +975,26 @@ export async function POST(request: Request): Promise<Response> {
     // enforcement — an answer leaves this block either having satisfied the
     // invariant or not at all.
     let answer: string | null = null;
+    // Whether the next attempt carries the citation note. Set by an
+    // invariant violation only: a retry after a truncated draft would
+    // otherwise be told it broke a rule it never had the chance to break.
+    let citationRetry = false;
     for (let attempt = 1; attempt <= MAX_ANSWER_ATTEMPTS; attempt += 1) {
       // The retry is the model writing again, so the stage says so (#219) —
       // the first attempt rides the `redactando` written above.
       if (attempt > 1) writeStatus(writer, "redactando");
       let text: string;
+      let finishReason: GenerationFinishReason | null;
       generationBegun = true;
       try {
-        text = await generateAnswer(
+        ({ text, finishReason } = await generateAnswer(
           asked.query,
           chunks,
           derivedFigures,
           generationSignal,
-          attempt,
+          citationRetry,
           telemetry,
-        );
+        ));
       } catch (error) {
         // An aborted generation arrives here as a rejection. Which signal
         // cut it decides what the reader sees (#205): the deadline is our
@@ -1002,6 +1015,19 @@ export async function POST(request: Request): Promise<Response> {
       // draft back. Validating, retrying or persisting it would be work on
       // an answer nobody will receive.
       if (cutShort()) return;
+
+      // A safety classifier declined. The same question over the same
+      // sources is declined again far more often than not, and a retry is
+      // paid tokens against the deadline, so the reader gets the honest
+      // decline now. Not a citation failure: nothing was written to check.
+      if (finishReason === "refusal") break;
+      // The output cap cut the draft off. Whatever it cites, it stops
+      // mid-thought, so it never reaches the invariant; the retry is a fresh
+      // attempt, without the citation note.
+      if (finishReason === "length") {
+        citationRetry = false;
+        continue;
+      }
 
       // #219: the invariant check is a real pipeline moment, so it gets a
       // stage. The check itself takes microseconds — the client is the one
@@ -1035,15 +1061,16 @@ export async function POST(request: Request): Promise<Response> {
         });
       }
       telemetry.citationFailure();
+      citationRetry = true;
     }
 
-    // Fail closed. The retry is spent and we still have no answer we can
-    // stand behind, so the user gets the same honest decline weak retrieval
-    // gives rather than prose with nothing under it. It is a *delivered*
-    // answer, so it consumes the ask like any other decline (#126) and is
-    // persisted like one — refunding here would hand a free ask back every
-    // time a badly-behaved model misbehaves, which is a hole whose shape we
-    // do not control.
+    // Fail closed. The retry is spent, or a refusal made it pointless, and
+    // we still have no answer we can stand behind, so the user gets the same
+    // honest decline weak retrieval gives rather than prose with nothing
+    // under it. It is a *delivered* answer, so it consumes the ask like any
+    // other decline (#126) and is persisted like one — refunding here would
+    // hand a free ask back every time a badly-behaved model misbehaves,
+    // which is a hole whose shape we do not control.
     if (answer === null) {
       await streamHonestDecline(writer, asked, userId, telemetry);
       return;

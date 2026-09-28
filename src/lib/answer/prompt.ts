@@ -59,7 +59,8 @@ Reglas, en orden de prioridad:
 /**
  * `ANSWER_SYSTEM_PROMPT` as the answer call sends it (#413): one Anthropic
  * prompt-cache breakpoint on the one part every ask shares: 3,915 tokens by
- * count_tokens, above claude-sonnet-5's 1,024-token minimum. What follows
+ * count_tokens, above the answer model's caching minimum (1,024 on
+ * claude-sonnet-5, lower on claude-sonnet-5-5). What follows
  * it — the question and its chunks — differs on every ask, so it carries no
  * breakpoint: a write there costs 1.25× and nothing would ever read it.
  *

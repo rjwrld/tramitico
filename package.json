@@ -38,7 +38,7 @@
     "email:preview": "tsx scripts/preview-email-templates.ts"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^4.0.63",
+    "@ai-sdk/anthropic": "^4.0.67",
     "@ai-sdk/react": "^4.0.117",
     "@base-ui/react": "^1.8.0",
     "@shadcn/react": "^0.3.1",

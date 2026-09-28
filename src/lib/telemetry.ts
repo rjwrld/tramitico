@@ -33,6 +33,7 @@
  * which are past the last byte the reader is waiting on.
  */
 
+import type { FinishReason, ProviderMetadata } from "ai";
 import { describeError } from "./log-redaction";
 import type { RateLimitCounter } from "./rate-limit";
 import type { RoutedCategory } from "./routing";
@@ -120,12 +121,69 @@ export function cacheUse(details: {
   return "none";
 }
 
+/**
+ * Why the model stopped writing. `length` is the output cap cutting the draft
+ * off — thinking counts toward that cap, so a draft can be cut short of an
+ * answer the reader would have seen as complete. `refusal` is a safety
+ * classifier declining the request. Everything else the SDK can report (a tool
+ * call, an error, an unmapped reason) is `other`: none of it is a way the
+ * answer call is expected to end.
+ */
+export type GenerationFinishReason = "stop" | "length" | "refusal" | "other";
+
+export function generationFinishReason(
+  reason: FinishReason,
+): GenerationFinishReason {
+  if (reason === "stop" || reason === "length") return reason;
+  if (reason === "content-filter") return "refusal";
+  return "other";
+}
+
+/**
+ * The declining classifier's category, from the provider's `stop_details`.
+ * Anthropic documents the set as open, so a category this file does not know
+ * is `other` rather than passed through — a value in the event is always one
+ * decided here. The `explanation` that rides beside the category is free text
+ * and never comes near this module.
+ */
+export type RefusalCategory =
+  | "cyber"
+  | "bio"
+  | "frontier_llm"
+  | "reasoning_extraction"
+  | "general_harms"
+  | "other";
+
+const REFUSAL_CATEGORIES: readonly RefusalCategory[] = [
+  "cyber",
+  "bio",
+  "frontier_llm",
+  "reasoning_extraction",
+  "general_harms",
+];
+
+/** Reads the category off the attempt's provider metadata; `null` if absent. */
+export function refusalCategory(
+  providerMetadata: ProviderMetadata | undefined,
+): RefusalCategory | null {
+  const stopDetails = providerMetadata?.anthropic?.stopDetails;
+  if (typeof stopDetails !== "object" || stopDetails === null) return null;
+  if (!("category" in stopDetails)) return null;
+  const category = stopDetails.category;
+  if (typeof category !== "string") return null;
+  return REFUSAL_CATEGORIES.find((known) => known === category) ?? "other";
+}
+
 export interface GenerationTiming {
   latency: LatencyBucket;
   /** Time to first nonempty text delta; null if none arrived. */
   firstText: LatencyBucket | null;
   /** Prompt-cache use; null when the attempt never reported usage. */
   cache: CacheUse | null;
+  /** Null when the attempt ended without the provider reporting a reason. */
+  finishReason: GenerationFinishReason | null;
+  /** Non-null only on a `refusal` whose provider named a category. */
+  refusal: RefusalCategory | null;
 }
 
 /**
@@ -241,6 +299,10 @@ export interface AskTelemetry {
   startGeneration: () => {
     firstText: () => void;
     cache: (use: CacheUse) => void;
+    finishReason: (
+      reason: GenerationFinishReason,
+      refusal: RefusalCategory | null,
+    ) => void;
     finish: () => void;
   };
 
@@ -325,6 +387,8 @@ export function createAskTelemetry(
       const stop = startStage("generate");
       let firstText: LatencyBucket | null = null;
       let cache: CacheUse | null = null;
+      let finishReason: GenerationFinishReason | null = null;
+      let refusal: RefusalCategory | null = null;
       let finished = false;
       return {
         firstText: () => {
@@ -332,6 +396,14 @@ export function createAskTelemetry(
         },
         cache: (use: CacheUse) => {
           if (!finished) cache = use;
+        },
+        finishReason: (
+          reason: GenerationFinishReason,
+          category: RefusalCategory | null,
+        ) => {
+          if (finished) return;
+          finishReason = reason;
+          refusal = reason === "refusal" ? category : null;
         },
         finish: () => {
           if (finished) return;
@@ -341,6 +413,8 @@ export function createAskTelemetry(
             latency: latencyBucket(now() - start),
             firstText,
             cache,
+            finishReason,
+            refusal,
           });
         },
       };

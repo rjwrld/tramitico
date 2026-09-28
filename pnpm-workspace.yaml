@@ -4,6 +4,17 @@ allowBuilds:
   "@tailwindcss/oxide": true
   esbuild: true
 
+# Claude Sonnet 5.5 support (#449), taken inside pnpm's 1-day release-age
+# window after a check: all three published by vercel/ai's release.yml via
+# npm trusted publishing (SLSA provenance), no install scripts, no new
+# dependencies, no new process/network/eval code. Exact versions only; each
+# entry is a no-op once its version is a day old (2026-09-29 18:46 UTC) and
+# can go with the next bump.
+minimumReleaseAgeExclude:
+  - "@ai-sdk/anthropic@4.0.67"
+  - "@ai-sdk/provider-utils@5.0.50"
+  - "@ai-sdk/provider@4.0.19"
+
 # The `@ai-sdk/*` chain pins undici ^7, which is stuck below the 7.29.0 patch
 # line for the advisories tracked on #122. Hoisting the whole tree onto the
 # direct 8.x pin resolves every path at once instead of chasing each transitive.

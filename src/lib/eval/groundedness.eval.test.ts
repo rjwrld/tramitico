@@ -39,10 +39,12 @@ import {
   type ResolvedDerivedFigure,
 } from "../answer/derived";
 import {
+  ANSWER_MAX_OUTPUT_TOKENS,
   answerModelLabel,
   answerProviderOptions,
   getAnswerModel,
 } from "../answer/model";
+import { generationFinishReason } from "../telemetry";
 import {
   ANSWER_SYSTEM,
   buildUserPrompt,
@@ -77,7 +79,11 @@ import {
   subsetSpec,
   SUBSET_ENV,
 } from "./subset";
-import { transcriptRow, writeTranscript } from "./transcript";
+import {
+  transcriptRow,
+  writeTranscript,
+  type TranscriptGeneration,
+} from "./transcript";
 import {
   blockingGroundednessFailures,
   GROUNDEDNESS_GATE,
@@ -123,6 +129,8 @@ interface CaseResult {
   /** Absent on a case that declares no requiredClaims/requiredSteps. */
   adequacy: (AdequacyOutcome & { literals: string[] }) | null;
   derivedFigures: ResolvedDerivedFigure[];
+  /** `null` on a weak-retrieval decline, which makes no model call. */
+  generation: TranscriptGeneration | null;
 }
 
 /**
@@ -237,6 +245,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
           // see (#261 req. 2).
           adequacy: requirementsOf(evalCase),
           derivedFigures: [],
+          generation: null,
         });
         continue;
       }
@@ -249,9 +258,14 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
         retrieval.chunks,
       );
       const derivedFigures = resolveDerivedFigures(chunks);
-      const { text: answer } = await generateText({
+      const {
+        text: answer,
+        finishReason,
+        usage,
+      } = await generateText({
         model: getAnswerModel(),
         providerOptions: answerProviderOptions(),
+        maxOutputTokens: ANSWER_MAX_OUTPUT_TOKENS,
         system: ANSWER_SYSTEM,
         prompt: buildUserPrompt(query, chunks, { derivedFigures }),
       });
@@ -277,6 +291,10 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
         ...judged,
         answer,
         derivedFigures,
+        generation: {
+          finishReason: generationFinishReason(finishReason),
+          outputTokens: usage.outputTokens ?? null,
+        },
         citations: validateCitations(answer, chunks.length),
         adequacy: declaresRequirements
           ? {
@@ -318,6 +336,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
                     missing: r.adequacy.missing,
                     literals: r.adequacy.literals,
                   },
+            generation: r.generation,
           }),
         ),
         { answerModel: answerModelId, subset: subset !== null },
