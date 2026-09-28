@@ -12,6 +12,7 @@ set -euo pipefail
 # Wizard library: delightful, consistent UX, identical across every wizard.
 # ──────────────────────────────────────────────────────────────────────────
 
+# shellcheck disable=SC2034  # RED completes the palette; not every wizard's stages use it
 if [[ -t 1 ]] && command -v tput >/dev/null 2>&1 && [[ "$(tput colors 2>/dev/null || echo 0)" -ge 8 ]]; then
   BOLD=$(tput bold); DIM=$(tput dim); RESET=$(tput sgr0)
   BLUE=$(tput setaf 4); GREEN=$(tput setaf 2); YELLOW=$(tput setaf 3); RED=$(tput setaf 1)
@@ -97,6 +98,7 @@ _existing() {
 
 # ask KEY "Prompt" reads a value into $KEY. Offers the existing .env value as
 # a default on re-runs (Enter keeps it). Visible input (non-secret).
+# shellcheck disable=SC2317  # runs as _ask_raw: the stages wrap a declare -f copy of this body
 ask() {
   local key="$1" prompt="$2" current input
   current=$(_existing "$key" || true)
@@ -111,6 +113,7 @@ ask() {
 }
 
 # ask_secret KEY "Prompt" is like ask, but input is hidden.
+# shellcheck disable=SC2317  # runs as _ask_secret_raw, copied the same way as ask above
 ask_secret() {
   local key="$1" prompt="$2" current input
   current=$(_existing "$key" || true)
@@ -185,11 +188,22 @@ finish() {
 # Writes captured values to .env.prod (gitignored: `.env*`), which is NOT a
 # file Next.js loads — `.env.prod` is outside its `.env.{development,
 # production}[.local]` set — so `pnpm build`/`pnpm dev` never pick up
-# production keys by accident. Phase 4 (migration + ingest) reads it with
-# `set -a; source .env.prod`. GitHub secrets are set for eval.yml
-# and keepalive.yml (recrawl.yml only reminds since #405 — the re-crawl is
-# `pnpm recrawl`, owner-run, reading the same file). The decisions behind every value are in
-# issue #29 (comments of 2026-09-12/14/15) and docs/runbook.md §7.
+# production keys by accident. Nothing sources it, and nothing exports it
+# whole: `_load_env` below reads it back into unexported shell variables, and
+# each child process is handed only the keys it reads — stage 9's
+# `pnpm email:push` SUPABASE_PROJECT_REF and SUPABASE_ACCESS_TOKEN; stage 11
+# (Phase 4) SUPABASE_DB_PASSWORD for `supabase link`/`supabase db push` (the
+# CLI's own login covers the rest), then SUPABASE_URL,
+# SUPABASE_SERVICE_ROLE_KEY and VOYAGE_API_KEY for `pnpm ingest` (beside
+# EMBEDDINGS_PROVIDER=voyage and INGEST_NO_DOTENV=1, as recrawl.sh sets them,
+# so the dev `.env.local` cannot fill a gap). Outside the
+# wizard, scripts/recrawl.sh's `env_file_value` parses single keys out of the
+# file without executing it: `pnpm recrawl` (#405, owner-run) runs the ingest
+# under `env -i` with those same three, and docs/runbook.md §7 re-pushes the
+# email templates with just the ref and token. GitHub secrets are set for
+# eval.yml and keepalive.yml (recrawl.yml only reminds since #405). The
+# decisions behind every value are in issue #29 (comments of 2026-09-12/14/15)
+# and docs/runbook.md §7.
 # ──────────────────────────────────────────────────────────────────────────
 
 # Unconditional: the library above already defaulted ENV_FILE to ".env", which
@@ -423,8 +437,12 @@ if SUPABASE_PROJECT_REF="$SUPABASE_PROJECT_REF" SUPABASE_ACCESS_TOKEN="$SUPABASE
    pnpm email:push; then
   say "✓ templates pushed; 'pnpm email:push --check' verifies at any later time."
 else
-  warn "push failed — fix the token or ref, then: set -a; source ${ENV_FILE}; pnpm email:push"
-  SKIPPED+=("Auth email templates: set -a; source ${ENV_FILE}; pnpm email:push")
+  # The re-push reads just those two keys with recrawl.sh's parser (sourcing
+  # recrawl.sh only defines its functions), so the rest of the file stays out
+  # of pnpm's environment. docs/runbook.md §7 has the same command.
+  local repush="bash -c 'source scripts/recrawl.sh; SUPABASE_PROJECT_REF=\$(env_file_value ${ENV_FILE} SUPABASE_PROJECT_REF) SUPABASE_ACCESS_TOKEN=\$(env_file_value ${ENV_FILE} SUPABASE_ACCESS_TOKEN) pnpm email:push'"
+  warn "push failed — fix the token or ref in ${ENV_FILE}, then: ${repush}"
+  SKIPPED+=("Auth email templates: ${repush}")
 fi
 pause
 }
@@ -453,10 +471,9 @@ stage "Database: link, migrate, ingest (Phase 4)"
 say "Needs the Supabase CLI, Voyage key and ~5 minutes. Idempotent; safe to re-run."
 say "Skip this stage to hand it to Claude — the same commands, reading ${ENV_FILE}."
 if confirm "Run migration + ingest against production now?"; then
-  export SUPABASE_DB_PASSWORD
-  supabase link --project-ref "$SUPABASE_PROJECT_REF"
-  supabase db push
-  EMBEDDINGS_PROVIDER=voyage VOYAGE_API_KEY="$VOYAGE_API_KEY" \
+  SUPABASE_DB_PASSWORD="${SUPABASE_DB_PASSWORD:-}" supabase link --project-ref "$SUPABASE_PROJECT_REF"
+  SUPABASE_DB_PASSWORD="${SUPABASE_DB_PASSWORD:-}" supabase db push
+  EMBEDDINGS_PROVIDER=voyage INGEST_NO_DOTENV=1 VOYAGE_API_KEY="$VOYAGE_API_KEY" \
     SUPABASE_URL="$SUPABASE_URL" SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
     pnpm ingest
   if git diff --quiet -- eval/corpus-index.json; then

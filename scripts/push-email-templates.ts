@@ -241,7 +241,8 @@ function projectFromEnv(): ProjectAuth {
   if (!ref || !token) {
     throw new Error(
       "SUPABASE_PROJECT_REF and SUPABASE_ACCESS_TOKEN are required " +
-        "(the deploy wizard's stage 9 writes both to .env.prod: `set -a; source .env.prod`).",
+        "(the deploy wizard's stage 9 writes both to .env.prod; docs/runbook.md §7 " +
+        "passes just these two, parsed out of it, rather than sourcing the file).",
     );
   }
   return { ref, token };
