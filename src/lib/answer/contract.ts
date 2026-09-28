@@ -65,14 +65,22 @@ export interface AskRequestBody {
 export const MAX_HISTORY_TURNS = 3;
 
 /**
- * Per-half character caps for a turn on the wire. The question cap matches
- * the route's own question limit — a prior turn was once a live question, so
- * it cannot be longer than one. The answer is truncated far harder: what
+ * The longest question the route accepts, in UTF-16 units (`String.length`),
+ * counted on the trimmed text the composer sends. Past it the route answers
+ * `invalid_question` before the quota. The composer reads the same constant,
+ * so it stops an over-long question before it is sent rather than after.
+ */
+export const MAX_QUESTION_LENGTH = 1_000;
+
+/**
+ * Per-half character caps for a turn on the wire. The question cap is the
+ * route's own question limit — a prior turn was once a live question, so it
+ * cannot be longer than one. The answer is truncated far harder: what
  * condensation needs from it is the subject matter ("la CCSS", "el régimen
  * simplificado"), which is established in its opening sentences, not the
  * artículo-by-artículo detail that follows.
  */
-export const MAX_TURN_QUESTION_CHARS = 1_000;
+export const MAX_TURN_QUESTION_CHARS = MAX_QUESTION_LENGTH;
 export const MAX_TURN_ANSWER_CHARS = 600;
 
 /** Cuts `text` to `max` characters on a whole word where it can. */
@@ -373,9 +381,9 @@ export type AskErrorRecovery = "retry" | "rephrase";
  * Recovery per code. Two codes withhold the retry, because their failure is
  * the text itself and resending it fails the same way: `unsearchable_question`,
  * which the search already ran on and so is charged again, and
- * `invalid_question` — a question over the length cap (the composer does not
- * enforce it) or holding text Postgres cannot store — which is turned away
- * before the quota, but would be turned away on every retry.
+ * `invalid_question` — text Postgres cannot store, or a question over the
+ * length cap that reached the route anyway (the composer holds one back) —
+ * which is turned away before the quota, but would be on every retry too.
  *
  * Exhaustive over `AskErrorCode` for the reason `REFUNDS_ASK` is (route.ts):
  * a new code cannot reach the client without someone deciding, here, whether

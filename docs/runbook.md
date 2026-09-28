@@ -300,8 +300,10 @@ in the app.
 
 1. Vercel dashboard → team **Settings → Alerts**.
 2. **Add Rule**.
-3. Triggers: **Error anomaly**. HTTP group: **5xx** (the default; leave 4xx off — our 4xx is
-   `400 invalid_question`, a client bug, and a separate rule would only make noise).
+3. Triggers: **Error anomaly**. HTTP group: **5xx** (the default; leave 4xx off — our 4xx are
+   refusals the route means to give: `429 rate_limited`, `403 cross_site_request`, and
+   `400`/`413 invalid_question`, which the chat's composer no longer sends for length, so it is a
+   hand-built request or text Postgres cannot store; a separate rule would only make noise).
 4. **Next**. Name it `tramitico 5xx`. Project scope: the Tramitico project only.
 5. Severities: **High** and **Medium** (the defaults). Low is off — at launch volume the
    baseline is too thin for a low-severity signal to mean anything.

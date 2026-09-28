@@ -1023,9 +1023,10 @@ describe("Chat unsearchable question (#436)", () => {
     expect(document.activeElement).toBe(composer());
   });
 
-  it("hands an over-long question back too: invalid_question would fail every retry", () => {
-    // The composer does not enforce the route's length cap, so a long paste
-    // reaches it and comes back as a 400 `invalid_question` JSON body.
+  it("hands an invalid question back too: invalid_question would fail every retry", () => {
+    // The composer holds back an over-long question, but text Postgres
+    // cannot store (#429) still reaches the route and comes back as a 400
+    // `invalid_question` JSON body.
     askAndFail(
       new Error(
         JSON.stringify({
