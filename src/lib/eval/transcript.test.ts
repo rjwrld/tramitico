@@ -52,6 +52,7 @@ const ROW: TranscriptRow = transcriptRow({
   groundedness: { verdict: "pass", verdicts: ["pass"], reason: "" },
   citations: { ok: true },
   adequacy: { verdict: "fail", missing: ["Dónde se consultan"], literals: [] },
+  generation: { finishReason: "stop", outputTokens: 1_412 },
 });
 
 describe("transcriptRow", () => {
@@ -66,6 +67,7 @@ describe("transcriptRow", () => {
       query: "¿Cuál es el mínimo exento de renta en 2026?",
       answer: "Las rentas de hasta ¢6.244.000 no están sujetas [1].",
       adequacy: { verdict: "fail", missing: ["Dónde se consultan"] },
+      generation: { finishReason: "stop", outputTokens: 1_412 },
     });
   });
 
@@ -115,6 +117,7 @@ describe("transcriptRow", () => {
       groundedness: { verdict: "pass", verdicts: ["pass"], reason: "" },
       citations: { ok: true },
       adequacy: null,
+      generation: { finishReason: "stop", outputTokens: null },
     });
     // Same docKey and articulo on both: only the id and the text tell them
     // apart.
@@ -136,8 +139,10 @@ describe("transcriptRow", () => {
       },
       citations: null,
       adequacy: null,
+      generation: null,
     });
     expect(declined.chunks).toEqual([]);
+    expect(declined.generation).toBeNull();
     expect(declined.citations).toBeNull();
     expect(declined.adequacy).toBeNull();
   });

@@ -4,7 +4,9 @@ import {
   cacheUse,
   createAskTelemetry,
   emitAskEvent,
+  generationFinishReason,
   latencyBucket,
+  refusalCategory,
   TELEMETRY_PREFIX,
   type AskEvent,
 } from "./telemetry";
@@ -147,8 +149,20 @@ describe("createAskTelemetry", () => {
     retry.finish();
     telemetry.emit();
     expect(capture.events()[0].generations).toEqual([
-      { latency: "gte_30s", firstText: "1s_3s", cache: null },
-      { latency: "3s_10s", firstText: null, cache: null },
+      {
+        latency: "gte_30s",
+        firstText: "1s_3s",
+        cache: null,
+        finishReason: null,
+        refusal: null,
+      },
+      {
+        latency: "3s_10s",
+        firstText: null,
+        cache: null,
+        finishReason: null,
+        refusal: null,
+      },
     ]);
     expect(capture.events()[0].stages.generate).toBe("gte_30s");
   });
@@ -182,6 +196,59 @@ describe("createAskTelemetry", () => {
     expect(
       cacheUse({ cacheReadTokens: undefined, cacheWriteTokens: undefined }),
     ).toBe("none");
+  });
+
+  it("records how each generation ended, and a refusal's category only on a refusal", () => {
+    const telemetry = createAskTelemetry();
+    const cut = telemetry.startGeneration();
+    cut.finishReason("length", null);
+    cut.finish();
+    const refused = telemetry.startGeneration();
+    refused.finishReason("refusal", "general_harms");
+    refused.finish();
+    // A category handed in beside a non-refusal is dropped, not carried.
+    const stopped = telemetry.startGeneration();
+    stopped.finishReason("stop", "cyber");
+    stopped.finish();
+    // Reported after `finish` is too late: the entry is already written.
+    stopped.finishReason("refusal", "bio");
+    telemetry.emit();
+    expect(
+      capture.events()[0].generations.map(({ finishReason, refusal }) => ({
+        finishReason,
+        refusal,
+      })),
+    ).toEqual([
+      { finishReason: "length", refusal: null },
+      { finishReason: "refusal", refusal: "general_harms" },
+      { finishReason: "stop", refusal: null },
+    ]);
+  });
+
+  it("maps the SDK's finish reasons onto the four the answer call can end with", () => {
+    expect(generationFinishReason("stop")).toBe("stop");
+    expect(generationFinishReason("length")).toBe("length");
+    expect(generationFinishReason("content-filter")).toBe("refusal");
+    expect(generationFinishReason("tool-calls")).toBe("other");
+    expect(generationFinishReason("error")).toBe("other");
+    expect(generationFinishReason("other")).toBe("other");
+  });
+
+  it("reads a refusal category off the provider metadata, closed to the known set", () => {
+    const withCategory = (category: string | null) => ({
+      anthropic: { stopDetails: { type: "refusal", category } },
+    });
+    expect(refusalCategory(withCategory("general_harms"))).toBe(
+      "general_harms",
+    );
+    expect(refusalCategory(withCategory("cyber"))).toBe("cyber");
+    // Anthropic documents the set as open: an unknown category is `other`,
+    // never passed through as free text.
+    expect(refusalCategory(withCategory("a_new_category"))).toBe("other");
+    expect(refusalCategory(withCategory(null))).toBeNull();
+    expect(refusalCategory({ anthropic: { stopDetails: null } })).toBeNull();
+    expect(refusalCategory({ anthropic: {} })).toBeNull();
+    expect(refusalCategory(undefined)).toBeNull();
   });
 
   it("emits nothing until asked", () => {

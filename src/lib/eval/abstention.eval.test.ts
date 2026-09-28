@@ -34,7 +34,12 @@ import { join } from "node:path";
 import { generateText } from "ai";
 import { beforeAll, expect, it } from "vitest";
 import { condenseQuestion } from "../answer/condense";
-import { answerProviderOptions, getAnswerModel } from "../answer/model";
+import {
+  ANSWER_MAX_OUTPUT_TOKENS,
+  answerProviderOptions,
+  getAnswerModel,
+} from "../answer/model";
+import { generationFinishReason } from "../telemetry";
 import {
   ANSWER_SYSTEM,
   buildUserPrompt,
@@ -50,7 +55,10 @@ import { retrieve } from "../retrieval";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import { figureMentions, judgeAbstention } from "./adequacy";
 import { abstentionCases, DATASET_PATH, parseDataset } from "./dataset";
-import { DEFAULT_TRANSCRIPT_DIR } from "./transcript";
+import {
+  DEFAULT_TRANSCRIPT_DIR,
+  type TranscriptGeneration,
+} from "./transcript";
 import type { EvalCase } from "./dataset";
 import type { Verdict } from "./groundedness";
 
@@ -96,6 +104,7 @@ function writeAbstentionTranscript(results: readonly CaseResult[]): string {
           reason: r.reason,
           figures: r.figures,
           answer: r.answer,
+          generation: r.generation,
         }),
       )
       .join("\n") + "\n",
@@ -115,6 +124,8 @@ interface CaseResult {
   figures: string[];
   /** What the pipeline actually said — the transcript's reason for existing. */
   answer: string;
+  /** `null` on the fallback route, which calls no model. */
+  generation: TranscriptGeneration | null;
 }
 
 describeEval("abstention set (eval/dataset.jsonl)", () => {
@@ -138,6 +149,7 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
       });
 
       let answer = WEAK_RETRIEVAL_ANSWER;
+      let generation: TranscriptGeneration | null = null;
       // Empty on the fallback route, which had no fragments: `figureMentions`
       // then keeps its strict form and counts every figure (#290).
       let sources: string[] | undefined;
@@ -156,14 +168,18 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
         // omits them measures a decline written without the one block the
         // reader's answer would have carried.
         const derivedFigures = resolveDerivedFigures(chunks);
-        answer = (
-          await generateText({
-            model: getAnswerModel(),
-            providerOptions: answerProviderOptions(),
-            system: ANSWER_SYSTEM,
-            prompt: buildUserPrompt(query, chunks, { derivedFigures }),
-          })
-        ).text;
+        const generated = await generateText({
+          model: getAnswerModel(),
+          providerOptions: answerProviderOptions(),
+          maxOutputTokens: ANSWER_MAX_OUTPUT_TOKENS,
+          system: ANSWER_SYSTEM,
+          prompt: buildUserPrompt(query, chunks, { derivedFigures }),
+        });
+        answer = generated.text;
+        generation = {
+          finishReason: generationFinishReason(generated.finishReason),
+          outputTokens: generated.usage.outputTokens ?? null,
+        };
         sources = [
           ...chunks.map((chunk) => chunk.content),
           ...derivedFigures.map((figure) => figure.formattedValue),
@@ -182,6 +198,7 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
         viaFallback,
         figures: figureMentions(answer, sources),
         answer,
+        generation,
       });
     }
 

@@ -18,6 +18,7 @@
 import { generateText } from "ai";
 import { beforeAll, expect, it } from "vitest";
 import {
+  ANSWER_MAX_OUTPUT_TOKENS,
   answerModelLabel,
   answerProviderOptions,
   getAnswerModel,
@@ -49,6 +50,7 @@ describeEval("conflicting sources (#135)", () => {
     const generated = await generateText({
       model: getAnswerModel(),
       providerOptions: answerProviderOptions(),
+      maxOutputTokens: ANSWER_MAX_OUTPUT_TOKENS,
       system: ANSWER_SYSTEM,
       prompt: buildUserPrompt(CONFLICT_QUESTION, CONFLICT_CHUNKS),
     });

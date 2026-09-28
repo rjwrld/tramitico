@@ -25,6 +25,7 @@ import path from "node:path";
 import type { CitationVerdict } from "../answer/invariant";
 import type { ResolvedDerivedFigure } from "../answer/derived";
 import type { RetrievedChunk } from "../retrieval";
+import type { GenerationFinishReason } from "../telemetry";
 import type { EvalCase, Family, Tier, Variant } from "./dataset";
 import type { Verdict } from "./groundedness";
 
@@ -76,6 +77,19 @@ export interface TranscriptRow {
     missing: string[];
     literals: string[];
   } | null;
+  /**
+   * How the answer call ended and what it spent, so a run can size the
+   * output cap: thinking counts toward it, and only the provider's total
+   * says how close an answer came. `null` on a weak-retrieval decline,
+   * which calls no model.
+   */
+  generation: TranscriptGeneration | null;
+}
+
+export interface TranscriptGeneration {
+  finishReason: GenerationFinishReason;
+  /** Thinking included; `null` if the provider reported no count. */
+  outputTokens: number | null;
 }
 
 export interface TranscriptInput {
@@ -87,6 +101,7 @@ export interface TranscriptInput {
   groundedness: { verdict: Verdict; verdicts: Verdict[]; reason: string };
   citations: CitationVerdict | null;
   adequacy: { verdict: Verdict; missing: string[]; literals: string[] } | null;
+  generation: TranscriptGeneration | null;
 }
 
 export function transcriptRow({
@@ -98,6 +113,7 @@ export function transcriptRow({
   groundedness,
   citations,
   adequacy,
+  generation,
 }: TranscriptInput): TranscriptRow {
   return {
     id: evalCase.id,
@@ -123,6 +139,7 @@ export function transcriptRow({
     groundedness,
     citations,
     adequacy,
+    generation,
   };
 }
 

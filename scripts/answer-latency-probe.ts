@@ -16,6 +16,10 @@
  * roughly US$1–2, plus cents of embeddings and rerank. A diagnostic, not a
  * gate — a faster arm still needs an eval arm against the #352 gates.
  *
+ * Every arm but `haiku` runs the answer model the route would: `ANSWER_MODEL`
+ * when set, else the shipped default — so a candidate model is probed with
+ * `ANSWER_MODEL=<id> pnpm answer-latency-probe`, before it is the default.
+ *
  *   pnpm answer-latency-probe [out.json] [--arms=default,medium,low,off]
  *     [--prompts=1,6] [--repeat=N] [--keep-text]
  *
@@ -52,45 +56,39 @@ import {
   resolveDerivedFigures,
 } from "../src/lib/answer/derived";
 import { validateCitations } from "../src/lib/answer/invariant";
-import { DEFAULT_ANSWER_MODEL } from "../src/lib/answer/model";
+import {
+  ANSWER_MAX_OUTPUT_TOKENS,
+  DEFAULT_ANSWER_MODEL,
+} from "../src/lib/answer/model";
 import { ANSWER_SYSTEM, buildUserPrompt } from "../src/lib/answer/prompt";
 import { RERANK_POOL, rerankChunks } from "../src/lib/answer/rerank";
 import { createEmbedder } from "../src/lib/ingestion/embedder";
 import { retrieve } from "../src/lib/retrieval";
-
-/** `ANSWER_MAX_OUTPUT_TOKENS` in route.ts — not imported, the route module drags in Next. */
-const ANSWER_MAX_OUTPUT_TOKENS = 4096;
+import {
+  generationFinishReason,
+  type GenerationFinishReason,
+} from "../src/lib/telemetry";
 
 interface Arm {
   name: string;
-  model: string;
+  /** Omitted: the answer model, resolved once `.env.local` is loaded. */
+  model?: string;
   /** `providerOptions.anthropic` for the call; `undefined` is production. */
   anthropic?: AnthropicLanguageModelOptions & JSONObject;
 }
 
 const ARMS: Record<string, Arm> = {
-  default: { name: "default", model: DEFAULT_ANSWER_MODEL },
-  medium: {
-    name: "medium",
-    model: DEFAULT_ANSWER_MODEL,
-    anthropic: { effort: "medium" },
-  },
-  low: {
-    name: "low",
-    model: DEFAULT_ANSWER_MODEL,
-    anthropic: { effort: "low" },
-  },
-  off: {
-    name: "off",
-    model: DEFAULT_ANSWER_MODEL,
-    anthropic: { thinking: { type: "disabled" } },
-  },
+  default: { name: "default" },
+  medium: { name: "medium", anthropic: { effort: "medium" } },
+  low: { name: "low", anthropic: { effort: "low" } },
+  off: { name: "off", anthropic: { thinking: { type: "disabled" } } },
   haiku: { name: "haiku", model: "claude-haiku-4-5" },
 };
 
 interface Row {
   prompt: number;
   arm: string;
+  model: string;
   repeat: number;
   /** Seconds from request to the first reasoning / text part; null if none. */
   firstReasoning: number | null;
@@ -99,6 +97,8 @@ interface Row {
   outputTokens: number | null;
   reasoningTokens: number | null;
   textTokens: number | null;
+  /** `length` means the output cap cut the draft off — thinking included. */
+  finishReason: GenerationFinishReason | null;
   chars: number;
   /** The route's two checks, as the route would run them on this draft. */
   citationsOk: boolean;
@@ -188,9 +188,12 @@ async function main(): Promise<void> {
 
     for (let r = 1; r <= repeat; r += 1) {
       for (const arm of arms) {
+        const model =
+          arm.model ?? (process.env.ANSWER_MODEL || DEFAULT_ANSWER_MODEL);
         const row: Row = {
           prompt: i + 1,
           arm: arm.name,
+          model,
           repeat: r,
           firstReasoning: null,
           firstText: null,
@@ -198,6 +201,7 @@ async function main(): Promise<void> {
           outputTokens: null,
           reasoningTokens: null,
           textTokens: null,
+          finishReason: null,
           chars: 0,
           citationsOk: false,
           derivedOk: false,
@@ -208,7 +212,7 @@ async function main(): Promise<void> {
         const since = () => +((performance.now() - t0) / 1000).toFixed(2);
         try {
           const result = streamText({
-            model: anthropic(arm.model),
+            model: anthropic(model),
             system: ANSWER_SYSTEM,
             prompt,
             maxOutputTokens: ANSWER_MAX_OUTPUT_TOKENS,
@@ -230,6 +234,7 @@ async function main(): Promise<void> {
           row.reasoningTokens =
             usage.outputTokenDetails.reasoningTokens ?? null;
           row.textTokens = usage.outputTokenDetails.textTokens ?? null;
+          row.finishReason = generationFinishReason(await result.finishReason);
           row.chars = text.length;
           if (keepText) row.text = text;
           row.citationsOk = validateCitations(text, chunks.length).ok;
@@ -244,7 +249,7 @@ async function main(): Promise<void> {
         }
         rows.push(row);
         console.log(
-          `#${row.prompt} ${arm.name.padEnd(7)} first-text ${String(row.firstText ?? "—").padStart(6)}s  total ${String(row.total).padStart(6)}s  out ${row.outputTokens ?? "?"} (reasoning ${row.reasoningTokens ?? "?"})  ${row.citationsOk && row.derivedOk ? "valid" : "INVALID"}${row.error ? `  error: ${row.error}` : ""}`,
+          `#${row.prompt} ${arm.name.padEnd(7)} first-text ${String(row.firstText ?? "—").padStart(6)}s  total ${String(row.total).padStart(6)}s  out ${row.outputTokens ?? "?"} (reasoning ${row.reasoningTokens ?? "?"})${row.finishReason && row.finishReason !== "stop" ? `  ${row.finishReason}` : ""}  ${row.citationsOk && row.derivedOk ? "valid" : "INVALID"}${row.error ? `  error: ${row.error}` : ""}`,
         );
       }
     }

@@ -45,6 +45,24 @@ export function getAnswerModel(): LanguageModel {
 }
 
 /**
+ * Output ceiling for one answer generation. Without it the provider fills in
+ * the model's own maximum (128k tokens for the shipped default), so the only
+ * bound on a generation's cost was the wall-clock deadline. The longest of
+ * the 125 answers in the eval transcripts is ~5.6k characters (~1.6k tokens);
+ * this is ~2.5× that, so a citation-compliant answer never hits it, and a
+ * runaway one is cut here rather than at the deadline. Condense and expand
+ * carry their own, smaller caps (`CONDENSE_MAX_OUTPUT_TOKENS`,
+ * `EXPAND_MAX_OUTPUT_TOKENS`).
+ *
+ * Thinking counts toward it: adaptive thinking's tokens are output tokens
+ * even when their text is not returned, so the headroom above the answer is
+ * also the thinking budget. Here rather than in the route so the eval lanes
+ * and the latency probe send the same cap — a run that omits it can never see
+ * a draft production would have cut off.
+ */
+export const ANSWER_MAX_OUTPUT_TOKENS = 4096;
+
+/**
  * Adaptive-thinking effort for the answer call (#356). `claude-sonnet-5`
  * thinks adaptively when a request omits `thinking`, at effort `high`, and
  * streams no reasoning text — so the reasoning shows up as silence before the

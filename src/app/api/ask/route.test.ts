@@ -1,5 +1,5 @@
 import { simulateReadableStream } from "ai";
-import type { LanguageModelV4StreamPart } from "@ai-sdk/provider";
+import type { JSONValue, LanguageModelV4StreamPart } from "@ai-sdk/provider";
 import { MockLanguageModelV4 } from "ai/test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -8,7 +8,7 @@ import {
   type RetrievedChunk,
 } from "@/lib/retrieval";
 import nextConfig from "../../../../next.config";
-import { ANSWER_MAX_OUTPUT_TOKENS, MAX_BODY_BYTES, POST } from "./route";
+import { MAX_BODY_BYTES, POST } from "./route";
 
 vi.mock("@/lib/retrieval", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/retrieval")>()),
@@ -18,7 +18,8 @@ vi.mock("@/lib/rate-limit", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/rate-limit")>()),
   checkRateLimit: vi.fn(),
 }));
-vi.mock("@/lib/answer/model", () => ({
+vi.mock("@/lib/answer/model", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/answer/model")>()),
   answerProviderOptions: vi.fn(),
   getAnswerModel: vi.fn(),
   getCondenseModel: vi.fn(),
@@ -53,6 +54,7 @@ import { declineAnswer } from "@/lib/routing";
 import { saveQuestion } from "@/lib/answer/persist";
 import { condenseFailures, resetCondenseFailures } from "@/lib/answer/condense";
 import {
+  ANSWER_MAX_OUTPUT_TOKENS,
   answerProviderOptions,
   getAnswerModel,
   getCondenseModel,
@@ -132,10 +134,41 @@ function allowRateLimit(): ReturnType<typeof vi.fn> {
  * whatever `abortSignal` `streamText` was given straight through to the
  * provider call, which is exactly the wiring #74/F-11 adds.
  */
+/**
+ * How a mocked generation ends: the provider's finish reason, and the
+ * metadata a refusal carries its `stop_details` in.
+ */
+interface ProviderEnding {
+  finishReason: { unified: "stop" | "length" | "content-filter"; raw: string };
+  providerMetadata?: Record<string, Record<string, JSONValue>>;
+}
+
+const END_TURN: ProviderEnding = {
+  finishReason: { unified: "stop", raw: "end_turn" },
+};
+const MAX_TOKENS: ProviderEnding = {
+  finishReason: { unified: "length", raw: "max_tokens" },
+};
+function refusal(category: string): ProviderEnding {
+  return {
+    finishReason: { unified: "content-filter", raw: "refusal" },
+    providerMetadata: {
+      anthropic: {
+        stopDetails: {
+          type: "refusal",
+          category,
+          explanation: "free text that must never reach a log",
+        },
+      },
+    },
+  };
+}
+
 function providerStream(
   deltas: readonly string[],
   chunkDelayInMs = 0,
   cacheRead = 0,
+  ending: ProviderEnding = END_TURN,
 ): ReadableStream<LanguageModelV4StreamPart> {
   return simulateReadableStream<LanguageModelV4StreamPart>({
     chunkDelayInMs,
@@ -150,7 +183,8 @@ function providerStream(
       { type: "text-end", id: "t1" },
       {
         type: "finish",
-        finishReason: { unified: "stop" as const, raw: "end_turn" },
+        finishReason: ending.finishReason,
+        providerMetadata: ending.providerMetadata,
         usage: {
           inputTokens: {
             total: 1 + cacheRead,
@@ -191,6 +225,25 @@ function mockModelSequence(...texts: readonly string[]): MockLanguageModelV4 {
       const text = texts[Math.min(call, texts.length - 1)];
       call += 1;
       return { stream: providerStream(splitWords(text)) };
+    },
+  });
+  vi.mocked(getAnswerModel).mockReturnValue(model);
+  return model;
+}
+
+/**
+ * `mockModelSequence`, with control over how each attempt ends — the output
+ * cap, a refusal. The last attempt repeats, for the same reason.
+ */
+function mockModelEndings(
+  ...attempts: readonly { text: string; ending: ProviderEnding }[]
+): MockLanguageModelV4 {
+  let call = 0;
+  const model = new MockLanguageModelV4({
+    doStream: async () => {
+      const { text, ending } = attempts[Math.min(call, attempts.length - 1)];
+      call += 1;
+      return { stream: providerStream(splitWords(text), 0, 0, ending) };
     },
   });
   vi.mocked(getAnswerModel).mockReturnValue(model);
@@ -2113,6 +2166,75 @@ describe("POST /api/ask", () => {
       expect(second).toContain(CITATION_RETRY_NOTE);
     });
 
+    it("never ships a draft the output cap cut off, even a cited one, and retries without the citation note", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      // Cites [1] and resolves, so the invariant alone would pass it — but it
+      // stops mid-sentence, which is what thinking eating the cap looks like.
+      const truncated = "La tarifa es 13% [1], salvo en los casos que";
+      const model = mockModelEndings(
+        { text: truncated, ending: MAX_TOKENS },
+        { text: CITED, ending: END_TURN },
+      );
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(streamedText(events)).toBe(CITED);
+      expect(model.doStreamCalls).toHaveLength(2);
+      // The retry is told nothing: the draft broke no citation rule.
+      expect(JSON.stringify(model.doStreamCalls[1].prompt)).not.toContain(
+        CITATION_RETRY_NOTE,
+      );
+      expect(citationFailures()).toEqual({
+        no_markers: 0,
+        unresolved_markers: 0,
+        incomplete_derived_markers: 0,
+      });
+    });
+
+    it("declines honestly when the retry is cut off too", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      const model = mockModelEndings({
+        text: "La tarifa es 13% [1], salvo en los casos que",
+        ending: MAX_TOKENS,
+      });
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(streamedText(events)).toBe(WEAK_RETRIEVAL_ANSWER);
+      expect(model.doStreamCalls).toHaveLength(2);
+      expect(errorMessages(events)).toEqual([]);
+    });
+
+    it("declines a refused request at once — no retry, and not a citation failure", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      // A cited draft, to show the refusal is what decides: whatever the
+      // model wrote before the classifier stopped it never reaches the wire.
+      const model = mockModelEndings({
+        text: CITED,
+        ending: refusal("general_harms"),
+      });
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      expect(streamedText(events)).toBe(WEAK_RETRIEVAL_ANSWER);
+      expect(model.doStreamCalls).toHaveLength(1);
+      expect(errorMessages(events)).toEqual([]);
+      expect(citationFailures()).toEqual({
+        no_markers: 0,
+        unresolved_markers: 0,
+        incomplete_derived_markers: 0,
+      });
+    });
+
     it("persists the decline, never the uncited answer, for signed-in users", async () => {
       vi.mocked(getUserId).mockResolvedValue("user-123");
       allowRateLimit();
@@ -2536,7 +2658,15 @@ describe("POST /api/ask", () => {
           validate: "lt_1s",
           persist: null,
         },
-        generations: [{ latency: "lt_1s", firstText: "lt_1s", cache: "none" }],
+        generations: [
+          {
+            latency: "lt_1s",
+            firstText: "lt_1s",
+            cache: "none",
+            finishReason: "stop",
+            refusal: null,
+          },
+        ],
         providerError: null,
         citationFailure: false,
         quotaHit: false,
@@ -2637,6 +2767,43 @@ describe("POST /api/ask", () => {
           { latency: "lt_1s", firstText: "lt_1s" },
         ],
       });
+    });
+
+    it("records how each attempt ended: the cap, then a natural stop", async () => {
+      const capture = captureTelemetry();
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModelEndings(
+        { text: "La tarifa general es", ending: MAX_TOKENS },
+        { text: ANSWER, ending: END_TURN },
+      );
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+      expect(soleEvent(capture)).toMatchObject({
+        outcome: "ok",
+        citationFailure: false,
+        generations: [
+          { finishReason: "length", refusal: null },
+          { finishReason: "stop", refusal: null },
+        ],
+      });
+    });
+
+    it("records a refusal with its category, and nothing of its explanation", async () => {
+      const capture = captureTelemetry();
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModelEndings({ text: "", ending: refusal("general_harms") });
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+      expect(soleEvent(capture)).toMatchObject({
+        outcome: "declined",
+        citationFailure: false,
+        generations: [{ finishReason: "refusal", refusal: "general_harms" }],
+      });
+      expect(capture.lines.join("\n")).not.toContain("free text");
     });
 
     it("classes a lexical-only answer as degraded (#127)", async () => {
