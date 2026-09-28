@@ -560,10 +560,18 @@ signup confirmation never falls back to Supabase's default, whose link bypasses
 `/auth/confirm`). The hosted project gets it from the repo, not the dashboard:
 
 ```sh
-set -a; source .env.prod; set +a   # SUPABASE_PROJECT_REF + SUPABASE_ACCESS_TOKEN
-pnpm email:push --check            # read-only: does production send git's copy?
-pnpm email:push                    # PATCH the mailer_subjects_* / mailer_templates_* keys
-pnpm email:preview                 # render with sample values to .email-preview/ (--text for the stripped read)
+# SUPABASE_PROJECT_REF + SUPABASE_ACCESS_TOKEN, parsed out of .env.prod by recrawl.sh's
+# env_file_value (sourcing recrawl.sh in bash only defines its functions). The file is
+# never sourced, so its other secrets stay out of pnpm's environment.
+email_push() {
+  bash -c 'source scripts/recrawl.sh
+    SUPABASE_PROJECT_REF=$(env_file_value .env.prod SUPABASE_PROJECT_REF) \
+    SUPABASE_ACCESS_TOKEN=$(env_file_value .env.prod SUPABASE_ACCESS_TOKEN) \
+    pnpm email:push "$@"' email_push "$@"
+}
+email_push --check    # read-only: does production send git's copy?
+email_push            # PATCH the mailer_subjects_* / mailer_templates_* keys
+pnpm email:preview    # no keys: render with sample values to .email-preview/ (--text for the stripped read)
 ```
 
 The script sends _only_ those keys through the Management API's auth-config endpoint —
