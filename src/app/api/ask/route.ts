@@ -89,19 +89,28 @@
  * F-11. Persistence-on-abort is a no-op: no user was ever shown "listo" for
  * it, so there is nothing worth remembering.
  *
- * Aborts refund, and the pipeline carries its own deadline (#205, ADR 0013).
- * `request.signal` fires on Detener and on a passive network drop alike — a
- * WiFi handoff, a locked phone, a proxy idle-kill — and the server cannot
- * tell them apart, so every client abort refunds the slot and persists
- * nothing. ADR 0011's "abort = deliberate stop, nothing owed" reading is
- * replaced: the reader received no value either way. Generation also runs
- * under `startAskDeadline` (~50 s, cumulative across both attempts), so a
- * slow retry run surfaces as a refundable system failure *inside* the route
+ * Aborts are one event, and the pipeline carries its own deadline (#205,
+ * ADR 0013). `request.signal` fires on Detener and on a passive network drop
+ * alike — a WiFi handoff, a locked phone, a proxy idle-kill — and the server
+ * cannot tell them apart, so every client abort is treated the same way: it
+ * persists nothing, and (until the amendment below) it refunded the slot.
+ * ADR 0011's "abort = deliberate stop, nothing owed" reading is replaced.
+ * Generation also runs under `startAskDeadline` (~50 s, cumulative across
+ * both attempts), so a slow retry run surfaces as an observable system
+ * failure *inside* the route
  * instead of hitting the platform's silent `maxDuration` kill — which runs
  * no `finally`, lands no refund, writes no telemetry. Refunds themselves
  * settle in `execute`'s own `finally`, not in the stream's `onFinish`: a
  * disconnect can fire `onFinish` via `cancel()` before the debt is even
  * marked, and settlement must not depend on that ordering.
+ *
+ * The quota bounds paid work, not only delivered answers (ADR 0013's
+ * amendment, 2026-09-25). A client abort refunds only while `retrieve()` has
+ * not been called yet, and a deadline expiry only while no generation has;
+ * past those lines the ask keeps its charge, and a deadline expiry is
+ * reported as `charged_error` rather than `refunded_error`. A
+ * `retrieval_failed` refunds an outage but not a search the request's own
+ * text broke (a SQLSTATE in class 22 or 54).
  */
 import {
   createUIMessageStream,
@@ -172,7 +181,11 @@ import {
   subjectForUser,
   type RateLimitResult,
 } from "@/lib/rate-limit";
-import { retrieve, type RetrievedChunk } from "@/lib/retrieval";
+import {
+  retrieve,
+  SearchChunksError,
+  type RetrievedChunk,
+} from "@/lib/retrieval";
 import {
   cacheUse,
   createAskTelemetry,
@@ -392,29 +405,81 @@ async function persistExchange(
 }
 
 /**
+ * What a refund decision gets to see about the failure in front of it. Two
+ * shapes, because the two doors onto a stream error carry different facts:
+ * something was caught (and may be classified), or our own deadline expired
+ * (and how far the paid pipeline had got is what matters).
+ */
+type AskFailure =
+  | { kind: "error"; error: unknown }
+  | { kind: "deadline"; generationBegun: boolean };
+
+/**
+ * SQLSTATE classes the question's own text can raise inside `search_chunks`:
+ * 22, data exception (22P05 untranslatable character, 22021 invalid byte
+ * sequence — #429 now turns the known ones away at admission, so this is the
+ * second line), and 54, program limit exceeded (a tsvector or tsquery built
+ * from the question outgrowing Postgres's limits). The RPC's other arguments
+ * are either derived from the question too (the model-written expansion) or
+ * ours and well-formed (the embeddings, the step catalogue's sentences, a
+ * constant match count), so a data exception there is the request's doing.
+ */
+const CALLER_SHAPED_SQLSTATE = /^(?:22|54)[0-9A-Z]{3}$/;
+
+/**
+ * Whether a retrieval failure is one the request's own text produced rather
+ * than an outage (ADR 0013's amendment). Read off the one field that is safe
+ * to read: `retrieve` wraps a rejected RPC in `SearchChunksError`, whose
+ * `cause` is the PostgREST error with its SQLSTATE in `code` — the same token
+ * `describeError` logs, never the message beside it. An outage has no such
+ * code: a network failure comes back with an empty one, a gateway error with
+ * none, a statement timeout (57014) or a missing grant (42501) with a class
+ * that is not the caller's to cause.
+ */
+function isCallerShaped(error: unknown): boolean {
+  if (!(error instanceof SearchChunksError)) return false;
+  const cause: unknown = error.cause;
+  if (typeof cause !== "object" || cause === null) return false;
+  const code = (cause as { code?: unknown }).code;
+  return typeof code === "string" && CALLER_SHAPED_SQLSTATE.test(code);
+}
+
+/**
  * Which failures give the ask back (#126, decision on #121). System failures
  * do: the user asked, our side broke, they should not pay a quota slot for
  * our outage. Everything else consumes — most importantly the honest decline
  * on weak retrieval, which is a *completed* answer. If declines were free the
  * boundary becomes a fishing hole: phrase asks so they decline, spend nothing.
  *
+ * Since ADR 0013's amendment the quota bounds the paid work an ask sets off,
+ * not only the answers it delivers, so two codes decide per failure rather
+ * than per code. `retrieval_failed` refunds an outage but not a search the
+ * request's own text broke (`isCallerShaped`). `answer_failed` refunds a
+ * provider or pipeline failure whenever it lands, but our deadline only
+ * until the first generation is called — past that the ask has spent the
+ * most expensive thing it can, and a question shaped to run long must not
+ * get that spend back.
+ *
  * The degraded cases never reach here. `rerankChunks` swallows a Voyage
  * outage and falls back to the fused order (rerank.ts), and since #127 a dead
  * embedding provider falls back to lexical-only retrieval — both deliver an
  * answer, labeled, so both consume like one. Nor does an honest decline or a
- * client abort — neither is an error, so neither has a code at all.
+ * client abort — neither is an error, so neither has a code at all; the
+ * abort's own rule sits in `runAsk`'s `clientGone`.
  *
  * Exhaustive over `AskErrorCode` on purpose: a new failure mode cannot be
  * added to the contract without someone deciding, here, whether it costs the
  * user an ask.
  */
-const REFUNDS_ASK: Record<AskErrorCode, boolean> = {
-  invalid_question: false, // pre-stream, and nothing was consumed yet
-  cross_site_request: false, // pre-stream, before the body is even read
-  rate_limited: false, // pre-stream; the counter is the point
-  rate_limit_unavailable: false, // pre-stream; no increment landed
-  retrieval_failed: true,
-  answer_failed: true,
+const REFUNDS_ASK: Record<AskErrorCode, (failure: AskFailure) => boolean> = {
+  invalid_question: () => false, // pre-stream, and nothing was consumed yet
+  cross_site_request: () => false, // pre-stream, before the body is even read
+  rate_limited: () => false, // pre-stream; the counter is the point
+  rate_limit_unavailable: () => false, // pre-stream; no increment landed
+  retrieval_failed: (failure) =>
+    failure.kind !== "error" || !isCallerShaped(failure.error),
+  answer_failed: (failure) =>
+    failure.kind !== "deadline" || !failure.generationBegun,
 };
 
 /**
@@ -429,6 +494,15 @@ const REFUNDS_ASK: Record<AskErrorCode, boolean> = {
  */
 interface QuotaDebt {
   owe: () => void;
+  /**
+   * Set by every door that writes an `error` part, once it has decided the
+   * refund. The SDK hands each `error` part back to `createUIMessageStream`'s
+   * `onError` as it streams past (`handleUIMessageStreamFinish`), so without
+   * this the route's own parts would come round again as fresh failures —
+   * and be refunded whatever their door decided. Since ADR 0013's amendment
+   * not every error part refunds, so that echo is no longer harmless.
+   */
+  decided: boolean;
 }
 
 function writeStreamError(
@@ -436,9 +510,11 @@ function writeStreamError(
   code: AskErrorCode,
   message: string,
   quota: QuotaDebt,
+  failure: AskFailure,
 ): void {
+  quota.decided = true;
   writer.write({ type: "error", errorText: askStreamErrorText(code, message) });
-  if (REFUNDS_ASK[code]) quota.owe();
+  if (REFUNDS_ASK[code](failure)) quota.owe();
 }
 
 /**
@@ -459,7 +535,8 @@ function answerFailed(
 ): string {
   console.error(`ask: answer stream failed: ${describeError(error)}`);
   const code: AskErrorCode = "answer_failed";
-  if (REFUNDS_ASK[code]) quota.owe();
+  quota.decided = true;
+  if (REFUNDS_ASK[code]({ kind: "error", error })) quota.owe();
   telemetry.failed(error);
   return askStreamErrorText(code, ASK_FALLBACK_ERROR_MESSAGE);
 }
@@ -701,6 +778,7 @@ export async function POST(request: Request): Promise<Response> {
     owe: () => {
       refundOwed = true;
     },
+    decided: false,
   };
 
   // The pipeline's own budget (#205, deadline.ts): expire it inside the route,
@@ -722,21 +800,34 @@ export async function POST(request: Request): Promise<Response> {
       refundPaid = true;
       await limit.refund();
     }
+    // The event's outcome follows what the quota actually did, decided here
+    // rather than at each failure door: `charged_error` and `refunded_error`
+    // can then never disagree with the refund that did (or did not) run.
+    if (!refundOwed) telemetry.chargeKept();
     telemetry.emit();
   };
 
   const runAsk = async (writer: Writer): Promise<void> => {
+    // How far the paid pipeline has got — the two lines ADR 0013's amendment
+    // draws the refund at. Set immediately before the call they name, so a
+    // check that runs after it knows the spend has begun.
+    let retrievalBegun = false;
+    let generationBegun = false;
+
     /**
      * The two doors out of a cut-short ask (#205), checked in this order at
      * every await boundary below — the deadline first, because when both have
      * fired, our expired budget is the fact worth reporting.
      *
      * `deadlineHit` is a system failure: the reader is (as far as we know)
-     * still connected and waiting, so they get the contract's Spanish error,
-     * a refund, and a `refunded_error` event. `clientGone` is the caller's
-     * signal — Detener and a passive network drop are indistinguishable here,
-     * so both refund and neither persists; there is nobody left to write an
-     * error part for.
+     * still connected and waiting, so they get the contract's Spanish error
+     * either way. Whether the slot comes back is `REFUNDS_ASK`'s call: yes
+     * until the first generation is called, no after. `clientGone` is the
+     * caller's signal — Detener and a passive network drop are
+     * indistinguishable here, so neither persists and there is nobody left to
+     * write an error part for. It refunds only before retrieval begins: from
+     * `retrieve()` on, the ask has set off paid provider calls, and the quota
+     * bounds those whether or not anyone stays to read the answer.
      */
     const deadlineHit = (): boolean => {
       if (!deadline.signal.aborted) return false;
@@ -748,13 +839,14 @@ export async function POST(request: Request): Promise<Response> {
         "answer_failed",
         ASK_FALLBACK_ERROR_MESSAGE,
         quota,
+        { kind: "deadline", generationBegun },
       );
       return true;
     };
     const clientGone = (): boolean => {
       if (!request.signal.aborted) return false;
       telemetry.aborted("client");
-      quota.owe();
+      if (!retrievalBegun) quota.owe();
       return true;
     };
     // The one check the boundaries below actually call. Always both doors,
@@ -785,7 +877,14 @@ export async function POST(request: Request): Promise<Response> {
     const { query, condensed } = condensation;
     const asked: AskedQuestion = { question: literal, condensed, query };
 
+    // The last point a reader who left gets their slot back (ADR 0013's
+    // amendment): nothing past here has run on their behalf yet. Condensation
+    // above is a model call that does not count against that line — an
+    // accepted residual, since it is small, capped and only on follow-ups.
+    if (cutShort()) return;
+
     let retrieval;
+    retrievalBegun = true;
     const stopRetrieve = telemetry.startStage("retrieve");
     try {
       retrieval = await retrieve(asked.query, { matchCount: RERANK_POOL });
@@ -797,15 +896,17 @@ export async function POST(request: Request): Promise<Response> {
         "retrieval_failed",
         RETRIEVAL_FAILED_MESSAGE,
         quota,
+        { kind: "error", error },
       );
       return;
     } finally {
       stopRetrieve();
     }
-    // A reader who left during condensation or retrieval gets their slot
-    // back (#205) — nothing below is on their behalf, and nothing was
-    // delivered. A budget already spent by retrieval alone is caught here
-    // too, before any paid generation begins.
+    // A reader who left during retrieval keeps the charge — the expansion
+    // and the embeds have already been paid for — but nothing below is on
+    // their behalf, and nothing is delivered. A budget already spent by
+    // retrieval alone is caught here too, before any paid generation begins,
+    // and still refunds.
     if (cutShort()) return;
 
     // #127: the vector leg was skipped, so the reader is told before they
@@ -865,6 +966,7 @@ export async function POST(request: Request): Promise<Response> {
       // the first attempt rides the `redactando` written above.
       if (attempt > 1) writeStatus(writer, "redactando");
       let text: string;
+      generationBegun = true;
       try {
         text = await generateAnswer(
           asked.query,
@@ -876,10 +978,11 @@ export async function POST(request: Request): Promise<Response> {
         );
       } catch (error) {
         // An aborted generation arrives here as a rejection. Which signal
-        // cut it decides everything (#205): the deadline is our failure
-        // (error part, refund, telemetry — all inside `deadlineHit`), and
-        // a client abort — Detener or a network drop, indistinguishable —
-        // refunds quietly and persists nothing.
+        // cut it decides what the reader sees (#205): the deadline is our
+        // failure (error part and telemetry, inside `deadlineHit`), and a
+        // client abort — Detener or a network drop, indistinguishable — ends
+        // quietly and persists nothing. Neither refunds any more: the paid
+        // generation has begun (ADR 0013's amendment).
         if (cutShort()) return;
         writer.write({
           type: "error",
@@ -942,7 +1045,8 @@ export async function POST(request: Request): Promise<Response> {
 
     // The last look before anything is delivered (#205). A validated
     // answer the reader disconnected in front of is still an answer they
-    // never received: refund, write nothing, persist nothing.
+    // never received: write nothing, persist nothing. The charge stays —
+    // every paid call behind it has already run.
     if (cutShort()) return;
 
     const tracker = createCitationTracker(chunks);
@@ -995,8 +1099,14 @@ export async function POST(request: Request): Promise<Response> {
       }
     },
     // The doors `execute`'s own try cannot cover: a failure in the stream
-    // machinery itself. `onFinish` then settles what this marks.
-    onError: (error) => answerFailed(error, quota, telemetry),
+    // machinery itself. `onFinish` then settles what this marks. The SDK
+    // also calls this with every `error` part the route wrote itself, on its
+    // way past; those were decided where they were written (`decided`), and
+    // are not failed a second time here.
+    onError: (error) =>
+      quota.decided
+        ? askStreamErrorText("answer_failed", ASK_FALLBACK_ERROR_MESSAGE)
+        : answerFailed(error, quota, telemetry),
     // The backstop. The SDK awaits this in the stream's flush, so on the
     // paths that reach it a refund still completes before the response does;
     // `settle`'s halves are once-only, so following `execute`'s `finally` is

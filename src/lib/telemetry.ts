@@ -52,14 +52,21 @@ export const TELEMETRY_PREFIX = "tramitico.event";
  * - `ok` — an answer was written to the wire.
  * - `declined` — no answer, and nothing broke: the honest decline (weak
  *   retrieval, or #131's fail-closed second violation), a malformed request, a
- *   spent quota, a reader who pressed stop.
+ *   spent quota, a reader who pressed stop (refunded or not).
  * - `degraded` — an answer was produced with the vector leg dropped (#127).
  * - `refunded_error` — our side broke. Every member either gave the ask back
  *   (`retrieval_failed`, `answer_failed`, per #126) or never charged it
  *   (`rate_limit_unavailable`, denied before any increment landed). This is
  *   the numerator of the error rate the rollback threshold is written against.
+ * - `charged_error` — an error reached the reader, but the ask kept its
+ *   charge, because paid work had already been spent on it (ADR 0013's
+ *   amendment): the internal deadline expiring once generation had begun, or
+ *   the search rejecting text the request itself carried. Its own value
+ *   rather than `refunded_error`, which would claim a refund that never
+ *   happened; still an error the reader saw, so it joins the numerator too.
  */
-export type AskOutcome = "ok" | "declined" | "degraded" | "refunded_error";
+export type AskOutcome =
+  "ok" | "declined" | "degraded" | "refunded_error" | "charged_error";
 
 /**
  * How long the ask took, coarsely. A bucket rather than a number on purpose:
@@ -85,8 +92,10 @@ export function latencyBucket(ms: number): LatencyBucket {
  * Why an ask was cut short before its natural end (#205). `client` is the
  * caller's signal firing — Detener and a passive network drop are the same
  * event on the server, deliberately not distinguished. `deadline` is our own
- * internal budget expiring so the refund could run before the platform's
- * `maxDuration` kill. A reason, never a cause: no error text rides here.
+ * internal budget expiring so the ask could settle before the platform's
+ * `maxDuration` kill. Neither says whether the slot came back — `outcome`
+ * does (ADR 0013's amendment). A reason, never a cause: no error text rides
+ * here.
  */
 export type AskAbort = "client" | "deadline";
 
@@ -184,21 +193,25 @@ interface AskFacts {
   providerError: string | null;
   abort: AskAbort | null;
   routedCategory: RoutedCategory | null;
+  chargeKept: boolean;
 }
 
 /**
- * The one place the four classes are decided. Precedence, most to least
+ * The one place the five classes are decided. Precedence, most to least
  * urgent:
  *
  * 1. `failed` — a broken ask is what alerts fire on, and it outranks anything
- *    it may also have been on the way there.
+ *    it may also have been on the way there. Split by what the quota did:
+ *    `charged_error` when the route settled without a refund, otherwise
+ *    `refunded_error` (which also covers the limiter's pre-stream failure,
+ *    where nothing was ever charged and nothing settles).
  * 2. `degraded` — the operational fact outranks the product outcome. A
  *    degraded ask that then declined is counted as degraded, because a
  *    lexical-only search is the likeliest reason it had nothing to say; the
  *    decline is the symptom. But not a degraded ask the *client* cut off
  *    (#205): `degraded` means something was produced on a thinner search,
- *    and a refunded non-delivery produced nothing — counting it would
- *    pollute the runbook's degraded-rate query with asks nobody received.
+ *    and a non-delivery produced nothing — counting it would pollute the
+ *    runbook's degraded-rate query with asks nobody received.
  * 3. `answered` — an answer went out, undegraded.
  * 4. everything else declines. Note what this makes the default: an ask that
  *    reached no terminal point at all — a reader who pressed stop — is
@@ -206,7 +219,9 @@ interface AskFacts {
  *    the success rate.
  */
 function askOutcome(facts: AskFacts): AskOutcome {
-  if (facts.failed) return "refunded_error";
+  if (facts.failed) {
+    return facts.chargeKept ? "charged_error" : "refunded_error";
+  }
   if (facts.degraded && facts.abort !== "client") return "degraded";
   if (facts.answered) return "ok";
   return "declined";
@@ -254,6 +269,12 @@ export interface AskTelemetry {
   aborted: (reason: AskAbort) => void;
   /** The honest decline on weak retrieval was routed to `category` (#264). */
   routed: (category: RoutedCategory) => void;
+  /**
+   * The ask settled without a refund: it keeps its quota slot. Called by the
+   * route's settlement, the one place that knows, so `outcome` can never
+   * claim a refund the quota did not make. Read only alongside `failed`.
+   */
+  chargeKept: () => void;
   /** Writes the event, once. Further calls are no-ops. */
   emit: () => void;
 }
@@ -276,6 +297,7 @@ export function createAskTelemetry(
     providerError: null,
     abort: null,
     routedCategory: null,
+    chargeKept: false,
   };
   const durations: Record<AskStage, number | null> = {
     condense: null,
@@ -350,6 +372,9 @@ export function createAskTelemetry(
     },
     routed: (category: RoutedCategory) => {
       facts.routedCategory = category;
+    },
+    chargeKept: () => {
+      facts.chargeKept = true;
     },
     emit: () => {
       if (emitted) return;

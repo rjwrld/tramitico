@@ -51,7 +51,7 @@
       "id": "quota",
       "type": "security",
       "label": "Daily quota",
-      "sublabel": "refunds on abort",
+      "sublabel": "bounds paid work",
       "brand": "supabase",
       "pos": [170, 140],
       "size": [130, 60],

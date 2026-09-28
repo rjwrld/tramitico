@@ -238,6 +238,38 @@ describe("createAskTelemetry", () => {
     expect(capture.events()[0].outcome).toBe("refunded_error");
   });
 
+  it("names a failure that kept its quota charge charged_error, not refunded_error", () => {
+    // The route settles first and says so: a deadline past the first
+    // generation, or a search the request's own text broke, keeps the slot
+    // (ADR 0013's amendment), and the event must not claim a refund.
+    const telemetry = createAskTelemetry();
+    telemetry.failed(new Error("ask: internal deadline exceeded"));
+    telemetry.aborted("deadline");
+    telemetry.chargeKept();
+    telemetry.emit();
+    expect(capture.events()[0]).toMatchObject({
+      outcome: "charged_error",
+      abort: "deadline",
+    });
+  });
+
+  it("reads a kept charge only alongside a failure", () => {
+    // Every ask that settles without a refund keeps its charge — a delivered
+    // answer most of all — and that alone says nothing about the outcome.
+    const answered = createAskTelemetry();
+    answered.answered();
+    answered.chargeKept();
+    answered.emit();
+    const stopped = createAskTelemetry();
+    stopped.aborted("client");
+    stopped.chargeKept();
+    stopped.emit();
+    expect(capture.events().map((event) => event.outcome)).toEqual([
+      "ok",
+      "declined",
+    ]);
+  });
+
   it("carries the provider error as a describeError token, not a message", () => {
     class APICallError extends Error {
       statusCode = 429;
