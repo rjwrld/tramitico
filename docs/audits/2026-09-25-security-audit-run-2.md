@@ -14,24 +14,39 @@ harness under `agents/*/artifacts/out/`) · Prior run:
 
 ## What shipped from this run
 
-| Lead                                                                 | PR                                                   | Change                                                                                                                                                             |
-| -------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| §2 — cross-site admission; §3 — NUL / lone surrogate in the question | [#429](https://github.com/rjwrld/tramitico/pull/429) | `/api/ask` accepts only same-origin JSON (`Content-Type`, `Sec-Fetch-Site`, Origin vs. forwarded host) and rejects unstorable question text, both before the quota |
-| §3 — IPv6 keyed per /128                                             | [#430](https://github.com/rjwrld/tramitico/pull/430) | both anonymous keys hash the /64 prefix (IPv4-mapped counts as IPv4); `/privacidad` says so                                                                        |
-| §3 — eval.yml restores the shared pnpm cache                         | [#431](https://github.com/rjwrld/tramitico/pull/431) | `cache: pnpm` off the production-credentialed eval job                                                                                                             |
+| Lead                                                                                | PR                                                   | Change                                                                                                                                                                                                                                                |
+| ----------------------------------------------------------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| §2 — cross-site admission; §3 — NUL / lone surrogate in the question                | [#429](https://github.com/rjwrld/tramitico/pull/429) | `/api/ask` accepts only same-origin JSON (`Content-Type`, `Sec-Fetch-Site`, Origin vs. forwarded host) and rejects unstorable question text, both before the quota                                                                                    |
+| §3 — IPv6 keyed per /128                                                            | [#430](https://github.com/rjwrld/tramitico/pull/430) | both anonymous keys hash the /64 prefix (IPv4-mapped counts as IPv4); `/privacidad` says so                                                                                                                                                           |
+| §3 — eval.yml restores the shared pnpm cache                                        | [#431](https://github.com/rjwrld/tramitico/pull/431) | `cache: pnpm` off the production-credentialed eval job                                                                                                                                                                                                |
+| §4 — PDF pins warn-only; CCSS href schemes; `fetchFrom` binds the mirror only       | [#432](https://github.com/rjwrld/tramitico/pull/432) | a PDF whose sha256 changed fails its document unless the run passes `--accept-pdf-hash <doc_key>`; CCSS extractors keep only https URLs; a `fetchFrom` transcription also fails when the page's own `src` answers again                               |
+| §4 — uncapped `/api/ask` body; §3 Auth lead, Bearer half                            | [#433](https://github.com/rjwrld/tramitico/pull/433) | the body is read through a 32 KiB capped reader, and a larger one gets a 413 before identity and the quota; the Bearer path is gone, so identity is the session cookie only                                                                           |
+| §4 — the re-crawl's env, tree guard, install order and `.env.local` back-fill       | [#434](https://github.com/rjwrld/tramitico/pull/434) | `recrawl.sh` parses three keys out of the env file (never sources it) and runs the ingest under `env -i`; it refuses anything but a clean `origin/main`; it installs `--frozen-lockfile` before reading a secret; the ingest skips the dev back-fill  |
+| §3 — abort refund, deadline refund; §4 — `retrieval_failed` refunds after paid work | [#435](https://github.com/rjwrld/tramitico/pull/435) | ADR 0013 amended: a client abort refunds only before `retrieve()` starts, the deadline refunds only before the first generation, and a `search_chunks` error in SQLSTATE class 22 or 54 keeps the charge; telemetry gains the `charged_error` outcome |
 
-The two refund leads (client abort, deadline) change ADR 0013's refund rule and wait on the
-owner's decision; the Auth-egress lead waits on the dashboard facts in its row.
+## Owner checks (2026-09-27)
 
-## Owner checks pending
-
-Each §3 lead closes on one owner observation, listed in its row. None needs audit traffic
-against production; the NUL lead needs one read-only `curl` against the local stack.
+- **NUL in the question.** A read-only call to the local stack's `search_chunks` with
+  `"IVA\u0000"` returned 400, SQLSTATE 22P05: confirmed. Closed twice over: #429 rejects the text
+  before the quota, and under #435 a class-22 failure keeps the charge.
+- **IPv6.** Neither `tramitico.com` nor `www.tramitico.com` has an AAAA record, so the door is not
+  reachable in production; #430 keys the /64 regardless.
+- **Abort and deadline counts.** The project's Vercel runtime logs keep about an hour, so the
+  30-day counts cannot be recovered. #435 makes them moot: neither door refunds after paid work.
+- **Auth egress.** The hosted token-refresh limit is Supabase's default, 150 per 5 minutes per IP
+  (1,800 per hour, bursts of 30). In the production edge logs, the deployment's server-side calls
+  reach Supabase from a rotating set of AWS addresses (32 distinct IPs for 33 requests in one
+  day), and no `/auth/v1/*` request was logged in four days. One caller cannot pin a bucket that
+  other visitors' refreshes share, so the lead is closed as a residual. #433 already removed the
+  Bearer half. If it ever matters, Supabase's IP address forwarding (`Sb-Forwarded-For`, sent with
+  a secret key) would count each visitor's own address instead.
+- **eval.yml cache.** Not checked; #431 removed the restore.
 
 ## Still open
 
-The abort-refund, deadline-refund and Auth-egress leads (§3), and `proxy-wide-session-refresh-egress` (§6, out of scope here; same root
-cause as the Auth-egress lead, reaching every proxied route).
+`proxy-wide-session-refresh-egress` (§6, out of scope here): the same residual as the Auth-egress
+lead, reaching every proxied route. The §4 hardening notes that no PR above names stay hardening
+notes, not findings. Follow-ups from the fix PRs: #436, #437, #438.
 
 ---
 
