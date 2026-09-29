@@ -1,0 +1,22 @@
+$ tsx scripts/answer-set-probe.ts eval/runs/2026-09-29-457/replay-1.json --follow-ups --replay=eval/runs/2026-09-29-457/live-1.json
+.........................................................................aaaaaaaaa
+retrieval cases, follow-ups included: 73 (190 expected targets), abstention: 9
+rewrites: replayed from eval/runs/2026-09-29-457/live-1.json
+provider calls that did not come back: ho-cabys-paginas-web(rerank×3) ho-cliente-espana-lleva-iva(rerank×4) ho-iva-en-cero-sin-facturar(rerank×2) ho-hasta-que-dia-tengo-iva(rerank×3) ho-rebajar-25-sin-facturas(rerank×4) ho-minimo-renta-2026(rerank×5) ho-ademas-tengo-salario(rerank×4) ho-minimo-caja-independiente-2026(rerank×3) ho-800-mil-que-porcentaje-caja(rerank×3) ho-tambien-asegurado-por-patrono(rerank×3) ho-cobrar-8-anos-atras-caja(rerank×1) ho-desinscribir-debiendo-declaraciones(rerank×2) ho-rebajar-multa-si-pago-ya(rerank×5) ho-t2-credito-iva-compras(rerank×3) ho-t2-hosting-extranjero(rerank×4) ho-t2-compu-cara-iva(rerank×3) ho-t2-tipo-de-cambio(rerank×1) ho-abs-devs-exentos-renta(rerank×3) ho-abs-calculo-personalizado(rerank×4)
+weak: none
+expansion absent: ho-iva-en-cero-sin-facturar
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   124/190    35/73        3        —
+top8/capoff/pinon    130/190    39/73        20       —
+top8/cap3/pinoff     118/190    33/73        3        —
+top8/cap3/pinon      124/190    37/73        18       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top8/cap2/pinoff     115/190    31/73        4        —
+top8/cap2/pinon      120/190    34/73        17       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/capoff/pinoff  129/190    37/73        3        —
+top10/capoff/pinon   135/190    41/73        20       —
+top10/cap3/pinoff    127/190    38/73        7        —
+top10/cap3/pinon     131/190    41/73        18       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/cap2/pinoff    127/190    37/73        7        —
+top10/cap2/pinon     130/190    38/73        17       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+exit=0

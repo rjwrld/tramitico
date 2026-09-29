@@ -16,24 +16,24 @@
  * standalone query, the expansion, the fused pool, the whole reranked order,
  * and every provider call that failed — so two runs on one stack can be
  * compared case by case and the first stage at which they part named
- * (`pnpm answer-set-compare a.json b.json`, free). Two flags serve that
+ * (`pnpm answer-set-compare a.json b.json`, free). Two switches serve that
  * measurement:
  *
- * - `--replay=<earlier.json>` replays the text an earlier probe's models
- *   wrote for each case — the expansion, and a follow-up's condensed
- *   question — instead of asking again: the "expansion cached per query"
- *   arm, which leaves Voyage as the only provider still live. A case the
- *   earlier run expanded to nothing replays nothing. `EXPAND=off` is the "no
+ * - `EVAL_REWRITES=<earlier.json>` replays the text an earlier probe's
+ *   models wrote for each case — the expansion, and a follow-up's condensed
+ *   question — instead of asking again (`src/lib/eval/rewrites.ts`, which
+ *   the eval lanes read too): the "expansion cached per query" arm, which
+ *   leaves Voyage as the only provider still live. `EXPAND=off` is the "no
  *   expansion" arm, as everywhere else.
  * - `--follow-ups` adds the retrieval cases that carry `history`, condensed
  *   first exactly as the eval lanes condense them: the 27 Tier 1 cases the
  *   full lane reads, not only the 18 single-turn ones. Off by default, so the
  *   aggregate lines stay comparable with the probe runs before it.
  *
- * Cents: embeddings, expansions and a Voyage call per rerank reading. A
- * diagnostic, not a gate. Usage (reads `.env.local` like `ingest.ts`):
+ * Cents: embeddings, expansions, condensations and a Voyage call per rerank
+ * reading. A diagnostic, not a gate. Usage (reads `.env.local` like `ingest.ts`):
  *
- *   pnpm answer-set-probe [out.json] [--replay=<earlier.json>] [--follow-ups]
+ *   [EVAL_REWRITES=<earlier.json>] pnpm answer-set-probe [out.json] [--follow-ups]
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -46,7 +46,7 @@ function loadDotEnvLocal(): void {
     if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2];
   }
 }
-import { condenseQuestion, condenseFailures } from "../src/lib/answer/condense";
+import { condenseFailures } from "../src/lib/answer/condense";
 import { expandFailures } from "../src/lib/answer/expand";
 import {
   pinDerivedFigureInputs,
@@ -66,6 +66,12 @@ import {
   retrievalCases,
   type EvalCase,
 } from "../src/lib/eval/dataset";
+import {
+  REWRITES_ENV,
+  rewriteCase,
+  rewritesFromEnv,
+  type CaseRewrites,
+} from "../src/lib/eval/rewrites";
 import { createEmbedder, type Embedder } from "../src/lib/ingestion/embedder";
 import { retrieve, type RetrievedChunk } from "../src/lib/retrieval";
 
@@ -174,52 +180,21 @@ function countingCalls(embedder: Embedder): CallCounter {
   };
 }
 
-/** What an earlier probe's models wrote for one case (#457). */
-interface Rewrites {
-  query: string;
-  expansion: string | null;
-}
-
-/** The rewrites an earlier probe recorded, by case id. */
-function recordedRewrites(file: string): Map<string, Rewrites> {
-  const { reads } = JSON.parse(readFileSync(file, "utf8")) as {
-    reads: { id: string; query?: string; expansion?: string | null }[];
-  };
-  const byId = new Map<string, Rewrites>();
-  for (const read of reads) {
-    if (read.query === undefined || read.expansion === undefined) {
-      throw new Error(
-        `${file} recorded no rewrites for ${read.id}: it predates #457`,
-      );
-    }
-    byId.set(read.id, { query: read.query, expansion: read.expansion });
-  }
-  return byId;
-}
-
 async function readCase(
   evalCase: EvalCase,
   kind: "retrieval" | "abstention",
   calls: CallCounter,
-  replay: Map<string, Rewrites> | null,
+  rewrites: ReadonlyMap<string, CaseRewrites> | null,
 ): Promise<CaseRead> {
   const condenseBefore = condenseFailures();
   const expandBefore = expandFailures();
-  const recorded = replay?.get(evalCase.id);
-  if (replay !== null && recorded === undefined) {
-    throw new Error(`no recorded rewrites for ${evalCase.id}`);
-  }
   const started = Date.now();
-  const query =
-    recorded?.query ??
-    (await condenseQuestion(evalCase.question, evalCase.history ?? [])).query;
+  const { query, expander } = await rewriteCase(evalCase, rewrites);
   const rewritten = Date.now();
   const retrieval = await retrieve(query, {
     matchCount: RERANK_POOL,
     embedder: calls.embedder,
-    ...(recorded === undefined
-      ? {}
-      : { expander: { expand: async () => recorded.expansion } }),
+    expander,
   });
   const read: CaseRead = {
     id: evalCase.id,
@@ -324,22 +299,19 @@ async function main(): Promise<void> {
   const all = parseDataset(readFileSync(DATASET_PATH, "utf8"));
   const args = process.argv.slice(2);
   const followUps = args.includes("--follow-ups");
-  const replayFrom = args
-    .find((arg) => arg.startsWith("--replay="))
-    ?.slice("--replay=".length);
   const out =
     args.find((arg) => !arg.startsWith("--")) ?? "answer-set-probe.json";
-  const replay = replayFrom ? recordedRewrites(replayFrom) : null;
+  const rewrites = rewritesFromEnv();
   const single = retrievalCases(all).filter((c) => followUps || !c.history);
   const abs = abstentionCases(all).filter((c) => !c.history);
   const calls = countingCalls(createEmbedder());
   const reads: CaseRead[] = [];
   for (const c of single) {
-    reads.push(await readCase(c, "retrieval", calls, replay));
+    reads.push(await readCase(c, "retrieval", calls, rewrites));
     process.stdout.write(".");
   }
   for (const c of abs) {
-    reads.push(await readCase(c, "abstention", calls, replay));
+    reads.push(await readCase(c, "abstention", calls, rewrites));
     process.stdout.write("a");
   }
   console.log();
@@ -352,7 +324,7 @@ async function main(): Promise<void> {
     `${followUps ? "retrieval cases, follow-ups included" : "single-turn retrieval cases"}: ${single.length} (${totalTargets} expected targets), abstention: ${abs.length}`,
   );
   console.log(
-    `rewrites: ${replay === null ? "live" : `replayed from ${replayFrom}`}`,
+    `rewrites: ${rewrites === null ? "live" : `replayed from ${process.env[REWRITES_ENV]}`}`,
   );
   const failed = reads.filter((r) =>
     Object.values(r.failures).some((n) => n > 0),
