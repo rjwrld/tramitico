@@ -14,14 +14,16 @@ const dataset = parseDataset(readFileSync(DATASET_PATH, "utf8"));
 const corpusIndex = parseCorpusIndex(readFileSync(CORPUS_INDEX_PATH, "utf8"));
 
 describe("the step catalogue (#304)", () => {
-  it("carries two to four corpus-register sentences for every family", () => {
+  it("carries two to five corpus-register sentences for every family", () => {
     // Four since #312: T1-B and T1-F carry, beside their three steps, the
     // line of the salarios mínimos decree that the BMC derivation multiplies
-    // — an input the reader never names and no step sentence reached.
+    // — an input the reader never names and no step sentence reached. Five
+    // since #456: T1-G carries the transitorio that dates the Ley 10.363
+    // window's close, which the reader asks about in months.
     for (const family of FAMILIES) {
       const { steps } = STEP_CATALOGUE[family];
       expect(steps.length, family).toBeGreaterThanOrEqual(2);
-      expect(steps.length, family).toBeLessThanOrEqual(4);
+      expect(steps.length, family).toBeLessThanOrEqual(5);
       for (const sentence of steps) {
         expect(sentence.trim(), family).toBe(sentence);
         expect(sentence.length, family).toBeGreaterThan(40);

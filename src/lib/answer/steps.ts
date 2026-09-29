@@ -18,7 +18,7 @@
  *
  * The steps are not open-ended, though. The dataset's nine Tier 1 families
  * already name them, and a family's steps are the same whichever of its
- * questions is asked. So they are **written by hand**, two to four sentences
+ * questions is asked. So they are **written by hand**, two to five sentences
  * per family in the corpus's own register (`eval/step-catalogue.json`,
  * beside the dataset they were written for and verified against the chunks
  * they are meant to reach), and this module does two deterministic things

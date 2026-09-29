@@ -1,0 +1,67 @@
+# Voyage rerank-2.5-lite relevance of each T1-G catalogue sentence (s1–s5, the
+# branch's catalogue), two alternative wordings of s5, and three T1-G questions,
+# against the 52 prescription chunks of ccss-prescripcion, ccss-faq (prescripción
+# entries), ley-10363 and ccss-reglamento-ti (Artículos 20–33, the transitorios).
+# Top 4 per query, plus TRANSITORIO V's own score. Voyage calls only; no
+# Anthropic call. Read on the local stack, 2026-09-29.
+documents: 52
+
+s1  (TRANSITORIO V: 0.5000)
+  0.9570  ccss-prescripcion · ¿Dónde presento la solicitud? #0
+  0.9063  ccss-prescripcion · ¿Cómo se solicita la prescripción? #0
+  0.8867  ccss-prescripcion · ¿Cuáles son los requisitos para presentar una solicitud de prescripción en sede administra
+  0.8008  ccss-prescripcion · ¿Dónde se pueden atender sus dudas? #0
+
+s2  (TRANSITORIO V: 0.3906)
+  0.9492  ccss-prescripcion · ¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo re
+  0.8906  ccss-reglamento-ti · Artículo 31 #0
+  0.6289  ccss-prescripcion · ¿Existe fecha límite para presentar la (s) solicitud (es) de prescripción en sede administ
+  0.5781  ccss-prescripcion · ¿Al presentar la solicitud de prescripción en sede administrativa, mi condición con la CCS
+
+s3  (TRANSITORIO V: 0.6367)
+  0.9688  ccss-prescripcion · ¿En qué momento puedo solicitar la prescripción de las deudas? #0
+  0.9531  ccss-prescripcion · ¿Dónde presento la solicitud? #0
+  0.9180  ccss-reglamento-ti · Artículo 23 #0
+  0.9063  ccss-prescripcion · ¿Cómo se solicita la prescripción? #0
+
+s4  (TRANSITORIO V: 0.5977)
+  0.9688  ccss-faq · ¿Dónde puedo solicitar la prescripción de cuotas de trabajador independiente pendientes de pago (Le
+  0.9492  ccss-prescripcion · ¿Dónde presento la solicitud? #0
+  0.9297  ccss-prescripcion · ¿Cuáles son los requisitos para presentar una solicitud de prescripción en sede administra
+  0.9297  ccss-prescripcion · ¿Cómo se solicita la prescripción? #0
+
+s5  (TRANSITORIO V: 0.9648)
+  0.9648  ccss-reglamento-ti · TRANSITORIO V #0
+  0.7734  ley-10363 · TRANSITORIO II #0
+  0.7656  ccss-prescripcion · ¿Cuáles son los plazos de la prescripción conforme la Ley? #0
+  0.6836  ley-10363 · ARTÍCULO 2 #0
+
+s5-long  (TRANSITORIO V: 0.9648)
+  0.9648  ccss-reglamento-ti · TRANSITORIO V #0
+  0.8203  ccss-prescripcion · ¿Cuáles son los plazos de la prescripción conforme la Ley? #0
+  0.7891  ley-10363 · TRANSITORIO II #0
+  0.7578  ley-10363 · ARTÍCULO 2 #0
+
+s5-short  (TRANSITORIO V: 0.9648)
+  0.9648  ccss-reglamento-ti · TRANSITORIO V #0
+  0.7656  ley-10363 · TRANSITORIO II #0
+  0.7461  ccss-prescripcion · ¿Cuáles son los plazos de la prescripción conforme la Ley? #0
+  0.6797  ley-10363 · ARTÍCULO 2 #0
+
+q-condensed  (TRANSITORIO V: 0.5039)
+  0.6758  ccss-prescripcion · ¿Cuáles son los plazos de la prescripción conforme la Ley? #0
+  0.5898  ley-10363 · TRANSITORIO II #0
+  0.5703  ccss-prescripcion · ¿Existe fecha límite para presentar la (s) solicitud (es) de prescripción en sede administ
+  0.5039  ccss-reglamento-ti · TRANSITORIO V #0
+
+q-pedir  (TRANSITORIO V: 0.3789)
+  0.7305  ccss-faq · ¿Cuáles son los requisitos para solicitar la prescripción de cuotas de trabajador independiente en 
+  0.7031  ccss-prescripcion · ¿Cuáles son los requisitos para presentar una solicitud de prescripción en sede administra
+  0.6953  ccss-faq · ¿Dónde puedo solicitar la prescripción de cuotas de trabajador independiente pendientes de pago (Le
+  0.6914  ccss-prescripcion · ¿Cómo se solicita la prescripción? #0
+
+q-cobrar  (TRANSITORIO V: 0.4316)
+  0.6406  ley-10363 · ARTÍCULO 2 #0
+  0.6367  ccss-prescripcion · ¿Cuáles son los plazos de la prescripción conforme la Ley? #0
+  0.5938  ley-10363 · TRANSITORIO II #0
+  0.5195  ccss-faq · ¿Cuáles cuotas de trabajador independiente pueden ser prescritas según la Ley N°10.363? #0

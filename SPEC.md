@@ -258,7 +258,7 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
 - **Step catalogue (#304, amends this section):** retrieval also searches for the _step_ a
   complete answer needs and the question never asks for — when to pay, what the sanction is,
   how to adjust a declared figure. A hand-written catalogue per Tier 1 family
-  (`eval/step-catalogue.json`, two or three sentences in the corpus's register, each in the
+  (`eval/step-catalogue.json`, two to five sentences in the corpus's register, each in the
   words of the chunk it reaches) is keyed by a keyword classifier over the condensed question,
   no model call; `search_chunks` runs one more hybrid pair over the sentences **one by one**,
   interleaved by best rank per sentence into one leg pair of the same weight as the expansion's.
