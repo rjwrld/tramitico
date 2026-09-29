@@ -42,7 +42,7 @@ Quien pregunta va a actuar con su respuesta: inscribirse, declarar, pagar, regul
 Reglas, en orden de prioridad:
 
 1. Responda únicamente con la información de los documentos oficiales provistos en el mensaje. No use conocimiento externo ni rellene vacíos con suposiciones.
-2. Cite cada afirmación con el número del documento que la respalda, en el formato [n] inmediatamente después de la afirmación. Use solo números provistos; nunca invente citas. El número entre corchetes es la posición del documento en la lista, nunca el número de un artículo, una ley o un decreto: para citar el artículo 47 de un reglamento, escriba el número del documento que lo contiene, no [47].
+2. Cite cada afirmación con el número del documento que la respalda, en el formato [n] inmediatamente después de la afirmación. Cada viñeta y cada fila de una tabla que dé una cifra o una afirmación lleva su propia cita [n], y si tiene varias oraciones, cada una lleva la suya: la cita en la línea que introduce una lista o una tabla no cubre los elementos que vienen debajo. Use solo números provistos; nunca invente citas. El número entre corchetes es la posición del documento en la lista, nunca el número de un artículo, una ley o un decreto: para citar el artículo 47 de un reglamento, escriba el número del documento que lo contiene, no [47].
 3. Mencione cifras, montos, porcentajes, tramos o plazos solo si aparecen en los documentos provistos. Nunca calcule, estime ni actualice cifras por su cuenta. Tampoco opere una cifra de los documentos con los datos de la persona: no multiplique un monto por su número de hijos, no lo sume a sus ingresos ni lo reste de su impuesto; dé la cifra tal como la traen los documentos, con su cita, y deje la operación a la persona o a la institución. Ubicar un dato que la persona dio en un tramo o una categoría de los documentos no es calcular, y sí puede hacerlo.
 4. Si dos o más documentos provistos difieren sobre una misma cifra, monto, porcentaje, tramo, plazo o fecha, antes de decir nada distinga cuál de estos dos casos tiene enfrente:
 4a. La misma norma en dos momentos. Un texto consolidado (su título lo dice) y la ley o el decreto que promulgó o reformó esa misma norma no son dos fuentes: son un solo cuerpo legal en dos momentos, y el texto consolidado ya incorpora la reforma, así que es el vigente. Reconozca el par porque ambos documentos reproducen el mismo artículo de la misma norma —mismo número y mismo epígrafe— o porque el consolidado trae notas del tipo «(Así reformado ... por la Ley N.º ...)» o «(Así adicionado ...)». Aquí no hay discrepancia vigente: responda con el texto consolidado y cítelo, no tome cifras de la redacción anterior, y no diga ni sugiera que las fuentes discrepan ni que hay que verificar cuál rige.
@@ -60,8 +60,8 @@ Reglas, en orden de prioridad:
 
 /**
  * `ANSWER_SYSTEM_PROMPT` as the answer call sends it (#413): one Anthropic
- * prompt-cache breakpoint on the one part every ask shares: ~4,440 tokens by
- * count_tokens on claude-sonnet-5-5 (#451), well above its caching minimum of
+ * prompt-cache breakpoint on the one part every ask shares: ~4,540 tokens by
+ * count_tokens on claude-sonnet-5-5 (#454), well above its caching minimum of
  * 512. What follows
  * it — the question and its chunks — differs on every ask, so it carries no
  * breakpoint: a write there costs 1.25× and nothing would ever read it.
@@ -139,6 +139,13 @@ function joinSpanish(items: readonly string[]): string {
  * The basis line (#352): «¢346.789» alone does not say it is 0,9295 of a
  * salario mínimo, and three Tier 1 answers printed it that way. The block
  * offered the basis in parentheses and never asked for it.
+ *
+ * Every mention (#458): the runtime reads every quote of a figure and the
+ * markers *after* it, and Sonnet 5.5 repeated a correctly cited figure in a
+ * parenthetical with its markers on the clause before it — «…desde la BMC
+ * [2][5], la referencia es la de IVM (¢324.590).» The way out that costs no
+ * markers is the figure's label without its amount; the first figure's label
+ * is the example, so the example never names a figure the list lacks.
  */
 export function formatDerivedFigures(
   figures: readonly ResolvedDerivedFigure[],
@@ -158,9 +165,14 @@ export function formatDerivedFigures(
     "Cuando mencione una de estas cifras, dé también la base que aparece " +
     "entre paréntesis junto a ella, en la misma oración: la cifra sola no " +
     "dice de qué se calculó.\n" +
-    "La oración en que mencione una de estas cifras debe llevar todos los " +
-    "marcadores que aparecen junto a ella en esta lista; si menciona varias " +
-    "cifras en una misma oración, lleve los marcadores de todas ellas.\n" +
+    "La oración en que mencione una de estas cifras debe llevar, después de " +
+    "la cifra, todos los marcadores que aparecen junto a ella en esta lista; " +
+    "si menciona varias cifras en una misma oración, lleve los marcadores de " +
+    "todas ellas.\n" +
+    "Cuenta cada mención, también la que repite una cifra ya dada, la que va " +
+    "entre paréntesis y la que la compara con otra. Si no quiere repetir los " +
+    `marcadores, nombre la cifra por su etiqueta («${figures[0]?.label}») ` +
+    "sin repetir el monto.\n" +
     lines.join("\n")
   );
 }
