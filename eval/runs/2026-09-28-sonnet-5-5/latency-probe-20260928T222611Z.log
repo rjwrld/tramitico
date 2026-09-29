@@ -1,0 +1,44 @@
+$ tsx scripts/answer-latency-probe.ts eval/runs/2026-09-28-sonnet-5-5/latency-probe.json --arms=default,medium,low,off
+#1 default first-text   7.86s  total  15.14s  out 2053 (reasoning 902)  valid
+#1 medium  first-text   0.71s  total   7.87s  out 1147 (reasoning 0)  valid
+#1 low     first-text   0.78s  total    8.1s  out 1171 (reasoning 0)  valid
+#1 off     first-text    0.8s  total   6.68s  out 1037 (reasoning 0)  valid
+#2 default first-text   7.72s  total  14.25s  out 1918 (reasoning 856)  valid
+#2 medium  first-text   0.68s  total   8.52s  out 1273 (reasoning 0)  valid
+#2 low     first-text   0.87s  total    8.2s  out 1203 (reasoning 0)  valid
+#2 off     first-text   0.79s  total    7.3s  out 1094 (reasoning 0)  valid
+#3 default first-text   7.73s  total  16.97s  out 2354 (reasoning 768)  valid
+#3 medium  first-text   0.77s  total   9.53s  out 1490 (reasoning 0)  valid
+#3 low     first-text   0.67s  total   7.72s  out 1252 (reasoning 0)  valid
+#3 off     first-text   1.27s  total   9.14s  out 1373 (reasoning 0)  valid
+#4 default first-text    6.4s  total  10.69s  out 1454 (reasoning 731)  valid
+#4 medium  first-text   0.86s  total   5.56s  out 727 (reasoning 0)  valid
+#4 low     first-text   0.76s  total   6.64s  out 908 (reasoning 0)  valid
+#4 off     first-text   1.32s  total   6.69s  out 816 (reasoning 0)  valid
+#5 default first-text  19.19s  total  28.53s  out 4096 (reasoning 2361)  length  valid
+#5 medium  first-text   1.05s  total  15.67s  out 2611 (reasoning 0)  valid
+#5 low     first-text   0.88s  total  11.76s  out 1960 (reasoning 0)  valid
+#5 off     first-text   1.15s  total  13.64s  out 2189 (reasoning 0)  valid
+#6 default first-text   12.1s  total  23.39s  out 3420 (reasoning 1359)  valid
+#6 medium  first-text   8.41s  total  18.89s  out 2758 (reasoning 918)  valid
+#6 low     first-text   0.98s  total  10.66s  out 1777 (reasoning 0)  valid
+#6 off     first-text    0.8s  total  10.28s  out 1534 (reasoning 0)  valid
+#7 default first-text   5.73s  total   14.5s  out 2075 (reasoning 603)  valid
+#7 medium  first-text   0.65s  total   7.92s  out 1274 (reasoning 0)  valid
+#7 low     first-text   0.73s  total   8.08s  out 1249 (reasoning 0)  valid
+#7 off     first-text   0.77s  total   9.37s  out 1450 (reasoning 0)  valid
+#8 default first-text    7.2s  total  14.93s  out 2238 (reasoning 822)  valid
+#8 medium  first-text   0.78s  total   9.48s  out 1439 (reasoning 0)  valid
+#8 low     first-text   0.72s  total    8.6s  out 1345 (reasoning 0)  valid
+#8 off     first-text   0.64s  total   6.92s  out 1048 (reasoning 0)  valid
+#9 default first-text  11.63s  total  19.38s  out 2616 (reasoning 1308)  valid
+#9 medium  first-text   1.11s  total    9.1s  out 1331 (reasoning 0)  valid
+#9 low     first-text   0.66s  total   8.06s  out 1260 (reasoning 0)  valid
+#9 off     first-text   0.88s  total   9.32s  out 1348 (reasoning 0)  valid
+
+per arm (median over 9 runs):
+default first-text 7.73s  total 15.14s  max 28.53s  reasoning 856 tok  invalid 0/9
+medium  first-text 0.78s  total 9.1s  max 18.89s  reasoning 0 tok  invalid 0/9
+low     first-text 0.76s  total 8.1s  max 11.76s  reasoning 0 tok  invalid 0/9
+off     first-text 0.8s  total 9.14s  max 13.64s  reasoning 0 tok  invalid 0/9
+wrote eval/runs/2026-09-28-sonnet-5-5/latency-probe.json

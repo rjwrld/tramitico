@@ -2973,3 +2973,76 @@ the next lane that runs for another reason.
   cita 7]») — the two citation-invariant violations. Across the four
   answer-side runs on current code, groundedness is 67–70/73 around a 69/73
   line and the blocking red changes case each time.
+
+## Sonnet 5.5 on today's prompt (2026-09-28, #449)
+
+> **Two answer-side arms on `claude-sonnet-5-5`**, owner-approved: `main` at
+> 1421703 (#450's finish-reason handling, `@ai-sdk/anthropic` 4.0.67), the
+> 2026-09-25 lane's knobs, judge `claude-sonnet-4-5`, the 873-chunk local
+> ingest. Only the four lanes that write an answer ran; hit-rate,
+> satisfiability and retrieval do not depend on the answer model. ≈US$13–14
+> with the latency probe and a three-case smoke. Rows in
+> [`eval/runs/2026-09-28-sonnet-5-5/`](runs/2026-09-28-sonnet-5-5/). The
+> prompt is unchanged, and the default stays `claude-sonnet-5`.
+
+| Gate                             | Sonnet 5 · `medium` (09-25 lane) | 5.5 · `medium`                     | 5.5 · `low`                               | Gate                |
+| -------------------------------- | -------------------------------- | ---------------------------------- | ----------------------------------------- | ------------------- |
+| Groundedness                     | 68/73                            | **72/73**                          | **70/73**                                 | ≥ 0.94              |
+| Blocking cases grounded          | red (`multa-iva-no-declarado`)   | **green**                          | red (`ho-minimo-caja-independiente-2026`) | 0 failing           |
+| Citation invariant               | 0                                | 0                                  | 0                                         | 0                   |
+| Abstention                       | 9/9                              | 8/9 (`ho-abs-iva-2027`)            | 9/9                                       | ≥ 0.9, zero figures |
+| Derived figures completely cited | green                            | red (`ho-desde-cuanta-plata-caja`) | green                                     | none uncited        |
+| Tier 1 requirements stated       | **83/116**                       | 70/116                             | 74/116                                    | ≥ 80                |
+| Tier 1 adequate                  | **11/27**                        | 5/27                               | 5/27                                      | goal, not a gate    |
+| Tier 2 adequate                  | **13/13**                        | 10/13                              | 10/13                                     | ≥ 0.84              |
+| Answer characters, total         | 184 886                          | 206 262                            | 195 004                                   | —                   |
+| Output tokens, median / max      | not recorded                     | 1 095 / 2 527                      | 1 020 / 2 220                             | cap 4 096           |
+
+| Probe arm (nine seed prompts) | Sonnet 5, 2026-09-22          | Sonnet 5.5, this run                |
+| ----------------------------- | ----------------------------- | ----------------------------------- |
+| default (`high`)              | 11.0 s / 20.2 s, worst 41.8 s | 7.7 s / 15.1 s, worst 28.5 s, 1 cut |
+| `medium`                      | 1.2 s / 13.1 s, worst 19.6 s  | 0.78 s / 9.1 s, worst 18.9 s        |
+| `low`                         | 1.4 s / 10.6 s, worst 18.6 s  | 0.76 s / 8.1 s, worst 11.8 s        |
+| `off` (5.5: `between_tools`)  | 1.3 s / 13.4 s, worst 26.3 s  | 0.80 s / 9.1 s, worst 13.6 s        |
+
+Medians of first text / total. The Sonnet 5 column predates the step
+catalogue's `pin1` and the pinned derived inputs, so it compares the model
+and not the whole pipeline.
+
+What it says:
+
+- **5.5 is more grounded, faster and no dearer.** Both arms clear the
+  groundedness gate that no Sonnet 5 lane on current code has cleared
+  (67–70/73). The price per token is the same, and the output is as long.
+- **It is less complete, and not by noise.** Tier 1 requirements fall 83 →
+  70 / 74, well past the ±4 an identical pipeline moves. Both arms miss the
+  same 33 requirements. The growth is in where/how content the person did not
+  ask for: the channel (TRIBU-CR, the OVi, the sucursal), what to do once a
+  deadline has passed, how to regularise. Those misses go from 8 on Sonnet 5
+  to 17 at `medium` and 15 at `low`. That is the last clause of rule 9
+  («…dígalo con su cita aunque la persona no lo haya preguntado»), which 5.5
+  reads more narrowly under the rule's subordination to rule 1.
+- **`medium` and `low` are the same model on 5.5.** In the probe, `medium`
+  thought on one prompt of nine (918 tokens, first text 8.4 s) and `low` on
+  none. The gates the two arms differ on (abstention, derived figures,
+  blocking) each turn on one case, the way the Sonnet 5 lanes' blocking red
+  moved.
+- **The cap holds at 4 096.** Every row of both arms finished `stop`. The one
+  `length` in the run is the probe's default (`high`) arm on prompt 5: 2 361
+  thinking tokens, cut at the cap. At `low` or `medium` the most measured is
+  2 758 (the probe's `medium` on prompt 6), 1.5× under it.
+- **The two BMC reds are #403's T1-F shape, not effort.** At `medium`,
+  `ccss-cuanto-pago-base` gives the escala's limits (₡346.790, ₡324.591)
+  instead of the derived BMC figures, and `ho-desde-cuanta-plata-caja`
+  repeats ¢324.590 without its input markers. `low` passes both.
+- **`ho-abs-iva-2027` declined better and failed.** At `medium` the answer
+  said the documents do not carry a 2027 rate and then listed today's reduced
+  rates. The judges failed it 3/3 for giving rates at all. The Sonnet 5
+  answer that passed stated the 13 % general rate outright.
+
+Decision (owner): **no switch on this prompt.** It was tuned rule by rule
+against Sonnet 5 (#352, #427, #287), so the fix is adapting it to 5.5, not
+staying on the old model. #451 reworks it for 5.5 at `low` and ships the
+prompt and the model switch in one PR, so a 5.5 prompt never runs in
+production on Sonnet 5. Production stays on `claude-sonnet-5` at `medium`
+until then.
