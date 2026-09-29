@@ -579,7 +579,7 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
 
 describe("ANSWER_SYSTEM (#413)", () => {
   it("is the system prompt, unchanged, as one cache breakpoint", () => {
-    // Every answer call shares these ~4,570 tokens (count_tokens), above the
+    // Every answer call shares these ~4,600 tokens (count_tokens), above the
     // answer model's caching minimum (512 on claude-sonnet-5-5); the chunks
     // after them
     // differ per question and are deliberately left unmarked (a write premium

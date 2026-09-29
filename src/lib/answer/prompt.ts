@@ -60,7 +60,7 @@ Reglas, en orden de prioridad:
 
 /**
  * `ANSWER_SYSTEM_PROMPT` as the answer call sends it (#413): one Anthropic
- * prompt-cache breakpoint on the one part every ask shares: ~4,570 tokens by
+ * prompt-cache breakpoint on the one part every ask shares: ~4,600 tokens by
  * count_tokens on claude-sonnet-5-5 (#454), well above its caching minimum of
  * 512. What follows
  * it — the question and its chunks — differs on every ask, so it carries no

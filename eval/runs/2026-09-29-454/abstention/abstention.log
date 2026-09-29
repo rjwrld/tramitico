@@ -1,0 +1,27 @@
+ Vitest  The "unit" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "eval" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "integration" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+
+ RUN  v5.0.2 <worktree>
+
+
+abstention: 9/9
+  transcript: eval/transcripts/454-abst/abstention-2026-09-29T18-55-10-014Z.jsonl
+  pass  model     ho-abs-cuanto-cobro-la-hora
+  pass  model     ho-abs-me-conviene-sociedad
+  pass  model     ho-abs-aguinaldo-freelancer
+  pass  model     ho-abs-iva-2027
+  pass  model     ho-abs-devs-exentos-renta
+  pass  model     ho-abs-patente-municipal
+  pass  model     ho-abs-calculo-personalizado
+  pass  model     ho-abs-sociedad-inactiva
+  pass  model     ho-abs-recomendar-contador
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  12:53:29
+   Duration  100.46s (tests 100%)
+
