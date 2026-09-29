@@ -12,10 +12,28 @@
  * The JSON it writes carries every case's per-configuration answer set and
  * each expected target's reranked rank, for the per-case read.
  *
- * Cents: embeddings, expansions and two Voyage calls per case. A diagnostic,
- * not a gate. Usage (reads `.env.local` like `ingest.ts`):
+ * Since #457 it also records every stage a case passed through — the
+ * standalone query, the expansion, the fused pool, the whole reranked order,
+ * and every provider call that failed — so two runs on one stack can be
+ * compared case by case and the first stage at which they part named
+ * (`pnpm answer-set-compare a.json b.json`, free). Two flags serve that
+ * measurement:
  *
- *   pnpm answer-set-probe [out.json]
+ * - `--replay=<earlier.json>` replays the text an earlier probe's models
+ *   wrote for each case — the expansion, and a follow-up's condensed
+ *   question — instead of asking again: the "expansion cached per query"
+ *   arm, which leaves Voyage as the only provider still live. A case the
+ *   earlier run expanded to nothing replays nothing. `EXPAND=off` is the "no
+ *   expansion" arm, as everywhere else.
+ * - `--follow-ups` adds the retrieval cases that carry `history`, condensed
+ *   first exactly as the eval lanes condense them: the 27 Tier 1 cases the
+ *   full lane reads, not only the 18 single-turn ones. Off by default, so the
+ *   aggregate lines stay comparable with the probe runs before it.
+ *
+ * Cents: embeddings, expansions and a Voyage call per rerank reading. A
+ * diagnostic, not a gate. Usage (reads `.env.local` like `ingest.ts`):
+ *
+ *   pnpm answer-set-probe [out.json] [--replay=<earlier.json>] [--follow-ups]
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -28,6 +46,8 @@ function loadDotEnvLocal(): void {
     if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2];
   }
 }
+import { condenseQuestion, condenseFailures } from "../src/lib/answer/condense";
+import { expandFailures } from "../src/lib/answer/expand";
 import {
   pinDerivedFigureInputs,
   resolveDerivedFigures,
@@ -46,7 +66,7 @@ import {
   retrievalCases,
   type EvalCase,
 } from "../src/lib/eval/dataset";
-import { createEmbedder } from "../src/lib/ingestion/embedder";
+import { createEmbedder, type Embedder } from "../src/lib/ingestion/embedder";
 import { retrieve, type RetrievedChunk } from "../src/lib/retrieval";
 
 interface Config {
@@ -87,20 +107,119 @@ interface CaseRead {
   >;
   /** Reranked rank of each expected target (1-based) or null. */
   targetRanks: { target: string; rank: number | null }[];
+  /** The standalone question the pipeline ran on (#457). */
+  query: string;
+  /** The expansion the legs and the rerank read, null for none. */
+  expansion: string | null;
+  /** The step catalogue family the probe searched, null for none. */
+  steps: string | null;
+  /** The fused pool, best first. */
+  pool: string[];
+  /** The whole reranked order, null when the rerank did not happen. */
+  order: string[] | null;
+  /** Voyage's score for each place of `order`, for reading near-ties. */
+  scores: number[] | null;
+  /**
+   * Provider calls on this case that did not come back: a failed embed or
+   * rerank reading is silent in production (a leg or a reading is dropped),
+   * and either one changes the answer set without changing any text.
+   */
+  failures: { condense: number; expand: number; embed: number; rerank: number };
+  /** Wall-clock of each step, against the 3–5 s budgets that drop a leg. */
+  ms: { rewrite: number; retrieve: number; rerank: number };
 }
 
 function label(chunk: RetrievedChunk): string {
   return `${chunk.docKey}·${chunk.articulo ?? "*"}·#${chunk.part}`;
 }
 
+/** Counts every provider call a case makes that does not come back. */
+interface CallCounter {
+  embedder: Embedder;
+  fetchImpl: typeof fetch;
+  take(): { embed: number; rerank: number };
+}
+
+function countingCalls(embedder: Embedder): CallCounter {
+  let embed = 0;
+  let rerank = 0;
+  return {
+    embedder: {
+      ...embedder,
+      embedQuery: async (text) => {
+        try {
+          return await embedder.embedQuery(text);
+        } catch (error) {
+          embed += 1;
+          throw error;
+        }
+      },
+    },
+    fetchImpl: async (input, init) => {
+      try {
+        const res = await fetch(input, init);
+        if (!res.ok) rerank += 1;
+        return res;
+      } catch (error) {
+        rerank += 1;
+        throw error;
+      }
+    },
+    take() {
+      const taken = { embed, rerank };
+      embed = 0;
+      rerank = 0;
+      return taken;
+    },
+  };
+}
+
+/** What an earlier probe's models wrote for one case (#457). */
+interface Rewrites {
+  query: string;
+  expansion: string | null;
+}
+
+/** The rewrites an earlier probe recorded, by case id. */
+function recordedRewrites(file: string): Map<string, Rewrites> {
+  const { reads } = JSON.parse(readFileSync(file, "utf8")) as {
+    reads: { id: string; query?: string; expansion?: string | null }[];
+  };
+  const byId = new Map<string, Rewrites>();
+  for (const read of reads) {
+    if (read.query === undefined || read.expansion === undefined) {
+      throw new Error(
+        `${file} recorded no rewrites for ${read.id}: it predates #457`,
+      );
+    }
+    byId.set(read.id, { query: read.query, expansion: read.expansion });
+  }
+  return byId;
+}
+
 async function readCase(
   evalCase: EvalCase,
   kind: "retrieval" | "abstention",
-  embedder: ReturnType<typeof createEmbedder>,
+  calls: CallCounter,
+  replay: Map<string, Rewrites> | null,
 ): Promise<CaseRead> {
-  const retrieval = await retrieve(evalCase.question, {
+  const condenseBefore = condenseFailures();
+  const expandBefore = expandFailures();
+  const recorded = replay?.get(evalCase.id);
+  if (replay !== null && recorded === undefined) {
+    throw new Error(`no recorded rewrites for ${evalCase.id}`);
+  }
+  const started = Date.now();
+  const query =
+    recorded?.query ??
+    (await condenseQuestion(evalCase.question, evalCase.history ?? [])).query;
+  const rewritten = Date.now();
+  const retrieval = await retrieve(query, {
     matchCount: RERANK_POOL,
-    embedder,
+    embedder: calls.embedder,
+    ...(recorded === undefined
+      ? {}
+      : { expander: { expand: async () => recorded.expansion } }),
   });
   const read: CaseRead = {
     id: evalCase.id,
@@ -112,6 +231,31 @@ async function readCase(
     expectedCount: evalCase.expected.length,
     per: {},
     targetRanks: [],
+    query,
+    expansion: retrieval.expansion,
+    steps: retrieval.steps?.family ?? null,
+    pool: retrieval.chunks.map(label),
+    order: null,
+    scores: null,
+    failures: { condense: 0, expand: 0, embed: 0, rerank: 0 },
+    ms: {
+      rewrite: rewritten - started,
+      retrieve: Date.now() - rewritten,
+      rerank: 0,
+    },
+  };
+  const tally = () => {
+    const { embed, rerank } = calls.take();
+    const condenseAfter = condenseFailures();
+    const expandAfter = expandFailures();
+    const sum = (counts: Record<string, number>) =>
+      Object.values(counts).reduce((n, v) => n + v, 0);
+    read.failures = {
+      condense: sum(condenseAfter) - sum(condenseBefore),
+      expand: sum(expandAfter) - sum(expandBefore),
+      embed,
+      rerank,
+    };
   };
   if (retrieval.isWeak) {
     for (const c of CONFIGS) {
@@ -126,13 +270,20 @@ async function readCase(
         set: [],
       };
     }
+    tally();
     return read;
   }
-  const outcome = await rerankReadings(evalCase.question, retrieval.chunks, {
+  const reranking = Date.now();
+  const outcome = await rerankReadings(query, retrieval.chunks, {
     expansion: retrieval.expansion,
     steps: retrieval.steps?.sentences ?? null,
+    fetchImpl: calls.fetchImpl,
   });
   const order: RerankedChunk[] | null = outcome?.order ?? null;
+  read.order = order === null ? null : order.map((entry) => label(entry.chunk));
+  read.scores = order === null ? null : order.map((entry) => entry.score);
+  read.ms.rerank = Date.now() - reranking;
+  tally();
   read.targetRanks = evalCase.expected.map((t) => {
     const i = (order ?? []).findIndex((e) => chunkMatchesTarget(e.chunk, t));
     return {
@@ -171,17 +322,24 @@ async function readCase(
 async function main(): Promise<void> {
   loadDotEnvLocal();
   const all = parseDataset(readFileSync(DATASET_PATH, "utf8"));
-  const single = retrievalCases(all).filter((c) => !c.history);
+  const args = process.argv.slice(2);
+  const followUps = args.includes("--follow-ups");
+  const replayFrom = args
+    .find((arg) => arg.startsWith("--replay="))
+    ?.slice("--replay=".length);
+  const out =
+    args.find((arg) => !arg.startsWith("--")) ?? "answer-set-probe.json";
+  const replay = replayFrom ? recordedRewrites(replayFrom) : null;
+  const single = retrievalCases(all).filter((c) => followUps || !c.history);
   const abs = abstentionCases(all).filter((c) => !c.history);
-  const out = process.argv[2] ?? "answer-set-probe.json";
-  const embedder = createEmbedder();
+  const calls = countingCalls(createEmbedder());
   const reads: CaseRead[] = [];
   for (const c of single) {
-    reads.push(await readCase(c, "retrieval", embedder));
+    reads.push(await readCase(c, "retrieval", calls, replay));
     process.stdout.write(".");
   }
   for (const c of abs) {
-    reads.push(await readCase(c, "abstention", embedder));
+    reads.push(await readCase(c, "abstention", calls, replay));
     process.stdout.write("a");
   }
   console.log();
@@ -191,7 +349,26 @@ async function main(): Promise<void> {
     .filter((r) => r.kind === "retrieval")
     .reduce((n, r) => n + r.expectedCount, 0);
   console.log(
-    `single-turn retrieval cases: ${single.length} (${totalTargets} expected targets), abstention: ${abs.length}`,
+    `${followUps ? "retrieval cases, follow-ups included" : "single-turn retrieval cases"}: ${single.length} (${totalTargets} expected targets), abstention: ${abs.length}`,
+  );
+  console.log(
+    `rewrites: ${replay === null ? "live" : `replayed from ${replayFrom}`}`,
+  );
+  const failed = reads.filter((r) =>
+    Object.values(r.failures).some((n) => n > 0),
+  );
+  console.log(
+    `provider calls that did not come back: ${
+      failed
+        .map(
+          (r) =>
+            `${r.id}(${Object.entries(r.failures)
+              .filter(([, n]) => n > 0)
+              .map(([k, n]) => `${k}×${n}`)
+              .join(",")})`,
+        )
+        .join(" ") || "none"
+    }`,
   );
   console.log(
     `weak: ${
