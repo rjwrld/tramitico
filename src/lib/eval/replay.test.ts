@@ -102,6 +102,16 @@ describe("replayChunks", () => {
     expect(prompt).toContain("[2] Preguntas frecuentes IVA\nPregunta:");
   });
 
+  it("throws when the markers do not run 1..n, rather than renumbering them", () => {
+    // A gap would shift every [n] after it, and the recorded answer's markers
+    // would point at different documents than the replayed one's.
+    const gapped = row({});
+    gapped.chunks[1] = { ...gapped.chunks[1], marker: 3 };
+    expect(() => replayChunks(gapped, META)).toThrow(
+      /ho-iva-en-cero-sin-facturar.*1\.\.2/,
+    );
+  });
+
   it("throws, naming the case and the chunk, when the corpus no longer carries a chunk", () => {
     // A re-ingest mints new ids: replaying against it would put a different
     // prompt in front of the model while the output claimed the recorded one.
@@ -161,6 +171,12 @@ describe("replayPlan", () => {
     expect(() =>
       replayPlan(rows, dataset, { cases: ["t2", "typo"], tier: null }),
     ).toThrow(/typo/);
+  });
+
+  it("throws when nothing is left to replay — before any paid call", () => {
+    expect(() => replayPlan(rows, dataset, { cases: ["t2"], tier: 1 })).toThrow(
+      /nothing to replay/,
+    );
   });
 
   it("throws on a row whose case the dataset no longer has", () => {

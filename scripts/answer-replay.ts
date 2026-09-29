@@ -51,6 +51,7 @@ import {
   parseTranscript,
   replayChunks,
   replayPlan,
+  type CoverageItem,
 } from "../src/lib/eval/replay";
 import {
   transcriptRow,
@@ -87,7 +88,10 @@ async function main(): Promise<void> {
   loadDotEnvLocal();
   const file = process.argv.slice(2).find((a) => !a.startsWith("--"));
   if (file === undefined) {
-    throw new Error("usage: pnpm answer-replay <transcript.jsonl> [--tier=1]");
+    throw new Error(
+      "usage: pnpm answer-replay <transcript.jsonl> [--tier=1|2] " +
+        "[--cases=a,b] [--no-groundedness] [--dry-run]",
+    );
   }
   const judgeGroundedness = !process.argv.includes("--no-groundedness");
   const cases =
@@ -125,7 +129,7 @@ async function main(): Promise<void> {
   );
 
   const replayed: TranscriptRow[] = [];
-  const deltaInput: Parameters<typeof coverageDelta>[0][number][] = [];
+  const deltaInput: CoverageItem[] = [];
   const uncited: string[] = [];
   for (const { row, evalCase, chunks } of prompts) {
     const derivedFigures = resolveDerivedFigures(chunks);
@@ -191,8 +195,10 @@ async function main(): Promise<void> {
 
   // Before the summary: the rows are what cost money, and a summary that
   // throws must not take them with it.
+  // A row the groundedness judge never read still needs a verdict in the
+  // transcript's shape, so the file name says none of them were judged.
   const written = writeTranscript(replayed, {
-    answerModel: `${label}-replay`,
+    answerModel: `${label}-replay${judgeGroundedness ? "" : "-ungrounded"}`,
     subset: true,
   });
   console.log(`\ntranscript: ${written}`);

@@ -12,8 +12,9 @@
  * its numbered chunk list — the one the recorded answer was written from —
  * so rebuilding the prompt from it and asking the answer model again changes
  * only what the replay was run to change: the prompt, the model or the
- * effort. The same judges then score the new answer, and `coverageDelta`
- * compares it with the row's recorded read.
+ * effort. (Derived figures are re-resolved from those chunks with today's
+ * definitions, as the route would.) The same judges then score the new
+ * answer, and `coverageDelta` compares it with the row's recorded read.
  *
  * What a replay is not: a measurement of the pipeline. It says nothing about
  * retrieval, and a transcript's chunk list is one draw of it, so a replay's
@@ -44,6 +45,13 @@ export function replayChunks(
   row: Pick<TranscriptRow, "id" | "chunks">,
   meta: ReadonlyMap<string, ChunkDocMeta>,
 ): RetrievedChunk[] {
+  const markers = row.chunks.map((chunk) => chunk.marker).sort((a, b) => a - b);
+  if (markers.some((marker, i) => marker !== i + 1)) {
+    throw new Error(
+      `${row.id}: markers ${markers.join(",")} do not run 1..${markers.length} — ` +
+        `rebuilding would renumber the [n] the recorded answer cites`,
+    );
+  }
   const absent = row.chunks
     .filter((chunk) => !meta.has(chunk.chunkId))
     .map((chunk) => chunk.chunkId);
@@ -91,10 +99,11 @@ export interface ReplayItem {
  * The rows a replay answers again, each with its case, in transcript order.
  *
  * A row with no chunks is a weak-retrieval decline, which made no model call
- * and has no prompt to replay. Both kinds of mismatch throw before any paid
- * call, naming the id: a named case the transcript does not carry is a typo
- * that would buy a smaller replay than asked for, and a row whose case the
- * dataset dropped has no requirements to judge.
+ * and has no prompt to replay. Every mismatch throws before any paid call,
+ * naming the id: a named case the transcript does not carry is a typo that
+ * would buy a smaller replay than asked for, a row whose case the dataset
+ * dropped has no requirements to judge, and a selection that leaves nothing
+ * would buy an empty summary.
  */
 export function replayPlan(
   rows: readonly TranscriptRow[],
@@ -107,7 +116,7 @@ export function replayPlan(
       throw new Error(`not in the transcript: ${unknown.join(", ")}`);
     }
   }
-  return rows
+  const plan = rows
     .filter((row) => row.chunks.length > 0)
     .filter((row) => cases === null || cases.includes(row.id))
     .filter((row) => tier === null || row.tier === tier)
@@ -118,6 +127,15 @@ export function replayPlan(
       }
       return { row, evalCase };
     });
+  if (plan.length === 0) throw new Error("nothing to replay in that selection");
+  return plan;
+}
+
+/** One case's recorded and replayed adequacy read. */
+export interface CoverageItem {
+  evalCase: EvalCase;
+  before: AdequacyMisses;
+  after: AdequacyMisses;
 }
 
 export interface CoverageDelta {
@@ -131,21 +149,16 @@ export interface CoverageDelta {
  * case and summed — `requirementCoverage`'s count (#287), read twice over the
  * same cases.
  */
-export function coverageDelta(
-  items: readonly {
-    evalCase: EvalCase;
-    before: AdequacyMisses;
-    after: AdequacyMisses;
-  }[],
-): CoverageDelta {
-  const read = (adequacy: AdequacyMisses, evalCase: EvalCase) =>
-    requirementCoverage([{ evalCase, adequacy }]);
-  const cases = items.map(({ evalCase, before, after }) => ({
-    id: evalCase.id,
-    before: read(before, evalCase).stated,
-    after: read(after, evalCase).stated,
-    total: read(after, evalCase).total,
-  }));
+export function coverageDelta(items: readonly CoverageItem[]): CoverageDelta {
+  const cases = items.map(({ evalCase, before, after }) => {
+    const replayed = requirementCoverage([{ evalCase, adequacy: after }]);
+    return {
+      id: evalCase.id,
+      before: requirementCoverage([{ evalCase, adequacy: before }]).stated,
+      after: replayed.stated,
+      total: replayed.total,
+    };
+  });
   return {
     before: requirementCoverage(
       items.map(({ evalCase, before }) => ({ evalCase, adequacy: before })),
