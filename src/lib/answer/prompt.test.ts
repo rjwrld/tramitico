@@ -101,6 +101,23 @@ describe("buildUserPrompt", () => {
       buildUserPrompt("¿Cuánto pago?", [chunk()], { derivedFigures: [] }),
     ).not.toContain("Cifras derivadas");
   });
+
+  // #451: Anthropic's long-context guidance puts the documents first and the
+  // query last. The prompt had it the other way round since #21: the question,
+  // then ~12k tokens of documents between it and the answer.
+  it("puts the question after the documents and the derived figures (#451)", () => {
+    const prompt = buildUserPrompt("¿Cuánto pago?", [chunk(), chunk()], {
+      derivedFigures: [DERIVED_FIGURE],
+    });
+    const question = prompt.indexOf("Pregunta:\n¿Cuánto pago?");
+    expect(question).toBeGreaterThan(prompt.indexOf("[2]"));
+    expect(question).toBeGreaterThan(prompt.indexOf("Cifras derivadas"));
+    // Nothing after it (#451): a closing completeness note replayed well
+    // (Tier 1 77 → 81 of 116 on fixed chunks) and then, on the full lane,
+    // pulled inferred facts into a blocking answer and uncited figures into
+    // two declines. The question is the last thing the model reads.
+    expect(prompt.endsWith("Pregunta:\n¿Cuánto pago?")).toBe(true);
+  });
 });
 
 describe("formatDerivedFigures", () => {
@@ -192,6 +209,31 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/plazo/i);
   });
 
+  /**
+   * #451: Sonnet 5.5 wrote rule 8's three parts as bold section titles
+   * («**Regla general**», «**Paso siguiente**») in 15–19 of 27 Tier 1 answers
+   * of the 2026-09-28 run, against 1 on Sonnet 5.
+   */
+  it("says the three parts are coverage, not headings (#451)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /8\. [^\n]*no las use como títulos ni como rótulos en negrita/,
+    );
+  });
+
+  /**
+   * #451: the prompt listed rules and never said what they were for. Anthropic's
+   * guidance is to give the reason behind an instruction and to ask outright
+   * for more than the minimum; the reason here is that the reader acts on the
+   * answer, and «consulte» sends them back to where they started.
+   */
+  it("says why completeness matters: the person acts on the answer (#451)", () => {
+    const intro = ANSWER_SYSTEM_PROMPT.split(
+      "Reglas, en orden de prioridad:",
+    )[0];
+    expect(intro).toMatch(/va a actuar con su respuesta/);
+    expect(intro).toMatch(/la deja donde empezó/);
+  });
+
   it("keeps the new actionability rule inside the sources (#289 vs rule 1)", () => {
     // Asking for steps the documents do not carry would buy adequacy with
     // invention — the one trade this prompt may never make.
@@ -232,12 +274,46 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
   it("keeps the enumeration rule inside the sources (#289 vs rule 1)", () => {
     // The rule must say, in its own text, that it adds nothing the documents
     // do not carry — otherwise it reads as licence to complete a list.
-    expect(ANSWER_SYSTEM_PROMPT).toMatch(/no complete/i);
-    // …and the clause that volunteers unasked facts is guarded by name, not
-    // only by the general subordination: a base, canal, plazo or sanción the
-    // documents do not state is omitted, never inferred.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(/9\. [^\n]*no complete/i);
+    // …and the clause that volunteers unasked facts is guarded by name: a
+    // base, canal, plazo or sanción the documents do not state is never
+    // inferred.
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
-      /sanción que los documentos provistos no digan[^.]*no se afirma/i,
+      /9\. [^\n]*no invente una base, un paso, un canal, un plazo ni una sanción/,
+    );
+  });
+
+  /**
+   * #451: rules 8 and 9 each ended in «omítalo» / «se omite», under «se
+   * subordina a la regla 1». Sonnet 5.5 settled that framing by leaving out
+   * what the documents did carry and writing «los documentos no detallan el
+   * portal… consulte» where Sonnet 5 gave the step: 3–4 of its Tier 1 misses
+   * per arm. The rules do not compete — rule 1 says where a fact comes from,
+   * 8 and 9 which facts must not be left out — so the boundary says that, and
+   * says what to do with a real gap: give what the documents carry, and name
+   * the gap once, at the end, with the referral.
+   */
+  it("frames grounding and completeness as not competing (#451)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).not.toMatch(/se subordina a la regla 1/);
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /9\. [^\n]*no compiten con la regla 1/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /9\. [^\n]*en una sola oración, al final y junto con la remisión de la regla 6/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /9\. [^\n]*no la anuncie al principio ni la repita/,
+    );
+  });
+
+  /**
+   * #451: Sonnet 5.5 applied the unasked-obligation clause only to the
+   * obligation the question named, and left out ones the documents tied to it
+   * in the reader's case.
+   */
+  it("extends the unasked facts to obligations tied to the one asked about (#451)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /9\. [^\n]*también a las que los documentos provistos le ligan en su caso/,
     );
   });
 
@@ -301,23 +377,19 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
   });
 
   /**
-   * #427: about 1 answer in 70 (the issue's read of the committed
-   * transcripts) corrects a doubted marker inside the brackets —
-   * «[2][6 no aplica aquí, corrijo: 2]», «[4][6][10 no existe, cito 6]»,
-   * «[7][10 nota: cita 7]». The invariant refuses each and the route spends
-   * its one retry; rule 2 should say a marker holds a number and nothing else,
-   * and that a doubted one is replaced, not annotated.
+   * #427: about 1 Sonnet 5 answer in 70 corrected a doubted marker inside the
+   * brackets — «[4][6][10 no existe, cito 6]», «[7][10 nota: cita 7]» — and
+   * rule 2 said a marker holds a number and nothing else. #451: Sonnet 5.5
+   * wrote none in 146 answers (the two 2026-09-28 arms), so the clause leaves
+   * the system prompt. The invariant still refuses one, and the retry note —
+   * sent only then — still names it (below).
    */
-  it("says a marker holds the number and nothing else (#427)", () => {
-    expect(ANSWER_SYSTEM_PROMPT).toMatch(
-      /2\. [^\n]*Cada \[n\] lleva el número del documento y nada más/,
+  it("leaves the bracket-annotation clause to the retry note (#427, #451)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).not.toMatch(
+      /ninguna palabra, nota ni corrección entre los corchetes/,
     );
-    expect(ANSWER_SYSTEM_PROMPT).toMatch(
-      /2\. [^\n]*ninguna palabra, nota ni corrección entre los corchetes/,
-    );
-    // The doubted marker: rewritten, not commented on.
-    expect(ANSWER_SYSTEM_PROMPT).toMatch(
-      /2\. [^\n]*no lo comente ni lo corrija entre corchetes: escriba la oración con el número correcto/,
+    expect(CITATION_RETRY_NOTE).toMatch(
+      /ninguna palabra, nota ni corrección entre los corchetes/,
     );
   });
 
@@ -428,9 +500,9 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
 
 describe("ANSWER_SYSTEM (#413)", () => {
   it("is the system prompt, unchanged, as one cache breakpoint", () => {
-    // Every answer call shares these 3,915 tokens (count_tokens), above the
-    // answer model's caching minimum (1,024 on claude-sonnet-5, lower on
-    // claude-sonnet-5-5); the chunks after them
+    // Every answer call shares these ~4,440 tokens (count_tokens), above the
+    // answer model's caching minimum (512 on claude-sonnet-5-5); the chunks
+    // after them
     // differ per question and are deliberately left unmarked (a write premium
     // nothing reads).
     expect(ANSWER_SYSTEM).toEqual({
@@ -509,6 +581,25 @@ describe("rule 6 and the routing table (#264)", () => {
     );
     expect(ANSWER_SYSTEM_PROMPT).toContain(
       "Una respuesta que corrige y no remite incumple la regla 6",
+    );
+  });
+
+  /**
+   * #451: Sonnet 5.5 opened 7 of the 2026-09-28 run's 54 Tier 1 answers (both
+   * arms) with «No encuentro base oficial» when the documents answered part of
+   * the question, and the adequacy judge reads such an answer as a decline. The
+   * decline is for a question the documents answer none of; a partial gap is
+   * referred at the end.
+   */
+  it("declines only when the documents answer nothing asked (#451)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /6\. Si los documentos provistos no responden nada de lo que la persona preguntó/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /6\. [^\n]*Si responden una parte, responda esa parte con sus citas y remita solo por lo que falta, al final/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /6\. [^\n]*no la empiece diciendo que no encuentra base oficial/,
     );
   });
 

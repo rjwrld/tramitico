@@ -196,7 +196,7 @@
       "id": "answer",
       "type": "external",
       "label": "Answer",
-      "sublabel": "Sonnet 5",
+      "sublabel": "Sonnet 5.5",
       "brand": "anthropic",
       "pos": [980, 335],
       "size": [100, 60],
@@ -384,7 +384,7 @@
       "dot": "cyan",
       "title": "Models",
       "items": [
-        "claude-sonnet-5 answers",
+        "claude-sonnet-5-5 answers",
         "claude-haiku-4-5 condenses follow-ups and expands the query",
         "voyage-3 embeds; rerank-2.5-lite reranks"
       ]
