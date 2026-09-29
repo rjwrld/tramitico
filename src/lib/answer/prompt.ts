@@ -112,35 +112,6 @@ export const CITATION_RETRY_NOTE =
   "responder la pregunta cumpliendo esa regla. Si los documentos no " +
   "respaldan una respuesta, aplique la regla 6.";
 
-/**
- * Closes the user prompt, after the question (#451); on a citation retry,
- * `CITATION_RETRY_NOTE` follows it. On a replay of the
- * 2026-09-28 low arm's own chunks, the reworked rules 8 and 9 still left out
- * mostly what the documents carried and the question did not name — the
- * pagos parciales beside the declaración, the requisites beside the
- * comprobante, the law an obligation comes from — and Sonnet 5.5 follows an
- * instruction about as far as it states. Rule 9's clause says it mid-paragraph;
- * this repeats it as the last thing read, in the rules' own vocabulary and by
- * number, so it adds no rule and leaves rule 6 ahead of it. Its first
- * wording («use todo lo que aplica») bought 77 → 80 requirements with 26 → 23
- * grounded answers, the facts it pulled in by inference; it now asks for what
- * a document says, not what follows from it. And it gives way to rule 6
- * outright: run alongside it, it took the abstention lane to 8/9 with two
- * declines printing figures the documents do not carry.
- */
-export const COMPLETENESS_NOTE =
-  "Antes de responder, recorra cada documento provisto y use lo que dice " +
-  "expresamente sobre el caso de la persona, aunque la pregunta no lo " +
-  "nombre: la norma que establece la obligación, los requisitos, las " +
-  "obligaciones que la acompañan, dónde, cómo y en qué plazo se cumple, y " +
-  "qué sanción o qué rebaja trae (reglas 8 y 9). Dígalo como lo dice el " +
-  "documento, con su cita: no deduzca una obligación, una fecha ni un " +
-  "efecto que el documento no diga (regla 1), y si falta un dato, dígalo una " +
-  "sola vez, al final. Esta nota no se aplica a una pregunta que la regla 6 " +
-  "manda remitir —una cifra futura, un cálculo con los datos de la persona, " +
-  "una persona jurídica, un precio o un tema de otra institución—: ahí " +
-  "aplique solo la regla 6, sin recorrer los documentos en busca de más.";
-
 function joinSpanish(items: readonly string[]): string {
   if (items.length < 2) return items[0] ?? "";
   return `${items.slice(0, -1).join(", ")} y ${items.at(-1)}`;
@@ -212,6 +183,6 @@ export function buildUserPrompt(
   if (derivedFigures.length > 0) {
     base += `\n\n${formatDerivedFigures(derivedFigures)}`;
   }
-  base += `\n\nPregunta:\n${question}\n\n${COMPLETENESS_NOTE}`;
+  base += `\n\nPregunta:\n${question}`;
   return citationRetry ? `${base}\n\n${CITATION_RETRY_NOTE}` : base;
 }

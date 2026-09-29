@@ -8,7 +8,6 @@ import {
   buildUserPrompt,
   CCSS_URL,
   CITATION_RETRY_NOTE,
-  COMPLETENESS_NOTE,
   formatDerivedFigures,
   formatChunks,
   HACIENDA_URL,
@@ -113,55 +112,11 @@ describe("buildUserPrompt", () => {
     const question = prompt.indexOf("Pregunta:\n¿Cuánto pago?");
     expect(question).toBeGreaterThan(prompt.indexOf("[2]"));
     expect(question).toBeGreaterThan(prompt.indexOf("Cifras derivadas"));
-    expect(prompt.endsWith(`¿Cuánto pago?\n\n${COMPLETENESS_NOTE}`)).toBe(true);
-  });
-
-  /**
-   * #451: on a replay of the 2026-09-28 low arm's own chunks, the reworked
-   * rules 8 and 9 moved Tier 1 requirements 73 → 77 of 116, and what stayed
-   * missing was mostly what the documents in front of the model carried and
-   * the question did not name: the pagos parciales beside the declaración, the
-   * RUT and correo requisites beside the comprobante, the law an obligation
-   * comes from. The clause asking for them sits mid-paragraph in rule 9; the
-   * note repeats it as the last thing read, by rule number, so it adds no rule
-   * of its own and keeps rule 6's precedence.
-   */
-  it("closes with a reminder of rules 8 and 9, after the question (#451)", () => {
-    expect(COMPLETENESS_NOTE).toMatch(/reglas 8 y 9/);
-    expect(COMPLETENESS_NOTE).toMatch(/aunque la pregunta no l[oa]s? nombre/);
-    expect(COMPLETENESS_NOTE).toMatch(/la norma que establece la obligación/);
-    expect(COMPLETENESS_NOTE).toMatch(/las obligaciones que la acompañan/);
-    expect(COMPLETENESS_NOTE).toMatch(/regla 6/);
-  });
-
-  // #451, the replay after the note's first wording: requirements 77 → 80 of
-  // 116, groundedness 26 → 23 of 27. Three of the new fails were facts the
-  // note pulled in by inference — a sanction the fragment does not tie to the
-  // reader, a signing date read as a vigencia date. The note asks for what a
-  // document says, not what follows from it.
-  it("keeps the reminder to what a document says, not what follows from it (#451)", () => {
-    expect(COMPLETENESS_NOTE).toMatch(/lo que dice expresamente/);
-    expect(COMPLETENESS_NOTE).toMatch(
-      /no deduzca una obligación, una fecha ni un efecto que el documento no diga \(regla 1\)/,
-    );
-    expect(COMPLETENESS_NOTE).toMatch(/dígalo una sola vez, al final/);
-  });
-
-  // #451, the abstention lane on that wording: 8/9, and two declines printed
-  // figures the documents do not carry (a dated ICT tariff, a year-6
-  // exoneration) — the note's «recorra cada documento» ran alongside rule 6
-  // instead of giving way to it. On a question rule 6 routes away, the note
-  // does not apply at all.
-  it("stands the reminder down on a question rule 6 routes away (#451)", () => {
-    expect(COMPLETENESS_NOTE).toMatch(
-      /no se aplica a una pregunta que la regla 6 manda remitir/,
-    );
-    expect(COMPLETENESS_NOTE).toMatch(
-      /una cifra futura, un cálculo con los datos de la persona, una persona jurídica/,
-    );
-    expect(COMPLETENESS_NOTE).toMatch(
-      /sin recorrer los documentos en busca de más/,
-    );
+    // Nothing after it (#451): a closing completeness note replayed well
+    // (Tier 1 77 → 81 of 116 on fixed chunks) and then, on the full lane,
+    // pulled inferred facts into a blocking answer and uncited figures into
+    // two declines. The question is the last thing the model reads.
+    expect(prompt.endsWith("Pregunta:\n¿Cuánto pago?")).toBe(true);
   });
 });
 

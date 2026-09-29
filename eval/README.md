@@ -3046,3 +3046,74 @@ staying on the old model. #451 reworks it for 5.5 at `low` and ships the
 prompt and the model switch in one PR, so a 5.5 prompt never runs in
 production on Sonnet 5. Production stays on `claude-sonnet-5` at `medium`
 until then.
+
+## The prompt adapted to Sonnet 5.5 (2026-09-29, #451)
+
+> **`claude-sonnet-5-5` at `ANSWER_EFFORT=low`**, owner-approved, ≈US$20:
+> replays of the 2026-09-28 low arm's 27 Tier 1 rows on their own chunks
+> (`pnpm answer-replay`), two abstention checks, and one full run of the four
+> answer-writing lanes, all on the 2026-09-25 lane's knobs, judge
+> `claude-sonnet-4-5`, the 873-chunk local ingest. Rows in
+> [`eval/runs/2026-09-29-451/`](runs/2026-09-29-451/).
+
+**Research.** Anthropic's prompting page for Sonnet 5.5 says Sonnet 5 prompts
+carry over and documents no new literalness. The literal reading («does not
+infer requests you didn't make», especially at low effort) is documented for
+Sonnet 5. The levers it names are stating scope explicitly, asking for
+beyond-the-minimum content outright, giving the reason behind an instruction,
+and concrete rather than qualitative bars. Its long-context guidance puts
+documents before the query. 5.5 recalibrates effort (at `low` it skips
+thinking on most requests), and caches from 512 tokens.
+
+**What the misses were.** Read case by case, about half of 5.5's new Tier 1
+misses on 2026-09-28 were retrieval: its two arms shared a chunk list on only
+11 of 27 cases. About a quarter were judge noise. The rest were 5.5 declining
+by omission: «los documentos no detallan el portal… consulte», where Sonnet 5
+gave the step. That traced to rules 8 and 9 ending in «omítalo» / «se omite»
+under «se subordina a la regla 1», and to rule 6 firing on a partial gap.
+
+| Replay, 27 Tier 1 rows, fixed chunks                            | Requirements (of 116) | Grounded |
+| --------------------------------------------------------------- | --------------------- | -------- |
+| Recorded (2026-09-28 low arm)                                   | 74                    | 26/27    |
+| Control: `main`'s prompt replayed                               | 73                    | —        |
+| Rules reworked (shipped)                                        | **77**                | 26/27    |
+| + closing note, «use todo lo que aplica»                        | 80                    | 23/27    |
+| + closing note, «lo que dice expresamente», gives way to rule 6 | 81                    | 26/27    |
+
+Full lane on the prompt with the closing note:
+
+| Gate                             | Result                                                                            | Gate                |
+| -------------------------------- | --------------------------------------------------------------------------------- | ------------------- |
+| Groundedness                     | 69/73                                                                             | ≥ 0.94              |
+| Blocking cases grounded          | red (`ccss-obligacion-ingreso-bajo`, `ho-trabajitos-por-mi-cuenta`)               | 0 failing           |
+| Citation invariant               | 0                                                                                 | 0                   |
+| Abstention                       | 9/9, red on figures (`ho-abs-devs-exentos-renta`, `ho-abs-calculo-personalizado`) | ≥ 0.9, zero figures |
+| Derived figures completely cited | red (`ho-desde-cuanta-plata-caja`, #403's shape)                                  | none uncited        |
+| Tier 1 requirements stated       | 77/116                                                                            | ≥ 80                |
+| Tier 2 adequate                  | 12/13                                                                             | ≥ 0.84              |
+| Output tokens, max               | 2 668, every row `stop`                                                           | cap 4 096           |
+
+What it says:
+
+- **The rework helps on fixed chunks, by less than the gap.** Rules 8 and 9
+  now say they do not compete with rule 1 and name a real gap once, at the
+  end. Rule 6 declines only when nothing asked is answered. Rule 8's parts
+  are not headings (5.5 titled them in 15–19 of 27 answers), and the prompt
+  says why completeness matters. The user prompt puts the question after the
+  documents. Together that is 73 → 77 on a replay whose own noise is ±1.
+- **The closing note bought completeness with the hard gates.** Repeating
+  rule 9's unasked-facts clause after the question took the replay to 81, but
+  on the full lane the facts it pulled in failed a blocking case by
+  inference, and put an uncited figure into two declines. The owner dropped
+  it: the shipped prompt is the reworked rules alone, whose full lane has not
+  been run.
+- **The bracket clause (#427) leaves rule 2.** 5.5 wrote no annotated marker
+  in 146 answers. The retry note, sent only after a violation, keeps it.
+- **5.5 cites the line that introduces a list and not its bullets.** The
+  derived-figure and figure gates catch it: «El 75% de ese monto…» is
+  ARTICULO 22's figure, uncited in its own bullet.
+
+Decision (owner, 2026-09-29): drop the closing note; the branch carries the
+reworked rules alone on `claude-sonnet-5-5` at `low`. Its full lane has not
+been run, and the replay puts Tier 1 near 77, under the floor of 80 set on
+Sonnet 5 (#426). Whether that floor holds for 5.5 is open.
