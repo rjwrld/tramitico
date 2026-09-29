@@ -1,0 +1,245 @@
+ Vitest  The "eval" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "unit" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "integration" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+
+ RUN  v5.0.2 <worktree>
+
+
+conflicting sources (answer=claude-sonnet-5-5-effort-low, judge=claude-sonnet-4-5): pass
+Las fuentes discrepan sobre el monto exento, porque provienen de dos decretos distintos y los documentos no dicen que uno sustituya al otro.
+
+- El Decreto de tramos del impuesto sobre la renta 2026 (Decreto Ejecutivo 44000) establece que las rentas de las personas físicas con actividad lucrativa están exentas hasta un monto anual de ¢4.094.000 [1].
+- El Decreto de tramos del impuesto sobre la renta 2025 (Decreto Ejecutivo 43500) establece que ese monto exento anual es de ¢3.947.000 [2].
+
+En ambos casos, el exceso sobre el monto exento se grava según los tramos que fija el decreto respectivo [1][2]. Los documentos que tengo no traen esos tramos, así que no puedo indicarle la escala de tarifas.
+
+Conviene que verifique con el Ministerio de Hacienda cuál decreto rige para el período que le interesa: https://www.hacienda.go.cr
+
+
+consolidated vs reform (answer=claude-sonnet-5-5-effort-low, judge=claude-sonnet-4-5): pass
+Las fuentes establecen cuatro tarifas reducidas de IVA. Según el texto consolidado de la Ley del IVA, que ya incorpora las reformas, son estas:
+
+**4%**
+- La compra de boletos o pasajes aéreos cuyo origen o destino sea el territorio nacional, para cualquier clase de viaje [1].
+- Los servicios de salud privados prestados por centros de salud autorizados o por profesionales en ciencias de la salud autorizados [1].
+
+**2%**
+- Los medicamentos, y las materias primas, los insumos, la maquinaria, el equipo y los reactivos necesarios para su producción, autorizados por el Ministerio de Hacienda [1].
+- Los servicios de educación privada, con excepción de los exentos según el inciso 31 del artículo 8 de la Ley 6826 [1].
+- Las primas de seguros personales [1].
+
+**1%**
+- Las ventas, así como las importaciones o internaciones, de los bienes agropecuarios incluidos en la canasta básica [1].
+- Las ventas, así como las importaciones o internaciones, de los artículos definidos en la canasta básica [1].
+
+**0,5%**
+- La venta de productos agropecuarios o agroindustriales orgánicos que estén registrados y certificados ante la entidad correspondiente [1].
+
+La tarifa del 2% para educación privada admite excepciones: no aplica a los servicios que estén exentos según el inciso 31 del artículo 8 de la Ley 6826 [1]. La tarifa del 0,5% para productos orgánicos exige que estén registrados y certificados [1].
+
+Para saber qué tarifa aplica a su actividad o a un bien concreto, por ejemplo qué artículos integran la canasta básica, consulte al Ministerio de Hacienda en https://www.hacienda.go.cr. Los documentos provistos no detallan ese listado ni los trámites de autorización.
+
+
+abstention: 9/9
+  transcript: eval/runs/2026-09-28-sonnet-5-5/low/abstention-2026-09-28T23-31-18-289Z.jsonl
+  pass  model     ho-abs-cuanto-cobro-la-hora
+  pass  model     ho-abs-me-conviene-sociedad
+  pass  model     ho-abs-aguinaldo-freelancer
+  pass  model     ho-abs-iva-2027
+  pass  model     ho-abs-devs-exentos-renta
+  pass  model     ho-abs-patente-municipal
+  pass  model     ho-abs-calculo-personalizado
+  pass  model     ho-abs-sociedad-inactiva
+  pass  model     ho-abs-recomendar-contador
+
+transcript (#289): eval/runs/2026-09-28-sonnet-5-5/low/groundedness-claude-sonnet-5-5-effort-low-20260928T235120Z.jsonl
+
+groundedness (answer=claude-sonnet-5-5-effort-low, judge=claude-sonnet-4-5): 70/73
+  pass  inscripcion-hacienda-clientes-extranjero
+  pass  iva-clientes-fuera-cr
+  pass  cabys-desarrollo-software
+  pass  ccss-cuanto-pago-base
+  pass  ccss-cobro-retroactivo
+  pass  ccss-pedir-prescripcion-cuotas
+  pass  ccss-ventana-prescripcion-24-meses
+  pass  ccss-obligacion-ingreso-bajo
+  pass  ccss-asalariado-y-freelance
+  pass  ccss-cese-actividad
+  pass  ccss-arreglo-pago
+  pass  ccss-suspension-seguro-ti
+  pass  factura-electronica-v44
+  pass  desinscripcion-dejar-actividad
+  pass  renta-persona-fisica-deduccion
+  pass  regimen-simplificado-programador
+  pass  tribu-cr-declarar-pagar
+  FAIL [fail/fail/fail]  iva-servicios-extranjero-comprados  — The answer states that the sources do not mention hosting by name and that a cloud or storage service fits the description of digital services, but this is an extrapolation not explicitly supported by the fragments.
+  pass  iva-credito-fiscal-compras
+  pass  iva-declaracion-mensual
+  pass  iva-tarifa-general
+  pass  iva-tarifas-reducidas
+  pass  iva-momento-hecho-generador
+  pass  renta-bruta-que-incluye
+  pass  renta-tramos-2026
+  pass  renta-declaracion-plazo
+  pass  renta-pagos-parciales-retenciones
+  pass  renta-salario-y-actividad
+  pass  comprobantes-plazo-conservacion
+  pass  comprobantes-factura-vs-tiquete
+  pass  exportacion-servicios-comprobante
+  pass  iva-facturas-en-dolares
+  pass  ccss-asalariado-followup
+  pass  exportacion-comprobante-followup
+  pass  renta-plazo-followup
+  pass  iva-ajuste-bien-de-capital
+  pass  iva-retencion-tarjetas-porcentaje
+  FAIL [fail/fail/fail]  inscripcion-tribu-cr  — The answer cites fragment [6] for information about brecha digital and assistance offices, but fragment [6] is actually about the general preamble and system transition, not about assistance for those with digital divide.
+  pass  multa-iva-no-declarado
+  pass  inscripcion-tardia-sancion
+  pass  factura-primera-cabys
+  pass  ho-hacienda-solo-cliente-eeuu
+  pass  ho-trabajitos-por-mi-cuenta
+  pass  ho-donde-inscribo-ya-no-atv
+  pass  ho-desde-cuanta-plata-caja
+  pass  ho-donde-me-afilio-caja
+  pass  ho-tiquete-en-vez-de-factura
+  pass  ho-factura-electronica-o-recibo
+  pass  ho-cabys-paginas-web
+  pass  ho-cliente-espana-lleva-iva
+  pass  ho-iva-en-cero-sin-facturar
+  pass  ho-hasta-que-dia-tengo-iva
+  pass  ho-rebajar-25-sin-facturas
+  pass  ho-minimo-renta-2026
+  pass  ho-ademas-tengo-salario
+  FAIL [fail/fail/fail]  ho-minimo-caja-independiente-2026  — The answer states that the Estado contribution for Salud is 0.25% based on fragment [3], but fragment [3] only shows the 2018 scale and does not confirm this percentage applies in 2026.
+  pass  ho-800-mil-que-porcentaje-caja
+  pass  ho-tambien-asegurado-por-patrono
+  pass  ho-cobrar-8-anos-atras-caja
+  pass  ho-desinscribir-debiendo-declaraciones
+  pass  ho-rebajar-multa-si-pago-ya
+  pass  ho-t2-credito-iva-compras
+  pass  ho-t2-hosting-extranjero
+  pass  ho-t2-retencion-tarjetas
+  pass  ho-t2-compu-cara-iva
+  pass  ho-t2-tipo-de-cambio
+  pass  ho-t2-panaderia-simplificado
+  pass  ho-t2-arreglo-pago-caja
+  pass  ho-t2-salir-del-pais-seguro
+  pass  ho-t2-pensionado-con-actividad
+  pass  ho-t2-autorizar-contador
+  pass  ho-t2-constancia-al-dia
+  pass  ho-t2-payoneer
+groundedness by exposure (#267):
+  first-exposure  31/32
+  promoted        7/7
+  corpus-derived  32/34
+
+adequacy (#130): 15/40
+  FAIL  tier 1  T1-G  ccss-pedir-prescripcion-cuotas  — missing: En cobro, la Administración dispone de 20 días hábiles desde el siguiente día hábil a la recepción para resolver; en verificación, la solicitud se atiende dentro del informe o de la resolución del recurso, según la fase.; El canal correcto según la fase del caso — la unidad o sucursal financiera si está en verificación, cobros@ccss.sa.cr si ya está en cobro — y el plazo en que la Administración resuelve.
+  FAIL  tier 1  T1-G  ccss-ventana-prescripcion-24-meses  — missing: No: la ventana excepcional duró 24 meses desde la vigencia de la Ley 10363 el 8 de mayo de 2023, por lo que terminó el 8 de mayo de 2025.
+  FAIL  tier 1  T1-B  ccss-obligacion-ingreso-bajo  — missing: La obligatoriedad está en la Ley Constitutiva de la CCSS y en el Reglamento para el aseguramiento de los trabajadores independientes, no en una decisión voluntaria de la persona.
+  pass  tier 1  T1-H  ccss-cese-actividad
+  FAIL  tier 1  T1-H  desinscripcion-dejar-actividad  — missing: La desinscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, en «Mis datos» → «Solicitar desinscripción», indicando motivo y fecha de cese; el antiguo formulario D-140 ya no existe.
+  pass  tier 2  —  tribu-cr-declarar-pagar
+  FAIL  tier 1  T1-I  multa-iva-no-declarado  — missing: Además de la multa, el pago fuera de plazo genera intereses (CNPT artículo 57) y una morosidad del uno por ciento (1 %) por cada mes o fracción, con tope del veinte por ciento (20 %) del tributo (CNPT artículo 80 bis).; Cómo regularizar: presentar las declaraciones omitidas y pagar en TRIBU-CR, y que hacerlo antes de cualquier actuación de la Administración rebaja la sanción.
+  FAIL  tier 1  T1-I  inscripcion-tardia-sancion  — missing: Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.
+  FAIL  tier 1  T1-A  ho-hacienda-solo-cliente-eeuu  — missing: Facturar sólo a clientes del exterior no exime de inscribirse: aunque el servicio llegue a calificar como exportación exenta —lo que depende de que se consuma fuera de Costa Rica—, estar exento no es lo mismo que no ser contribuyente.; La inscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, como declaración de inscripción del Registro Único Tributario.
+  FAIL  tier 1  T1-A  ho-trabajitos-por-mi-cuenta  — missing: Sí: iniciar una actividad lucrativa por cuenta propia obliga a inscribirse ante la Administración Tributaria al momento de iniciarla, sin importar lo pequeña que sea.; La persona física con actividad lucrativa es contribuyente del impuesto sobre las utilidades y, si presta servicios gravados, también del IVA.; La inscripción ante Hacienda no sustituye el aseguramiento ante la CCSS como trabajador independiente: son dos obligaciones distintas.; Los dos trámites que siguen: la declaración de inscripción del RUT en la Oficina Virtual de TRIBU-CR y la afiliación como trabajador independiente en la CCSS.
+  FAIL  tier 1  T1-A  ho-donde-inscribo-ya-no-atv  — missing: El usuario de la Oficina Virtual es el número de identificación de la persona: cédula, DIMEX o NITE.; El camino dentro de la OVi hasta la declaración de inscripción y qué datos pide (actividad, fecha de inicio, domicilio).
+  FAIL  tier 1  T1-B  ho-desde-cuanta-plata-caja  — missing: Cómo se declara el ingreso de referencia y dónde se paga la cuota.
+  FAIL  tier 1  T1-B  ho-donde-me-afilio-caja  — missing: La cuota se paga mensualmente, dentro de la fecha que corresponde según la primera letra del primer apellido.
+  FAIL  tier 1  T1-C  ho-tiquete-en-vez-de-factura  — missing: Los únicos comprobantes autorizados para cumplir obligaciones tributarias son los que lista el artículo 9 del Reglamento de Comprobantes Electrónicos: factura electrónica, factura electrónica de compra, factura electrónica de exportación, tiquete electrónico, recibo electrónico de pago y las notas de crédito y débito.; Quien emite comprobantes electrónicos debe estar inscrito en el Registro Único Tributario y tener registrado un correo electrónico válido ante la Administración Tributaria.
+  FAIL  tier 1  T1-C  ho-factura-electronica-o-recibo  — missing: Con qué emitir: el facturador gratuito de Hacienda o un proveedor de sistemas de comprobantes electrónicos.; Los comprobantes electrónicos y sus documentos asociados deben almacenarse y conservarse por un plazo de cinco años. (cinco años | 5 años: absent)
+  FAIL  tier 1  T1-C  ho-cabys-paginas-web  — missing: Al emitir el comprobante, en cada línea de detalle se indica el código de producto, la descripción, la cantidad y el precio unitario.
+  FAIL  tier 1  T1-D  ho-cliente-espana-lleva-iva  — missing: La exención aplica a los servicios prestados por contribuyentes del impuesto cuando son consumidos fuera del territorio nacional.; Que el cliente sea extranjero no basta por sí solo: lo que decide es dónde se consume o utiliza el servicio.; La operación exenta se documenta igual, con el comprobante electrónico que corresponda.; El hecho generador ocurre al facturar o al prestar el servicio, el acto que se realice primero, no cuando el cliente paga.; La operación se documenta con factura electrónica de exportación.; Si el servicio se consume en Costa Rica, la tarifa general del impuesto es del 13 %. (13 % | 13% | trece por ciento: absent)
+  FAIL  tier 1  T1-D  ho-iva-en-cero-sin-facturar  — missing: Dónde se presenta la declaración hoy y qué pasa si ya venció el plazo.
+  FAIL  tier 1  T1-D  ho-hasta-que-dia-tengo-iva  — missing: Qué hacer si la fecha ya pasó.; El impuesto se liquida a más tardar el decimoquinto día natural de cada mes, por las operaciones del mes anterior. (decimoquinto día natural | día 15 | 15 de cada mes: present but uncited)
+  FAIL  tier 1  T1-E  ho-rebajar-25-sin-facturas  — missing: La declaración anual se presenta en TRIBU-CR, la plataforma tributaria.
+  FAIL  tier 1  T1-E  ho-minimo-renta-2026  — missing: El período del impuesto va del 1 de enero al 31 de diciembre.; Los tramos se actualizan cada año por decreto ejecutivo; los de 2026 son del decreto N° 45333.
+  FAIL  tier 1  T1-E  ho-ademas-tengo-salario  — missing: Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.; Qué se declara en la declaración anual cuando hay salario y actividad, y cómo se tratan las retenciones ya soportadas.; Los pagos parciales: cuándo se pagan y que puede pedirse su rebaja cuando la renta del período va a ser menor.; La declaración anual y el pago vencen dentro de los dos meses y quince días naturales siguientes al cierre del período. (dos meses y quince días | 2 meses y 15 días: absent)
+  pass  tier 1  T1-F  ho-minimo-caja-independiente-2026
+  pass  tier 1  T1-F  ho-800-mil-que-porcentaje-caja
+  pass  tier 1  T1-F  ho-tambien-asegurado-por-patrono
+  pass  tier 1  T1-G  ho-cobrar-8-anos-atras-caja
+  FAIL  tier 1  T1-H  ho-desinscribir-debiendo-declaraciones  — missing: Mientras la persona siga inscrita, la obligación de declarar continúa aunque ya no facture.
+  FAIL  tier 1  T1-I  ho-rebajar-multa-si-pago-ya  — missing: Cómo se regulariza: presentar lo omitido y pagar en TRIBU-CR antes de cualquier actuación de la Administración.; Subsanar de forma espontánea, sin que medie actuación de la Administración, rebaja la sanción en un setenta y cinco por ciento (75 %). (75 % | 75% | setenta y cinco por ciento: present but uncited)
+  pass  tier 2  —  ho-t2-credito-iva-compras
+  pass  tier 2  —  ho-t2-hosting-extranjero
+  pass  tier 2  —  ho-t2-retencion-tarjetas
+  pass  tier 2  —  ho-t2-compu-cara-iva
+  pass  tier 2  —  ho-t2-tipo-de-cambio
+  pass  tier 2  —  ho-t2-panaderia-simplificado
+  pass  tier 2  —  ho-t2-arreglo-pago-caja
+  FAIL  tier 2  —  ho-t2-salir-del-pais-seguro  — missing: La suspensión del seguro de trabajador independiente se hace a solicitud de la persona y no ocurre de forma automática.
+  pass  tier 2  —  ho-t2-pensionado-con-actividad
+  pass  tier 2  —  ho-t2-autorizar-contador
+  FAIL  tier 2  —  ho-t2-constancia-al-dia  — missing: La situación tributaria se consulta en la OVi pública de TRIBU-CR, sin necesidad de usuario.
+  FAIL  tier 2  —  ho-t2-payoneer  — missing: El medio por el que se recibe el pago no cambia la regla: lo que decide es si la renta es de fuente costarricense y si la persona es contribuyente.
+tier 1 requirements stated (#287): 74/116
+adequacy by exposure (#267):
+  first-exposure  13/32
+  promoted        1/7
+  corpus-derived  1/1
+
+citation invariant (#168): 0 violation(s)
+ ❯ |eval| src/lib/eval/groundedness.eval.test.ts (7 tests | 3 failed) 1293854ms
+   ❯ groundedness (eval/dataset.jsonl) (7)
+     × states at least 80 tier 1 requirements 4ms
+     × at least 84% of tier 2 cases with required claims are adequate 0ms
+     × every blocking case's answer is supported by its retrieved chunks 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > states at least 80 tier 1 requirements
+AssertionError: tier 1 requirements stated 74/116; inadequate tier 1 answers: ccss-pedir-prescripcion-cuotas (En cobro, la Administración dispone de 20 días hábiles desde el siguiente día hábil a la recepción para resolver; en verificación, la solicitud se atiende dentro del informe o de la resolución del recurso, según la fase.; El canal correcto según la fase del caso — la unidad o sucursal financiera si está en verificación, cobros@ccss.sa.cr si ya está en cobro — y el plazo en que la Administración resuelve.); ccss-ventana-prescripcion-24-meses (No: la ventana excepcional duró 24 meses desde la vigencia de la Ley 10363 el 8 de mayo de 2023, por lo que terminó el 8 de mayo de 2025.); ccss-obligacion-ingreso-bajo (La obligatoriedad está en la Ley Constitutiva de la CCSS y en el Reglamento para el aseguramiento de los trabajadores independientes, no en una decisión voluntaria de la persona.); desinscripcion-dejar-actividad (La desinscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, en «Mis datos» → «Solicitar desinscripción», indicando motivo y fecha de cese; el antiguo formulario D-140 ya no existe.); multa-iva-no-declarado (Además de la multa, el pago fuera de plazo genera intereses (CNPT artículo 57) y una morosidad del uno por ciento (1 %) por cada mes o fracción, con tope del veinte por ciento (20 %) del tributo (CNPT artículo 80 bis).; Cómo regularizar: presentar las declaraciones omitidas y pagar en TRIBU-CR, y que hacerlo antes de cualquier actuación de la Administración rebaja la sanción.); inscripcion-tardia-sancion (Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.); ho-hacienda-solo-cliente-eeuu (Facturar sólo a clientes del exterior no exime de inscribirse: aunque el servicio llegue a calificar como exportación exenta —lo que depende de que se consuma fuera de Costa Rica—, estar exento no es lo mismo que no ser contribuyente.; La inscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, como declaración de inscripción del Registro Único Tributario.); ho-trabajitos-por-mi-cuenta (Sí: iniciar una actividad lucrativa por cuenta propia obliga a inscribirse ante la Administración Tributaria al momento de iniciarla, sin importar lo pequeña que sea.; La persona física con actividad lucrativa es contribuyente del impuesto sobre las utilidades y, si presta servicios gravados, también del IVA.; La inscripción ante Hacienda no sustituye el aseguramiento ante la CCSS como trabajador independiente: son dos obligaciones distintas.; Los dos trámites que siguen: la declaración de inscripción del RUT en la Oficina Virtual de TRIBU-CR y la afiliación como trabajador independiente en la CCSS.); ho-donde-inscribo-ya-no-atv (El usuario de la Oficina Virtual es el número de identificación de la persona: cédula, DIMEX o NITE.; El camino dentro de la OVi hasta la declaración de inscripción y qué datos pide (actividad, fecha de inicio, domicilio).); ho-desde-cuanta-plata-caja (Cómo se declara el ingreso de referencia y dónde se paga la cuota.); ho-donde-me-afilio-caja (La cuota se paga mensualmente, dentro de la fecha que corresponde según la primera letra del primer apellido.); ho-tiquete-en-vez-de-factura (Los únicos comprobantes autorizados para cumplir obligaciones tributarias son los que lista el artículo 9 del Reglamento de Comprobantes Electrónicos: factura electrónica, factura electrónica de compra, factura electrónica de exportación, tiquete electrónico, recibo electrónico de pago y las notas de crédito y débito.; Quien emite comprobantes electrónicos debe estar inscrito en el Registro Único Tributario y tener registrado un correo electrónico válido ante la Administración Tributaria.); ho-factura-electronica-o-recibo (Con qué emitir: el facturador gratuito de Hacienda o un proveedor de sistemas de comprobantes electrónicos.; Los comprobantes electrónicos y sus documentos asociados deben almacenarse y conservarse por un plazo de cinco años. (cinco años | 5 años: absent)); ho-cabys-paginas-web (Al emitir el comprobante, en cada línea de detalle se indica el código de producto, la descripción, la cantidad y el precio unitario.); ho-cliente-espana-lleva-iva (La exención aplica a los servicios prestados por contribuyentes del impuesto cuando son consumidos fuera del territorio nacional.; Que el cliente sea extranjero no basta por sí solo: lo que decide es dónde se consume o utiliza el servicio.; La operación exenta se documenta igual, con el comprobante electrónico que corresponda.; El hecho generador ocurre al facturar o al prestar el servicio, el acto que se realice primero, no cuando el cliente paga.; La operación se documenta con factura electrónica de exportación.; Si el servicio se consume en Costa Rica, la tarifa general del impuesto es del 13 %. (13 % | 13% | trece por ciento: absent)); ho-iva-en-cero-sin-facturar (Dónde se presenta la declaración hoy y qué pasa si ya venció el plazo.); ho-hasta-que-dia-tengo-iva (Qué hacer si la fecha ya pasó.; El impuesto se liquida a más tardar el decimoquinto día natural de cada mes, por las operaciones del mes anterior. (decimoquinto día natural | día 15 | 15 de cada mes: present but uncited)); ho-rebajar-25-sin-facturas (La declaración anual se presenta en TRIBU-CR, la plataforma tributaria.); ho-minimo-renta-2026 (El período del impuesto va del 1 de enero al 31 de diciembre.; Los tramos se actualizan cada año por decreto ejecutivo; los de 2026 son del decreto N° 45333.); ho-ademas-tengo-salario (Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.; Qué se declara en la declaración anual cuando hay salario y actividad, y cómo se tratan las retenciones ya soportadas.; Los pagos parciales: cuándo se pagan y que puede pedirse su rebaja cuando la renta del período va a ser menor.; La declaración anual y el pago vencen dentro de los dos meses y quince días naturales siguientes al cierre del período. (dos meses y quince días | 2 meses y 15 días: absent)); ho-desinscribir-debiendo-declaraciones (Mientras la persona siga inscrita, la obligación de declarar continúa aunque ya no facture.); ho-rebajar-multa-si-pago-ya (Cómo se regulariza: presentar lo omitido y pagar en TRIBU-CR antes de cualquier actuación de la Administración.; Subsanar de forma espontánea, sin que medie actuación de la Administración, rebaja la sanción en un setenta y cinco por ciento (75 %). (75 % | 75% | setenta y cinco por ciento: present but uncited)): expected 74 to be greater than or equal to 80
+ ❯ src/lib/eval/groundedness.eval.test.ts:440:7
+    438|       stated,
+    439|       `tier 1 requirements stated ${stated}/${total}; inadequate tier …
+    440|     ).toBeGreaterThanOrEqual(TIER1_REQUIREMENT_FLOOR);
+       |       ^
+    441|   });
+    442|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > at least 84% of tier 2 cases with required claims are adequate
+AssertionError: inadequate tier 2 answers: ho-t2-salir-del-pais-seguro (La suspensión del seguro de trabajador independiente se hace a solicitud de la persona y no ocurre de forma automática.); ho-t2-constancia-al-dia (La situación tributaria se consulta en la OVi pública de TRIBU-CR, sin necesidad de usuario.); ho-t2-payoneer (El medio por el que se recibe el pago no cambia la regla: lo que decide es si la renta es de fuente costarricense y si la persona es contribuyente.): expected 0.7692307692307693 to be greater than or equal to 0.84
+ ❯ src/lib/eval/groundedness.eval.test.ts:456:7
+    454|       rate,
+    455|       `inadequate tier 2 answers: ${failed.join("; ")}`,
+    456|     ).toBeGreaterThanOrEqual(ADEQUACY_TIER2_GATE);
+       |       ^
+    457|   });
+    458|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > every blocking case's answer is supported by its retrieved chunks
+AssertionError: ungrounded blocking answers: ho-minimo-caja-independiente-2026 (The answer states that the Estado contribution for Salud is 0.25% based on fragment [3], but fragment [3] only shows the 2018 scale and does not confirm this percentage applies in 2026.): expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "ho-minimo-caja-independiente-2026 (The answer states that the Estado contribution for Salud is 0.25% based on fragment [3], but fragment [3] only shows the 2018 scale and does not confirm this percentage applies in 2026.)",
++ ]
+
+ ❯ src/lib/eval/groundedness.eval.test.ts:479:73
+    477|     // passed it with two Tier 1 held-out cases failing unanimously.
+    478|     const failed = blockingGroundednessFailures(results);
+    479|     expect(failed, `ungrounded blocking answers: ${failed.join("; ")}`…
+       |                                                                         ^
+    480|       [],
+    481|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed | 3 passed (4)
+      Tests  3 failed | 10 passed (13)
+   Start at  17:29:46
+   Duration  1294.16s (tests 100%)
+
