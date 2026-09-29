@@ -20,7 +20,7 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import type { LanguageModel } from "ai";
 
-export const DEFAULT_ANSWER_MODEL = "claude-sonnet-5";
+export const DEFAULT_ANSWER_MODEL = "claude-sonnet-5-5";
 
 /**
  * Haiku, not Sonnet: rewriting "¿y si también soy asalariado?" plus its
@@ -63,11 +63,15 @@ export function getAnswerModel(): LanguageModel {
 export const ANSWER_MAX_OUTPUT_TOKENS = 4096;
 
 /**
- * Adaptive-thinking effort for the answer call (#356). `claude-sonnet-5`
+ * Adaptive-thinking effort for the answer call (#356). The answer model
  * thinks adaptively when a request omits `thinking`, at effort `high`, and
  * streams no reasoning text — so the reasoning shows up as silence before the
  * first text delta: 11–28 s on five of the nine seed prompts in the
- * 2026-09-22 probe, against ~1.5 s at `medium`.
+ * 2026-09-22 probe on `claude-sonnet-5`, against ~1.5 s at `medium`.
+ * `claude-sonnet-5-5` recalibrates the levels (#451): at `low` it skips
+ * thinking on most asks, from `medium` up it thinks briefly before nearly
+ * every one, and production runs it at `low` — 0.76 s to first text in the
+ * 2026-09-28 probe.
  *
  * `ANSWER_EFFORT` sets it for a measured run or a deploy; unset, empty (what
  * `eval.yml` interpolates for an unset repository variable) and anything
