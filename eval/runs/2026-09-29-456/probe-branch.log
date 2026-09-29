@@ -1,0 +1,20 @@
+$ tsx scripts/answer-set-probe.ts eval/runs/2026-09-29-456/probe-branch.json
+.........................................................................aaaaaaaaa
+retrieval cases: 73 (191 expected targets), abstention: 9, follow-ups condensed: 12
+condensation fell back to the question: none
+weak: none
+expansion absent: none
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   129/191    37/73        5        —
+top8/capoff/pinon    134/191    40/73        19       —
+top8/cap3/pinoff     129/191    36/73        3        —
+top8/cap3/pinon      135/191    41/73        21       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top8/cap2/pinoff     122/191    33/73        3        —
+top8/cap2/pinon      128/191    38/73        21       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/capoff/pinoff  138/191    40/73        8        —
+top10/capoff/pinon   142/191    43/73        19       —
+top10/cap3/pinoff    133/191    38/73        3        —
+top10/cap3/pinon     139/191    43/73        21       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/cap2/pinoff    129/191    38/73        5        —
+top10/cap2/pinon     134/191    42/73        21       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)

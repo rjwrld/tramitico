@@ -1,7 +1,7 @@
 /**
  * Deterministic answer-set probe (#312, #305): retrieve → rerank → cap → pin
- * → resolve, no answer model, no judge, over every single-turn retrieval case
- * and every abstention case. One retrieval and one rerank per case; every
+ * → resolve, no answer model, no judge, over every retrieval case and every
+ * abstention case. One retrieval and one rerank per case; every
  * configuration of `ANSWER_TOP_K` × `ANSWER_DOC_CAP` × `PIN_DERIVED_INPUTS`
  * is then a pure function of that one reranked order, so the arms are
  * compared on identical pools rather than on run-to-run expansion noise.
@@ -12,8 +12,17 @@
  * The JSON it writes carries every case's per-configuration answer set and
  * each expected target's reranked rank, for the per-case read.
  *
- * Cents: embeddings, expansions and two Voyage calls per case. A diagnostic,
- * not a gate. Usage (reads `.env.local` like `ingest.ts`):
+ * A follow-up — a case carrying `history` — is condensed first, by the
+ * route's own `condenseQuestion`, and read on the rewrite the pipeline
+ * actually retrieves on (#456): until then the probe skipped them, so
+ * `ccss-ventana-prescripcion-24-meses`, whose one dated chunk no run was
+ * putting in front of the model, was a case it could not see. That is one
+ * small-model call per follow-up, and it moves the totals: a figure from
+ * before #456 counted single-turn cases only.
+ *
+ * Cents: embeddings, expansions, condensations and the Voyage calls per
+ * case. A diagnostic, not a gate. Usage (reads `.env.local` like
+ * `ingest.ts`):
  *
  *   pnpm answer-set-probe [out.json]
  */
@@ -28,6 +37,7 @@ function loadDotEnvLocal(): void {
     if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2];
   }
 }
+import { condenseQuestion } from "../src/lib/answer/condense";
 import {
   pinDerivedFigureInputs,
   resolveDerivedFigures,
@@ -68,6 +78,10 @@ for (const topK of ["8", "10"]) {
 interface CaseRead {
   id: string;
   kind: "retrieval" | "abstention";
+  /** What retrieval ran on: the question, or a follow-up's condensation. */
+  query: string;
+  /** A follow-up whose condensation failed and fell back to the question. */
+  condenseFailed: boolean;
   tier: unknown;
   family: string | null;
   weak: boolean;
@@ -98,13 +112,20 @@ async function readCase(
   kind: "retrieval" | "abstention",
   embedder: ReturnType<typeof createEmbedder>,
 ): Promise<CaseRead> {
-  const retrieval = await retrieve(evalCase.question, {
+  // The route's own first step (#132): a single-turn case skips the call.
+  const { query, condensed } = await condenseQuestion(
+    evalCase.question,
+    evalCase.history ?? [],
+  );
+  const retrieval = await retrieve(query, {
     matchCount: RERANK_POOL,
     embedder,
   });
   const read: CaseRead = {
     id: evalCase.id,
     kind,
+    query,
+    condenseFailed: evalCase.history !== undefined && condensed === null,
     tier: evalCase.tier,
     family: evalCase.family ?? null,
     weak: retrieval.isWeak,
@@ -128,7 +149,7 @@ async function readCase(
     }
     return read;
   }
-  const outcome = await rerankReadings(evalCase.question, retrieval.chunks, {
+  const outcome = await rerankReadings(query, retrieval.chunks, {
     expansion: retrieval.expansion,
     steps: retrieval.steps?.sentences ?? null,
   });
@@ -171,12 +192,12 @@ async function readCase(
 async function main(): Promise<void> {
   loadDotEnvLocal();
   const all = parseDataset(readFileSync(DATASET_PATH, "utf8"));
-  const single = retrievalCases(all).filter((c) => !c.history);
-  const abs = abstentionCases(all).filter((c) => !c.history);
+  const retrievals = retrievalCases(all);
+  const abs = abstentionCases(all);
   const out = process.argv[2] ?? "answer-set-probe.json";
   const embedder = createEmbedder();
   const reads: CaseRead[] = [];
-  for (const c of single) {
+  for (const c of retrievals) {
     reads.push(await readCase(c, "retrieval", embedder));
     process.stdout.write(".");
   }
@@ -190,8 +211,17 @@ async function main(): Promise<void> {
   const totalTargets = reads
     .filter((r) => r.kind === "retrieval")
     .reduce((n, r) => n + r.expectedCount, 0);
+  const followUps = [...retrievals, ...abs].filter((c) => c.history).length;
   console.log(
-    `single-turn retrieval cases: ${single.length} (${totalTargets} expected targets), abstention: ${abs.length}`,
+    `retrieval cases: ${retrievals.length} (${totalTargets} expected targets), abstention: ${abs.length}, follow-ups condensed: ${followUps}`,
+  );
+  console.log(
+    `condensation fell back to the question: ${
+      reads
+        .filter((r) => r.condenseFailed)
+        .map((r) => r.id)
+        .join(", ") || "none"
+    }`,
   );
   console.log(
     `weak: ${

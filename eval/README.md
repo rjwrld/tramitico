@@ -3117,3 +3117,38 @@ Decision (owner, 2026-09-29): drop the closing note; the branch carries the
 reworked rules alone on `claude-sonnet-5-5` at `low`. Its full lane has not
 been run, and the replay puts Tier 1 near 77, under the floor of 80 set on
 Sonnet 5 (#426). Whether that floor holds for 5.5 is open.
+
+## The window's date, in the pool but not the set (2026-09-29, #456)
+
+> Two `pnpm answer-set-probe` runs (retrieval and rerank only, no answer
+> model), owner-approved, ≈US$0.8, plus a Voyage-only read of `pin1`'s pick
+> scores. Rows in [`eval/runs/2026-09-29-456/`](runs/2026-09-29-456/).
+
+`ccss-ventana-prescripcion-24-meses` requires «…terminó el 8 de mayo de 2025».
+One chunk states that date: `ccss-reglamento-ti` TRANSITORIO V («regirá hasta
+el 8 de mayo de 2025»). No run since 2026-09-24 had put it in front of the
+model. The case's `expected` now names it, so a hit no longer passes without
+it. T1-G's catalogue gains a fifth sentence that mirrors it. The catalogue now
+holds two to five sentences per family; the other eight keep theirs. The
+reason is register again (#286), on the date: the transitorio gives a
+deadline, and the reader, the condensation and the expansion all say «24
+meses».
+
+- **The pool is fixed.** On the branch probe TRANSITORIO V enters the answer
+  set of `ho-cobrar-8-anos-atras-caja` (#8) and `ccss-cobro-retroactivo` (#7),
+  where the baseline lacked it. The question's own reading puts it in the cut
+  once it is in the pool.
+- **The ventana case stops at #9**, one past the cut. `pin1`'s single append
+  goes to «¿En qué momento puedo solicitar…?» instead, on every T1-G ask. A
+  pick is ranked by its score against its own sentence. Those scores are
+  quantized and do not depend on the question: s3 and s4 score 0.9688 each
+  (sentence order breaks the tie), and TRANSITORIO V scores 0.9648 whatever
+  the wording. The same rule keeps two of `ccss-pedir-prescripcion-cuotas`'
+  three targets out. Ranking picks by the question's reading instead is
+  #460. It changes every family's pin, so it needs a full lane.
+- **The probe now reads follow-ups.** `answer-set-probe` had skipped every
+  case with `history`, so it could not see this case. It now condenses each
+  one with the route's `condenseQuestion` and records the query retrieval ran
+  on. That changes its totals: 73 retrieval cases instead of 61. Condensation
+  varies run to run even at temperature 0 (#457), so one probe of a
+  follow-up is one draw.
