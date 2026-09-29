@@ -15,8 +15,8 @@ itself. Production is `top8/capoff/pinon`. Owner-approved, ≈US$0.8 for both.
 | `probe-branch.log` · `probe-branch.json`     | The branch's probe on the branch's catalogue: 73 retrieval and 9 abstention. The 12 follow-ups are condensed first, and none fell back to its question. Each read carries the `query` retrieval ran on. The ventana case's was «¿Todavía aplica la ventana de los 24 meses para regularizar la inscripción en la CCSS sin que se cobre la deuda de los años anteriores?». |
 | `pick-scores.log`                            | Voyage `rerank-2.5-lite` scores for each T1-G catalogue sentence, two other wordings of the new one, and three T1-G questions, against the 52 prescription chunks. These are the scores `pin1` compares. Voyage calls only, a fraction of a cent.                                                                                                                         |
 
-The baseline log's path to the worktree is replaced with `<worktree>`. Nothing
-else is edited.
+The baseline log's path to the worktree is replaced with `<worktree>`, and the
+two JSONs are re-indented by `prettier`. Nothing else is edited.
 
 ## What the runs say
 
