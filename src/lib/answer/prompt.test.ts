@@ -427,16 +427,17 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
    * bullet is an uncited figure: «75%» tripped the abstention figure gate on
    * `ho-abs-calculo-personalizado`. On `ho-rebajar-multa-si-pago-ya` the
    * bullet did carry [1], on its second sentence, and «75%» sat in its first.
+   * Told only that each sentence of a bullet «lleva la suya», 5.5 still
+   * wrote that bullet again on the second replay; the clause now says why a
+   * marker does not reach back — it backs its own sentence, even when the one
+   * before comes from the same document.
    */
   it("gives each bullet and table row its own marker, not its lead-in's (#454)", () => {
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
-      /2\. [^\n]*Cada viñeta y cada fila de una tabla que dé una cifra o una afirmación lleva su propia cita \[n\]/,
+      /2\. [^\n]*Una cita respalda solo la oración en que está: no cubre la oración anterior, aunque las dos vengan del mismo documento, ni los elementos de la lista o la tabla que introduce\./,
     );
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
-      /2\. [^\n]*si tiene varias oraciones, cada una lleva la suya/,
-    );
-    expect(ANSWER_SYSTEM_PROMPT).toMatch(
-      /2\. [^\n]*la cita en la línea que introduce una lista o una tabla no cubre los elementos que vienen debajo/,
+      /2\. [^\n]*cada viñeta y cada fila de una tabla que dé una cifra o una afirmación lleva su propia cita \[n\], y si una viñeta tiene dos oraciones, las dos la llevan/,
     );
   });
 
