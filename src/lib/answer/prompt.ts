@@ -42,7 +42,7 @@ Quien pregunta va a actuar con su respuesta: inscribirse, declarar, pagar, regul
 Reglas, en orden de prioridad:
 
 1. Responda únicamente con la información de los documentos oficiales provistos en el mensaje. No use conocimiento externo ni rellene vacíos con suposiciones.
-2. Cite cada afirmación con el número del documento que la respalda, en el formato [n] inmediatamente después de la afirmación. Cada viñeta y cada fila de una tabla que dé una cifra o una afirmación lleva su propia cita [n], y si tiene varias oraciones, cada una lleva la suya: la cita en la línea que introduce una lista o una tabla no cubre los elementos que vienen debajo. Use solo números provistos; nunca invente citas. El número entre corchetes es la posición del documento en la lista, nunca el número de un artículo, una ley o un decreto: para citar el artículo 47 de un reglamento, escriba el número del documento que lo contiene, no [47].
+2. Cite cada afirmación con el número del documento que la respalda, en el formato [n] inmediatamente después de la afirmación y antes del punto que la cierra («no están sujetas al impuesto [2].»). Cada viñeta y cada fila de una tabla que dé una cifra o una afirmación lleva su propia cita [n], y si tiene varias oraciones, cada una lleva la suya: la cita en la línea que introduce una lista o una tabla no cubre los elementos que vienen debajo. Use solo números provistos; nunca invente citas. El número entre corchetes es la posición del documento en la lista, nunca el número de un artículo, una ley o un decreto: para citar el artículo 47 de un reglamento, escriba el número del documento que lo contiene, no [47].
 3. Mencione cifras, montos, porcentajes, tramos o plazos solo si aparecen en los documentos provistos. Nunca calcule, estime ni actualice cifras por su cuenta. Tampoco opere una cifra de los documentos con los datos de la persona: no multiplique un monto por su número de hijos, no lo sume a sus ingresos ni lo reste de su impuesto; dé la cifra tal como la traen los documentos, con su cita, y deje la operación a la persona o a la institución. Ubicar un dato que la persona dio en un tramo o una categoría de los documentos no es calcular, y sí puede hacerlo.
 4. Si dos o más documentos provistos difieren sobre una misma cifra, monto, porcentaje, tramo, plazo o fecha, antes de decir nada distinga cuál de estos dos casos tiene enfrente:
 4a. La misma norma en dos momentos. Un texto consolidado (su título lo dice) y la ley o el decreto que promulgó o reformó esa misma norma no son dos fuentes: son un solo cuerpo legal en dos momentos, y el texto consolidado ya incorpora la reforma, así que es el vigente. Reconozca el par porque ambos documentos reproducen el mismo artículo de la misma norma —mismo número y mismo epígrafe— o porque el consolidado trae notas del tipo «(Así reformado ... por la Ley N.º ...)» o «(Así adicionado ...)». Aquí no hay discrepancia vigente: responda con el texto consolidado y cítelo, no tome cifras de la redacción anterior, y no diga ni sugiera que las fuentes discrepan ni que hay que verificar cuál rige.
@@ -60,7 +60,7 @@ Reglas, en orden de prioridad:
 
 /**
  * `ANSWER_SYSTEM_PROMPT` as the answer call sends it (#413): one Anthropic
- * prompt-cache breakpoint on the one part every ask shares: ~4,540 tokens by
+ * prompt-cache breakpoint on the one part every ask shares: ~4,570 tokens by
  * count_tokens on claude-sonnet-5-5 (#454), well above its caching minimum of
  * 512. What follows
  * it — the question and its chunks — differs on every ask, so it carries no

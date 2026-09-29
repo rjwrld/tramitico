@@ -441,6 +441,20 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
   });
 
   /**
+   * #454's first replay: told that each bullet cites itself, 5.5 wrote
+   * «- Las rentas de hasta ¢6.244.000,00 anuales no están sujetas al
+   * impuesto. [1][2]» on 28 lines of 3 answers, and on none before. A
+   * sentence ends at its period for the literal check, the abstention figure
+   * gate and the runtime's derived-figure check alike, so a marker after it
+   * cites nothing: `ho-minimo-renta-2026` lost «¢6.244.000» that way.
+   */
+  it("puts the marker before the period that closes the sentence (#454)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /2\. [^\n]*inmediatamente después de la afirmación y antes del punto que la cierra \(«no están sujetas al impuesto \[2\]\.»\)/,
+    );
+  });
+
+  /**
    * #427: about 1 Sonnet 5 answer in 70 corrected a doubted marker inside the
    * brackets — «[4][6][10 no existe, cito 6]», «[7][10 nota: cita 7]» — and
    * rule 2 said a marker holds a number and nothing else. #451: Sonnet 5.5
@@ -564,7 +578,7 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
 
 describe("ANSWER_SYSTEM (#413)", () => {
   it("is the system prompt, unchanged, as one cache breakpoint", () => {
-    // Every answer call shares these ~4,540 tokens (count_tokens), above the
+    // Every answer call shares these ~4,570 tokens (count_tokens), above the
     // answer model's caching minimum (512 on claude-sonnet-5-5); the chunks
     // after them
     // differ per question and are deliberately left unmarked (a write premium
