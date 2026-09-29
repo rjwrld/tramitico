@@ -7,7 +7,7 @@
     "quality_profile": "showcase",
     "repository": {
       "url": "https://github.com/rjwrld/tramitico",
-      "revision": "bcbcb32b1b1836ee01ba7adeab0ac842fe4dab77"
+      "revision": "42e135e96781641a7f842653f405fb04129ff529"
     }
   },
   "components": [
@@ -36,7 +36,7 @@
       "sources": [
         {
           "path": "src/app/api/ask/route.ts",
-          "line": 549,
+          "line": 713,
           "label": "POST handler"
         },
         {
@@ -58,8 +58,8 @@
       "sources": [
         {
           "path": "src/lib/rate-limit.ts",
-          "line": 261,
-          "end_line": 327,
+          "line": 389,
+          "end_line": 483,
           "label": "checkRateLimit"
         }
       ]
@@ -96,7 +96,7 @@
       "sources": [
         {
           "path": "src/lib/ingestion/embedder.ts",
-          "line": 32,
+          "line": 34,
           "label": "embedQuery"
         }
       ]
@@ -175,19 +175,19 @@
       "sources": [
         {
           "path": "src/lib/answer/rerank.ts",
-          "line": 502,
-          "end_line": 513,
+          "line": 596,
+          "end_line": 607,
           "label": "rerankChunks"
         },
         {
           "path": "src/lib/answer/rerank.ts",
-          "line": 122,
+          "line": 152,
           "label": "RERANK_MODEL"
         },
         {
           "path": "src/lib/answer/derived.ts",
-          "line": 263,
-          "end_line": 295,
+          "line": 318,
+          "end_line": 350,
           "label": "resolveDerivedFigures"
         }
       ]
@@ -203,8 +203,8 @@
       "sources": [
         {
           "path": "src/app/api/ask/route.ts",
-          "line": 492,
-          "end_line": 521,
+          "line": 632,
+          "end_line": 685,
           "label": "generateAnswer"
         },
         {
@@ -224,13 +224,13 @@
       "sources": [
         {
           "path": "src/lib/answer/invariant.ts",
-          "line": 51,
-          "end_line": 70,
+          "line": 52,
+          "end_line": 74,
           "label": "validateCitations"
         },
         {
           "path": "src/app/api/ask/route.ts",
-          "line": 203,
+          "line": 251,
           "label": "MAX_ANSWER_ATTEMPTS"
         }
       ]
