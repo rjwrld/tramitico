@@ -1,7 +1,7 @@
 /**
  * Deterministic answer-set probe (#312, #305): retrieve → rerank → cap → pin
- * → resolve, no answer model, no judge, over every single-turn retrieval case
- * and every abstention case. One retrieval and one rerank per case; every
+ * → resolve, no answer model, no judge, over every retrieval case and every
+ * abstention case. One retrieval and one rerank per case; every
  * configuration of `ANSWER_TOP_K` × `ANSWER_DOC_CAP` × `PIN_DERIVED_INPUTS`
  * is then a pure function of that one reranked order, so the arms are
  * compared on identical pools rather than on run-to-run expansion noise.
@@ -12,28 +12,30 @@
  * The JSON it writes carries every case's per-configuration answer set and
  * each expected target's reranked rank, for the per-case read.
  *
+ * A follow-up — a case carrying `history` — is condensed first, by the
+ * route's own `condenseQuestion`, and read on the rewrite the pipeline
+ * actually retrieves on (#456): until then the probe skipped them, so
+ * `ccss-ventana-prescripcion-24-meses`, whose one dated chunk no run was
+ * putting in front of the model, was a case it could not see. That is one
+ * small-model call per follow-up, and it moves the totals: a figure from
+ * before #456 counted single-turn cases only.
+ *
  * Since #457 it also records every stage a case passed through — the
  * standalone query, the expansion, the fused pool, the whole reranked order,
  * and every provider call that failed — so two runs on one stack can be
  * compared case by case and the first stage at which they part named
- * (`pnpm answer-set-compare a.json b.json`, free). Two switches serve that
- * measurement:
- *
- * - `EVAL_REWRITES=<earlier.json>` replays the text an earlier probe's
- *   models wrote for each case — the expansion, and a follow-up's condensed
- *   question — instead of asking again (`src/lib/eval/rewrites.ts`, which
- *   the eval lanes read too): the "expansion cached per query" arm, which
- *   leaves Voyage as the only provider still live. `EXPAND=off` is the "no
- *   expansion" arm, as everywhere else.
- * - `--follow-ups` adds the retrieval cases that carry `history`, condensed
- *   first exactly as the eval lanes condense them: the 27 Tier 1 cases the
- *   full lane reads, not only the 18 single-turn ones. Off by default, so the
- *   aggregate lines stay comparable with the probe runs before it.
+ * (`pnpm answer-set-compare a.json b.json`, free). `EVAL_REWRITES=<earlier.json>`
+ * replays the text an earlier probe's models wrote for each case — the
+ * expansion, and a follow-up's condensed question — instead of asking again
+ * (`src/lib/eval/rewrites.ts`, which the eval lanes read too): the "expansion
+ * cached per query" arm, which leaves Voyage as the only provider still live.
+ * `EXPAND=off` is the "no expansion" arm, as everywhere else.
  *
  * Cents: embeddings, expansions, condensations and a Voyage call per rerank
- * reading. A diagnostic, not a gate. Usage (reads `.env.local` like `ingest.ts`):
+ * reading. A diagnostic, not a gate. Usage (reads `.env.local` like
+ * `ingest.ts`):
  *
- *   [EVAL_REWRITES=<earlier.json>] pnpm answer-set-probe [out.json] [--follow-ups]
+ *   [EVAL_REWRITES=<earlier.json>] pnpm answer-set-probe [out.json]
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -94,6 +96,10 @@ for (const topK of ["8", "10"]) {
 interface CaseRead {
   id: string;
   kind: "retrieval" | "abstention";
+  /** What retrieval ran on: the question, or a follow-up's condensation. */
+  query: string;
+  /** A follow-up whose condensation failed and fell back to the question. */
+  condenseFailed: boolean;
   tier: unknown;
   family: string | null;
   weak: boolean;
@@ -113,8 +119,6 @@ interface CaseRead {
   >;
   /** Reranked rank of each expected target (1-based) or null. */
   targetRanks: { target: string; rank: number | null }[];
-  /** The standalone question the pipeline ran on (#457). */
-  query: string;
   /** The expansion the legs and the rerank read, null for none. */
   expansion: string | null;
   /** The step catalogue family the probe searched, null for none. */
@@ -189,7 +193,9 @@ async function readCase(
   const condenseBefore = condenseFailures();
   const expandBefore = expandFailures();
   const started = Date.now();
-  const { query, expander } = await rewriteCase(evalCase, rewrites);
+  // The route's own first step (#132), or its replay (#457): a single-turn
+  // case run live skips the call.
+  const { query, condensed, expander } = await rewriteCase(evalCase, rewrites);
   const rewritten = Date.now();
   const retrieval = await retrieve(query, {
     matchCount: RERANK_POOL,
@@ -199,6 +205,8 @@ async function readCase(
   const read: CaseRead = {
     id: evalCase.id,
     kind,
+    query,
+    condenseFailed: evalCase.history !== undefined && condensed === null,
     tier: evalCase.tier,
     family: evalCase.family ?? null,
     weak: retrieval.isWeak,
@@ -206,7 +214,6 @@ async function readCase(
     expectedCount: evalCase.expected.length,
     per: {},
     targetRanks: [],
-    query,
     expansion: retrieval.expansion,
     steps: retrieval.steps?.family ?? null,
     pool: retrieval.chunks.map(label),
@@ -297,16 +304,13 @@ async function readCase(
 async function main(): Promise<void> {
   loadDotEnvLocal();
   const all = parseDataset(readFileSync(DATASET_PATH, "utf8"));
-  const args = process.argv.slice(2);
-  const followUps = args.includes("--follow-ups");
-  const out =
-    args.find((arg) => !arg.startsWith("--")) ?? "answer-set-probe.json";
+  const retrievals = retrievalCases(all);
+  const abs = abstentionCases(all);
+  const out = process.argv[2] ?? "answer-set-probe.json";
   const rewrites = rewritesFromEnv();
-  const single = retrievalCases(all).filter((c) => followUps || !c.history);
-  const abs = abstentionCases(all).filter((c) => !c.history);
   const calls = countingCalls(createEmbedder());
   const reads: CaseRead[] = [];
-  for (const c of single) {
+  for (const c of retrievals) {
     reads.push(await readCase(c, "retrieval", calls, rewrites));
     process.stdout.write(".");
   }
@@ -320,8 +324,17 @@ async function main(): Promise<void> {
   const totalTargets = reads
     .filter((r) => r.kind === "retrieval")
     .reduce((n, r) => n + r.expectedCount, 0);
+  const followUps = [...retrievals, ...abs].filter((c) => c.history).length;
   console.log(
-    `${followUps ? "retrieval cases, follow-ups included" : "single-turn retrieval cases"}: ${single.length} (${totalTargets} expected targets), abstention: ${abs.length}`,
+    `retrieval cases: ${retrievals.length} (${totalTargets} expected targets), abstention: ${abs.length}, follow-ups condensed: ${followUps}`,
+  );
+  console.log(
+    `condensation fell back to the question: ${
+      reads
+        .filter((r) => r.condenseFailed)
+        .map((r) => r.id)
+        .join(", ") || "none"
+    }`,
   );
   console.log(
     `rewrites: ${rewrites === null ? "live" : `replayed from ${process.env[REWRITES_ENV]}`}`,
