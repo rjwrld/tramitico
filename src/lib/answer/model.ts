@@ -70,8 +70,9 @@ export const ANSWER_MAX_OUTPUT_TOKENS = 4096;
  * 2026-09-22 probe on `claude-sonnet-5`, against ~1.5 s at `medium`.
  * `claude-sonnet-5-5` recalibrates the levels (#451): at `low` it skips
  * thinking on most asks, from `medium` up it thinks briefly before nearly
- * every one, and production runs it at `low` — 0.76 s to first text in the
- * 2026-09-28 probe.
+ * every one. #451 measures it at `low` — 0.76 s to first text in the
+ * 2026-09-28 probe — and production takes `low` from its own env var, not
+ * from here.
  *
  * `ANSWER_EFFORT` sets it for a measured run or a deploy; unset, empty (what
  * `eval.yml` interpolates for an unset repository variable) and anything

@@ -92,9 +92,11 @@ export function formatChunks(chunks: readonly RetrievedChunk[]): string {
 /**
  * Appended to the user prompt on the one retry the runtime citation invariant
  * allows (#131). A bare re-roll of the same prompt mostly reproduces the same
- * omission, so the retry says what went wrong — in the vocabulary rule 2
- * already uses, so it reads as an enforcement of the existing contract rather
- * than a second, competing instruction.
+ * omission, so the retry says what went wrong — in rule 2's vocabulary, so it
+ * reads as an enforcement of the existing contract rather than a second,
+ * competing instruction. Since #451 it also carries the bracket-annotation
+ * clause (#427) that rule 2 no longer does: 5.5 wrote none in 146 answers,
+ * so the clause is sent only after an answer broke it.
  *
  * Deliberately does not quote the rejected answer back: feeding an uncited
  * draft in as context is the surest way to get it paraphrased uncited again.
@@ -111,7 +113,8 @@ export const CITATION_RETRY_NOTE =
   "respaldan una respuesta, aplique la regla 6.";
 
 /**
- * Closes every user prompt, after the question (#451). On a replay of the
+ * Closes the user prompt, after the question (#451); on a citation retry,
+ * `CITATION_RETRY_NOTE` follows it. On a replay of the
  * 2026-09-28 low arm's own chunks, the reworked rules 8 and 9 still left out
  * mostly what the documents carried and the question did not name — the
  * pagos parciales beside the declaración, the requisites beside the
