@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
 import { declineAnswer, ROUTING, routingEntry } from "../routing";
-import type { ResolvedDerivedFigure } from "./derived";
+import {
+  incompletelyCitedDerivedFigures,
+  type ResolvedDerivedFigure,
+} from "./derived";
 import {
   ANSWER_SYSTEM,
   ANSWER_SYSTEM_PROMPT,
@@ -144,6 +147,46 @@ describe("formatDerivedFigures", () => {
     // The operative half: without it the rule reads as "cite the figure" and
     // the model can still write two figures under one marker set.
     expect(block).toContain("los marcadores de todas ellas");
+  });
+
+  /**
+   * #458 (#403's shape on 5.5): `ho-desde-cuanta-plata-caja` cited
+   * «¢324.590 (0,87 SM; …) [8][10]», then repeated it as «Como la
+   * obligatoriedad rige desde la BMC de menor cuantía [2][5], la referencia
+   * es la de IVM (¢324.590).» The runtime reads every quote and the markers
+   * after it, so the repeat failed the gate; 5.5 did not read a
+   * parenthetical repeat as a mention. The block names the two ways out, and
+   * they are the two the runtime accepts.
+   */
+  it("counts every mention, a repeat included, or names the figure instead (#458)", () => {
+    const block = formatDerivedFigures([DERIVED_FIGURE]);
+    expect(block).toContain("después de la cifra, todos los marcadores");
+    expect(block).toContain(
+      "también la que repite una cifra ya dada, la que va entre paréntesis y la que la compara con otra",
+    );
+    expect(block).toContain(
+      "nombre la cifra por su etiqueta («Base mínima contributiva de IVM 2026») sin repetir el monto",
+    );
+
+    const cited = "La BMC de IVM es de ¢324.590 (0,87 × ¢373.092,30) [1][2].";
+    expect(
+      incompletelyCitedDerivedFigures(
+        `${cited} Como rige desde la BMC [1], la referencia es la de IVM (¢324.590).`,
+        [DERIVED_FIGURE],
+      ),
+    ).toEqual(["bmc-ivm-2026"]);
+    expect(
+      incompletelyCitedDerivedFigures(
+        `${cited} Como rige desde la BMC [1], la referencia es la de IVM (¢324.590) [1][2].`,
+        [DERIVED_FIGURE],
+      ),
+    ).toEqual([]);
+    expect(
+      incompletelyCitedDerivedFigures(
+        `${cited} Como rige desde la BMC [1], la referencia es la Base mínima contributiva de IVM 2026.`,
+        [DERIVED_FIGURE],
+      ),
+    ).toEqual([]);
   });
 
   it("asks for the figure's basis beside it, not the figure alone (#352)", () => {
@@ -377,6 +420,42 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
   });
 
   /**
+   * #454: Sonnet 5.5 writes lists — 107–157 bullet lines across the 27 Tier 1
+   * answers, against Sonnet 5's 34 — and cites the line that introduces one,
+   * «Sobre el pago, los documentos dicen lo siguiente [6]:», then none of the
+   * bullets under it. The checks read a citation per sentence, so each such
+   * bullet is an uncited figure: «75%» tripped the abstention figure gate on
+   * `ho-abs-calculo-personalizado`. On `ho-rebajar-multa-si-pago-ya` the
+   * bullet did carry [1], on its second sentence, and «75%» sat in its first.
+   * Told only that each sentence of a bullet «lleva la suya», 5.5 still
+   * wrote that bullet again on the second replay; the clause now says why a
+   * marker does not reach back — it backs its own sentence, even when the one
+   * before comes from the same document.
+   */
+  it("gives each bullet and table row its own marker, not its lead-in's (#454)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /2\. [^\n]*Una cita respalda solo la oración en que está: no cubre la oración anterior, aunque las dos vengan del mismo documento, ni los elementos de la lista o la tabla que introduce\./,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /2\. [^\n]*cada viñeta y cada fila de una tabla que dé una cifra o una afirmación lleva su propia cita \[n\], y si una viñeta tiene dos oraciones, las dos la llevan/,
+    );
+  });
+
+  /**
+   * #454's first replay: told that each bullet cites itself, 5.5 wrote
+   * «- Las rentas de hasta ¢6.244.000,00 anuales no están sujetas al
+   * impuesto. [1][2]» on 28 lines of 3 answers, and on none before. A
+   * sentence ends at its period for the literal check, the abstention figure
+   * gate and the runtime's derived-figure check alike, so a marker after it
+   * cites nothing: `ho-minimo-renta-2026` lost «¢6.244.000» that way.
+   */
+  it("puts the marker before the period that closes the sentence (#454)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /2\. [^\n]*inmediatamente después de la afirmación y antes del punto que la cierra \(«no están sujetas al impuesto \[2\]\.»\)/,
+    );
+  });
+
+  /**
    * #427: about 1 Sonnet 5 answer in 70 corrected a doubted marker inside the
    * brackets — «[4][6][10 no existe, cito 6]», «[7][10 nota: cita 7]» — and
    * rule 2 said a marker holds a number and nothing else. #451: Sonnet 5.5
@@ -500,7 +579,7 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
 
 describe("ANSWER_SYSTEM (#413)", () => {
   it("is the system prompt, unchanged, as one cache breakpoint", () => {
-    // Every answer call shares these ~4,440 tokens (count_tokens), above the
+    // Every answer call shares these ~4,600 tokens (count_tokens), above the
     // answer model's caching minimum (512 on claude-sonnet-5-5); the chunks
     // after them
     // differ per question and are deliberately left unmarked (a write premium
