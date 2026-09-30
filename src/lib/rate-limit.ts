@@ -24,7 +24,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createHmac } from "node:crypto";
 import { isIPv4, isIPv6 } from "node:net";
 import type { Database } from "./database.types";
-import { CR_TIME_ZONE, CR_UTC_OFFSET_MS } from "./cr-time";
+import { CR_TIME_ZONE, CR_UTC_OFFSET_MS, crDate } from "./cr-time";
 import { describeError } from "./log-redaction";
 import { serviceClient } from "./supabase/service";
 
@@ -147,11 +147,6 @@ export function limitForAnonIp(): number {
   if (!raw) return fallback;
   const n = Number(raw);
   return Number.isFinite(n) && n > 0 ? n : fallback;
-}
-
-/** The current date in Costa Rica as `YYYY-MM-DD` (#125). */
-export function crDate(now = new Date()): string {
-  return new Date(now.getTime() - CR_UTC_OFFSET_MS).toISOString().slice(0, 10);
 }
 
 /**

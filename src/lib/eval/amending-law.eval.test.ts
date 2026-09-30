@@ -34,6 +34,7 @@ import {
   getAnswerModel,
 } from "../answer/model";
 import { ANSWER_SYSTEM, buildUserPrompt } from "../answer/prompt";
+import { crDate } from "../cr-time";
 import {
   amendingJudgeOnce,
   AMENDING_CHUNKS,
@@ -58,7 +59,9 @@ describeEval("consolidated law beside its reform (#182)", () => {
       providerOptions: answerProviderOptions(),
       maxOutputTokens: ANSWER_MAX_OUTPUT_TOKENS,
       system: ANSWER_SYSTEM,
-      prompt: buildUserPrompt(AMENDING_QUESTION, AMENDING_CHUNKS),
+      prompt: buildUserPrompt(AMENDING_QUESTION, AMENDING_CHUNKS, {
+        today: crDate(),
+      }),
     });
     answer = generated.text;
     ({ verdict, verdicts, reason } = await judgeAnswer(

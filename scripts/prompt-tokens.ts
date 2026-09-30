@@ -18,6 +18,7 @@ import {
   ANSWER_SYSTEM_PROMPT,
   buildUserPrompt,
 } from "../src/lib/answer/prompt";
+import { crDate } from "../src/lib/cr-time";
 import { parseTranscript, replayChunks } from "../src/lib/eval/replay";
 import { chunkDocMeta } from "./chunk-doc-meta";
 
@@ -63,7 +64,10 @@ async function main(): Promise<void> {
       if (row.chunks.length === 0) continue; // weak-retrieval decline: no prompt
       const chunks = replayChunks(row, meta);
       const derivedFigures = resolveDerivedFigures(chunks);
-      const prompt = buildUserPrompt(row.query, chunks, { derivedFigures });
+      const prompt = buildUserPrompt(row.query, chunks, {
+        today: crDate(),
+        derivedFigures,
+      });
       const tokens = await countTokens(ANSWER_SYSTEM_PROMPT, prompt);
       counts.push({ id: row.id, chunks: chunks.length, tokens });
     }

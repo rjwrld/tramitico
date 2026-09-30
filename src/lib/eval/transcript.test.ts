@@ -52,7 +52,11 @@ const ROW: TranscriptRow = transcriptRow({
   groundedness: { verdict: "pass", verdicts: ["pass"], reason: "" },
   citations: { ok: true },
   adequacy: { verdict: "fail", missing: ["Dónde se consultan"], literals: [] },
-  generation: { finishReason: "stop", outputTokens: 1_412 },
+  generation: {
+    finishReason: "stop",
+    outputTokens: 1_412,
+    today: "2026-09-29",
+  },
 });
 
 describe("transcriptRow", () => {
@@ -67,7 +71,12 @@ describe("transcriptRow", () => {
       query: "¿Cuál es el mínimo exento de renta en 2026?",
       answer: "Las rentas de hasta ¢6.244.000 no están sujetas [1].",
       adequacy: { verdict: "fail", missing: ["Dónde se consultan"] },
-      generation: { finishReason: "stop", outputTokens: 1_412 },
+      // The date the answer was written against (#455).
+      generation: {
+        finishReason: "stop",
+        outputTokens: 1_412,
+        today: "2026-09-29",
+      },
     });
   });
 
@@ -117,7 +126,11 @@ describe("transcriptRow", () => {
       groundedness: { verdict: "pass", verdicts: ["pass"], reason: "" },
       citations: { ok: true },
       adequacy: null,
-      generation: { finishReason: "stop", outputTokens: null },
+      generation: {
+        finishReason: "stop",
+        outputTokens: null,
+        today: "2026-09-29",
+      },
     });
     // Same docKey and articulo on both: only the id and the text tell them
     // apart.

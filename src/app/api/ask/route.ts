@@ -162,6 +162,7 @@ import {
   answerProviderOptions,
   getAnswerModel,
 } from "@/lib/answer/model";
+import { crDate } from "@/lib/cr-time";
 import { describeError } from "@/lib/log-redaction";
 import { saveQuestion, type SaveQuestionInput } from "@/lib/answer/persist";
 import {
@@ -633,6 +634,7 @@ async function generateAnswer(
   question: string,
   chunks: readonly RetrievedChunk[],
   derivedFigures: readonly ResolvedDerivedFigure[],
+  today: string,
   signal: AbortSignal,
   citationRetry: boolean,
   telemetry: AskTelemetry,
@@ -649,6 +651,7 @@ async function generateAnswer(
       model: getAnswerModel(),
       system: ANSWER_SYSTEM,
       prompt: buildUserPrompt(question, chunks, {
+        today,
         citationRetry,
         derivedFigures,
       }),
@@ -769,6 +772,9 @@ export async function POST(request: Request): Promise<Response> {
   const limit = userId
     ? await checkRateLimit(subjectForUser(userId), "authed", undefined, now)
     : await anonRateLimit(request, now);
+  // The date the answer is written against (#455), off the same clock read:
+  // an ask that straddles CR midnight answers on the day it was charged to.
+  const today = crDate(now);
   if (!limit.allowed) {
     // Fail-closed: an unavailable limiter denies too, but as a 503 so the
     // client can tell "try later" from "you hit the limit".
@@ -991,6 +997,7 @@ export async function POST(request: Request): Promise<Response> {
           asked.query,
           chunks,
           derivedFigures,
+          today,
           generationSignal,
           citationRetry,
           telemetry,
