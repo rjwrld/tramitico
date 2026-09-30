@@ -1,0 +1,20 @@
+$ tsx scripts/answer-replay.ts eval/runs/2026-09-29-451/low/groundedness-claude-sonnet-5-5-effort-low-20260929T052805Z.jsonl --cases=ccss-obligacion-ingreso-bajo,multa-iva-no-declarado,ho-rebajar-25-sin-facturas,ho-tambien-asegurado-por-patrono,ccss-ventana-prescripcion-24-meses
+replaying 5 row(s) of groundedness-claude-sonnet-5-5-effort-low-20260929T052805Z.jsonl on claude-sonnet-5-5-effort-low
+  ccss-ventana-prescripcion-24-meses  pass  missing 1
+  ccss-obligacion-ingreso-bajo  pass  missing 3
+  multa-iva-no-declarado  pass  missing 2
+  ho-rebajar-25-sin-facturas  fail  missing 1
+  ho-tambien-asegurado-por-patrono  pass  missing 1
+
+transcript: eval/transcripts/455-r2/groundedness-claude-sonnet-5-5-effort-low-replay-subset-20260930T002330Z.jsonl
+
+requirements stated, recorded → replayed: 13 → 12 of 20
+  2 → 2 / 3  ccss-ventana-prescripcion-24-meses
+  3 → 2 / 5  ccss-obligacion-ingreso-bajo
+  3 → 3 / 5  multa-iva-no-declarado
+  2 → 3 / 4  ho-rebajar-25-sin-facturas
+  3 → 2 / 3  ho-tambien-asegurado-por-patrono
+grounded, recorded → replayed: 4 → 4 of 5
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+finish other than stop: 0; output tokens max 1287

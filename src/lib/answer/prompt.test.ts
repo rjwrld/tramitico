@@ -442,6 +442,15 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
       /3\. [^\n]*no sume ni reste días ni proyecte fechas/,
     );
+    // 455 r1/r2: with no vigencia date in the chunks, ccss-ventana reasoned
+    // «más de tres años después de la firma … ya venció» — elapsed time from
+    // an assumed date. Only a date the documents write is compared.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /3\. [^\n]*Compare solo fechas que los documentos escriben: no suponga una fecha que no traen ni razone sobre el tiempo transcurrido/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /3\. [^\n]*si la fecha que haría falta no está en los documentos, dígalo/,
+    );
     // The date itself is the user prompt's: the system prompt is cached.
     expect(ANSWER_SYSTEM_PROMPT).not.toContain("Fecha de hoy en Costa Rica:");
   });

@@ -1,0 +1,60 @@
+$ tsx scripts/answer-replay.ts eval/runs/2026-09-29-451/low/groundedness-claude-sonnet-5-5-effort-low-20260929T052805Z.jsonl --tier=1
+replaying 27 row(s) of groundedness-claude-sonnet-5-5-effort-low-20260929T052805Z.jsonl on claude-sonnet-5-5-effort-low
+  ccss-pedir-prescripcion-cuotas  pass  missing 3
+  ccss-ventana-prescripcion-24-meses  pass  missing 1
+  ccss-obligacion-ingreso-bajo  fail  missing 2
+  ccss-cese-actividad  pass  missing 0
+  desinscripcion-dejar-actividad  pass  missing 2
+  multa-iva-no-declarado  fail  missing 2
+  inscripcion-tardia-sancion  pass  missing 1
+  ho-hacienda-solo-cliente-eeuu  pass  missing 1
+  ho-trabajitos-por-mi-cuenta  pass  missing 4
+  ho-donde-inscribo-ya-no-atv  pass  missing 1
+  ho-desde-cuanta-plata-caja  pass  missing 0
+  ho-donde-me-afilio-caja  pass  missing 1
+  ho-tiquete-en-vez-de-factura  pass  missing 1
+  ho-factura-electronica-o-recibo  pass  missing 2
+  ho-cabys-paginas-web  pass  missing 1
+  ho-cliente-espana-lleva-iva  pass  missing 6
+  ho-iva-en-cero-sin-facturar  pass  missing 1
+  ho-hasta-que-dia-tengo-iva  pass  missing 0
+  ho-rebajar-25-sin-facturas  fail  missing 1
+  ho-minimo-renta-2026  pass  missing 2
+  ho-ademas-tengo-salario  pass  missing 5
+  ho-minimo-caja-independiente-2026  pass  missing 0
+  ho-800-mil-que-porcentaje-caja  pass  missing 1
+  ho-tambien-asegurado-por-patrono  fail  missing 1
+  ho-cobrar-8-anos-atras-caja  pass  missing 0
+  ho-desinscribir-debiendo-declaraciones  pass  missing 1
+  ho-rebajar-multa-si-pago-ya  pass  missing 1
+
+transcript: eval/transcripts/455-r1/groundedness-claude-sonnet-5-5-effort-low-replay-subset-20260930T002006Z.jsonl
+
+requirements stated, recorded → replayed: 77 → 75 of 116
+  3 → 2 / 5  ccss-pedir-prescripcion-cuotas
+  2 → 2 / 3  ccss-ventana-prescripcion-24-meses
+  3 → 3 / 5  ccss-obligacion-ingreso-bajo
+  4 → 4 / 6  desinscripcion-dejar-actividad
+  3 → 3 / 5  multa-iva-no-declarado
+  4 → 4 / 5  inscripcion-tardia-sancion
+  4 → 4 / 5  ho-hacienda-solo-cliente-eeuu
+  0 → 0 / 4  ho-trabajitos-por-mi-cuenta
+  2 → 3 / 4  ho-donde-inscribo-ya-no-atv
+  3 → 3 / 4  ho-donde-me-afilio-caja
+  3 → 3 / 4  ho-tiquete-en-vez-de-factura
+  2 → 2 / 4  ho-factura-electronica-o-recibo
+  1 → 1 / 2  ho-cabys-paginas-web
+  0 → 0 / 6  ho-cliente-espana-lleva-iva
+  3 → 3 / 4  ho-iva-en-cero-sin-facturar
+  2 → 3 / 3  ho-hasta-que-dia-tengo-iva
+  2 → 3 / 4  ho-rebajar-25-sin-facturas
+  2 → 2 / 4  ho-minimo-renta-2026
+  3 → 1 / 6  ho-ademas-tengo-salario
+  5 → 4 / 5  ho-800-mil-que-porcentaje-caja
+  3 → 2 / 3  ho-tambien-asegurado-por-patrono
+  3 → 3 / 4  ho-desinscribir-debiendo-declaraciones
+  3 → 3 / 4  ho-rebajar-multa-si-pago-ya
+grounded, recorded → replayed: 25 → 23 of 27
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+finish other than stop: 0; output tokens max 1691
