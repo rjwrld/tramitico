@@ -33,7 +33,6 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { generateText } from "ai";
 import { beforeAll, expect, it } from "vitest";
-import { condenseQuestion } from "../answer/condense";
 import {
   ANSWER_MAX_OUTPUT_TOKENS,
   answerProviderOptions,
@@ -55,6 +54,7 @@ import { retrieve } from "../retrieval";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import { figureMentions, judgeAbstention } from "./adequacy";
 import { abstentionCases, DATASET_PATH, parseDataset } from "./dataset";
+import { rewriteCase, rewritesFromEnv } from "./rewrites";
 import {
   DEFAULT_TRANSCRIPT_DIR,
   type TranscriptGeneration,
@@ -138,14 +138,14 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
     // Constructed here, not in the describe body: `describe.skip` still runs
     // its callback (#129/#211).
     const embedder = createEmbedder();
+    // #457: unset, every case is rewritten live, as the route does it.
+    const rewrites = rewritesFromEnv();
     for (const evalCase of cases) {
-      const { query } = await condenseQuestion(
-        evalCase.question,
-        evalCase.history ?? [],
-      );
+      const { query, expander } = await rewriteCase(evalCase, rewrites);
       const retrieval = await retrieve(query, {
         matchCount: RERANK_POOL,
         embedder,
+        expander,
       });
 
       let answer = WEAK_RETRIEVAL_ANSWER;

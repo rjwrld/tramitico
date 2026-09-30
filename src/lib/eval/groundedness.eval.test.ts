@@ -30,7 +30,6 @@
 import { readFileSync } from "node:fs";
 import { generateText } from "ai";
 import { beforeAll, expect, it } from "vitest";
-import { condenseQuestion } from "../answer/condense";
 import {
   incompletelyCitedDerivedFigures,
   pinDerivedFigureInputs,
@@ -73,6 +72,7 @@ import {
   type EvalCase,
 } from "./dataset";
 import { formatExposureTally, tallyByExposure } from "./exposure";
+import { rewriteCase, rewritesFromEnv } from "./rewrites";
 import {
   selectCases,
   subsetGateFailure,
@@ -211,18 +211,18 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
     // its callback, so a constructor that throws without the environment
     // would crash the file on the gate's skip path (#129).
     const embedder = createEmbedder();
+    // #457: unset, every case is rewritten live, as the route does it.
+    const rewrites = rewritesFromEnv();
     for (const evalCase of cases) {
       // #132: a case carrying `history` is a follow-up, and the whole
       // pipeline below — retrieval, rerank, the answer prompt and the judge —
       // sees the condensed standalone question, exactly as /api/ask does. A
       // case without history makes no condensation call at all.
-      const { query } = await condenseQuestion(
-        evalCase.question,
-        evalCase.history ?? [],
-      );
+      const { query, expander } = await rewriteCase(evalCase, rewrites);
       const retrieval = await retrieve(query, {
         matchCount: RERANK_POOL,
         embedder,
+        expander,
       });
 
       // The production route streams the deterministic honest fallback on

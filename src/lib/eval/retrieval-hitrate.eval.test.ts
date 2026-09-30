@@ -33,7 +33,6 @@
  */
 import { readFileSync } from "node:fs";
 import { beforeAll, expect, it } from "vitest";
-import { condenseQuestion } from "../answer/condense";
 import {
   pinDerivedFigureInputs,
   pinEnabled,
@@ -62,6 +61,7 @@ import {
   retrievalCases,
   type EvalCase,
 } from "./dataset";
+import { rewriteCase, rewritesFromEnv } from "./rewrites";
 import { CARRIERS_PATH, parseCarriers, parseChunkRef } from "./carriers";
 import { formatExposureTally, tallyByExposure } from "./exposure";
 import {
@@ -195,18 +195,21 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
     // its callback, so a constructor that throws without the environment
     // would crash the file on the gate's skip path (#129).
     const embedder = createEmbedder();
+    // #457: unset, every case is rewritten live, as the route does it.
+    const rewrites = rewritesFromEnv();
     for (const evalCase of cases) {
       // The route's own first step (#132): a case carrying `history` is a
       // follow-up, and what the pipeline sees is the standalone rewrite. A
       // case without history skips the call entirely, so single-turn cases
       // measure exactly what they measured before.
-      const { query, condensed } = await condenseQuestion(
-        evalCase.question,
-        evalCase.history ?? [],
+      const { query, condensed, expander } = await rewriteCase(
+        evalCase,
+        rewrites,
       );
       const retrieval = await retrieve(query, {
         matchCount: RERANK_POOL,
         embedder,
+        expander,
       });
       const outcome = await rerankReadings(query, retrieval.chunks, {
         expansion: retrieval.expansion,

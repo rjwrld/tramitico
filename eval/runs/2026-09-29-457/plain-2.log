@@ -1,0 +1,21 @@
+$ tsx scripts/answer-set-probe.ts eval/runs/2026-09-29-457/plain-2.json
+.............................................................aaaaaaask: expansion failed — reason=timeout error=DOMException.TimeoutError#23
+aaa
+single-turn retrieval cases: 61 (161 expected targets), abstention: 9
+weak: none
+expansion absent: ho-abs-calculo-personalizado
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   109/161    32/61        2        —
+top8/capoff/pinon    114/161    35/61        13       —
+top8/cap3/pinoff     103/161    29/61        2        —
+top8/cap3/pinon      109/161    33/61        15       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top8/cap2/pinoff     103/161    28/61        3        —
+top8/cap2/pinon      108/161    32/61        15       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/capoff/pinoff  113/161    34/61        2        —
+top10/capoff/pinon   118/161    37/61        13       —
+top10/cap3/pinoff    108/161    31/61        5        —
+top10/cap3/pinon     113/161    35/61        15       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/cap2/pinoff    109/161    32/61        5        —
+top10/cap2/pinon     113/161    35/61        15       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+exit2=0

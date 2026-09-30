@@ -3152,3 +3152,100 @@ meses».
   on. That changes its totals: 73 retrieval cases instead of 61. Condensation
   varies run to run even at temperature 0 (#457), so one probe of a
   follow-up is one draw.
+
+## Where two identical runs part (2026-09-29, #457)
+
+> Seven `pnpm answer-set-probe` runs, back to back on one stack (the
+> 873-chunk local ingest), no answer model and no judge: two on `main` as it
+> stood (4af5489, single-turn cases only), then five on the instrumented probe
+> (c212d7c), which also read the nine Tier 1 follow-ups through condensation
+> (`--follow-ups` then; every probe run does since #456).
+> Owner-approved, ≈US$1. Rows in
+> [`eval/runs/2026-09-29-457/`](runs/2026-09-29-457/).
+
+The two 2026-09-28 arms shared a chunk list on 11 of 27 Tier 1 cases, which is
+why every comparison above carries a ±4 caveat and why #451 needed
+`pnpm answer-replay` to see a prompt change at all. The probe reproduces it
+without an answer model, on the production cut (top 8, no cap, derived inputs
+pinned), and now says where each case parted. The pipeline is a chain —
+condense → expand → fused pool → reranked order → answer set — and every stage
+after the first one that differs inherits the difference, so the first one is
+the source (`pnpm answer-set-compare a.json b.json`, free).
+
+| Pair                                          | Tier 1 same answer set | All cases | First stage that differs, Tier 1 | Rerank calls dropped |
+| --------------------------------------------- | ---------------------- | --------- | -------------------------------- | -------------------- |
+| Plain, 4af5489 (single-turn cases only)       | 6/18                   | 35/70     | not recorded                     | not recorded         |
+| Live: both runs rewrite                       | **11/27**              | 38/82     | expansion 14, condensation 2     | 0 · 0                |
+| Frozen: live-1's rewrites replayed, vs live-1 | 15/27                  | 64/82     | pool 11, rerank 1                | 0 · 60 on 19 cases   |
+| … the cases where no call was dropped         | **14/14**              | 62/63     | none (the one miss: abstention)  | —                    |
+| `EXPAND=off`, both runs                       | 19/27                  | 53/82     | cut 5, pool 3                    | 133 · 135            |
+
+What it says:
+
+- **The expansion is the source.** Both small-model calls already send
+  `temperature: 0` (#286, #132), so pinning it is not the fix. Haiku writes a
+  different expansion from run to run anyway: the same text on 36 of 82 cases
+  across the live pair. Condensation flips too, less often: 2 of 12
+  follow-ups, `ho-hasta-que-dia-tengo-iva` between the two phrasings the
+  committed transcripts already carry. Every Tier 1 case whose answer set
+  differed in the live pair differed first there.
+- **Replaying the rewrites removes it.** Given live-1's queries and
+  expansions, 62 of the 63 cases where neither run dropped a Voyage call cut
+  live-1's answer set exactly, all 14 Tier 1 cases among them. Voyage rerank
+  is deterministic: on identical pools it returned the identical order with
+  identical scores, 46 of 46. Voyage query embeddings are not bit-identical:
+  on the same text the fused pool reordered at its tail on 50 of 82 cases (a
+  stub embedder gives identical pools on 82 of 82, so the database is not the
+  cause), and that moved one answer set, `ho-abs-iva-2027`'s `reglamento-iva`
+  22 ↔ 23.
+- **A second source: rerank readings dropped under load.** Voyage rejects
+  rerank calls fast (≈400 ms, far under the 3 s timeout) once cases arrive
+  quickly: none at 21 cases/min (live, where the Haiku call spaces them), 60
+  calls on 19 cases at 54/min (frozen), 133–135 calls on about 50 cases at
+  69/min (`EXPAND=off`). `rerankReadings` drops each one silently, and it
+  changed the answer set on 17 of the 19 frozen cases it hit. That is why the
+  `EXPAND=off` pair is not a clean arm, and why "cut" leads its Tier 1 column:
+  the same order with a different `pin1` pick, because a step sentence's
+  reading did not come back. The full lane's answer and judge calls pace it
+  far under 21 cases/min, but the lanes do not count dropped readings; the
+  probe does. What production does with a rejected reading is a product
+  question, not this issue's.
+- **What it costs a comparison.** Across the live pair, the Tier 1 targets in
+  front of the model went 60 → 56 of 92 on identical code: the retrieval half
+  of the ±4.
+
+What a full-lane delta has to exceed to mean something:
+
+- **Live rewrites** — the default, and every lane before #457: more than ±4,
+  the band this README has used since #305 (the same pipeline re-measured four
+  days apart, 17 → 13 adequate cases). Two identical arms share the chunk list
+  on about 11 of 27 Tier 1 cases, and this reading is where that band comes
+  from.
+- **Frozen rewrites**, both arms on the same `EVAL_REWRITES` file: more than
+  ±1, the answer model's and the judges' own noise on fixed chunks (#451's
+  control replay, 74 → 73), as long as neither arm drops a rerank reading. No
+  full lane has run this way yet: the figure is the probe's answer-set match
+  plus the replay's noise, not a measured pair of lanes.
+
+What changed:
+
+- **`EVAL_REWRITES=<file>`**, opt-in. The groundedness, abstention and
+  hit-rate lanes run each case on the query and expansion the file recorded
+  (`src/lib/eval/rewrites.ts`) instead of asking Haiku again, and say so on
+  the console. The file is an `answer-set-probe` output from #457 on; a case
+  it does not carry is an error. A probe run under `EXPAND=off` records no
+  expansions, so replaying it is the expansion-off arm. Unset, every lane
+  runs live, as production does and as a gate run should.
+- **`pnpm answer-set-probe`** records each case's query, expansion, fused
+  pool, reranked order and scores, the provider calls that did not come back,
+  and step timings, and it reads `EVAL_REWRITES` too. Every follow-up is
+  condensed by default since #456, so a probe's file covers every case a lane
+  runs.
+- **`pnpm answer-set-compare a.json b.json [config]`**, free: which cases cut
+  the same answer set, and where the others parted.
+
+So the variance is not inherent to the pipeline. It is the text of two
+small-model calls, which temperature 0 does not pin and a per-case cache does.
+An A/B on the full lane writes the rewrites once
+(`pnpm answer-set-probe rewrites.json`, cents) and runs both arms
+on them. Production keeps asking live.
