@@ -20,11 +20,22 @@
  * small-model call per follow-up, and it moves the totals: a figure from
  * before #456 counted single-turn cases only.
  *
- * Cents: embeddings, expansions, condensations and the Voyage calls per
- * case. A diagnostic, not a gate. Usage (reads `.env.local` like
+ * Since #457 it also records every stage a case passed through — the
+ * standalone query, the expansion, the fused pool, the whole reranked order,
+ * and every provider call that failed — so two runs on one stack can be
+ * compared case by case and the first stage at which they part named
+ * (`pnpm answer-set-compare a.json b.json`, free). `EVAL_REWRITES=<earlier.json>`
+ * replays the text an earlier probe's models wrote for each case — the
+ * expansion, and a follow-up's condensed question — instead of asking again
+ * (`src/lib/eval/rewrites.ts`, which the eval lanes read too): the "expansion
+ * cached per query" arm, which leaves Voyage as the only provider still live.
+ * `EXPAND=off` is the "no expansion" arm, as everywhere else.
+ *
+ * Cents: embeddings, expansions, condensations and a Voyage call per rerank
+ * reading. A diagnostic, not a gate. Usage (reads `.env.local` like
  * `ingest.ts`):
  *
- *   pnpm answer-set-probe [out.json]
+ *   [EVAL_REWRITES=<earlier.json>] pnpm answer-set-probe [out.json]
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -37,7 +48,8 @@ function loadDotEnvLocal(): void {
     if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2];
   }
 }
-import { condenseQuestion } from "../src/lib/answer/condense";
+import { condenseFailures } from "../src/lib/answer/condense";
+import { expandFailures } from "../src/lib/answer/expand";
 import {
   pinDerivedFigureInputs,
   resolveDerivedFigures,
@@ -56,7 +68,13 @@ import {
   retrievalCases,
   type EvalCase,
 } from "../src/lib/eval/dataset";
-import { createEmbedder } from "../src/lib/ingestion/embedder";
+import {
+  REWRITES_ENV,
+  rewriteCase,
+  rewritesFromEnv,
+  type CaseRewrites,
+} from "../src/lib/eval/rewrites";
+import { createEmbedder, type Embedder } from "../src/lib/ingestion/embedder";
 import { retrieve, type RetrievedChunk } from "../src/lib/retrieval";
 
 interface Config {
@@ -101,25 +119,88 @@ interface CaseRead {
   >;
   /** Reranked rank of each expected target (1-based) or null. */
   targetRanks: { target: string; rank: number | null }[];
+  /** The expansion the legs and the rerank read, null for none. */
+  expansion: string | null;
+  /** The step catalogue family the probe searched, null for none. */
+  steps: string | null;
+  /** The fused pool, best first. */
+  pool: string[];
+  /** The whole reranked order, null when the rerank did not happen. */
+  order: string[] | null;
+  /** Voyage's score for each place of `order`, for reading near-ties. */
+  scores: number[] | null;
+  /**
+   * Provider calls on this case that did not come back: a failed embed or
+   * rerank reading is silent in production (a leg or a reading is dropped),
+   * and either one changes the answer set without changing any text.
+   */
+  failures: { condense: number; expand: number; embed: number; rerank: number };
+  /** Wall-clock of each step, against the 3–5 s budgets that drop a leg. */
+  ms: { rewrite: number; retrieve: number; rerank: number };
 }
 
 function label(chunk: RetrievedChunk): string {
   return `${chunk.docKey}·${chunk.articulo ?? "*"}·#${chunk.part}`;
 }
 
+/** Counts every provider call a case makes that does not come back. */
+interface CallCounter {
+  embedder: Embedder;
+  fetchImpl: typeof fetch;
+  take(): { embed: number; rerank: number };
+}
+
+function countingCalls(embedder: Embedder): CallCounter {
+  let embed = 0;
+  let rerank = 0;
+  return {
+    embedder: {
+      ...embedder,
+      embedQuery: async (text) => {
+        try {
+          return await embedder.embedQuery(text);
+        } catch (error) {
+          embed += 1;
+          throw error;
+        }
+      },
+    },
+    fetchImpl: async (input, init) => {
+      try {
+        const res = await fetch(input, init);
+        if (!res.ok) rerank += 1;
+        return res;
+      } catch (error) {
+        rerank += 1;
+        throw error;
+      }
+    },
+    take() {
+      const taken = { embed, rerank };
+      embed = 0;
+      rerank = 0;
+      return taken;
+    },
+  };
+}
+
 async function readCase(
   evalCase: EvalCase,
   kind: "retrieval" | "abstention",
-  embedder: ReturnType<typeof createEmbedder>,
+  calls: CallCounter,
+  rewrites: ReadonlyMap<string, CaseRewrites> | null,
 ): Promise<CaseRead> {
-  // The route's own first step (#132): a single-turn case skips the call.
-  const { query, condensed } = await condenseQuestion(
-    evalCase.question,
-    evalCase.history ?? [],
-  );
+  const condenseBefore = condenseFailures();
+  const expandBefore = expandFailures();
+  const started = Date.now();
+  // The route's own first step (#132), or its replay (#457): a single-turn
+  // case run live skips the call.
+  const { query, condensed, expander } = await rewriteCase(evalCase, rewrites);
+  const rewritten = Date.now();
   const retrieval = await retrieve(query, {
     matchCount: RERANK_POOL,
-    embedder,
+    embedder: calls.embedder,
+    expander,
   });
   const read: CaseRead = {
     id: evalCase.id,
@@ -133,6 +214,30 @@ async function readCase(
     expectedCount: evalCase.expected.length,
     per: {},
     targetRanks: [],
+    expansion: retrieval.expansion,
+    steps: retrieval.steps?.family ?? null,
+    pool: retrieval.chunks.map(label),
+    order: null,
+    scores: null,
+    failures: { condense: 0, expand: 0, embed: 0, rerank: 0 },
+    ms: {
+      rewrite: rewritten - started,
+      retrieve: Date.now() - rewritten,
+      rerank: 0,
+    },
+  };
+  const tally = () => {
+    const { embed, rerank } = calls.take();
+    const condenseAfter = condenseFailures();
+    const expandAfter = expandFailures();
+    const sum = (counts: Record<string, number>) =>
+      Object.values(counts).reduce((n, v) => n + v, 0);
+    read.failures = {
+      condense: sum(condenseAfter) - sum(condenseBefore),
+      expand: sum(expandAfter) - sum(expandBefore),
+      embed,
+      rerank,
+    };
   };
   if (retrieval.isWeak) {
     for (const c of CONFIGS) {
@@ -147,13 +252,20 @@ async function readCase(
         set: [],
       };
     }
+    tally();
     return read;
   }
+  const reranking = Date.now();
   const outcome = await rerankReadings(query, retrieval.chunks, {
     expansion: retrieval.expansion,
     steps: retrieval.steps?.sentences ?? null,
+    fetchImpl: calls.fetchImpl,
   });
   const order: RerankedChunk[] | null = outcome?.order ?? null;
+  read.order = order === null ? null : order.map((entry) => label(entry.chunk));
+  read.scores = order === null ? null : order.map((entry) => entry.score);
+  read.ms.rerank = Date.now() - reranking;
+  tally();
   read.targetRanks = evalCase.expected.map((t) => {
     const i = (order ?? []).findIndex((e) => chunkMatchesTarget(e.chunk, t));
     return {
@@ -195,14 +307,15 @@ async function main(): Promise<void> {
   const retrievals = retrievalCases(all);
   const abs = abstentionCases(all);
   const out = process.argv[2] ?? "answer-set-probe.json";
-  const embedder = createEmbedder();
+  const rewrites = rewritesFromEnv();
+  const calls = countingCalls(createEmbedder());
   const reads: CaseRead[] = [];
   for (const c of retrievals) {
-    reads.push(await readCase(c, "retrieval", embedder));
+    reads.push(await readCase(c, "retrieval", calls, rewrites));
     process.stdout.write(".");
   }
   for (const c of abs) {
-    reads.push(await readCase(c, "abstention", embedder));
+    reads.push(await readCase(c, "abstention", calls, rewrites));
     process.stdout.write("a");
   }
   console.log();
@@ -221,6 +334,25 @@ async function main(): Promise<void> {
         .filter((r) => r.condenseFailed)
         .map((r) => r.id)
         .join(", ") || "none"
+    }`,
+  );
+  console.log(
+    `rewrites: ${rewrites === null ? "live" : `replayed from ${process.env[REWRITES_ENV]}`}`,
+  );
+  const failed = reads.filter((r) =>
+    Object.values(r.failures).some((n) => n > 0),
+  );
+  console.log(
+    `provider calls that did not come back: ${
+      failed
+        .map(
+          (r) =>
+            `${r.id}(${Object.entries(r.failures)
+              .filter(([, n]) => n > 0)
+              .map(([k, n]) => `${k}×${n}`)
+              .join(",")})`,
+        )
+        .join(" ") || "none"
     }`,
   );
   console.log(

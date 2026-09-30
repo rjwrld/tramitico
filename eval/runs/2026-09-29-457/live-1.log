@@ -1,0 +1,23 @@
+$ tsx scripts/answer-set-probe.ts eval/runs/2026-09-29-457/live-1.json --follow-ups
+..................................................ask: expansion failed — reason=timeout error=DOMException.TimeoutError#23
+.......................aaaaaaaaa
+retrieval cases, follow-ups included: 73 (190 expected targets), abstention: 9
+rewrites: live
+provider calls that did not come back: ho-iva-en-cero-sin-facturar(expand×1)
+weak: none
+expansion absent: ho-iva-en-cero-sin-facturar
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   130/190    38/73        3        —
+top8/capoff/pinon    136/190    42/73        20       —
+top8/cap3/pinoff     124/190    35/73        3        —
+top8/cap3/pinon      130/190    39/73        20       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top8/cap2/pinoff     119/190    32/73        3        —
+top8/cap2/pinon      125/190    36/73        20       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/capoff/pinoff  135/190    40/73        5        —
+top10/capoff/pinon   141/190    44/73        20       —
+top10/cap3/pinoff    129/190    37/73        6        —
+top10/cap3/pinon     134/190    41/73        20       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/cap2/pinoff    130/190    37/73        5        —
+top10/cap2/pinon     135/190    40/73        20       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+exit=0
