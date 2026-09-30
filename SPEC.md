@@ -275,6 +275,9 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   answers to retrieved chunks; when retrieval is empty/weak, the answer says so and links the
   agency the question belongs to instead of guessing (routed by institution since #264, §8).
   MTSS questions get the encoded fact: the Labor Code mostly does not apply to independents.
+  The user prompt carries today's Costa Rica date (#455), outside the cached system prompt, so
+  the answer can say whether a documented plazo has passed; counting days from it stays
+  forbidden by rule 3.
 - **Derived figures (#263):** a manifest entry may declare a formula over named, numeric inputs,
   with the `docKey` and artículo that state each input. After rerank and before answer assembly,
   code evaluates a figure only when every declared input is among the final retrieved chunks and

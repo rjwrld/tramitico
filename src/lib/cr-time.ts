@@ -15,3 +15,12 @@
 export const CR_TIME_ZONE = "America/Costa_Rica";
 
 export const CR_UTC_OFFSET_MS = 6 * 60 * 60 * 1000;
+
+/**
+ * The current date in Costa Rica as `YYYY-MM-DD` (#125). The quota window
+ * keys on it, and since #455 the answer prompt tells the model it, so "hoy"
+ * means the same day to both.
+ */
+export function crDate(now = new Date()): string {
+  return new Date(now.getTime() - CR_UTC_OFFSET_MS).toISOString().slice(0, 10);
+}

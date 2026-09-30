@@ -44,6 +44,7 @@ import {
   buildUserPrompt,
   WEAK_RETRIEVAL_ANSWER,
 } from "../answer/prompt";
+import { crDate } from "../cr-time";
 import {
   pinDerivedFigureInputs,
   resolveDerivedFigures,
@@ -168,17 +169,20 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
         // omits them measures a decline written without the one block the
         // reader's answer would have carried.
         const derivedFigures = resolveDerivedFigures(chunks);
+        // The route's date (#455): «ya venció» is read against the day asked.
+        const today = crDate();
         const generated = await generateText({
           model: getAnswerModel(),
           providerOptions: answerProviderOptions(),
           maxOutputTokens: ANSWER_MAX_OUTPUT_TOKENS,
           system: ANSWER_SYSTEM,
-          prompt: buildUserPrompt(query, chunks, { derivedFigures }),
+          prompt: buildUserPrompt(query, chunks, { today, derivedFigures }),
         });
         answer = generated.text;
         generation = {
           finishReason: generationFinishReason(generated.finishReason),
           outputTokens: generated.usage.outputTokens ?? null,
+          today,
         };
         sources = [
           ...chunks.map((chunk) => chunk.content),

@@ -61,6 +61,7 @@ import {
   DEFAULT_ANSWER_MODEL,
 } from "../src/lib/answer/model";
 import { ANSWER_SYSTEM, buildUserPrompt } from "../src/lib/answer/prompt";
+import { crDate } from "../src/lib/cr-time";
 import { RERANK_POOL, rerankChunks } from "../src/lib/answer/rerank";
 import { createEmbedder } from "../src/lib/ingestion/embedder";
 import { retrieve } from "../src/lib/retrieval";
@@ -189,7 +190,10 @@ async function main(): Promise<void> {
       retrieval.chunks,
     );
     const derivedFigures = resolveDerivedFigures(chunks);
-    const prompt = buildUserPrompt(question, chunks, { derivedFigures });
+    const prompt = buildUserPrompt(question, chunks, {
+      today: crDate(),
+      derivedFigures,
+    });
     if (keepText) {
       contexts.push({
         seed: i + 1,

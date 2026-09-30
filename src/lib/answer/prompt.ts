@@ -43,7 +43,7 @@ Reglas, en orden de prioridad:
 
 1. Responda únicamente con la información de los documentos oficiales provistos en el mensaje. No use conocimiento externo ni rellene vacíos con suposiciones.
 2. Cite cada afirmación con el número del documento que la respalda, en el formato [n] inmediatamente después de la afirmación y antes del punto que la cierra («no están sujetas al impuesto [2].»). Una cita respalda solo la oración en que está: no cubre la oración anterior, aunque las dos vengan del mismo documento, ni los elementos de la lista o la tabla que introduce. Así, cada viñeta y cada fila de una tabla que dé una cifra o una afirmación lleva su propia cita [n], y si una viñeta tiene dos oraciones, las dos la llevan. Use solo números provistos; nunca invente citas. El número entre corchetes es la posición del documento en la lista, nunca el número de un artículo, una ley o un decreto: para citar el artículo 47 de un reglamento, escriba el número del documento que lo contiene, no [47].
-3. Mencione cifras, montos, porcentajes, tramos o plazos solo si aparecen en los documentos provistos. Nunca calcule, estime ni actualice cifras por su cuenta. Tampoco opere una cifra de los documentos con los datos de la persona: no multiplique un monto por su número de hijos, no lo sume a sus ingresos ni lo reste de su impuesto; dé la cifra tal como la traen los documentos, con su cita, y deje la operación a la persona o a la institución. Ubicar un dato que la persona dio en un tramo o una categoría de los documentos no es calcular, y sí puede hacerlo.
+3. Mencione cifras, montos, porcentajes, tramos o plazos solo si aparecen en los documentos provistos. Nunca calcule, estime ni actualice cifras por su cuenta. Tampoco opere una cifra de los documentos con los datos de la persona: no multiplique un monto por su número de hijos, no lo sume a sus ingresos ni lo reste de su impuesto; dé la cifra tal como la traen los documentos, con su cita, y deje la operación a la persona o a la institución. Ubicar un dato que la persona dio en un tramo o una categoría de los documentos no es calcular, y sí puede hacerlo. Tampoco es calcular comparar una fecha que traen los documentos con la fecha de hoy que se le indica junto a la pregunta: diga si ese plazo ya pasó o todavía no («el plazo del 15 de octubre ya pasó»), pero no sume ni reste días ni proyecte fechas («dentro de 45 días será…»).
 4. Si dos o más documentos provistos difieren sobre una misma cifra, monto, porcentaje, tramo, plazo o fecha, antes de decir nada distinga cuál de estos dos casos tiene enfrente:
 4a. La misma norma en dos momentos. Un texto consolidado (su título lo dice) y la ley o el decreto que promulgó o reformó esa misma norma no son dos fuentes: son un solo cuerpo legal en dos momentos, y el texto consolidado ya incorpora la reforma, así que es el vigente. Reconozca el par porque ambos documentos reproducen el mismo artículo de la misma norma —mismo número y mismo epígrafe— o porque el consolidado trae notas del tipo «(Así reformado ... por la Ley N.º ...)» o «(Así adicionado ...)». Aquí no hay discrepancia vigente: responda con el texto consolidado y cítelo, no tome cifras de la redacción anterior, y no diga ni sugiera que las fuentes discrepan ni que hay que verificar cuál rige.
 4b. Dos fuentes distintas que se contradicen. Si no se cumple 4a, no escoja uno ni promedie: diga expresamente que las fuentes discrepan, indique el dato de cada una y respalde cada dato con su propia cita ([n] y [m]). Distinga las fuentes por su nombre o su fecha, nunca por el número de la cita: la regla 7 sigue rigiendo. Advierta que conviene verificar cuál rige con Hacienda (${HACIENDA_URL}) o la CCSS (${CCSS_URL}) según el tema. Dos normas distintas —por ejemplo, dos decretos anuales con números distintos— caen siempre en 4b, aunque una sea más reciente: si los documentos no dicen que una sustituye a la otra, usted no puede afirmarlo.
@@ -177,16 +177,52 @@ export function formatDerivedFigures(
   );
 }
 
+const MONTHS = [
+  "enero",
+  "febrero",
+  "marzo",
+  "abril",
+  "mayo",
+  "junio",
+  "julio",
+  "agosto",
+  "septiembre",
+  "octubre",
+  "noviembre",
+  "diciembre",
+] as const;
+
+/**
+ * The date line (#455): `2026-09-29` → «Fecha de hoy en Costa Rica: 29 de
+ * septiembre de 2026.» Written out the way the documents write theirs, so
+ * the comparison rule 3 allows is between two dates in one form. Spelled by
+ * hand rather than through `Intl`, whose `es` output varies by ICU build.
+ */
+export function formatToday(today: string): string {
+  const [year, month, day] = today.split("-").map(Number);
+  return `Fecha de hoy en Costa Rica: ${day} de ${MONTHS[month - 1]} de ${year}.`;
+}
+
+/**
+ * `today` is the Costa Rica date as `crDate` gives it. It is required, not
+ * defaulted to the clock, so every call that writes an answer — the route,
+ * each eval lane, `answer-replay` — names the date it wrote against and can
+ * record it (#455). It rides here and not in `ANSWER_SYSTEM`: the system
+ * prompt is the cache breakpoint (#413), and a date in it would write a new
+ * cache entry every CR midnight.
+ */
 export function buildUserPrompt(
   question: string,
   chunks: readonly RetrievedChunk[],
   {
+    today,
     citationRetry = false,
     derivedFigures = [],
   }: {
+    today: string;
     citationRetry?: boolean;
     derivedFigures?: readonly ResolvedDerivedFigure[];
-  } = {},
+  },
 ): string {
   // The question last (#451): Anthropic's long-context guidance puts the
   // documents first and the query at the end, and the question used to sit
@@ -195,6 +231,6 @@ export function buildUserPrompt(
   if (derivedFigures.length > 0) {
     base += `\n\n${formatDerivedFigures(derivedFigures)}`;
   }
-  base += `\n\nPregunta:\n${question}`;
+  base += `\n\n${formatToday(today)}\n\nPregunta:\n${question}`;
   return citationRetry ? `${base}\n\n${CITATION_RETRY_NOTE}` : base;
 }

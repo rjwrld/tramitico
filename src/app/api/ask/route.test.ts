@@ -1279,6 +1279,35 @@ describe("POST /api/ask", () => {
     expect(JSON.stringify(rest)).not.toContain("cacheControl");
   });
 
+  it("tells the model today's Costa Rica date, not the UTC one (#455)", async () => {
+    // 02:00 UTC on 1 October is still 20:00 on 30 September in Costa Rica.
+    vi.useFakeTimers({
+      toFake: ["Date"],
+      now: new Date("2026-10-01T02:00:00Z"),
+    });
+    try {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      const model = mockModel("La tarifa es 13% [1].");
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+
+      const [system, ...rest] = model.doStreamCalls[0].prompt;
+      const user = JSON.stringify(rest);
+      expect(user).toContain(
+        "Fecha de hoy en Costa Rica: 30 de septiembre de 2026.",
+      );
+      expect(user).not.toContain("1 de octubre");
+      // The date rides the user prompt: the cached system prompt stays the
+      // same across CR midnight (#413).
+      expect(JSON.stringify(system)).not.toContain("Fecha de hoy");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   // #74/F-11: the client's abort must reach the paid provider call, not just
   // stop the client from reading further.
   it("propagates the client's abort into streamText so the provider call is cancelled (#74, F-11)", async () => {

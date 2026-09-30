@@ -49,6 +49,7 @@ import {
   buildUserPrompt,
   WEAK_RETRIEVAL_ANSWER,
 } from "../answer/prompt";
+import { crDate } from "../cr-time";
 import { rerankChunks, RERANK_POOL } from "../answer/rerank";
 import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
@@ -258,6 +259,8 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
         retrieval.chunks,
       );
       const derivedFigures = resolveDerivedFigures(chunks);
+      // The route's date (#455), recorded with the answer below.
+      const today = crDate();
       const {
         text: answer,
         finishReason,
@@ -267,7 +270,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
         providerOptions: answerProviderOptions(),
         maxOutputTokens: ANSWER_MAX_OUTPUT_TOKENS,
         system: ANSWER_SYSTEM,
-        prompt: buildUserPrompt(query, chunks, { derivedFigures }),
+        prompt: buildUserPrompt(query, chunks, { today, derivedFigures }),
       });
 
       // Judged against the same question the answer was written for: asking
@@ -294,6 +297,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
         generation: {
           finishReason: generationFinishReason(finishReason),
           outputTokens: usage.outputTokens ?? null,
+          today,
         },
         citations: validateCitations(answer, chunks.length),
         adequacy: declaresRequirements

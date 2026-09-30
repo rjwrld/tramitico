@@ -24,6 +24,7 @@ import {
   getAnswerModel,
 } from "../answer/model";
 import { ANSWER_SYSTEM, buildUserPrompt } from "../answer/prompt";
+import { crDate } from "../cr-time";
 import {
   conflictJudgeOnce,
   CONFLICT_CHUNKS,
@@ -52,7 +53,9 @@ describeEval("conflicting sources (#135)", () => {
       providerOptions: answerProviderOptions(),
       maxOutputTokens: ANSWER_MAX_OUTPUT_TOKENS,
       system: ANSWER_SYSTEM,
-      prompt: buildUserPrompt(CONFLICT_QUESTION, CONFLICT_CHUNKS),
+      prompt: buildUserPrompt(CONFLICT_QUESTION, CONFLICT_CHUNKS, {
+        today: crDate(),
+      }),
     });
     answer = generated.text;
     ({ verdict, verdicts, reason } = await judgeAnswer(

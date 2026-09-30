@@ -13,9 +13,12 @@ import {
   CITATION_RETRY_NOTE,
   formatDerivedFigures,
   formatChunks,
+  formatToday,
   HACIENDA_URL,
   WEAK_RETRIEVAL_ANSWER,
 } from "./prompt";
+
+const TODAY = "2026-09-29";
 
 const DERIVED_FIGURE: ResolvedDerivedFigure = {
   id: "bmc-ivm-2026",
@@ -74,20 +77,25 @@ describe("formatChunks", () => {
 
 describe("buildUserPrompt", () => {
   it("contains the question and the formatted chunks", () => {
-    const prompt = buildUserPrompt("¿Cuánto es el IVA?", [chunk()]);
+    const prompt = buildUserPrompt("¿Cuánto es el IVA?", [chunk()], {
+      today: TODAY,
+    });
     expect(prompt).toContain("¿Cuánto es el IVA?");
     expect(prompt).toContain("[1]");
     expect(prompt).toContain("13%");
   });
 
   it("labels the provided material as documentos oficiales (#75)", () => {
-    const prompt = buildUserPrompt("¿Cuánto es el IVA?", [chunk()]);
+    const prompt = buildUserPrompt("¿Cuánto es el IVA?", [chunk()], {
+      today: TODAY,
+    });
     expect(prompt).toContain("Documentos oficiales");
     expect(prompt).not.toMatch(/fragmento|chunk/i);
   });
 
   it("appends system-calculated figures with their input markers", () => {
     const prompt = buildUserPrompt("¿Cuánto pago?", [chunk(), chunk()], {
+      today: TODAY,
       derivedFigures: [DERIVED_FIGURE],
     });
 
@@ -101,7 +109,10 @@ describe("buildUserPrompt", () => {
 
   it("omits the derived-figure block when there are no resolved figures", () => {
     expect(
-      buildUserPrompt("¿Cuánto pago?", [chunk()], { derivedFigures: [] }),
+      buildUserPrompt("¿Cuánto pago?", [chunk()], {
+        today: TODAY,
+        derivedFigures: [],
+      }),
     ).not.toContain("Cifras derivadas");
   });
 
@@ -110,6 +121,7 @@ describe("buildUserPrompt", () => {
   // then ~12k tokens of documents between it and the answer.
   it("puts the question after the documents and the derived figures (#451)", () => {
     const prompt = buildUserPrompt("¿Cuánto pago?", [chunk(), chunk()], {
+      today: TODAY,
       derivedFigures: [DERIVED_FIGURE],
     });
     const question = prompt.indexOf("Pregunta:\n¿Cuánto pago?");
@@ -120,6 +132,33 @@ describe("buildUserPrompt", () => {
     // pulled inferred facts into a blocking answer and uncited figures into
     // two declines. The question is the last thing the model reads.
     expect(prompt.endsWith("Pregunta:\n¿Cuánto pago?")).toBe(true);
+  });
+
+  // #455: «¿hasta qué día tengo?» can only hedge without it.
+  it("states today's Costa Rica date right before the question (#455)", () => {
+    const prompt = buildUserPrompt("¿Hasta qué día tengo?", [chunk()], {
+      today: TODAY,
+    });
+    expect(prompt).toContain(
+      "Fecha de hoy en Costa Rica: 29 de septiembre de 2026.\n\nPregunta:\n¿Hasta qué día tengo?",
+    );
+    expect(prompt.indexOf("Fecha de hoy")).toBeGreaterThan(
+      prompt.indexOf("[1]"),
+    );
+  });
+});
+
+describe("formatToday (#455)", () => {
+  it("writes the date the way the documents write theirs", () => {
+    expect(formatToday("2026-09-29")).toBe(
+      "Fecha de hoy en Costa Rica: 29 de septiembre de 2026.",
+    );
+    expect(formatToday("2027-01-01")).toBe(
+      "Fecha de hoy en Costa Rica: 1 de enero de 2027.",
+    );
+    expect(formatToday("2026-12-31")).toBe(
+      "Fecha de hoy en Costa Rica: 31 de diciembre de 2026.",
+    );
   });
 });
 
@@ -389,6 +428,22 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
       /3\. [^\n]*Ubicar un dato que la persona dio en un tramo o una categoría de los documentos no es calcular/,
     );
+  });
+
+  it("lets a documented date be compared with today, and no more (#455)", () => {
+    // Saying a plazo has passed is a comparison, like placing a figure in a
+    // tramo; counting days from today is arithmetic rule 3 still forbids.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /3\. [^\n]*Tampoco es calcular comparar una fecha que traen los documentos con la fecha de hoy/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /3\. [^\n]*«el plazo del 15 de octubre ya pasó»/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /3\. [^\n]*no sume ni reste días ni proyecte fechas/,
+    );
+    // The date itself is the user prompt's: the system prompt is cached.
+    expect(ANSWER_SYSTEM_PROMPT).not.toContain("Fecha de hoy en Costa Rica:");
   });
 
   it("declines a personalised calculation even when the documents carry its inputs (#352)", () => {
@@ -701,13 +756,19 @@ describe("buildUserPrompt on the citation retry (#131)", () => {
   const CHUNKS = [chunk()];
 
   it("says nothing extra on the first attempt", () => {
-    expect(buildUserPrompt("¿Cuánto es el IVA?", CHUNKS)).toBe(
-      buildUserPrompt("¿Cuánto es el IVA?", CHUNKS, { citationRetry: false }),
+    expect(
+      buildUserPrompt("¿Cuánto es el IVA?", CHUNKS, { today: TODAY }),
+    ).toBe(
+      buildUserPrompt("¿Cuánto es el IVA?", CHUNKS, {
+        today: TODAY,
+        citationRetry: false,
+      }),
     );
   });
 
   it("appends the correction after the documents, so it is the last thing read", () => {
     const retry = buildUserPrompt("¿Cuánto es el IVA?", CHUNKS, {
+      today: TODAY,
       citationRetry: true,
     });
 
@@ -716,7 +777,9 @@ describe("buildUserPrompt on the citation retry (#131)", () => {
     // The retry is the same ask with a correction on it — the question and the
     // documents must be identical, or we are answering a different question.
     expect(
-      retry.startsWith(buildUserPrompt("¿Cuánto es el IVA?", CHUNKS)),
+      retry.startsWith(
+        buildUserPrompt("¿Cuánto es el IVA?", CHUNKS, { today: TODAY }),
+      ),
     ).toBe(true);
   });
 

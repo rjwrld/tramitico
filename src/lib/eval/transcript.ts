@@ -80,8 +80,8 @@ export interface TranscriptRow {
   /**
    * How the answer call ended and what it spent, so a run can size the
    * output cap: thinking counts toward it, and only the provider's total
-   * says how close an answer came. `null` on a weak-retrieval decline,
-   * which calls no model.
+   * says how close an answer came — and the date it was written against.
+   * `null` on a weak-retrieval decline, which calls no model.
    */
   generation: TranscriptGeneration | null;
 }
@@ -90,6 +90,12 @@ export interface TranscriptGeneration {
   finishReason: GenerationFinishReason;
   /** Thinking included; `null` if the provider reported no count. */
   outputTokens: number | null;
+  /**
+   * The Costa Rica date the prompt gave the model, `YYYY-MM-DD` (#455): «ese
+   * plazo ya pasó» is right or wrong only against it. Absent from
+   * transcripts written before #455, whose prompts carried no date.
+   */
+  today: string;
 }
 
 export interface TranscriptInput {

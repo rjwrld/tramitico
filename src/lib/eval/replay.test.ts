@@ -65,7 +65,11 @@ function row(overrides: Partial<TranscriptRow>): TranscriptRow {
       missing: ["Dónde se presenta la declaración hoy."],
       literals: [],
     },
-    generation: { finishReason: "stop", outputTokens: 700 },
+    generation: {
+      finishReason: "stop",
+      outputTokens: 700,
+      today: "2026-09-29",
+    },
     ...overrides,
   };
 }
@@ -95,6 +99,7 @@ describe("replayChunks", () => {
     const prompt = buildUserPrompt(
       "¿Declaro en cero?",
       replayChunks(row({}), META),
+      { today: "2026-09-29" },
     );
     expect(prompt).toContain(
       "[1] Ley del Impuesto sobre el Valor Agregado — Artículo 27 (Ley 6826)\nLos contribuyentes",

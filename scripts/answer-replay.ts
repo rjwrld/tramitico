@@ -38,6 +38,7 @@ import {
   getAnswerModel,
 } from "../src/lib/answer/model";
 import { ANSWER_SYSTEM, buildUserPrompt } from "../src/lib/answer/prompt";
+import { crDate } from "../src/lib/cr-time";
 import {
   checkLiterals,
   judgeAdequacy,
@@ -133,6 +134,9 @@ async function main(): Promise<void> {
   const uncited: string[] = [];
   for (const { row, evalCase, chunks } of prompts) {
     const derivedFigures = resolveDerivedFigures(chunks);
+    // Today's CR date, as the route would pass it (#455) — not the date the
+    // replayed transcript was answered on: a replay reads today's prompt.
+    const today = crDate();
     const {
       text: answer,
       finishReason,
@@ -142,7 +146,7 @@ async function main(): Promise<void> {
       providerOptions: answerProviderOptions(),
       maxOutputTokens: ANSWER_MAX_OUTPUT_TOKENS,
       system: ANSWER_SYSTEM,
-      prompt: buildUserPrompt(row.query, chunks, { derivedFigures }),
+      prompt: buildUserPrompt(row.query, chunks, { today, derivedFigures }),
     });
     const groundedness = judgeGroundedness
       ? await judgeAnswer(row.query, chunks, answer, undefined, derivedFigures)
@@ -176,6 +180,7 @@ async function main(): Promise<void> {
         generation: {
           finishReason: generationFinishReason(finishReason),
           outputTokens: usage.outputTokens ?? null,
+          today,
         },
       }),
     );
