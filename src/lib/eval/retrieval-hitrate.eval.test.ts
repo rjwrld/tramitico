@@ -46,6 +46,7 @@ import {
   answerTopK,
   RERANK_MODEL,
   RERANK_POOL,
+  rerankOptionsFor,
   rerankReadings,
   stepRerankMode,
   type RerankedChunk,
@@ -211,10 +212,11 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
         embedder,
         expander,
       });
-      const outcome = await rerankReadings(query, retrieval.chunks, {
-        expansion: retrieval.expansion,
-        steps: retrieval.steps?.sentences ?? null,
-      });
+      const outcome = await rerankReadings(
+        query,
+        retrieval.chunks,
+        rerankOptionsFor(retrieval),
+      );
       const order = outcome?.order ?? null;
       // The route's exact sequence: rerank cut with the step picks appended
       // (#304), then #287's derived-input pin.

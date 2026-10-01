@@ -50,7 +50,7 @@ import {
   WEAK_RETRIEVAL_ANSWER,
 } from "../answer/prompt";
 import { crDate } from "../cr-time";
-import { rerankChunks, RERANK_POOL } from "../answer/rerank";
+import { rerankChunks, rerankOptionsFor, RERANK_POOL } from "../answer/rerank";
 import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import { retrieve, type RetrievedChunk } from "../retrieval";
@@ -252,10 +252,11 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
       }
 
       const chunks = pinDerivedFigureInputs(
-        await rerankChunks(query, retrieval.chunks, {
-          expansion: retrieval.expansion,
-          steps: retrieval.steps?.sentences ?? null,
-        }),
+        await rerankChunks(
+          query,
+          retrieval.chunks,
+          rerankOptionsFor(retrieval),
+        ),
         retrieval.chunks,
       );
       const derivedFigures = resolveDerivedFigures(chunks);

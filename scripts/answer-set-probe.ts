@@ -57,6 +57,7 @@ import {
 import {
   answerSetFromOrder,
   RERANK_POOL,
+  rerankOptionsFor,
   rerankReadings,
   type RerankedChunk,
 } from "../src/lib/answer/rerank";
@@ -257,8 +258,7 @@ async function readCase(
   }
   const reranking = Date.now();
   const outcome = await rerankReadings(query, retrieval.chunks, {
-    expansion: retrieval.expansion,
-    steps: retrieval.steps?.sentences ?? null,
+    ...rerankOptionsFor(retrieval),
     fetchImpl: calls.fetchImpl,
   });
   const order: RerankedChunk[] | null = outcome?.order ?? null;

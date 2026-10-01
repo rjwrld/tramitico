@@ -49,7 +49,7 @@ import {
   pinDerivedFigureInputs,
   resolveDerivedFigures,
 } from "../answer/derived";
-import { rerankChunks, RERANK_POOL } from "../answer/rerank";
+import { rerankChunks, rerankOptionsFor, RERANK_POOL } from "../answer/rerank";
 import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
 import { retrieve } from "../retrieval";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
@@ -60,7 +60,7 @@ import {
   DEFAULT_TRANSCRIPT_DIR,
   type TranscriptGeneration,
 } from "./transcript";
-import type { EvalCase } from "./dataset";
+import type { EvalCase, Family } from "./dataset";
 import type { Verdict } from "./groundedness";
 
 /** §A3: correct abstention ≥ 0.90 on the abstention set. Ratchet up. */
@@ -100,6 +100,7 @@ function writeAbstentionTranscript(results: readonly CaseResult[]): string {
           id: r.evalCase.id,
           question: r.evalCase.question,
           route: r.viaFallback ? "fallback" : "model",
+          stepFamily: r.stepFamily,
           verdict: r.verdict,
           verdicts: r.verdicts,
           reason: r.reason,
@@ -121,6 +122,13 @@ interface CaseResult {
   reason: string;
   /** Whether the decline came from the deterministic fallback or the model. */
   viaFallback: boolean;
+  /**
+   * The Tier 1 family the step probe classified the question into (#465), or
+   * `null` when it named none. On the model route the rerank read that
+   * family's sentences and could append `pin1`'s pick, as the route's does;
+   * the fallback reranks nothing, so there it only says what the probe saw.
+   */
+  stepFamily: Family | null;
   /** The colón amounts and percentages the answer had no business printing. */
   figures: string[];
   /** What the pipeline actually said — the transcript's reason for existing. */
@@ -158,11 +166,15 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
       if (!viaFallback) {
         // Retrieval found something for a question with no correct source.
         // The decline now has to come from rule 6 of the answer prompt, which
-        // is exactly the case worth measuring.
+        // is exactly the case worth measuring. The route's rerank options,
+        // step sentences included (#465): without them a case that classifies
+        // into a family declines on a chunk set production never builds.
         const chunks = pinDerivedFigureInputs(
-          await rerankChunks(query, retrieval.chunks, {
-            expansion: retrieval.expansion,
-          }),
+          await rerankChunks(
+            query,
+            retrieval.chunks,
+            rerankOptionsFor(retrieval),
+          ),
           retrieval.chunks,
         );
         // `derivedFigures` because the route passes them (#287): a lane that
@@ -200,6 +212,7 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
         evalCase,
         ...judged,
         viaFallback,
+        stepFamily: retrieval.steps?.family ?? null,
         figures: figureMentions(answer, sources),
         answer,
         generation,

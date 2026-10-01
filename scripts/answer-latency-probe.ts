@@ -62,7 +62,11 @@ import {
 } from "../src/lib/answer/model";
 import { ANSWER_SYSTEM, buildUserPrompt } from "../src/lib/answer/prompt";
 import { crDate } from "../src/lib/cr-time";
-import { RERANK_POOL, rerankChunks } from "../src/lib/answer/rerank";
+import {
+  RERANK_POOL,
+  rerankChunks,
+  rerankOptionsFor,
+} from "../src/lib/answer/rerank";
 import { createEmbedder } from "../src/lib/ingestion/embedder";
 import { retrieve } from "../src/lib/retrieval";
 import {
@@ -183,10 +187,11 @@ async function main(): Promise<void> {
       continue;
     }
     const chunks = pinDerivedFigureInputs(
-      await rerankChunks(question, retrieval.chunks, {
-        expansion: retrieval.expansion,
-        steps: retrieval.steps?.sentences ?? null,
-      }),
+      await rerankChunks(
+        question,
+        retrieval.chunks,
+        rerankOptionsFor(retrieval),
+      ),
       retrieval.chunks,
     );
     const derivedFigures = resolveDerivedFigures(chunks);
