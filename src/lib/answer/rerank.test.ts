@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
 import {
@@ -11,6 +12,7 @@ import {
   answerTopK,
   capPerDocument,
   rerankChunks,
+  rerankOptionsFor,
   fuseByMaxScore,
   rerankOrder,
   rerankQueries,
@@ -1065,5 +1067,43 @@ describe("the per-document cap (#303)", () => {
       "c3",
       "c5",
     ]);
+  });
+});
+
+describe("the rerank options a retrieval implies (#465)", () => {
+  it("carries the expansion and the step sentences", () => {
+    expect(
+      rerankOptionsFor({
+        expansion: "base mínima contributiva",
+        steps: { family: "T1-A", sentences: ["uno", "dos"] },
+      }),
+    ).toEqual({
+      expansion: "base mínima contributiva",
+      steps: ["uno", "dos"],
+    });
+  });
+
+  it("is null on both when retrieval ran neither", () => {
+    expect(rerankOptionsFor({ expansion: null, steps: null })).toEqual({
+      expansion: null,
+      steps: null,
+    });
+  });
+
+  // The paid lanes cannot run per PR, so this is what keeps them reranking
+  // the pool the route reranks: the route and each lane take their options
+  // from the one helper, and none spells them out by hand — the abstention
+  // lane did, without `steps`, and declined on a set production never cut.
+  it.each([
+    "src/app/api/ask/route.ts",
+    "src/lib/eval/abstention.eval.test.ts",
+    "src/lib/eval/groundedness.eval.test.ts",
+    "src/lib/eval/retrieval-hitrate.eval.test.ts",
+  ])("%s reranks with rerankOptionsFor(retrieval)", (file) => {
+    const source = readFileSync(file, "utf8");
+    expect(source).toContain("rerankOptionsFor(retrieval)");
+    expect(source).not.toMatch(
+      /rerank(?:Chunks|Readings)\([^)]*?\{\s*expansion:/,
+    );
   });
 });
