@@ -52,6 +52,7 @@ import {
 import { crDate } from "../cr-time";
 import {
   rerankChunks,
+  rerankOptionsFor,
   RERANK_POOL,
   type RerankReadingCount,
 } from "../answer/rerank";
@@ -262,8 +263,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
       let rerank: RerankReadingCount | null = null;
       const chunks = pinDerivedFigureInputs(
         await rerankChunks(query, retrieval.chunks, {
-          expansion: retrieval.expansion,
-          steps: retrieval.steps?.sentences ?? null,
+          ...rerankOptionsFor(retrieval),
           onReadings: (count) => {
             rerank = count;
           },

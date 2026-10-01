@@ -174,7 +174,11 @@ import {
   buildUserPrompt,
   WEAK_RETRIEVAL_ANSWER,
 } from "@/lib/answer/prompt";
-import { RERANK_POOL, rerankChunks } from "@/lib/answer/rerank";
+import {
+  RERANK_POOL,
+  rerankChunks,
+  rerankOptionsFor,
+} from "@/lib/answer/rerank";
 import { getUserId } from "@/lib/answer/user";
 import {
   classifyRouting,
@@ -960,8 +964,7 @@ export async function POST(request: Request): Promise<Response> {
     try {
       chunks = pinDerivedFigureInputs(
         await rerankChunks(asked.query, retrieval.chunks, {
-          expansion: retrieval.expansion,
-          steps: retrieval.steps?.sentences ?? null,
+          ...rerankOptionsFor(retrieval),
           // #466: a lost reading changes the answer set and nothing else.
           onReadings: telemetry.rerankReadings,
         }),

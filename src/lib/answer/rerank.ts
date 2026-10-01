@@ -49,7 +49,7 @@
  * mean, and a question-weighted blend were all measured too, and each of them
  * lost a case that concatenation held.
  */
-import type { RetrievedChunk } from "../retrieval";
+import type { RetrievalResult, RetrievedChunk } from "../retrieval";
 import { isDerivedFigureInput } from "./derived";
 
 /**
@@ -241,6 +241,22 @@ export interface RerankReadingCount {
   asked: number;
   returned: number;
   dropped: DroppedReading[];
+}
+
+/**
+ * The rerank options a retrieval implies: its expansion and its step
+ * sentences. The route and every lane that measures it call this rather than
+ * spelling the two fields out, because a caller that drops one reranks a
+ * pool production never cuts — the abstention lane omitted `steps` and so
+ * declined without `pin1`'s pick (#465).
+ */
+export function rerankOptionsFor(
+  retrieval: Pick<RetrievalResult, "expansion" | "steps">,
+): RerankOptions {
+  return {
+    expansion: retrieval.expansion,
+    steps: retrieval.steps?.sentences ?? null,
+  };
 }
 
 /**

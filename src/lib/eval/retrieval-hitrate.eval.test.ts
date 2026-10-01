@@ -46,6 +46,7 @@ import {
   answerTopK,
   RERANK_MODEL,
   RERANK_POOL,
+  rerankOptionsFor,
   rerankReadings,
   stepRerankMode,
   type RerankedChunk,
@@ -217,8 +218,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
       });
       let rerank: RerankReadingCount | null = null;
       const outcome = await rerankReadings(query, retrieval.chunks, {
-        expansion: retrieval.expansion,
-        steps: retrieval.steps?.sentences ?? null,
+        ...rerankOptionsFor(retrieval),
         onReadings: (count) => {
           rerank = count;
         },
