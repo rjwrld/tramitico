@@ -50,7 +50,11 @@ import {
   WEAK_RETRIEVAL_ANSWER,
 } from "../answer/prompt";
 import { crDate } from "../cr-time";
-import { rerankChunks, RERANK_POOL } from "../answer/rerank";
+import {
+  rerankChunks,
+  RERANK_POOL,
+  type RerankReadingCount,
+} from "../answer/rerank";
 import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import { retrieve, type RetrievedChunk } from "../retrieval";
@@ -81,6 +85,7 @@ import {
   SUBSET_ENV,
 } from "./subset";
 import {
+  droppedReadingsSummary,
   transcriptRow,
   writeTranscript,
   type TranscriptGeneration,
@@ -132,6 +137,8 @@ interface CaseResult {
   derivedFigures: ResolvedDerivedFigure[];
   /** `null` on a weak-retrieval decline, which makes no model call. */
   generation: TranscriptGeneration | null;
+  /** The rerank's readings (#466); `null` when it never called Voyage. */
+  rerank: RerankReadingCount | null;
 }
 
 /**
@@ -247,14 +254,19 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
           adequacy: requirementsOf(evalCase),
           derivedFigures: [],
           generation: null,
+          rerank: null,
         });
         continue;
       }
 
+      let rerank: RerankReadingCount | null = null;
       const chunks = pinDerivedFigureInputs(
         await rerankChunks(query, retrieval.chunks, {
           expansion: retrieval.expansion,
           steps: retrieval.steps?.sentences ?? null,
+          onReadings: (count) => {
+            rerank = count;
+          },
         }),
         retrieval.chunks,
       );
@@ -299,6 +311,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
           outputTokens: usage.outputTokens ?? null,
           today,
         },
+        rerank,
         citations: validateCitations(answer, chunks.length),
         adequacy: declaresRequirements
           ? {
@@ -341,6 +354,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
                     literals: r.adequacy.literals,
                   },
             generation: r.generation,
+            rerank: r.rerank,
           }),
         ),
         { answerModel: answerModelId, subset: subset !== null },
@@ -349,6 +363,13 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
     } catch (error) {
       console.log(`\ntranscript (#289): not written — ${String(error)}`);
     }
+    // #466: a lost reading moves the answer set and nothing else, so the run
+    // says how many it lost before any number below is read.
+    console.log(
+      droppedReadingsSummary(
+        results.map((r) => ({ id: r.evalCase.id, rerank: r.rerank })),
+      ),
+    );
 
     const passes = results.filter((r) => r.verdict === "pass").length;
     console.log(

@@ -70,6 +70,7 @@ function row(overrides: Partial<TranscriptRow>): TranscriptRow {
       outputTokens: 700,
       today: "2026-09-29",
     },
+    rerank: { asked: 2, returned: 2, dropped: [] },
     ...overrides,
   };
 }

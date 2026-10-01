@@ -182,6 +182,9 @@ async function main(): Promise<void> {
           outputTokens: usage.outputTokens ?? null,
           today,
         },
+        // The replay answers on the source row's chunks, so the readings
+        // that chose them are the source's (#466); absent before #466.
+        rerank: row.rerank ?? null,
       }),
     );
     const incomplete = incompletelyCitedDerivedFigures(answer, derivedFigures);

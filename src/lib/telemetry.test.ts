@@ -7,6 +7,7 @@ import {
   generationFinishReason,
   latencyBucket,
   refusalCategory,
+  rerankDrop,
   TELEMETRY_PREFIX,
   type AskEvent,
 } from "./telemetry";
@@ -88,6 +89,7 @@ describe("emitAskEvent", () => {
     quotaReason: null,
     abort: null,
     routedCategory: null,
+    rerankDrops: null,
   };
 
   it("writes one line: the stable prefix, a space, then the JSON", () => {
@@ -461,6 +463,45 @@ describe("createAskTelemetry", () => {
     expect(capture.events()[0].routedCategory).toBeNull();
   });
 
+  it("carries one class per lost rerank reading, and [] when none was lost (#466)", () => {
+    const lossy = createAskTelemetry();
+    lossy.rerankReadings({
+      dropped: [
+        { reading: "question", cause: "http", status: 429 },
+        { reading: "step", cause: "timeout", status: null },
+      ],
+    });
+    lossy.emit();
+    const clean = createAskTelemetry();
+    clean.rerankReadings({ dropped: [] });
+    clean.emit();
+    expect(capture.events().map((e) => e.rerankDrops)).toEqual([
+      ["429", "timeout"],
+      [],
+    ]);
+  });
+
+  it("leaves the rerank drops null on an ask whose rerank never called Voyage", () => {
+    const telemetry = createAskTelemetry();
+    telemetry.routed("general");
+    telemetry.emit();
+    expect(capture.events()[0].rerankDrops).toBeNull();
+  });
+
+  it("closes a dropped reading onto the classes a retry policy tells apart (#466)", () => {
+    const http = (status: number) =>
+      rerankDrop({ reading: "question", cause: "http", status });
+    expect(http(429)).toBe("429");
+    expect(http(400)).toBe("4xx");
+    expect(http(401)).toBe("4xx");
+    expect(http(500)).toBe("5xx");
+    expect(http(503)).toBe("5xx");
+    expect(http(304)).toBe("other_status");
+    for (const cause of ["timeout", "network", "unreadable"] as const) {
+      expect(rerankDrop({ reading: "step", cause, status: null })).toBe(cause);
+    }
+  });
+
   it("writes once — a double count halves every rate queried off it", () => {
     const telemetry = createAskTelemetry();
     telemetry.answered();
@@ -494,6 +535,11 @@ describe("no telemetry event can carry content (#141)", () => {
       }),
     );
     telemetry.citationFailure();
+    // #466: what the rerank reports is a reading's role, cause and status —
+    // the queries it was asked never reach the event.
+    telemetry.rerankReadings({
+      dropped: [{ reading: "question", cause: "http", status: 429 }],
+    });
     telemetry.emit();
     expect(capture.lines).toHaveLength(1);
     for (const line of capture.lines) {
@@ -509,8 +555,9 @@ describe("no telemetry event can carry content (#141)", () => {
     telemetry.answered();
     telemetry.emit();
     // Exhaustive, not a subset: the event's whole vocabulary is closed enums
-    // (the routing category among them, #264), two booleans and one log-safe
-    // error token. Nothing here is free text —
+    // (the routing category among them, #264; the rerank drop classes,
+    // #466), two booleans and one log-safe error token. Nothing here is free
+    // text —
     // no question, no answer, no user id, no IP, no subject hash.
     expect(Object.keys(capture.events()[0]).sort()).toEqual([
       "abort",
@@ -522,6 +569,7 @@ describe("no telemetry event can carry content (#141)", () => {
       "providerError",
       "quotaHit",
       "quotaReason",
+      "rerankDrops",
       "routedCategory",
       "stages",
     ]);

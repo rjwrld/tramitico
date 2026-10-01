@@ -49,7 +49,11 @@ import {
   pinDerivedFigureInputs,
   resolveDerivedFigures,
 } from "../answer/derived";
-import { rerankChunks, RERANK_POOL } from "../answer/rerank";
+import {
+  rerankChunks,
+  RERANK_POOL,
+  type RerankReadingCount,
+} from "../answer/rerank";
 import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
 import { retrieve } from "../retrieval";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
@@ -58,6 +62,7 @@ import { abstentionCases, DATASET_PATH, parseDataset } from "./dataset";
 import { rewriteCase, rewritesFromEnv } from "./rewrites";
 import {
   DEFAULT_TRANSCRIPT_DIR,
+  droppedReadingsSummary,
   type TranscriptGeneration,
 } from "./transcript";
 import type { EvalCase } from "./dataset";
@@ -106,6 +111,7 @@ function writeAbstentionTranscript(results: readonly CaseResult[]): string {
           figures: r.figures,
           answer: r.answer,
           generation: r.generation,
+          rerank: r.rerank,
         }),
       )
       .join("\n") + "\n",
@@ -127,6 +133,8 @@ interface CaseResult {
   answer: string;
   /** `null` on the fallback route, which calls no model. */
   generation: TranscriptGeneration | null;
+  /** The rerank's readings (#466); `null` when it never called Voyage. */
+  rerank: RerankReadingCount | null;
 }
 
 describeEval("abstention set (eval/dataset.jsonl)", () => {
@@ -151,6 +159,7 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
 
       let answer = WEAK_RETRIEVAL_ANSWER;
       let generation: TranscriptGeneration | null = null;
+      let rerank: RerankReadingCount | null = null;
       // Empty on the fallback route, which had no fragments: `figureMentions`
       // then keeps its strict form and counts every figure (#290).
       let sources: string[] | undefined;
@@ -162,6 +171,9 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
         const chunks = pinDerivedFigureInputs(
           await rerankChunks(query, retrieval.chunks, {
             expansion: retrieval.expansion,
+            onReadings: (count) => {
+              rerank = count;
+            },
           }),
           retrieval.chunks,
         );
@@ -203,12 +215,18 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
         figures: figureMentions(answer, sources),
         answer,
         generation,
+        rerank,
       });
     }
 
     const passes = results.filter((r) => r.verdict === "pass").length;
     console.log(`\nabstention: ${passes}/${results.length}`);
     console.log(`  transcript: ${writeAbstentionTranscript(results)}`);
+    console.log(
+      `  ${droppedReadingsSummary(
+        results.map((r) => ({ id: r.evalCase.id, rerank: r.rerank })),
+      )}`,
+    );
     for (const r of results) {
       const votes = r.verdicts.length > 1 ? ` [${r.verdicts.join("/")}]` : "";
       console.log(

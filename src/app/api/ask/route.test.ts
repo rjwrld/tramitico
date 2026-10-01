@@ -2702,6 +2702,33 @@ describe("POST /api/ask", () => {
         quotaReason: null,
         abort: null,
         routedCategory: null,
+        // RERANK=off in this file: the rerank never called Voyage.
+        rerankDrops: null,
+      });
+    });
+
+    it("counts a rerank reading Voyage rejected, and still answers (#466)", async () => {
+      const capture = captureTelemetry();
+      vi.stubEnv("RERANK", "voyage");
+      vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+      const voyage = vi.fn(async () => new Response("", { status: 429 }));
+      vi.stubGlobal("fetch", voyage);
+      try {
+        allowRateLimit();
+        vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+        mockModel(ANSWER);
+
+        await readEvents(
+          await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+        );
+      } finally {
+        vi.unstubAllGlobals();
+      }
+
+      expect(voyage).toHaveBeenCalled();
+      expect(soleEvent(capture)).toMatchObject({
+        outcome: "ok",
+        rerankDrops: voyage.mock.calls.map(() => "429"),
       });
     });
 
@@ -3174,6 +3201,7 @@ describe("POST /api/ask", () => {
         "providerError",
         "quotaHit",
         "quotaReason",
+        "rerankDrops",
         "routedCategory",
         "stages",
       ]);
