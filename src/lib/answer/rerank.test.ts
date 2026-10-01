@@ -6,6 +6,7 @@ import {
   ANSWER_TOP_K,
   RERANK_MODEL,
   RERANK_POOL,
+  type RerankReadingCount,
   type RerankedChunk,
   answerDocCap,
   answerSetFromOrder,
@@ -931,6 +932,133 @@ describe("rerankOrder", () => {
         fetchImpl: vi.fn().mockRejectedValue(new Error("aborted")),
       }),
     ).toBeNull();
+  });
+});
+
+describe("dropped readings (#466)", () => {
+  beforeEach(() => {
+    vi.unstubAllEnvs();
+    vi.stubEnv("RERANK", "voyage");
+    vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+    vi.stubEnv("STEPS_RERANK", "pin1");
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  const ok = () =>
+    new Response(
+      JSON.stringify({ data: [{ index: 0, relevance_score: 0.9 }] }),
+      { status: 200 },
+    );
+
+  /** Voyage, answering per query: a status, a thrown error, or a verdict. */
+  function voyage(
+    per: Record<string, () => Response | Promise<Response>>,
+  ): typeof fetch {
+    return (async (_url: string, init: RequestInit) => {
+      const { query } = JSON.parse(init.body as string);
+      return (per[query] ?? ok)();
+    }) as unknown as typeof fetch;
+  }
+
+  async function count(
+    fetchImpl: typeof fetch,
+    options: { expansion?: string; steps?: string[] } = {},
+  ): Promise<RerankReadingCount[]> {
+    const counts: RerankReadingCount[] = [];
+    await rerankChunks("pregunta", POOL, {
+      fetchImpl,
+      ...options,
+      onReadings: (c) => counts.push(c),
+    });
+    return counts;
+  }
+
+  it("counts a 429 on one of three readings, with its status", async () => {
+    const counts = await count(
+      voyage({ "paso uno": () => new Response("slow down", { status: 429 }) }),
+      { expansion: "términos oficiales", steps: ["paso uno"] },
+    );
+    expect(counts).toEqual([
+      {
+        asked: 3,
+        returned: 2,
+        dropped: [{ reading: "step", cause: "http", status: 429 }],
+      },
+    ]);
+  });
+
+  it("names which reading each drop was, in query order", async () => {
+    const counts = await count(
+      voyage({
+        pregunta: () => new Response("", { status: 503 }),
+        "términos oficiales": () => new Response("", { status: 429 }),
+        "paso dos": () => new Response("", { status: 400 }),
+      }),
+      { expansion: "términos oficiales", steps: ["paso uno", "paso dos"] },
+    );
+    expect(counts[0]).toEqual({
+      asked: 4,
+      returned: 1,
+      dropped: [
+        { reading: "question", cause: "http", status: 503 },
+        { reading: "expansion", cause: "http", status: 429 },
+        { reading: "step", cause: "http", status: 400 },
+      ],
+    });
+  });
+
+  it("tells a network failure from an unreadable body", async () => {
+    const counts = await count(
+      voyage({
+        pregunta: () => Promise.reject(new TypeError("fetch failed")),
+        "términos oficiales": () => new Response("<html>", { status: 200 }),
+        "paso uno": () =>
+          new Response(JSON.stringify({ data: [] }), { status: 200 }),
+      }),
+      { expansion: "términos oficiales", steps: ["paso uno"] },
+    );
+    expect(counts[0].dropped).toEqual([
+      { reading: "question", cause: "network", status: null },
+      { reading: "expansion", cause: "unreadable", status: 200 },
+      { reading: "step", cause: "unreadable", status: 200 },
+    ]);
+    expect(counts[0].returned).toBe(0);
+  });
+
+  it("counts a call the shared deadline cut off as a timeout", async () => {
+    // The deadline, fired on cue: `AbortSignal.timeout` runs on a timer fake
+    // timers do not reach, and a real three seconds is no unit test.
+    const deadline = new AbortController();
+    vi.spyOn(AbortSignal, "timeout").mockReturnValue(deadline.signal);
+    const hung: typeof fetch = ((_url: string, init: RequestInit) =>
+      new Promise((_, reject) => {
+        init.signal?.addEventListener("abort", () =>
+          reject(init.signal?.reason),
+        );
+        deadline.abort(new DOMException("timed out", "TimeoutError"));
+      })) as unknown as typeof fetch;
+    expect((await count(hung))[0]).toEqual({
+      asked: 1,
+      returned: 0,
+      dropped: [{ reading: "question", cause: "timeout", status: null }],
+    });
+  });
+
+  it("reports a clean batch as nothing dropped", async () => {
+    expect(await count(voyage({}), { steps: ["paso uno"] })).toEqual([
+      { asked: 2, returned: 2, dropped: [] },
+    ]);
+  });
+
+  it("does not report when the rerank never called Voyage", async () => {
+    vi.stubEnv("RERANK", "off");
+    expect(await count(voyage({}))).toEqual([]);
+    vi.stubEnv("RERANK", "voyage");
+    vi.stubEnv("VOYAGE_API_KEY", "");
+    expect(await count(voyage({}))).toEqual([]);
   });
 });
 

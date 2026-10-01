@@ -465,7 +465,8 @@ function isCallerShaped(error: unknown): boolean {
  * back.
  *
  * The degraded cases never reach here. `rerankChunks` swallows a Voyage
- * outage and falls back to the fused order (rerank.ts), and since #127 a dead
+ * outage and falls back to the fused order (rerank.ts) — counted in the
+ * event's `rerankDrops` since #466, never refunded — and since #127 a dead
  * embedding provider falls back to lexical-only retrieval — both deliver an
  * answer, labeled, so both consume like one. Nor does an honest decline or a
  * client abort — neither is an error, so neither has a code at all; the
@@ -962,11 +963,11 @@ export async function POST(request: Request): Promise<Response> {
     let chunks;
     try {
       chunks = pinDerivedFigureInputs(
-        await rerankChunks(
-          asked.query,
-          retrieval.chunks,
-          rerankOptionsFor(retrieval),
-        ),
+        await rerankChunks(asked.query, retrieval.chunks, {
+          ...rerankOptionsFor(retrieval),
+          // #466: a lost reading changes the answer set and nothing else.
+          onReadings: telemetry.rerankReadings,
+        }),
         retrieval.chunks,
       );
     } finally {

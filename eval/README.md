@@ -3209,7 +3209,9 @@ What it says:
   reading did not come back. The full lane's answer and judge calls pace it
   far under 21 cases/min, but the lanes do not count dropped readings; the
   probe does. What production does with a rejected reading is a product
-  question, not this issue's.
+  question, not this issue's. (Since #466 the lanes count them too: each
+  prints `rerank readings lost: …` with every loss's reading and HTTP status,
+  and every groundedness and abstention transcript row carries `rerank`.)
 - **What it costs a comparison.** Across the live pair, the Tier 1 targets in
   front of the model went 60 → 56 of 92 on identical code: the retrieval half
   of the ±4.

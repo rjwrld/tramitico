@@ -50,6 +50,7 @@ import {
   rerankReadings,
   stepRerankMode,
   type RerankedChunk,
+  type RerankReadingCount,
 } from "../answer/rerank";
 import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
@@ -65,6 +66,7 @@ import {
 import { rewriteCase, rewritesFromEnv } from "./rewrites";
 import { CARRIERS_PATH, parseCarriers, parseChunkRef } from "./carriers";
 import { formatExposureTally, tallyByExposure } from "./exposure";
+import { droppedReadingsSummary } from "./transcript";
 import {
   selectCases,
   SUBSET_ENV,
@@ -155,6 +157,8 @@ interface CaseResult {
   }[];
   /** The derived figures the answer set resolves (#287: F1, the fines). */
   figures: string[];
+  /** The rerank's readings (#466); `null` when it never called Voyage. */
+  rerank: RerankReadingCount | null;
 }
 
 describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
@@ -212,11 +216,13 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
         embedder,
         expander,
       });
-      const outcome = await rerankReadings(
-        query,
-        retrieval.chunks,
-        rerankOptionsFor(retrieval),
-      );
+      let rerank: RerankReadingCount | null = null;
+      const outcome = await rerankReadings(query, retrieval.chunks, {
+        ...rerankOptionsFor(retrieval),
+        onReadings: (count) => {
+          rerank = count;
+        },
+      });
       const order = outcome?.order ?? null;
       // The route's exact sequence: rerank cut with the step picks appended
       // (#304), then #287's derived-input pin.
@@ -293,6 +299,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
         stepFamily: retrieval.steps?.family ?? null,
         targets,
         figures: resolveDerivedFigures(topK).map((figure) => figure.id),
+        rerank,
       });
     }
     const hits = results.filter((r) => r.hit).length;
@@ -300,6 +307,12 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
       `\nretrieval hit-rate (rerank=${rerankMode} ${process.env.RERANK_MODEL || RERANK_MODEL}, pool ${RERANK_POOL} → top ${topKSize}, ` +
         `cap=${docCap === Infinity ? "off" : docCap}/doc, expand=${expandMode}, steps=${stepsMode}, ` +
         `pin=${pinEnabled() ? "on" : "off"}): ${hits}/${results.length}`,
+    );
+    // #466: a miss on a case that lost a reading may be the lost reading.
+    console.log(
+      `  ${droppedReadingsSummary(
+        results.map((r) => ({ id: r.evalCase.id, rerank: r.rerank })),
+      )}`,
     );
     for (const r of results) {
       console.log(

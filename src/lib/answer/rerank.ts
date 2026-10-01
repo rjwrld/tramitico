@@ -195,6 +195,52 @@ export interface RerankOptions {
    * the expansion, never loses any the question gave it.
    */
   steps?: readonly string[] | null;
+  /**
+   * Told, once per rerank that called Voyage at all, how many readings were
+   * asked for, how many came back, and why each of the others did not
+   * (#466). Not called when the rerank never ran — opted out or unkeyed —
+   * since nothing was asked and nothing could be lost.
+   *
+   * A lost reading changes the answer set without changing any text: the
+   * fused order moves, or `pin1` picks another step chunk, and #457 measured
+   * that on 17 of the 19 cases a drop hit. The degradation policy below is
+   * unchanged — a lost reading is still only one reading — but it is no
+   * longer silent: the route counts it in the per-ask event, and the eval
+   * lanes in their transcripts.
+   */
+  onReadings?: (count: RerankReadingCount) => void;
+}
+
+/**
+ * Why a reading did not come back (#466):
+ *
+ * - `http` — Voyage answered with a non-OK status, which `status` carries:
+ *   #457 measured the rejections but could not say whether they were 429s.
+ * - `timeout` — the one deadline every call shares expired first.
+ * - `network` — the request itself failed before any response arrived.
+ * - `unreadable` — an OK response whose body was not JSON, or carried no
+ *   index and score `scorePool` could use; `status` is the OK one.
+ */
+export type ReadingLoss = "http" | "timeout" | "network" | "unreadable";
+
+/** One reading that did not come back, and why. */
+export interface DroppedReading {
+  /** Which query it was: the question, its expansion, or a step sentence. */
+  reading: "question" | "expansion" | "step";
+  cause: ReadingLoss;
+  /** The HTTP status Voyage answered with; `null` when no response arrived. */
+  status: number | null;
+}
+
+/**
+ * How one rerank's readings fared (#466): `asked` Voyage calls, `returned`
+ * of them usable, and one entry per reading lost, in query order. `asked` is
+ * always `returned + dropped.length`.
+ */
+export interface RerankReadingCount {
+  asked: number;
+  returned: number;
+  dropped: DroppedReading[];
 }
 
 /**
@@ -369,10 +415,15 @@ function rerankModel(): string {
   return process.env.RERANK_MODEL || RERANK_MODEL;
 }
 
+/** One reading's result: Voyage's verdict on the pool, or why there is none. */
+type Reading =
+  | { verdict: QueryVerdict }
+  | { verdict: null; cause: ReadingLoss; status: number | null };
+
 /**
- * One Voyage rerank call, as a map of pool index → relevance score, or `null`
- * when it did not produce one. Never throws: a rejected call is one reading
- * lost, not a failed ask.
+ * One Voyage rerank call, as its verdict on the pool, or the reason it did
+ * not produce one (#466). Never throws: a rejected call is one reading lost,
+ * not a failed ask.
  */
 async function scorePool(
   query: string,
@@ -380,7 +431,8 @@ async function scorePool(
   key: string,
   fetchImpl: typeof fetch,
   signal: AbortSignal,
-): Promise<QueryVerdict | null> {
+): Promise<Reading> {
+  let status: number | null = null;
   try {
     const res = await fetchImpl("https://api.voyageai.com/v1/rerank", {
       method: "POST",
@@ -395,7 +447,8 @@ async function scorePool(
       }),
       signal,
     });
-    if (!res.ok) return null;
+    status = res.status;
+    if (!res.ok) return { verdict: null, cause: "http", status };
     const json = (await res.json()) as VoyageRerankResponse;
     // The response is typed, not trusted. `chunks[index]` alone is not enough
     // of a check: `chunks["0"]` is defined too, and a string index is a
@@ -411,9 +464,19 @@ async function scorePool(
         ? [{ index, score: relevance_score }]
         : [],
     );
-    return verdict.length > 0 ? verdict : null;
+    return verdict.length > 0
+      ? { verdict }
+      : { verdict: null, cause: "unreadable", status };
   } catch {
-    return null;
+    // The shared deadline aborts every call still out, the body read
+    // included; anything else that throws before a response is the network,
+    // and after one is a body that would not parse.
+    if (signal.aborted) return { verdict: null, cause: "timeout", status };
+    return {
+      verdict: null,
+      cause: status === null ? "network" : "unreadable",
+      status,
+    };
   }
 }
 
@@ -447,7 +510,8 @@ export interface RerankOutcome {
  * none → `null`. Under `pin`/`pin1`/`slot`, a batch where only sentence readings came
  * back falls back to fusing those — one reading of the pool is still better
  * than none, and the picks are then empty because there is no question
- * order to pin them past.
+ * order to pin them past. Whatever came back, `onReadings` hears how many
+ * did and why each of the others did not (#466).
  */
 export async function rerankReadings(
   question: string,
@@ -467,15 +531,35 @@ export async function rerankReadings(
   // One deadline for every call: they run concurrently, so the reader waits
   // for the slowest one and not for the sum.
   const signal = AbortSignal.timeout(RERANK_TIMEOUT_MS);
-  const scored = await Promise.all(
+  const readings = await Promise.all(
     rerankQueries(question, options.expansion, sentences).map((query) =>
       scorePool(query, chunks, key, fetchImpl, signal),
     ),
   );
+  // The question's readings first, then the sentences' (`rerankQueries`).
+  const questionCount = readings.length - sentences.length;
+  const dropped = readings.flatMap((reading, i) =>
+    reading.verdict === null
+      ? [
+          {
+            reading:
+              i === 0 ? "question" : i < questionCount ? "expansion" : "step",
+            cause: reading.cause,
+            status: reading.status,
+          } satisfies DroppedReading,
+        ]
+      : [],
+  );
+  options.onReadings?.({
+    asked: readings.length,
+    returned: readings.length - dropped.length,
+    dropped,
+  });
+  const scored = readings.map((reading) => reading.verdict);
   if (scored.every((scores) => scores === null)) return null;
 
-  const questionReadings = scored.slice(0, scored.length - sentences.length);
-  const stepReadings = scored.slice(scored.length - sentences.length);
+  const questionReadings = scored.slice(0, questionCount);
+  const stepReadings = scored.slice(questionCount);
   const pinning =
     pinsSteps(mode) && questionReadings.some((reading) => reading !== null);
   // Passed with the question's slot intact, `null` and all: `fuseByMaxScore`

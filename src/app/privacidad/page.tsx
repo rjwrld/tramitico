@@ -131,8 +131,9 @@ export default function PrivacyPage() {
             Registros operativos, sin contenido.
           </strong>{" "}
           Para detectar fallas se registra, por cada consulta, cómo terminó: si
-          se respondió, cuánto tardó de forma aproximada y, cuando algo falla,
-          el tipo de error y su código. Cuando no se encontró base oficial para
+          se respondió, cuánto tardó de forma aproximada y, cuando algo falla
+          (la consulta entera o una de las llamadas que hace a un proveedor), el
+          tipo de error y su código. Cuando no se encontró base oficial para
           responder, se registra también a qué institución se le remitió (una
           categoría de una lista fija: Hacienda, CCSS, INS, municipalidad,
           Registro Nacional, colegio profesional, banco, MEIC, migración o

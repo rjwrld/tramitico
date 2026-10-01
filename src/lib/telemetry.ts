@@ -34,6 +34,7 @@
  */
 
 import type { FinishReason, ProviderMetadata } from "ai";
+import type { DroppedReading } from "./answer/rerank";
 import { describeError } from "./log-redaction";
 import type { RateLimitCounter } from "./rate-limit";
 import type { RoutedCategory } from "./routing";
@@ -174,6 +175,23 @@ export function refusalCategory(
   return REFUSAL_CATEGORIES.find((known) => known === category) ?? "other";
 }
 
+/**
+ * Why one rerank reading was lost (#466), as a closed set: the status classes
+ * a retry policy would tell apart — `429` from the rest of `4xx`, and `5xx` —
+ * then the three ways no usable response arrived. Any other status (a 1xx or
+ * 3xx `fetch` did not follow) is `other_status`.
+ */
+export type RerankDrop =
+  "429" | "4xx" | "5xx" | "other_status" | "timeout" | "network" | "unreadable";
+
+export function rerankDrop({ cause, status }: DroppedReading): RerankDrop {
+  if (cause !== "http") return cause;
+  if (status === 429) return "429";
+  if (status !== null && status >= 400 && status < 500) return "4xx";
+  if (status !== null && status >= 500 && status < 600) return "5xx";
+  return "other_status";
+}
+
 export interface GenerationTiming {
   latency: LatencyBucket;
   /** Time to first nonempty text delta; null if none arrived. */
@@ -219,6 +237,16 @@ export interface AskEvent {
    * itself never rides here.
    */
   routedCategory: RoutedCategory | null;
+  /**
+   * One entry per rerank reading this ask lost (#466), in query order —
+   * `[]` when every reading came back, `null` when the rerank never called
+   * Voyage (opted out, unkeyed, or the ask ended before it). The length is
+   * the count; the entries are `RerankDrop`'s closed set. Deliberately not
+   * how many readings were *asked*: that is one plus an expansion plus the
+   * step sentences of the family the question classified to, and a family's
+   * sentence count is a topic, which the event never carries.
+   */
+  rerankDrops: RerankDrop[] | null;
 }
 
 /**
@@ -251,6 +279,7 @@ interface AskFacts {
   providerError: string | null;
   abort: AskAbort | null;
   routedCategory: RoutedCategory | null;
+  rerankDrops: RerankDrop[] | null;
   chargeKept: boolean;
 }
 
@@ -332,6 +361,11 @@ export interface AskTelemetry {
   /** The honest decline on weak retrieval was routed to `category` (#264). */
   routed: (category: RoutedCategory) => void;
   /**
+   * The rerank called Voyage and lost `dropped` of its readings (#466) —
+   * `rerankChunks`' `onReadings`, passed straight through.
+   */
+  rerankReadings: (count: { dropped: readonly DroppedReading[] }) => void;
+  /**
    * The ask settled without a refund: it keeps its quota slot. Called by the
    * route's settlement, the one place that knows, so `outcome` can never
    * claim a refund the quota did not make. Read only alongside `failed`.
@@ -359,6 +393,7 @@ export function createAskTelemetry(
     providerError: null,
     abort: null,
     routedCategory: null,
+    rerankDrops: null,
     chargeKept: false,
   };
   const durations: Record<AskStage, number | null> = {
@@ -447,6 +482,9 @@ export function createAskTelemetry(
     routed: (category: RoutedCategory) => {
       facts.routedCategory = category;
     },
+    rerankReadings: ({ dropped }) => {
+      facts.rerankDrops = dropped.map(rerankDrop);
+    },
     chargeKept: () => {
       facts.chargeKept = true;
     },
@@ -488,6 +526,7 @@ export function createAskTelemetry(
         quotaReason: facts.quotaReason,
         abort: facts.abort,
         routedCategory: facts.routedCategory,
+        rerankDrops: facts.rerankDrops,
       });
     },
   };

@@ -24,6 +24,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { CitationVerdict } from "../answer/invariant";
 import type { ResolvedDerivedFigure } from "../answer/derived";
+import type { RerankReadingCount } from "../answer/rerank";
 import type { RetrievedChunk } from "../retrieval";
 import type { GenerationFinishReason } from "../telemetry";
 import type { EvalCase, Family, Tier, Variant } from "./dataset";
@@ -84,6 +85,15 @@ export interface TranscriptRow {
    * `null` on a weak-retrieval decline, which calls no model.
    */
   generation: TranscriptGeneration | null;
+  /**
+   * How the rerank's readings fared for this case (#466): asked, came back,
+   * and each one lost with its cause and HTTP status. A lost reading changes
+   * the chunk list above without changing any text, so a row that lost one
+   * was answered on a different set than a clean run would have given it.
+   * `null` when the rerank never called Voyage — a weak-retrieval decline,
+   * `RERANK=off`, no key. Absent from transcripts written before #466.
+   */
+  rerank: RerankReadingCount | null;
 }
 
 export interface TranscriptGeneration {
@@ -108,6 +118,7 @@ export interface TranscriptInput {
   citations: CitationVerdict | null;
   adequacy: { verdict: Verdict; missing: string[]; literals: string[] } | null;
   generation: TranscriptGeneration | null;
+  rerank: RerankReadingCount | null;
 }
 
 export function transcriptRow({
@@ -120,6 +131,7 @@ export function transcriptRow({
   citations,
   adequacy,
   generation,
+  rerank,
 }: TranscriptInput): TranscriptRow {
   return {
     id: evalCase.id,
@@ -146,7 +158,38 @@ export function transcriptRow({
     citations,
     adequacy,
     generation,
+    rerank,
   };
+}
+
+/**
+ * One line for a run's console: how many rerank readings the run lost, and
+ * on which cases, with each loss's reading and status (#466). A full lane
+ * paces far under the rate #457 saw Voyage reject, but only this line shows
+ * that a given run lost none. `null` rows (no rerank) are not counted.
+ */
+export function droppedReadingsSummary(
+  cases: readonly { id: string; rerank: RerankReadingCount | null }[],
+): string {
+  const ran = cases.flatMap(({ id, rerank }) =>
+    rerank === null ? [] : [{ id, rerank }],
+  );
+  const asked = ran.reduce((n, { rerank }) => n + rerank.asked, 0);
+  const lossy = ran.filter(({ rerank }) => rerank.dropped.length > 0);
+  const lost = lossy.reduce((n, { rerank }) => n + rerank.dropped.length, 0);
+  if (lost === 0) return `rerank readings lost: none of ${asked}`;
+  const detail = lossy.map(
+    ({ id, rerank }) =>
+      `${id}(${rerank.dropped
+        .map(({ reading, cause, status }) =>
+          cause === "http" ? `${reading}:${status}` : `${reading}:${cause}`,
+        )
+        .join(",")})`,
+  );
+  return (
+    `rerank readings lost: ${lost} of ${asked}, on ${lossy.length} ` +
+    `case(s) — ${detail.join(" ")}`
+  );
 }
 
 /** JSONL: one row per line, newline-terminated. `JSON.stringify` escapes the

@@ -60,6 +60,7 @@ import {
   rerankOptionsFor,
   rerankReadings,
   type RerankedChunk,
+  type RerankReadingCount,
 } from "../src/lib/answer/rerank";
 import {
   abstentionCases,
@@ -75,6 +76,7 @@ import {
   rewritesFromEnv,
   type CaseRewrites,
 } from "../src/lib/eval/rewrites";
+import { droppedReadingsSummary } from "../src/lib/eval/transcript";
 import { createEmbedder, type Embedder } from "../src/lib/ingestion/embedder";
 import { retrieve, type RetrievedChunk } from "../src/lib/retrieval";
 
@@ -134,8 +136,15 @@ interface CaseRead {
    * Provider calls on this case that did not come back: a failed embed or
    * rerank reading is silent in production (a leg or a reading is dropped),
    * and either one changes the answer set without changing any text.
+   * `rerank` is `rerankReadings.dropped.length`.
    */
   failures: { condense: number; expand: number; embed: number; rerank: number };
+  /**
+   * The rerank's own count (#466): readings asked, back, and each one lost
+   * with its cause and HTTP status. `null` when the rerank never called
+   * Voyage — weak retrieval, `RERANK=off`, no key.
+   */
+  rerankReadings: RerankReadingCount | null;
   /** Wall-clock of each step, against the 3–5 s budgets that drop a leg. */
   ms: { rewrite: number; retrieve: number; rerank: number };
 }
@@ -144,16 +153,18 @@ function label(chunk: RetrievedChunk): string {
   return `${chunk.docKey}·${chunk.articulo ?? "*"}·#${chunk.part}`;
 }
 
-/** Counts every provider call a case makes that does not come back. */
+/**
+ * Counts every embed call a case makes that does not come back. Rerank
+ * readings count themselves since #466 (`onReadings`), with the status the
+ * fetch wrapper that used to count them here could not see past.
+ */
 interface CallCounter {
   embedder: Embedder;
-  fetchImpl: typeof fetch;
-  take(): { embed: number; rerank: number };
+  take(): { embed: number };
 }
 
 function countingCalls(embedder: Embedder): CallCounter {
   let embed = 0;
-  let rerank = 0;
   return {
     embedder: {
       ...embedder,
@@ -166,20 +177,9 @@ function countingCalls(embedder: Embedder): CallCounter {
         }
       },
     },
-    fetchImpl: async (input, init) => {
-      try {
-        const res = await fetch(input, init);
-        if (!res.ok) rerank += 1;
-        return res;
-      } catch (error) {
-        rerank += 1;
-        throw error;
-      }
-    },
     take() {
-      const taken = { embed, rerank };
+      const taken = { embed };
       embed = 0;
-      rerank = 0;
       return taken;
     },
   };
@@ -221,6 +221,7 @@ async function readCase(
     order: null,
     scores: null,
     failures: { condense: 0, expand: 0, embed: 0, rerank: 0 },
+    rerankReadings: null,
     ms: {
       rewrite: rewritten - started,
       retrieve: Date.now() - rewritten,
@@ -228,7 +229,7 @@ async function readCase(
     },
   };
   const tally = () => {
-    const { embed, rerank } = calls.take();
+    const { embed } = calls.take();
     const condenseAfter = condenseFailures();
     const expandAfter = expandFailures();
     const sum = (counts: Record<string, number>) =>
@@ -237,7 +238,7 @@ async function readCase(
       condense: sum(condenseAfter) - sum(condenseBefore),
       expand: sum(expandAfter) - sum(expandBefore),
       embed,
-      rerank,
+      rerank: read.rerankReadings?.dropped.length ?? 0,
     };
   };
   if (retrieval.isWeak) {
@@ -259,7 +260,9 @@ async function readCase(
   const reranking = Date.now();
   const outcome = await rerankReadings(query, retrieval.chunks, {
     ...rerankOptionsFor(retrieval),
-    fetchImpl: calls.fetchImpl,
+    onReadings: (count) => {
+      read.rerankReadings = count;
+    },
   });
   const order: RerankedChunk[] | null = outcome?.order ?? null;
   read.order = order === null ? null : order.map((entry) => label(entry.chunk));
@@ -354,6 +357,11 @@ async function main(): Promise<void> {
         )
         .join(" ") || "none"
     }`,
+  );
+  console.log(
+    droppedReadingsSummary(
+      reads.map((r) => ({ id: r.id, rerank: r.rerankReadings })),
+    ),
   );
   console.log(
     `weak: ${

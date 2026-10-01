@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
 import type { EvalCase } from "./dataset";
 import {
+  droppedReadingsSummary,
   serializeTranscript,
   transcriptFilename,
   transcriptRow,
@@ -57,6 +58,11 @@ const ROW: TranscriptRow = transcriptRow({
     outputTokens: 1_412,
     today: "2026-09-29",
   },
+  rerank: {
+    asked: 3,
+    returned: 2,
+    dropped: [{ reading: "step", cause: "http", status: 429 }],
+  },
 });
 
 describe("transcriptRow", () => {
@@ -77,6 +83,14 @@ describe("transcriptRow", () => {
         outputTokens: 1_412,
         today: "2026-09-29",
       },
+    });
+  });
+
+  it("states how many rerank readings the case lost, and why (#466)", () => {
+    expect(ROW.rerank).toEqual({
+      asked: 3,
+      returned: 2,
+      dropped: [{ reading: "step", cause: "http", status: 429 }],
     });
   });
 
@@ -131,6 +145,7 @@ describe("transcriptRow", () => {
         outputTokens: null,
         today: "2026-09-29",
       },
+      rerank: { asked: 1, returned: 1, dropped: [] },
     });
     // Same docKey and articulo on both: only the id and the text tell them
     // apart.
@@ -153,11 +168,56 @@ describe("transcriptRow", () => {
       citations: null,
       adequacy: null,
       generation: null,
+      rerank: null,
     });
     expect(declined.chunks).toEqual([]);
     expect(declined.generation).toBeNull();
+    // Never reranked, so nothing could be lost (#466).
+    expect(declined.rerank).toBeNull();
     expect(declined.citations).toBeNull();
     expect(declined.adequacy).toBeNull();
+  });
+});
+
+describe("droppedReadingsSummary (#466)", () => {
+  it("says a clean run lost none, out of every reading it asked for", () => {
+    expect(
+      droppedReadingsSummary([
+        { id: "a", rerank: { asked: 2, returned: 2, dropped: [] } },
+        { id: "b", rerank: null },
+        { id: "c", rerank: { asked: 7, returned: 7, dropped: [] } },
+      ]),
+    ).toBe("rerank readings lost: none of 9");
+  });
+
+  it("names each case that lost one, with the reading and its status or cause", () => {
+    expect(
+      droppedReadingsSummary([
+        {
+          id: "a",
+          rerank: {
+            asked: 3,
+            returned: 1,
+            dropped: [
+              { reading: "question", cause: "http", status: 429 },
+              { reading: "step", cause: "timeout", status: null },
+            ],
+          },
+        },
+        { id: "b", rerank: { asked: 2, returned: 2, dropped: [] } },
+        {
+          id: "c",
+          rerank: {
+            asked: 2,
+            returned: 1,
+            dropped: [{ reading: "expansion", cause: "http", status: 503 }],
+          },
+        },
+      ]),
+    ).toBe(
+      "rerank readings lost: 3 of 7, on 2 case(s) — " +
+        "a(question:429,step:timeout) c(expansion:503)",
+    );
   });
 });
 
