@@ -3252,7 +3252,7 @@ An A/B on the full lane writes the rewrites once
 (`pnpm answer-set-probe rewrites.json`, cents) and runs both arms
 on them. Production keeps asking live.
 
-## `pin1` ranked by the question, not shipped (2026-10-02, #460)
+## `pin1` ranked by the question, shipped (2026-10-02, #460)
 
 > Three `pnpm answer-set-probe` runs (retrieval and rerank only, no answer
 > model), owner-approved through the coordinator, about US$0.45. Every run
@@ -3275,14 +3275,17 @@ Tier 1 targets in the answer sets went 58 → 61 of 93, and Tier 2 77 → 78 of 
   ranked #32–#36 by the question. It had been a target on those cases by
   accident.
 
-The bar was "Tier 1 rises and none is lost", so the change did not ship. It
-is kept on `rjwrld/460-pin1-question-rank-code`. #460's full lane was not
-run.
+The probe's bar was "Tier 1 rises and none is lost", and the change first
+stayed on a branch. It **shipped on 2026-10-02 by owner decision**: the three
+losses read as accidents of the old constant pin, not targets the question
+reached, and the net is +3 Tier 1 targets. #460's third requirement, a full
+lane showing groundedness and the blocking cases unharmed, is the coming full
+eval. If a red there lands on a case whose pin changed (the table in the run
+README names all 35), the change is reverted.
 
 **A finding for every frozen run.** A replayed probe runs about 58 cases a
 minute because it asks no small model. At that pace Voyage returned 429 on
 77 of 406 rerank readings. The live baseline ran about 22 a minute and lost
 none. #457 saw the same threshold. A frozen comparison needs pacing, or its
-per-case rows are not evidence. `PROBE_CASE_MS` on the kept branch paces the
-probe. A lane under `EVAL_REWRITES` with no answer model in the loop has the
+per-case rows are not evidence. `PROBE_CASE_MS` paces the probe. A lane under `EVAL_REWRITES` with no answer model in the loop has the
 same exposure; it prints `rerank readings lost` (#466), so check it.

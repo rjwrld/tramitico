@@ -265,7 +265,7 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   A question naming no family, or `STEPS=off`, leaves the search exactly as it was. The
   catalogue's legs never witness corroboration. At the rerank the question's own readings decide
   the order and the cut, and since 2026-09-25 **one** step pick the cut left out is appended past
-  it (`STEPS_RERANK=pin1`, #287): pinning every sentence's best chunk cost groundedness its 0.94
+  it (`STEPS_RERANK=pin1`, #287; since 2026-10-02 the one the question ranks best, #460): pinning every sentence's best chunk cost groundedness its 0.94
   gate, while one pick tied the unpinned mode on groundedness and stated 83/116 Tier 1
   requirements against 71/116 —
   **[ADR 0020](docs/adr/0020-step-catalogue-legs.md)**.
