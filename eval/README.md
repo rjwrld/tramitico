@@ -76,7 +76,11 @@ pnpm vitest run --disableConsoleIntercept src/lib/eval/retrieval-hitrate.eval.te
 `--disableConsoleIntercept` is not optional (#342): vitest hides a _passing_
 file's console, so without it a lane that passes leaves no per-case table in
 the log — #305 paid US$0.25 to re-read one number that way, and `eval.yml`
-now carries the flag too. `RERANK=off` measures the fused-only baseline; the
+now carries the flag too. Through the package script it goes without a
+separator: `pnpm test:eval --disableConsoleIntercept`. The form
+`pnpm test:eval -- --disableConsoleIntercept` hands vitest a literal `--`,
+and the flag after it is ignored. The 2026-10-02 full lane (#472) lost the
+passing lanes' numbers that way. `RERANK=off` measures the fused-only baseline; the
 per-case table (pool rank, top score) prints with the run. Since #286 the retrieval a case runs is also
 the _expanded_ one — a Haiku rewrite of the question into corpus register,
 fused as two further legs — so a run without `ANTHROPIC_API_KEY` measures a
