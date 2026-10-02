@@ -1,0 +1,143 @@
+ Vitest  The "unit" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "integration" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "eval" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+
+ RUN  v5.0.2 <worktree>
+
+
+EVAL_CASES: 3/73 case(s) — ccss-cuanto-pago-base, ho-iva-en-cero-sin-facturar, ho-ademas-tengo-salario. Gates will fail: a subset run is a transcript read, not a measurement.
+
+transcript (#289): <worktree>/eval/runs/2026-10-02-full-lane/smoke/groundedness-claude-sonnet-5-5-effort-low-subset-20261002T182008Z.jsonl
+rerank readings lost: none of 17
+
+groundedness (answer=claude-sonnet-5-5-effort-low, judge=claude-sonnet-4-5): 3/3
+  pass  ccss-cuanto-pago-base
+  pass  ho-iva-en-cero-sin-facturar
+  pass  ho-ademas-tengo-salario
+groundedness by exposure (#267):
+  first-exposure  2/2
+  promoted        0/0
+  corpus-derived  1/1
+
+adequacy (#130): 0/2
+  FAIL  tier 1  T1-D  ho-iva-en-cero-sin-facturar  — missing: Dónde se presenta la declaración hoy y qué pasa si ya venció el plazo.; Omitir la declaración dentro del plazo legal se sanciona con una multa del cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent)
+  FAIL  tier 1  T1-E  ho-ademas-tengo-salario  — missing: El salario y la actividad lucrativa tributan por escalas distintas: el salario por la escala mensual de rentas del trabajo y la actividad por la escala anual de personas físicas con actividad lucrativa.; Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.; Qué se declara en la declaración anual cuando hay salario y actividad, y cómo se tratan las retenciones ya soportadas.; Los pagos parciales: cuándo se pagan y que puede pedirse su rebaja cuando la renta del período va a ser menor.; La declaración anual y el pago vencen dentro de los dos meses y quince días naturales siguientes al cierre del período. (dos meses y quince días | 2 meses y 15 días: absent)
+tier 1 requirements stated (#287): 3/10
+adequacy by exposure (#267):
+  first-exposure  0/2
+  promoted        0/0
+  corpus-derived  0/0
+
+citation invariant (#168): 0 violation(s)
+ ❯ |eval| src/lib/eval/groundedness.eval.test.ts (7 tests | 7 failed) 77613ms
+   ❯ groundedness (eval/dataset.jsonl) (7)
+     × states at least 80 tier 1 requirements 8ms
+     × at least 84% of tier 2 cases with required claims are adequate 1ms
+     × ships no answer the runtime citation invariant would refuse 0ms
+     × every blocking case's answer is supported by its retrieved chunks 1ms
+     × at least 94% of answers are supported by their retrieved chunks 2ms
+     × ships no answer whose derived figures are incompletely cited 0ms
+     × answers F1 with both BMC figures and citations to every input 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > states at least 80 tier 1 requirements
+Error: EVAL_CASES selected 3 case(s) — ccss-cuanto-pago-base, ho-iva-en-cero-sin-facturar, ho-ademas-tengo-salario. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:205:32
+    203|    */
+    204|   function assertFullRun(): void {
+    205|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    206|   }
+    207|
+ ❯ src/lib/eval/groundedness.eval.test.ts:456:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > at least 84% of tier 2 cases with required claims are adequate
+Error: EVAL_CASES selected 3 case(s) — ccss-cuanto-pago-base, ho-iva-en-cero-sin-facturar, ho-ademas-tengo-salario. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:205:32
+    203|    */
+    204|   function assertFullRun(): void {
+    205|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    206|   }
+    207|
+ ❯ src/lib/eval/groundedness.eval.test.ts:469:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > ships no answer the runtime citation invariant would refuse
+Error: EVAL_CASES selected 3 case(s) — ccss-cuanto-pago-base, ho-iva-en-cero-sin-facturar, ho-ademas-tengo-salario. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:205:32
+    203|    */
+    204|   function assertFullRun(): void {
+    205|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    206|   }
+    207|
+ ❯ src/lib/eval/groundedness.eval.test.ts:485:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > every blocking case's answer is supported by its retrieved chunks
+Error: EVAL_CASES selected 3 case(s) — ccss-cuanto-pago-base, ho-iva-en-cero-sin-facturar, ho-ademas-tengo-salario. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:205:32
+    203|    */
+    204|   function assertFullRun(): void {
+    205|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    206|   }
+    207|
+ ❯ src/lib/eval/groundedness.eval.test.ts:499:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > at least 94% of answers are supported by their retrieved chunks
+Error: EVAL_CASES selected 3 case(s) — ccss-cuanto-pago-base, ho-iva-en-cero-sin-facturar, ho-ademas-tengo-salario. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:205:32
+    203|    */
+    204|   function assertFullRun(): void {
+    205|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    206|   }
+    207|
+ ❯ src/lib/eval/groundedness.eval.test.ts:510:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > ships no answer whose derived figures are incompletely cited
+Error: EVAL_CASES selected 3 case(s) — ccss-cuanto-pago-base, ho-iva-en-cero-sin-facturar, ho-ademas-tengo-salario. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:205:32
+    203|    */
+    204|   function assertFullRun(): void {
+    205|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    206|   }
+    207|
+ ❯ src/lib/eval/groundedness.eval.test.ts:522:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > answers F1 with both BMC figures and citations to every input
+Error: EVAL_CASES selected 3 case(s) — ccss-cuanto-pago-base, ho-iva-en-cero-sin-facturar, ho-ademas-tengo-salario. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:205:32
+    203|    */
+    204|   function assertFullRun(): void {
+    205|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    206|   }
+    207|
+ ❯ src/lib/eval/groundedness.eval.test.ts:550:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed (7)
+   Start at  12:18:50
+   Duration  77.91s (tests 100%)
+
