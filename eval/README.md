@@ -3251,3 +3251,38 @@ small-model calls, which temperature 0 does not pin and a per-case cache does.
 An A/B on the full lane writes the rewrites once
 (`pnpm answer-set-probe rewrites.json`, cents) and runs both arms
 on them. Production keeps asking live.
+
+## `pin1` ranked by the question, not shipped (2026-10-02, #460)
+
+> Three `pnpm answer-set-probe` runs (retrieval and rerank only, no answer
+> model), owner-approved through the coordinator, about US$0.45. Every run
+> read the same queries and expansions (`EVAL_REWRITES`, #457). Rows in
+> [`eval/runs/2026-10-02-460/`](runs/2026-10-02-460/).
+
+#460 had `pin1` append the fresh step pick the question's reading ranks best,
+not the one that scores best against its own sentence. A second change
+skipped a pick the derived-figure pin appends anyway. On the production cut,
+Tier 1 targets in the answer sets went 58 → 61 of 93, and Tier 2 77 → 78 of 98. The pin moved on 35 of the 64 asks that classify.
+
+- **#456's chunk arrives.** `ccss-ventana-prescripcion-24-meses` holds
+  `ccss-reglamento-ti` TRANSITORIO V (3/3). Five other Tier 1 cases gain a
+  target. `ccss-pedir-prescripcion-cuotas` reaches 1 of 3, short of #460's
+  "more than 1".
+- **Three Tier 1 targets are lost**: `ley-renta` 22 on
+  `ho-ademas-tengo-salario`, `cnpt` 79 on
+  `ho-desinscribir-debiendo-declaraciones` and on
+  `ho-iva-en-cero-sin-facturar`. Each was the old rule's per-family constant,
+  ranked #32–#36 by the question. It had been a target on those cases by
+  accident.
+
+The bar was "Tier 1 rises and none is lost", so the change did not ship. It
+is kept on `rjwrld/460-pin1-question-rank-code`. #460's full lane was not
+run.
+
+**A finding for every frozen run.** A replayed probe runs about 58 cases a
+minute because it asks no small model. At that pace Voyage returned 429 on
+77 of 406 rerank readings. The live baseline ran about 22 a minute and lost
+none. #457 saw the same threshold. A frozen comparison needs pacing, or its
+per-case rows are not evidence. `PROBE_CASE_MS` on the kept branch paces the
+probe. A lane under `EVAL_REWRITES` with no answer model in the loop has the
+same exposure; it prints `rerank readings lost` (#466), so check it.
