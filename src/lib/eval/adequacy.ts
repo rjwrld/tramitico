@@ -57,11 +57,23 @@ export const ADEQUACY_TIER2_GATE = 0.84;
  * stated across the whole lane, not Tier 1 cases adequate. The per-case count
  * moves ±4 between identical runs and one missing requirement fails a case, so
  * it cannot show progress; 27/27 stays the goal and is reported, not gated.
- * Set from the first full lane on the shipped config (`pin1`, 2026-09-25):
- * 83/116 measured, minus 3 — about one case's worth of noise. Ratchet only,
- * the way `HIT_RATE_GATE` moves: raised when a run beats it, never lowered.
+ *
+ * Since ADR 0023 (2026-10-02) the count is a tracked baseline, not a floor to
+ * tune toward. The floor of 80 was set on one Sonnet 5 lane (83/116), and no
+ * Sonnet 5.5 lane reached it (74, 77, 70) after ≈US$275 of tuning. Each round
+ * moved it less than the noise. The baseline is the first full lane on 5.5
+ * as shipped (70/116, eval/runs/2026-10-02-full-lane/). A lane more than
+ * `TIER1_REGRESSION_MARGIN` below it is a regression and fails. A lane that
+ * beats it moves the baseline up, the way `HIT_RATE_GATE` ratchets.
  */
-export const TIER1_REQUIREMENT_FLOOR = 80;
+export const TIER1_REQUIREMENT_BASELINE = 70;
+
+/** The ±4 run-to-run noise on identical pipelines (#457). */
+export const TIER1_REGRESSION_MARGIN = 4;
+
+/** The lowest Tier 1 requirement count a full lane may state. */
+export const TIER1_REQUIREMENT_FLOOR =
+  TIER1_REQUIREMENT_BASELINE - TIER1_REGRESSION_MARGIN;
 
 /** Where a requirement came from — the judge is told which it is reading. */
 export type RequirementKind = "claim" | "step";

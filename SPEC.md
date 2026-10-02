@@ -420,8 +420,10 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   to make a regression pass ([ADR 0015](docs/adr/0015-coverage-tiers-and-required-claims.md)). The
   ratchet rule: a gate is the measured pass rate minus one case, rounded down, never below its
   previous value. Current gates (closing run, 2026-09-11): hit-rate ≥92% (measured 95.9%, held
-  at 0.92 by #296 requirement 4), groundedness ≥94% (measured 95.9%), Tier 1 adequacy 100% per
-  case (measured 5/27, red — accepted risk with expiry in #121), Tier 2 adequacy ≥84% (measured
+  at 0.92 by #296 requirement 4), groundedness ≥94% (measured 95.9%), Tier 1 requirements stated
+  tracked against a baseline of 70/116, failing only on a lane more than 4 below it (≤ 65;
+  [ADR 0023](docs/adr/0023-eval-gates-after-sonnet-5-5.md), the one relaxation the ratchet
+  rule has had, recorded there), Tier 2 adequacy ≥84% (measured
   12/13), abstention ≥90% (measured 9/9), citation invariant zero violations on every case
   (measured 0/73).
 - **Adequacy gate (#130/#261):** groundedness passes a supported-but-incomplete answer, so a

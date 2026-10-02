@@ -62,6 +62,8 @@ import { retrieve, type RetrievedChunk } from "../retrieval";
 import { validateCitations, type CitationVerdict } from "../answer/invariant";
 import {
   ADEQUACY_TIER2_GATE,
+  TIER1_REGRESSION_MARGIN,
+  TIER1_REQUIREMENT_BASELINE,
   TIER1_REQUIREMENT_FLOOR,
   checkLiterals,
   declineAdequacy,
@@ -450,9 +452,10 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
   }, 5_400_000);
 
   // #287: the Tier 1 gate is the requirement count, not the per-case one —
-  // see TIER1_REQUIREMENT_FLOOR. The per-case read (27/27 is the goal) is
-  // printed above and named in the failure message.
-  it(`states at least ${TIER1_REQUIREMENT_FLOOR} tier 1 requirements`, () => {
+  // see TIER1_REQUIREMENT_FLOOR. Since ADR 0023 it is a regression alarm
+  // against a tracked baseline, not a target. The per-case read (27/27 is
+  // the goal) is printed above and named in the failure message.
+  it(`states at least ${TIER1_REQUIREMENT_FLOOR} tier 1 requirements (baseline ${TIER1_REQUIREMENT_BASELINE} − ${TIER1_REGRESSION_MARGIN}, ADR 0023)`, () => {
     assertFullRun();
     const tier1 = results.filter((r) => r.evalCase.tier === 1);
     const { stated, total } = requirementCoverage(tier1);
