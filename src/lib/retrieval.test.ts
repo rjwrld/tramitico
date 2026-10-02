@@ -3,7 +3,6 @@ import {
   DEFAULT_MATCH_COUNT,
   RRF_K,
   citationUrl,
-  degradedReason,
   fuseRrf,
   isCitation,
   isCorroborated,
@@ -1012,14 +1011,6 @@ describe("retrieve", () => {
         embedder: failingEmbedder(timeout),
       });
       expect(degradedReasons()).toEqual(["timeout"]);
-    });
-
-    it("reads both abort flavours as a timeout", () => {
-      const abort = new Error("aborted");
-      abort.name = "AbortError";
-      expect(degradedReason(abort)).toBe("timeout");
-      expect(degradedReason(new Error("HTTP 500"))).toBe("error");
-      expect(degradedReason("not an error at all")).toBe("error");
     });
   });
 

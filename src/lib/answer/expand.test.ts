@@ -18,7 +18,6 @@ import {
   buildExpandPrompt,
   CORPUS_INVENTORY,
   cleanExpansion,
-  expandFailureReason,
   expandQuery,
   EXPAND_SYSTEM_PROMPT,
   MAX_EXPANSION_LENGTH,
@@ -183,16 +182,5 @@ describe("every failure searches the question alone", () => {
     expect(line).toContain("ask: expansion failed — reason=error");
     expect(line).not.toContain(QUESTION);
     expect(line).not.toContain("la pregunta secreta");
-  });
-
-  it("reads an abort as the budget, like condensation does", () => {
-    const timeout = new Error("x");
-    timeout.name = "TimeoutError";
-    const abort = new Error("x");
-    abort.name = "AbortError";
-
-    expect(expandFailureReason(timeout)).toBe("timeout");
-    expect(expandFailureReason(abort)).toBe("timeout");
-    expect(expandFailureReason(new Error("boom"))).toBe("error");
   });
 });

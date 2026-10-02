@@ -16,7 +16,6 @@ vi.mock("./model", () => ({ getCondenseModel: vi.fn() }));
 import {
   buildCondensePrompt,
   cleanCondensed,
-  condenseFailureReason,
   condenseQuestion,
   CONDENSE_SYSTEM_PROMPT,
 } from "./condense";
@@ -273,17 +272,6 @@ describe("failure always falls back to the raw question (#132 req. 4)", () => {
     expect(line).toContain("error=Error");
     expect(line).not.toContain(FOLLOW_UP);
     expect(line).not.toContain(turn(1).question);
-  });
-
-  it("classifies both shapes of abort as the budget expiring", () => {
-    const timeout = new Error("x");
-    timeout.name = "TimeoutError";
-    const abort = new Error("x");
-    abort.name = "AbortError";
-    expect(condenseFailureReason(timeout)).toBe("timeout");
-    expect(condenseFailureReason(abort)).toBe("timeout");
-    expect(condenseFailureReason(new Error("503"))).toBe("error");
-    expect(condenseFailureReason("not an error")).toBe("error");
   });
 });
 

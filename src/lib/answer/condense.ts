@@ -34,7 +34,7 @@
 import { generateText } from "ai";
 import { boundTurns, type ConversationTurn } from "./contract";
 import { getCondenseModel } from "./model";
-import { describeError } from "../log-redaction";
+import { describeError, timeoutOrError } from "../log-redaction";
 
 /**
  * How long a condensation may take before the raw question wins (#132 req.
@@ -104,17 +104,6 @@ export function buildCondensePrompt(
  *   an availability one, and the two call for different fixes.
  */
 export type CondenseFailure = "timeout" | "error" | "unusable";
-
-/**
- * Classifies a rejection the same way `degradedReason` does, and for the same
- * reason: `AbortSignal.timeout` aborts with a `TimeoutError`, some runtimes
- * report the abort as `AbortError`, and both mean the budget is what stopped
- * us.
- */
-export function condenseFailureReason(error: unknown): CondenseFailure {
-  const name = error instanceof Error ? error.name : "";
-  return name === "TimeoutError" || name === "AbortError" ? "timeout" : "error";
-}
 
 /**
  * Records one fallback to the raw question. The prefix is load-bearing: it is
@@ -201,7 +190,7 @@ export async function condenseQuestion(
     });
     text = result.text;
   } catch (error) {
-    recordCondenseFailure(condenseFailureReason(error), error);
+    recordCondenseFailure(timeoutOrError(error), error);
     return { query: question, condensed: null };
   }
 

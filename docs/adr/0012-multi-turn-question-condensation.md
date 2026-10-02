@@ -101,3 +101,13 @@ reason=… error=…` on a stable prefix, plus an in-process tally, following
 - **The eval lane now needs an Anthropic key for the hit-rate suite.** It always had one for
   groundedness; the retrieval suite needs it because three of its cases are follow-ups that must
   be condensed before they can be retrieved.
+
+## Amendment (2026-10-02) — the detail line is the whole record (#476)
+
+**The in-process tally beside `ask: condensation failed` is removed; the log line stays as
+decided.** The tally followed `retrieval-degraded.ts`, which kept one too, and so did every
+detail line in `answer/`. None was read outside tests: each lived per serverless instance and
+was lost on recycle, so the line on its stable prefix was always the signal a log drain counts,
+and the per-ask event (`telemetry.ts`, #141) carries the flag beside it. `retrieval-degraded.ts`
+itself is gone — its line now lives in `retrieval.ts` — and the `reason=` all three of these
+lines share is `timeoutOrError` in `log-redaction.ts`. Tests assert on the logged line.

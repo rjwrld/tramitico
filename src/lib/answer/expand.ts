@@ -47,7 +47,7 @@
 import { generateText } from "ai";
 import manifest from "../../../corpus/manifest.json";
 import { getExpandModel } from "./model";
-import { describeError } from "../log-redaction";
+import { describeError, timeoutOrError } from "../log-redaction";
 
 /**
  * How long an expansion may take before retrieval goes ahead without one.
@@ -108,12 +108,6 @@ export function buildExpandPrompt(question: string): string {
  * model problem, `timeout`/`error` are availability ones.
  */
 export type ExpandFailure = "timeout" | "error" | "unusable";
-
-/** Classifies a rejection the way `condenseFailureReason` does. */
-export function expandFailureReason(error: unknown): ExpandFailure {
-  const name = error instanceof Error ? error.name : "";
-  return name === "TimeoutError" || name === "AbortError" ? "timeout" : "error";
-}
 
 /**
  * Records one search that ran on the question alone. The prefix is
@@ -199,7 +193,7 @@ export async function expandQuery(
     });
     text = result.text;
   } catch (error) {
-    recordExpandFailure(expandFailureReason(error), error);
+    recordExpandFailure(timeoutOrError(error), error);
     return null;
   }
 
