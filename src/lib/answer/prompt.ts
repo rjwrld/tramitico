@@ -146,6 +146,15 @@ function joinSpanish(items: readonly string[]): string {
  * [2][5], la referencia es la de IVM (¢324.590).» The way out that costs no
  * markers is the figure's label without its amount; the first figure's label
  * is the example, so the example never names a figure the list lacks.
+ *
+ * The label as the default (#458, after #463): with the label offered only as
+ * an alternative, 5.5 cited `multa-iva-no-declarado`'s «¢231.100» and then
+ * wrote it bare in the sentence that says what to confirm with Hacienda —
+ * «La cifra de ¢231.100 es la que corresponde a cada declaración omitida, y
+ * la operación … la debe confirmar con Hacienda.» Rule 9 puts that sentence
+ * at the end, beside the referral, where nothing else in it is a claim to
+ * cite. So the block names that sentence as a mention too, and turns the way
+ * out around: the amount once with its markers, the label after that.
  */
 export function formatDerivedFigures(
   figures: readonly ResolvedDerivedFigure[],
@@ -170,9 +179,12 @@ export function formatDerivedFigures(
     "si menciona varias cifras en una misma oración, lleve los marcadores de " +
     "todas ellas.\n" +
     "Cuenta cada mención, también la que repite una cifra ya dada, la que va " +
-    "entre paréntesis y la que la compara con otra. Si no quiere repetir los " +
-    `marcadores, nombre la cifra por su etiqueta («${figures[0]?.label}») ` +
-    "sin repetir el monto.\n" +
+    "entre paréntesis, la que la compara con otra y la que dice lo que los " +
+    "documentos no precisan sobre ella o lo que debe confirmar con la " +
+    "institución. Dé el monto una vez, con sus marcadores; para volver a " +
+    `referirse a la cifra, nómbrela por su etiqueta («${figures[0]?.label}») ` +
+    "sin repetir el monto. Si repite el monto, esa oración lleva otra vez " +
+    "todos sus marcadores.\n" +
     lines.join("\n")
   );
 }

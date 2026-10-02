@@ -201,10 +201,10 @@ describe("formatDerivedFigures", () => {
     const block = formatDerivedFigures([DERIVED_FIGURE]);
     expect(block).toContain("después de la cifra, todos los marcadores");
     expect(block).toContain(
-      "también la que repite una cifra ya dada, la que va entre paréntesis y la que la compara con otra",
+      "también la que repite una cifra ya dada, la que va entre paréntesis, la que la compara con otra",
     );
     expect(block).toContain(
-      "nombre la cifra por su etiqueta («Base mínima contributiva de IVM 2026») sin repetir el monto",
+      "nómbrela por su etiqueta («Base mínima contributiva de IVM 2026») sin repetir el monto",
     );
 
     const cited = "La BMC de IVM es de ¢324.590 (0,87 × ¢373.092,30) [1][2].";
@@ -223,6 +223,41 @@ describe("formatDerivedFigures", () => {
     expect(
       incompletelyCitedDerivedFigures(
         `${cited} Como rige desde la BMC [1], la referencia es la Base mínima contributiva de IVM 2026.`,
+        [DERIVED_FIGURE],
+      ),
+    ).toEqual([]);
+  });
+
+  /**
+   * #458 after #463: with the label offered only as an alternative,
+   * `multa-iva-no-declarado` cited «¢231.100» and then wrote it bare in the
+   * sentence that says what to confirm with Hacienda — the one rule 9 puts
+   * at the end, beside the referral, where nothing else is a claim to cite.
+   * The block names that sentence as a mention, and makes the label the
+   * default for every mention after the first.
+   */
+  it("counts the sentence of what to confirm, and makes the label the default after the first mention (#458)", () => {
+    const block = formatDerivedFigures([DERIVED_FIGURE]);
+    expect(block).toContain(
+      "la que dice lo que los documentos no precisan sobre ella o lo que debe confirmar con la institución",
+    );
+    expect(block).toContain(
+      "Dé el monto una vez, con sus marcadores; para volver a referirse a la cifra, nómbrela por su etiqueta",
+    );
+    expect(block).toContain(
+      "Si repite el monto, esa oración lleva otra vez todos sus marcadores.",
+    );
+
+    const cited = "La BMC de IVM es de ¢324.590 (0,87 × ¢373.092,30) [1][2].";
+    expect(
+      incompletelyCitedDerivedFigures(
+        `${cited} La cifra de ¢324.590 es la de 2026, y lo demás lo debe confirmar con la CCSS.`,
+        [DERIVED_FIGURE],
+      ),
+    ).toEqual(["bmc-ivm-2026"]);
+    expect(
+      incompletelyCitedDerivedFigures(
+        `${cited} La Base mínima contributiva de IVM 2026 es la de este año, y lo demás lo debe confirmar con la CCSS.`,
         [DERIVED_FIGURE],
       ),
     ).toEqual([]);

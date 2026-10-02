@@ -1,0 +1,12 @@
+$ tsx scripts/answer-replay.ts <worktree>/eval/runs/2026-09-29-451/low/groundedness-claude-sonnet-5-5-effort-low-20260929T052805Z.jsonl --cases=multa-iva-no-declarado,ho-desde-cuanta-plata-caja --no-groundedness
+replaying 2 row(s) of groundedness-claude-sonnet-5-5-effort-low-20260929T052805Z.jsonl on claude-sonnet-5-5-effort-low (no groundedness judge)
+  multa-iva-no-declarado  pass  missing 2
+  ho-desde-cuanta-plata-caja  pass  missing 0
+
+transcript: <worktree>/eval/runs/2026-10-02-458/replay/groundedness-claude-sonnet-5-5-effort-low-replay-ungrounded-subset-20261002T171922Z.jsonl
+
+requirements stated, recorded → replayed: 8 → 8 of 10
+  3 → 3 / 5  multa-iva-no-declarado
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+finish other than stop: 0; output tokens max 1148
