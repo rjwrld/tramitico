@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { describeError, REDACTED } from "./log-redaction";
-import { recordDegradedRetrieval } from "./retrieval-degraded";
-import { recordHistorySaveFailure } from "./answer/persist-failure";
-import { saveQuestion } from "./answer/persist";
-import { retrieve, type RetrievalRpcClient } from "./retrieval";
+import { describeError, REDACTED, timeoutOrError } from "./log-redaction";
+import { recordHistorySaveFailure, saveQuestion } from "./answer/persist";
+import {
+  recordDegradedRetrieval,
+  retrieve,
+  type RetrievalRpcClient,
+} from "./retrieval";
 import type { Embedder } from "./ingestion/embedder";
 
 describe("describeError", () => {
@@ -102,6 +104,24 @@ describe("describeError", () => {
  * call to the formatter, because the formatter being correct is only half of
  * it: the other half is that no call site reaches around it.
  */
+describe("timeoutOrError", () => {
+  it("reads both shapes of abort as the budget expiring", () => {
+    const timeout = new Error("x");
+    timeout.name = "TimeoutError";
+    const abort = new Error("x");
+    abort.name = "AbortError";
+    expect(timeoutOrError(timeout)).toBe("timeout");
+    expect(timeoutOrError(abort)).toBe("timeout");
+    expect(timeoutOrError(AbortSignal.abort().reason)).toBe("timeout");
+  });
+
+  it("reads anything else as an error, including a thrown non-Error", () => {
+    expect(timeoutOrError(new Error("HTTP 500"))).toBe("error");
+    expect(timeoutOrError("not an error at all")).toBe("error");
+    expect(timeoutOrError(undefined)).toBe("error");
+  });
+});
+
 describe("no log line can carry the question (#136 req. 1)", () => {
   const SENTINEL = "¿cómo declaro el D-101 si no facturé nada este trimestre?";
 

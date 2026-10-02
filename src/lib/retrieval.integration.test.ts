@@ -34,14 +34,19 @@ import {
   retrieve,
   type RetrievalRpcClient,
 } from "./retrieval";
-import {
-  degradedRetrievals,
-  resetDegradedRetrievals,
-} from "./retrieval-degraded";
 import type { Embedder } from "./ingestion/embedder";
 import { EMBEDDING_DIMENSIONS } from "./embedding-dimensions";
 import type { Database } from "./database.types";
 import { envPrereqs, integrationSuite } from "./test-support/suite-gate";
+
+/** The `reason=` of every degraded-retrieval line logged so far. */
+function degradedReasons(): string[] {
+  return vi
+    .mocked(console.warn)
+    .mock.calls.map(([line]) => String(line))
+    .filter((line) => line.startsWith("retrieval: degraded to lexical-only"))
+    .map((line) => /reason=(\S+)/.exec(line)?.[1] ?? "");
+}
 
 const url = process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -158,13 +163,11 @@ describeDb("retrieval degraded fallback (integration)", () => {
   });
 
   beforeEach(() => {
-    resetDegradedRetrievals();
     vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    resetDegradedRetrievals();
   });
 
   it("answers from the lexical leg alone when the embedding provider is down", async () => {
@@ -198,7 +201,7 @@ describeDb("retrieval degraded fallback (integration)", () => {
     // Not declined: a real citation came back, so there is something to say.
     expect(result.isWeak).toBe(false);
     expect(result.citations.some((c) => c.docKey === DOC_KEY)).toBe(true);
-    expect(degradedRetrievals()).toEqual({ timeout: 0, error: 1 });
+    expect(degradedReasons()).toEqual(["error"]);
   });
 
   it("finds through the expansion's lexical leg what the question misses (#286)", async () => {
@@ -222,7 +225,7 @@ describeDb("retrieval degraded fallback (integration)", () => {
     expect(result.expansion).toBe(`El ${EXPANSION_TOKEN} tributario`);
     // The expansion's failed embed is not the reader's degradation: only the
     // question's embed is counted, and it failed exactly once.
-    expect(degradedRetrievals()).toEqual({ timeout: 0, error: 1 });
+    expect(degradedReasons()).toEqual(["error"]);
   });
 
   it("finds through the catalogue's lexical leg what the question and the expansion miss (#304)", async () => {
@@ -254,7 +257,7 @@ describeDb("retrieval degraded fallback (integration)", () => {
     expect(result.steps?.family).toBe("T1-B");
     // The catalogue is no witness: a pool it filled alone is still weak on
     // the degraded path, and the sentences' failed embeds are not counted.
-    expect(degradedRetrievals()).toEqual({ timeout: 0, error: 1 });
+    expect(degradedReasons()).toEqual(["error"]);
   });
 
   it("still declines a degraded query that matches nothing", async () => {

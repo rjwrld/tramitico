@@ -1,10 +1,10 @@
 /**
  * The per-ask operational event (issue #141, minimum from #121).
  *
- * Three counters already exist — `answer/invariant.ts` (#131),
- * `retrieval-degraded.ts` (#127), `answer/persist-failure.ts` (#139) — and
- * each says the same thing about itself: an in-process tally plus a
- * `console.warn` on a stable prefix, "until #141 owns a metrics pipeline".
+ * Three counters already existed — the citation invariant (#131,
+ * `answer/invariant.ts`), degraded retrieval (#127, `retrieval.ts`) and the
+ * history save (#139, `answer/persist.ts`) — each a `console.warn` on a
+ * stable prefix, "until #141 owns a metrics pipeline".
  * This is that, and it is deliberately not a pipeline. There is one deployment
  * target (Vercel) whose log drain can already count lines, so what was missing
  * was never transport: it was a *denominator*. A failure counter with no total

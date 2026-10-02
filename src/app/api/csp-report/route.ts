@@ -24,10 +24,9 @@ import { REDACTED } from "@/lib/log-redaction";
  * batch (`[{type, body}, ...]`, `application/reports+json`), whose field
  * names are camelCase. Both are read; neither is trusted.
  *
- * No in-process tally here, unlike the detail lines in `answer/` and
- * `retrieval-degraded.ts`: those count our own failures, and a counter a
- * stranger can drive at will is not a signal worth holding in memory. The
- * log line is the whole record.
+ * The log line is the whole record, as it is for the detail lines in
+ * `answer/` and `retrieval.ts` — with one difference worth knowing: those
+ * count our own failures, while this one a stranger can drive at will.
  */
 
 /** Bigger than any real report, small enough to be free to hold in memory. */

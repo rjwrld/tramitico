@@ -65,7 +65,7 @@ import {
 import type { LayoutTableSpec } from "../src/lib/ingestion/layout-table";
 import { fetchPdfSource } from "../src/lib/ingestion/pdf";
 import { pdfImageNotice } from "../src/lib/ingestion/pdf-images";
-import { retireDocuments } from "../src/lib/ingestion/retire";
+import { retireDocuments } from "../src/lib/ingestion/replace";
 import type { DeepLinkKind } from "../src/lib/retrieval";
 import {
   articuloAnchors,

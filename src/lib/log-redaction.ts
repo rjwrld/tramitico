@@ -115,3 +115,18 @@ export function describeError(error: unknown): string {
     return "unknown";
   }
 }
+
+/**
+ * The `reason=` a provider call's rejection is logged under: `timeout` when
+ * the budget is what stopped it, `error` for anything else the provider
+ * answered with (a 429, a 5xx, a malformed body). `AbortSignal.timeout`
+ * aborts a fetch with a `TimeoutError`; a caller-provided signal, or a
+ * runtime that reports the abort generically, gives `AbortError` — both are
+ * the budget. Shared by the degraded-retrieval, condensation and expansion
+ * lines, so a shift from one reason to the other means the same thing in all
+ * three.
+ */
+export function timeoutOrError(error: unknown): "timeout" | "error" {
+  const name = error instanceof Error ? error.name : "";
+  return name === "TimeoutError" || name === "AbortError" ? "timeout" : "error";
+}

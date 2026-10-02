@@ -19,7 +19,7 @@ import type { Database } from "./database.types";
 import { createEmbedder, type Embedder } from "./ingestion/embedder";
 import { serviceClient } from "./supabase/service";
 import { isCitation, parseCitations, type Citation } from "./citations";
-import { recordDegradedRetrieval } from "./retrieval-degraded";
+import { describeError, timeoutOrError } from "./log-redaction";
 import { expandQuery, expansionEnabled } from "./answer/expand";
 import { stepProbe, stepsEnabled, type StepProbe } from "./answer/steps";
 
@@ -526,6 +526,23 @@ function defaultExpander(): QueryExpander | null {
 /** The production catalogue, or `null` under `STEPS=off` (steps.ts owns it). */
 function defaultStepCatalogue(): StepCatalogue | null {
   return stepsEnabled() ? { probe: (query) => stepProbe(query) } : null;
+}
+
+/**
+ * Records one degraded ask (#127, req. 4): a silent quality drop on our side
+ * of the wire, so it has to be countable. `reason=` splits a slow or
+ * unreachable provider from one that answered with an error — they call for
+ * different fixes, and a shift from one to the other is the interesting
+ * event. The prefix is load-bearing: it is what the log
+ * drain counts on, so it is a constant string with the variables tacked on
+ * as `key=value`, not an interpolated sentence. The per-ask event
+ * (`telemetry.ts`) carries the `degraded` flag beside it.
+ */
+export function recordDegradedRetrieval(error: unknown): void {
+  console.warn(
+    `retrieval: degraded to lexical-only — reason=${timeoutOrError(error)} ` +
+      `error=${describeError(error)}`,
+  );
 }
 
 /**

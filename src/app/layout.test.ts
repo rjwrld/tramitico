@@ -9,7 +9,7 @@ vi.mock("geist/font/sans", () => ({
 vi.mock("geist/font/mono", () => ({
   GeistMono: { variable: "--font-geist-mono" },
 }));
-vi.mock("@/components/theme-provider", () => ({ ThemeProvider: () => null }));
+vi.mock("next-themes", () => ({ ThemeProvider: () => null }));
 vi.mock("@/components/ui/sonner", () => ({ Toaster: () => null }));
 
 import { metadata } from "./layout";

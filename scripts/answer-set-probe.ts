@@ -53,8 +53,6 @@ function loadDotEnvLocal(): void {
     if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2];
   }
 }
-import { condenseFailures } from "../src/lib/answer/condense";
-import { expandFailures } from "../src/lib/answer/expand";
 import {
   pinDerivedFigureInputs,
   resolveDerivedFigures,
@@ -190,14 +188,28 @@ function countingCalls(embedder: Embedder): CallCounter {
   };
 }
 
+/**
+ * Counts the condensation and expansion fallbacks a case hits, off the lines
+ * condense.ts and expand.ts log for each — the same prefixes the log drain
+ * counts in production. The lines still print.
+ */
+const rewriteFailures = { condense: 0, expand: 0 };
+const consoleWarn = console.warn.bind(console);
+console.warn = (...args: unknown[]) => {
+  const line = String(args[0]);
+  if (line.startsWith("ask: condensation failed"))
+    rewriteFailures.condense += 1;
+  if (line.startsWith("ask: expansion failed")) rewriteFailures.expand += 1;
+  consoleWarn(...args);
+};
+
 async function readCase(
   evalCase: EvalCase,
   kind: "retrieval" | "abstention",
   calls: CallCounter,
   rewrites: ReadonlyMap<string, CaseRewrites> | null,
 ): Promise<CaseRead> {
-  const condenseBefore = condenseFailures();
-  const expandBefore = expandFailures();
+  const before = { ...rewriteFailures };
   const started = Date.now();
   // The route's own first step (#132), or its replay (#457): a single-turn
   // case run live skips the call.
@@ -235,13 +247,9 @@ async function readCase(
   };
   const tally = () => {
     const { embed } = calls.take();
-    const condenseAfter = condenseFailures();
-    const expandAfter = expandFailures();
-    const sum = (counts: Record<string, number>) =>
-      Object.values(counts).reduce((n, v) => n + v, 0);
     read.failures = {
-      condense: sum(condenseAfter) - sum(condenseBefore),
-      expand: sum(expandAfter) - sum(expandBefore),
+      condense: rewriteFailures.condense - before.condense,
+      expand: rewriteFailures.expand - before.expand,
       embed,
       rerank: read.rerankReadings?.dropped.length ?? 0,
     };

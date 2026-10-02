@@ -47,7 +47,7 @@
 import { generateText } from "ai";
 import manifest from "../../../corpus/manifest.json";
 import { getExpandModel } from "./model";
-import { describeError } from "../log-redaction";
+import { describeError, timeoutOrError } from "../log-redaction";
 
 /**
  * How long an expansion may take before retrieval goes ahead without one.
@@ -109,28 +109,6 @@ export function buildExpandPrompt(question: string): string {
  */
 export type ExpandFailure = "timeout" | "error" | "unusable";
 
-export type ExpandFailureCounts = Record<ExpandFailure, number>;
-
-const counts: ExpandFailureCounts = { timeout: 0, error: 0, unusable: 0 };
-
-/** Snapshot of the tally. A copy — callers cannot write through it. */
-export function expandFailures(): ExpandFailureCounts {
-  return { ...counts };
-}
-
-/** Test-only: puts the tally back to zero between cases. */
-export function resetExpandFailures(): void {
-  counts.timeout = 0;
-  counts.error = 0;
-  counts.unusable = 0;
-}
-
-/** Classifies a rejection the way `condenseFailureReason` does. */
-export function expandFailureReason(error: unknown): ExpandFailure {
-  const name = error instanceof Error ? error.name : "";
-  return name === "TimeoutError" || name === "AbortError" ? "timeout" : "error";
-}
-
 /**
  * Records one search that ran on the question alone. The prefix is
  * load-bearing: it is what a log-based counter matches on, so it is a
@@ -141,7 +119,6 @@ export function recordExpandFailure(
   reason: ExpandFailure,
   error?: unknown,
 ): void {
-  counts[reason] += 1;
   console.warn(
     `ask: expansion failed — reason=${reason} ` +
       `error=${error === undefined ? "none" : describeError(error)}`,
@@ -216,7 +193,7 @@ export async function expandQuery(
     });
     text = result.text;
   } catch (error) {
-    recordExpandFailure(expandFailureReason(error), error);
+    recordExpandFailure(timeoutOrError(error), error);
     return null;
   }
 

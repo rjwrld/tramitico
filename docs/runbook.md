@@ -127,15 +127,15 @@ the ask proceeds down the ordinary path. That path can still find little and dec
 later in answer generation — this line says only that the search was the pre-expansion one.
 `EXPAND=off` turns the call off entirely if it ever needs to be shed.
 
-| Prefix                                | From                                | Carries                                     |
-| ------------------------------------- | ----------------------------------- | ------------------------------------------- |
-| `ask: citation invariant violated`    | `src/lib/answer/invariant.ts`       | `violation=`, `attempt=`, `unresolved=`     |
-| `retrieval: degraded to lexical-only` | `src/lib/retrieval-degraded.ts`     | `reason=timeout\|error`, `error=`           |
-| `ask: history save failed`            | `src/lib/answer/persist-failure.ts` | `kind=answer\|decline`, `error=`            |
-| `ask: condensation failed`            | `src/lib/answer/condense.ts`        | `reason=timeout\|error\|unusable`, `error=` |
-| `ask: expansion failed`               | `src/lib/answer/expand.ts`          | `reason=timeout\|error\|unusable`, `error=` |
-| `rate limit: unavailable`             | `src/lib/rate-limit.ts`             | `error=`                                    |
-| `[csp-report] violation`              | `src/app/api/csp-report/route.ts`   | `directive=`, `blocked=`, `document=`       |
+| Prefix                                | From                              | Carries                                     |
+| ------------------------------------- | --------------------------------- | ------------------------------------------- |
+| `ask: citation invariant violated`    | `src/lib/answer/invariant.ts`     | `violation=`, `attempt=`, `unresolved=`     |
+| `retrieval: degraded to lexical-only` | `src/lib/retrieval.ts`            | `reason=timeout\|error`, `error=`           |
+| `ask: history save failed`            | `src/lib/answer/persist.ts`       | `kind=answer\|decline`, `error=`            |
+| `ask: condensation failed`            | `src/lib/answer/condense.ts`      | `reason=timeout\|error\|unusable`, `error=` |
+| `ask: expansion failed`               | `src/lib/answer/expand.ts`        | `reason=timeout\|error\|unusable`, `error=` |
+| `rate limit: unavailable`             | `src/lib/rate-limit.ts`           | `error=`                                    |
+| `[csp-report] violation`              | `src/app/api/csp-report/route.ts` | `directive=`, `blocked=`, `document=`       |
 
 `rate limit: unavailable` is the whole diagnosis of a 503 (§1.3): the ask never reached the
 telemetry event, so this line and its `error=` token — a `PostgrestError#…`, a

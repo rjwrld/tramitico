@@ -18,11 +18,15 @@ import {
 } from "./retrieval";
 import type { Embedder } from "./ingestion/embedder";
 import { describeError } from "./log-redaction";
-import {
-  degradedReason,
-  degradedRetrievals,
-  resetDegradedRetrievals,
-} from "./retrieval-degraded";
+
+/** The `reason=` of every degraded-retrieval line logged so far. */
+function degradedReasons(): string[] {
+  return vi
+    .mocked(console.warn)
+    .mock.calls.map(([line]) => String(line))
+    .filter((line) => line.startsWith("retrieval: degraded to lexical-only"))
+    .map((line) => /reason=(\S+)/.exec(line)?.[1] ?? "");
+}
 
 describe("rrfScore", () => {
   it("is 1/(k + rank)", () => {
@@ -683,6 +687,7 @@ describe("retrieve", () => {
     });
 
     it("keeps a sentence's lexical leg when its embed fails, and is not degraded", async () => {
+      vi.spyOn(console, "warn").mockImplementation(() => {});
       let seen: Record<string, unknown> | undefined;
       const embedder: Embedder = {
         ...fakeEmbedder(),
@@ -706,7 +711,8 @@ describe("retrieve", () => {
         step_embeddings: ["[0.5,0.5,0.5]", null],
       });
       expect(result.isDegraded).toBe(false);
-      expect(degradedRetrievals()).toEqual({ timeout: 0, error: 0 });
+      expect(degradedReasons()).toEqual([]);
+      vi.mocked(console.warn).mockRestore();
     });
 
     it("maps the step ranks onto the chunk", async () => {
@@ -932,13 +938,11 @@ describe("retrieve", () => {
     const embedFailure = new Error("Voyage embeddings: HTTP 503");
 
     beforeEach(() => {
-      resetDegradedRetrievals();
       vi.spyOn(console, "warn").mockImplementation(() => {});
     });
 
     afterEach(() => {
       vi.restoreAllMocks();
-      resetDegradedRetrievals();
     });
 
     it("runs the query lexical-only when the interactive embed fails", async () => {
@@ -988,7 +992,7 @@ describe("retrieve", () => {
         embedder: fakeEmbedder(),
       });
       expect(result.isDegraded).toBe(false);
-      expect(degradedRetrievals()).toEqual({ timeout: 0, error: 0 });
+      expect(degradedReasons()).toEqual([]);
     });
 
     it("counts the degradation and logs it on a stable prefix", async () => {
@@ -996,13 +1000,7 @@ describe("retrieve", () => {
         client: fakeClient([ROW]),
         embedder: failingEmbedder(embedFailure),
       });
-      expect(degradedRetrievals()).toEqual({ timeout: 0, error: 1 });
-      expect(console.warn).toHaveBeenCalledWith(
-        expect.stringContaining("retrieval: degraded to lexical-only"),
-      );
-      expect(console.warn).toHaveBeenCalledWith(
-        expect.stringContaining("reason=error"),
-      );
+      expect(degradedReasons()).toEqual(["error"]);
     });
 
     it("counts a blown budget as a timeout, not a provider error", async () => {
@@ -1012,15 +1010,7 @@ describe("retrieve", () => {
         client: fakeClient([ROW]),
         embedder: failingEmbedder(timeout),
       });
-      expect(degradedRetrievals()).toEqual({ timeout: 1, error: 0 });
-    });
-
-    it("reads both abort flavours as a timeout", () => {
-      const abort = new Error("aborted");
-      abort.name = "AbortError";
-      expect(degradedReason(abort)).toBe("timeout");
-      expect(degradedReason(new Error("HTTP 500"))).toBe("error");
-      expect(degradedReason("not an error at all")).toBe("error");
+      expect(degradedReasons()).toEqual(["timeout"]);
     });
   });
 
