@@ -9,10 +9,15 @@ symlinked `.env.local` could not move any run. Owner-approved through the
 coordinator; about US$0.45 in all, by estimate. The figures below are the production
 configuration, `top8/capoff/pinon`.
 
-**The change did not ship.** It is kept, unmerged, on the branch
-`rjwrld/460-pin1-question-rank-code` (c7ac955). The owner's bar was that the
-Tier 1 targets in the answer sets rise and none is lost: they rise, 58 → 61
-of 93, but three are lost.
+**Shipped 2026-10-02 by owner decision.** The probe's bar was that the Tier 1
+targets in the answer sets rise and none is lost: they rise, 58 → 61 of 93,
+but three are lost, so the code (c7ac955) first stayed on the branch
+`rjwrld/460-pin1-question-rank-code`. The owner then shipped it: the three
+losses read as accidents of the old constant pin (question rank #32–#36),
+and the net is +3 Tier 1 targets. #460's third requirement, a full lane
+showing groundedness and the blocking cases unharmed, is the coming full
+eval. If a red there lands on a case whose pin changed (the table below), the
+change is reverted.
 
 | File                                             | What it is                                                                                                                                                                                                                                                                                        |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -119,5 +124,5 @@ difference is pace. The baseline asks Haiku for every expansion, which spaces
 cases to 21.7 per minute. A replayed run asks no small model and ran 57.6 per
 minute. That matches #457's reading: no loss at 21 cases/min, 60 calls lost at
 54/min. With `PROBE_CASE_MS=3000` the paced run read all 406. Any frozen
-probe or lane that wants a clean comparison needs pacing. The knob is on the
-kept code branch, not on `main`.
+probe or lane that wants a clean comparison needs pacing. The knob ships
+with the change.
