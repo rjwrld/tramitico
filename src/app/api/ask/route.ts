@@ -33,7 +33,8 @@
  * the caller believed the exchange was saved, and only this side knows it was
  * not. So the same data-part channel #127 opened carries a `data-unsaved`
  * marker before `finish`, which the chat client turns into a non-blocking
- * toast, and the failure is counted (`persist-failure.ts`) for #141.
+ * toast, and the failure is logged on a countable prefix
+ * (`recordHistorySaveFailure`, persist.ts) for #141.
  *
  * Degraded search (#127): the embedding provider is the one dependency here
  * that is allowed to be down. `retrieve` drops the vector leg rather than
@@ -164,11 +165,12 @@ import {
 } from "@/lib/answer/model";
 import { crDate } from "@/lib/cr-time";
 import { describeError } from "@/lib/log-redaction";
-import { saveQuestion, type SaveQuestionInput } from "@/lib/answer/persist";
 import {
   recordHistorySaveFailure,
+  saveQuestion,
   type SavedAnswerKind,
-} from "@/lib/answer/persist-failure";
+  type SaveQuestionInput,
+} from "@/lib/answer/persist";
 import {
   ANSWER_SYSTEM,
   buildUserPrompt,
@@ -343,7 +345,7 @@ function writeCitations(writer: Writer, tracker: CitationTracker): void {
  * before any text, once, so the label is on the wire whatever comes next — an
  * answer, or the honest decline a lexical-only miss can still produce. The
  * telemetry counter is not written here: `retrieve` records it at the one
- * place that knows the embed failed (`retrieval-degraded.ts`).
+ * place that knows the embed failed (`recordDegradedRetrieval`).
  */
 function writeDegraded(writer: Writer): void {
   writer.write({ type: "data-degraded", id: DEGRADED_PART_ID, data: true });

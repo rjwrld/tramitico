@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { describeError, REDACTED } from "./log-redaction";
-import { recordDegradedRetrieval } from "./retrieval-degraded";
-import { recordHistorySaveFailure } from "./answer/persist-failure";
-import { saveQuestion } from "./answer/persist";
-import { retrieve, type RetrievalRpcClient } from "./retrieval";
+import { recordHistorySaveFailure, saveQuestion } from "./answer/persist";
+import {
+  recordDegradedRetrieval,
+  retrieve,
+  type RetrievalRpcClient,
+} from "./retrieval";
 import type { Embedder } from "./ingestion/embedder";
 
 describe("describeError", () => {

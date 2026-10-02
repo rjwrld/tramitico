@@ -94,3 +94,38 @@ export async function saveQuestion(
   }
   return true;
 }
+
+/**
+ * Which delivered answer failed to save (#139, req. 2). Both are answers the
+ * reader has on screen and expects in their history, so both are surfaced
+ * identically — but they are worth splitting, since a decline is a canned
+ * string we could always reconstruct while a real answer is paid tokens we
+ * cannot.
+ */
+export type SavedAnswerKind = "answer" | "decline";
+
+export interface HistorySaveFailure {
+  kind: SavedAnswerKind;
+  /**
+   * What the save call rejected with, when it rejected. Absent when the
+   * insert reported the failure itself — `saveQuestion` has already logged
+   * that message, so repeating it here would say the same thing twice.
+   */
+  error?: unknown;
+}
+
+/**
+ * Records one lost exchange. A log line nobody counts is not a signal, so
+ * this one is countable: the prefix is load-bearing — it is what the log
+ * drain matches on — so it is a constant string with the variables tacked on
+ * as `key=value`, not an interpolated sentence.
+ */
+export function recordHistorySaveFailure({
+  kind,
+  error,
+}: HistorySaveFailure): void {
+  console.warn(
+    `ask: history save failed — kind=${kind} ` +
+      `error=${error === undefined ? "insert" : describeError(error)}`,
+  );
+}

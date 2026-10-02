@@ -19,7 +19,7 @@ import type { Database } from "./database.types";
 import { createEmbedder, type Embedder } from "./ingestion/embedder";
 import { serviceClient } from "./supabase/service";
 import { isCitation, parseCitations, type Citation } from "./citations";
-import { recordDegradedRetrieval } from "./retrieval-degraded";
+import { describeError } from "./log-redaction";
 import { expandQuery, expansionEnabled } from "./answer/expand";
 import { stepProbe, stepsEnabled, type StepProbe } from "./answer/steps";
 
@@ -526,6 +526,40 @@ function defaultExpander(): QueryExpander | null {
 /** The production catalogue, or `null` under `STEPS=off` (steps.ts owns it). */
 function defaultStepCatalogue(): StepCatalogue | null {
   return stepsEnabled() ? { probe: (query) => stepProbe(query) } : null;
+}
+
+/**
+ * Why the vector leg was dropped (#127, req. 4). `timeout` is the budget
+ * expiring — the provider is slow or unreachable; `error` is everything else
+ * it can answer with (a 429, a 5xx, a malformed body). Worth splitting: they
+ * call for different fixes, and a shift from one to the other is the
+ * interesting event.
+ */
+type DegradedReason = "timeout" | "error";
+
+/**
+ * Classifies what `embedQuery` rejected with. `AbortSignal.timeout` aborts a
+ * fetch with a `TimeoutError` DOMException; a caller-provided signal (or a
+ * runtime that reports the abort generically) gives `AbortError`. Both mean
+ * the budget is what stopped us, so both count as `timeout`.
+ */
+export function degradedReason(error: unknown): DegradedReason {
+  const name = error instanceof Error ? error.name : "";
+  return name === "TimeoutError" || name === "AbortError" ? "timeout" : "error";
+}
+
+/**
+ * Records one degraded ask: a silent quality drop on our side of the wire,
+ * so it has to be countable. The prefix is load-bearing: it is what the log
+ * drain counts on, so it is a constant string with the variables tacked on
+ * as `key=value`, not an interpolated sentence. The per-ask event
+ * (`telemetry.ts`) carries the `degraded` flag beside it.
+ */
+export function recordDegradedRetrieval(error: unknown): void {
+  console.warn(
+    `retrieval: degraded to lexical-only — reason=${degradedReason(error)} ` +
+      `error=${describeError(error)}`,
+  );
 }
 
 /**

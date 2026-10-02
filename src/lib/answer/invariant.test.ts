@@ -1,10 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  citationFailures,
-  recordCitationFailure,
-  resetCitationFailures,
-  validateCitations,
-} from "./invariant";
+import { recordCitationFailure, validateCitations } from "./invariant";
 
 describe("validateCitations", () => {
   it("accepts an answer whose every marker points at a retrieved source", () => {
@@ -159,31 +154,9 @@ describe("validateCitations", () => {
   });
 });
 
-describe("the citation-validation-failure counter (#131 req. 3)", () => {
+describe("the citation-validation-failure line (#131 req. 3)", () => {
   beforeEach(() => {
-    resetCitationFailures();
     vi.restoreAllMocks();
-  });
-
-  it("starts at zero for every violation kind", () => {
-    expect(citationFailures()).toEqual({
-      no_markers: 0,
-      unresolved_markers: 0,
-      incomplete_derived_markers: 0,
-    });
-  });
-
-  it("counts each failure under its own violation kind", () => {
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    recordCitationFailure({ violation: "no_markers", attempt: 1 });
-    recordCitationFailure({ violation: "no_markers", attempt: 2 });
-    recordCitationFailure({ violation: "unresolved_markers", attempt: 1 });
-
-    expect(citationFailures()).toEqual({
-      no_markers: 2,
-      unresolved_markers: 1,
-      incomplete_derived_markers: 0,
-    });
   });
 
   it("logs each failure on a stable, greppable prefix with its attempt", () => {
@@ -197,14 +170,5 @@ describe("the citation-validation-failure counter (#131 req. 3)", () => {
     expect(warn).toHaveBeenCalledWith(
       "ask: citation invariant violated — violation=unresolved_markers attempt=2 unresolved=9,5",
     );
-  });
-
-  it("hands back a copy — a caller cannot drive the counter through it", () => {
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    const snapshot = citationFailures();
-    snapshot.no_markers = 99;
-    recordCitationFailure({ violation: "no_markers", attempt: 1 });
-
-    expect(citationFailures().no_markers).toBe(1);
   });
 });

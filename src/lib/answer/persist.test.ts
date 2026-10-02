@@ -1,5 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
-import { saveQuestion, type QuestionsClient } from "./persist";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  recordHistorySaveFailure,
+  saveQuestion,
+  type QuestionsClient,
+} from "./persist";
 
 function client(error: { message: string } | null = null) {
   const insert = vi.fn().mockResolvedValue({ error });
@@ -59,5 +63,33 @@ describe("saveQuestion", () => {
     // message never reaches the log — only what the error *is*.
     expect(spy).not.toHaveBeenCalledWith(expect.stringContaining("boom"));
     spy.mockRestore();
+  });
+});
+
+describe("the history-save failure line (#139 req. 2)", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("logs a rejected save on a stable, greppable prefix", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    recordHistorySaveFailure({ kind: "answer", error: new Error("db down") });
+
+    // #136: the class, never the message — a rejected insert on `questions`
+    // is a rejection of the user's own question, and Postgres quotes rows.
+    expect(warn).toHaveBeenCalledWith(
+      "ask: history save failed — kind=answer error=Error",
+    );
+  });
+
+  it("names the insert itself when there was no exception to name", () => {
+    // `saveQuestion` returned false: it already logged the Postgres message,
+    // so the counter line only says which door the failure came through.
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    recordHistorySaveFailure({ kind: "decline" });
+
+    expect(warn).toHaveBeenCalledWith(
+      "ask: history save failed — kind=decline error=insert",
+    );
   });
 });

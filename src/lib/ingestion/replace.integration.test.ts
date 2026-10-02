@@ -12,7 +12,11 @@
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, expect, it } from "vitest";
-import { persistDocument, replaceDocumentChunks } from "./replace";
+import {
+  persistDocument,
+  replaceDocumentChunks,
+  retireDocuments,
+} from "./replace";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import { EMBEDDING_DIMENSIONS } from "../embedding-dimensions";
 
@@ -211,5 +215,74 @@ describeDb("replace_chunks (integration)", () => {
     expect(inserted).toBe(1);
     expect(await freshness()).toEqual(stamp);
     expect(await chunkLabels()).toEqual(["Artículo 99"]);
+  });
+});
+
+/**
+ * Manifest retirement against a real database (#256). A document is the
+ * aggregate root for its retrievable chunks, so deleting it must remove every
+ * chunk in the same statement via the FK cascade; a half-retired document
+ * would remain reachable by retrieval.
+ */
+const RETIRE_DOC_KEY = "__test-retire-document__";
+
+describeDb("retireDocuments (integration)", () => {
+  let db: SupabaseClient;
+  let documentId: string | undefined;
+
+  beforeAll(() => {
+    db = createClient(url!, serviceRoleKey!, {
+      auth: { persistSession: false },
+    });
+  });
+
+  afterAll(async () => {
+    await db.from("documents").delete().eq("doc_key", RETIRE_DOC_KEY);
+  });
+
+  it("deletes the document and all of its chunks atomically", async () => {
+    await persistDocument(
+      db,
+      {
+        doc_key: RETIRE_DOC_KEY,
+        title: "Retirement integration fixture",
+        norma: null,
+        source: { kind: "unresolved" },
+        effective_date: null,
+      },
+      {
+        fetched_at: new Date().toISOString(),
+        embedding_provider: "stub",
+        embedding_dim: EMBEDDING_DIMENSIONS,
+      },
+      [
+        {
+          articulo: "Artículo 1",
+          path: ["Test"],
+          part: 0,
+          content: "Chunk que debe desaparecer con su documento.",
+        },
+      ],
+      [new Array<number>(EMBEDDING_DIMENSIONS).fill(0.01)],
+    );
+
+    const { data, error } = await db
+      .from("documents")
+      .select("id")
+      .eq("doc_key", RETIRE_DOC_KEY)
+      .single();
+    if (error) throw new Error(error.message);
+    documentId = (data as { id: string }).id;
+
+    await retireDocuments(db, [RETIRE_DOC_KEY]);
+
+    const [document, chunks] = await Promise.all([
+      db.from("documents").select("id").eq("id", documentId),
+      db.from("chunks").select("id").eq("document_id", documentId),
+    ]);
+    if (document.error) throw new Error(document.error.message);
+    if (chunks.error) throw new Error(chunks.error.message);
+    expect(document.data).toEqual([]);
+    expect(chunks.data).toEqual([]);
   });
 });

@@ -17,10 +17,8 @@ import {
   buildCondensePrompt,
   cleanCondensed,
   condenseFailureReason,
-  condenseFailures,
   condenseQuestion,
   CONDENSE_SYSTEM_PROMPT,
-  resetCondenseFailures,
 } from "./condense";
 import {
   MAX_HISTORY_TURNS,
@@ -78,15 +76,22 @@ function promptText(model: MockLanguageModelV4): string {
   return JSON.stringify(call.prompt);
 }
 
+/** The `reason=` of every condensation-failure line logged so far. */
+function failureReasons(): string[] {
+  return vi
+    .mocked(console.warn)
+    .mock.calls.map(([line]) => String(line))
+    .filter((line) => line.startsWith("ask: condensation failed"))
+    .map((line) => /reason=(\S+)/.exec(line)?.[1] ?? "");
+}
+
 beforeEach(() => {
-  resetCondenseFailures();
   vi.spyOn(console, "warn").mockImplementation(() => {});
 });
 
 afterEach(() => {
   vi.restoreAllMocks();
   vi.mocked(getCondenseModel).mockReset();
-  resetCondenseFailures();
 });
 
 describe("first turns skip condensation entirely (#132 req. 2)", () => {
@@ -98,7 +103,7 @@ describe("first turns skip condensation entirely (#132 req. 2)", () => {
     expect(result).toEqual({ query: "¿Cuánto es el IVA?", condensed: null });
     expect(model.doGenerateCalls).toHaveLength(0);
     // Not a failure either: nothing went wrong, so nothing is counted.
-    expect(condenseFailures()).toEqual({ timeout: 0, error: 0, unusable: 0 });
+    expect(failureReasons()).toEqual([]);
   });
 
   it("makes no model call when every turn in the window is unusable", async () => {
@@ -202,7 +207,7 @@ describe("failure always falls back to the raw question (#132 req. 4)", () => {
     const result = await condenseQuestion(FOLLOW_UP, [turn(1)]);
 
     expect(result).toEqual({ query: FOLLOW_UP, condensed: null });
-    expect(condenseFailures()).toEqual({ timeout: 0, error: 1, unusable: 0 });
+    expect(failureReasons()).toEqual(["error"]);
   });
 
   it("falls back when the budget expires, counted as a timeout", async () => {
@@ -215,7 +220,7 @@ describe("failure always falls back to the raw question (#132 req. 4)", () => {
     });
 
     expect(result).toEqual({ query: FOLLOW_UP, condensed: null });
-    expect(condenseFailures()).toEqual({ timeout: 1, error: 0, unusable: 0 });
+    expect(failureReasons()).toEqual(["timeout"]);
   });
 
   it("times out a condenser that never answers", async () => {
@@ -235,7 +240,7 @@ describe("failure always falls back to the raw question (#132 req. 4)", () => {
     });
 
     expect(result).toEqual({ query: FOLLOW_UP, condensed: null });
-    expect(condenseFailures().timeout).toBe(1);
+    expect(failureReasons()).toEqual(["timeout"]);
   });
 
   it("falls back on an empty or oversized rewrite", async () => {
@@ -252,7 +257,7 @@ describe("failure always falls back to the raw question (#132 req. 4)", () => {
       condensed: null,
     });
 
-    expect(condenseFailures()).toEqual({ timeout: 0, error: 0, unusable: 2 });
+    expect(failureReasons()).toEqual(["unusable", "unusable"]);
   });
 
   it("logs on the stable prefix, with no question text in the line", async () => {

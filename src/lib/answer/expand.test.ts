@@ -19,11 +19,9 @@ import {
   CORPUS_INVENTORY,
   cleanExpansion,
   expandFailureReason,
-  expandFailures,
   expandQuery,
   EXPAND_SYSTEM_PROMPT,
   MAX_EXPANSION_LENGTH,
-  resetExpandFailures,
 } from "./expand";
 import { getExpandModel } from "./model";
 
@@ -58,8 +56,16 @@ function failingExpander(error: unknown): MockLanguageModelV4 {
   return model;
 }
 
+/** The `reason=` of every expansion-failure line logged so far. */
+function failureReasons(): string[] {
+  return vi
+    .mocked(console.warn)
+    .mock.calls.map(([line]) => String(line))
+    .filter((line) => line.startsWith("ask: expansion failed"))
+    .map((line) => /reason=(\S+)/.exec(line)?.[1] ?? "");
+}
+
 beforeEach(() => {
-  resetExpandFailures();
   // `expansionEnabled` needs a provider, and the unit lane has none: without
   // this every case below would take the switched-off path and assert
   // nothing (#129's failure mode in miniature).
@@ -71,7 +77,6 @@ afterEach(() => {
   vi.unstubAllEnvs();
   vi.restoreAllMocks();
   vi.mocked(getExpandModel).mockReset();
-  resetExpandFailures();
 });
 
 describe("the rewrite", () => {
@@ -81,7 +86,7 @@ describe("the rewrite", () => {
     expect(await expandQuery(QUESTION)).toBe(EXPANSION);
     expect(model.doGenerateCalls).toHaveLength(1);
     expect(JSON.stringify(model.doGenerateCalls[0].prompt)).toContain(QUESTION);
-    expect(expandFailures()).toEqual({ timeout: 0, error: 0, unusable: 0 });
+    expect(failureReasons()).toEqual([]);
   });
 
   it("makes no call when expansion is switched off", async () => {
@@ -92,7 +97,7 @@ describe("the rewrite", () => {
     expect(model.doGenerateCalls).toHaveLength(0);
     // Switched off is not failed: `EXPAND=off` is a measurement, not an
     // incident, so it counts nothing and logs nothing.
-    expect(expandFailures()).toEqual({ timeout: 0, error: 0, unusable: 0 });
+    expect(failureReasons()).toEqual([]);
   });
 
   it("makes no call with no provider configured", async () => {
@@ -101,7 +106,7 @@ describe("the rewrite", () => {
 
     expect(await expandQuery(QUESTION)).toBeNull();
     expect(model.doGenerateCalls).toHaveLength(0);
-    expect(expandFailures()).toEqual({ timeout: 0, error: 0, unusable: 0 });
+    expect(failureReasons()).toEqual([]);
   });
 
   it("makes no call on an empty question", async () => {
@@ -110,7 +115,7 @@ describe("the rewrite", () => {
     expect(await expandQuery("   ")).toBeNull();
     expect(model.doGenerateCalls).toHaveLength(0);
     // Nothing went wrong, so nothing is counted.
-    expect(expandFailures()).toEqual({ timeout: 0, error: 0, unusable: 0 });
+    expect(failureReasons()).toEqual([]);
   });
 
   it("forbids the invented figure that would steer the search", () => {
@@ -148,7 +153,7 @@ describe("every failure searches the question alone", () => {
     failingExpander(new Error("503"));
 
     expect(await expandQuery(QUESTION)).toBeNull();
-    expect(expandFailures()).toEqual({ timeout: 0, error: 1, unusable: 0 });
+    expect(failureReasons()).toEqual(["error"]);
   });
 
   it("returns null and counts a timeout when the budget expires", async () => {
@@ -157,7 +162,7 @@ describe("every failure searches the question alone", () => {
     failingExpander(timeout);
 
     expect(await expandQuery(QUESTION, { timeoutMs: 5 })).toBeNull();
-    expect(expandFailures()).toEqual({ timeout: 1, error: 0, unusable: 0 });
+    expect(failureReasons()).toEqual(["timeout"]);
   });
 
   it("returns null and counts unusable output", async () => {
@@ -167,7 +172,7 @@ describe("every failure searches the question alone", () => {
     mockExpander("x".repeat(MAX_EXPANSION_LENGTH + 1));
     expect(await expandQuery(QUESTION)).toBeNull();
 
-    expect(expandFailures()).toEqual({ timeout: 0, error: 0, unusable: 2 });
+    expect(failureReasons()).toEqual(["unusable", "unusable"]);
   });
 
   it("logs on a stable prefix and never logs the question", async () => {

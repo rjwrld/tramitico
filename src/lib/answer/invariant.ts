@@ -73,36 +73,6 @@ export function validateCitations(
   return { ok: true };
 }
 
-/**
- * The counter req. 3 asks for, and no more (#131). There is no metrics
- * pipeline in this codebase yet — the observability issue owns that — so a
- * failure is recorded twice, in the two forms something downstream can
- * actually consume today: an in-process tally the tests read, and a log line
- * on a stable prefix a platform log drain can count.
- *
- * In-process means per serverless instance and lost on recycle. That is
- * honest for what it is: the log line, not this tally, is the durable signal.
- */
-export type CitationFailureCounts = Record<CitationViolation, number>;
-
-const counts: CitationFailureCounts = {
-  no_markers: 0,
-  unresolved_markers: 0,
-  incomplete_derived_markers: 0,
-};
-
-/** Snapshot of the tally. A copy — callers cannot write through it. */
-export function citationFailures(): CitationFailureCounts {
-  return { ...counts };
-}
-
-/** Test-only: puts the tally back to zero between cases. */
-export function resetCitationFailures(): void {
-  counts.no_markers = 0;
-  counts.unresolved_markers = 0;
-  counts.incomplete_derived_markers = 0;
-}
-
 export interface CitationFailure {
   violation: CitationViolation;
   /** 1 for the first generation, 2 for the retry — which one failed matters. */
@@ -111,16 +81,17 @@ export interface CitationFailure {
 }
 
 /**
- * Records one violation. The prefix is load-bearing: it is what a log-based
- * counter will match on, so it is a constant string with the variables tacked
- * on as `key=value`, not an interpolated sentence.
+ * Records one violation — the counter req. 3 asks for, and no more (#131). The
+ * prefix is load-bearing: it is what the log drain counts on, so it is a
+ * constant string with the variables tacked on as `key=value`, not an
+ * interpolated sentence. The per-ask event (`telemetry.ts`) carries the flag
+ * that one fired, and with it the denominator.
  */
 export function recordCitationFailure({
   violation,
   attempt,
   unresolved = [],
 }: CitationFailure): void {
-  counts[violation] += 1;
   console.warn(
     `ask: citation invariant violated — violation=${violation} ` +
       `attempt=${attempt} unresolved=${unresolved.join(",")}`,

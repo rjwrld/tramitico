@@ -25,7 +25,12 @@ vi.mock("@/lib/answer/model", async (importOriginal) => ({
   getCondenseModel: vi.fn(),
 }));
 vi.mock("@/lib/answer/user", () => ({ getUserId: vi.fn() }));
-vi.mock("@/lib/answer/persist", () => ({ saveQuestion: vi.fn() }));
+// The save is faked; the failure line beside it (`recordHistorySaveFailure`)
+// stays real, since its log line is what the #139 cases assert on.
+vi.mock("@/lib/answer/persist", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/answer/persist")>()),
+  saveQuestion: vi.fn(),
+}));
 
 import {
   ASK_FALLBACK_ERROR_MESSAGE,
@@ -36,14 +41,6 @@ import {
   type AskErrorBody,
   type AskUIMessage,
 } from "@/lib/answer/contract";
-import {
-  citationFailures,
-  resetCitationFailures,
-} from "@/lib/answer/invariant";
-import {
-  historySaveFailures,
-  resetHistorySaveFailures,
-} from "@/lib/answer/persist-failure";
 import { ASK_DEADLINE_MS } from "@/lib/answer/deadline";
 import {
   ANSWER_SYSTEM_PROMPT,
@@ -52,7 +49,6 @@ import {
 } from "@/lib/answer/prompt";
 import { declineAnswer } from "@/lib/routing";
 import { saveQuestion } from "@/lib/answer/persist";
-import { condenseFailures, resetCondenseFailures } from "@/lib/answer/condense";
 import {
   ANSWER_MAX_OUTPUT_TOKENS,
   answerProviderOptions,
@@ -494,13 +490,6 @@ beforeEach(() => {
   // Anonymous asks derive their subject with this key (#125); the default
   // caller here is anonymous, so without it every test would fail closed.
   vi.stubEnv("RATE_LIMIT_SUBJECT_SECRET", "test-subject-secret");
-  // The #131 tally is module state; a leftover count would make the next
-  // case's assertion depend on suite order.
-  resetCitationFailures();
-  // Same for the #139 tally.
-  resetHistorySaveFailures();
-  // And the #132 one.
-  resetCondenseFailures();
 });
 
 describe("POST /api/ask", () => {
@@ -2027,6 +2016,23 @@ describe("POST /api/ask", () => {
    * the honest decline — never the uncited text.
    */
   describe("citation invariant (#131)", () => {
+    beforeEach(() => {
+      vi.spyOn(console, "warn").mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      vi.mocked(console.warn).mockRestore();
+    });
+
+    /** The `violation=` of every citation-invariant line logged so far. */
+    function citationViolations(): string[] {
+      return vi
+        .mocked(console.warn)
+        .mock.calls.map(([line]) => String(line))
+        .filter((line) => line.startsWith("ask: citation invariant violated"))
+        .map((line) => /violation=(\S+)/.exec(line)?.[1] ?? "");
+    }
+
     const UNCITED = "La tarifa aplica a todo servicio prestado.";
     const CITED = "La tarifa es 13% [1].";
 
@@ -2055,11 +2061,7 @@ describe("POST /api/ask", () => {
 
       expect(streamedText(events)).toBe(complete);
       expect(model.doStreamCalls).toHaveLength(2);
-      expect(citationFailures()).toEqual({
-        no_markers: 0,
-        unresolved_markers: 0,
-        incomplete_derived_markers: 1,
-      });
+      expect(citationViolations()).toEqual(["incomplete_derived_markers"]);
     });
 
     it("keeps an uncited answer off the wire and streams the cited retry instead", async () => {
@@ -2074,11 +2076,7 @@ describe("POST /api/ask", () => {
       expect(streamedText(events)).toBe(CITED);
       expect(streamedText(events)).not.toContain("todo servicio prestado");
       expect(model.doStreamCalls).toHaveLength(2);
-      expect(citationFailures()).toEqual({
-        no_markers: 1,
-        unresolved_markers: 0,
-        incomplete_derived_markers: 0,
-      });
+      expect(citationViolations()).toEqual(["no_markers"]);
     });
 
     it("keeps an answer citing a document nobody retrieved off the wire", async () => {
@@ -2099,11 +2097,7 @@ describe("POST /api/ask", () => {
       expect(streamedText(events)).toBe(CITED);
       expect(streamedText(events)).not.toContain("15 de cada mes");
       expect(model.doStreamCalls).toHaveLength(2);
-      expect(citationFailures()).toEqual({
-        no_markers: 0,
-        unresolved_markers: 1,
-        incomplete_derived_markers: 0,
-      });
+      expect(citationViolations()).toEqual(["unresolved_markers"]);
     });
 
     it("declines honestly when the retry violates too — and stops retrying there", async () => {
@@ -2121,11 +2115,7 @@ describe("POST /api/ask", () => {
       expect(model.doStreamCalls).toHaveLength(2);
       // A decline cites nothing, so no seal may be stamped under it.
       expect(events.filter((e) => e.type === "data-citations")).toHaveLength(0);
-      expect(citationFailures()).toEqual({
-        no_markers: 2,
-        unresolved_markers: 0,
-        incomplete_derived_markers: 0,
-      });
+      expect(citationViolations()).toEqual(["no_markers", "no_markers"]);
     });
 
     it("does not surface a failure over the decline — the user gets an answer", async () => {
@@ -2150,11 +2140,7 @@ describe("POST /api/ask", () => {
       );
 
       expect(model.doStreamCalls).toHaveLength(1);
-      expect(citationFailures()).toEqual({
-        no_markers: 0,
-        unresolved_markers: 0,
-        incomplete_derived_markers: 0,
-      });
+      expect(citationViolations()).toEqual([]);
     });
 
     it("reports redactando again, then verificando again, across the retry (#219)", async () => {
@@ -2216,11 +2202,7 @@ describe("POST /api/ask", () => {
       expect(JSON.stringify(model.doStreamCalls[1].prompt)).not.toContain(
         CITATION_RETRY_NOTE,
       );
-      expect(citationFailures()).toEqual({
-        no_markers: 0,
-        unresolved_markers: 0,
-        incomplete_derived_markers: 0,
-      });
+      expect(citationViolations()).toEqual([]);
     });
 
     it("declines honestly when the retry is cut off too", async () => {
@@ -2257,11 +2239,7 @@ describe("POST /api/ask", () => {
       expect(streamedText(events)).toBe(WEAK_RETRIEVAL_ANSWER);
       expect(model.doStreamCalls).toHaveLength(1);
       expect(errorMessages(events)).toEqual([]);
-      expect(citationFailures()).toEqual({
-        no_markers: 0,
-        unresolved_markers: 0,
-        incomplete_derived_markers: 0,
-      });
+      expect(citationViolations()).toEqual([]);
     });
 
     it("persists the decline, never the uncited answer, for signed-in users", async () => {
@@ -2483,10 +2461,12 @@ describe("POST /api/ask", () => {
 
       await askSignedIn(false);
 
-      expect(historySaveFailures()).toEqual({ answer: 1, decline: 0 });
-      expect(warn).toHaveBeenCalledWith(
+      const lines = warn.mock.calls
+        .map(([line]) => String(line))
+        .filter((line) => line.startsWith("ask: history save failed"));
+      expect(lines).toEqual([
         expect.stringContaining("ask: history save failed — kind=answer"),
-      );
+      ]);
       warn.mockRestore();
     });
 
@@ -3278,6 +3258,7 @@ describe("POST /api/ask", () => {
     });
 
     it("answers the raw question when the condenser is down", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
       allowRateLimit();
       vi.mocked(retrieve).mockResolvedValue(retrievalResult());
       mockDeadCondenser();
@@ -3293,7 +3274,10 @@ describe("POST /api/ask", () => {
       expect(vi.mocked(retrieve)).toHaveBeenCalledWith(FOLLOW_UP, {
         matchCount: RERANK_POOL,
       });
-      expect(condenseFailures().error).toBe(1);
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining("ask: condensation failed — reason=error"),
+      );
+      warn.mockRestore();
     });
 
     it("stores no rewrite when condensation fell back", async () => {

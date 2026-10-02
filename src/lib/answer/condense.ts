@@ -23,8 +23,8 @@
  *    thirtieth turn of a thread costs what condensing the second one does.
  *
  * Observability follows the established detail-line pattern
- * (`retrieval-degraded.ts`): an in-process tally the tests read plus a
- * `console.warn` on a stable prefix a log drain can count. The per-ask event
+ * (`recordDegradedRetrieval` in `retrieval.ts`): a `console.warn` on a stable
+ * prefix a log drain can count. The per-ask event
  * in `telemetry.ts` is a closed vocabulary and a privacy claim (runbook §1),
  * so it is not extended here.
  *
@@ -105,22 +105,6 @@ export function buildCondensePrompt(
  */
 export type CondenseFailure = "timeout" | "error" | "unusable";
 
-export type CondenseFailureCounts = Record<CondenseFailure, number>;
-
-const counts: CondenseFailureCounts = { timeout: 0, error: 0, unusable: 0 };
-
-/** Snapshot of the tally. A copy — callers cannot write through it. */
-export function condenseFailures(): CondenseFailureCounts {
-  return { ...counts };
-}
-
-/** Test-only: puts the tally back to zero between cases. */
-export function resetCondenseFailures(): void {
-  counts.timeout = 0;
-  counts.error = 0;
-  counts.unusable = 0;
-}
-
 /**
  * Classifies a rejection the same way `degradedReason` does, and for the same
  * reason: `AbortSignal.timeout` aborts with a `TimeoutError`, some runtimes
@@ -142,7 +126,6 @@ export function recordCondenseFailure(
   reason: CondenseFailure,
   error?: unknown,
 ): void {
-  counts[reason] += 1;
   console.warn(
     `ask: condensation failed — reason=${reason} ` +
       `error=${error === undefined ? "none" : describeError(error)}`,

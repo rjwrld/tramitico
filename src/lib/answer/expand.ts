@@ -109,22 +109,6 @@ export function buildExpandPrompt(question: string): string {
  */
 export type ExpandFailure = "timeout" | "error" | "unusable";
 
-export type ExpandFailureCounts = Record<ExpandFailure, number>;
-
-const counts: ExpandFailureCounts = { timeout: 0, error: 0, unusable: 0 };
-
-/** Snapshot of the tally. A copy — callers cannot write through it. */
-export function expandFailures(): ExpandFailureCounts {
-  return { ...counts };
-}
-
-/** Test-only: puts the tally back to zero between cases. */
-export function resetExpandFailures(): void {
-  counts.timeout = 0;
-  counts.error = 0;
-  counts.unusable = 0;
-}
-
 /** Classifies a rejection the way `condenseFailureReason` does. */
 export function expandFailureReason(error: unknown): ExpandFailure {
   const name = error instanceof Error ? error.name : "";
@@ -141,7 +125,6 @@ export function recordExpandFailure(
   reason: ExpandFailure,
   error?: unknown,
 ): void {
-  counts[reason] += 1;
   console.warn(
     `ask: expansion failed — reason=${reason} ` +
       `error=${error === undefined ? "none" : describeError(error)}`,
