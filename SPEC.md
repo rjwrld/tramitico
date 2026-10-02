@@ -254,7 +254,11 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   reason the legs do, and since #296 it scores them as two separate queries whose per-chunk
   scores are fused by the higher one, so a rewrite that drifts into another jurisdiction's
   law can no longer pull the reader's own best answer down —
-  **[ADR 0019](docs/adr/0019-query-expansion-legs.md)**.
+  **[ADR 0019](docs/adr/0019-query-expansion-legs.md)**. A reading Voyage rejects (429 or 5xx) is
+  dropped, not retried, and counted: `rerankDrops` in the telemetry event, the eval transcripts
+  and `pnpm answer-set-probe` (#466). The full lane of 2026-10-02 lost 0 of 377 readings at
+  eval pace, and production asks far slower. Drops have appeared at about 58 asks a minute and
+  not at 21 (#457, #460). Only a replayed probe runs that fast.
 - **Step catalogue (#304, amends this section):** retrieval also searches for the _step_ a
   complete answer needs and the question never asks for — when to pay, what the sanction is,
   how to adjust a declared figure. A hand-written catalogue per Tier 1 family
