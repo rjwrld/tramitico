@@ -1,6 +1,6 @@
 # ADR 0023 — What the eval gates mean after Sonnet 5.5: the Tier 1 floor, and the model
 
-Date: 2026-10-02 · Status: **proposed** (the owner chooses A or B) · Amends
+Date: 2026-10-02 · Status: accepted (A) · Amends
 [SPEC §9](../../SPEC.md) · Context: issues
 [#449](https://github.com/rjwrld/tramitico/issues/449),
 [#451](https://github.com/rjwrld/tramitico/issues/451),
@@ -85,14 +85,21 @@ proposed here.
 
 ## Decision
 
-_To be chosen by the owner: A or B._
+**A, chosen by the owner on 2026-10-02.** Production keeps `claude-sonnet-5-5` at
+`ANSWER_EFFORT=low`. Tier 1 requirements stated is tracked against a baseline
+of 70/116, and only a lane at 65 or below fails it (`TIER1_REQUIREMENT_FLOOR`,
+`src/lib/eval/adequacy.ts`). A lane that beats 70 raises the baseline. No
+paid prompt round aims at a Tier 1 number. Full lanes run on a model change
+or before a release, and prompt work is read on scoped replays. Groundedness
+and the blocking gate stay as SPEC §9 has them. Whether they should stay
+hard gates is left open, as above.
 
 ## Consequences
 
-- **A:** SPEC §9's "#287's floor" line becomes "tracked against a baseline
-  of 70, a regression past −4 blocks". The `states at least 80 tier 1
-requirements` test becomes `does not regress more than 4 below 70`. The
-  regression alarm runs on the lanes that already run. No new spend.
+- **A (applied with this ADR):** SPEC §9's Tier 1 line now reads "tracked
+  against a baseline of 70/116, failing at ≤ 65". `TIER1_REQUIREMENT_FLOOR` is
+  `TIER1_REQUIREMENT_BASELINE − TIER1_REGRESSION_MARGIN` (70 − 4 = 66), and the
+  eval test is named after both. This run's 70 passes it. No new spend.
 - **B:** `ANSWER_MODEL`/`ANSWER_EFFORT` in Vercel and the GitHub variable
   (#451's rollback commands), a prompt revert or a measured pairing, and one
   approved full lane. The floor of 80 stays.
