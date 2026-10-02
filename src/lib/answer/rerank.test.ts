@@ -453,7 +453,7 @@ describe("the step catalogue at the rerank (#304)", () => {
     ).toEqual(["c1", "c2", "c3"]);
   });
 
-  it("pin1: appends only the one pick the question ranks highest, past the cut (#311, #460)", async () => {
+  it("pin1: appends only the single best-scoring pick past the cut (#311)", async () => {
     vi.stubEnv("STEPS_RERANK", "pin1");
     vi.stubEnv("ANSWER_TOP_K", "1");
     const outcome = await rerankReadings("pregunta", pool, {
@@ -471,14 +471,13 @@ describe("the step catalogue at the rerank (#304)", () => {
       "c3",
       "c2",
     ]);
-    // The cut is c1; both picks are outside it, and only c2 is appended:
-    // the question ranks it #2 and c3 #3, though c3's sentence scores it
-    // 0.95 to c2's 0.7. The prompt grows by one fragment, not two.
+    // The cut is c1; both picks are outside it, and only c3 (0.95 over
+    // 0.7) is appended: the prompt grows by one fragment, not two.
     expect(
       answerSetFromOrder(outcome!.order, pool, outcome!.stepPicks).map(
         (c) => c.chunkId,
       ),
-    ).toEqual(["c1", "c2"]);
+    ).toEqual(["c1", "c3"]);
     expect(
       (
         await rerankChunks("pregunta", pool, {
@@ -486,7 +485,7 @@ describe("the step catalogue at the rerank (#304)", () => {
           steps: ["paso uno", "paso dos"],
         })
       ).map((c) => c.chunkId),
-    ).toEqual(["c1", "c2"]);
+    ).toEqual(["c1", "c3"]);
   });
 
   it("pin1: a chunk two sentences share carries the higher of their scores", async () => {
@@ -513,9 +512,8 @@ describe("the step catalogue at the rerank (#304)", () => {
       fetchImpl,
       steps: ["paso a", "paso b", "paso c"],
     });
-    // c3 keeps its first sentence's place but paso b's 0.95. The question's
-    // reading holds neither c3 nor c4, so they tie on rank, and the score
-    // breaks it: c3, not c4 at 0.8, is the one append.
+    // c3 keeps its first sentence's place but paso b's 0.95, so it — not
+    // c4 at 0.8 — is the one append.
     expect(outcome?.stepPicks.map((r) => [r.chunk.chunkId, r.score])).toEqual([
       ["c3", 0.95],
       ["c4", 0.8],
@@ -527,7 +525,7 @@ describe("the step catalogue at the rerank (#304)", () => {
     ).toEqual(["c1", "c3"]);
   });
 
-  it("pin1: the one pick is the one not already in the cut the question ranks best, not the best-scoring (#460)", () => {
+  it("pin1: the one pick is the best not already in the cut, by score and not sentence order", () => {
     vi.stubEnv("STEPS_RERANK", "pin1");
     vi.stubEnv("ANSWER_TOP_K", "2");
     const order = [chunk(1), chunk(2), chunk(3), chunk(4)].map((c, i) => ({
@@ -535,11 +533,10 @@ describe("the step catalogue at the rerank (#304)", () => {
       score: 1 - i / 10,
       rank: i + 1,
     }));
-    // c1 is the question's first, but the cut already holds it; of the two
-    // outside it, c3 is the question's #3 and c4 its #4, so c3 goes in
-    // though c4's sentence scores it higher and comes first.
+    // c1 scores highest but the cut already holds it; of the two outside
+    // it, c3 outscores c4 though its sentence came second.
     const picks = [
-      { ...order[3], score: 0.97 },
+      { ...order[3], score: 0.5 },
       { ...order[0], score: 0.9 },
       { ...order[2], score: 0.8 },
     ];
@@ -552,28 +549,17 @@ describe("the step catalogue at the rerank (#304)", () => {
     expect(
       answerSetFromOrder(order, [], [picks[1]]).map((c) => c.chunkId),
     ).toEqual(["c1", "c2"]);
-    // Picks the question's reading did not hold share the rank past its
-    // end: the sentence score breaks that tie, and sentence order a tie on
-    // both.
-    const outside = (c: ReturnType<typeof chunk>, score: number) => ({
-      chunk: c,
-      score,
-      rank: order.length + 1,
-    });
+    // A tie keeps sentence order.
     expect(
       answerSetFromOrder(
         order,
         [],
-        [outside(chunk(5), 0.8), outside(chunk(6), 0.9)],
+        [
+          { ...order[3], score: 0.8 },
+          { ...order[2], score: 0.8 },
+        ],
       ).map((c) => c.chunkId),
-    ).toEqual(["c1", "c2", "c6"]);
-    expect(
-      answerSetFromOrder(
-        order,
-        [],
-        [outside(chunk(5), 0.8), outside(chunk(6), 0.8)],
-      ).map((c) => c.chunkId),
-    ).toEqual(["c1", "c2", "c5"]);
+    ).toEqual(["c1", "c2", "c4"]);
     // Under `pin` the same picks all go in, in sentence order.
     vi.stubEnv("STEPS_RERANK", "pin");
     expect(answerSetFromOrder(order, [], picks).map((c) => c.chunkId)).toEqual([
@@ -582,38 +568,6 @@ describe("the step catalogue at the rerank (#304)", () => {
       "c4",
       "c3",
     ]);
-  });
-
-  it("pin1: never spends its append on a chunk the derived-figure pin adds anyway (#460)", () => {
-    vi.stubEnv("STEPS_RERANK", "pin1");
-    vi.stubEnv("ANSWER_TOP_K", "2");
-    const escala: RetrievedChunk = {
-      ...chunk(1),
-      docKey: "ccss-escala-ivm",
-      articulo: "Artículo 4°, sesión 9570",
-    };
-    const salarios: RetrievedChunk = {
-      ...chunk(3),
-      docKey: "salarios-minimos",
-      articulo: "Artículo 1",
-    };
-    const pool = [escala, chunk(2), salarios, chunk(4)];
-    const order = pool.map((c, i) => ({
-      chunk: c,
-      score: 1 - i / 10,
-      rank: i + 1,
-    }));
-    const picks = [order[2], order[3]];
-    // The cut holds escala, so the derived pin will append salarios (#287):
-    // the question's #3 is not fresh, and the one append goes to its #4.
-    expect(
-      answerSetFromOrder(order, pool, picks).map((c) => c.chunkId),
-    ).toEqual(["c1", "c2", "c4"]);
-    // With that pin off, salarios is the question's best fresh pick again.
-    vi.stubEnv("PIN_DERIVED_INPUTS", "off");
-    expect(
-      answerSetFromOrder(order, pool, picks).map((c) => c.chunkId),
-    ).toEqual(["c1", "c2", "c3"]);
   });
 });
 

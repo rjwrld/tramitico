@@ -50,7 +50,7 @@
  * lost a case that concatenation held.
  */
 import type { RetrievalResult, RetrievedChunk } from "../retrieval";
-import { isDerivedFigureInput, pinDerivedFigureInputs } from "./derived";
+import { isDerivedFigureInput } from "./derived";
 
 /**
  * Fused candidates fetched per question. 40, not 30, since #51: ley-iva
@@ -105,8 +105,7 @@ export const ANSWER_DOC_CAP = Infinity;
  *   question is displaced; the prompt grows by at most one chunk per
  *   sentence, only on an ask that classified to a family.
  * - `pin1` — `pin`'s picks, but only **one** of them reaches the prompt: the
- *   pick the cut did not already take that the **question** ranks highest
- *   (#311, #460). `pin`'s cost
+ *   highest-scoring pick the cut did not already take (#311). `pin`'s cost
  *   was the answer set's size — ten or eleven overlapping fragments, and the
  *   model mis-indexing them — so this is its smallest version: +1 fragment,
  *   on an ask that classifies. A sentence whose best chunk is already in the
@@ -592,9 +591,8 @@ export async function rerankReadings(
       );
       if (best === null) continue;
       // Two sentences agreeing on a chunk pick it once, in the first one's
-      // place and with the higher of their scores — `pin1` breaks rank ties
-      // and `slot` ranks the picks by score, so the first sentence's must not
-      // stand in for both (#311).
+      // place and with the higher of their scores — `pin1` ranks the picks
+      // by score, so the first sentence's must not stand in for both (#311).
       const already = picked.get(best.index);
       if (already !== undefined) {
         already.score = Math.max(already.score, best.score);
@@ -634,17 +632,9 @@ export async function rerankOrder(
  * cap applies to whichever order is being cut, since the fused head has the
  * same FAQ-page shape (#303). A pick is an append, like #287's derived
  * inputs: nothing the cut chose is displaced. Under `pin1` (#311) only one
- * pick is appended — of those the cut did not take, the one the question's
- * reading ranks best (#460), then the higher sentence score, then sentence
- * order. A pick's score is its chunk against its own sentence, which mirrors
- * it, so every pick scores 0.95–0.97 and the quantized scores tie: ranked by
- * score alone the pin was close to a constant per family, whatever was asked.
- * Nor does `pin1` spend its one append on a chunk the derived-figure pin
- * (#287) will append to this cut anyway: ranked by the question, the step
- * pick on `multa-iva-no-declarado` was `salario-base-2026`, which that pin
- * was already adding, and the step target it displaced (`cnpt` 88) was lost
- * (eval/runs/2026-10-02-460/). Under `slot` (#287) the picks take the cut's
- * last places instead (`slotSteps`), and the set keeps its size.
+ * pick is appended — the highest-scoring one the cut did not take; ties keep
+ * sentence order. Under `slot` (#287) the picks take the cut's last places
+ * instead (`slotSteps`), and the set keeps its size.
  */
 export function answerSetFromOrder(
   order: readonly RerankedChunk[] | null,
@@ -658,16 +648,10 @@ export function answerSetFromOrder(
   const taken = new Set(cut.map((chunk) => chunk.chunkId));
   const fresh = stepPicks.filter(({ chunk }) => !taken.has(chunk.chunkId));
   if (stepRerankMode() === "slot") return slotSteps(cut, fresh);
-  let appended = fresh;
-  if (stepRerankMode() === "pin1") {
-    const pinnedAnyway = new Set(
-      pinDerivedFigureInputs(cut, fused).map((chunk) => chunk.chunkId),
-    );
-    appended = fresh
-      .filter(({ chunk }) => !pinnedAnyway.has(chunk.chunkId))
-      .sort((a, b) => a.rank - b.rank || b.score - a.score)
-      .slice(0, 1);
-  }
+  const appended =
+    stepRerankMode() === "pin1"
+      ? [...fresh].sort((a, b) => b.score - a.score).slice(0, 1)
+      : fresh;
   for (const { chunk } of appended) {
     // A caller's picks may repeat a chunk; it still goes in once.
     if (taken.has(chunk.chunkId)) continue;
