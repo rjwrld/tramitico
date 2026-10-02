@@ -1,0 +1,219 @@
+$ vitest run --project eval -- --disableConsoleIntercept
+ Vitest  The "unit" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "integration" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "eval" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+
+ RUN  v5.0.2 <worktree>
+
+stderr | src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl)
+ask: expansion failed — reason=timeout error=DOMException.TimeoutError#23
+
+stdout | src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl)
+
+transcript (#289): <worktree>/eval/runs/2026-10-02-full-lane/low/groundedness-claude-sonnet-5-5-effort-low-20261002T184323Z.jsonl
+rerank readings lost: none of 377
+
+groundedness (answer=claude-sonnet-5-5-effort-low, judge=claude-sonnet-4-5): 68/73
+  pass  inscripcion-hacienda-clientes-extranjero
+  pass  iva-clientes-fuera-cr
+  pass  cabys-desarrollo-software
+  pass  ccss-cuanto-pago-base
+  pass  ccss-cobro-retroactivo
+  pass  ccss-pedir-prescripcion-cuotas
+  pass  ccss-ventana-prescripcion-24-meses
+  pass  ccss-obligacion-ingreso-bajo
+  pass  ccss-asalariado-y-freelance
+  pass  ccss-cese-actividad
+  pass  ccss-arreglo-pago
+  pass  ccss-suspension-seguro-ti
+  pass  factura-electronica-v44
+  pass  desinscripcion-dejar-actividad
+  pass  renta-persona-fisica-deduccion
+  FAIL [fail/fail/fail]  regimen-simplificado-programador  — The answer states that the regulation requires being inscribed 'en alguna de las actividades permitidas' for microenterprises under Law 8262, but fragment [1] says microenterprises must be 'inscritas en cualquiera de las actividades permitidas en el Régimen de Tributación Simplificada' while fragment [7] says microenterprises 'de cualquier actividad económica' may access the regime—the answer acknowledges this tension but then asserts a requirement ('deben estar inscritas en alguna de las actividades permitidas') not clearly supported by the interplay of those fragments.
+  pass  tribu-cr-declarar-pagar
+  FAIL [fail/pass/fail]  iva-servicios-extranjero-comprados  — The answer states that the user is the taxpayer when buying from a non-domiciled provider and that they must file monthly declarations by the 15th, but fragments [2] and [3] establish that in digital cross-border services the taxpayer is determined by Section II Chapter IX, which designates perception agents (card issuers, payment platforms) or the foreign provider if registered—not the local purchaser directly filing monthly declarations.
+  pass  iva-credito-fiscal-compras
+  pass  iva-declaracion-mensual
+  pass  iva-tarifa-general
+  pass  iva-tarifas-reducidas
+  pass  iva-momento-hecho-generador
+  pass  renta-bruta-que-incluye
+  pass  renta-tramos-2026
+  pass  renta-declaracion-plazo
+  pass  renta-pagos-parciales-retenciones
+  pass  renta-salario-y-actividad
+  pass  comprobantes-plazo-conservacion
+  FAIL [fail/fail/fail]  comprobantes-factura-vs-tiquete  — The answer states that sources do not say expressly that a factura must be issued when the client needs to support expenses or credits, but this is a factual claim about what the fragments contain that goes beyond what is supported.
+  pass  exportacion-servicios-comprobante
+  pass  iva-facturas-en-dolares
+  pass  ccss-asalariado-followup
+  pass  exportacion-comprobante-followup
+  pass  renta-plazo-followup
+  pass  iva-ajuste-bien-de-capital
+  pass  iva-retencion-tarjetas-porcentaje
+  FAIL [fail/pass/fail]  inscripcion-tribu-cr  — Fragment [6] discusses exceptional assistance for those in the digital divide but does not appear in the provided fragments; the answer cites it but the content shown is from the preamble discussing system deactivation, not citizen assistance.
+  pass  multa-iva-no-declarado
+  pass  inscripcion-tardia-sancion
+  pass  factura-primera-cabys
+  pass  ho-hacienda-solo-cliente-eeuu
+  pass  ho-trabajitos-por-mi-cuenta
+  pass  ho-donde-inscribo-ya-no-atv
+  pass  ho-desde-cuanta-plata-caja
+  pass  ho-donde-me-afilio-caja
+  pass  ho-tiquete-en-vez-de-factura
+  pass  ho-factura-electronica-o-recibo
+  pass  ho-cabys-paginas-web
+  pass  ho-cliente-espana-lleva-iva
+  pass  ho-iva-en-cero-sin-facturar
+  pass  ho-hasta-que-dia-tengo-iva
+  pass  ho-rebajar-25-sin-facturas
+  pass  ho-minimo-renta-2026
+  pass  ho-ademas-tengo-salario
+  pass  ho-minimo-caja-independiente-2026
+  FAIL [fail/fail/fail]  ho-800-mil-que-porcentaje-caja  — The answer states that the Estado como tal contributes 1.75% additional in IVM and cites [3], but fragment [3] says 'Adicionalmente, la contribución del Estado como tal es de 1.75% en el Seguro de IVM' as a note to the table, not as an additional amount on top of the 9.91% conjunta shown in the table; the answer creates confusion by treating it as separate when the fragments do not clarify this relationship, and the answer's own acknowledgment that 'las fuentes no explican cómo se concilia con el 11,66% global' indicates it is making an unsupported interpretive claim about how these figures relate.
+  pass  ho-tambien-asegurado-por-patrono
+  pass  ho-cobrar-8-anos-atras-caja
+  pass  ho-desinscribir-debiendo-declaraciones
+  pass  ho-rebajar-multa-si-pago-ya
+  pass  ho-t2-credito-iva-compras
+  pass  ho-t2-hosting-extranjero
+  pass  ho-t2-retencion-tarjetas
+  pass  ho-t2-compu-cara-iva
+  pass  ho-t2-tipo-de-cambio
+  pass  ho-t2-panaderia-simplificado
+  pass  ho-t2-arreglo-pago-caja
+  pass  ho-t2-salir-del-pais-seguro
+  pass  ho-t2-pensionado-con-actividad
+  pass  ho-t2-autorizar-contador
+  pass  ho-t2-constancia-al-dia
+  pass  ho-t2-payoneer
+groundedness by exposure (#267):
+  first-exposure  31/32
+  promoted        7/7
+  corpus-derived  30/34
+
+adequacy (#130): 16/40
+  FAIL  tier 1  T1-G  ccss-pedir-prescripcion-cuotas  — missing: Si la deuda está en verificación, la nota se presenta ante la unidad o sucursal financiera de la CCSS a cargo del procedimiento e incluye lugar y fecha, identificación del caso si existe, nombre e identificación, condición en que actúa, periodos solicitados, medio para notificaciones y firma.; Si la deuda ya está en cobro, la solicitud puede enviarse a cobros@ccss.sa.cr; si no tiene firma digital, debe firmarla en papel, escanearla, adjuntar la identificación por ambos lados y luego presentarse a firmar cuando la CCSS lo cite.; El canal correcto según la fase del caso — la unidad o sucursal financiera si está en verificación, cobros@ccss.sa.cr si ya está en cobro — y el plazo en que la Administración resuelve.
+  pass  tier 1  T1-G  ccss-ventana-prescripcion-24-meses
+  FAIL  tier 1  T1-B  ccss-obligacion-ingreso-bajo  — missing: La obligatoriedad está en la Ley Constitutiva de la CCSS y en el Reglamento para el aseguramiento de los trabajadores independientes, no en una decisión voluntaria de la persona.; Quien tiene muy escasa capacidad contributiva se ubica en la categoría 1 de la escala, que es exclusiva de trabajadores independientes y asegurados voluntarios.; Dónde se hace la afiliación y qué se declara: el ingreso de referencia, en la sucursal de la CCSS que corresponda a la zona de adscripción.; La cuota se calcula sobre un ingreso de referencia que no baja de la base mínima contributiva, fijada en 0,9295 salarios mínimos para el Seguro de Salud. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent)
+  pass  tier 1  T1-H  ccss-cese-actividad
+  FAIL  tier 1  T1-H  desinscripcion-dejar-actividad  — missing: Mientras la persona siga inscrita conserva sus obligaciones de declarar, y omitir una declaración se sanciona aunque no haya habido ingresos.; Los pasos en la OVi: dónde está la solicitud, qué campos son obligatorios y cuál es el efecto (estado «Desinscrito», con posibilidad de reinscribirse).
+  pass  tier 2  —  tribu-cr-declarar-pagar
+  FAIL  tier 1  T1-I  multa-iva-no-declarado  — missing: Cómo regularizar: presentar las declaraciones omitidas y pagar en TRIBU-CR, y que hacerlo antes de cualquier actuación de la Administración rebaja la sanción.
+  FAIL  tier 1  T1-I  inscripcion-tardia-sancion  — missing: Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.
+  FAIL  tier 1  T1-A  ho-hacienda-solo-cliente-eeuu  — missing: Toda persona física que inicie una actividad lucrativa debe inscribirse en el registro de contribuyentes al iniciarla, aunque todos sus clientes estén en el extranjero.; Facturar sólo a clientes del exterior no exime de inscribirse: aunque el servicio llegue a calificar como exportación exenta —lo que depende de que se consuma fuera de Costa Rica—, estar exento no es lo mismo que no ser contribuyente.; Omitir la declaración de inscripción se sanciona con el cincuenta por ciento (50 %) de un salario base por cada mes o fracción de atraso. (50 % | 50% | cincuenta por ciento: absent)
+  FAIL  tier 1  T1-A  ho-trabajitos-por-mi-cuenta  — missing: Sí: iniciar una actividad lucrativa por cuenta propia obliga a inscribirse ante la Administración Tributaria al momento de iniciarla, sin importar lo pequeña que sea.; La persona física con actividad lucrativa es contribuyente del impuesto sobre las utilidades y, si presta servicios gravados, también del IVA.; La inscripción ante Hacienda no sustituye el aseguramiento ante la CCSS como trabajador independiente: son dos obligaciones distintas.
+  FAIL  tier 1  T1-A  ho-donde-inscribo-ya-no-atv  — missing: El usuario de la Oficina Virtual es el número de identificación de la persona: cédula, DIMEX o NITE.; El camino dentro de la OVi hasta la declaración de inscripción y qué datos pide (actividad, fecha de inicio, domicilio).
+  FAIL  tier 1  T1-B  ho-desde-cuanta-plata-caja  — missing: Cómo se declara el ingreso de referencia y dónde se paga la cuota.
+  FAIL  tier 1  T1-B  ho-donde-me-afilio-caja  — missing: La cuota se paga mensualmente, dentro de la fecha que corresponde según la primera letra del primer apellido.
+  FAIL  tier 1  T1-C  ho-tiquete-en-vez-de-factura  — missing: Los únicos comprobantes autorizados para cumplir obligaciones tributarias son los que lista el artículo 9 del Reglamento de Comprobantes Electrónicos: factura electrónica, factura electrónica de compra, factura electrónica de exportación, tiquete electrónico, recibo electrónico de pago y las notas de crédito y débito.; El tiquete electrónico es uno de esos comprobantes autorizados, de modo que la pregunta no es si es válido sino cuál corresponde a la operación.; Quien emite comprobantes electrónicos debe estar inscrito en el Registro Único Tributario y tener registrado un correo electrónico válido ante la Administración Tributaria.
+  FAIL  tier 1  T1-C  ho-factura-electronica-o-recibo  — missing: Las excepciones a la obligación de emitir comprobantes electrónicos son las del artículo 8 y no alcanzan a una persona física que vende bienes o presta servicios gravados con IVA.; Con qué emitir: el facturador gratuito de Hacienda o un proveedor de sistemas de comprobantes electrónicos.; Los comprobantes electrónicos y sus documentos asociados deben almacenarse y conservarse por un plazo de cinco años. (cinco años | 5 años: absent)
+  FAIL  tier 1  T1-C  ho-cabys-paginas-web  — missing: El código que corresponde a los servicios de desarrollo y diseño de sitios web sale del catálogo CABYS, no de una elección libre del emisor.; Al emitir el comprobante, en cada línea de detalle se indica el código de producto, la descripción, la cantidad y el precio unitario.
+  FAIL  tier 1  T1-D  ho-cliente-espana-lleva-iva  — missing: La operación exenta se documenta igual, con el comprobante electrónico que corresponda.; El hecho generador ocurre al facturar o al prestar el servicio, el acto que se realice primero, no cuando el cliente paga.; La operación se documenta con factura electrónica de exportación.; Si el servicio se consume en Costa Rica, la tarifa general del impuesto es del 13 %. (13 % | 13% | trece por ciento: absent)
+  FAIL  tier 1  T1-D  ho-iva-en-cero-sin-facturar  — missing: Dónde se presenta la declaración hoy y qué pasa si ya venció el plazo.; Omitir la declaración dentro del plazo legal se sanciona con una multa del cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent)
+  pass  tier 1  T1-D  ho-hasta-que-dia-tengo-iva
+  FAIL  tier 1  T1-E  ho-rebajar-25-sin-facturas  — missing: La declaración anual se presenta en TRIBU-CR, la plataforma tributaria.
+  FAIL  tier 1  T1-E  ho-minimo-renta-2026  — missing: El período del impuesto va del 1 de enero al 31 de diciembre.; Los tramos se actualizan cada año por decreto ejecutivo; los de 2026 son del decreto N° 45333.
+  FAIL  tier 1  T1-E  ho-ademas-tengo-salario  — missing: El salario y la actividad lucrativa tributan por escalas distintas: el salario por la escala mensual de rentas del trabajo y la actividad por la escala anual de personas físicas con actividad lucrativa.; Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.; Qué se declara en la declaración anual cuando hay salario y actividad, y cómo se tratan las retenciones ya soportadas.; Los pagos parciales: cuándo se pagan y que puede pedirse su rebaja cuando la renta del período va a ser menor.; La declaración anual y el pago vencen dentro de los dos meses y quince días naturales siguientes al cierre del período. (dos meses y quince días | 2 meses y 15 días: absent)
+  pass  tier 1  T1-F  ho-minimo-caja-independiente-2026
+  pass  tier 1  T1-F  ho-800-mil-que-porcentaje-caja
+  FAIL  tier 1  T1-F  ho-tambien-asegurado-por-patrono  — missing: Qué hay que hacer ante la CCSS para quedar registrado en las dos condiciones.
+  FAIL  tier 1  T1-G  ho-cobrar-8-anos-atras-caja  — missing: Cómo se presenta la solicitud de prescripción y ante quién, según la fase en que esté el caso.
+  FAIL  tier 1  T1-H  ho-desinscribir-debiendo-declaraciones  — missing: Omitir una declaración dentro del plazo legal se sanciona con el cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent)
+  pass  tier 1  T1-I  ho-rebajar-multa-si-pago-ya
+  pass  tier 2  —  ho-t2-credito-iva-compras
+  pass  tier 2  —  ho-t2-hosting-extranjero
+  pass  tier 2  —  ho-t2-retencion-tarjetas
+  pass  tier 2  —  ho-t2-compu-cara-iva
+  pass  tier 2  —  ho-t2-tipo-de-cambio
+  pass  tier 2  —  ho-t2-panaderia-simplificado
+  pass  tier 2  —  ho-t2-arreglo-pago-caja
+  FAIL  tier 2  —  ho-t2-salir-del-pais-seguro  — missing: La suspensión del seguro de trabajador independiente se hace a solicitud de la persona y no ocurre de forma automática.
+  pass  tier 2  —  ho-t2-pensionado-con-actividad
+  pass  tier 2  —  ho-t2-autorizar-contador
+  FAIL  tier 2  —  ho-t2-constancia-al-dia  — missing: La situación tributaria se consulta en la OVi pública de TRIBU-CR, sin necesidad de usuario.
+  FAIL  tier 2  —  ho-t2-payoneer  — missing: El medio por el que se recibe el pago no cambia la regla: lo que decide es si la renta es de fuente costarricense y si la persona es contribuyente.
+tier 1 requirements stated (#287): 70/116
+adequacy by exposure (#267):
+  first-exposure  13/32
+  promoted        2/7
+  corpus-derived  1/1
+
+citation invariant (#168): 0 violation(s)
+
+ ❯ |eval| src/lib/eval/groundedness.eval.test.ts (7 tests | 4 failed) 1387493ms
+   ❯ groundedness (eval/dataset.jsonl) (7)
+     × states at least 80 tier 1 requirements 5ms
+     × at least 84% of tier 2 cases with required claims are adequate 0ms
+     × every blocking case's answer is supported by its retrieved chunks 2ms
+     × at least 94% of answers are supported by their retrieved chunks 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > states at least 80 tier 1 requirements
+AssertionError: tier 1 requirements stated 70/116; inadequate tier 1 answers: ccss-pedir-prescripcion-cuotas (Si la deuda está en verificación, la nota se presenta ante la unidad o sucursal financiera de la CCSS a cargo del procedimiento e incluye lugar y fecha, identificación del caso si existe, nombre e identificación, condición en que actúa, periodos solicitados, medio para notificaciones y firma.; Si la deuda ya está en cobro, la solicitud puede enviarse a cobros@ccss.sa.cr; si no tiene firma digital, debe firmarla en papel, escanearla, adjuntar la identificación por ambos lados y luego presentarse a firmar cuando la CCSS lo cite.; El canal correcto según la fase del caso — la unidad o sucursal financiera si está en verificación, cobros@ccss.sa.cr si ya está en cobro — y el plazo en que la Administración resuelve.); ccss-obligacion-ingreso-bajo (La obligatoriedad está en la Ley Constitutiva de la CCSS y en el Reglamento para el aseguramiento de los trabajadores independientes, no en una decisión voluntaria de la persona.; Quien tiene muy escasa capacidad contributiva se ubica en la categoría 1 de la escala, que es exclusiva de trabajadores independientes y asegurados voluntarios.; Dónde se hace la afiliación y qué se declara: el ingreso de referencia, en la sucursal de la CCSS que corresponda a la zona de adscripción.; La cuota se calcula sobre un ingreso de referencia que no baja de la base mínima contributiva, fijada en 0,9295 salarios mínimos para el Seguro de Salud. (0,9295 SM | 0,9295 salarios mínimos | 0.9295 SM: absent)); desinscripcion-dejar-actividad (Mientras la persona siga inscrita conserva sus obligaciones de declarar, y omitir una declaración se sanciona aunque no haya habido ingresos.; Los pasos en la OVi: dónde está la solicitud, qué campos son obligatorios y cuál es el efecto (estado «Desinscrito», con posibilidad de reinscribirse).); multa-iva-no-declarado (Cómo regularizar: presentar las declaraciones omitidas y pagar en TRIBU-CR, y que hacerlo antes de cualquier actuación de la Administración rebaja la sanción.); inscripcion-tardia-sancion (Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.); ho-hacienda-solo-cliente-eeuu (Toda persona física que inicie una actividad lucrativa debe inscribirse en el registro de contribuyentes al iniciarla, aunque todos sus clientes estén en el extranjero.; Facturar sólo a clientes del exterior no exime de inscribirse: aunque el servicio llegue a calificar como exportación exenta —lo que depende de que se consuma fuera de Costa Rica—, estar exento no es lo mismo que no ser contribuyente.; Omitir la declaración de inscripción se sanciona con el cincuenta por ciento (50 %) de un salario base por cada mes o fracción de atraso. (50 % | 50% | cincuenta por ciento: absent)); ho-trabajitos-por-mi-cuenta (Sí: iniciar una actividad lucrativa por cuenta propia obliga a inscribirse ante la Administración Tributaria al momento de iniciarla, sin importar lo pequeña que sea.; La persona física con actividad lucrativa es contribuyente del impuesto sobre las utilidades y, si presta servicios gravados, también del IVA.; La inscripción ante Hacienda no sustituye el aseguramiento ante la CCSS como trabajador independiente: son dos obligaciones distintas.); ho-donde-inscribo-ya-no-atv (El usuario de la Oficina Virtual es el número de identificación de la persona: cédula, DIMEX o NITE.; El camino dentro de la OVi hasta la declaración de inscripción y qué datos pide (actividad, fecha de inicio, domicilio).); ho-desde-cuanta-plata-caja (Cómo se declara el ingreso de referencia y dónde se paga la cuota.); ho-donde-me-afilio-caja (La cuota se paga mensualmente, dentro de la fecha que corresponde según la primera letra del primer apellido.); ho-tiquete-en-vez-de-factura (Los únicos comprobantes autorizados para cumplir obligaciones tributarias son los que lista el artículo 9 del Reglamento de Comprobantes Electrónicos: factura electrónica, factura electrónica de compra, factura electrónica de exportación, tiquete electrónico, recibo electrónico de pago y las notas de crédito y débito.; El tiquete electrónico es uno de esos comprobantes autorizados, de modo que la pregunta no es si es válido sino cuál corresponde a la operación.; Quien emite comprobantes electrónicos debe estar inscrito en el Registro Único Tributario y tener registrado un correo electrónico válido ante la Administración Tributaria.); ho-factura-electronica-o-recibo (Las excepciones a la obligación de emitir comprobantes electrónicos son las del artículo 8 y no alcanzan a una persona física que vende bienes o presta servicios gravados con IVA.; Con qué emitir: el facturador gratuito de Hacienda o un proveedor de sistemas de comprobantes electrónicos.; Los comprobantes electrónicos y sus documentos asociados deben almacenarse y conservarse por un plazo de cinco años. (cinco años | 5 años: absent)); ho-cabys-paginas-web (El código que corresponde a los servicios de desarrollo y diseño de sitios web sale del catálogo CABYS, no de una elección libre del emisor.; Al emitir el comprobante, en cada línea de detalle se indica el código de producto, la descripción, la cantidad y el precio unitario.); ho-cliente-espana-lleva-iva (La operación exenta se documenta igual, con el comprobante electrónico que corresponda.; El hecho generador ocurre al facturar o al prestar el servicio, el acto que se realice primero, no cuando el cliente paga.; La operación se documenta con factura electrónica de exportación.; Si el servicio se consume en Costa Rica, la tarifa general del impuesto es del 13 %. (13 % | 13% | trece por ciento: absent)); ho-iva-en-cero-sin-facturar (Dónde se presenta la declaración hoy y qué pasa si ya venció el plazo.; Omitir la declaración dentro del plazo legal se sanciona con una multa del cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent)); ho-rebajar-25-sin-facturas (La declaración anual se presenta en TRIBU-CR, la plataforma tributaria.); ho-minimo-renta-2026 (El período del impuesto va del 1 de enero al 31 de diciembre.; Los tramos se actualizan cada año por decreto ejecutivo; los de 2026 son del decreto N° 45333.); ho-ademas-tengo-salario (El salario y la actividad lucrativa tributan por escalas distintas: el salario por la escala mensual de rentas del trabajo y la actividad por la escala anual de personas físicas con actividad lucrativa.; Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.; Qué se declara en la declaración anual cuando hay salario y actividad, y cómo se tratan las retenciones ya soportadas.; Los pagos parciales: cuándo se pagan y que puede pedirse su rebaja cuando la renta del período va a ser menor.; La declaración anual y el pago vencen dentro de los dos meses y quince días naturales siguientes al cierre del período. (dos meses y quince días | 2 meses y 15 días: absent)); ho-tambien-asegurado-por-patrono (Qué hay que hacer ante la CCSS para quedar registrado en las dos condiciones.); ho-cobrar-8-anos-atras-caja (Cómo se presenta la solicitud de prescripción y ante quién, según la fase en que esté el caso.); ho-desinscribir-debiendo-declaraciones (Omitir una declaración dentro del plazo legal se sanciona con el cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent)): expected 70 to be greater than or equal to 80
+ ❯ src/lib/eval/groundedness.eval.test.ts:465:7
+    463|       stated,
+    464|       `tier 1 requirements stated ${stated}/${total}; inadequate tier …
+    465|     ).toBeGreaterThanOrEqual(TIER1_REQUIREMENT_FLOOR);
+       |       ^
+    466|   });
+    467|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > at least 84% of tier 2 cases with required claims are adequate
+AssertionError: inadequate tier 2 answers: ho-t2-salir-del-pais-seguro (La suspensión del seguro de trabajador independiente se hace a solicitud de la persona y no ocurre de forma automática.); ho-t2-constancia-al-dia (La situación tributaria se consulta en la OVi pública de TRIBU-CR, sin necesidad de usuario.); ho-t2-payoneer (El medio por el que se recibe el pago no cambia la regla: lo que decide es si la renta es de fuente costarricense y si la persona es contribuyente.): expected 0.7692307692307693 to be greater than or equal to 0.84
+ ❯ src/lib/eval/groundedness.eval.test.ts:481:7
+    479|       rate,
+    480|       `inadequate tier 2 answers: ${failed.join("; ")}`,
+    481|     ).toBeGreaterThanOrEqual(ADEQUACY_TIER2_GATE);
+       |       ^
+    482|   });
+    483|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > every blocking case's answer is supported by its retrieved chunks
+AssertionError: ungrounded blocking answers: ho-800-mil-que-porcentaje-caja (The answer states that the Estado como tal contributes 1.75% additional in IVM and cites [3], but fragment [3] says 'Adicionalmente, la contribución del Estado como tal es de 1.75% en el Seguro de IVM' as a note to the table, not as an additional amount on top of the 9.91% conjunta shown in the table; the answer creates confusion by treating it as separate when the fragments do not clarify this relationship, and the answer's own acknowledgment that 'las fuentes no explican cómo se concilia con el 11,66% global' indicates it is making an unsupported interpretive claim about how these figures relate.): expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "ho-800-mil-que-porcentaje-caja (The answer states that the Estado como tal contributes 1.75% additional in IVM and cites [3], but fragment [3] says 'Adicionalmente, la contribución del Estado como tal es de 1.75% en el Seguro de IVM' as a note to the table, not as an additional amount on top of the 9.91% conjunta shown in the table; the answer creates confusion by treating it as separate when the fragments do not clarify this relationship, and the answer's own acknowledgment that 'las fuentes no explican cómo se concilia con el 11,66% global' indicates it is making an unsupported interpretive claim about how these figures relate.)",
++ ]
+
+ ❯ src/lib/eval/groundedness.eval.test.ts:504:73
+    502|     // passed it with two Tier 1 held-out cases failing unanimously.
+    503|     const failed = blockingGroundednessFailures(results);
+    504|     expect(failed, `ungrounded blocking answers: ${failed.join("; ")}`…
+       |                                                                         ^
+    505|       [],
+    506|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > at least 94% of answers are supported by their retrieved chunks
+AssertionError: ungrounded answers: regimen-simplificado-programador (The answer states that the regulation requires being inscribed 'en alguna de las actividades permitidas' for microenterprises under Law 8262, but fragment [1] says microenterprises must be 'inscritas en cualquiera de las actividades permitidas en el Régimen de Tributación Simplificada' while fragment [7] says microenterprises 'de cualquier actividad económica' may access the regime—the answer acknowledges this tension but then asserts a requirement ('deben estar inscritas en alguna de las actividades permitidas') not clearly supported by the interplay of those fragments.); iva-servicios-extranjero-comprados (The answer states that the user is the taxpayer when buying from a non-domiciled provider and that they must file monthly declarations by the 15th, but fragments [2] and [3] establish that in digital cross-border services the taxpayer is determined by Section II Chapter IX, which designates perception agents (card issuers, payment platforms) or the foreign provider if registered—not the local purchaser directly filing monthly declarations.); comprobantes-factura-vs-tiquete (The answer states that sources do not say expressly that a factura must be issued when the client needs to support expenses or credits, but this is a factual claim about what the fragments contain that goes beyond what is supported.); inscripcion-tribu-cr (Fragment [6] discusses exceptional assistance for those in the digital divide but does not appear in the provided fragments; the answer cites it but the content shown is from the preamble discussing system deactivation, not citizen assistance.); ho-800-mil-que-porcentaje-caja (The answer states that the Estado como tal contributes 1.75% additional in IVM and cites [3], but fragment [3] says 'Adicionalmente, la contribución del Estado como tal es de 1.75% en el Seguro de IVM' as a note to the table, not as an additional amount on top of the 9.91% conjunta shown in the table; the answer creates confusion by treating it as separate when the fragments do not clarify this relationship, and the answer's own acknowledgment that 'las fuentes no explican cómo se concilia con el 11,66% global' indicates it is making an unsupported interpretive claim about how these figures relate.): expected 0.9315068493150684 to be greater than or equal to 0.94
+ ❯ src/lib/eval/groundedness.eval.test.ts:518:7
+    516|       passes / results.length,
+    517|       `ungrounded answers: ${failed.join("; ")}`,
+    518|     ).toBeGreaterThanOrEqual(GROUNDEDNESS_GATE);
+       |       ^
+    519|   });
+    520|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed | 7 passed (8)
+      Tests  4 failed | 31 passed | 1 skipped (36)
+   Start at  12:20:15
+   Duration  1387.96s (tests 100%)
+
+[ELIFECYCLE] Command failed with exit code 1.
