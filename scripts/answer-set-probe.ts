@@ -31,11 +31,16 @@
  * cached per query" arm, which leaves Voyage as the only provider still live.
  * `EXPAND=off` is the "no expansion" arm, as everywhere else.
  *
+ * A replayed run asks no small model, so cases arrive fast enough for Voyage
+ * to reject rerank readings with 429 (#457: 54 cases/min). `PROBE_CASE_MS`
+ * makes each case take at least that long, so a frozen run can be paced
+ * like a live one (≈21 cases/min, `PROBE_CASE_MS=3000`) (#460).
+ *
  * Cents: embeddings, expansions, condensations and a Voyage call per rerank
  * reading. A diagnostic, not a gate. Usage (reads `.env.local` like
  * `ingest.ts`):
  *
- *   [EVAL_REWRITES=<earlier.json>] pnpm answer-set-probe [out.json]
+ *   [EVAL_REWRITES=<earlier.json>] [PROBE_CASE_MS=<ms>] pnpm answer-set-probe [out.json]
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -313,12 +318,19 @@ async function main(): Promise<void> {
   const rewrites = rewritesFromEnv();
   const calls = countingCalls(createEmbedder());
   const reads: CaseRead[] = [];
+  const caseMs = Number(process.env.PROBE_CASE_MS) || 0;
+  const paced = async (read: () => Promise<CaseRead>) => {
+    const started = Date.now();
+    reads.push(await read());
+    const rest = caseMs - (Date.now() - started);
+    if (rest > 0) await new Promise((done) => setTimeout(done, rest));
+  };
   for (const c of retrievals) {
-    reads.push(await readCase(c, "retrieval", calls, rewrites));
+    await paced(() => readCase(c, "retrieval", calls, rewrites));
     process.stdout.write(".");
   }
   for (const c of abs) {
-    reads.push(await readCase(c, "abstention", calls, rewrites));
+    await paced(() => readCase(c, "abstention", calls, rewrites));
     process.stdout.write("a");
   }
   console.log();
