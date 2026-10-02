@@ -1,0 +1,26 @@
+Already up to date
+Done in 232ms using pnpm v11.5.2
+$ tsx scripts/answer-set-probe.ts <worktree>/eval/runs/2026-10-02-460/probe-baseline.json
+...........................ask: expansion failed — reason=timeout error=DOMException.TimeoutError#23
+..............................................aaaaaaaaa
+retrieval cases: 73 (191 expected targets), abstention: 9, follow-ups condensed: 12
+condensation fell back to the question: none
+rewrites: live
+provider calls that did not come back: renta-salario-y-actividad(expand×1)
+rerank readings lost: none of 406
+weak: none
+expansion absent: renta-salario-y-actividad
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   130/191    38/73        3        —
+top8/capoff/pinon    135/191    41/73        18       —
+top8/cap3/pinoff     126/191    37/73        3        —
+top8/cap3/pinon      132/191    41/73        20       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top8/cap2/pinoff     122/191    34/73        3        —
+top8/cap2/pinon      128/191    39/73        20       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/capoff/pinoff  140/191    42/73        5        —
+top10/capoff/pinon   145/191    45/73        18       —
+top10/cap3/pinoff    133/191    39/73        6        —
+top10/cap3/pinon     138/191    43/73        20       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/cap2/pinoff    133/191    38/73        5        —
+top10/cap2/pinon     138/191    42/73        20       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)

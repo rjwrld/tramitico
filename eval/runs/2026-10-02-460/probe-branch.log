@@ -1,0 +1,25 @@
+$ tsx scripts/answer-set-probe.ts <worktree>/eval/runs/2026-10-02-460/probe-branch.json
+
+EVAL_REWRITES: 82 cases' query and expansion replayed from <worktree>/eval/runs/2026-10-02-460/probe-baseline.json
+.........................................................................aaaaaaaaa
+retrieval cases: 73 (191 expected targets), abstention: 9, follow-ups condensed: 12
+condensation fell back to the question: none
+rewrites: replayed from <worktree>/eval/runs/2026-10-02-460/probe-baseline.json
+provider calls that did not come back: none
+rerank readings lost: none of 406
+weak: none
+expansion absent: renta-salario-y-actividad
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   134/191    40/73        5        —
+top8/capoff/pinon    139/191    43/73        18       —
+top8/cap3/pinoff     128/191    37/73        5        —
+top8/cap3/pinon      134/191    41/73        20       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top8/cap2/pinoff     124/191    34/73        5        —
+top8/cap2/pinon      130/191    38/73        19       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/capoff/pinoff  141/191    43/73        5        —
+top10/capoff/pinon   146/191    46/73        18       —
+top10/cap3/pinoff    135/191    39/73        5        —
+top10/cap3/pinon     140/191    43/73        20       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/cap2/pinoff    133/191    37/73        7        —
+top10/cap2/pinon     138/191    40/73        19       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)

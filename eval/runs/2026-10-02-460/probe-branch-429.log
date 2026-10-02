@@ -1,0 +1,25 @@
+$ tsx scripts/answer-set-probe.ts <worktree>/eval/runs/2026-10-02-460/probe-branch.json
+
+EVAL_REWRITES: 82 cases' query and expansion replayed from <worktree>/eval/runs/2026-10-02-460/probe-baseline.json
+.........................................................................aaaaaaaaa
+retrieval cases: 73 (191 expected targets), abstention: 9, follow-ups condensed: 12
+condensation fell back to the question: none
+rewrites: replayed from <worktree>/eval/runs/2026-10-02-460/probe-baseline.json
+provider calls that did not come back: ho-desde-cuanta-plata-caja(rerank×1) ho-donde-me-afilio-caja(rerank×2) ho-tiquete-en-vez-de-factura(rerank×4) ho-factura-electronica-o-recibo(rerank×4) ho-cabys-paginas-web(rerank×4) ho-cliente-espana-lleva-iva(rerank×4) ho-iva-en-cero-sin-facturar(rerank×2) ho-hasta-que-dia-tengo-iva(rerank×3) ho-rebajar-25-sin-facturas(rerank×5) ho-minimo-renta-2026(rerank×4) ho-ademas-tengo-salario(rerank×4) ho-minimo-caja-independiente-2026(rerank×3) ho-800-mil-que-porcentaje-caja(rerank×4) ho-tambien-asegurado-por-patrono(rerank×3) ho-cobrar-8-anos-atras-caja(rerank×2) ho-desinscribir-debiendo-declaraciones(rerank×2) ho-rebajar-multa-si-pago-ya(rerank×4) ho-t2-credito-iva-compras(rerank×4) ho-t2-hosting-extranjero(rerank×3) ho-t2-compu-cara-iva(rerank×4) ho-abs-iva-2027(rerank×3) ho-abs-devs-exentos-renta(rerank×4) ho-abs-calculo-personalizado(rerank×4)
+rerank readings lost: 77 of 406, on 23 case(s) — ho-desde-cuanta-plata-caja(step:429) ho-donde-me-afilio-caja(step:429,step:429) ho-tiquete-en-vez-de-factura(expansion:429,step:429,step:429,step:429) ho-factura-electronica-o-recibo(step:429,step:429,step:429,step:429) ho-cabys-paginas-web(step:429,step:429,step:429,step:429) ho-cliente-espana-lleva-iva(expansion:429,step:429,step:429,step:429) ho-iva-en-cero-sin-facturar(step:429,step:429) ho-hasta-que-dia-tengo-iva(question:429,step:429,step:429) ho-rebajar-25-sin-facturas(question:429,step:429,step:429,step:429,step:429) ho-minimo-renta-2026(step:429,step:429,step:429,step:429) ho-ademas-tengo-salario(question:429,step:429,step:429,step:429) ho-minimo-caja-independiente-2026(question:429,step:429,step:429) ho-800-mil-que-porcentaje-caja(step:429,step:429,step:429,step:429) ho-tambien-asegurado-por-patrono(step:429,step:429,step:429) ho-cobrar-8-anos-atras-caja(step:429,step:429) ho-desinscribir-debiendo-declaraciones(step:429,step:429) ho-rebajar-multa-si-pago-ya(question:429,step:429,step:429,step:429) ho-t2-credito-iva-compras(question:429,expansion:429,step:429,step:429) ho-t2-hosting-extranjero(question:429,step:429,step:429) ho-t2-compu-cara-iva(question:429,step:429,step:429,step:429) ho-abs-iva-2027(step:429,step:429,step:429) ho-abs-devs-exentos-renta(question:429,step:429,step:429,step:429) ho-abs-calculo-personalizado(expansion:429,step:429,step:429,step:429)
+weak: none
+expansion absent: renta-salario-y-actividad
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   130/191    38/73        3        —
+top8/capoff/pinon    135/191    42/73        17       —
+top8/cap3/pinoff     124/191    35/73        3        —
+top8/cap3/pinon      130/191    40/73        19       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top8/cap2/pinoff     120/191    33/73        3        —
+top8/cap2/pinon      126/191    38/73        19       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/capoff/pinoff  137/191    41/73        3        —
+top10/capoff/pinon   142/191    45/73        17       —
+top10/cap3/pinoff    130/191    37/73        3        —
+top10/cap3/pinon     136/191    42/73        19       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/cap2/pinoff    129/191    36/73        5        —
+top10/cap2/pinon     134/191    40/73        19       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
