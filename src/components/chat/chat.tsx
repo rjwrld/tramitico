@@ -35,6 +35,8 @@ import {
   ACERCA_SOURCES_ANCHOR,
 } from "@/components/chat/privacy-note";
 import { SeedPrompts } from "@/components/chat/seed-prompts";
+import { Sello } from "@/components/sello";
+import type { Citation } from "@/lib/citations";
 import { SCOPE_PHRASE } from "@/lib/routing";
 import { useHistoryRefresh } from "@/components/history/history-refresh";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
@@ -93,6 +95,7 @@ interface AskFailure {
 
 export function Chat({
   corpusCaption,
+  corpusSample = [],
 }: {
   /**
    * The record line under the empty state's headline (`corpusCaption` in
@@ -101,6 +104,11 @@ export function Chat({
    * headline stands alone.
    */
   corpusCaption?: string;
+  /**
+   * A few of those documents as stamps, set over the record line (#478) —
+   * `corpusSample()` in the same module, passed down for the same reason.
+   */
+  corpusSample?: Citation[];
 } = {}) {
   const [failure, setFailure] = React.useState<AskFailure | null>(null);
   const [completion, setCompletion] = React.useState<Completion | null>(null);
@@ -225,6 +233,25 @@ export function Chat({
                   sello's caption voice (DESIGN §3, §5) — tabular so the
                   count sits like a figure in a ledger. A caption under the
                   heading, never an eyebrow above it. */}
+              {/* The record, shown before it is described (#478): the
+                  sello is the signature (DESIGN §5), and without this a
+                  first-time visitor never saw one before asking. Still
+                  stamps, not settling ones — a row stamping on page load is
+                  a staggered entrance (§8) — and not links: the record line
+                  under them is the way into the full list. */}
+              {corpusSample.length > 0 && (
+                <ul
+                  aria-label="Algunas fuentes"
+                  data-slot="corpus-sample"
+                  className="mt-1 flex list-none flex-wrap justify-center gap-2 p-0"
+                >
+                  {corpusSample.map((source) => (
+                    <li key={source.docKey}>
+                      <Sello citation={source} settle={false} />
+                    </li>
+                  ))}
+                </ul>
+              )}
               {corpusCaption && (
                 <p
                   data-slot="corpus-caption"

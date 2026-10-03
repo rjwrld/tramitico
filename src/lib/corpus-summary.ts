@@ -9,6 +9,8 @@
  */
 import manifest from "../../corpus/manifest.json";
 
+import type { Citation } from "./citations";
+
 /** How many official documents the corpus is ingested from. */
 export const CORPUS_DOCUMENT_COUNT: number = manifest.documents.length;
 
@@ -17,4 +19,39 @@ export function corpusCaption(documentCount: number): string {
   const noun =
     documentCount === 1 ? "documento oficial" : "documentos oficiales";
   return `${documentCount} ${noun} · cada respuesta cita el artículo`;
+}
+
+/**
+ * The documents the empty state stamps over its record line (#478): one per
+ * area a first question usually lands in — IVA, renta, the CCSS and
+ * comprobantes. A sample, not a ranking; the caption under it carries the
+ * full count and links to the whole list. Every key must be in the manifest
+ * (`corpus-summary.test.ts`), so a retired document cannot linger here.
+ */
+export const CORPUS_SAMPLE_DOC_KEYS = [
+  "ley-iva",
+  "ley-renta",
+  "ccss-reglamento-ti",
+  "reglamento-comprobantes",
+] as const;
+
+/**
+ * The sample as stamps: whole documents, so no artículo, and no link — the
+ * stamps illustrate the record line, whose own link goes to the full list.
+ */
+export function corpusSample(): Citation[] {
+  return CORPUS_SAMPLE_DOC_KEYS.flatMap((key) => {
+    const doc = manifest.documents.find((d) => d.doc_key === key);
+    return doc
+      ? [
+          {
+            docKey: doc.doc_key,
+            docTitle: doc.title,
+            norma: doc.norma ?? null,
+            articulo: null,
+            url: null,
+          },
+        ]
+      : [];
+  });
 }

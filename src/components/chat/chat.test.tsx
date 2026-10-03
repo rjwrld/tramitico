@@ -343,6 +343,49 @@ describe("Chat scope and non-promise (#264)", () => {
   });
 });
 
+describe("Chat corpus sample (#478)", () => {
+  const sample: Citation[] = [
+    {
+      docKey: "ley-iva",
+      docTitle: "Ley del Impuesto sobre el Valor Agregado",
+      norma: "Ley 6826",
+      articulo: null,
+      url: null,
+    },
+    {
+      docKey: "ccss-reglamento-ti",
+      docTitle: "Reglamento TI",
+      norma: null,
+      articulo: null,
+      url: null,
+    },
+  ];
+
+  it("stamps the sample over the record line, as still, unlinked sellos", () => {
+    render(
+      <Chat corpusCaption="23 documentos oficiales" corpusSample={sample} />,
+    );
+
+    const row = screen.getByRole("list", { name: "Algunas fuentes" });
+    const stamps = row.querySelectorAll('[data-slot="sello"]');
+    expect([...stamps].map((s) => s.textContent)).toEqual([
+      "Ley IVA",
+      "CCSS Reglamento TI",
+    ]);
+    expect(row.querySelector("a")).toBeNull();
+    expect(row.querySelector(".animate-stamp-settle")).toBeNull();
+    const caption = document.querySelector('[data-slot="corpus-caption"]')!;
+    expect(
+      row.compareDocumentPosition(caption) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("renders no sample row when none is passed", () => {
+    render(<Chat />);
+    expect(screen.queryByRole("list", { name: "Algunas fuentes" })).toBeNull();
+  });
+});
+
 describe("Chat message scroller registration (#79)", () => {
   it("registers every message with the scroller under a unique id", () => {
     chat.messages = conversation;

@@ -3,9 +3,13 @@
 /**
  * The Tier 1 seed prompts (SPEC Appendix A) as one-click seeded prompts —
  * one per family of the validated taxonomy (#254 Part B §B3, T1-A…T1-I),
- * rewritten in the vocabulary the demand research recorded (#264). Pill
- * chips — full radius is sanctioned here (DESIGN §6): they are actions, not
- * documents.
+ * rewritten in the vocabulary the demand research recorded (#264).
+ *
+ * Rows, not pills (#478): nine centered pills of uneven width read as a tag
+ * cloud, and the long ones wrapped into two-line capsules. A left-aligned
+ * list between hairlines reads as an index of questions — each row one
+ * click target, a long question wrapping like the text it is, the arrow
+ * saying "ask this" without a card or an icon-and-heading tile (DESIGN §10).
  *
  * On a phone the nine chips stack full-width and run past the composer and
  * the fold. Below `md` only the first `VISIBLE_ON_PHONE` show; "Ver N
@@ -15,6 +19,7 @@
  * JS.
  */
 import * as React from "react";
+import { ArrowRightIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -70,7 +75,7 @@ export function SeedPrompts({
       <ul
         id={listId}
         aria-label="Preguntas frecuentes"
-        className="flex list-none flex-wrap justify-center gap-2 p-0"
+        className="w-full list-none divide-y divide-border border-y border-border p-0"
       >
         {SEED_PROMPTS.map((question, index) => (
           <li
@@ -83,9 +88,13 @@ export function SeedPrompts({
               type="button"
               disabled={disabled}
               onClick={() => onSelect(question)}
-              className="rounded-full border border-border bg-secondary px-3 py-1.5 text-left text-sm text-secondary-foreground transition-colors duration-150 hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50"
+              className="group/seed flex w-full items-center gap-3 px-2 py-3 text-left text-sm text-foreground transition-colors duration-150 hover:bg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50"
             >
-              {question}
+              <span className="flex-1 text-pretty">{question}</span>
+              <ArrowRightIcon
+                aria-hidden
+                className="size-4 shrink-0 text-muted-foreground transition-transform duration-150 ease-out-quart group-hover/seed:translate-x-0.5 group-hover/seed:text-foreground motion-reduce:transition-none"
+              />
             </button>
           </li>
         ))}

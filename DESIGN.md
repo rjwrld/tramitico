@@ -193,12 +193,14 @@ leads nowhere.
   sentence.
 - **User message**: filled `--foreground` on light (paper inverts to ink), `--secondary` on dark;
   radius 0.25rem. Square-cornered restraint, no bubbles-with-tails.
-- **Seeded prompts**: bordered chips (`--border`, ground `--secondary`), full radius allowed here
-  (pill) — they are actions, not documents.
+- **Seeded prompts**: a left-aligned list of full-width rows between hairlines (`--border`), each
+  row one click target with a muted trailing arrow that nudges on hover (#478). Pills read as a
+  tag cloud at nine questions; rows read as an index, and a long question wraps like text.
 - **Buttons**: default variant = outline (hairline + ink text). Exactly one filled primary per
   view ("Enviar"). Destructive per red-discipline rule.
-- **Empty state**: serif headline ("¿Qué trámite le quita el sueño?"), seeded prompts below —
-  invitation, not apology.
+- **Empty state**: serif headline ("¿Qué trámite le quita el sueño?"), a still row of sample
+  sellos over the corpus record line (#478 — the signature is on screen before the first ask),
+  the scope lines, seeded prompts below — invitation, not apology.
 - **Hover-revealed controls** (the history row's delete): hover is a desktop affordance, and
   Tailwind's `hover:` never fires where `@media (hover: hover)` is false. Every such control
   also carries `no-hover:` (the `(hover: none)` variant in `globals.css`) and
