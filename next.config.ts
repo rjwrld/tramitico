@@ -31,11 +31,18 @@ function supabaseOrigin(): string | null {
  * new origin the browser dials (analytics, error reporting) goes into
  * `connect-src` in the same change that adds it.
  */
-function contentSecurityPolicy(): string {
+export function contentSecurityPolicy(
+  nodeEnv: string | undefined = process.env.NODE_ENV,
+): string {
   const supabase = supabaseOrigin();
+  // `next dev` alone: React rebuilds server callstacks with `eval()` in
+  // development, and without it every page logs an error and the dev overlay
+  // counts an issue that isn't ours. React never evals in production, and
+  // production keeps the policy byte for byte (#478).
+  const devEval = nodeEnv === "development" ? " 'unsafe-eval'" : "";
   return [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",
+    `script-src 'self' 'unsafe-inline'${devEval}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data:",
     "font-src 'self'",
