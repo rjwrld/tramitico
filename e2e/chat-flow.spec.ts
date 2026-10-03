@@ -30,7 +30,7 @@ test.describe("ask flow (stubbed stream)", () => {
     await input.fill("¿Cuánto es el IVA?");
     await page.getByRole("button", { name: "Enviar" }).click();
 
-    // The question echoes as a user bubble and the box clears for the next one.
+    // The question echoes as the exchange's heading and the box clears for the next one.
     await expect(page.getByText("¿Cuánto es el IVA?")).toBeVisible();
     await expect(input).toHaveValue("");
 

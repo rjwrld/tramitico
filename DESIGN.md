@@ -128,11 +128,11 @@ on white and 3.74:1 / 3.38:1 on the dark page and popover.
 
 Three voices, paired on a contrast axis:
 
-| Role                       | Face                                 | Usage                                                                                                                 |
-| -------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
-| **La ley** (display/brand) | **Source Serif 4** (weights 500–600) | Wordmark, page titles, empty-state headlines. The bookish authority of legal text. Never for UI controls.             |
-| **La interfaz** (body/UI)  | **Geist Sans** (400/500)             | Everything interactive and all answer prose. Two weights only.                                                        |
-| **El expediente** (data)   | **Geist Mono** (400/500)             | Citations, artículo references, dates, amounts, metadata. `font-variant-numeric: tabular-nums` wherever digits align. |
+| Role                       | Face                                 | Usage                                                                                                                                       |
+| -------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **La ley** (display/brand) | **Source Serif 4** (weights 500–600) | Wordmark, page titles, empty-state headlines, each question in a thread (#478). The bookish authority of legal text. Never for UI controls. |
+| **La interfaz** (body/UI)  | **Geist Sans** (400/500)             | Everything interactive and all answer prose. Two weights only.                                                                              |
+| **El expediente** (data)   | **Geist Mono** (400/500)             | Citations, artículo references, dates, amounts, metadata. `font-variant-numeric: tabular-nums` wherever digits align.                       |
 
 Scale (rem): 0.6875 (11px, sello/meta) · 0.75 · 0.875 (UI default) · 1 (answer prose) · 1.125 (answer lead-in) · 1.25 ·
 1.5 · 2 (page title, serif). Answer prose: `line-height 1.7`, measure capped at 68ch. Headings get
@@ -158,6 +158,10 @@ The most crafted object in the product. Anatomy:
 - Radius 3px. Padding 5px 9px.
 - Interaction: hover raises border to full `--sello` and underlines nothing (the chip IS the
   link); click opens the official source at the cited artículo. Focus-visible: `--ring` outline.
+- Preview (#478): hover (after 400ms) or keyboard focus opens a small popover card with the
+  document's full title, norma · artículo and the official host (mono, muted). It adds
+  information, never a second click target; touch has no hover, so a tap still just opens the
+  source. Off where the page already prints the title beside the stamp (`/acerca`).
 - Entrance: the _stamp settle_ — `scale(1.06) → 1` with opacity 0→1, 180ms ease-out-quart, as each
   citation streams in. Under `prefers-reduced-motion`: instant appearance, no transform.
 
@@ -191,14 +195,18 @@ leads nowhere.
   the numbered sources with their official URLs, and the disclaimer. A section title in an
   answer (a bold-only line) is a lead-in one step up the scale (1.125rem, 500), not a bold
   sentence.
-- **User message**: filled `--foreground` on light (paper inverts to ink), `--secondary` on dark;
-  radius 0.25rem. Square-cornered restraint, no bubbles-with-tails.
-- **Seeded prompts**: bordered chips (`--border`, ground `--secondary`), full radius allowed here
-  (pill) — they are actions, not documents.
+- **User message — the folio** (#478): each exchange opens with its question as an `h2` in
+  Source Serif 4 at 1.25rem/600, left-aligned over its answer, with a hairline `--border` rule
+  between exchanges. The same treatment the history view gives a saved question. It replaces
+  the ink bubble, which outweighed the answer it asked for; no bubbles, with or without tails.
+- **Seeded prompts**: a left-aligned list of full-width rows between hairlines (`--border`), each
+  row one click target with a muted trailing arrow that nudges on hover (#478). Pills read as a
+  tag cloud at nine questions; rows read as an index, and a long question wraps like text.
 - **Buttons**: default variant = outline (hairline + ink text). Exactly one filled primary per
   view ("Enviar"). Destructive per red-discipline rule.
-- **Empty state**: serif headline ("¿Qué trámite le quita el sueño?"), seeded prompts below —
-  invitation, not apology.
+- **Empty state**: serif headline ("¿Qué trámite le quita el sueño?"), a still row of sample
+  sellos over the corpus record line (#478 — the signature is on screen before the first ask),
+  the scope lines, seeded prompts below — invitation, not apology.
 - **Hover-revealed controls** (the history row's delete): hover is a desktop affordance, and
   Tailwind's `hover:` never fires where `@media (hover: hover)` is false. Every such control
   also carries `no-hover:` (the `(hover: none)` variant in `globals.css`) and

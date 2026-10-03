@@ -343,6 +343,49 @@ describe("Chat scope and non-promise (#264)", () => {
   });
 });
 
+describe("Chat corpus sample (#478)", () => {
+  const sample: Citation[] = [
+    {
+      docKey: "ley-iva",
+      docTitle: "Ley del Impuesto sobre el Valor Agregado",
+      norma: "Ley 6826",
+      articulo: null,
+      url: null,
+    },
+    {
+      docKey: "ccss-reglamento-ti",
+      docTitle: "Reglamento TI",
+      norma: null,
+      articulo: null,
+      url: null,
+    },
+  ];
+
+  it("stamps the sample over the record line, as still, unlinked sellos", () => {
+    render(
+      <Chat corpusCaption="23 documentos oficiales" corpusSample={sample} />,
+    );
+
+    const row = screen.getByRole("list", { name: "Algunas fuentes" });
+    const stamps = row.querySelectorAll('[data-slot="sello"]');
+    expect([...stamps].map((s) => s.textContent)).toEqual([
+      "Ley IVA",
+      "CCSS Reglamento TI",
+    ]);
+    expect(row.querySelector("a")).toBeNull();
+    expect(row.querySelector(".animate-stamp-settle")).toBeNull();
+    const caption = document.querySelector('[data-slot="corpus-caption"]')!;
+    expect(
+      row.compareDocumentPosition(caption) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("renders no sample row when none is passed", () => {
+    render(<Chat />);
+    expect(screen.queryByRole("list", { name: "Algunas fuentes" })).toBeNull();
+  });
+});
+
 describe("Chat message scroller registration (#79)", () => {
   it("registers every message with the scroller under a unique id", () => {
     chat.messages = conversation;
@@ -975,9 +1018,9 @@ describe("Chat unsearchable question (#436)", () => {
     expect(document.activeElement).toBe(composer());
     expect(regenerateMock).not.toHaveBeenCalled();
     // The failed question stays in the thread, as every failed ask's does.
-    expect(
-      document.querySelector('[data-slot="bubble-content"]')?.textContent,
-    ).toBe(ASKED);
+    expect(document.querySelector('[data-slot="question"]')?.textContent).toBe(
+      ASKED,
+    );
   });
 
   it("sends the reworded question as a fresh ask and clears the error", () => {
@@ -1101,9 +1144,7 @@ describe("Chat follow-up composer (#132)", () => {
     // The window `askRequestBody` builds is exactly this thread: both earlier
     // exchanges still rendered, with the follow-up appended after them.
     const asked = Array.from(
-      document.querySelectorAll<HTMLElement>(
-        '[data-slot="message"][data-align="end"] [data-slot="bubble-content"]',
-      ),
+      document.querySelectorAll<HTMLElement>('[data-slot="question"]'),
     ).map((el) => el.textContent);
     expect(asked).toEqual([
       "¿Cómo me inscribo en Hacienda?",
@@ -1133,22 +1174,22 @@ describe("Chat follow-up composer (#132)", () => {
 });
 
 describe("Chat message row composition (#105)", () => {
-  it("renders each user turn as an end-aligned Message with an ink Bubble", () => {
+  it("opens each exchange with its question as a serif heading, not a bubble (#478)", () => {
     chat.messages = conversation;
     render(<Chat />);
 
-    const userRows = document.querySelectorAll<HTMLElement>(
-      '[data-slot="message"][data-align="end"]',
-    );
-    expect(userRows).toHaveLength(2);
-    const bubbles = document.querySelectorAll<HTMLElement>(
-      '[data-slot="bubble"][data-variant="ink"]',
-    );
-    expect(bubbles).toHaveLength(2);
+    const headings = screen.getAllByRole("heading", { level: 2 });
+    expect(headings.map((h) => h.textContent)).toEqual([
+      "¿Cómo me inscribo en Hacienda?",
+      "¿Y en la CCSS?",
+    ]);
+    expect(headings[0].className).toContain("font-serif");
+    expect(document.querySelector('[data-slot="bubble"]')).toBeNull();
+    expect(
+      document.querySelectorAll('[data-slot="message"][data-align="end"]'),
+    ).toHaveLength(0);
     const [first, second] = Array.from(
-      document.querySelectorAll<HTMLElement>(
-        '[data-slot="message"][data-align="end"] [data-slot="bubble-content"]',
-      ),
+      document.querySelectorAll<HTMLElement>('[data-slot="question"]'),
     );
     expect(first?.textContent).toBe("¿Cómo me inscribo en Hacienda?");
     expect(second?.textContent).toBe("¿Y en la CCSS?");
@@ -1170,7 +1211,7 @@ describe("Chat message row composition (#105)", () => {
     }
   });
 
-  it("lands a submitted question in an end-aligned bubble once the SDK echoes it", () => {
+  it("lands a submitted question as its exchange's heading once the SDK echoes it", () => {
     const { rerender } = render(<Chat />);
 
     fireEvent.change(screen.getByRole("textbox", { name: "Su pregunta" }), {
@@ -1187,10 +1228,10 @@ describe("Chat message row composition (#105)", () => {
     chat.status = "submitted";
     rerender(<Chat />);
 
-    const bubbleContent = document.querySelector<HTMLElement>(
-      '[data-slot="message"][data-align="end"] [data-slot="bubble-content"]',
+    const heading = document.querySelector<HTMLElement>(
+      '[data-slot="question"]',
     );
-    expect(bubbleContent?.textContent).toBe("¿Debo facturar electrónicamente?");
+    expect(heading?.textContent).toBe("¿Debo facturar electrónicamente?");
   });
 
   // #138: a persisted answer is what makes the history list stale, so the

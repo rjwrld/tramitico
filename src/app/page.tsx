@@ -6,7 +6,11 @@ import { Chat } from "@/components/chat/chat";
 import { HistoryShell } from "@/components/history/history-shell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
-import { CORPUS_DOCUMENT_COUNT, corpusCaption } from "@/lib/corpus-summary";
+import {
+  CORPUS_DOCUMENT_COUNT,
+  corpusCaption,
+  corpusSample,
+} from "@/lib/corpus-summary";
 import { createClient } from "@/lib/supabase/server";
 
 /** Title and description come from the root layout; only the canonical is ours. */
@@ -49,7 +53,10 @@ export default async function Home() {
       </header>
       <HistoryShell signedIn={signedIn}>
         <main className="flex min-h-0 flex-1 flex-col">
-          <Chat corpusCaption={corpusCaption(CORPUS_DOCUMENT_COUNT)} />
+          <Chat
+            corpusCaption={corpusCaption(CORPUS_DOCUMENT_COUNT)}
+            corpusSample={corpusSample()}
+          />
         </main>
       </HistoryShell>
     </div>
