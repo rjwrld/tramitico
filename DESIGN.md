@@ -158,6 +158,10 @@ The most crafted object in the product. Anatomy:
 - Radius 3px. Padding 5px 9px.
 - Interaction: hover raises border to full `--sello` and underlines nothing (the chip IS the
   link); click opens the official source at the cited artículo. Focus-visible: `--ring` outline.
+- Preview (#478): hover (after 400ms) or keyboard focus opens a small popover card with the
+  document's full title, norma · artículo and the official host (mono, muted). It adds
+  information, never a second click target; touch has no hover, so a tap still just opens the
+  source. Off where the page already prints the title beside the stamp (`/acerca`).
 - Entrance: the _stamp settle_ — `scale(1.06) → 1` with opacity 0→1, 180ms ease-out-quart, as each
   citation streams in. Under `prefers-reduced-motion`: instant appearance, no transform.
 

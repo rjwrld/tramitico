@@ -7,6 +7,7 @@
  * with fade, 180ms ease-out-quart — declared in globals.css and disabled
  * under `prefers-reduced-motion` via `motion-reduce:animate-none`.
  */
+import { SelloLink } from "@/components/sello-link";
 import { CR_UTC_OFFSET_MS } from "@/lib/cr-time";
 import type { Citation } from "@/lib/retrieval";
 import { cn } from "@/lib/utils";
@@ -129,10 +130,16 @@ export function Sello({
   citation,
   className,
   settle = true,
+  preview = true,
 }: {
   citation: Citation;
   className?: string;
   settle?: boolean;
+  /**
+   * The hover/focus card with the full title and norma (#478). `/acerca`
+   * prints both right beside each stamp, so it turns the card off.
+   */
+  preview?: boolean;
 }) {
   const label = selloLabel(citation);
   const base = cn(selloClassName, settle && settleClassName);
@@ -143,17 +150,28 @@ export function Sello({
       </span>
     );
   }
+  const linkClassName = cn(
+    base,
+    "transition-colors duration-150 hover:border-sello focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+    className,
+  );
+  if (preview) {
+    return (
+      <SelloLink
+        citation={citation}
+        href={citation.url}
+        label={label}
+        className={linkClassName}
+      />
+    );
+  }
   return (
     <a
       data-slot="sello"
       href={citation.url}
       target="_blank"
       rel="noopener noreferrer"
-      className={cn(
-        base,
-        "transition-colors duration-150 hover:border-sello focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-        className,
-      )}
+      className={linkClassName}
     >
       {label}
     </a>

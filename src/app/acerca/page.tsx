@@ -202,7 +202,7 @@ function SourceRow({ source }: { source: CorpusSource }) {
       {/* A fixed column on wide screens so the titles align down the page;
           the longest date caption (both dates) fits on one line in it. */}
       <div className="flex flex-col items-start gap-1 sm:w-80 sm:shrink-0">
-        <Sello citation={source} settle={false} />
+        <Sello citation={source} settle={false} preview={false} />
         {dates.length > 0 && (
           // One date per line: «vigente desde» over «consultado el», so a
           // document with both never wraps its year onto a line of its own.
