@@ -14,11 +14,12 @@
  *
  * Touch targets: on a coarse pointer the field and its button grow to 44px
  * (the HIG floor; WCAG 2.5.8 only asks 24). Keyed on `pointer-coarse`, not a
- * viewport width — a narrow desktop window keeps the 32px control, a tablet
- * in landscape gets the touch size. The placeholder is short on purpose: the
- * longer "…sobre impuestos o trámites" wrapped to two lines at 375px and
- * made the empty field 66px tall before anyone typed; the headline above
- * already names the scope.
+ * viewport width — a narrow desktop window keeps the 40px control, a tablet
+ * in landscape gets the touch size. On a fine pointer the button matches the
+ * field's 40px rather than the 32px button default, so the two read as one
+ * control. The placeholder is short on purpose: the longer "…sobre impuestos
+ * o trámites" wrapped to two lines at 375px and made the empty field 66px
+ * tall before anyone typed; the headline above already names the scope.
  *
  * The length cap: the route turns a question past `MAX_QUESTION_LENGTH`
  * away as `invalid_question`, and a long paste used to learn that only after
@@ -145,7 +146,7 @@ export function ChatInput({
           <Button
             type="button"
             variant="outline"
-            className="pointer-coarse:h-11"
+            className="h-10 px-4 pointer-coarse:h-11"
             onClick={onStop}
           >
             Detener
@@ -153,7 +154,7 @@ export function ChatInput({
         ) : (
           <Button
             type="submit"
-            className="pointer-coarse:h-11"
+            className="h-10 px-4 pointer-coarse:h-11"
             disabled={length === 0 || tooLong}
           >
             Enviar

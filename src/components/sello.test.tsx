@@ -340,6 +340,27 @@ describe("SelloRow", () => {
     );
   });
 
+  it("says a caption every stamp shares once, under the row", () => {
+    const { container } = render(
+      <SelloRow
+        citations={[
+          reglamentoIva,
+          { ...reglamentoIva, docKey: "ley-iva", articulo: "Artículo 8" },
+        ]}
+      />,
+    );
+
+    expect(screen.getAllByRole("listitem").map((li) => li.textContent)).toEqual(
+      ["Reglamento IVA · Art. 11", "Ley IVA · Art. 8"],
+    );
+    const captions = container.querySelectorAll(
+      "[data-slot=sello-date-caption]",
+    );
+    expect([...captions].map((c) => c.textContent)).toEqual([
+      "vigente desde 1 ene 2026 · consultado el 6 ago 2026",
+    ]);
+  });
+
   it("leaves a source with no fetch date uncaptioned rather than guessing", () => {
     // Rows persisted before #135 carry no fetchedAt at all; a chip with no
     // date prints no date — nothing is invented to fill the slot.

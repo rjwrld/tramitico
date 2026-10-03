@@ -249,7 +249,15 @@ export function SelloRow({
   className?: string;
 }) {
   if (citations.length === 0) return null;
-  return (
+  const captions = citations.map(dateCaptionFor);
+  // Sources consulted in the same crawl carry the same caption; printed under
+  // every stamp it repeats the one fact N times. When every stamp shares it,
+  // it is said once, under the row — still a footnote, never inside a chip.
+  const shared =
+    captions.length > 1 && captions.every((c) => c !== "" && c === captions[0])
+      ? captions[0]
+      : null;
+  const row = (
     <ul
       aria-label="Fuentes"
       className={cn(
@@ -257,28 +265,43 @@ export function SelloRow({
         className,
       )}
     >
-      {citations.map((citation, i) => {
-        const vigente = effectiveLabel(citation.effectiveAt);
-        const consultado = fetchedLabel(citation.fetchedAt);
-        const dateCaption = [vigente, consultado].filter(Boolean).join(" · ");
-        return (
-          <li
-            key={`${citation.docKey} ${citation.articulo ?? ""}`}
-            id={anchorPrefix ? selloAnchorId(anchorPrefix, i + 1) : undefined}
-            className="flex scroll-mt-24 flex-col items-start gap-1 rounded-[3px] target:outline-2 target:outline-offset-2 target:outline-ring"
-          >
-            <Sello citation={citation} />
-            {dateCaption && (
-              // The stamp's anatomy is fixed (DESIGN §5) — the date is a
-              // caption under it, in the 11px mono meta slot, never inside
-              // the chip.
-              <span className="px-[1px] font-mono text-[0.6875rem] text-muted-foreground">
-                {dateCaption}
-              </span>
-            )}
-          </li>
-        );
-      })}
+      {citations.map((citation, i) => (
+        <li
+          key={`${citation.docKey} ${citation.articulo ?? ""}`}
+          id={anchorPrefix ? selloAnchorId(anchorPrefix, i + 1) : undefined}
+          className="flex scroll-mt-24 flex-col items-start gap-1 rounded-[3px] target:outline-2 target:outline-offset-2 target:outline-ring"
+        >
+          <Sello citation={citation} />
+          {shared === null && captions[i] && (
+            // The stamp's anatomy is fixed (DESIGN §5) — the date is a
+            // caption under it, in the 11px mono meta slot, never inside
+            // the chip.
+            <span className={dateCaptionClassName}>{captions[i]}</span>
+          )}
+        </li>
+      ))}
     </ul>
   );
+  if (shared === null) return row;
+  return (
+    <div className="flex flex-col gap-1.5">
+      {row}
+      <p data-slot="sello-date-caption" className={dateCaptionClassName}>
+        {shared}
+      </p>
+    </div>
+  );
+}
+
+const dateCaptionClassName =
+  "px-[1px] font-mono text-[0.6875rem] text-muted-foreground";
+
+/** `vigente desde … · consultado el …`, or "" for a source with neither. */
+function dateCaptionFor(citation: Citation): string {
+  return [
+    effectiveLabel(citation.effectiveAt),
+    fetchedLabel(citation.fetchedAt),
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }

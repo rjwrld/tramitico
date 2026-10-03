@@ -85,6 +85,13 @@ const HEADING_LINE = /^#{1,6} /;
 /** `[k]` seal references, kept as a capturing split so the digits survive. */
 const REFERENCE = /\[(\d+)\]/;
 const BULLET_LINE = /^- /;
+/**
+ * A line that is one bold run and nothing else — how the model titles a
+ * section («**Próximos pasos**»), since the prompt rules out `#` headings.
+ * It reads as a section lead-in, not as a bold sentence, so it gets the
+ * heading treatment. A trailing colon is the same lead-in.
+ */
+const BOLD_LEAD_LINE = /^\*\*[^*]+\*\*:?$/;
 
 type Kind = "table" | "bullet" | "heading" | "text";
 type Run = { kind: Kind; lines: string[] };
@@ -184,7 +191,8 @@ function runsOf(lines: string[]): Run[] {
   const kinds = lines.map((line, i): Kind => {
     if (isRow[i] && (isRow[i - 1] || isRow[i + 1])) return "table";
     if (BULLET_LINE.test(line)) return "bullet";
-    if (HEADING_LINE.test(line)) return "heading";
+    if (HEADING_LINE.test(line) || BOLD_LEAD_LINE.test(line.trim()))
+      return "heading";
     return "text";
   });
 
@@ -320,11 +328,16 @@ function Segment({
     );
   }
 
-  // A heading is a prompt violation; degrade it to a quiet lead-in rather
-  // than show a user literal hashes (ADR 0008).
+  // A `#` heading is a prompt violation; degrade it to a lead-in rather than
+  // show a user literal hashes (ADR 0008). A bold-only line is the sanctioned
+  // way to title a section and lands here too: a step up in size and more air
+  // above is what separates it from the prose it introduces.
   if (kind === "heading") {
     return (
-      <p className="mt-6 mb-2 font-medium first:mt-0">
+      <p
+        data-slot="answer-lead"
+        className="mt-8 mb-2 text-lg leading-snug font-medium text-balance first:mt-0"
+      >
         {inline(
           lines[0].replace(HEADING_LINE, ""),
           keyPrefix,

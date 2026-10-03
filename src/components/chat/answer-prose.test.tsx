@@ -276,6 +276,33 @@ describe("AnswerProse", () => {
     expect(screen.getAllByRole("listitem")).toHaveLength(2);
   });
 
+  it("sets a bold-only line as a section lead-in, apart from the prose after it", () => {
+    const { container } = render(
+      <AnswerProse
+        text={
+          "**Próximos pasos**\nInscríbase en TRIBU-CR.\n\n**Plazos:**\n- Uno"
+        }
+      />,
+    );
+
+    const leads = container.querySelectorAll('[data-slot="answer-lead"]');
+    expect([...leads].map((lead) => lead.textContent)).toEqual([
+      "Próximos pasos",
+      "Plazos:",
+    ]);
+    expect(container.textContent).not.toContain("**");
+    expect(screen.getByText("Inscríbase en TRIBU-CR.").tagName).toBe("P");
+  });
+
+  it("keeps a bold run inside a sentence as inline bold, not a lead-in", () => {
+    const { container } = render(
+      <AnswerProse text={"La tarifa es **13%** para servicios."} />,
+    );
+
+    expect(container.querySelector('[data-slot="answer-lead"]')).toBeNull();
+    expect(container.querySelector("strong")?.textContent).toBe("13%");
+  });
+
   it("renders every prefix of a streaming answer without throwing", () => {
     const full = [
       "Los **tramos** vigentes:",

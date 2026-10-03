@@ -3,7 +3,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { Button } from "./button";
+import { Button, buttonVariants } from "./button";
 
 afterEach(cleanup);
 
@@ -46,5 +46,29 @@ describe("Button", () => {
     expect(cls).toContain("hover:bg-destructive-bg-hover");
     expect(cls).toContain("text-destructive");
     expect(cls).not.toMatch(/(?:^|:)bg-destructive\//);
+  });
+
+  // A `<Link>` styled with `buttonVariants` used to carry both the base
+  // `border-transparent` and the outline's `border-border`; the transparent
+  // one won on stylesheet order, so "Iniciar sesión" had no hairline in light.
+  it("resolves the outline border for callers outside <Button>", () => {
+    const cls = buttonVariants({ variant: "outline" }).split(" ");
+
+    expect(cls).toContain("border-border");
+    expect(cls).not.toContain("border-transparent");
+  });
+
+  // Half-opacity sello red reads as pink — an error tint. Disabled, the one
+  // filled primary goes to the muted ground at full opacity instead.
+  it("greys the disabled primary instead of fading its red", () => {
+    render(<Button disabled>Enviar</Button>);
+    const cls = screen
+      .getByRole("button", { name: "Enviar" })
+      .className.split(" ");
+
+    expect(cls).toContain("disabled:bg-muted");
+    expect(cls).toContain("disabled:text-muted-foreground");
+    expect(cls).toContain("disabled:opacity-100");
+    expect(cls).not.toContain("disabled:opacity-50");
   });
 });
