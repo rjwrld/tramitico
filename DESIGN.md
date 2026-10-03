@@ -134,7 +134,7 @@ Three voices, paired on a contrast axis:
 | **La interfaz** (body/UI)  | **Geist Sans** (400/500)             | Everything interactive and all answer prose. Two weights only.                                                        |
 | **El expediente** (data)   | **Geist Mono** (400/500)             | Citations, artículo references, dates, amounts, metadata. `font-variant-numeric: tabular-nums` wherever digits align. |
 
-Scale (rem): 0.6875 (11px, sello/meta) · 0.75 · 0.875 (UI default) · 1 (answer prose) · 1.25 ·
+Scale (rem): 0.6875 (11px, sello/meta) · 0.75 · 0.875 (UI default) · 1 (answer prose) · 1.125 (answer lead-in) · 1.25 ·
 1.5 · 2 (page title, serif). Answer prose: `line-height 1.7`, measure capped at 68ch. Headings get
 `text-wrap: balance`; long answers `text-wrap: pretty`. Display letter-spacing never tighter than
 −0.02em — that floor is the `--tracking-display` token (`tracking-display`), not Tailwind's
@@ -168,7 +168,9 @@ lands.
 consulted it: _vigente desde 1 ene 2026 · consultado el 6
 ago 2026_ — Geist Mono 11px, `--muted-foreground`, lowercase, no rule, no link. The stamp's own
 anatomy does not change; freshness is a footnote to the source, not part of the source's name. A
-document with neither date gets no caption — the slot is never filled with a guess.
+document with neither date gets no caption — the slot is never filled with a guess. When every
+stamp in a row carries the same caption, it is said once, under the row, rather than repeated
+under each stamp.
 
 **Inline reference.** A claim carries its source as a superscript numeral at the end of the
 clause — Geist Mono, tabular numerals, `--sello`, no underline, hover ground `--sello-bg`.
@@ -184,7 +186,11 @@ leads nowhere.
 - **Chat scaffolding**: Vercel AI Elements; its sources primitive is re-skinned as the sello row.
 - **Answer block**: card-free — answers sit directly on the ground, separated by whitespace and a
   hairline `--border` rule. The disclaimer is one italic line, `--muted-foreground`, 12px, below
-  the sello row: _No es asesoría legal ni contable — verifique con Hacienda._
+  the sello row: _No es asesoría legal ni contable — verifique con Hacienda._ Beside it, the
+  answer's one action: a ghost «Copiar respuesta» that copies the prose with its `[n]` markers,
+  the numbered sources with their official URLs, and the disclaimer. A section title in an
+  answer (a bold-only line) is a lead-in one step up the scale (1.125rem, 500), not a bold
+  sentence.
 - **User message**: filled `--foreground` on light (paper inverts to ink), `--secondary` on dark;
   radius 0.25rem. Square-cornered restraint, no bubbles-with-tails.
 - **Seeded prompts**: bordered chips (`--border`, ground `--secondary`), full radius allowed here

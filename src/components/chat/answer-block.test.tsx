@@ -9,6 +9,9 @@ import {
 } from "@testing-library/react";
 import {
   AnswerBlock,
+  answerClipboardText,
+  COPIED_ANSWER_LABEL,
+  COPY_ANSWER_LABEL,
   DISCLAIMER,
   ROUTED_DISCLAIMER,
   ROUTED_LINKS_LABEL,
@@ -541,5 +544,57 @@ describe("AnswerBlock word-fade reveal (#219)", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe("AnswerBlock copy action", () => {
+  it("copies the answer with its sources and disclaimer, then confirms", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText },
+      configurable: true,
+    });
+
+    render(
+      <AnswerBlock
+        message={answer("La tarifa es **13%** [1].", [citation], [1])}
+      />,
+    );
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: COPY_ANSWER_LABEL }));
+    });
+
+    expect(writeText).toHaveBeenCalledWith(
+      [
+        "La tarifa es 13% [1].",
+        `Fuentes:\n[1] Reglamento IVA · Art. 11 — ${citation.url}`,
+        DISCLAIMER,
+      ].join("\n\n"),
+    );
+    expect(
+      screen.getByRole("button", { name: COPIED_ANSWER_LABEL }),
+    ).toBeTruthy();
+  });
+
+  it("keeps its label when the clipboard refuses", async () => {
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText: vi.fn().mockRejectedValue(new Error("denied")) },
+      configurable: true,
+    });
+
+    render(<AnswerBlock message={answer("Respuesta [1].", [citation], [1])} />);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: COPY_ANSWER_LABEL }));
+    });
+
+    expect(
+      screen.getByRole("button", { name: COPY_ANSWER_LABEL }),
+    ).toBeTruthy();
+  });
+
+  it("lists no sources for an answer that has none", () => {
+    expect(answerClipboardText("Sin base oficial.", [], DISCLAIMER)).toBe(
+      `Sin base oficial.\n\n${DISCLAIMER}`,
+    );
   });
 });

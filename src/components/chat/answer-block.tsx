@@ -20,6 +20,7 @@
  * whole, instantly — the reveal belongs to the exchange, not the text.
  */
 import * as React from "react";
+import { CheckIcon, CopyIcon } from "lucide-react";
 
 import {
   citationsFrom,
@@ -35,7 +36,9 @@ import { routingEntriesFor, type RoutedCategory } from "@/lib/routing";
 import { renumberCitationMarkers } from "@/lib/answer/citations";
 import { AnswerProse } from "@/components/chat/answer-prose";
 import { AskStatus, type AskStatusState } from "@/components/chat/ask-status";
-import { SelloRow } from "@/components/sello";
+import { SelloRow, selloLabel } from "@/components/sello";
+import { Button } from "@/components/ui/button";
+import type { Citation } from "@/lib/retrieval";
 import { prefersReducedMotion } from "@/lib/utils";
 
 export const DISCLAIMER =
@@ -290,9 +293,18 @@ export function AnswerBlock({
         <RoutedLinks category={routed} />
       )}
       {revealDone && text !== "" && (
-        <p className="text-xs text-muted-foreground italic">
-          {routed === null ? DISCLAIMER : ROUTED_DISCLAIMER}
-        </p>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground italic">
+            {routed === null ? DISCLAIMER : ROUTED_DISCLAIMER}
+          </p>
+          <CopyAnswerButton
+            text={answerClipboardText(
+              text,
+              citations,
+              routed === null ? DISCLAIMER : ROUTED_DISCLAIMER,
+            )}
+          />
+        </div>
       )}
       <AskStatus state={statusState} />
     </div>
@@ -329,5 +341,77 @@ function RoutedLinks({ category }: { category: RoutedCategory }) {
         </React.Fragment>
       ))}
     </p>
+  );
+}
+
+export const COPY_ANSWER_LABEL = "Copiar respuesta";
+export const COPIED_ANSWER_LABEL = "Respuesta copiada";
+const COPIED_DISPLAY_MS = 2000;
+
+/**
+ * What «Copiar respuesta» puts on the clipboard: the prose as plain text, its
+ * `[n]` markers kept so each claim still points somewhere, the sources those
+ * numbers name — label and official URL — and the disclaimer. An answer
+ * pasted into a chat or an email carries its provenance with it; without the
+ * list, the markers would point at nothing.
+ */
+export function answerClipboardText(
+  text: string,
+  citations: Citation[],
+  disclaimer: string,
+): string {
+  // The renumbered text glues each marker to its word («13%[1]») for the
+  // superscript; as plain text it reads better with the space back.
+  const prose = text
+    .replaceAll("**", "")
+    .replace(/(\S)\[(\d+)\]/g, "$1 [$2]")
+    .trim();
+  const sources = citations.map((citation, i) =>
+    citation.url
+      ? `[${i + 1}] ${selloLabel(citation)} — ${citation.url}`
+      : `[${i + 1}] ${selloLabel(citation)}`,
+  );
+  return [
+    prose,
+    ...(sources.length > 0 ? [["Fuentes:", ...sources].join("\n")] : []),
+    disclaimer,
+  ].join("\n\n");
+}
+
+/**
+ * The answer's one action. Quiet — a ghost button at the disclaimer's size —
+ * so it never competes with the sellos above it. The confirmation swaps the
+ * label in place for a moment and is announced; a refused clipboard (no
+ * permission, insecure context) just leaves the label as it was.
+ */
+function CopyAnswerButton({ text }: { text: string }) {
+  const [copied, setCopied] = React.useState(false);
+  React.useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), COPIED_DISPLAY_MS);
+    return () => clearTimeout(timer);
+  }, [copied]);
+
+  return (
+    <>
+      <Button
+        type="button"
+        variant="ghost"
+        size="xs"
+        className="shrink-0 text-muted-foreground pointer-coarse:h-11"
+        onClick={() => {
+          navigator.clipboard?.writeText(text).then(
+            () => setCopied(true),
+            () => {},
+          );
+        }}
+      >
+        {copied ? <CheckIcon aria-hidden /> : <CopyIcon aria-hidden />}
+        {copied ? COPIED_ANSWER_LABEL : COPY_ANSWER_LABEL}
+      </Button>
+      <span aria-live="polite" className="sr-only">
+        {copied ? COPIED_ANSWER_LABEL : ""}
+      </span>
+    </>
   );
 }
