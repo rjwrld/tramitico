@@ -39,7 +39,6 @@ import { Sello } from "@/components/sello";
 import type { Citation } from "@/lib/citations";
 import { SCOPE_PHRASE } from "@/lib/routing";
 import { useHistoryRefresh } from "@/components/history/history-refresh";
-import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { Button } from "@/components/ui/button";
 import { Message, MessageContent } from "@/components/ui/message";
 import {
@@ -316,17 +315,22 @@ export function Chat({
                   className={
                     message.role === "user"
                       ? "mt-8 border-t border-border pt-8 first:mt-0 first:border-t-0 first:pt-0"
-                      : "mt-6"
+                      : "mt-4"
                   }
                 >
                   {message.role === "user" ? (
-                    <Message align="end">
-                      <MessageContent>
-                        <Bubble align="end" variant="ink">
-                          <BubbleContent>{messageText(message)}</BubbleContent>
-                        </Bubble>
-                      </MessageContent>
-                    </Message>
+                    // The folio (#478): each exchange opens with its question
+                    // set as the page's heading, the way the history view
+                    // has always shown a saved one — not an ink bubble that
+                    // outweighed the answer under it. An h2 under the sr-only
+                    // h1, so the thread reads as a list of questions. A
+                    // pasted question can be one unbroken string (#138).
+                    <h2
+                      data-slot="question"
+                      className="font-serif text-xl leading-snug font-semibold tracking-display text-balance wrap-break-word"
+                    >
+                      {messageText(message)}
+                    </h2>
                   ) : (
                     <Message align="start">
                       <MessageContent>
