@@ -14,6 +14,10 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Local Supabase scratch state — generated bundles, not our source.
     "supabase/.temp/**",
+    // Orca worktrees: other checkouts of this repo, nested inside this one
+    // (see `/tramitico/` in .gitignore). Each lints itself; from here they
+    // are 288 duplicate files (#480).
+    "tramitico/**",
   ]),
 ]);
 
