@@ -90,8 +90,8 @@ const describeEval = integrationSuite({
  * and a judge verdict or a figure flag is unreadable without it. The other
  * two paid lanes have had transcripts since #261 and this one did not, so its
  * runs left nothing to re-read — a bad trade for a lane that costs real money
- * every time it answers these nine questions. Gitignored and worktree-local
- * like the rest: copy it to the main checkout before the worktree goes.
+ * every time it answers these nine questions. Gitignored like the rest; in a
+ * worktree the directory links to the main checkout's (CLAUDE.md, Worktrees).
  */
 function writeAbstentionTranscript(results: readonly CaseResult[]): string {
   const dir = process.env.EVAL_TRANSCRIPT_DIR ?? DEFAULT_TRANSCRIPT_DIR;

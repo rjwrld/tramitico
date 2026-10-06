@@ -17,8 +17,8 @@
  * replay before it starts.
  *
  * Writes a transcript (`groundedness-<model>-replay-…jsonl`, flagged `subset`)
- * to `EVAL_TRANSCRIPT_DIR`, default `eval/transcripts/` — gitignored and
- * worktree-local, so copy it out before the worktree goes. A diagnostic, not
+ * to `EVAL_TRANSCRIPT_DIR`, default `eval/transcripts/` — gitignored, and in a
+ * worktree a link to the main checkout's (CLAUDE.md, Worktrees). A diagnostic, not
  * a gate. `--dry-run` stops after rebuilding every prompt: free, and it says
  * whether the transcript still matches the corpus. Reads `.env.local` like
  * `ingest.ts`.

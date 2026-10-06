@@ -56,25 +56,21 @@ corpus/cache/
 
 # eval run transcripts (#289) — a measured run's answers, written by
 # groundedness.eval.test.ts for the next classification read. Reporting
-# output, not a committed artifact; eval.yml uploads them per run.
-/eval/transcripts/
+# output, not a committed artifact; eval.yml uploads them per run. No trailing
+# slash: in a worktree this is a symlink to the main checkout's directory
+# (scripts/worktree-setup.sh), and a `dir/` pattern does not match a symlink.
+/eval/transcripts
 
 # Claude Code agent worktrees. The app's worktree isolation checks a second
 # full copy of the tree out at `.claude/worktrees/<agent-id>`, inside the repo
 # rather than beside it, so an unignored one shows up as a huge untracked
 # directory and drags its own `docs/corpus-samples` and ingestion fixtures past
 # .prettierignore — those patterns are root-anchored and do not match a nested
-# copy. Orca's worktrees are siblings of the checkout and never land here.
+# copy. T3 Code's worktrees live under ~/.t3/worktrees and never land here.
 .claude/worktrees/
 
 # Codex CLI local state
 .codex/
-
-# Orca worktrees. Orca checks each branch out under a folder named after the
-# project, and that folder lands inside the main checkout rather than beside
-# it (`.orca-worktree-trash` marks it). Root-anchored: only the parent folder,
-# not a future `src/tramitico/`.
-/tramitico/
 
 # Written by the Claude Code desktop app's preview tool; per-machine state.
 .claude/launch.json

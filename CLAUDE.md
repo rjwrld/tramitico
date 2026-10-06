@@ -56,7 +56,7 @@ Directory does not decide — `src/lib/retrieval.eval.test.ts` sits beside the m
 covers.
 
 An integration suite must also pass against a database that holds _more_ than its own
-fixtures: CI's stack is empty, but Orca worktrees share one carrying the ingested corpus.
+fixtures: CI's stack is empty, but the local stack every worktree shares carries the ingested corpus.
 A retrieval fixture therefore needs a word no real document contains, so it wins
 `search_chunks`'s strict AND branch outright rather than competing with the whole corpus
 for a place in the fused top-8 (#279).
@@ -103,20 +103,25 @@ own step, and ad hoc vitest runs always take `--project unit`, since a path filt
 in the paid `*.eval.test.ts`. After pushing, the PR is still open (the owner merges fast, and a
 push to a merged PR's branch goes nowhere), its head matches local HEAD, and CI is green.
 
-## Worktrees (Orca)
+## Worktrees (T3 Code)
 
-Development happens in Orca worktrees off `main`; `scripts/orca-setup.sh` runs on create
-(deps, Playwright, symlinked `.env.local` + `.claude/settings.local.json`). The linked env
-carries real keys — `pnpm test:eval` spends real API money, so default to `test:unit` and
-`test:integration`. The local Supabase stack is **shared across worktrees**: `supabase
-start`/`stop` belong to the main checkout only, and a migration added on a branch reaches
-the shared db via `supabase migration up` — a deliberate step, not part of setup.
+Development happens in T3 Code worktrees off `main`, under `~/.t3/worktrees/tramitico/` (the
+branch is renamed from the thread title after the first turn). `scripts/worktree-setup.sh`
+runs on create (deps, Playwright, symlinked `.env.local`, `.claude/settings.local.json` and
+`eval/transcripts/`); a Local thread runs it in the main checkout too, where it exits at once.
+The linked env carries real keys — `pnpm test:eval` spends real API money, so default to
+`test:unit` and `test:integration`. The local Supabase stack is **shared across worktrees**:
+`supabase start`/`stop` belong to the main checkout only, and a migration added on a branch
+reaches the shared db via `supabase migration up` — a deliberate step, not part of setup.
 
-`eval/transcripts/` is **gitignored and worktree-local**, so a paid run's transcript dies
-with the worktree that produced it. Copy it to the main checkout's `eval/transcripts/`
-before the worktree is removed — #304's three full-run transcripts (~US$30) were lost that
-way on 2026-09-08, and `eval/README.md` still cites them by name. A transcript filename in
-the README is not a promise the file is on disk: check, and re-run if you need the rows.
+T3 deletes a worktree on merge, on thread delete and after 15 days, with no teardown hook, so
+nothing worth keeping may live only in one. A worktree's `eval/transcripts/` is a symlink to
+the main checkout's: confirm `ls -l eval/transcripts` shows the link before a paid run, and
+never `rm -rf eval/transcripts/` (the trailing slash empties the main checkout's). Commit
+`eval/runs/` evidence before the PR merges. #304's three full-run transcripts (~US$30) died
+with their worktree on 2026-09-08, and `eval/README.md` still cites them by name. A
+transcript filename in the README is not a promise the file is on disk: check, and re-run
+if you need the rows.
 
 ## Reporting
 

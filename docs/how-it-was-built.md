@@ -100,8 +100,8 @@ The expensive lesson was cheaper to state than to learn. `eval/transcripts/` is 
 and worktree-local, and on 2026-09-08 the three full-run transcripts behind
 [#304](https://github.com/rjwrld/tramitico/issues/304), about US$30 of provider spend,
 were removed with the worktree that produced them. `eval/README.md` still cites them by
-name. The rule now says: copy transcripts to the main checkout before a worktree is removed,
-and a filename in a README is not a promise the file is on disk.
+name. The fix: worktrees now write transcripts straight to the main checkout, and a filename
+in a README is not a promise the file is on disk.
 
 ## 5. Review
 
