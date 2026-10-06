@@ -13,14 +13,14 @@ original scope (its §5 OUT-list is binding).
 
 | Path                                                           | What it is                                                                                                                               |
 | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/app/api/ask/route.ts`                                     | the ask pipeline: rate-limit → retrieve → rerank → answer → persist                                                                      |
-| `src/lib/retrieval.ts`                                         | hybrid search (vector + lexical, RRF); chunks → citations                                                                                |
+| `src/app/api/ask/route.ts`                                     | the ask pipeline: rate-limit → condense → expand → retrieve → rerank → answer → persist; the eval lanes and `scripts/answer-*` copy it   |
+| `src/lib/retrieval.ts`                                         | hybrid search (vector + lexical, RRF); chunks → citations; the RPC is the newest `supabase/migrations/*search_chunks*.sql`               |
 | `src/lib/answer/`                                              | prompt, model call, condensation (#132), query expansion (#286), step catalogue (#304), rerank, citation contract, persistence           |
 | `src/lib/rate-limit.ts`                                        | daily quota via RPC; refunds on system failure                                                                                           |
 | `src/lib/routing.ts` + `scripts/check-routing-urls.ts`         | institution table + keyword classifier behind the routed decline; URLs verified by the re-crawl                                          |
 | `src/lib/ingestion/` + `scripts/ingest.ts`                     | corpus fetch → extract → chunk → embed, CLI-driven; quarterly re-crawl is owner-run `pnpm recrawl` (#405)                                |
 | `corpus/manifest.json`                                         | which official docs are ingested, and from where                                                                                         |
-| `src/lib/eval/` + `eval/dataset.jsonl`                         | release gates: groundedness, hit-rate, conflicting sources                                                                               |
+| `src/lib/eval/` + `eval/README.md`                             | release gates; the README's Quick reference holds the knobs, the baseline, the paid-run recipe and the cheap `scripts/` reads            |
 | `eval/corpus-index.json`                                       | committed corpus coverage dump; makes the satisfiability census a per-PR unit test                                                       |
 | `eval/step-catalogue.json`                                     | hand-written steps per Tier 1 family, searched as one more retrieval leg pair (#304)                                                     |
 | `src/components/`                                              | `chat/`, `history/`, `auth/`, `ui/` (Base UI), `sello.tsx` (source seals)                                                                |
@@ -28,7 +28,7 @@ original scope (its §5 OUT-list is binding).
 | `src/app/privacidad/` + `src/lib/log-redaction.ts`             | the privacy page; `describeError` — the one log-safe way to put an error in a log                                                        |
 | `src/lib/telemetry.ts` + `docs/runbook.md`                     | the content-free per-ask event; what to watch, and when to roll back                                                                     |
 | `src/lib/site.ts` + `src/app/robots.ts` + `src/app/sitemap.ts` | the crawl surface: origin, public page list, title template, JSON-LD; a new public page joins `PUBLIC_PATHS` and sets its own canonical  |
-| `supabase/migrations/`                                         | schema, applied to the shared local stack                                                                                                |
+| `supabase/migrations/`                                         | schema, applied to the shared local stack; `doc_key` lives on `documents`, joined to `chunks` by `document_id`                           |
 | `supabase/templates/` + `pnpm email:push`                      | what production mails; `email:push` sends only the `mailer_*` keys (never `config push`), `email:push --check` reads back                |
 | `supabase/tests/`                                              | pgTAP: the SQL-level least-privilege guard (`pnpm test:db`)                                                                              |
 | `e2e/`                                                         | Playwright on placeholder env; `*.local.spec.ts` via `playwright.local.config.ts`                                                        |
@@ -98,10 +98,18 @@ mock `@/lib/supabase/client` and `next/navigation` at the module boundary
 (see `src/components/auth/user-menu.test.tsx`).
 
 Done means: `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm test:unit` and
-`gitleaks git --log-opts=main..HEAD .` pass locally — CI's `checks` job runs prettier as its
-own step, and ad hoc vitest runs always take `--project unit`, since a path filter still pulls
-in the paid `*.eval.test.ts`. After pushing, the PR is still open (the owner merges fast, and a
-push to a merged PR's branch goes nowhere), its head matches local HEAD, and CI is green.
+`gitleaks git --log-opts=origin/main..HEAD .` pass locally, plus `shellcheck scripts/*.sh` when a
+script changed (`brew install shellcheck`; the runner image's version can differ). CI's `checks` job
+runs prettier as its own step, and ad hoc vitest runs always take `--project unit`, since a path
+filter still pulls in the paid `*.eval.test.ts`. `pnpm build:hermetic` is Linux-only (CI); use
+`pnpm build` locally. Compare and reset against `origin/main`: the local `main` ref is shared
+with the main checkout and moves under you. After pushing, the PR is still open (the owner
+merges fast, and a push to a merged PR's branch goes nowhere), its head matches local HEAD, and
+CI is green.
+
+Merging is the owner's call, and it deploys production: `gh pr merge <n> --squash
+--match-head-commit <full sha>`. `main` requires green checks and an up-to-date branch; on
+`BEHIND`, `gh pr update-branch <n>` and wait for CI again.
 
 ## Worktrees (T3 Code)
 
@@ -109,6 +117,8 @@ Development happens in T3 Code worktrees off `main`, under `~/.t3/worktrees/tram
 branch is renamed from the thread title after the first turn). `scripts/worktree-setup.sh`
 runs on create (deps, Playwright, symlinked `.env.local`, `.claude/settings.local.json` and
 `eval/transcripts/`); a Local thread runs it in the main checkout too, where it exits at once.
+If `node_modules` or those links are missing, run `bash scripts/worktree-setup.sh` (safe to
+re-run). T3 creates worktrees; `EnterWorktree` and a raw `git worktree add` stay unused.
 The linked env carries real keys — `pnpm test:eval` spends real API money, so default to
 `test:unit` and `test:integration`. The local Supabase stack is **shared across worktrees**:
 `supabase start`/`stop` belong to the main checkout only, and a migration added on a branch

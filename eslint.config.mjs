@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Local Supabase scratch state — generated bundles, not our source.
     "supabase/.temp/**",
+    // Paid-run transcripts and probe scratch, symlinked into every worktree.
+    "eval/transcripts/**",
   ]),
 ]);
 
