@@ -4,7 +4,7 @@ Issues and PRDs for this repo live as GitHub issues. Use the `gh` CLI for all op
 
 ## This repo's conventions
 
-- **Build work** carries the `build` label and a milestone (`Week 2 — RAG core`, `Week 3 — harden + ship`). [SPEC.md](../../SPEC.md) is the build contract.
+- **Build work** carries the `build` label, plus `needs-triage` until triaged. The three milestones (`Week 2 — RAG core`, `Week 3 — harden + ship`, `Post-review hardening`) closed out the launch, so a new issue takes none. [SPEC.md](../../SPEC.md) is the build contract.
 - **Every build issue opens with a `**Spec:**` line** deep-linking its governing SPEC.md/DESIGN.md sections on `main`. Shared contracts (function signatures, API shapes) are owned by one issue and linked by consumers, never restated.
 - Issues about to be implemented get a **five-part spec** in the body: Spec links → context → requirements → files & surfaces → tests → acceptance (see #19–#24 for the shape).
 - **One PR per issue**, conventional-commit title, squash-merge on green CI only. Deviations from SPEC.md discovered during implementation are recorded as ADRs in [docs/adr/](../adr/) and the spec is amended with a link in the same PR.

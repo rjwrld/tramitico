@@ -12,8 +12,8 @@
  * first text and total, and recording reasoning vs text output tokens and
  * whether the draft passes the citation invariant (#131).
  *
- * Paid, but small: 9 prompts × 4 arms ≈ 36 answer generations on Sonnet 5,
- * roughly US$1–2, plus cents of embeddings and rerank. A diagnostic, not a
+ * Paid, but small: 9 prompts × 4 arms ≈ 36 answer generations, measured on
+ * Sonnet 5 at roughly US$1–2, plus cents of embeddings and rerank. A diagnostic, not a
  * gate — a faster arm still needs an eval arm against the #352 gates.
  *
  * Every arm but `haiku` runs the answer model the route would: `ANSWER_MODEL`

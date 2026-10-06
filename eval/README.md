@@ -1,5 +1,94 @@
 # Eval dataset (SPEC §9, issues #25/#26)
 
+## Quick reference
+
+Read this block first. Everything after it is a dated log, newest at the
+bottom: `rg -n '^##' eval/README.md` lists it, and `rg -n '^#.*#NNN'`
+finds one issue's reading. A PR that moves a default, a gate or the baseline
+updates this block in the same change.
+
+**Production and the baseline** ([ADR 0023](../docs/adr/0023-eval-gates-after-sonnet-5-5.md)):
+`claude-sonnet-5-5` at `ANSWER_EFFORT=low`. The baseline run is
+[`runs/2026-10-02-full-lane/`](runs/2026-10-02-full-lane/) on main at
+3615566: groundedness 68/73, Tier 1 70/116, Tier 2 10/13. Its groundedness
+transcript (`low/groundedness-…-20261002T184323Z.jsonl`) is the input for
+`answer-replay`. Two identical full lanes differ by ±4 Tier 1 requirements
+(#457), and fixed-chunk replays of one prompt read 70–75.
+
+**Knobs.** Every knob is read at call time. Its code default is production's
+value, except for `ANSWER_EFFORT`:
+
+| Variable                         | Default                                       | Where                        |
+| -------------------------------- | --------------------------------------------- | ---------------------------- |
+| `ANSWER_MODEL`                   | `claude-sonnet-5-5`                           | `src/lib/answer/model.ts`    |
+| `ANSWER_EFFORT`                  | unset = no effort sent; **production: `low`** | `model.ts`, Vercel env       |
+| `CONDENSE_MODEL`, `EXPAND_MODEL` | `claude-haiku-4-5`                            | `model.ts`                   |
+| `EXPAND`                         | `on` (needs `ANTHROPIC_API_KEY`)              | `src/lib/answer/expand.ts`   |
+| `STEPS`                          | `on`                                          | `src/lib/answer/steps.ts`    |
+| `STEPS_RERANK`                   | `pin1` (`pin`, `slot`, `max`, `off`)          | `src/lib/answer/rerank.ts`   |
+| `RERANK`                         | `voyage`; `off` = the fused-only order        | `rerank.ts`                  |
+| `RERANK_MODEL`                   | `rerank-2.5-lite`                             | `rerank.ts`                  |
+| `ANSWER_TOP_K`                   | `8`                                           | `rerank.ts`                  |
+| `ANSWER_DOC_CAP`                 | `off`                                         | `rerank.ts`                  |
+| `PIN_DERIVED_INPUTS`             | `on` (since #344)                             | `src/lib/answer/derived.ts`  |
+| `EVAL_CASES`                     | every case; comma-separated ids scope a lane  | `src/lib/eval/subset.ts`     |
+| `EVAL_TRANSCRIPT_DIR`            | `eval/transcripts/`                           | `src/lib/eval/transcript.ts` |
+| `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites     | `src/lib/eval/rewrites.ts`   |
+
+`.env.local` is loaded by `src/lib/test-support/suite-gate.ts` and never
+overrides an exported variable. To set an arm, export its knobs; there is no
+need to `source` the file. Since `ANSWER_EFFORT` has no code default, every
+arm sets it, or the arm measures a configuration production doesn't run.
+
+**What each suite spends.**
+
+- Answer model plus judges (`JUDGE_MODEL` in `src/lib/eval/groundedness.ts`):
+  groundedness (the bulk of a run), abstention, conflicting-sources and
+  amending-law.
+- Judges only, on fixed fixtures: adequacy.
+- Embeddings, rerank and expansion only: the retrieval-hitrate and
+  `src/lib/retrieval.eval.test.ts` suites.
+- Database read only: dataset-satisfiability.
+
+The gate constants are `GROUNDEDNESS_GATE` (`groundedness.ts`), `HIT_RATE_GATE`
+(`retrieval-hitrate.eval.test.ts`), `ABSTENTION_GATE`
+(`abstention.eval.test.ts`), and `ADEQUACY_TIER2_GATE` with
+`TIER1_REQUIREMENT_BASELINE` (`adequacy.ts`).
+
+**Running a paid arm.** Get the owner's OK and a balance check first. Run one
+arm at a time, and smoke three cases before a full lane:
+
+```sh
+# smoke, cents
+ANSWER_EFFORT=low EVAL_CASES=<a>,<b>,<c> EVAL_TRANSCRIPT_DIR=eval/runs/<date>-<topic>/smoke \
+  pnpm vitest run --project eval --disableConsoleIntercept src/lib/eval/groundedness.eval.test.ts
+# full lane, ≈US$7: every eval suite
+ANSWER_EFFORT=low EVAL_TRANSCRIPT_DIR=eval/runs/<date>-<topic>/<arm> \
+  nohup pnpm test:eval --disableConsoleIntercept > eval/runs/<date>-<topic>/<arm>-$(date -u +%Y%m%dT%H%M%SZ).log 2>&1 &
+```
+
+A Monitor on a run waits for the summary lines (`Test Files`, `requirements
+stated`), not the per-case rows. Evidence committed under `eval/runs/` replaces
+the checkout's absolute path with `<worktree>` in its logs, and goes through
+`pnpm format` before the commit. Each run directory's `README.md` records that
+run's setup and deltas.
+
+**Cheaper reads.** Each script's header documents its flags.
+
+| Command                                                  | Answers                                                            | Cost                             |
+| -------------------------------------------------------- | ------------------------------------------------------------------ | -------------------------------- |
+| `pnpm requirement-coverage <transcript…>`                | Tier 1 requirements stated, per case, from committed transcripts   | free                             |
+| `pnpm answer-set-compare a.json b.json`                  | the first stage where two probe runs part, per case                | free                             |
+| `pnpm prompt-tokens <transcript…>`                       | the answer prompt's input size, per case                           | free (count_tokens)              |
+| `pnpm answer-replay <transcript> [--tier=1] [--cases=…]` | the current prompt re-answering recorded chunks; reads no database | ≈US$0.10 a row; `--dry-run` free |
+| `pnpm pool-dump <case…>`                                 | why a target missed the fused pool: every leg's rank               | one embed per case               |
+| `pnpm answer-set-probe [out.json]`                       | retrieve → rerank → cap → pin for every case, no answer model      | ≈US$0.15                         |
+| `pnpm answer-latency-probe`                              | answer latency per effort arm                                      | ≈US$1–2                          |
+
+A transcript row is `TranscriptRow` in `src/lib/eval/transcript.ts`.
+
+## The dataset
+
 `dataset.jsonl` holds the hand-written eval questions — Appendix A's nine Tier 1
 seeds (#264), the corpus-derived regression suite, and since #261 part B the
 48-case **held-out set** written from demand evidence — each with the source
@@ -63,14 +152,11 @@ per-PR lanes (`test:integration`, pgTAP, `test:e2e:local`) keep CI's throwaway
 uses comes from a workspace separate from production's capped one (runbook
 §7), so an authorized run is never blocked by the US$10 cap.
 
-Run locally:
+Run locally (`.env.local` supplies the keys; an exported variable wins):
 
 ```sh
-supabase start && pnpm ingest   # once
-SUPABASE_URL=http://127.0.0.1:54321 \
-SUPABASE_SERVICE_ROLE_KEY=<service role key> \
-EMBEDDINGS_PROVIDER=voyage VOYAGE_API_KEY=<key> \
-pnpm vitest run --disableConsoleIntercept src/lib/eval/retrieval-hitrate.eval.test.ts
+supabase start && pnpm ingest   # once, from the main checkout
+pnpm vitest run --project eval --disableConsoleIntercept src/lib/eval/retrieval-hitrate.eval.test.ts
 ```
 
 `--disableConsoleIntercept` is not optional (#342): vitest hides a _passing_
@@ -94,24 +180,18 @@ and the cheapest way to tell a chunk problem from a register problem (one embed
 per case, no answer model). `--pool=<n>` widens the fused depth past
 `RERANK_POOL`, which is how a target nowhere near the 40 is located at all.
 
-Four knobs exist so the #287 and #303 options are measured rather than
-argued, all read at call time and all defaulting to the pipeline of record:
-
-| Variable             | Default           | What it changes                                                                                         |
-| -------------------- | ----------------- | ------------------------------------------------------------------------------------------------------- |
-| `RERANK_MODEL`       | `rerank-2.5-lite` | the Voyage reranker asked for                                                                           |
-| `ANSWER_TOP_K`       | `8`               | how many reranked chunks reach the answer prompt; 10 measured and kept at 8 (#305)                      |
-| `ANSWER_DOC_CAP`     | `off`             | at most _n_ chunks per document in the answer set, backfilled (#303); rejected at 8 and 10 (#312, #305) |
-| `PIN_DERIVED_INPUTS` | `off`             | `on` completes a derived figure whose sibling input survived the cut; read at top 10 only (#305)        |
+The retrieval knobs (Quick reference above) exist so options like #287's and
+#303's are measured rather than argued. `RERANK_MODEL` picks the Voyage
+reranker. `ANSWER_TOP_K` is how many reranked chunks reach the answer prompt;
+10 was measured and it stayed at 8 (#305). `ANSWER_DOC_CAP` keeps at most _n_
+chunks per document, backfilled (#303), and was rejected at 8 and 10 (#312,
+#305). `PIN_DERIVED_INPUTS` completes a derived figure whose sibling input
+survived the cut; it shipped on in #344, after a measured run
+([ADR 0018](../docs/adr/0018-derived-figures-by-code.md)).
 
 Changing one changes the ask pipeline, not just the eval, so a run that moves
-a knob says so in its header line, and all four keep their defaults until a
-measured run earns the change. That includes the pin: it is deterministic and
-append-only, which makes it safe to measure rather than already measured — it
-matches on source identity, not on question relevance, so it can add context
-to an answer that never asked for the figure. Measure it on both sides of an
-otherwise fixed run before it becomes the default
-([ADR 0018](../docs/adr/0018-derived-figures-by-code.md)).
+a knob says so in its header line, and a default moves only when a measured
+run earns the change.
 
 For every case that missed with its target inside the fused pool, the run
 prints the target's reranked rank, the answer set it lost to, and the chunk
