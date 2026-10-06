@@ -98,7 +98,7 @@ _existing() {
 
 # ask KEY "Prompt" reads a value into $KEY. Offers the existing .env value as
 # a default on re-runs (Enter keeps it). Visible input (non-secret).
-# shellcheck disable=SC2317  # runs as _ask_raw: the stages wrap a declare -f copy of this body
+# shellcheck disable=SC2317,SC2329  # runs as _ask_raw: the stages wrap a declare -f copy of this body
 ask() {
   local key="$1" prompt="$2" current input
   current=$(_existing "$key" || true)
@@ -113,7 +113,7 @@ ask() {
 }
 
 # ask_secret KEY "Prompt" is like ask, but input is hidden.
-# shellcheck disable=SC2317  # runs as _ask_secret_raw, copied the same way as ask above
+# shellcheck disable=SC2317,SC2329  # runs as _ask_secret_raw, copied the same way as ask above
 ask_secret() {
   local key="$1" prompt="$2" current input
   current=$(_existing "$key" || true)
