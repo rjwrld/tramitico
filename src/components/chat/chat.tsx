@@ -35,6 +35,7 @@ import {
   ACERCA_SOURCES_ANCHOR,
 } from "@/components/chat/privacy-note";
 import { SeedPrompts } from "@/components/chat/seed-prompts";
+import { Colophon } from "@/components/colophon";
 import { Sello } from "@/components/sello";
 import type { Citation } from "@/lib/citations";
 import { SCOPE_PHRASE } from "@/lib/routing";
@@ -282,14 +283,20 @@ export function Chat({
             {failure && <InlineError failure={failure} onRetry={retry} />}
           </div>
         </div>
-        <div className="crossfade-ground border-t border-border bg-background pt-2 pb-safe">
-          <div className="mx-auto w-full max-w-[44rem] px-safe">
+        {/* The floating composer: no full-width rule or band behind it, so
+            nothing meets the history sidebar's border — the box itself is the
+            edge. 12px off the bottom, or the device's inset if larger. The
+            colophon sits under it here only: a first-time visitor's way to
+            the standing pages, gone once the conversation starts. */}
+        <div className="pt-2 [--safe-pad:0.75rem] pb-safe">
+          <div className="mx-auto w-full max-w-[44rem] [--safe-pad:1rem] px-safe">
             <ChatInput
               ref={composerRef}
               onSubmit={ask}
               onStop={() => void stop()}
               busy={busy}
             />
+            <Colophon className="mt-3" />
           </div>
         </div>
       </div>
@@ -305,7 +312,7 @@ export function Chat({
             sighted readers — the messages already say what this is. */}
         <h1 className="sr-only">Conversación</h1>
         <MessageScroller className="flex-1">
-          <MessageScrollerViewport>
+          <MessageScrollerViewport className="[--scroll-fade-size:1.5rem]">
             <MessageScrollerContent className="mx-auto w-full max-w-[44rem] gap-0 px-4 py-6">
               {messages.map((message, index) => (
                 <MessageScrollerItem
@@ -379,13 +386,19 @@ export function Chat({
               )}
             </MessageScrollerContent>
           </MessageScrollerViewport>
-          <MessageScrollerButton />
+          {/* "Ir al final" drops into the thread's bottom fade, just above
+              the floating composer, and reads as a control resting on the
+              faded edge rather than a square stamped mid-paragraph: round,
+              on the composer's own `--card` ground, with the same hairline
+              lift. */}
+          <MessageScrollerButton className="size-8 rounded-full bg-card shadow-[0_1px_2px_oklch(0.24_0.015_285/0.06)] data-[direction=end]:bottom-1 dark:shadow-[0_1px_2px_oklch(0_0_0/0.3)]" />
         </MessageScroller>
-        {/* The composer sits on the bottom edge, so it clears the home
-            indicator itself (#138) — 16px or the device's inset, whichever is
-            larger. */}
-        <div className="crossfade-ground sticky bottom-0 border-t border-border bg-background pt-2 pb-safe">
-          <div className="mx-auto w-full max-w-[44rem] px-safe">
+        {/* The composer floats on the bottom edge and clears the home
+            indicator itself (#138) — 12px or the device's inset, whichever is
+            larger. The thread fades out above it (the viewport's bottom
+            scroll fade) instead of ending on a hard rule. */}
+        <div className="sticky bottom-0 pt-2 [--safe-pad:0.75rem] pb-safe">
+          <div className="mx-auto w-full max-w-[44rem] [--safe-pad:1rem] px-safe">
             <ChatInput
               ref={composerRef}
               onSubmit={ask}

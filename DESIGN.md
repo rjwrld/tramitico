@@ -199,11 +199,28 @@ leads nowhere.
   Source Serif 4 at 1.25rem/600, left-aligned over its answer, with a hairline `--border` rule
   between exchanges. The same treatment the history view gives a saved question. It replaces
   the ink bubble, which outweighed the answer it asked for; no bubbles, with or without tails.
-- **Seeded prompts**: a left-aligned list of full-width rows between hairlines (`--border`), each
-  row one click target with a muted trailing arrow that nudges on hover (#478). Pills read as a
-  tag cloud at nine questions; rows read as an index, and a long question wraps like text.
+- **Seeded prompts**: a centered, wrapping row of hairline pills — transparent ground, 1px
+  `--border`, full radius, ink text at 0.875rem. Each opens with its institution (`HACIENDA` /
+  `CCSS`) in Geist Mono 11px/500, uppercase, `--muted-foreground`, set off by a 1px `--border`
+  divider; never red. Hover: `--secondary` ground and a border nudged toward ink, 150ms. A
+  transparent pill with an institution tag reads as a scoped action, not a tag. Five show on every
+  screen size, mixing both institutions; a quiet underlined «Ver más preguntas (N)» discloses the
+  rest in place — nine long pills made a tag cloud, rows (#478) a wall of text. A pill shows a
+  short label; the click sends the full question, which then heads the exchange, so nothing asked
+  is hidden. The pill's accessible name is what it shows (tag + label), never the hidden question.
+- **Composer**: one floating box inside the 44rem column, 12px off the bottom edge — never a
+  full-width docked bar, whose rule collided with the history sidebar. `--card` ground, 1px
+  `--border`, 12px radius, a hairline shadow only; the field is borderless inside it and the whole
+  box takes focus (red-tinted border + soft `--ring` halo). The action is a compact 30px icon
+  button (arrow up; outline square while streaming) whose accessible name stays the verb
+  ("Enviar" / "Detener"). The thread fades out above it (the scroller's 24px bottom mask), no
+  rule. Under it, the privacy note: one centered 11px line carrying both #136 facts and the
+  «Privacidad» link.
+- **Colophon**: under the landing composer only, the standing pages — Acerca · Privacidad ·
+  Términos · Código — in Geist Mono 11px, muted, middot-separated: the foot of a document, not
+  navigation chrome. The header carries «Acerca» on every view.
 - **Buttons**: default variant = outline (hairline + ink text). Exactly one filled primary per
-  view ("Enviar"). Destructive per red-discipline rule.
+  view ("Enviar", the composer's arrow). Destructive per red-discipline rule.
 - **Empty state**: serif headline ("¿Qué trámite le quita el sueño?"), a still row of sample
   sellos over the corpus record line (#478 — the signature is on screen before the first ask),
   the scope lines, seeded prompts below — invitation, not apology.

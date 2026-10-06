@@ -75,7 +75,9 @@ test("the happy path raises no CSP violation", async ({ page }) => {
   await page.goto("/");
   await page
     .getByRole("button", {
-      name: "¿Debo cobrar IVA en facturas a clientes fuera de Costa Rica?",
+      // The pill's accessible name is its short label; it sends the full
+      // "¿Debo cobrar IVA en facturas a clientes fuera de Costa Rica?".
+      name: "¿Cobro IVA a clientes del exterior?",
     })
     .click();
   await expect(

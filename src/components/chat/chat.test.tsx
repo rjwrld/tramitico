@@ -8,6 +8,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import {
   askStreamErrorText,
@@ -21,7 +22,16 @@ import {
   type AskUIMessage,
 } from "@/lib/answer/contract";
 import type { Citation } from "@/lib/retrieval";
-import { SEED_PROMPTS } from "@/components/chat/seed-prompts";
+import { SEED_PILLS, SEED_PROMPTS } from "@/components/chat/seed-prompts";
+
+/** A seed pill's button, found by the short label it shows (its accessible name). */
+function seedPill(question: string): HTMLElement {
+  const pill = SEED_PILLS.find((entry) => entry.question === question);
+  if (!pill) throw new Error(`no pill sends ${question}`);
+  return screen.getByRole("button", {
+    name: (name) => name.includes(pill.label),
+  });
+}
 import {
   PRIVACY_DISCLOSURE,
   PRIVACY_LINK_LABEL,
@@ -268,18 +278,29 @@ describe("Chat pre-submission privacy disclosure (#136)", () => {
   it("links the disclosure to the privacy page", () => {
     render(<Chat />);
 
-    const link = screen.getByRole("link", {
+    const link = within(privacyNote()).getByRole("link", {
       name: PRIVACY_LINK_LABEL,
     }) as HTMLAnchorElement;
     expect(link.getAttribute("href")).toBe(PRIVACY_PATH);
   });
 
-  it("links the terms of use beside the privacy page (#326)", () => {
+  it("links the terms of use from the landing colophon (#326)", () => {
     render(<Chat />);
 
-    const link = screen.getByRole("link", { name: TERMS_LINK_LABEL });
+    const colophon = screen.getByRole("navigation", {
+      name: "Enlaces del sitio",
+    });
+    const link = within(colophon).getByRole("link", { name: TERMS_LINK_LABEL });
     expect(link.getAttribute("href")).toBe(TERMS_PATH);
-    expect(privacyNote().contains(link)).toBe(true);
+  });
+
+  it("keeps the colophon to the landing, not the conversation", () => {
+    chat.messages = conversation;
+    render(<Chat />);
+
+    expect(
+      screen.queryByRole("navigation", { name: "Enlaces del sitio" }),
+    ).toBeNull();
   });
 
   it("sits with the composer, so it survives the move into the conversation", () => {
@@ -861,7 +882,7 @@ describe("Chat stop and retry controls (#74)", () => {
     chat.status = "ready";
     render(<Chat />);
 
-    const seedButton = screen.getByRole("button", { name: SEED_PROMPTS[0] });
+    const seedButton = seedPill(SEED_PROMPTS[0]);
     fireEvent.click(seedButton);
     fireEvent.click(seedButton);
 
@@ -897,7 +918,7 @@ describe("Chat stop and retry controls (#74)", () => {
     chat.status = "ready";
     const { rerender } = render(<Chat />);
 
-    fireEvent.click(screen.getByRole("button", { name: SEED_PROMPTS[0] }));
+    fireEvent.click(seedPill(SEED_PROMPTS[0]));
     expect(sendMessageMock).toHaveBeenCalledTimes(1);
 
     // The exchange is now in flight — model the state a real streaming
@@ -1055,7 +1076,7 @@ describe("Chat unsearchable question (#436)", () => {
 
   it("does the same on the empty state's error slot", () => {
     render(<Chat />);
-    fireEvent.click(screen.getByRole("button", { name: SEED_PROMPTS[0] }));
+    fireEvent.click(seedPill(SEED_PROMPTS[0]));
     failWith(unsearchable());
 
     expect(screen.getByRole("alert").textContent).toBe(

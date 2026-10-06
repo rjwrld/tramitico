@@ -12,32 +12,28 @@ import Link from "next/link";
  *
  * Quiet, like the answer disclaimer it rhymes with (DESIGN §9: "always
  * present, always quiet, never a modal") — 11px muted (DESIGN §3's meta size),
- * snug leading, one paragraph of prose, and the link to the full page carries
- * the only emphasis. Both facts stay visible; the size and leading are what
- * keep the note to three lines on a phone, inside the pinned composer bar.
+ * centred under the floating composer, one sentence that carries both facts
+ * and the one link that backs them. The other site links (about, terms, code)
+ * moved to the header and the colophon, so the note no longer reads as small
+ * print: on a desktop it is a single line, on a phone two.
  */
 
 /** Where the full privacy statement lives. One constant; the page and the link agree. */
 export const PRIVACY_PATH = "/privacidad";
 
 export const PRIVACY_DISCLOSURE =
-  "Sus preguntas se envían a proveedores de inteligencia artificial para poder responderlas. " +
-  "Con la sesión iniciada, su historial se guarda hasta que usted lo elimine.";
+  "Sus preguntas se envían a proveedores de IA; con la sesión iniciada, " +
+  "su historial se guarda hasta que usted lo elimine.";
 
-export const PRIVACY_LINK_LABEL = "Ver cómo se tratan sus datos";
+export const PRIVACY_LINK_LABEL = "Privacidad";
 
-/**
- * Where the terms of use live (#326). They ride along here because this note
- * is the one place the app links `/privacidad`, and the two pages belong side
- * by side; the note stays one paragraph, three lines on a phone.
- */
+/** Where the terms of use live (#326); linked from the colophon. */
 export const TERMS_PATH = "/terminos";
-export const TERMS_LINK_LABEL = "Términos de uso";
+export const TERMS_LINK_LABEL = "Términos";
 
 /**
  * Where the about page lives (#328): what Tramitico is, how it answers, the
- * documents it answers from, who made it. First of the three links, because
- * it is the one a first-time visitor is most likely to want.
+ * documents it answers from. Linked from the site header and the colophon.
  */
 export const ACERCA_PATH = "/acerca";
 export const ACERCA_LINK_LABEL = "Acerca";
@@ -48,21 +44,15 @@ export function PrivacyNote() {
   return (
     <p
       data-slot="privacy-note"
-      className="text-[0.6875rem] leading-snug text-pretty text-muted-foreground"
+      className="text-center text-[0.6875rem] leading-snug text-balance text-muted-foreground"
     >
       {PRIVACY_DISCLOSURE}{" "}
-      <Link href={ACERCA_PATH} className="underline underline-offset-4">
-        {ACERCA_LINK_LABEL}
-      </Link>
-      {" · "}
-      <Link href={PRIVACY_PATH} className="underline underline-offset-4">
+      <Link
+        href={PRIVACY_PATH}
+        className="underline decoration-border underline-offset-4 transition-colors duration-150 hover:text-foreground hover:decoration-current"
+      >
         {PRIVACY_LINK_LABEL}
       </Link>
-      {" · "}
-      <Link href={TERMS_PATH} className="underline underline-offset-4">
-        {TERMS_LINK_LABEL}
-      </Link>
-      .
     </p>
   );
 }

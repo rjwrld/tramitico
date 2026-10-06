@@ -1,6 +1,10 @@
 import { test, expect } from "@playwright/test";
 
-import { SEED_PROMPTS } from "../src/components/chat/seed-prompts";
+import {
+  SEED_PROMPTS,
+  SHOW_MORE_LABEL,
+  VISIBLE_SEEDS,
+} from "../src/components/chat/seed-prompts";
 import { CITATION, answerStream, inlineAlert, stubAsk } from "./support";
 
 /**
@@ -17,11 +21,13 @@ test("landing shows the wordmark and the empty-state invitation", async ({
   await expect(
     page.getByRole("heading", { name: "¿Qué trámite le quita el sueño?" }),
   ).toBeVisible();
-  await expect(
-    page
-      .getByRole("list", { name: "Preguntas frecuentes" })
-      .getByRole("button"),
-  ).toHaveCount(SEED_PROMPTS.length);
+  // Five pills on every screen size; the rest behind «Ver más preguntas».
+  const seeds = page
+    .getByRole("list", { name: "Preguntas frecuentes" })
+    .getByRole("button");
+  await expect(seeds).toHaveCount(VISIBLE_SEEDS);
+  await page.getByRole("button", { name: SHOW_MORE_LABEL }).click();
+  await expect(seeds).toHaveCount(SEED_PROMPTS.length);
 });
 
 test("seeded prompt click streams an answer with sello and disclaimer", async ({
@@ -38,7 +44,9 @@ test("seeded prompt click streams an answer with sello and disclaimer", async ({
   await page.goto("/");
   await page
     .getByRole("button", {
-      name: "¿Debo cobrar IVA en facturas a clientes fuera de Costa Rica?",
+      // The pill's accessible name is its short label; it sends the full
+      // "¿Debo cobrar IVA en facturas a clientes fuera de Costa Rica?".
+      name: "¿Cobro IVA a clientes del exterior?",
     })
     .click();
 
@@ -81,11 +89,14 @@ test("a 429 renders the friendly rate-limit message inline", async ({
   await expect(alert).toContainText("Inicie sesión");
 });
 
-test("the terms of use render and are reachable from the composer note (#326)", async ({
+test("the terms of use render and are reachable from the landing colophon (#326)", async ({
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("link", { name: "Términos de uso" }).click();
+  await page
+    .getByRole("navigation", { name: "Enlaces del sitio" })
+    .getByRole("link", { name: "Términos", exact: true })
+    .click();
 
   await expect(page).toHaveURL(/\/terminos$/);
   await expect(
@@ -103,7 +114,12 @@ test("the about page renders keyless with an honest empty source list (#328)", a
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("link", { name: "Acerca", exact: true }).click();
+  // The header link, scoped so another «Acerca» on the page (the composer
+  // note has carried one) cannot make the locator ambiguous.
+  await page
+    .getByRole("banner")
+    .getByRole("link", { name: "Acerca", exact: true })
+    .click();
 
   await expect(page).toHaveURL(/\/acerca$/);
   await expect(
