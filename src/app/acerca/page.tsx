@@ -49,9 +49,6 @@ export const ACERCA_SECTIONS = [
   "Las fuentes",
 ] as const;
 
-/** The open-source repository: code, ADRs and the eval record. */
-export const REPO_URL = REPOSITORY_URL;
-
 export const EMPTY_SOURCES =
   "Todavía no hay documentos cargados en esta instalación.";
 
@@ -118,7 +115,7 @@ export default async function AcercaPage() {
         </p>
         <p className="mt-2">
           <a
-            href={REPO_URL}
+            href={REPOSITORY_URL}
             rel="noopener noreferrer"
             className="underline underline-offset-4"
           >

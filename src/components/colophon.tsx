@@ -51,7 +51,7 @@ export function Colophon({ className }: { className?: string }) {
             )}
             <Link
               href={href}
-              className="rounded-xs underline-offset-4 transition-colors duration-150 hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring pointer-coarse:inline-flex pointer-coarse:min-h-6 pointer-coarse:items-center"
+              className="rounded-xs underline-offset-4 transition-colors duration-150 ease-out-quart hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring pointer-coarse:inline-flex pointer-coarse:min-h-6 pointer-coarse:items-center"
             >
               {label}
             </Link>

@@ -114,8 +114,8 @@ test("the about page renders keyless with an honest empty source list (#328)", a
   page,
 }) => {
   await page.goto("/");
-  // The header link, scoped so another «Acerca» on the page (the composer
-  // note has carried one) cannot make the locator ambiguous.
+  // The header link, scoped so the landing colophon's own «Acerca» cannot
+  // make the locator ambiguous.
   await page
     .getByRole("banner")
     .getByRole("link", { name: "Acerca", exact: true })

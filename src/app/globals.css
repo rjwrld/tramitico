@@ -48,6 +48,9 @@
   --input: oklch(0.895 0.005 285);
   --ring: oklch(0.5 0.155 27);
   --radius: 0.25rem;
+  /* The one lift a floating control gets (composer, "Ir al final"): a
+     hairline shadow, tuned per theme like every ground. */
+  --lift: 0 1px 2px oklch(0.24 0.015 285 / 0.06);
 
   --sello: oklch(0.5 0.155 27);
   --sello-bg: oklch(0.975 0.012 25);
@@ -79,6 +82,7 @@
   --border: oklch(0.32 0.012 285);
   --input: oklch(0.32 0.012 285);
   --ring: oklch(0.66 0.14 25);
+  --lift: 0 1px 2px oklch(0 0 0 / 0.3);
 
   --sello: oklch(0.7 0.13 25);
   --sello-bg: oklch(0.25 0.03 20);
@@ -130,6 +134,10 @@
   --radius-md: calc(var(--radius) - 1px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  /* DESIGN §2: documents stay sharp at `--radius`; a control a hand rests on
+     (the composer) is rounder. `rounded-control`. */
+  --radius-control: 0.75rem;
+  --shadow-lift: var(--lift);
 }
 
 /* Stamp settle (DESIGN §5/§8) — the citation entrance. ease-out-quart. */
@@ -251,6 +259,63 @@
 
 @utility pb-safe {
   padding-bottom: max(var(--safe-pad, 1rem), env(safe-area-inset-bottom));
+}
+
+/* The thread's bottom fade over the floating composer (DESIGN §6). The
+   scroller primitive has always carried `scroll-fade-b`, but the utility
+   lives in shadcn's own stylesheet, which this app never imported — and
+   importing it whole would also redefine the data-* variants app-wide. So
+   this is that one utility, copied from shadcn/dist/tailwind.css: a mask that
+   dissolves the last `--scroll-fade-size` of the viewport and, where the
+   browser has scroll-driven animations, eases away as the reader reaches the
+   end, so the last line is never left faded. */
+@property --scroll-fade-b {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@keyframes scroll-fade-reveal-b {
+  from {
+    --scroll-fade-b: var(
+      --scroll-fade-size,
+      min(12%, calc(var(--spacing) * 10))
+    );
+  }
+  to {
+    --scroll-fade-b: 0px;
+  }
+}
+
+@utility scroll-fade-b {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(100% - var(--scroll-fade-b, 0px)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(100% - var(--scroll-fade-b, 0px)),
+    transparent 100%
+  );
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  @supports (animation-timeline: scroll()) {
+    animation: scroll-fade-reveal-b 1ms linear;
+    animation-timeline: scroll(self y);
+    animation-range: calc(100% - calc(var(--spacing) * 24)) 100%;
+    animation-fill-mode: both;
+  }
+
+  @supports not (animation-timeline: scroll()) {
+    --scroll-fade-b: var(
+      --scroll-fade-size,
+      min(12%, calc(var(--spacing) * 10))
+    );
+  }
 }
 
 @layer base {

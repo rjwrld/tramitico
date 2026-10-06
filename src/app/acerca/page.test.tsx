@@ -8,11 +8,11 @@ import {
 } from "@/components/chat/privacy-note";
 import type { CorpusSource } from "@/lib/corpus-sources";
 import { NON_PROMISE_ITEMS, PROMISE_SENTENCE } from "@/lib/promise";
+import { REPOSITORY_URL } from "@/lib/site";
 import AcercaPage, {
   ACERCA_SECTIONS,
   EMPTY_SOURCES,
   metadata,
-  REPO_URL,
   sourcesCount,
 } from "./page";
 
@@ -93,8 +93,8 @@ describe("acerca page", () => {
     expect(modelStep).toContain("citando el artículo");
 
     const repo = screen.getByRole("link", { name: "Código y documentación" });
-    expect(repo.getAttribute("href")).toBe(REPO_URL);
-    expect(REPO_URL).toBe("https://github.com/rjwrld/tramitico");
+    expect(repo.getAttribute("href")).toBe(REPOSITORY_URL);
+    expect(REPOSITORY_URL).toBe("https://github.com/rjwrld/tramitico");
     expect(repo.closest("section")?.querySelector("h2")?.textContent).toBe(
       "Cómo funciona",
     );

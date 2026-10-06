@@ -16,8 +16,12 @@
  * box on `--card` that floats inside the 44rem column, rather than a field and
  * a button side by side on a full-width docked bar. The box, not the bare
  * field, takes focus — a red border and a soft ring around the whole thing
- * (focus is one of red's four sanctioned places, DESIGN §2). Elevation is a
- * hairline shadow only; the border does the rest. The action is a compact
+ * (focus is one of red's four sanctioned places, DESIGN §2). Elevation is the
+ * `--lift` hairline only; the border does the rest. Its `--card` ground is in
+ * the transition, so it crossfades with the page on a theme switch (§8) — the
+ * base layer's `.crossfade-ground` rule would lose to this utility. Corners
+ * are `rounded-control` (12px): a control, rounder than the documents around
+ * it. The action is a compact
  * icon button whose accessible name stays the verb ("Enviar" / "Detener").
  *
  * Touch targets: on a coarse pointer the field and its button grow (40px
@@ -126,7 +130,7 @@ export function ChatInput({
   return (
     <div className="flex flex-col gap-2">
       <form
-        className="flex items-end gap-1.5 rounded-xl border border-border bg-card p-1.5 shadow-[0_1px_2px_oklch(0.24_0.015_285/0.06)] transition-[border-color,box-shadow] duration-150 focus-within:border-[color-mix(in_oklch,var(--ring)_70%,var(--border))] focus-within:ring-3 focus-within:ring-ring/20 dark:shadow-[0_1px_2px_oklch(0_0_0/0.3)]"
+        className="flex items-end gap-1.5 rounded-control border border-border bg-card p-1.5 shadow-lift transition-[background-color,border-color,box-shadow] duration-150 ease-out-quart focus-within:border-[color-mix(in_oklch,var(--ring)_70%,var(--border))] focus-within:ring-3 focus-within:ring-ring/20 motion-reduce:transition-none"
         onSubmit={(event) => {
           event.preventDefault();
           submit();
@@ -147,7 +151,7 @@ export function ChatInput({
           aria-label="Su pregunta"
           aria-describedby={counted ? counterId : undefined}
           rows={1}
-          className="max-h-40 min-h-[2.125rem] resize-none overflow-y-auto rounded-none border-0 bg-transparent px-2 py-1 leading-normal focus-visible:border-0 focus-visible:ring-0 md:text-[0.9375rem] dark:bg-transparent pointer-coarse:min-h-10 pointer-coarse:text-base"
+          className="max-h-40 min-h-[2.125rem] resize-none overflow-y-auto rounded-none border-0 bg-transparent px-2 py-1 text-[0.9375rem] leading-normal focus-visible:border-0 focus-visible:ring-0 md:text-[0.9375rem] dark:bg-transparent pointer-coarse:min-h-10 pointer-coarse:text-base md:pointer-coarse:text-base"
         />
         {busy ? (
           <Button

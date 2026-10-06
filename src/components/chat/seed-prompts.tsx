@@ -14,7 +14,8 @@
  * - Short labels. A pill shows a short version of its question; the click
  *   still sends the full Appendix A question, which then heads the exchange,
  *   so nothing the reader is asking is hidden from them. The button's
- *   accessible name is that full question too.
+ *   accessible name is what it shows — tag and short label (WCAG 2.5.3,
+ *   label in name), never the hidden full question.
  * - Five, then «Ver más preguntas (N)». The first `VISIBLE_SEEDS` pills show
  *   on every screen size, mixing Hacienda and CCSS; the disclosure reveals the
  *   rest in place. Hidden pills carry the `hidden` attribute, so they leave

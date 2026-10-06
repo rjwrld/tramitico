@@ -389,9 +389,8 @@ export function Chat({
           {/* "Ir al final" drops into the thread's bottom fade, just above
               the floating composer, and reads as a control resting on the
               faded edge rather than a square stamped mid-paragraph: round,
-              on the composer's own `--card` ground, with the same hairline
-              lift. */}
-          <MessageScrollerButton className="size-8 rounded-full bg-card shadow-[0_1px_2px_oklch(0.24_0.015_285/0.06)] data-[direction=end]:bottom-1 dark:shadow-[0_1px_2px_oklch(0_0_0/0.3)]" />
+              on the composer's own `--card` ground, with the same `--lift`. */}
+          <MessageScrollerButton className="size-8 rounded-full bg-card shadow-lift data-[direction=end]:bottom-1" />
         </MessageScroller>
         {/* The composer floats on the bottom edge and clears the home
             indicator itself (#138) — 12px or the device's inset, whichever is

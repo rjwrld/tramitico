@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { UserMenu } from "@/components/auth/user-menu";
-import { ACERCA_PATH } from "@/components/chat/privacy-note";
+import { ACERCA_LINK_LABEL, ACERCA_PATH } from "@/components/chat/privacy-note";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -32,7 +32,7 @@ export function SiteHeader({
           href={ACERCA_PATH}
           className="inline-flex h-8 items-center rounded-md px-2 text-sm max-[22.5rem]:hidden text-muted-foreground underline-offset-4 transition-colors duration-150 hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring pointer-coarse:h-11"
         >
-          Acerca
+          {ACERCA_LINK_LABEL}
         </Link>
         <ThemeToggle />
         {signedIn ? (

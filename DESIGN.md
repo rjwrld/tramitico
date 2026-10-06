@@ -48,7 +48,9 @@ on paper. If red appears anywhere else, it's a bug.
   --border: oklch(0.895 0.005 285);
   --input: oklch(0.895 0.005 285);
   --ring: oklch(0.5 0.155 27);
-  --radius: 0.25rem; /* sharp, document-like */
+  --radius: 0.25rem; /* sharp, document-like: answers, sellos, cards, buttons */
+  --radius-control: 0.75rem; /* a control a hand rests on: the composer */
+  --lift: 0 1px 2px oklch(0.24 0.015 285 / 0.06); /* the one lift a floating control gets */
 
   /* Tramitico-specific */
   --sello: oklch(0.5 0.155 27); /* citation ink */
@@ -81,6 +83,7 @@ on paper. If red appears anywhere else, it's a bug.
   --border: oklch(0.32 0.012 285);
   --input: oklch(0.32 0.012 285);
   --ring: oklch(0.66 0.14 25);
+  --lift: 0 1px 2px oklch(0 0 0 / 0.3);
 
   --sello: oklch(0.7 0.13 25);
   --sello-bg: oklch(0.25 0.03 20);
@@ -94,8 +97,13 @@ on paper. If red appears anywhere else, it's a bug.
 structural, not chromatic: destructive actions are always a tinted destructive surface
 (`Button variant="destructive"`: `--destructive-bg` ground, `--destructive` text) with an explicit
 verb ("Eliminar historial") inside a confirm step; red never fills a button except the single
-primary action ("Enviar"), which is the sello/brand red's exclusive fill. Success/warning use
+primary action ("Enviar", the composer's arrow), which is the sello/brand red's exclusive fill. Success/warning use
 their own hues and never lean on red.
+
+**Radius: documents sharp, controls softer.** Everything that reads as paper — answers, sellos,
+cards, outline buttons — keeps `--radius`. Two controls are rounder on purpose: the composer
+(`--radius-control`, 12px), the surface a hand rests on, and the seed pills (full radius), which
+are actions, not documents. Nothing else takes either.
 
 **Grounds are tokens, never an alpha of their text.** `--destructive-bg` is tuned per theme, the
 same way `--sello-bg` is, and for the same reason. A ground written as `bg-destructive/20` inverts
@@ -208,17 +216,22 @@ leads nowhere.
   rest in place — nine long pills made a tag cloud, rows (#478) a wall of text. A pill shows a
   short label; the click sends the full question, which then heads the exchange, so nothing asked
   is hidden. The pill's accessible name is what it shows (tag + label), never the hidden question.
-- **Composer**: one floating box inside the 44rem column, 12px off the bottom edge — never a
-  full-width docked bar, whose rule collided with the history sidebar. `--card` ground, 1px
-  `--border`, 12px radius, a hairline shadow only; the field is borderless inside it and the whole
-  box takes focus (red-tinted border + soft `--ring` halo). The action is a compact 30px icon
+- **Composer**: one floating box inside the 44rem column — never a full-width docked bar, whose
+  rule collided with the history sidebar. The stack under the thread (box, privacy note, and on
+  the landing the colophon) sits 12px off the bottom edge, or the device's inset if larger.
+  `--card` ground (crossfading with the page on a theme switch), 1px `--border`,
+  `--radius-control`, `--lift` only; the field is borderless inside it and the whole box takes
+  focus (red-tinted border + soft `--ring` halo). Text 15px, 16px on touch (iOS zooms below it). The action is a compact 30px icon
   button (arrow up; outline square while streaming) whose accessible name stays the verb
-  ("Enviar" / "Detener"). The thread fades out above it (the scroller's 24px bottom mask), no
-  rule. Under it, the privacy note: one centered 11px line carrying both #136 facts and the
+  ("Enviar" / "Detener"). The thread fades out above it (`scroll-fade-b`, a 24px mask that eases
+  away as the reader reaches the end), no rule; «Ir al final» rests on that faded edge, round, on
+  `--card` with the same `--lift`. Under it, the privacy note: one centered 11px line carrying both #136 facts and the
   «Privacidad» link.
-- **Colophon**: under the landing composer only, the standing pages — Acerca · Privacidad ·
-  Términos · Código — in Geist Mono 11px, muted, middot-separated: the foot of a document, not
-  navigation chrome. The header carries «Acerca» on every view.
+- **Colophon**: the standing pages — Acerca · Privacidad · Términos · Código — in Geist Mono 11px,
+  muted, middot-separated: the foot of a document, not navigation chrome. It sits under the
+  landing composer (gone once the conversation starts) and at the foot of /acerca, /privacidad
+  and /terminos. The home header carries a quiet «Acerca» link beside the theme toggle, hidden
+  only under 360px, where it would touch the wordmark.
 - **Buttons**: default variant = outline (hairline + ink text). Exactly one filled primary per
   view ("Enviar", the composer's arrow). Destructive per red-discipline rule.
 - **Empty state**: serif headline ("¿Qué trámite le quita el sueño?"), a still row of sample
@@ -268,7 +281,8 @@ static labels, instant text.
   narrated over a Spanish page. README and the demo script stay English — they address
   contributors, not users.
 - Sentence case everywhere; no exclamation marks in system copy.
-- Buttons: verb first ("Enviar", "Iniciar sesión", "Ver fuente").
+- Buttons: verb first ("Enviar", "Iniciar sesión", "Ver fuente"). An icon-only button carries the
+  verb as its accessible name (the composer's arrow is "Enviar", its square "Detener").
 - Errors: what happened + what to do, no apology theater ("No se pudo conectar. Intente de nuevo.").
 - Rate-limit message: friendly, names the reset time, nudges sign-in — never scolds.
 - The disclaimer is always present, always quiet, never a modal.

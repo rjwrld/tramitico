@@ -186,9 +186,13 @@ export default function PrivacyPage() {
         </p>
       </Section>
 
+      <p className="mt-12 text-xs text-muted-foreground">
+        Esta página describe el funcionamiento actual de Tramitico.
+      </p>
+
       {/* The colophon: the standing pages, the same line the landing
           composer carries, at the foot of the document. */}
-      <Colophon className="mt-12 border-t border-border pt-6" />
+      <Colophon className="mt-6 border-t border-border pt-6" />
     </main>
   );
 }

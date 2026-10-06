@@ -49,7 +49,7 @@ export function PrivacyNote() {
       {PRIVACY_DISCLOSURE}{" "}
       <Link
         href={PRIVACY_PATH}
-        className="underline decoration-border underline-offset-4 transition-colors duration-150 hover:text-foreground hover:decoration-current"
+        className="underline decoration-border underline-offset-4 transition-colors duration-150 ease-out-quart hover:text-foreground hover:decoration-current"
       >
         {PRIVACY_LINK_LABEL}
       </Link>
