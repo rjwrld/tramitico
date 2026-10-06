@@ -16,7 +16,7 @@
  * dead, so a passing assertion here cannot be the vector leg in disguise.
  *
  * The fixture's vocabulary is invented on purpose (#279). This lane's
- * contract is a migrated, *empty* database, but Orca worktrees share one
+ * contract is a migrated, *empty* database, but local worktrees share one
  * corpus-carrying stack — and against hundreds of real chunks a fixture
  * written in CCSS vocabulary loses the fused ranking to the documents it is
  * imitating and falls out of the returned set. Every content lexeme of the two queries
