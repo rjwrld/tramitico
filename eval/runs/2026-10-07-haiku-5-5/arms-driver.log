@@ -1,0 +1,9 @@
+START haiku-4-5-r1 20261007T201716Z
+DONE haiku-4-5-r1 exit=1 71/73 failures=0
+START haiku-5-5-r1 20261007T202018Z
+DONE haiku-5-5-r1 exit=0 69/73 failures=0
+START haiku-4-5-r2 20261007T202326Z
+DONE haiku-4-5-r2 exit=0 70/73 failures=0
+START haiku-5-5-r2 20261007T202634Z
+DONE haiku-5-5-r2 exit=0 69/73 failures=1
+ALLDONE
