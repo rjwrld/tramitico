@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { sessionUserId } from "@/lib/history";
-import { signedInLimitGain } from "@/lib/rate-limit";
+import { largerSignedInLimit } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
  * when the signed-in quota is actually larger (#501).
  */
 function signInPitch(): string {
-  const gain = signedInLimitGain();
+  const gain = largerSignedInLimit();
   return gain === null
     ? "Guarde su historial de preguntas."
     : `Guarde su historial de preguntas y consulte hasta ${gain} por día.`;

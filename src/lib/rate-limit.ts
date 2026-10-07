@@ -138,7 +138,7 @@ export function limitFor(tier: RateLimitTier): number {
  * null (#501). Copy that pitches signing in states a number only when this
  * returns one: with equal tiers, the saved history is the whole gain.
  */
-export function signedInLimitGain(): number | null {
+export function largerSignedInLimit(): number | null {
   const authed = limitFor("authed");
   return authed > limitFor("anon") ? authed : null;
 }
@@ -311,7 +311,7 @@ export function rateLimitReachedMessage(
 ): string {
   const time = resetTimeSentenceEnd(resetAt);
   if (tier === "anon") {
-    const gain = signedInLimitGain();
+    const gain = largerSignedInLimit();
     const pitch =
       gain === null
         ? "Inicie sesión para guardar su historial"

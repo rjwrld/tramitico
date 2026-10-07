@@ -65,7 +65,9 @@ test("the second anonymous ask renders the real 429 copy inline", async ({
   await enviar.click();
 
   // Second ask: the real fixed-window 429, rendered inline with the limit,
-  // the sign-in nudge, and the reset time (SPEC §7 copy from #24).
+  // the sign-in nudge, and the reset time (SPEC §7 copy from #24). The nudge
+  // names a number only because this lane's anonymous limit (1) is below the
+  // signed-in default (10); with equal tiers it pitches the history (#501).
   const alert = inlineAlert(page, NUDGE);
   await expect(alert).toContainText(
     "Inicie sesión para tener 10 preguntas diarias",

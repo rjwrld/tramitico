@@ -3,11 +3,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   checkRateLimit,
   coarseUserAgent,
+  largerSignedInLimit,
   limitForAnonIp,
   quotaNetwork,
   rateLimitReachedMessage,
   RATE_LIMIT_UNAVAILABLE_MESSAGE,
-  signedInLimitGain,
   subjectForAnon,
   subjectForAnonIp,
   subjectForUser,
@@ -579,7 +579,7 @@ describe("rateLimitReachedMessage", () => {
     it("pitches the saved history at the defaults, which are equal (SPEC §7)", () => {
       vi.stubEnv("RATE_LIMIT_ANON", "");
       vi.stubEnv("RATE_LIMIT_AUTHED", "");
-      expect(signedInLimitGain()).toBeNull();
+      expect(largerSignedInLimit()).toBeNull();
       expect(rateLimitReachedMessage("anon", resetAt)).toBe(
         "Alcanzó el límite de 10 preguntas gratis por hoy. " +
           "Inicie sesión para guardar su historial, " +
@@ -590,7 +590,7 @@ describe("rateLimitReachedMessage", () => {
     it("states the signed-in quota when it is larger", () => {
       vi.stubEnv("RATE_LIMIT_ANON", "10");
       vi.stubEnv("RATE_LIMIT_AUTHED", "25");
-      expect(signedInLimitGain()).toBe(25);
+      expect(largerSignedInLimit()).toBe(25);
       const msg = rateLimitReachedMessage("anon", resetAt);
       expect(msg).toBe(
         "Alcanzó el límite de 10 preguntas gratis por hoy. " +
@@ -602,11 +602,11 @@ describe("rateLimitReachedMessage", () => {
     it("never promises more questions when the signed-in quota is smaller", () => {
       vi.stubEnv("RATE_LIMIT_ANON", "10");
       vi.stubEnv("RATE_LIMIT_AUTHED", "5");
-      expect(signedInLimitGain()).toBeNull();
+      expect(largerSignedInLimit()).toBeNull();
       const msg = rateLimitReachedMessage("anon", resetAt);
       expect(msg).toContain("Inicie sesión para guardar su historial");
       expect(msg).not.toMatch(/preguntas diarias/);
-      expect(msg).not.toContain("5");
+      expect(msg).not.toMatch(/\b5\b/);
     });
   });
 });
