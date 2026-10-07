@@ -55,7 +55,9 @@ The gate constants are `GROUNDEDNESS_GATE` (`groundedness.ts`), `HIT_RATE_GATE`
 (`abstention.eval.test.ts`), `ADEQUACY_TIER2_GATE` with
 `TIER1_REQUIREMENT_BASELINE` (`adequacy.ts`), and `ROBUSTNESS_HIT_BASELINE`
 (`robustness.ts`, unset until #511). The robustness block (#502) sits outside
-every other gate and prints its own line in each lane; see «The robustness
+every other gate and prints its own line in each lane. The abstention lane
+also scores `ho-abs-iva-2027`'s requirement (13 % and art. 10, cited, never
+denied); its assertion is a todo until #507 and #508. See «The robustness
 block».
 
 **Running a paid arm.** Get the owner's OK and a balance check first. Run one
@@ -3435,15 +3437,21 @@ documents (#490 item 2). The case declares two `literal` claims. The
 abstention lane checks them deterministically
 (`abstentionRequirementFailures`), along with `articleAbsenceClaims`, a
 clause-level read for a sentence that names the artículo and says the
-documents lack it. It is a hard assertion of its own, beside the 90 % rate.
-#500 owns the general detector. This check reads only what this requirement
-needs.
+documents lack it. #500 owns the general detector. This check reads only what
+this requirement needs. Its known limit: it reads «artículo 10» by its number,
+so a sentence denying the Reglamento's art. 10 would count too. `abstainIf`
+now tells the judge that giving the current rate, cited, is not answering
+about 2027.
 
 Backtested on the 19 committed `ho-abs-iva-2027` answers under `eval/runs/`
 (free), the requirement fails 17. All 5 answers #500 names as claiming art. 10
 is absent are flagged, plus `2026-09-24-352-req5`, and no honest sentence
 is. The two that pass (`2026-09-11-closing`, `2026-09-24-352`) give 13 % and
-art. 10, both cited. Until #507 and #508 land, expect this assertion red.
+art. 10, both cited. A hard assertion would start red, which is the same
+reason the block's gate is a baseline. So the lane scores and prints the
+requirement on every run, and the assertion is a todo, armed when #507 (the
+prompt) and #508 (art. 30 → art. 10) land. The absence half is gated sooner,
+by #500's detector.
 
 **The probe read** ([`runs/2026-10-07-502-robustness/`](runs/2026-10-07-502-robustness/),
 both rewrite models, route configuration):

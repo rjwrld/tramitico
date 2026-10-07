@@ -12,6 +12,7 @@
  * the route runs (`top8/capoff/pinon`).
  */
 import { readFileSync } from "node:fs";
+import { isRobustness, ROBUSTNESS } from "../src/lib/eval/dataset";
 import {
   compareProbeRuns,
   PRODUCTION_CONFIG,
@@ -33,7 +34,7 @@ function main(): void {
   }
   const rows = compareProbeRuns(reads(a), reads(b), config);
   // The robustness block (#502) is a group of its own, outside every tier.
-  const block = (row: CaseComparison) => row.variant === "robustez";
+  const block = (row: CaseComparison) => isRobustness(row);
   const groups: [string, (row: CaseComparison) => boolean][] = [
     ["Tier 1", (row) => row.tier === 1 && !block(row)],
     ["Tier 2", (row) => row.tier === 2 && !block(row)],
@@ -46,7 +47,7 @@ function main(): void {
         !block(row),
     ],
     ["abstention", (row) => row.tier === "abstain"],
-    ["robustez", block],
+    [ROBUSTNESS, block],
   ];
   console.log(`config ${config}\n`);
   console.log(

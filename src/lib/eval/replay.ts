@@ -23,7 +23,7 @@
  */
 import type { RetrievedChunk } from "../retrieval";
 import { requirementCoverage, type AdequacyMisses } from "./adequacy";
-import { ROBUSTNESS, type EvalCase, type Tier } from "./dataset";
+import { isRobustness, type EvalCase, type Tier } from "./dataset";
 import type { TranscriptRow } from "./transcript";
 
 /** What a transcript row leaves out of a chunk and the prompt header needs. */
@@ -121,10 +121,7 @@ export function replayPlan(
     .filter((row) => cases === null || cases.includes(row.id))
     // A tier is the population its gate reads, so the robustness block
     // (#502) is in none: `--tier=1` compares with ADR 0023's baseline.
-    .filter(
-      (row) =>
-        tier === null || (row.tier === tier && row.variant !== ROBUSTNESS),
-    )
+    .filter((row) => tier === null || (row.tier === tier && !isRobustness(row)))
     .map((row) => {
       const evalCase = dataset.find((c) => c.id === row.id);
       if (evalCase === undefined) {

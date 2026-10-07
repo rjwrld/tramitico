@@ -946,6 +946,8 @@ describe("articleAbsenceClaims", () => {
     "Los documentos oficiales no traen una tasa del IVA específica para 2027. Desde el 1 de julio de 2023 los servicios turísticos pasaron a la tarifa general del artículo 10 [4].",
     "Ninguno de los documentos fija una tarifa para 2027, pero el artículo 10 fija la vigente, del 13 % [1].",
     "La tarifa general vigente es del 13 % según el art. 10 de la Ley [1]; los documentos no traen otra para 2027.",
+    // One clause apart only by «y» (#502 review).
+    "Los documentos no traen una tarifa para 2027 y el artículo 10 fija el 13 % [1].",
   ])("leaves an honest decline alone: %s", (answer) => {
     expect(articleAbsenceClaims(answer, ARTICLE_10)).toEqual([]);
   });
@@ -954,6 +956,12 @@ describe("articleAbsenceClaims", () => {
     expect(
       articleAbsenceClaims(
         "Los documentos no contienen el artículo 30 completo.",
+        ARTICLE_10,
+      ),
+    ).toEqual([]);
+    expect(
+      articleAbsenceClaims(
+        "Los documentos no contienen el artículo 100.",
         ARTICLE_10,
       ),
     ).toEqual([]);

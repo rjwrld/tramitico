@@ -200,9 +200,12 @@ export function abstentionCases(cases: readonly EvalCase[]): EvalCase[] {
   return cases.filter((evalCase) => evalCase.tier === "abstain");
 }
 
-/** A case of the robustness block (#502). */
-export function isRobustness(evalCase: Pick<EvalCase, "variant">): boolean {
-  return evalCase.variant === ROBUSTNESS;
+/**
+ * A case of the robustness block (#502) — or a probe read or transcript row
+ * of one, which record a missing variant as `null`.
+ */
+export function isRobustness(row: { variant?: Variant | null }): boolean {
+  return row.variant === ROBUSTNESS;
 }
 
 /** The id of the case a robustness case re-asks; `null` for any other case. */

@@ -425,15 +425,16 @@ const ARTICLE_LITERAL = /^art(?:ículo|\.)\s*\d/i;
  * Sentences, for the absence read: `SENTENCE_END`, except that a period
  * before a number ends nothing, so «art. 10» stays in its sentence.
  */
-const ABSENCE_SENTENCE_END = /[.!?](?=\s+(?!\d))|\n/;
+const ABSENCE_SENTENCE_END = /[.!?](?=\s)(?!\s+\d)|\n/;
 
 /**
- * Clauses: a comma, semicolon or colon before a space («13,5» is one). A
- * comma before «que» opens a relative clause about the noun it follows, so it
- * ends nothing: «la tarifa general del artículo 10, que los documentos
- * provistos no reproducen» (2026-10-02 full lane) is one clause.
+ * Clauses: a comma, semicolon or colon before a space («13,5» is one), or a
+ * coordinating «y» or «pero». A comma before «que» opens a relative clause
+ * about the noun it follows, so it ends nothing: «la tarifa general del
+ * artículo 10, que los documentos provistos no reproducen» (2026-10-02 full
+ * lane) is one clause.
  */
-const CLAUSE_END = /[;:](?=\s)|,(?=\s)(?!\s+que\b)/;
+const CLAUSE_END = /[;:](?=\s)|,(?=\s)(?!\s+que\b)|\s(?:y|pero)\s/;
 
 /**
  * The answer's sentences that name one of `variants` and, in one clause,
@@ -448,13 +449,16 @@ export function articleAbsenceClaims(
   answer: string,
   variants: readonly string[],
 ): string[] {
-  const needles = variants.map((v) => normalizeSpaces(v).toLowerCase());
+  // «artículo 10», never the start of «artículo 100».
+  const needles = variants.map(
+    (v) => new RegExp(`${escapeRegExp(normalizeSpaces(v))}(?!\\d)`, "i"),
+  );
   return normalizeSpaces(answer)
     .split(ABSENCE_SENTENCE_END)
     .map((sentence) => sentence.trim())
     .filter(
       (sentence) =>
-        needles.some((needle) => sentence.toLowerCase().includes(needle)) &&
+        needles.some((needle) => needle.test(sentence)) &&
         sentence
           .split(CLAUSE_END)
           .some(

@@ -82,6 +82,7 @@ import {
   retrievalCases,
   robustnessSeedId,
   type EvalCase,
+  type Variant,
 } from "../src/lib/eval/dataset";
 import { formatRobustnessLine } from "../src/lib/eval/robustness";
 import {
@@ -120,8 +121,8 @@ interface CaseRead {
   condenseFailed: boolean;
   tier: unknown;
   family: string | null;
-  /** `robustez` for the robustness block (#502); null before #502. */
-  variant: string | null;
+  /** The held-out shape, or `robustez` for the robustness block (#502). */
+  variant: Variant | null;
   weak: boolean;
   expansionFailed: boolean;
   expectedCount: number;
@@ -366,7 +367,7 @@ async function main(): Promise<void> {
   // The table below counts what it counted before #502; the block is summed
   // apart, under it.
   const retrievalReads = reads.filter(
-    (r) => r.kind === "retrieval" && r.variant !== "robustez",
+    (r) => r.kind === "retrieval" && !isRobustness(r),
   );
   const totalTargets = retrievalReads.reduce((n, r) => n + r.expectedCount, 0);
   const followUps = [...retrievals, ...abs].filter((c) => c.history).length;

@@ -405,7 +405,8 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   block; each lane prints the block as its own line, and the block is gated as a tracked baseline
   of cases hit, set by #511's full lane (`src/lib/eval/robustness.ts`).
 - **Retrieval:** every expected source/article must be present in the answer pool. A satisfiable
-  Tier 1 case that takes the weak-retrieval decline is a failure.
+  Tier 1 case that takes the weak-retrieval decline is a failure (outside the robustness block,
+  which reports its weak cases on its own line).
 - **Groundedness:** every material claim must be supported by a retrieved chunk. The pinned
   temperature-0 judge uses a majority of three for flagged answers
   ([ADR 0007](docs/adr/0007-groundedness-judge-model.md)). The global gate is **≥94%** (ratcheted
@@ -426,7 +427,8 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   naming the correct official/professional route. Tier 1 false declines are zero. An abstention
   case may also declare `requiredClaims` (#502): `ho-abs-iva-2027` must still state the current
   13 % and artículo 10, each cited, and must not say the artículo is absent from the documents.
-- **Threshold policy:** every Tier 1 case is individually blocking across retrieval, groundedness,
+  The lane scores this on every run; the assertion is armed once #507 and #508 land.
+- **Threshold policy:** every Tier 1 case outside the robustness block is individually blocking across retrieval, groundedness,
   adequacy, citations, freshness, and abstention behavior; a strong aggregate cannot hide a red
   case. Numeric thresholds were fixed by the single authorized baseline on the beta corpus
   (#267, 2026-09-05; the tables are in `eval/README.md`), then ratchet upward and are never relaxed
