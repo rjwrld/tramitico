@@ -320,6 +320,7 @@ describe("the step catalogue at the rerank (#304)", () => {
   });
   afterEach(() => {
     vi.unstubAllEnvs();
+    vi.restoreAllMocks();
   });
 
   /**

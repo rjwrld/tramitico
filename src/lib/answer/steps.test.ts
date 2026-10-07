@@ -187,6 +187,7 @@ describe("stepProbe (#304)", () => {
 describe("stepsEnabled", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
+    vi.restoreAllMocks();
   });
 
   it("is on by default, and when CI interpolates an unset variable as empty", () => {
@@ -208,6 +209,5 @@ describe("stepsEnabled", () => {
     expect(errors).toHaveBeenCalledWith(
       expect.stringContaining(`${KNOB_ERROR_PREFIX} STEPS="no"`),
     );
-    errors.mockRestore();
   });
 });

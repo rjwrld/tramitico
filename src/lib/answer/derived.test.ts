@@ -413,6 +413,7 @@ describe("pinDerivedFigureInputs", () => {
   });
   afterEach(() => {
     vi.unstubAllEnvs();
+    vi.restoreAllMocks();
   });
 
   const escala = chunk("ccss-escala-ivm", "Artículo 4°, sesión 9570");
@@ -612,7 +613,6 @@ describe("pinDerivedFigureInputs", () => {
         `${KNOB_ERROR_PREFIX} PIN_DERIVED_INPUTS="false"`,
       ),
     );
-    errors.mockRestore();
   });
 });
 

@@ -48,7 +48,7 @@ jobs:
       EMBEDDINGS_PROVIDER: ${{ vars.EMBEDDINGS_PROVIDER }}
       VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
       RERANK: ${{ vars.RERANK }}
-      # Empty is "on" (expand.ts reads it with ||, like RERANK): the eval lane
+      # Empty is "on" (src/lib/knobs.ts, like RERANK): the eval lane
       # measures the search production performs, expansion legs included.
       EXPAND: ${{ vars.EXPAND }}
       # Same reading: the pin is on by default since the pin-at-8 reading

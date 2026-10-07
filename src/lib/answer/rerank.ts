@@ -146,7 +146,9 @@ export const ANSWER_DOC_CAP = Infinity;
  *
  * `STEPS_RERANK` in the environment overrides the constant for a measured run.
  */
-export type StepRerankMode = "pin" | "pin1" | "slot" | "max" | "off";
+export const STEP_RERANK_MODES = ["pin", "pin1", "slot", "max", "off"] as const;
+
+export type StepRerankMode = (typeof STEP_RERANK_MODES)[number];
 
 export const STEP_RERANK_MODE: StepRerankMode = "pin1";
 
@@ -341,9 +343,9 @@ export interface RerankedChunk {
  * The step-rerank mode in force: `STEPS_RERANK`, or the constant when it is
  * unset, empty or unrecognised — the last logged (knobs.ts).
  */
-export const stepRerankMode = modeKnob<StepRerankMode>(
+export const stepRerankMode = modeKnob(
   "STEPS_RERANK",
-  ["pin", "pin1", "slot", "max", "off"],
+  STEP_RERANK_MODES,
   STEP_RERANK_MODE,
 );
 

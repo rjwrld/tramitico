@@ -555,7 +555,8 @@ development use a **separate workspace and key**, so an authorized eval run (`ev
 beside `ANTHROPIC_API_KEY` in `.env.example`.
 
 **What is not capped.** Voyage AI (embeddings and rerank) has no per-workspace spend limit
-that this runbook knows of; the same stranger can drive it, one embedding call per ask.
+that this runbook knows of; the same stranger can drive it, up to seven embedding calls per ask (the question, its
+expansion and each step sentence; the sentences are fixed, so the query cache usually serves them).
 Its free allowance is large and the per-subject quota still applies, so it is accepted,
 not solved. If Voyage starts billing, the knob is `RERANK=off`: up to seven calls fewer per
 ask — the question's reading, its expansion's (#296) and one per step sentence of the family

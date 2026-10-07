@@ -4,7 +4,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { expansionEnabled } from "../src/lib/answer/expand";
 import { pinEnabled } from "../src/lib/answer/derived";
-import { rerankEnabled, stepRerankMode } from "../src/lib/answer/rerank";
+import {
+  rerankEnabled,
+  STEP_RERANK_MODES,
+  stepRerankMode,
+} from "../src/lib/answer/rerank";
 import { stepsEnabled } from "../src/lib/answer/steps";
 import { createEmbedder } from "../src/lib/ingestion/embedder";
 import { limitFor } from "../src/lib/rate-limit";
@@ -45,8 +49,7 @@ const READINGS: Record<string, Reading> = {
   PIN_DERIVED_INPUTS: { read: pinEnabled, meaning: onOff },
   STEPS_RERANK: {
     read: stepRerankMode,
-    meaning: (value) =>
-      ["pin", "pin1", "slot", "max", "off"].includes(value) ? value : undefined,
+    meaning: (value) => STEP_RERANK_MODES.find((mode) => mode === value),
   },
   EMBEDDINGS_PROVIDER: {
     read: () => createEmbedder().provider,
@@ -62,17 +65,21 @@ const READINGS: Record<string, Reading> = {
 
 interface EnvWrite {
   key: string;
-  /** The literal value, or `null` when it comes from a shell variable. */
-  literal: string | null;
+  /**
+   * The literal value; `null` when it comes from a shell variable, and
+   * `undefined` when the call is not `write_env KEY "value"` at all.
+   */
+  literal: string | null | undefined;
 }
 
+/** Every `write_env` call: the definition and comments are not calls. */
 function envWrites(script: string): EnvWrite[] {
-  return [...script.matchAll(/^\s*write_env (\w+) "([^"]*)"\s*$/gm)].map(
-    ([, key, value]) => ({
-      key,
-      literal: /[$`\\]/.test(value) ? null : value,
-    }),
-  );
+  return [...script.matchAll(/^\s*write_env\s+(.*)$/gm)].map(([, args]) => {
+    const quoted = /^(\w+) "([^"]*)"\s*$/.exec(args);
+    if (!quoted) return { key: args.split(/\s/)[0], literal: undefined };
+    const [, key, value] = quoted;
+    return { key, literal: /[$`\\]/.test(value) ? null : value };
+  });
 }
 
 /** One line per write the code would read differently from what it names. */
@@ -80,6 +87,10 @@ function misreadWrites(script: string): string[] {
   const problems: string[] = [];
   for (const { key, literal } of envWrites(script)) {
     const reading = READINGS[key];
+    if (literal === undefined) {
+      problems.push(`${key}: write it as write_env KEY "value"`);
+      continue;
+    }
     if (literal === null) {
       if (reading)
         problems.push(`${key} is written from a variable; write a literal`);
@@ -137,6 +148,15 @@ describe("deploy-wizard.sh writes only values the code reads as meant (#499)", (
   it("catches the line that kept production unreranked", () => {
     expect(misreadWrites('write_env RERANK "on"\n')).toEqual([
       'RERANK="on" names no mode RERANK accepts',
+    ]);
+  });
+
+  it("catches a write it could not read, rather than skipping it", () => {
+    expect(
+      misreadWrites("write_env RERANK on\nwrite_env STEPS 'off'\n"),
+    ).toEqual([
+      'RERANK: write it as write_env KEY "value"',
+      'STEPS: write it as write_env KEY "value"',
     ]);
   });
 

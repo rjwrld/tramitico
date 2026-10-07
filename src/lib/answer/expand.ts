@@ -153,19 +153,19 @@ export function cleanExpansion(raw: string): string {
     .replace(/\s+/g, " ");
 }
 
+const expandKnob = modeKnob("EXPAND", ["on", "off"], "on");
+
 /**
  * Whether an ask expands at all — the one place that decides, so `retrieve`
  * does not carry a second copy of the policy.
  *
  * `EXPAND=off` opts out, mirroring `RERANK=off` (rerank.ts) and read the same
  * way (knobs.ts): unset and the "" CI interpolates for an unset `vars.EXPAND`
- * mean on, and any value but `on` or `off` means on and is logged. No Anthropic key
- * is the other way out, and it is what the integration, e2e and pgTAP lanes —
+ * mean on, and any value but `on` or `off` means on and is logged. No
+ * Anthropic key is the other way out, and it is what the integration, e2e and pgTAP lanes —
  * which run with no secrets — rely on to get the two-leg contract without a
  * failed call and its warning on every ask.
  */
-const expandKnob = modeKnob("EXPAND", ["on", "off"], "on");
-
 export function expansionEnabled(): boolean {
   if (expandKnob() === "off") return false;
   return Boolean(process.env.ANTHROPIC_API_KEY);
