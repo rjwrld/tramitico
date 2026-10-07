@@ -23,6 +23,12 @@
  * route a figure the fragments carry and the answer cites is rule 6 working,
  * and only an uncited or unsourced one is an invention.
  *
+ * A third since #502, for a case that declares `requiredClaims`: declining is
+ * not the whole of it. `ho-abs-iva-2027` declines a 2027 rate and still owes
+ * the reader today's — 13 % and the artículo 10 that sets it, cited, and
+ * never the claim that the artículo is missing from the documents (#490 item
+ * 2), which the committed answers made and the judge passed.
+ *
  * Env-gated exactly like the groundedness gate; it runs in the same lane:
  *
  *   ANTHROPIC_API_KEY=<key> SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… \
@@ -58,7 +64,11 @@ import {
 import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
 import { retrieve } from "../retrieval";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
-import { figureMentions, judgeAbstention } from "./adequacy";
+import {
+  abstentionRequirementFailures,
+  figureMentions,
+  judgeAbstention,
+} from "./adequacy";
 import { abstentionCases, DATASET_PATH, parseDataset } from "./dataset";
 import { rewriteCase, rewritesFromEnv } from "./rewrites";
 import {
@@ -111,6 +121,7 @@ function writeAbstentionTranscript(results: readonly CaseResult[]): string {
           verdicts: r.verdicts,
           reason: r.reason,
           figures: r.figures,
+          requirements: r.requirements,
           answer: r.answer,
           generation: r.generation,
           rerank: r.rerank,
@@ -138,6 +149,11 @@ interface CaseResult {
   stepFamily: Family | null;
   /** The colón amounts and percentages the answer had no business printing. */
   figures: string[];
+  /**
+   * What the case's `requiredClaims` found missing (#502); `null` for a case
+   * that declares none, which is every case but `ho-abs-iva-2027`.
+   */
+  requirements: string[] | null;
   /** What the pipeline actually said — the transcript's reason for existing. */
   answer: string;
   /** `null` on the fallback route, which calls no model. */
@@ -225,6 +241,10 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
         viaFallback,
         stepFamily: retrieval.steps?.family ?? null,
         figures: figureMentions(answer, sources),
+        requirements:
+          evalCase.requiredClaims === undefined
+            ? null
+            : abstentionRequirementFailures(answer, evalCase.requiredClaims),
         answer,
         generation,
         rerank,
@@ -248,6 +268,16 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
           (r.figures.length > 0 ? `  figures: ${r.figures.join(", ")}` : ""),
       );
     }
+    const required = results.filter((r) => r.requirements !== null);
+    console.log(
+      `abstention requirements (#502): ${required.filter((r) => r.requirements!.length === 0).length}/${required.length}`,
+    );
+    for (const r of required) {
+      console.log(
+        `  ${r.requirements!.length === 0 ? "pass" : "FAIL"}  ${r.evalCase.id}` +
+          r.requirements!.map((failure) => `\n        ${failure}`).join(""),
+      );
+    }
     // Serial on purpose, like the other suites: shared Voyage keyless budget.
   }, 2_700_000);
 
@@ -262,6 +292,13 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
       rate,
       `answered instead of declining: ${failed.join("; ")}`,
     ).toBeGreaterThanOrEqual(ABSTENTION_GATE);
+  });
+
+  it("gives what an abstention case requires, and denies no artículo (#502)", () => {
+    const failed = results
+      .filter((r) => r.requirements !== null && r.requirements.length > 0)
+      .map((r) => `${r.evalCase.id}: ${r.requirements!.join("; ")}`);
+    expect(failed, `requirements missing: ${failed.join(" | ")}`).toEqual([]);
   });
 
   it("invents no figure while declining", () => {
