@@ -271,7 +271,11 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
         requirements:
           evalCase.requiredClaims === undefined
             ? null
-            : abstentionRequirementFailures(answer, evalCase.requiredClaims),
+            : abstentionRequirementFailures(
+                answer,
+                evalCase.requiredClaims,
+                checks?.absence.falseClaims ?? [],
+              ),
         answer,
         generation,
         rerank,
