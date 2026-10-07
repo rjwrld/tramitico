@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { sessionUserId } from "@/lib/history";
+import { largerSignedInLimit } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -19,6 +20,17 @@ export const metadata: Metadata = {
   // purpose, so a crawler can read this.
   robots: { index: false, follow: true },
 };
+
+/**
+ * Why to sign in, in one line. The saved history always; more questions only
+ * when the signed-in quota is actually larger (#501).
+ */
+function signInPitch(): string {
+  const gain = largerSignedInLimit();
+  return gain === null
+    ? "Guarde su historial de preguntas."
+    : `Guarde su historial de preguntas y consulte hasta ${gain} por día.`;
+}
 
 export default async function LoginPage() {
   const supabase = await createClient();
@@ -39,9 +51,7 @@ export default async function LoginPage() {
           {/* The page's one heading (#492): the card title rendered a bare
               `div`, which left /login with no heading at all. */}
           <CardTitle as="h1">Iniciar sesión</CardTitle>
-          <CardDescription>
-            Guarde su historial de preguntas y consulte hasta 50 por día.
-          </CardDescription>
+          <CardDescription>{signInPitch()}</CardDescription>
         </CardHeader>
         <CardContent>
           <SignInForm />

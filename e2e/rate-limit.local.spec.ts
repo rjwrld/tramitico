@@ -22,7 +22,7 @@ import { inlineAlert, UNMATCHABLE_QUESTION, WEAK_ANSWER_TEXT } from "./support";
  * consumes the ask. Keyless everywhere, refunded nowhere.
  */
 
-const NUDGE = "Alcanzó el límite de 1 preguntas gratis por hoy";
+const NUDGE = "Alcanzó el límite de 1 pregunta por hoy";
 /** es-CR reset time, e.g. "después de las 6:00 p. m." */
 const RESET_TIME = /después de las \d{1,2}:\d{2}/;
 
@@ -65,10 +65,12 @@ test("the second anonymous ask renders the real 429 copy inline", async ({
   await enviar.click();
 
   // Second ask: the real fixed-window 429, rendered inline with the limit,
-  // the sign-in nudge, and the reset time (SPEC §7 copy from #24).
+  // the sign-in nudge, and the reset time (SPEC §7 copy from #24). The nudge
+  // names a number only because this lane's anonymous limit (1) is below the
+  // signed-in default (10); with equal tiers it pitches the history (#501).
   const alert = inlineAlert(page, NUDGE);
   await expect(alert).toContainText(
-    "Inicie sesión para tener 50 preguntas diarias",
+    "Inicie sesión para tener 10 preguntas diarias",
   );
   await expect(alert).toContainText(RESET_TIME);
 });

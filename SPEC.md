@@ -333,7 +333,10 @@ _(pinned here per #10)_
   providers **[ADR 0022](docs/adr/0022-identity-linking-trust-boundary.md)** lists (#381).
 - **Anonymous: 10 questions/day** per subject = `HMAC-SHA256(RATE_LIMIT_SUBJECT_SECRET,
 crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed from an IP,
-  date-scoped so it doesn't link across days). **Authed: 50/day** per user.
+  date-scoped so it doesn't link across days). **Authed: 10/day** per user — the same as
+  anonymous (#501: the Anthropic workspace's monthly cap bounds every ask, and account churn
+  multiplies the authed limit). Sign-in copy — the anonymous 429, `/login` — pitches more
+  questions only while `RATE_LIMIT_AUTHED` exceeds `RATE_LIMIT_ANON`, the saved history otherwise.
 - **Per-IP umbrella (#383):** every anonymous ask is also counted against
   `HMAC-SHA256(RATE_LIMIT_SUBJECT_SECRET, crDate + IP)` — one row per IP that all browser
   families share — with a ceiling of `RATE_LIMIT_ANON_IP` (default 3 × the anonymous

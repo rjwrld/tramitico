@@ -62,6 +62,7 @@
  */
 import catalogue from "../../../eval/step-catalogue.json";
 import { FAMILIES, type Family } from "../eval/dataset";
+import { modeKnob } from "../knobs";
 import { normaliseQuestion, wordPatterns } from "../routing";
 
 /** One family's entry as committed beside the dataset. */
@@ -260,13 +261,15 @@ export function stepProbe(question: string): StepProbe | null {
     : { family, sentences: [...STEP_CATALOGUE[family].steps] };
 }
 
+const stepsKnob = modeKnob("STEPS", ["on", "off"], "on");
+
 /**
  * Whether an ask searches the catalogue at all — the one place that decides.
- * `STEPS=off` opts out, read with `||` like `EXPAND` and `RERANK` because CI
- * interpolates an unset variable as "" and that must still mean "default
- * on". No key is involved: the catalogue needs only the embedder the
- * question already uses, so the integration lanes run it too.
+ * `STEPS=off` opts out, read like `EXPAND` and `RERANK` (knobs.ts): unset and
+ * the "" CI interpolates for an unset variable mean on, and so does any value
+ * but `on` or `off`, logged. No key is involved: the catalogue needs only the
+ * embedder the question already uses, so the integration lanes run it too.
  */
 export function stepsEnabled(): boolean {
-  return (process.env.STEPS || "on") !== "off";
+  return stepsKnob() === "on";
 }

@@ -29,7 +29,7 @@ One line per request to `/api/ask`, whatever the request did, written from
 `src/lib/telemetry.ts`:
 
 ```
-tramitico.event {"event":"ask","outcome":"ok","latency":"1s_3s","stages":{"condense":"lt_1s","retrieve":"lt_1s","rerank":"lt_1s","generate":"1s_3s","validate":"lt_1s","persist":null},"generations":[{"latency":"1s_3s","firstText":"lt_1s","cache":"read","finishReason":"stop","refusal":null}],"providerError":null,"citationFailure":false,"quotaHit":false,"quotaReason":null,"abort":null,"routedCategory":null,"rerankDrops":[]}
+tramitico.event {"event":"ask","outcome":"ok","latency":"1s_3s","stages":{"condense":"lt_1s","retrieve":"lt_1s","rerank":"lt_1s","generate":"1s_3s","validate":"lt_1s","persist":null},"generations":[{"latency":"1s_3s","firstText":"lt_1s","cache":"read","finishReason":"stop","refusal":null}],"providerError":null,"citationFailure":false,"quotaHit":false,"quotaReason":null,"abort":null,"routedCategory":null,"rerankDrops":[],"rerank":"on"}
 ```
 
 | Field             | Values                                                                                                                                                                                                                                                                                                                           | Means                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
@@ -49,6 +49,7 @@ tramitico.event {"event":"ask","outcome":"ok","latency":"1s_3s","stages":{"conde
 | `abort`           | `client` / `deadline` / `null`                                                                                                                                                                                                                                                                                                   | cut short: the client's signal (Detener or a network drop — refunded only if it landed before retrieval began), or the route's own ~50 s deadline expiring before the platform kill (a system failure: `refunded_error` before generation began, `charged_error` after)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `routedCategory`  | `general` `hacienda` `ccss` `ins` `municipal` `registro-nacional` `colegios` `bancos` `meic` `migracion` `mtss` `contadores` / `null`                                                                                                                                                                                            | which institution the honest decline sent the reader to (#264) — non-null exactly on a weak-retrieval decline; `null` on every other ask, the #131 fail-closed decline included. A closed enum from `routing.ts`, derived by a keyword table; never the question. `contadores` (#285) is the one value that is not an institution: the question asked what to charge or which professional to hire                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `rerankDrops`     | array of `429` / `4xx` / `5xx` / `other_status` / `timeout` / `network` / `unreadable`, or `null`                                                                                                                                                                                                                                | one entry per rerank reading this ask lost (#466) — the question's, its expansion's or a step sentence's Voyage call; its length is the count. A lost reading is not an error: the answer is built from the readings that came back (all lost → the fused order), so the outcome stays `ok`, but the answer set may differ from the one a clean rerank would have chosen. `[]` when every reading came back; `null` when the rerank never called Voyage (a weak-retrieval decline, an ask that ended before it, `RERANK=off`). The number of readings _asked_ is deliberately absent: it depends on the step family the question classified to, which is a topic                                                                                                                                                                                                     |
+| `rerank`          | `on` / `off`                                                                                                                                                                                                                                                                                                                     | the `RERANK` mode the deployment is configured with (#499), read as `rerank.ts` reads it — so an unknown value is `on`, the mode the pipeline actually runs. Configured, not performed: it tells `RERANK=off` apart from the other ways `rerankDrops` is `null` (no Voyage key, a decline, an ask that ended before the rerank). Production is `on`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
 The prefix `tramitico.event` is a contract. It is a constant in `telemetry.ts`, it is
 quoted in every query below, and renaming it silently breaks all of them.
@@ -127,20 +128,30 @@ the ask proceeds down the ordinary path. That path can still find little and dec
 later in answer generation — this line says only that the search was the pre-expansion one.
 `EXPAND=off` turns the call off entirely if it ever needs to be shed.
 
-| Prefix                                | From                              | Carries                                     |
-| ------------------------------------- | --------------------------------- | ------------------------------------------- |
-| `ask: citation invariant violated`    | `src/lib/answer/invariant.ts`     | `violation=`, `attempt=`, `unresolved=`     |
-| `retrieval: degraded to lexical-only` | `src/lib/retrieval.ts`            | `reason=timeout\|error`, `error=`           |
-| `ask: history save failed`            | `src/lib/answer/persist.ts`       | `kind=answer\|decline`, `error=`            |
-| `ask: condensation failed`            | `src/lib/answer/condense.ts`      | `reason=timeout\|error\|unusable`, `error=` |
-| `ask: expansion failed`               | `src/lib/answer/expand.ts`        | `reason=timeout\|error\|unusable`, `error=` |
-| `rate limit: unavailable`             | `src/lib/rate-limit.ts`           | `error=`                                    |
-| `[csp-report] violation`              | `src/app/api/csp-report/route.ts` | `directive=`, `blocked=`, `document=`       |
+| Prefix                                | From                              | Carries                                                    |
+| ------------------------------------- | --------------------------------- | ---------------------------------------------------------- |
+| `ask: citation invariant violated`    | `src/lib/answer/invariant.ts`     | `violation=`, `attempt=`, `unresolved=`                    |
+| `retrieval: degraded to lexical-only` | `src/lib/retrieval.ts`            | `reason=timeout\|error`, `error=`                          |
+| `ask: history save failed`            | `src/lib/answer/persist.ts`       | `kind=answer\|decline`, `error=`                           |
+| `ask: condensation failed`            | `src/lib/answer/condense.ts`      | `reason=timeout\|error\|unusable`, `error=`                |
+| `ask: expansion failed`               | `src/lib/answer/expand.ts`        | `reason=timeout\|error\|unusable`, `error=`                |
+| `rate limit: unavailable`             | `src/lib/rate-limit.ts`           | `error=`                                                   |
+| `[csp-report] violation`              | `src/app/api/csp-report/route.ts` | `directive=`, `blocked=`, `document=`                      |
+| `config: unknown knob value`          | `src/lib/knobs.ts`                | `NAME="value"`, the accepted modes, the mode it is read as |
 
 `rate limit: unavailable` is the whole diagnosis of a 503 (§1.3): the ask never reached the
 telemetry event, so this line and its `error=` token — a `PostgrestError#…`, a
 `TypeError`, an `Error` from a missing `RATE_LIMIT_SUBJECT_SECRET` — are the only signal
 there is. One line per denied ask, so it also counts the blast radius.
+
+`config: unknown knob value` (#499) is an environment variable that switches a pipeline
+stage — `RERANK`, `EXPAND`, `STEPS`, `STEPS_RERANK`, `PIN_DERIVED_INPUTS` — set to a word
+it does not accept. The ask carries on in the variable's default mode, the production
+pipeline, and the line repeats once per cold start until the variable is fixed in Vercel
+and redeployed. Only the exact word `off` (or a listed mode) opts out; `RERANK=on` kept
+production unreranked from launch to #498 because nothing said so. A value that does not
+look like a mode is reported by its length, never printed: it may be a key pasted into the
+wrong variable.
 
 `[csp-report] violation` carries only what an unauthenticated caller cannot use as a
 channel: a directive name, the blocked load's **origin**, the document's **path**. Anything
@@ -218,6 +229,8 @@ result count over the selected timeline.
 | Q16 | Answers the model refused              | `"finishReason":"refusal"` — read `refusal` off the matching lines. A tax question has no business tripping a classifier, so a steady trickle (`general_harms` above all) is a prompt or model question, not noise                                                           |
 | Q17 | Drafts the output cap cut off          | `"finishReason":"length"` — thinking and answer share `ANSWER_MAX_OUTPUT_TOKENS`; a rise after an effort or model change means the cap, not the model, is declining those asks                                                                                               |
 | Q18 | Asks that lost a rerank reading (#466) | `"rerankDrops":["` — read the classes off the matching lines; the rate is this over `"rerankDrops":[` (asks whose rerank ran). `429` is Voyage's rate limit, the load #457 measured in eval; a steady share is the case for retrying a rejected reading (#466 requirement 3) |
+| Q19 | Rerank configured off (#499)           | `"rerank":"off"` — zero in production; any match is `RERANK=off` in the environment, deliberate or not                                                                                                                                                                       |
+| Q20 | Knob set to an unknown value (#499)    | `config: unknown knob value` — any match is a misconfigured variable, and the line names it. Fix it in Vercel and redeploy                                                                                                                                                   |
 
 **Error rate = (Q2 + its `charged_error` row) ÷ Q1** over the same timeline. That is the
 number §4 is written against. Note what is deliberately _not_ in the numerator: `declined`
@@ -225,7 +238,7 @@ number §4 is written against. Note what is deliberately _not_ in the numerator:
 a delivered answer.
 
 `refunded_error`, `charged_error` and the prefixes in §1.2 are unique strings in this
-codebase, so those queries need no quoting. Q3, Q4, Q6, Q8, Q9 and Q18 match on JSON fragments;
+codebase, so those queries need no quoting. Q3, Q4, Q6, Q8, Q9, Q18 and Q19 match on JSON fragments;
 if the search box ever mangles the punctuation, fall back to the bare token (`degraded`,
 `gte_30s`) plus `tramitico.event`.
 
@@ -586,10 +599,12 @@ development use a **separate workspace and key**, so an authorized eval run (`ev
 beside `ANTHROPIC_API_KEY` in `.env.example`.
 
 **What is not capped.** Voyage AI (embeddings and rerank) has no per-workspace spend limit
-that this runbook knows of; the same stranger can drive it, one embedding call per ask.
+that this runbook knows of; the same stranger can drive it, up to seven embedding calls per ask (the question, its
+expansion and each step sentence; the sentences are fixed, so the query cache usually serves them).
 Its free allowance is large and the per-subject quota still applies, so it is accepted,
-not solved. If Voyage starts billing, the knob is `RERANK=off` (one call fewer per ask)
-and, in the extreme, `EMBEDDINGS_PROVIDER=stub`, which the app labels as `degraded` and
+not solved. If Voyage starts billing, the knob is `RERANK=off`: up to seven calls fewer per
+ask — the question's reading, its expansion's (#296) and one per step sentence of the family
+it classified to (#304, at most five today) — and, in the extreme, `EMBEDDINGS_PROVIDER=stub`, which the app labels as `degraded` and
 answers on lexical search alone (#127).
 
 **Google's consent screen names `<ref>.supabase.co`, not Tramitico.** Google prints the app
