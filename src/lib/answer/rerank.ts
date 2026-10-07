@@ -3,9 +3,12 @@
  * /api/ask retrieves a pool of RERANK_POOL fused candidates; when
  * Voyage rerank-2.5-lite narrows them to ANSWER_TOP_K. On by default since
  * the #25 eval validated the lift (canary at fused #20 → reranked top-8;
- * hit-rate 19→25 of 25); `RERANK=off` opts out. Any rerank failure —
- * missing key, HTTP error, timeout — falls back to the fused order.
- * Reranking must never fail the ask.
+ * hit-rate 19→25 of 25); `RERANK=off` opts out. Any other value — `on`
+ * included — reranks and logs one `console.error` per cold start (#499,
+ * knobs.ts): production ran unreranked from launch to #498 because the
+ * wizard wrote `RERANK=on` and this module read it as off without a word.
+ * Any rerank failure — missing key, HTTP error, timeout — falls back to the
+ * fused order. Reranking must never fail the ask.
  *
  * Since #287 the Voyage call asks for the *whole* pool in rank order rather
  * than only its top 8, and the cut to the answer set happens here. Voyage
@@ -50,6 +53,7 @@
  * lost a case that concatenation held.
  */
 import type { RetrievalResult, RetrievedChunk } from "../retrieval";
+import { modeKnob } from "../knobs";
 import { isDerivedFigureInput, pinDerivedFigureInputs } from "./derived";
 
 /**
@@ -333,16 +337,25 @@ export interface RerankedChunk {
   rank: number;
 }
 
-/** The step-rerank mode in force; anything unrecognised is the constant. */
-export function stepRerankMode(): StepRerankMode {
-  const raw = process.env.STEPS_RERANK;
-  return raw === "pin" ||
-    raw === "pin1" ||
-    raw === "slot" ||
-    raw === "max" ||
-    raw === "off"
-    ? raw
-    : STEP_RERANK_MODE;
+/**
+ * The step-rerank mode in force: `STEPS_RERANK`, or the constant when it is
+ * unset, empty or unrecognised — the last logged (knobs.ts).
+ */
+export const stepRerankMode = modeKnob<StepRerankMode>(
+  "STEPS_RERANK",
+  ["pin", "pin1", "slot", "max", "off"],
+  STEP_RERANK_MODE,
+);
+
+const rerankKnob = modeKnob("RERANK", ["voyage", "off"], "voyage");
+
+/**
+ * Whether the rerank is configured on — `RERANK` unset, empty, `voyage`, or
+ * an unknown value (logged). Configured, not performed: an unkeyed ask is
+ * still `true` here and still never calls Voyage.
+ */
+export function rerankEnabled(): boolean {
+  return rerankKnob() === "voyage";
 }
 
 /** Whether the mode in force pins step picks past the cut at all. */
@@ -519,9 +532,7 @@ export async function rerankReadings(
   chunks: readonly RetrievedChunk[],
   options: RerankOptions = {},
 ): Promise<RerankOutcome | null> {
-  // `||`, not `??`: CI interpolates an unset `vars.RERANK` as "", which must
-  // mean "default on" — only an explicit RERANK=off opts out.
-  if ((process.env.RERANK || "voyage") !== "voyage") return null;
+  if (!rerankEnabled()) return null;
 
   const key = process.env.VOYAGE_API_KEY;
   if (!key) return null;

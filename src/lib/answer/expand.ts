@@ -48,6 +48,7 @@
 import { generateText } from "ai";
 import manifest from "../../../corpus/manifest.json";
 import { getExpandModel, REWRITE_PROVIDER_OPTIONS } from "./model";
+import { modeKnob } from "../knobs";
 import { describeError, timeoutOrError } from "../log-redaction";
 
 /**
@@ -157,14 +158,16 @@ export function cleanExpansion(raw: string): string {
  * does not carry a second copy of the policy.
  *
  * `EXPAND=off` opts out, mirroring `RERANK=off` (rerank.ts) and read the same
- * way, with `||` rather than `??`, because CI interpolates an unset
- * `vars.EXPAND` as "" and that must still mean "default on". No Anthropic key
+ * way (knobs.ts): unset and the "" CI interpolates for an unset `vars.EXPAND`
+ * mean on, and any value but `on` or `off` means on and is logged. No Anthropic key
  * is the other way out, and it is what the integration, e2e and pgTAP lanes —
  * which run with no secrets — rely on to get the two-leg contract without a
  * failed call and its warning on every ask.
  */
+const expandKnob = modeKnob("EXPAND", ["on", "off"], "on");
+
 export function expansionEnabled(): boolean {
-  if ((process.env.EXPAND || "on") === "off") return false;
+  if (expandKnob() === "off") return false;
   return Boolean(process.env.ANTHROPIC_API_KEY);
 }
 

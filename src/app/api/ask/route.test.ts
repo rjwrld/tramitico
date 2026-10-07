@@ -2684,6 +2684,7 @@ describe("POST /api/ask", () => {
         routedCategory: null,
         // RERANK=off in this file: the rerank never called Voyage.
         rerankDrops: null,
+        rerank: "off",
       });
     });
 
@@ -2709,6 +2710,7 @@ describe("POST /api/ask", () => {
       expect(soleEvent(capture)).toMatchObject({
         outcome: "ok",
         rerankDrops: voyage.mock.calls.map(() => "429"),
+        rerank: "on",
       });
     });
 
@@ -3181,6 +3183,7 @@ describe("POST /api/ask", () => {
         "providerError",
         "quotaHit",
         "quotaReason",
+        "rerank",
         "rerankDrops",
         "routedCategory",
         "stages",

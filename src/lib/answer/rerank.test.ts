@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { KNOB_ERROR_PREFIX } from "../knobs";
 import type { RetrievedChunk } from "../retrieval";
 import {
   ANSWER_DOC_CAP,
@@ -17,6 +18,7 @@ import {
   fuseByMaxScore,
   rerankOrder,
   rerankQueries,
+  rerankEnabled,
   rerankReadings,
   STEP_RERANK_MODE,
   STEP_SLOTS,
@@ -80,6 +82,39 @@ describe("rerankChunks", () => {
     const result = await rerankChunks("pregunta", POOL, { fetchImpl });
     expect(fetchImpl).toHaveBeenCalledOnce();
     expect(result.map((c) => c.chunkId)).toEqual(["c2"]);
+  });
+
+  it("reranks on RERANK=on, the value the wizard wrote, and logs it as an error (#499)", async () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.stubEnv("RERANK", "on");
+    vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify({ data: [{ index: 1, relevance_score: 1 }] }),
+          { status: 200 },
+        ),
+      );
+    const result = await rerankChunks("pregunta", POOL, { fetchImpl });
+    expect(fetchImpl).toHaveBeenCalledOnce();
+    expect(result.map((c) => c.chunkId)).toEqual(["c2"]);
+    expect(errors).toHaveBeenCalledWith(
+      expect.stringContaining(`${KNOB_ERROR_PREFIX} RERANK="on"`),
+    );
+  });
+
+  it("rerankEnabled is off only on an explicit RERANK=off (#499)", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    for (const [value, enabled] of [
+      ["", true],
+      ["voyage", true],
+      ["off", false],
+      ["Off", true],
+    ] as const) {
+      vi.stubEnv("RERANK", value);
+      expect(rerankEnabled()).toBe(enabled);
+    }
   });
 
   it("reorders via Voyage and returns top-8 when RERANK=voyage", async () => {
@@ -328,8 +363,12 @@ describe("the step catalogue at the rerank (#304)", () => {
       vi.stubEnv("STEPS_RERANK", mode);
       expect(stepRerankMode()).toBe(mode);
     }
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
     vi.stubEnv("STEPS_RERANK", "sideways");
     expect(stepRerankMode()).toBe(STEP_RERANK_MODE);
+    expect(errors).toHaveBeenCalledWith(
+      expect.stringContaining(`${KNOB_ERROR_PREFIX} STEPS_RERANK="sideways"`),
+    );
   });
 
   it("pin: keeps the question's order and appends each sentence's best chunk past the cut", async () => {
