@@ -253,6 +253,13 @@ function interactiveQueryEmbedder(
   };
 }
 
+/**
+ * The embedder `EMBEDDINGS_PROVIDER` names. An unknown provider throws rather
+ * than reading as the default the way the other mode knobs do (#499,
+ * knobs.ts): the stub in place of a real provider would quietly answer on
+ * meaningless vectors, and the provider list is a privacy contract (#209), so
+ * a name not on it must stop the ask or the ingest, not be guessed at.
+ */
 export function createEmbedder(
   // `||`, not `??`: CI interpolates an unset `vars.EMBEDDINGS_PROVIDER` as
   // "", which must mean the keyless stub default, not an unknown provider.

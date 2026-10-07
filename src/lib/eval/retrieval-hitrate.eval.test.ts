@@ -50,6 +50,7 @@ import {
   answerTopK,
   RERANK_MODEL,
   RERANK_POOL,
+  rerankEnabled,
   rerankOptionsFor,
   rerankReadings,
   stepRerankMode,
@@ -185,7 +186,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
   // fails while a subset is selected, naming it.
   const subset = subsetSpec();
   const results: CaseResult[] = [];
-  const rerankMode = process.env.RERANK || "voyage";
+  const rerankMode = rerankEnabled() ? "voyage" : "off";
   const expandMode = expansionEnabled() ? "on" : "off";
   const stepsMode = stepsEnabled() ? `on(${stepRerankMode()})` : "off";
   const topKSize = answerTopK();

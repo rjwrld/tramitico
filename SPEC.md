@@ -174,7 +174,9 @@ Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3))
   The current annual set is tramos, salario base, salarios mínimos, both CCSS escalas, and the
   retained CCSS BMC adjustment mechanism. An unchanged source whose legal start predates the
   current period keeps that true `effective_date` and records the annual check in
-  `verifiedForFiscalYear`.
+  `verifiedForFiscalYear`. At runtime, retrieval drops every chunk from an annual source that
+  does not cover the current Costa Rican fiscal year, so next year's source can be ingested
+  beside this year's and takes over on 1 January (ADR 0016 amendment, #505).
 
 ## 4. Ingestion & chunking
 
@@ -331,7 +333,10 @@ _(pinned here per #10)_
   providers **[ADR 0022](docs/adr/0022-identity-linking-trust-boundary.md)** lists (#381).
 - **Anonymous: 10 questions/day** per subject = `HMAC-SHA256(RATE_LIMIT_SUBJECT_SECRET,
 crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed from an IP,
-  date-scoped so it doesn't link across days). **Authed: 50/day** per user.
+  date-scoped so it doesn't link across days). **Authed: 10/day** per user — the same as
+  anonymous (#501: the Anthropic workspace's monthly cap bounds every ask, and account churn
+  multiplies the authed limit). Sign-in copy — the anonymous 429, `/login` — pitches more
+  questions only while `RATE_LIMIT_AUTHED` exceeds `RATE_LIMIT_ANON`, the saved history otherwise.
 - **Per-IP umbrella (#383):** every anonymous ask is also counted against
   `HMAC-SHA256(RATE_LIMIT_SUBJECT_SECRET, crDate + IP)` — one row per IP that all browser
   families share — with a ceiling of `RATE_LIMIT_ANON_IP` (default 3 × the anonymous

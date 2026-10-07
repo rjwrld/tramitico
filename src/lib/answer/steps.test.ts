@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it, afterEach, vi } from "vitest";
 import { DERIVED_FIGURES, formatCostaRicanColones } from "./derived";
+import { KNOB_ERROR_PREFIX } from "../knobs";
 import { parseCorpusIndex, CORPUS_INDEX_PATH } from "../eval/corpus-index";
 import { DATASET_PATH, FAMILIES, parseDataset } from "../eval/dataset";
 import {
@@ -186,6 +187,7 @@ describe("stepProbe (#304)", () => {
 describe("stepsEnabled", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
+    vi.restoreAllMocks();
   });
 
   it("is on by default, and when CI interpolates an unset variable as empty", () => {
@@ -198,5 +200,14 @@ describe("stepsEnabled", () => {
     expect(stepsEnabled()).toBe(false);
     vi.stubEnv("STEPS", "on");
     expect(stepsEnabled()).toBe(true);
+  });
+
+  it("stays on under an unknown value, and logs it as an error (#499)", () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.stubEnv("STEPS", "no");
+    expect(stepsEnabled()).toBe(true);
+    expect(errors).toHaveBeenCalledWith(
+      expect.stringContaining(`${KNOB_ERROR_PREFIX} STEPS="no"`),
+    );
   });
 });

@@ -1,5 +1,6 @@
 /** Deterministic, source-gated arithmetic for figures no corpus chunk states. */
 import manifest from "../../../corpus/manifest.json";
+import { modeKnob } from "../knobs";
 import type { RetrievedChunk } from "../retrieval";
 import { citationMarkers } from "./citations";
 
@@ -469,11 +470,14 @@ export function incompletelyCitedDerivedFigures(
 /**
  * Whether the pin runs. Unset and the empty string CI interpolates for an
  * unset variable both mean on, like `RERANK` and `EXPAND`; only an explicit
- * `off` opts out, for the measured baseline.
+ * `off` opts out, for the measured baseline, and any other value is on and
+ * logged (knobs.ts).
  */
 export function pinEnabled(): boolean {
-  return (process.env.PIN_DERIVED_INPUTS || "on") !== "off";
+  return pinKnob() === "on";
 }
+
+const pinKnob = modeKnob("PIN_DERIVED_INPUTS", ["on", "off"], "on");
 
 export function pinDerivedFigureInputs(
   answerSet: readonly RetrievedChunk[],

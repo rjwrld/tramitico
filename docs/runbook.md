@@ -29,7 +29,7 @@ One line per request to `/api/ask`, whatever the request did, written from
 `src/lib/telemetry.ts`:
 
 ```
-tramitico.event {"event":"ask","outcome":"ok","latency":"1s_3s","stages":{"condense":"lt_1s","retrieve":"lt_1s","rerank":"lt_1s","generate":"1s_3s","validate":"lt_1s","persist":null},"generations":[{"latency":"1s_3s","firstText":"lt_1s","cache":"read","finishReason":"stop","refusal":null}],"providerError":null,"citationFailure":false,"quotaHit":false,"quotaReason":null,"abort":null,"routedCategory":null,"rerankDrops":[]}
+tramitico.event {"event":"ask","outcome":"ok","latency":"1s_3s","stages":{"condense":"lt_1s","retrieve":"lt_1s","rerank":"lt_1s","generate":"1s_3s","validate":"lt_1s","persist":null},"generations":[{"latency":"1s_3s","firstText":"lt_1s","cache":"read","finishReason":"stop","refusal":null}],"providerError":null,"citationFailure":false,"quotaHit":false,"quotaReason":null,"abort":null,"routedCategory":null,"rerankDrops":[],"rerank":"on"}
 ```
 
 | Field             | Values                                                                                                                                                                                                                                                                                                                           | Means                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
@@ -49,6 +49,7 @@ tramitico.event {"event":"ask","outcome":"ok","latency":"1s_3s","stages":{"conde
 | `abort`           | `client` / `deadline` / `null`                                                                                                                                                                                                                                                                                                   | cut short: the client's signal (Detener or a network drop — refunded only if it landed before retrieval began), or the route's own ~50 s deadline expiring before the platform kill (a system failure: `refunded_error` before generation began, `charged_error` after)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `routedCategory`  | `general` `hacienda` `ccss` `ins` `municipal` `registro-nacional` `colegios` `bancos` `meic` `migracion` `mtss` `contadores` / `null`                                                                                                                                                                                            | which institution the honest decline sent the reader to (#264) — non-null exactly on a weak-retrieval decline; `null` on every other ask, the #131 fail-closed decline included. A closed enum from `routing.ts`, derived by a keyword table; never the question. `contadores` (#285) is the one value that is not an institution: the question asked what to charge or which professional to hire                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `rerankDrops`     | array of `429` / `4xx` / `5xx` / `other_status` / `timeout` / `network` / `unreadable`, or `null`                                                                                                                                                                                                                                | one entry per rerank reading this ask lost (#466) — the question's, its expansion's or a step sentence's Voyage call; its length is the count. A lost reading is not an error: the answer is built from the readings that came back (all lost → the fused order), so the outcome stays `ok`, but the answer set may differ from the one a clean rerank would have chosen. `[]` when every reading came back; `null` when the rerank never called Voyage (a weak-retrieval decline, an ask that ended before it, `RERANK=off`). The number of readings _asked_ is deliberately absent: it depends on the step family the question classified to, which is a topic                                                                                                                                                                                                     |
+| `rerank`          | `on` / `off`                                                                                                                                                                                                                                                                                                                     | the `RERANK` mode the deployment is configured with (#499), read as `rerank.ts` reads it — so an unknown value is `on`, the mode the pipeline actually runs. Configured, not performed: it tells `RERANK=off` apart from the other ways `rerankDrops` is `null` (no Voyage key, a decline, an ask that ended before the rerank). Production is `on`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
 The prefix `tramitico.event` is a contract. It is a constant in `telemetry.ts`, it is
 quoted in every query below, and renaming it silently breaks all of them.
@@ -127,20 +128,30 @@ the ask proceeds down the ordinary path. That path can still find little and dec
 later in answer generation — this line says only that the search was the pre-expansion one.
 `EXPAND=off` turns the call off entirely if it ever needs to be shed.
 
-| Prefix                                | From                              | Carries                                     |
-| ------------------------------------- | --------------------------------- | ------------------------------------------- |
-| `ask: citation invariant violated`    | `src/lib/answer/invariant.ts`     | `violation=`, `attempt=`, `unresolved=`     |
-| `retrieval: degraded to lexical-only` | `src/lib/retrieval.ts`            | `reason=timeout\|error`, `error=`           |
-| `ask: history save failed`            | `src/lib/answer/persist.ts`       | `kind=answer\|decline`, `error=`            |
-| `ask: condensation failed`            | `src/lib/answer/condense.ts`      | `reason=timeout\|error\|unusable`, `error=` |
-| `ask: expansion failed`               | `src/lib/answer/expand.ts`        | `reason=timeout\|error\|unusable`, `error=` |
-| `rate limit: unavailable`             | `src/lib/rate-limit.ts`           | `error=`                                    |
-| `[csp-report] violation`              | `src/app/api/csp-report/route.ts` | `directive=`, `blocked=`, `document=`       |
+| Prefix                                | From                              | Carries                                                    |
+| ------------------------------------- | --------------------------------- | ---------------------------------------------------------- |
+| `ask: citation invariant violated`    | `src/lib/answer/invariant.ts`     | `violation=`, `attempt=`, `unresolved=`                    |
+| `retrieval: degraded to lexical-only` | `src/lib/retrieval.ts`            | `reason=timeout\|error`, `error=`                          |
+| `ask: history save failed`            | `src/lib/answer/persist.ts`       | `kind=answer\|decline`, `error=`                           |
+| `ask: condensation failed`            | `src/lib/answer/condense.ts`      | `reason=timeout\|error\|unusable`, `error=`                |
+| `ask: expansion failed`               | `src/lib/answer/expand.ts`        | `reason=timeout\|error\|unusable`, `error=`                |
+| `rate limit: unavailable`             | `src/lib/rate-limit.ts`           | `error=`                                                   |
+| `[csp-report] violation`              | `src/app/api/csp-report/route.ts` | `directive=`, `blocked=`, `document=`                      |
+| `config: unknown knob value`          | `src/lib/knobs.ts`                | `NAME="value"`, the accepted modes, the mode it is read as |
 
 `rate limit: unavailable` is the whole diagnosis of a 503 (§1.3): the ask never reached the
 telemetry event, so this line and its `error=` token — a `PostgrestError#…`, a
 `TypeError`, an `Error` from a missing `RATE_LIMIT_SUBJECT_SECRET` — are the only signal
 there is. One line per denied ask, so it also counts the blast radius.
+
+`config: unknown knob value` (#499) is an environment variable that switches a pipeline
+stage — `RERANK`, `EXPAND`, `STEPS`, `STEPS_RERANK`, `PIN_DERIVED_INPUTS` — set to a word
+it does not accept. The ask carries on in the variable's default mode, the production
+pipeline, and the line repeats once per cold start until the variable is fixed in Vercel
+and redeployed. Only the exact word `off` (or a listed mode) opts out; `RERANK=on` kept
+production unreranked from launch to #498 because nothing said so. A value that does not
+look like a mode is reported by its length, never printed: it may be a key pasted into the
+wrong variable.
 
 `[csp-report] violation` carries only what an unauthenticated caller cannot use as a
 channel: a directive name, the blocked load's **origin**, the document's **path**. Anything
@@ -218,6 +229,8 @@ result count over the selected timeline.
 | Q16 | Answers the model refused              | `"finishReason":"refusal"` — read `refusal` off the matching lines. A tax question has no business tripping a classifier, so a steady trickle (`general_harms` above all) is a prompt or model question, not noise                                                           |
 | Q17 | Drafts the output cap cut off          | `"finishReason":"length"` — thinking and answer share `ANSWER_MAX_OUTPUT_TOKENS`; a rise after an effort or model change means the cap, not the model, is declining those asks                                                                                               |
 | Q18 | Asks that lost a rerank reading (#466) | `"rerankDrops":["` — read the classes off the matching lines; the rate is this over `"rerankDrops":[` (asks whose rerank ran). `429` is Voyage's rate limit, the load #457 measured in eval; a steady share is the case for retrying a rejected reading (#466 requirement 3) |
+| Q19 | Rerank configured off (#499)           | `"rerank":"off"` — zero in production; any match is `RERANK=off` in the environment, deliberate or not                                                                                                                                                                       |
+| Q20 | Knob set to an unknown value (#499)    | `config: unknown knob value` — any match is a misconfigured variable, and the line names it. Fix it in Vercel and redeploy                                                                                                                                                   |
 
 **Error rate = (Q2 + its `charged_error` row) ÷ Q1** over the same timeline. That is the
 number §4 is written against. Note what is deliberately _not_ in the numerator: `declined`
@@ -225,30 +238,74 @@ number §4 is written against. Note what is deliberately _not_ in the numerator:
 a delivered answer.
 
 `refunded_error`, `charged_error` and the prefixes in §1.2 are unique strings in this
-codebase, so those queries need no quoting. Q3, Q4, Q6, Q8, Q9 and Q18 match on JSON fragments;
+codebase, so those queries need no quoting. Q3, Q4, Q6, Q8, Q9, Q18 and Q19 match on JSON fragments;
 if the search box ever mangles the punctuation, fall back to the bare token (`degraded`,
 `gte_30s`) plus `tramitico.event`.
 
 ### 2.2 Annual corpus churn (November–January)
 
-Start the annual pass when the first next-period decree appears in November; finish it before the
-new fiscal year can serve an answer. The manifest vigencia test turns red on 1 January while any
-`annualChurn` entry still names the prior year, so a missed pass blocks release.
+**Who acts: the owner (RJ).** An agent may prepare the manifest PR, but the source review and
+the ingest are the owner's, through `pnpm recrawl` from the main checkout (§2.3, #405). Finish
+by **31 December**.
 
-1. Check the new renta tramos, MTSS salarios mínimos, Poder Judicial salario base, both CCSS
-   contribution scales, and the retained CCSS BMC adjustment mechanism against their official
-   sources. For IVM, do a full re-verification before the current scale expires on 2028-12-31.
-2. Update each changed entry's URL/member/pages, `doc_key` when it carries a year,
-   `effective_date`, audit hash, notes, and derived-figure inputs. When an older rule remains
-   unchanged, preserve its true `effective_date` and advance `verifiedForFiscalYear`. Keep
-   `carriesFigures` and `annualChurn` explicit.
-3. Run `pnpm exec vitest run --project unit src/lib/ingestion/manifest-vigencia.test.ts` before
-   ingestion. A stale entry is a source-review task; do not move its date merely to make the test
-   green.
-4. Run `pnpm ingest` for the reviewed annual entries. Commit the resulting
-   `eval/corpus-index.json`, then run the unit, integration, pgTAP, and local browser lanes before
+**What the app does on its own (#505).** `retrieve()` withholds every chunk from an
+`annualChurn` source that does not cover the current Costa Rican fiscal year
+([ADR 0016 amendment](adr/0016-source-freshness-policy.md)). At midnight on 1 January, Costa
+Rica time, the chunks of a series with no source for the new year stop reaching the model, so
+no answer can quote last year's figure as current. An ask left with nothing corroborated
+declines. Next year's source can be
+ingested beside this year's in December. The runtime switches to it on 1 January with no
+deploy, so finishing early costs nothing.
+
+**The signals.** From **1 December** the manifest vigencia test warns about every series with
+no source for the coming year. In CI the warning is an annotation on each PR, and `pnpm recrawl`
+prints it. On 1 January a series with no source for the new year turns the unit gate red. After
+1 January the test also warns about each entry a newer one superseded, until it is retired.
+
+**Calendar (checked 2026-10-07 for the 2027 pass).** It lives here and not in ADR 0016 because
+it is operational and dated: the owner re-checks it every November, while the ADR records only
+the decision that does not move. Links are to the official publications.
+
+| Series              | Changes because                                                                                                                             | Published by, where                                                                                                                                                                                                                                | Last time                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | 2027                                                                                                                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tramos-renta`      | Ley 7092 arts. 15, 33, 34 and 64 b), as the decree cites them: the tramos and créditos follow the IPC every year                            | Hacienda, Decreto Ejecutivo in La Gaceta, each one repealing the last                                                                                                                                                                              | 2026: DE 45333-H, [La Gaceta 229, 2025-12-05](https://www.imprentanacional.go.cr/pub/2025/12/05/COMP_05_12_2025.pdf). 2025: DE 44772-H, [Alcance 195 to La Gaceta 227, 2024-12-03](https://www.imprentanacional.go.cr/pub/2024/12/03/ALCA195_03_12_2024.pdf). Hacienda's `TramosRenta2026.pdf` is the only year at that URL pattern, so do not guess the next one                                                                                                                 | New decree, early December. New entry `tramos-renta-2027`; no carry-over                                                                                                  |
+| `salario-base`      | Ley 7337 art. 2, read against the year's Ley de Presupuesto (the 2025 circular cites Ley 10.620)                                            | Consejo Superior of the Poder Judicial in December, then a Secretaría General circular in the Boletín Judicial; [Sala Tercera index](https://saladecasacionpenal.poder-judicial.go.cr/index.php/servicios/salarios-base-cuantias-en-materia-penal) | 2026: [Circular 246-2025](https://saladecasacionpenal.poder-judicial.go.cr/index.php/servicios/salarios-base-cuantias-en-materia-penal?download=905:base-salario-2026-circular-n-246-2025) (Consejo 2025-12-16, Boletín N.º 1, 2026-01-05). 2025: [Circular 258-2024](https://saladecasacionpenal.poder-judicial.go.cr/index.php/servicios/salarios-base-cuantias-en-materia-penal?download=809:circular-no-258-2024) (Consejo 2024-12-12, dated 2024-12-13). ¢462.200 both years | Circular expected mid-December, Boletín in early January. New entry `salario-base-2027` even if the figure holds: the doc_key and the circular carry the year             |
+| `salarios-minimos`  | Ley 832 arts. 16–18: the Consejo Nacional de Salarios fixes them for one year, by 1 November; an MTSS decree makes them effective 1 January | Consejo Nacional de Salarios, then an MTSS Decreto Ejecutivo in La Gaceta or an Alcance; [MTSS page](https://www.mtss.go.cr/temas-laborales/salarios/salario_minimo.html)                                                                          | 2026: CNS sesión 5886 (2025-10-27), DE 45303-MTSS, [Alcance 156 to La Gaceta 229, 2025-12-05](https://www.imprentanacional.go.cr/pub/2025/12/05/ALCA156_05_12_2025.pdf). 2025: DE 44756-MTSS, [La Gaceta 232, 2024-12-10](https://www.imprentanacional.go.cr/pub/2024/12/10/COMP_10_12_2024.pdf)                                                                                                                                                                                  | New decree, late November to mid-December. New entry `salarios-minimos-2027`; no carry-over                                                                               |
+| `ccss-escala-ivm`   | Reglamento del Seguro de IVM art. 33 and Transitorio XI: scheduled rises                                                                    | CCSS Junta Directiva acuerdo, in its actas                                                                                                                                                                                                         | Ficha PE-DAE-1179-2025, [sesión 9570 anexos](https://www.ccss.sa.cr/arc/actas/2025/files/9570-b1201.zip) (2025-12-18): effective 2026-01-01, «rige hasta 2028-12-31»                                                                                                                                                                                                                                                                                                              | **Carry over.** Confirm that no December acuerdo replaced it, then set `verifiedForFiscalYear: 2027`. Its brackets are in SM, so the colón bounds move with the SM decree |
+| `ccss-escala-salud` | The Junta Directiva's escala for independientes and voluntarios; no scheduled step                                                          | CCSS Junta Directiva acuerdo, in its actas and La Gaceta                                                                                                                                                                                           | [Sesión 8999 art. 30](https://www.ccss.sa.cr/arc/actas/2018/11/8999.pdf) (2018), effective 2018-10-01; the 2026 adjustment touched IVM only                                                                                                                                                                                                                                                                                                                                       | **Carry over.** Same check, then `verifiedForFiscalYear: 2027`                                                                                                            |
+| `ccss-bmc`          | The BMC is a multiple of the salario mínimo, so its colón amount moves with the MTSS decree                                                 | CCSS, by the indexation acuerdo in [SINALEVI ficha 87782](https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=87782&param2=&param3=1&param4=); current amounts on [ccss.sa.cr/patronos](https://www.ccss.sa.cr/patronos)                 | Acuerdos Segundo–Cuarto, verified for 2026                                                                                                                                                                                                                                                                                                                                                                                                                                        | **Carry over** the mechanism (`verifiedForFiscalYear: 2027`). The colón figure is derived from the new `salarios-minimos` entry                                           |
+
+The tramos decree and the salarios mínimos decree came out the same day, 2025-12-05. Watch La
+Gaceta from late November. CCSS can change an escala at any Junta Directiva session, not only
+on 1 January. Coverage is counted in whole fiscal years, so add an entry that takes effect
+mid-year only once it does, and retire the one it replaces in the same PR.
+
+**Not caught by the runtime.** The drop is by source. Two sources that are not annual quote a
+year's figures: `ley-renta` (SINALEVI's consolidated Ley 7092: art. 15 carries the 2026 escala for personas
+físicas con actividades lucrativas) and `ccss-faq` (the transcribed `av_tv_2026` image holds the
+January 2026 escalas in colones). Check both in every pass, and re-crawl them once SINALEVI and
+CCSS publish the new year.
+
+**Steps.**
+
+1. Review each new source against its official publication above. For IVM, a full re-verification
+   is due before the current scale expires on 2028-12-31.
+2. A changed source gets a **new entry beside the current one**, with the year in its doc_key,
+   the new URL/member/pages, `effective_date` (1 January), audit hash and notes. Move the
+   `derivedFigures` whose inputs it supplies with it: the CNPT multas read `salario-base-*`, the
+   BMC reads `salarios-minimos*`. An unchanged source keeps its true `effective_date` and advances
+   `verifiedForFiscalYear`, which may happen in December because the entry still covers the year
+   it is in. Keep `carriesFigures` and `annualChurn` explicit.
+3. Run `pnpm exec vitest run --project unit src/lib/ingestion/manifest-vigencia.test.ts`. A series
+   that is still uncovered is a source-review task: do not move a date just to make the test green.
+4. `pnpm recrawl <doc_key…>` for the reviewed entries. Commit the resulting
+   `eval/corpus-index.json`, then run the unit, integration, pgTAP and local browser lanes before
    release.
-5. Query `documents` for the annual keys and verify their `effective_date` and `fetched_at`; open
+5. **In January**, retire each entry the test lists as superseded: move its doc_key to
+   `retiredDocKeys` with a `retirementNotes` line, retarget `eval/dataset.jsonl` and
+   `eval/step-catalogue.json` rows that name it, and `pnpm recrawl` so its rows are deleted.
+   Retrieval withholds a retired key from the moment the manifest deploys.
+6. Query `documents` for the annual keys and check their `effective_date` and `fetched_at`. Open
    one live answer and one history answer to confirm both sello dates render.
 
 ### 2.3 Quarterly re-crawl (owner-run, #405)
@@ -542,10 +599,12 @@ development use a **separate workspace and key**, so an authorized eval run (`ev
 beside `ANTHROPIC_API_KEY` in `.env.example`.
 
 **What is not capped.** Voyage AI (embeddings and rerank) has no per-workspace spend limit
-that this runbook knows of; the same stranger can drive it, one embedding call per ask.
+that this runbook knows of; the same stranger can drive it, up to seven embedding calls per ask (the question, its
+expansion and each step sentence; the sentences are fixed, so the query cache usually serves them).
 Its free allowance is large and the per-subject quota still applies, so it is accepted,
-not solved. If Voyage starts billing, the knob is `RERANK=off` (one call fewer per ask)
-and, in the extreme, `EMBEDDINGS_PROVIDER=stub`, which the app labels as `degraded` and
+not solved. If Voyage starts billing, the knob is `RERANK=off`: up to seven calls fewer per
+ask — the question's reading, its expansion's (#296) and one per step sentence of the family
+it classified to (#304, at most five today) — and, in the extreme, `EMBEDDINGS_PROVIDER=stub`, which the app labels as `degraded` and
 answers on lexical search alone (#127).
 
 **Google's consent screen names `<ref>.supabase.co`, not Tramitico.** Google prints the app
