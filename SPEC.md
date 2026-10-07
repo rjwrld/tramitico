@@ -174,7 +174,9 @@ Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3))
   The current annual set is tramos, salario base, salarios mínimos, both CCSS escalas, and the
   retained CCSS BMC adjustment mechanism. An unchanged source whose legal start predates the
   current period keeps that true `effective_date` and records the annual check in
-  `verifiedForFiscalYear`.
+  `verifiedForFiscalYear`. At runtime, retrieval drops every chunk from an annual source that
+  does not cover the current Costa Rican fiscal year, so next year's source can be ingested
+  beside this year's and takes over on 1 January (ADR 0016 amendment, #505).
 
 ## 4. Ingestion & chunking
 

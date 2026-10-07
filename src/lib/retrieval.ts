@@ -22,6 +22,7 @@ import { isCitation, parseCitations, type Citation } from "./citations";
 import { describeError, timeoutOrError } from "./log-redaction";
 import { expandQuery, expansionEnabled } from "./answer/expand";
 import { stepProbe, stepsEnabled, type StepProbe } from "./answer/steps";
+import { isWithheld, withheldSources, type VigenciaManifest } from "./vigencia";
 
 /**
  * What the `search_chunks` RPC rejecting looks like to a caller. Used to read
@@ -283,6 +284,14 @@ export interface RetrieveOptions {
    * skipped under `STEPS=off`; pass `null` to search without it.
    */
   steps?: StepCatalogue | null;
+  /** The clock the fiscal-year check reads (#505); tests pin it. */
+  now?: Date;
+  /**
+   * The manifest whose annual entries and retired keys are withheld (#505).
+   * Omit for the deployed `corpus/manifest.json`; tests hand in a fixture so
+   * a case does not move with the owner's annual pass.
+   */
+  vigencia?: VigenciaManifest;
 }
 
 /**
@@ -582,6 +591,14 @@ export async function retrieve(
     };
   }
 
+  const matchCount = options.matchCount ?? DEFAULT_MATCH_COUNT;
+  // #505: chunks from an annual source outside the current fiscal year
+  // cannot make an answer eligible (ADR 0016), but they still win fused
+  // ranks — next year's source sits beside this year's from December, and
+  // last year's until it is retired, with near-identical text. So while any
+  // is out of period the RPC is asked for twice the rows, and the count is
+  // refilled after they leave. Nothing out of period: the wire is unchanged.
+  const withheld = withheldSources(options.now, options.vigencia);
   const embedder = options.embedder ?? createEmbedder();
   const client = options.client ?? createRetrievalClient();
   const expander =
@@ -630,7 +647,7 @@ export async function retrieve(
   const { data, error } = await client.rpc("search_chunks", {
     query_text: trimmed,
     query_embedding: embedding === null ? null : JSON.stringify(embedding),
-    match_count: options.matchCount ?? DEFAULT_MATCH_COUNT,
+    match_count: withheld.outOfPeriod.size > 0 ? 2 * matchCount : matchCount,
     expansion_text: expansion,
     expansion_embedding:
       expansionEmbedding === null ? null : JSON.stringify(expansionEmbedding),
@@ -646,7 +663,14 @@ export async function retrieve(
     throw new SearchChunksError(error);
   }
 
-  const chunks = (data ?? []).map(toChunk);
+  // They leave before anything downstream reads the pool: the citations,
+  // `isWeak` (a pool left with nothing corroborated takes the honest
+  // decline), the rerank, and the derived-figure pin, which can only append
+  // from this pool.
+  const chunks = (data ?? [])
+    .map(toChunk)
+    .filter((chunk) => !isWithheld(withheld, chunk.docKey))
+    .slice(0, matchCount);
   const seen = new Set<string>();
   const citations: Citation[] = [];
   for (const chunk of chunks) {

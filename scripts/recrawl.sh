@@ -19,7 +19,8 @@
 # read. Then the steps the 2026-09-24 production ingest ran by hand:
 #
 #   1. the routing table's front doors still answer (`pnpm check:routing`);
-#   2. no annualChurn entry names a past fiscal year (manifest vigencia test);
+#   2. every annualChurn series covers the current fiscal year (manifest
+#      vigencia test, which also prints the #505 next-year warnings);
 #   3. `pnpm ingest` against production, with Voyage embeddings, in an
 #      environment holding only what it needs (scoped_ingest below);
 #   4. `eval/corpus-index.json`: the ingest writes it, formatted, only when

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { CR_UTC_OFFSET_MS } from "../cr-time";
+import { annualSeries, annualVigencia } from "../vigencia";
 
 interface ManifestEntry {
   doc_key: string;
@@ -16,29 +16,27 @@ const manifest = JSON.parse(
   readFileSync(path.join(process.cwd(), "corpus", "manifest.json"), "utf8"),
 ) as { documents: ManifestEntry[] };
 
-const crYear = (now = new Date()) =>
-  new Date(now.getTime() - CR_UTC_OFFSET_MS).getUTCFullYear();
+/** Series, not doc_keys: next year's entry may sit beside this year's (#505). */
+const seriesOf = (docs: ManifestEntry[]) => [
+  ...new Set(docs.map((doc) => annualSeries(doc.doc_key))),
+];
 
 describe("corpus/manifest.json vigencia", () => {
   it("marks the five figure sources and every annual source explicitly", () => {
     expect(
-      manifest.documents
-        .filter((doc) => doc.carriesFigures)
-        .map((doc) => doc.doc_key),
+      seriesOf(manifest.documents.filter((doc) => doc.carriesFigures)),
     ).toEqual([
-      "tramos-renta-2026",
-      "salario-base-2026",
+      "tramos-renta",
+      "salario-base",
       "ccss-escala-ivm",
       "ccss-escala-salud",
       "salarios-minimos",
     ]);
     expect(
-      manifest.documents
-        .filter((doc) => doc.annualChurn)
-        .map((doc) => doc.doc_key),
+      seriesOf(manifest.documents.filter((doc) => doc.annualChurn)),
     ).toEqual([
-      "tramos-renta-2026",
-      "salario-base-2026",
+      "tramos-renta",
+      "salario-base",
       "ccss-bmc",
       "ccss-escala-ivm",
       "ccss-escala-salud",
@@ -54,21 +52,36 @@ describe("corpus/manifest.json vigencia", () => {
     expect(undated).toEqual([]);
   });
 
-  it("keeps annual-churn sources in the current Costa Rican fiscal year", () => {
-    const currentYear = crYear();
-    const stale = manifest.documents
-      .filter((doc) => doc.annualChurn)
-      .filter(
-        (doc) =>
-          (doc.verifiedForFiscalYear ??
-            Number(doc.effective_date?.slice(0, 4))) !== currentYear,
-      )
-      .map(
-        (doc) =>
-          `${doc.doc_key}: ${doc.verifiedForFiscalYear ?? doc.effective_date ?? "sin período"}`,
-      );
+  it("covers every annual series in the current Costa Rican fiscal year", () => {
+    // An uncovered series is withheld from every answer by `retrieve()`;
+    // this is the release gate that says so first (ADR 0016, runbook §2.2).
+    expect(annualVigencia(manifest).uncovered).toEqual([]);
+  });
 
-    expect(stale).toEqual([]);
+  // #505: free and dated. From 1 December it names each annual series with
+  // no source for the coming fiscal year yet, and after 1 January each entry
+  // a newer one superseded. A warning, not a failure: the owner acts on it (runbook
+  // §2.2), and no PR should go red for a gazette that is not out. CI shows it
+  // as a PR annotation; `pnpm recrawl`, which runs this file, prints it.
+  it("warns from 1 December about next year's annual sources", ({
+    annotate,
+  }) => {
+    // Asserts nothing, on purpose: it can only warn.
+    const { dueForNextYear, superseded } = annualVigencia(manifest);
+    const warnings = [
+      ...dueForNextYear.map(
+        (series) =>
+          `${series}: no source for the next fiscal year yet — owner: runbook §2.2 (#505)`,
+      ),
+      ...superseded.map(
+        (docKey) =>
+          `${docKey}: superseded and withheld from answers — owner: retire it, runbook §2.2`,
+      ),
+    ];
+    for (const warning of warnings) {
+      console.warn(`vigencia: ${warning}`);
+      annotate(warning, "warning");
+    }
   });
 
   it("records the IVM re-verification required when its current scale expires", () => {
