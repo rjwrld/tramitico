@@ -290,14 +290,25 @@ export function HistoryShell({
         {/* One scroller for whatever the ground shows. A restored answer
             overflows it and scrolls here; the chat view brings its own
             `MessageScroller`, which resolves to exactly this height and so
-            leaves this one with nothing to scroll. */}
+            leaves this one with nothing to scroll.
+
+            A saved question sits *over* the chat rather than replacing it
+            (#491): replacing unmounted it, and `useChat`'s thread went with
+            it — open one mid-conversation, press «Volver», and the
+            conversation was gone, along with the `onFinish` of any ask still
+            in flight. `hidden` keeps it mounted and out of the layout and
+            the accessibility tree alike. */}
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
           <HistoryRefreshProvider value={refresh}>
-            {selected ? (
+            {selected && (
               <QAView item={selected} onBack={() => setSelected(null)} />
-            ) : (
-              children
             )}
+            <div
+              hidden={selected !== null}
+              className="flex min-h-0 flex-1 flex-col"
+            >
+              {children}
+            </div>
           </HistoryRefreshProvider>
         </div>
       </div>

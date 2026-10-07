@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import * as React from "react";
 import {
   cleanup,
   render,
@@ -507,6 +508,72 @@ describe("HistoryShell", () => {
         ).toBe(null),
       );
     });
+  });
+
+  /**
+   * #491: a saved question used to *replace* the children, which unmounted
+   * the chat and threw away `useChat`'s thread — open one mid-conversation,
+   * press «Volver», and the conversation was gone. The draft below stands in
+   * for that state: anything the chat holds must survive the round trip.
+   */
+  it("keeps the conversation alive while a saved question is open", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        questions: [
+          {
+            id: "q-1",
+            question: "¿Debo facturar electrónicamente?",
+            answer: "Sí…",
+            citations: [],
+            created_at: "2026-08-01T10:00:00Z",
+          },
+        ],
+      }),
+    });
+    function Conversation() {
+      const [draft, setDraft] = React.useState("");
+      return (
+        <input
+          aria-label="conversación en curso"
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+        />
+      );
+    }
+    render(
+      <HistoryShell signedIn>
+        <Conversation />
+      </HistoryShell>,
+    );
+    const nav = await screen.findByRole("navigation", { name: "Historial" });
+    const { default: userEvent } = await import("@testing-library/user-event");
+    await userEvent.type(
+      screen.getByRole("textbox", { name: "conversación en curso" }),
+      "IVA",
+    );
+
+    await userEvent.click(
+      within(nav).getByRole("button", {
+        name: /^¿Debo facturar electrónicamente\?/,
+      }),
+    );
+    // The saved answer is what shows; the conversation is out of the way.
+    expect(
+      screen.getByRole("heading", { name: "¿Debo facturar electrónicamente?" }),
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole("textbox", { name: "conversación en curso" }),
+    ).toBe(null);
+
+    await userEvent.click(screen.getByRole("button", { name: "Volver" }));
+    expect(
+      (
+        screen.getByRole("textbox", {
+          name: "conversación en curso",
+        }) as HTMLInputElement
+      ).value,
+    ).toBe("IVA");
   });
 
   // Refresh after a persisted answer (#138). The consumer stands in for the

@@ -6,6 +6,11 @@
 
 import { ArrowLeft } from "lucide-react";
 
+import {
+  AnswerFoot,
+  DISCLAIMER,
+  ROUTED_DISCLAIMER,
+} from "@/components/chat/answer-block";
 import { AnswerProse } from "@/components/chat/answer-prose";
 import { SelloRow } from "@/components/sello";
 import { Button } from "@/components/ui/button";
@@ -27,6 +32,12 @@ export function QAView({
   const citations = (
     Array.isArray(item.citations) ? item.citations : []
   ).filter(isCitation);
+  const text = dropUnbackedMarkers(item.answer, citations.length);
+  // The live answer knows a decline by its `data-routed` part, which is never
+  // saved. A saved row with no citations is a decline all the same — the
+  // #131 invariant puts at least one on every answer — and a decline names
+  // the institution to go to, so it closes on the routed line (#491).
+  const disclaimer = citations.length > 0 ? DISCLAIMER : ROUTED_DISCLAIMER;
 
   return (
     <article className="mx-auto flex w-full max-w-[44rem] flex-col gap-4 px-safe pt-8 pb-8 [--safe-pad:1.5rem]">
@@ -52,10 +63,13 @@ export function QAView({
           resolve, only orphans to drop. Rows saved before #133 have no
           markers at all and simply render without superscripts. */}
       <AnswerProse
-        text={dropUnbackedMarkers(item.answer, citations.length)}
+        text={text}
         references={{ count: citations.length, anchorPrefix: item.id }}
       />
       <SelloRow citations={citations} anchorPrefix={item.id} />
+      {/* DESIGN §9: the disclaimer is always present — on a saved answer as
+          much as a fresh one (#491). */}
+      <AnswerFoot text={text} citations={citations} disclaimer={disclaimer} />
     </article>
   );
 }

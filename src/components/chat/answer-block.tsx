@@ -293,18 +293,11 @@ export function AnswerBlock({
         <RoutedLinks category={routed} />
       )}
       {revealDone && text !== "" && (
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground italic">
-            {routed === null ? DISCLAIMER : ROUTED_DISCLAIMER}
-          </p>
-          <CopyAnswerButton
-            text={answerClipboardText(
-              text,
-              citations,
-              routed === null ? DISCLAIMER : ROUTED_DISCLAIMER,
-            )}
-          />
-        </div>
+        <AnswerFoot
+          text={text}
+          citations={citations}
+          disclaimer={routed === null ? DISCLAIMER : ROUTED_DISCLAIMER}
+        />
       )}
       <AskStatus state={statusState} />
     </div>
@@ -376,6 +369,30 @@ export function answerClipboardText(
     ...(sources.length > 0 ? [["Fuentes:", ...sources].join("\n")] : []),
     disclaimer,
   ].join("\n\n");
+}
+
+/**
+ * The line every answer closes on (DESIGN §6/§9): the disclaimer, always
+ * present, and beside it the answer's one action. Shared with the restored
+ * answer in the history view (#491), which read without either.
+ */
+export function AnswerFoot({
+  text,
+  citations,
+  disclaimer,
+}: {
+  text: string;
+  citations: Citation[];
+  disclaimer: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <p className="text-xs text-muted-foreground italic">{disclaimer}</p>
+      <CopyAnswerButton
+        text={answerClipboardText(text, citations, disclaimer)}
+      />
+    </div>
+  );
 }
 
 /**
