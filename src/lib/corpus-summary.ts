@@ -14,18 +14,21 @@ import type { Citation } from "./citations";
 /** How many official documents the corpus is ingested from. */
 export const CORPUS_DOCUMENT_COUNT: number = manifest.documents.length;
 
-/** `19 documentos oficiales · cada respuesta cita el artículo` */
-export function corpusCaption(documentCount: number): string {
+/**
+ * `23 documentos oficiales` — the count the empty state's scope sentence
+ * closes on («…citando el artículo de 23 documentos oficiales.»).
+ */
+export function corpusCount(documentCount: number): string {
   const noun =
     documentCount === 1 ? "documento oficial" : "documentos oficiales";
-  return `${documentCount} ${noun} · cada respuesta cita el artículo`;
+  return `${documentCount} ${noun}`;
 }
 
 /**
- * The documents the empty state stamps over its record line (#478): one per
+ * The documents the empty state stamps over its scope sentence (#478): one per
  * area a first question usually lands in — IVA, renta, the CCSS and
- * comprobantes. A sample, not a ranking; the caption under it carries the
- * full count and links to the whole list. Every key must be in the manifest
+ * comprobantes. A sample, not a ranking; the scope sentence under it carries
+ * the full count and links to the whole list. Every key must be in the manifest
  * (`corpus-summary.test.ts`), so a retired document cannot linger here.
  */
 export const CORPUS_SAMPLE_DOC_KEYS = [
@@ -37,7 +40,7 @@ export const CORPUS_SAMPLE_DOC_KEYS = [
 
 /**
  * The sample as stamps: whole documents, so no artículo, and no link — the
- * stamps illustrate the record line, whose own link goes to the full list.
+ * stamps illustrate the scope sentence, whose count links to the full list.
  */
 export function corpusSample(): Citation[] {
   return CORPUS_SAMPLE_DOC_KEYS.flatMap((key) => {

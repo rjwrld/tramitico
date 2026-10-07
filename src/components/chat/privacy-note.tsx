@@ -15,7 +15,9 @@ import Link from "next/link";
  * centred under the floating composer, one sentence that carries both facts
  * and the one link that backs them. The other site links (about, terms, code)
  * moved to the header and the colophon, so the note no longer reads as small
- * print: on a desktop it is a single line, on a phone two.
+ * print: on a desktop it is a single line, on a phone two. On the landing the
+ * colophon sits right under the note and already links the privacy page, so
+ * the note drops its own link there (`linked={false}`) rather than say it twice.
  */
 
 /** Where the full privacy statement lives. One constant; the page and the link agree. */
@@ -40,19 +42,24 @@ export const ACERCA_LINK_LABEL = "Acerca";
 /** The fragment of `/acerca` that lists the documents; the home caption links to it. */
 export const ACERCA_SOURCES_ANCHOR = "fuentes";
 
-export function PrivacyNote() {
+export function PrivacyNote({ linked = true }: { linked?: boolean }) {
   return (
     <p
       data-slot="privacy-note"
       className="text-center text-[0.6875rem] leading-snug text-balance text-muted-foreground"
     >
-      {PRIVACY_DISCLOSURE}{" "}
-      <Link
-        href={PRIVACY_PATH}
-        className="underline decoration-border underline-offset-4 transition-colors duration-150 ease-out-quart hover:text-foreground hover:decoration-current"
-      >
-        {PRIVACY_LINK_LABEL}
-      </Link>
+      {PRIVACY_DISCLOSURE}
+      {linked && (
+        <>
+          {" "}
+          <Link
+            href={PRIVACY_PATH}
+            className="underline decoration-border underline-offset-4 transition-colors duration-150 ease-out-quart hover:text-foreground hover:decoration-current"
+          >
+            {PRIVACY_LINK_LABEL}
+          </Link>
+        </>
+      )}
     </p>
   );
 }

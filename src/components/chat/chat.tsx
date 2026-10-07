@@ -78,6 +78,8 @@ const transport = new DefaultChatTransport<AskUIMessage>({
  * sentence case, usted, no exclamation, no apology.
  */
 export const SCOPE_LINE = `Responde sobre ${SCOPE_PHRASE}, citando el artículo oficial.`;
+/** The same line when the corpus count closes it: «…citando el artículo de 23 documentos oficiales.» */
+export const SCOPE_LEAD = `Responde sobre ${SCOPE_PHRASE}, citando el artículo de`;
 export const NON_PROMISE_LINE =
   "No calcula su caso ni cubre sociedades ni otras instituciones.";
 
@@ -94,18 +96,18 @@ interface AskFailure {
 }
 
 export function Chat({
-  corpusCaption,
+  corpusCount,
   corpusSample = [],
 }: {
   /**
-   * The record line under the empty state's headline (`corpusCaption` in
-   * lib/corpus-summary.ts) — read from the manifest on the server and passed
-   * down, so this client component never bundles the manifest. Absent, the
-   * headline stands alone.
+   * «23 documentos oficiales» (`corpusCount` in lib/corpus-summary.ts), the
+   * linked count the scope sentence closes on — read from the manifest on
+   * the server and passed down, so this client component never bundles the
+   * manifest. Absent, the sentence ends on «el artículo oficial».
    */
-  corpusCaption?: string;
+  corpusCount?: string;
   /**
-   * A few of those documents as stamps, set over the record line (#478) —
+   * A few of those documents as stamps, set over the scope sentence (#478) —
    * `corpusSample()` in the same module, passed down for the same reason.
    */
   corpusSample?: Citation[];
@@ -228,17 +230,12 @@ export function Chat({
               <h1 className="text-center font-serif text-[2rem] font-semibold tracking-display text-balance">
                 ¿Qué trámite le quita el sueño?
               </h1>
-              {/* The expediente line: what is open on the desk before the
-                  first question. Geist Mono in the 11px meta slot — the
-                  sello's caption voice (DESIGN §3, §5) — tabular so the
-                  count sits like a figure in a ledger. A caption under the
-                  heading, never an eyebrow above it. */}
               {/* The record, shown before it is described (#478): the
                   sello is the signature (DESIGN §5), and without this a
                   first-time visitor never saw one before asking. Still
                   stamps, not settling ones — a row stamping on page load is
-                  a staggered entrance (§8) — and not links: the record line
-                  under them is the way into the full list. */}
+                  a staggered entrance (§8) — and not links: the count in the
+                  scope sentence under them is the way into the full list. */}
               {corpusSample.length > 0 && (
                 <ul
                   aria-label="Algunas fuentes"
@@ -252,29 +249,32 @@ export function Chat({
                   ))}
                 </ul>
               )}
-              {corpusCaption && (
-                <p
-                  data-slot="corpus-caption"
-                  className="text-center font-mono text-[0.6875rem] tracking-[0.03em] text-balance text-muted-foreground tabular-nums"
-                >
-                  <Link
-                    href={`${ACERCA_PATH}#${ACERCA_SOURCES_ANCHOR}`}
-                    className="underline decoration-border underline-offset-4 hover:decoration-current"
-                  >
-                    {corpusCaption}
-                  </Link>
-                </p>
-              )}
               {/* The scope and the non-promise (#264): two short lines in
-                  the body voice, under the record line and above the seeds,
-                  so a first-time visitor reads what this covers before
-                  choosing a question. Not a card, not an eyebrow — prose
-                  (DESIGN §10). */}
+                  the body voice, under the sellos and above the seeds, so a
+                  first-time visitor reads what this covers before choosing a
+                  question. Not a card, not an eyebrow — prose (DESIGN §10).
+                  The record's count closes the first line rather than
+                  standing as a line of its own, which only repeated that
+                  every answer cites the artículo. */}
               <p
                 data-slot="scope"
-                className="text-center text-sm text-balance text-muted-foreground"
+                className="mt-1 text-center text-sm text-balance text-muted-foreground"
               >
-                {SCOPE_LINE}
+                {corpusCount ? (
+                  <>
+                    {SCOPE_LEAD}{" "}
+                    <Link
+                      href={`${ACERCA_PATH}#${ACERCA_SOURCES_ANCHOR}`}
+                      data-slot="corpus-count"
+                      className="text-foreground underline decoration-border underline-offset-4 transition-colors duration-150 ease-out-quart hover:decoration-current"
+                    >
+                      {corpusCount}
+                    </Link>
+                    .
+                  </>
+                ) : (
+                  SCOPE_LINE
+                )}
                 <br />
                 {NON_PROMISE_LINE}
               </p>
@@ -295,6 +295,7 @@ export function Chat({
               onSubmit={ask}
               onStop={() => void stop()}
               busy={busy}
+              privacyLink={false}
             />
             <Colophon className="mt-3" />
           </div>

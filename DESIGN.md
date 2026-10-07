@@ -207,13 +207,15 @@ leads nowhere.
   Source Serif 4 at 1.25rem/600, left-aligned over its answer, with a hairline `--border` rule
   between exchanges. The same treatment the history view gives a saved question. It replaces
   the ink bubble, which outweighed the answer it asked for; no bubbles, with or without tails.
-- **Seeded prompts**: a centered, wrapping row of hairline pills — transparent ground, 1px
-  `--border`, full radius, ink text at 0.875rem. Each opens with its institution (`HACIENDA` /
-  `CCSS`) in Geist Mono 11px/500, uppercase, `--muted-foreground`, set off by a 1px `--border`
-  divider; never red. Hover: `--secondary` ground and a border nudged toward ink, 150ms. A
-  transparent pill with an institution tag reads as a scoped action, not a tag. Five show on every
-  screen size, mixing both institutions; a quiet underlined «Ver más preguntas (N)» discloses the
-  rest in place — nine long pills made a tag cloud, rows (#478) a wall of text. A pill shows a
+- **Seeded prompts**: a two-column grid of equal-width hairline pills (one column, at most
+  22.5rem, below a 40rem container) — transparent ground, 1px `--border`, full radius, ink text
+  at 0.875rem. Each opens with its institution (`HACIENDA` / `CCSS`) in Geist Mono 11px/500,
+  uppercase, `--muted-foreground`, in a fixed-width slot set off by a 1px `--border` divider, so
+  every divider sits on one vertical; never red. Hover: `--secondary` ground and a border nudged
+  toward ink, 150ms. A transparent pill with an institution tag reads as a scoped action, not a
+  tag. Four show on every screen size — Hacienda left, CCSS right; a quiet underlined «Ver más
+  preguntas (N)» discloses the rest in place, an odd last pill centred under the two columns — nine long pills made a tag cloud, rows (#478) a
+  wall of text, and a centred wrapping row broke into 1-1-2-1 lines at in-between widths. A pill shows a
   short label; the click sends the full question, which then heads the exchange, so nothing asked
   is hidden. The pill's accessible name is what it shows (tag + label), never the hidden question.
 - **Composer**: one floating box inside the 44rem column — never a full-width docked bar, whose
@@ -235,8 +237,9 @@ leads nowhere.
 - **Buttons**: default variant = outline (hairline + ink text). Exactly one filled primary per
   view ("Enviar", the composer's arrow). Destructive per red-discipline rule.
 - **Empty state**: serif headline ("¿Qué trámite le quita el sueño?"), a still row of sample
-  sellos over the corpus record line (#478 — the signature is on screen before the first ask),
-  the scope lines, seeded prompts below — invitation, not apology.
+  sellos (#478 — the signature is on screen before the first ask), the scope lines — the first
+  closing on the linked corpus count, «…citando el artículo de 23 documentos oficiales» — and
+  seeded prompts below: invitation, not apology.
 - **Hover-revealed controls** (the history row's delete): hover is a desktop affordance, and
   Tailwind's `hover:` never fires where `@media (hover: hover)` is false. Every such control
   also carries `no-hover:` (the `(hover: none)` variant in `globals.css`) and

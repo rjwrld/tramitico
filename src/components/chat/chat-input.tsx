@@ -84,6 +84,7 @@ export function ChatInput({
   onStop,
   busy = false,
   focusOnMount = false,
+  privacyLink = true,
 }: {
   ref?: React.Ref<ChatInputHandle>;
   onSubmit: (question: string) => void;
@@ -97,6 +98,8 @@ export function ChatInput({
    * that replaces it takes focus, which is where they already were.
    */
   focusOnMount?: boolean;
+  /** Whether the privacy note links its page; the landing's colophon already does. */
+  privacyLink?: boolean;
 }) {
   const [question, setQuestion] = React.useState("");
   const field = React.useRef<HTMLTextAreaElement>(null);
@@ -193,7 +196,7 @@ export function ChatInput({
       <p aria-live="polite" className="sr-only">
         {tooLong ? QUESTION_TOO_LONG_ANNOUNCEMENT : ""}
       </p>
-      <PrivacyNote />
+      <PrivacyNote linked={privacyLink} />
     </div>
   );
 }

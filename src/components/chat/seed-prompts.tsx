@@ -16,10 +16,17 @@
  *   so nothing the reader is asking is hidden from them. The button's
  *   accessible name is what it shows — tag and short label (WCAG 2.5.3,
  *   label in name), never the hidden full question.
- * - Five, then «Ver más preguntas (N)». The first `VISIBLE_SEEDS` pills show
- *   on every screen size, mixing Hacienda and CCSS; the disclosure reveals the
+ * - Four, then «Ver más preguntas (N)». The first `VISIBLE_SEEDS` pills show
+ *   on every screen size, two of each institution; the disclosure reveals the
  *   rest in place. Hidden pills carry the `hidden` attribute, so they leave
  *   the accessibility tree as well as the layout.
+ *
+ * Laid out as a two-column grid of equal-width pills (one column below a
+ * 40rem container), not a wrapping row: the pills are 280–340px wide, so a
+ * centred wrap broke into 1-1-2-1 rows whenever the column fell between the
+ * width of one pair and the next — which the history sidebar makes common.
+ * Hacienda sits on the left, CCSS on the right, and the fixed-width tag puts
+ * every divider on the same vertical.
  */
 import * as React from "react";
 
@@ -67,10 +74,11 @@ export interface SeedPill {
 }
 
 /**
- * Display order, which is not family order: the five most broadly useful
- * first — registering, the CCSS quota, the first invoice, whether to insure,
- * IVA on foreign clients — alternating the two institutions, then the
- * situational four behind the disclosure.
+ * Display order, which is not family order: the four most broadly useful
+ * first — registering, the CCSS quota, the first invoice, whether to insure —
+ * alternating the two institutions, so the grid reads Hacienda left and CCSS
+ * right; then the five behind the disclosure, the one CCSS question second so
+ * it too lands in the right-hand column.
  */
 export const SEED_PILLS: readonly SeedPill[] = [
   {
@@ -99,14 +107,14 @@ export const SEED_PILLS: readonly SeedPill[] = [
     institution: "Hacienda",
   },
   {
-    question: SEED_PROMPTS[4],
-    label: "¿Cómo calculo el impuesto de renta?",
-    institution: "Hacienda",
-  },
-  {
     question: SEED_PROMPTS[6],
     label: "¿Me pueden cobrar retroactivo?",
     institution: "CCSS",
+  },
+  {
+    question: SEED_PROMPTS[4],
+    label: "¿Cómo calculo el impuesto de renta?",
+    institution: "Hacienda",
   },
   {
     question: SEED_PROMPTS[7],
@@ -121,7 +129,7 @@ export const SEED_PILLS: readonly SeedPill[] = [
 ];
 
 /** How many pills show before the disclosure, on every screen size. */
-export const VISIBLE_SEEDS = 5;
+export const VISIBLE_SEEDS = 4;
 
 const HIDDEN_COUNT = SEED_PILLS.length - VISIBLE_SEEDS;
 
@@ -141,14 +149,25 @@ export function SeedPrompts({
   const listId = React.useId();
 
   return (
-    <div className={cn("flex flex-col items-center gap-3", className)}>
+    <div
+      className={cn(
+        "@container flex w-full flex-col items-center gap-3",
+        className,
+      )}
+    >
       <ul
         id={listId}
         aria-label="Preguntas frecuentes"
-        className="flex list-none flex-wrap justify-center gap-2 p-0"
+        className="mx-auto grid w-full max-w-[22.5rem] list-none grid-cols-1 gap-2 p-0 @min-[40rem]:max-w-none @min-[40rem]:grid-cols-2"
       >
         {SEED_PILLS.map(({ question, label, institution }, index) => (
-          <li key={question} hidden={index >= VISIBLE_SEEDS && !expanded}>
+          // An odd last pill (the ninth, once disclosed) spans the grid and
+          // centres at one column's width, so the expanded list ends even.
+          <li
+            key={question}
+            hidden={index >= VISIBLE_SEEDS && !expanded}
+            className="@min-[40rem]:last:odd:col-span-2 @min-[40rem]:last:odd:w-[calc(50%-0.25rem)] @min-[40rem]:last:odd:justify-self-center"
+          >
             {/* The accessible name is what the pill shows — tag and short
                 label (WCAG 2.5.3, label in name); the click sends the full
                 question, which then heads the exchange. */}
@@ -156,11 +175,11 @@ export function SeedPrompts({
               type="button"
               disabled={disabled}
               onClick={() => onSelect(question)}
-              className="flex items-center rounded-full border border-border py-1.5 pr-3.5 pl-1.5 text-left text-sm text-foreground transition-colors duration-150 ease-out-quart hover:border-[color-mix(in_oklch,var(--foreground)_28%,var(--border))] hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none pointer-coarse:min-h-11"
+              className="flex w-full items-center rounded-full border border-border py-1.5 pr-3.5 pl-1.5 text-left text-sm text-foreground transition-colors duration-150 ease-out-quart hover:border-[color-mix(in_oklch,var(--foreground)_28%,var(--border))] hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none pointer-coarse:min-h-11"
             >
               <span
                 data-slot="seed-institution"
-                className="mr-2.5 flex items-center self-stretch border-r border-border pr-2 pl-1.5 font-mono text-[0.6875rem] font-medium tracking-[0.04em] text-muted-foreground uppercase"
+                className="mr-2.5 flex w-[4.75rem] shrink-0 items-center self-stretch border-r border-border pr-2 pl-1.5 font-mono text-[0.6875rem] font-medium tracking-[0.04em] text-muted-foreground uppercase"
               >
                 {institution}
               </span>{" "}

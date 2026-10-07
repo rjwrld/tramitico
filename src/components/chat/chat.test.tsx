@@ -33,6 +33,8 @@ function seedPill(question: string): HTMLElement {
   });
 }
 import {
+  ACERCA_PATH,
+  ACERCA_SOURCES_ANCHOR,
   PRIVACY_DISCLOSURE,
   PRIVACY_LINK_LABEL,
   PRIVACY_PATH,
@@ -135,7 +137,7 @@ vi.mock("@/components/ui/message-scroller", async (importOriginal) => {
 
 import { HistoryRefreshProvider } from "@/components/history/history-refresh";
 
-import { Chat, NON_PROMISE_LINE, SCOPE_LINE } from "./chat";
+import { Chat, NON_PROMISE_LINE, SCOPE_LEAD, SCOPE_LINE } from "./chat";
 
 type IntersectionCallback = ConstructorParameters<
   typeof IntersectionObserver
@@ -275,7 +277,21 @@ describe("Chat pre-submission privacy disclosure (#136)", () => {
     expect(privacyNote().textContent).toContain(PRIVACY_DISCLOSURE);
   });
 
-  it("links the disclosure to the privacy page", () => {
+  it("links the privacy page once on the landing, from the colophon", () => {
+    render(<Chat />);
+
+    const links = screen.getAllByRole("link", { name: PRIVACY_LINK_LABEL });
+    expect(links).toHaveLength(1);
+    expect(links[0].getAttribute("href")).toBe(PRIVACY_PATH);
+    expect(
+      screen
+        .getByRole("navigation", { name: "Enlaces del sitio" })
+        .contains(links[0]),
+    ).toBe(true);
+  });
+
+  it("links the disclosure to the privacy page in the conversation", () => {
+    chat.messages = conversation;
     render(<Chat />);
 
     const link = within(privacyNote()).getByRole("link", {
@@ -382,9 +398,9 @@ describe("Chat corpus sample (#478)", () => {
     },
   ];
 
-  it("stamps the sample over the record line, as still, unlinked sellos", () => {
+  it("stamps the sample over the scope sentence, as still, unlinked sellos", () => {
     render(
-      <Chat corpusCaption="23 documentos oficiales" corpusSample={sample} />,
+      <Chat corpusCount="23 documentos oficiales" corpusSample={sample} />,
     );
 
     const row = screen.getByRole("list", { name: "Algunas fuentes" });
@@ -395,9 +411,9 @@ describe("Chat corpus sample (#478)", () => {
     ]);
     expect(row.querySelector("a")).toBeNull();
     expect(row.querySelector(".animate-stamp-settle")).toBeNull();
-    const caption = document.querySelector('[data-slot="corpus-caption"]')!;
+    const scope = document.querySelector('[data-slot="scope"]')!;
     expect(
-      row.compareDocumentPosition(caption) & Node.DOCUMENT_POSITION_FOLLOWING,
+      row.compareDocumentPosition(scope) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
   });
 
@@ -1382,37 +1398,43 @@ describe("Chat history-save toast (#139)", () => {
 });
 
 /**
- * The record line under the empty state's headline: what the desk has open
+ * The record's count, closing the scope sentence: what the desk has open
  * before the first question. Supplied by the server page (it reads the
  * manifest); the client component renders exactly what it is handed, and
- * nothing when handed nothing.
+ * falls back to the count-free sentence when handed nothing.
  */
-describe("Chat empty-state corpus caption", () => {
-  it("renders the caption under the headline", () => {
-    render(
-      <Chat corpusCaption="19 documentos oficiales · cada respuesta cita el artículo" />,
-    );
+describe("Chat empty-state corpus count", () => {
+  it("closes the scope sentence on the linked count", () => {
+    render(<Chat corpusCount="19 documentos oficiales" />);
 
-    const caption = document.querySelector('[data-slot="corpus-caption"]');
-    expect(caption?.textContent).toBe(
-      "19 documentos oficiales · cada respuesta cita el artículo",
+    const scope = document.querySelector('[data-slot="scope"]')!;
+    expect(scope.textContent).toContain(
+      `${SCOPE_LEAD} 19 documentos oficiales.`,
     );
-    // A caption, not a heading: the h1 stays the one heading of the view.
+    expect(scope.textContent).toContain(NON_PROMISE_LINE);
+    const link = within(scope as HTMLElement).getByRole("link", {
+      name: "19 documentos oficiales",
+    });
+    expect(link.getAttribute("href")).toBe(
+      `${ACERCA_PATH}#${ACERCA_SOURCES_ANCHOR}`,
+    );
+    // A sentence, not a heading: the h1 stays the one heading of the view.
     expect(screen.getAllByRole("heading")).toHaveLength(1);
   });
 
-  it("renders nothing when no caption is supplied", () => {
+  it("says the artículo oficial instead when no count is supplied", () => {
     render(<Chat />);
 
-    expect(document.querySelector('[data-slot="corpus-caption"]')).toBeNull();
+    expect(document.querySelector('[data-slot="corpus-count"]')).toBeNull();
+    expect(
+      document.querySelector('[data-slot="scope"]')?.textContent,
+    ).toContain(SCOPE_LINE);
   });
 
   it("does not follow the headline into the conversation", () => {
     chat.messages = conversation;
-    render(
-      <Chat corpusCaption="19 documentos oficiales · cada respuesta cita el artículo" />,
-    );
+    render(<Chat corpusCount="19 documentos oficiales" />);
 
-    expect(document.querySelector('[data-slot="corpus-caption"]')).toBeNull();
+    expect(document.querySelector('[data-slot="corpus-count"]')).toBeNull();
   });
 });

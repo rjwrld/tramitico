@@ -5,7 +5,7 @@ import { HistoryShell } from "@/components/history/history-shell";
 import { SiteHeader } from "@/components/site-header";
 import {
   CORPUS_DOCUMENT_COUNT,
-  corpusCaption,
+  corpusCount,
   corpusSample,
 } from "@/lib/corpus-summary";
 import { createClient } from "@/lib/supabase/server";
@@ -27,7 +27,7 @@ export default async function Home() {
       <HistoryShell signedIn={signedIn}>
         <main className="flex min-h-0 flex-1 flex-col">
           <Chat
-            corpusCaption={corpusCaption(CORPUS_DOCUMENT_COUNT)}
+            corpusCount={corpusCount(CORPUS_DOCUMENT_COUNT)}
             corpusSample={corpusSample()}
           />
         </main>
