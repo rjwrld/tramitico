@@ -1,0 +1,27 @@
+.............................ask: expansion failed — reason=timeout error=DOMException.TimeoutError#23
+.......................................................................aaaaaaaaa
+retrieval cases: 100 (27 in the robustness block; 191 expected targets outside it), abstention: 9, follow-ups condensed: 15
+condensation fell back to the question: none
+rewrites: live
+provider calls that did not come back: comprobantes-factura-vs-tiquete(expand×1)
+rerank readings lost: none of 545
+weak: rb-corto-cuanto-pago-caja
+expansion absent: comprobantes-factura-vs-tiquete
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   131/191    38/73        5        —
+top8/capoff/pinon    137/191    42/73        20       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top8/cap3/pinoff     123/191    35/73        5        —
+top8/cap3/pinon      129/191    39/73        20       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top8/cap2/pinoff     121/191    31/73        5        —
+top8/cap2/pinon      127/191    35/73        21       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/capoff/pinoff  137/191    40/73        7        —
+top10/capoff/pinon   142/191    44/73        20       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/cap3/pinoff    128/191    36/73        5        —
+top10/cap3/pinon     134/191    40/73        22       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/cap2/pinoff    131/191    37/73        11       —
+top10/cap2/pinon     135/191    39/73        21       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+
+top8/capoff/pinon, robustness block (#502): 25/27
+  MISS  rb-corto-cuanto-es-iva ← iva-tarifa-general  «¿cuánto es el IVA?»  (seed missed too)
+  MISS  rb-corto-cuanto-pago-caja ← ccss-cuanto-pago-base  «¿cuánto pago a la caja?»  (seed hit)

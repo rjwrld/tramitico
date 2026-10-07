@@ -12,6 +12,7 @@
  *
  * Pure and free: it reads two probe runs and calls nothing.
  */
+import type { Variant } from "./dataset";
 
 /** The probe configuration the route runs by default (rerank.ts, derived.ts). */
 export const PRODUCTION_CONFIG = "top8/capoff/pinon";
@@ -20,6 +21,8 @@ export const PRODUCTION_CONFIG = "top8/capoff/pinon";
 export interface ProbeRead {
   id: string;
   tier: unknown;
+  /** The case's variant; absent before #502. */
+  variant?: Variant | null;
   /** The standalone question the pipeline ran on; absent before #457. */
   query?: string;
   /** The expansion the legs ran on, null for none; absent before #457. */
@@ -46,6 +49,7 @@ export type Divergence =
 export interface CaseComparison {
   id: string;
   tier: unknown;
+  variant: Variant | null;
   /** The answer set is the same list, in the same order. */
   sameList: boolean;
   /** The answer set holds the same chunks, in whatever order. */
@@ -95,6 +99,7 @@ export function compareProbeRuns(
       {
         id: read.id,
         tier: read.tier,
+        variant: read.variant ?? null,
         sameList: list,
         sameSet:
           setA.length === setB.length &&

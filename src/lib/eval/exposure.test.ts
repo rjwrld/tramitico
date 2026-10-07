@@ -2,8 +2,14 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { DATASET_PATH, parseDataset, type EvalCase } from "./dataset";
 import { exposureOf, formatExposureTally, tallyByExposure } from "./exposure";
+import { splitRobustness } from "./robustness";
 
-const cases = parseDataset(readFileSync(DATASET_PATH, "utf8"));
+// The lanes tally the population their gates read, which leaves the
+// robustness block out (#502).
+const cases = splitRobustness(
+  parseDataset(readFileSync(DATASET_PATH, "utf8")),
+  (c) => c,
+).gated;
 
 describe("exposureOf (#267)", () => {
   it("splits the committed dataset into 41 / 7 / the rest", () => {
