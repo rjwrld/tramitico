@@ -231,24 +231,59 @@ if the search box ever mangles the punctuation, fall back to the bare token (`de
 
 ### 2.2 Annual corpus churn (November–January)
 
-Start the annual pass when the first next-period decree appears in November; finish it before the
-new fiscal year can serve an answer. The manifest vigencia test turns red on 1 January while any
-`annualChurn` entry still names the prior year, so a missed pass blocks release.
+**Who acts: the owner (RJ).** An agent may prepare the manifest PR, but the source review and
+the ingest are the owner's, through `pnpm recrawl` from the main checkout (§2.3, #405). Finish
+by **31 December**.
 
-1. Check the new renta tramos, MTSS salarios mínimos, Poder Judicial salario base, both CCSS
-   contribution scales, and the retained CCSS BMC adjustment mechanism against their official
-   sources. For IVM, do a full re-verification before the current scale expires on 2028-12-31.
-2. Update each changed entry's URL/member/pages, `doc_key` when it carries a year,
-   `effective_date`, audit hash, notes, and derived-figure inputs. When an older rule remains
-   unchanged, preserve its true `effective_date` and advance `verifiedForFiscalYear`. Keep
-   `carriesFigures` and `annualChurn` explicit.
-3. Run `pnpm exec vitest run --project unit src/lib/ingestion/manifest-vigencia.test.ts` before
-   ingestion. A stale entry is a source-review task; do not move its date merely to make the test
-   green.
-4. Run `pnpm ingest` for the reviewed annual entries. Commit the resulting
-   `eval/corpus-index.json`, then run the unit, integration, pgTAP, and local browser lanes before
+**What the app does on its own (#505).** `retrieve()` withholds every chunk from an
+`annualChurn` source that does not cover the current Costa Rican fiscal year
+([ADR 0016 amendment](adr/0016-source-freshness-policy.md)). At midnight on 1 January, Costa
+Rica time, the chunks of a series with no source for the new year stop reaching the model, so
+no answer can quote last year's figure as current. An ask left with nothing corroborated
+declines. Next year's source can be
+ingested beside this year's in December. The runtime switches to it on 1 January with no
+deploy, so finishing early costs nothing.
+
+**The signals.** From **1 December** the manifest vigencia test warns about every series with
+no source for the coming year. In CI the warning is an annotation on each PR, and `pnpm recrawl`
+prints it. On 1 January a series with no source for the new year turns the unit gate red. After
+1 January the test also warns about each entry left behind, until it is retired.
+
+**Calendar (checked 2026-10-07 for the 2027 pass).**
+
+| Series              | Changes because                                                                                                                             | Published by, where                                                                                                                                                                                                                                | Last time                                                                                                                                                                                                                   | 2027                                                                                                                                                          |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tramos-renta`      | Ley 7092 arts. 15, 33, 34: the tramos and créditos follow the IPC every year                                                                | Hacienda, Decreto Ejecutivo in La Gaceta; Hacienda reposts it as `TramosRenta<year>.pdf`                                                                                                                                                           | DE 45333-H, [La Gaceta 229, 2025-12-05](https://www.imprentanacional.go.cr/pub/2025/12/05/COMP_05_12_2025.pdf)                                                                                                              | New decree, early December. New entry `tramos-renta-2027`; no carry-over                                                                                      |
+| `salario-base`      | Ley 7337 art. 2: the salary of an «Oficinista 1» in the year's Ley de Presupuesto                                                           | Consejo Superior of the Poder Judicial in December, then a Secretaría General circular in the Boletín Judicial; [Sala Tercera index](https://saladecasacionpenal.poder-judicial.go.cr/index.php/servicios/salarios-base-cuantias-en-materia-penal) | 2025: Circular 258-2024 (Consejo 2024-12-12, dated 2024-12-13). 2026: Circular 246-2025 (Consejo 2025-12-16, Boletín N.º 1, 2026-01-05). ¢462.200 both years                                                                | Circular expected mid-December, Boletín in early January. New entry `salario-base-2027` even if the figure holds: the doc_key and the circular carry the year |
+| `salarios-minimos`  | Ley 832 arts. 16–18: the Consejo Nacional de Salarios fixes them for one year, by 1 November; an MTSS decree makes them effective 1 January | Consejo Nacional de Salarios, then an MTSS Decreto Ejecutivo in a La Gaceta Alcance; [MTSS list](https://www.mtss.go.cr/temas-laborales/salarios/lista-salarios.html)                                                                              | CNS sesión 5886, 2025-10-27; DE 45303-MTSS, [Alcance 156 to La Gaceta 229, 2025-12-05](https://www.imprentanacional.go.cr/pub/2025/12/05/ALCA156_05_12_2025.pdf). The 2025 set was DE 44756-MTSS, La Gaceta 232, 2024-12-10 | New decree, late November to mid-December. New entry `salarios-minimos-2027`; no carry-over                                                                   |
+| `ccss-escala-ivm`   | Reglamento del Seguro de IVM art. 33 and Transitorio XI: scheduled rises                                                                    | CCSS Junta Directiva acuerdo; [actas](https://www.ccss.sa.cr/arc/actas/)                                                                                                                                                                           | Ficha PE-DAE-1179-2025, sesión 9570 (2025-12-18): effective 2026-01-01, «rige hasta 2028-12-31»                                                                                                                             | **Carry over.** Confirm that no December acuerdo replaced it, then set `verifiedForFiscalYear: 2027`                                                          |
+| `ccss-escala-salud` | Reglamento del Seguro de Salud: contributions of independientes and voluntarios                                                             | CCSS Junta Directiva acuerdo; [actas](https://www.ccss.sa.cr/arc/actas/)                                                                                                                                                                           | Sesión 8999 art. 30 (2018), effective 2018-10-01; the 2026 adjustment touched IVM only                                                                                                                                      | **Carry over.** Same check, then `verifiedForFiscalYear: 2027`                                                                                                |
+| `ccss-bmc`          | The BMC is a multiple of the salario mínimo, so its colón amount moves with the MTSS decree                                                 | CCSS; the mechanism is the [SINALEVI ficha 87782](https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=87782&param2=&param3=1&param4=)                                                                                                    | Acuerdos Segundo–Cuarto, verified for 2026                                                                                                                                                                                  | **Carry over** the mechanism (`verifiedForFiscalYear: 2027`). The colón figure is derived from the new `salarios-minimos` entry                               |
+
+The tramos decree and the salarios mínimos decree came out the same day, 2025-12-05. Watch La
+Gaceta from late November. CCSS can change an escala at any Junta Directiva session; a change
+would appear in the actas and in La Gaceta.
+
+**Steps.**
+
+1. Review each new source against its official publication above. For IVM, a full re-verification
+   is due before the current scale expires on 2028-12-31.
+2. A changed source gets a **new entry beside the current one**, with the year in its doc_key,
+   the new URL/member/pages, `effective_date` (1 January), audit hash and notes. Move the
+   `derivedFigures` whose inputs it supplies with it: the CNPT multas read `salario-base-*`, the
+   BMC reads `salarios-minimos*`. An unchanged source keeps its true `effective_date` and advances
+   `verifiedForFiscalYear`, which may happen in December because the entry still covers the year
+   it is in. Keep `carriesFigures` and `annualChurn` explicit.
+3. Run `pnpm exec vitest run --project unit src/lib/ingestion/manifest-vigencia.test.ts`. A series
+   that is still uncovered is a source-review task: do not move a date just to make the test green.
+4. `pnpm recrawl <doc_key…>` for the reviewed entries. Commit the resulting
+   `eval/corpus-index.json`, then run the unit, integration, pgTAP and local browser lanes before
    release.
-5. Query `documents` for the annual keys and verify their `effective_date` and `fetched_at`; open
+5. **In January**, retire each entry the test lists as left behind: move its doc_key to
+   `retiredDocKeys` with a `retirementNotes` line, retarget `eval/dataset.jsonl` and
+   `eval/step-catalogue.json` rows that name it, and `pnpm recrawl` so its rows are deleted.
+   Retrieval withholds a retired key from the moment the manifest deploys.
+6. Query `documents` for the annual keys and check their `effective_date` and `fetched_at`. Open
    one live answer and one history answer to confirm both sello dates render.
 
 ### 2.3 Quarterly re-crawl (owner-run, #405)
