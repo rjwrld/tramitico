@@ -13,9 +13,18 @@ of _trámite_, the Costa Rican word for paperwork.
 
 **Live:** [tramitico.com](https://tramitico.com).
 
-![A Spanish CCSS question becomes a cited answer; clicking a source seal opens the official article in a new tab.](docs/assets/demo.gif)
+![A Spanish CCSS question becomes a cited answer; focusing a source seal previews its document, and opening it shows the official article in a new tab.](docs/assets/demo.gif)
 
-<sub>Recorded on the live app in an anonymous session. Processing waits and source-page loading are shortened; the answer reveal plays at normal speed.</sub>
+<sub>Recorded on the live app on October 6, 2026, in an anonymous session. Processing waits, idle pauses and source-page loading are shortened; shortened waits are marked “Espera abreviada”. The answer reveal plays at normal speed.</sub>
+
+<details>
+<summary>See the current interface</summary>
+
+![The landing page with institution-tagged questions, a floating composer and site links beneath it.](docs/assets/landing.png)
+
+![A focused CCSS source seal previews the document title, regulation and article, alongside the source dates.](docs/assets/source-preview.png)
+
+</details>
 
 ## What it does
 
@@ -36,9 +45,11 @@ of _trámite_, the Costa Rican word for paperwork.
   </details>
 
   <details>
-  <summary>Watch an answer abstain when the sources do not cover it</summary>
+  <summary>Watch a future-rate question declined</summary>
 
-  ![Asked in Spanish about the IVA rate in 2027, Tramitico says its sources cannot support an answer and directs the user to Hacienda.](docs/assets/demo-abstain.gif)
+  ![Asked in Spanish about the IVA rate in 2027, Tramitico declines to predict a future rate and then provides current-rate context.](docs/assets/demo-abstain.gif)
+
+  The app declines to predict the 2027 rate, then adds information about current rates.
 
   </details>
 
