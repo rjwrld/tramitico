@@ -6,7 +6,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import {
   DEFAULT_TITLE,
-  SITE_NAME,
+  OPEN_GRAPH_BASE,
   SITE_ORIGIN,
   TITLE_TEMPLATE,
   structuredDataJson,
@@ -58,13 +58,11 @@ export const metadata: Metadata = {
   description:
     "Impuestos y trámites para quien trabaja por cuenta propia en Costa Rica. Cada respuesta, sellada a su fuente oficial.",
   openGraph: {
+    ...OPEN_GRAPH_BASE,
     title: "Tramitico",
     description:
       "Impuestos y trámites para quien trabaja por cuenta propia en Costa Rica. Cada respuesta, sellada a su fuente oficial.",
     url: SITE_ORIGIN,
-    siteName: SITE_NAME,
-    locale: "es_CR",
-    type: "website",
   },
   twitter: {
     card: "summary_large_image",

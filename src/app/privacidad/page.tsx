@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Colophon } from "@/components/colophon";
 
 import { accountDeleteWaitCopy } from "@/lib/account-delete";
+import { publicPageMetadata } from "@/lib/site";
 
 /**
  * The privacy statement (#136 req. 3, privacy contract from #121).
@@ -22,12 +23,11 @@ import { accountDeleteWaitCopy } from "@/lib/account-delete";
  * and paragraphs, one hairline rule under the title.
  */
 
-export const metadata: Metadata = {
-  title: "Privacidad",
-  alternates: { canonical: "/privacidad" },
-  description:
-    "Qué pasa con sus preguntas: a quién se envían, qué se guarda, por cuánto tiempo y cómo eliminarlo.",
-};
+export const metadata: Metadata = publicPageMetadata(
+  "/privacidad",
+  "Privacidad",
+  "Qué pasa con sus preguntas: a quién se envían, qué se guarda, por cuánto tiempo y cómo eliminarlo.",
+);
 
 /** The one place a privacy request can be sent. */
 const CONTACT_EMAIL = "privacidad@tramitico.com";

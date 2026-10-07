@@ -7,7 +7,7 @@ import { ACERCA_SOURCES_ANCHOR } from "@/components/chat/privacy-note";
 import { Sello, effectiveLabel, fetchedLabel } from "@/components/sello";
 import { loadCorpusSources, type CorpusSource } from "@/lib/corpus-sources";
 import { corpusCount } from "@/lib/corpus-summary";
-import { REPOSITORY_URL } from "@/lib/site";
+import { REPOSITORY_URL, publicPageMetadata } from "@/lib/site";
 import { NON_PROMISE_ITEMS, PROMISE_SENTENCE } from "@/lib/promise";
 
 /**
@@ -30,12 +30,11 @@ import { NON_PROMISE_ITEMS, PROMISE_SENTENCE } from "@/lib/promise";
  * hairline rule under the title, no cards (DESIGN §10).
  */
 
-export const metadata: Metadata = {
-  title: "Acerca",
-  alternates: { canonical: "/acerca" },
-  description:
-    "Qué es Tramitico, cómo responde y de qué documentos oficiales responde.",
-};
+export const metadata: Metadata = publicPageMetadata(
+  "/acerca",
+  "Acerca",
+  "Qué es Tramitico, cómo responde y de qué documentos oficiales responde.",
+);
 
 /**
  * The corpus changes per ingest, not per request: prerendered, refreshed at

@@ -141,15 +141,16 @@ test("the about page renders keyless with an honest empty source list (#328)", a
 });
 
 test.describe("crawl surface", () => {
-  test("robots.txt allows the site, hides sign-in and the API, and names the sitemap", async ({
+  test("robots.txt allows the site, hides the API, and names the sitemap", async ({
     request,
   }) => {
     const response = await request.get("/robots.txt");
     expect(response.status()).toBe(200);
     const body = await response.text();
     expect(body).toContain("Allow: /");
-    expect(body).toContain("Disallow: /login");
     expect(body).toContain("Disallow: /api/");
+    // The noindex pages stay crawlable, or the noindex is never read.
+    expect(body).not.toContain("Disallow: /login");
     expect(body).toContain("Sitemap: https://tramitico.com/sitemap.xml");
   });
 
@@ -188,7 +189,7 @@ test.describe("crawl surface", () => {
     ]);
   });
 
-  test("child pages fill the title template and the sign-in form is noindex", async ({
+  test("child pages fill the title template and carry their own share card; sign-in and auth error are noindex", async ({
     page,
   }) => {
     await page.goto("/acerca");
@@ -197,9 +198,24 @@ test.describe("crawl surface", () => {
       "href",
       "https://tramitico.com/acerca",
     );
+    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
+      "content",
+      "https://tramitico.com/acerca",
+    );
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+      "content",
+      "https://tramitico.com/opengraph-image.png",
+    );
 
     await page.goto("/login");
     await expect(page).toHaveTitle("Iniciar sesión — Tramitico");
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      "content",
+      "noindex, follow",
+    );
+
+    await page.goto("/auth/error");
+    await expect(page).toHaveTitle("Error de sesión — Tramitico");
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
       "content",
       "noindex, follow",

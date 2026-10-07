@@ -15,7 +15,8 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Iniciar sesión",
-  // A sign-in form is not a search result; robots.txt disallows it too.
+  // A sign-in form is not a search result. robots.txt leaves it crawlable on
+  // purpose, so a crawler can read this.
   robots: { index: false, follow: true },
 };
 
