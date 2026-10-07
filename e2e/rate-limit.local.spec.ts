@@ -68,7 +68,7 @@ test("the second anonymous ask renders the real 429 copy inline", async ({
   // the sign-in nudge, and the reset time (SPEC §7 copy from #24).
   const alert = inlineAlert(page, NUDGE);
   await expect(alert).toContainText(
-    "Inicie sesión para tener 50 preguntas diarias",
+    "Inicie sesión para tener 10 preguntas diarias",
   );
   await expect(alert).toContainText(RESET_TIME);
 });

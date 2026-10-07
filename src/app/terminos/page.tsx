@@ -146,10 +146,11 @@ export default function TermsPage() {
 
       <Section title={acceptableUse}>
         <p>
-          Cada persona dispone de una cuota diaria de preguntas: {anonLimit} sin
-          sesión iniciada y {authedLimit} con sesión iniciada. El día se cuenta
-          según el calendario de Costa Rica, y la cuota se reinicia a
-          medianoche, hora local.
+          {anonLimit === authedLimit
+            ? `Cada persona dispone de una cuota diaria de ${anonLimit} preguntas, con o sin sesión iniciada.`
+            : `Cada persona dispone de una cuota diaria de preguntas: ${anonLimit} sin sesión iniciada y ${authedLimit} con sesión iniciada.`}{" "}
+          El día se cuenta según el calendario de Costa Rica, y la cuota se
+          reinicia a medianoche, hora local.
         </p>
         <p className="mt-4">
           No está permitido consultar el servicio de forma automatizada, extraer

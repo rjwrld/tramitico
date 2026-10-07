@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 
 import { DISCLAIMER } from "@/components/chat/answer-block";
@@ -10,7 +10,10 @@ import TermsPage, {
   metadata,
 } from "./page";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllEnvs();
+});
 
 /**
  * #326 req. 3. Prose, so the assertions are the load-bearing facts: the eight
@@ -45,14 +48,27 @@ describe("terms page", () => {
   });
 
   it("states the enforced daily quotas and the Costa Rica day", () => {
+    vi.stubEnv("RATE_LIMIT_ANON", "");
+    vi.stubEnv("RATE_LIMIT_AUTHED", "");
     render(<TermsPage />);
     const text = document.body.textContent ?? "";
 
-    // The defaults in rate-limit.ts (SPEC §7); the page reads limitFor().
-    expect(text).toContain("10 sin sesión iniciada");
-    expect(text).toContain("50 con sesión iniciada");
+    // The defaults in rate-limit.ts (SPEC §7) are one quota for both tiers
+    // (#501), stated once; the page reads limitFor().
+    expect(text).toContain(
+      "una cuota diaria de 10 preguntas, con o sin sesión iniciada. El día",
+    );
     expect(text).toContain("calendario de Costa Rica");
     expect(text).toContain("automatizada");
+  });
+
+  it("states each tier's quota when they differ", () => {
+    vi.stubEnv("RATE_LIMIT_ANON", "10");
+    vi.stubEnv("RATE_LIMIT_AUTHED", "25");
+    render(<TermsPage />);
+    expect(document.body.textContent).toContain(
+      "10 sin sesión iniciada y 25 con sesión iniciada. El día",
+    );
   });
 
   it("carries a well-formed effective date and renders it", () => {

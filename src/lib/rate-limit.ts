@@ -118,7 +118,7 @@ export function supabaseRpcClient(
 const DAY_MS = 24 * 60 * 60 * 1000;
 const RETENTION_DAYS = 2;
 
-const DEFAULT_LIMITS: Record<RateLimitTier, number> = { anon: 10, authed: 50 };
+const DEFAULT_LIMITS: Record<RateLimitTier, number> = { anon: 10, authed: 10 };
 
 /**
  * The daily quota for a tier: the env override when set, else the SPEC §7
@@ -131,6 +131,16 @@ export function limitFor(tier: RateLimitTier): number {
   if (!raw) return DEFAULT_LIMITS[tier];
   const n = Number(raw);
   return Number.isFinite(n) && n > 0 ? n : DEFAULT_LIMITS[tier];
+}
+
+/**
+ * The signed-in daily quota when it is larger than the anonymous one, else
+ * null (#501). Copy that pitches signing in states a number only when this
+ * returns one: with equal tiers, the saved history is the whole gain.
+ */
+export function signedInLimitGain(): number | null {
+  const authed = limitFor("authed");
+  return authed > limitFor("anon") ? authed : null;
 }
 
 const ANON_IP_MULTIPLIER = 3;
@@ -301,10 +311,14 @@ export function rateLimitReachedMessage(
 ): string {
   const time = resetTimeSentenceEnd(resetAt);
   if (tier === "anon") {
+    const gain = signedInLimitGain();
+    const pitch =
+      gain === null
+        ? "Inicie sesión para guardar su historial"
+        : `Inicie sesión para tener ${gain} preguntas diarias`;
     return (
       `Alcanzó el límite de ${limitFor("anon")} preguntas gratis por hoy. ` +
-      `Inicie sesión para tener ${limitFor("authed")} preguntas diarias, ` +
-      `o vuelva a intentarlo después de las ${time}`
+      `${pitch}, o vuelva a intentarlo después de las ${time}`
     );
   }
   return (
