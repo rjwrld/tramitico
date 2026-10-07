@@ -15,6 +15,7 @@ import { readFileSync } from "node:fs";
 import {
   compareProbeRuns,
   PRODUCTION_CONFIG,
+  type CaseComparison,
   type Divergence,
   type ProbeRead,
 } from "../src/lib/eval/answer-set-variance";
@@ -31,18 +32,28 @@ function main(): void {
     process.exit(1);
   }
   const rows = compareProbeRuns(reads(a), reads(b), config);
-  const groups: [string, (tier: unknown) => boolean][] = [
-    ["Tier 1", (tier) => tier === 1],
-    ["Tier 2", (tier) => tier === 2],
-    ["untiered", (tier) => tier !== 1 && tier !== 2 && tier !== "abstain"],
-    ["abstention", (tier) => tier === "abstain"],
+  // The robustness block (#502) is a group of its own, outside every tier.
+  const block = (row: CaseComparison) => row.variant === "robustez";
+  const groups: [string, (row: CaseComparison) => boolean][] = [
+    ["Tier 1", (row) => row.tier === 1 && !block(row)],
+    ["Tier 2", (row) => row.tier === 2 && !block(row)],
+    [
+      "untiered",
+      (row) =>
+        row.tier !== 1 &&
+        row.tier !== 2 &&
+        row.tier !== "abstain" &&
+        !block(row),
+    ],
+    ["abstention", (row) => row.tier === "abstain"],
+    ["robustez", block],
   ];
   console.log(`config ${config}\n`);
   console.log(
     `${"cases".padEnd(11)} ${"n".padStart(3)} ${"same list".padStart(10)} ${"same set".padStart(9)}  first stage that differs`,
   );
   for (const [name, inGroup] of groups) {
-    const group = rows.filter((row) => inGroup(row.tier));
+    const group = rows.filter(inGroup);
     if (group.length === 0) continue;
     const stages = new Map<Divergence, number>();
     for (const row of group) {

@@ -30,6 +30,10 @@
  * and prints, for every miss whose target did reach the fused pool, the rank
  * the reranker gave it, the answer set that beat it, and the chunk holding
  * the last surviving place.
+ *
+ * #502's robustness block runs with every other case and is gated apart: the
+ * three gates below read the cases they read before it, and the block's line
+ * and its tracked baseline follow them (`./robustness`).
  */
 import { readFileSync } from "node:fs";
 import { beforeAll, expect, it } from "vitest";
@@ -66,6 +70,13 @@ import {
 import { rewriteCase, rewritesFromEnv } from "./rewrites";
 import { CARRIERS_PATH, parseCarriers, parseChunkRef } from "./carriers";
 import { formatExposureTally, tallyByExposure } from "./exposure";
+import {
+  formatRobustnessLine,
+  ROBUSTNESS_HIT_BASELINE,
+  ROBUSTNESS_REGRESSION_MARGIN,
+  robustnessHitFloor,
+  splitRobustness,
+} from "./robustness";
 import { droppedReadingsSummary } from "./transcript";
 import {
   selectCases,
@@ -185,6 +196,9 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
     if (subset !== null) throw new Error(subsetGateFailure(subset));
   }
 
+  /** What the pre-#502 gates read, and the robustness block. */
+  const split = () => splitRobustness(results, (r) => r.evalCase);
+
   beforeAll(async () => {
     // Before any paid call: an id that names no case is a typo that would
     // otherwise buy an empty table.
@@ -302,11 +316,21 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
         rerank,
       });
     }
-    const hits = results.filter((r) => r.hit).length;
+    const { gated, block } = split();
+    const hits = gated.filter((r) => r.hit).length;
     console.log(
       `\nretrieval hit-rate (rerank=${rerankMode} ${process.env.RERANK_MODEL || RERANK_MODEL}, pool ${RERANK_POOL} → top ${topKSize}, ` +
         `cap=${docCap === Infinity ? "off" : docCap}/doc, expand=${expandMode}, steps=${stepsMode}, ` +
-        `pin=${pinEnabled() ? "on" : "off"}): ${hits}/${results.length}`,
+        `pin=${pinEnabled() ? "on" : "off"}): ${hits}/${gated.length}`,
+    );
+    console.log(
+      formatRobustnessLine(
+        "hit-rate",
+        block,
+        (r) => r.evalCase,
+        (r) => r.hit,
+        (r) => `pool#${r.poolRank ?? "—"}${r.isWeak ? " weak" : ""}`,
+      ),
     );
     // #466: a miss on a case that lost a reading may be the lost reading.
     console.log(
@@ -386,7 +410,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
       formatExposureTally(
         "hit-rate",
         tallyByExposure(
-          results,
+          gated,
           (r) => r.evalCase,
           (r) => r.hit,
         ),
@@ -398,8 +422,8 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
 
   it("finds every blocking case's artículo in the answer top-k", () => {
     assertFullRun();
-    const failed = results
-      .filter((r) => r.evalCase.blocking && !r.hit)
+    const failed = split()
+      .gated.filter((r) => r.evalCase.blocking && !r.hit)
       .map((r) => r.evalCase.id);
     expect(failed, `blocking eval cases missed: ${failed.join(", ")}`).toEqual(
       [],
@@ -408,8 +432,9 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
 
   it(`hits at least ${HIT_RATE_GATE * 100}% of expected artículos in the answer top-k`, () => {
     assertFullRun();
-    const hits = results.filter((r) => r.hit).length;
-    expect(hits / results.length).toBeGreaterThanOrEqual(HIT_RATE_GATE);
+    const { gated } = split();
+    const hits = gated.filter((r) => r.hit).length;
+    expect(hits / gated.length).toBeGreaterThanOrEqual(HIT_RATE_GATE);
   });
 
   it("never trips the weak-retrieval fallback on a legitimate question", () => {
@@ -417,10 +442,32 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
     // Corroboration referee (#25 charter, isCorroborated in retrieval.ts):
     // every eval question is answerable from the corpus, so none may be
     // "weak".
-    const weak = results.filter((r) => r.isWeak).map((r) => r.evalCase.id);
+    const weak = split()
+      .gated.filter((r) => r.isWeak)
+      .map((r) => r.evalCase.id);
     expect(
       weak,
       `legitimate questions flagged weak: ${weak.join(", ")}`,
     ).toEqual([]);
   });
+
+  // #502: a tracked baseline, set by #511's full lane. Until then the block's
+  // line above is the read, and the gate shows as a todo instead of passing
+  // on nothing.
+  const robustnessFloor = robustnessHitFloor();
+  if (robustnessFloor === null) {
+    it.todo(
+      "robustness block (#502) holds its hit baseline — #511's lane sets ROBUSTNESS_HIT_BASELINE",
+    );
+  } else {
+    it(`robustness block (#502) hits at least ${robustnessFloor} (baseline ${ROBUSTNESS_HIT_BASELINE} − ${ROBUSTNESS_REGRESSION_MARGIN})`, () => {
+      assertFullRun();
+      const { block } = split();
+      const missed = block.filter((r) => !r.hit).map((r) => r.evalCase.id);
+      expect(
+        block.length - missed.length,
+        `robustness cases missed: ${missed.join(", ")}`,
+      ).toBeGreaterThanOrEqual(robustnessFloor);
+    });
+  }
 });

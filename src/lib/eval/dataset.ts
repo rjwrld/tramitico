@@ -29,6 +29,13 @@
  * corpus wording, and `variant` records which of the three shapes — literal,
  * colloquial, follow-up — a Tier 1 case is. The corpus-derived cases stay
  * where they are, as the retrieval regression suite they always were.
+ *
+ * #502 added a fourth variant, `robustez`: the robustness block. Each of its
+ * cases re-asks one seed case in the words production actually receives — a
+ * seed pill's short label, a bare three-word question, no accents, Spanglish,
+ * a third turn — and carries that seed's targets and requirements verbatim,
+ * so a miss is the wording's and nothing else's. The block is measured beside
+ * the gates, never inside them (`src/lib/eval/robustness.ts`).
  */
 import path from "node:path";
 import type { ConversationTurn } from "../answer/contract";
@@ -81,7 +88,17 @@ export type Family = (typeof FAMILIES)[number];
  * so it exercises condensation (#132) rather than retrieval alone.
  */
 export const VARIANTS = ["literal", "coloquial", "seguimiento"] as const;
-export type Variant = (typeof VARIANTS)[number];
+
+/**
+ * The robustness block's variant (#502). Not one of `VARIANTS`: those three
+ * are the held-out grid, pinned exactly by `held-out.test.ts`, and a
+ * robustness case is never held out — it re-asks a seed every lane has run.
+ */
+export const ROBUSTNESS = "robustez";
+export type Variant = (typeof VARIANTS)[number] | typeof ROBUSTNESS;
+
+/** The provenance prefix a robustness case names its seed case with. */
+export const ROBUSTNESS_SEED_PREFIX = "robustez:";
 
 /**
  * One thing the answer must say. Written short and verifiable, because a
@@ -110,7 +127,8 @@ export interface EvalCase {
   /**
    * Provenance: "appendix-a:<n>" (a SPEC Appendix A seed, numbered by Tier 1
    * family since #264), "demand:<family>" (the demand taxonomy of #254),
-   * "held-out:<family>" (#261 Part B) or "corpus".
+   * "held-out:<family>" (#261 Part B), "corpus", or "robustez:<case id>" (a
+   * robustness case and the case it re-asks, #502).
    */
   seed: string;
   question: string;
@@ -182,6 +200,18 @@ export function abstentionCases(cases: readonly EvalCase[]): EvalCase[] {
   return cases.filter((evalCase) => evalCase.tier === "abstain");
 }
 
+/** A case of the robustness block (#502). */
+export function isRobustness(evalCase: Pick<EvalCase, "variant">): boolean {
+  return evalCase.variant === ROBUSTNESS;
+}
+
+/** The id of the case a robustness case re-asks; `null` for any other case. */
+export function robustnessSeedId(evalCase: EvalCase): string | null {
+  return isRobustness(evalCase)
+    ? evalCase.seed.slice(ROBUSTNESS_SEED_PREFIX.length)
+    : null;
+}
+
 /** ≤5, per #261 req. 1: a longer list is a case that should have been split. */
 export const MAX_REQUIRED_CLAIMS = 5;
 
@@ -201,8 +231,9 @@ function parseFamily(where: string, raw: unknown): Family | undefined {
 
 function parseVariant(where: string, raw: unknown): Variant | undefined {
   if (raw === undefined) return undefined;
-  if (typeof raw !== "string" || !VARIANTS.includes(raw as Variant)) {
-    throw new Error(`${where}: variant must be one of ${VARIANTS.join(", ")}`);
+  const accepted: readonly string[] = [...VARIANTS, ROBUSTNESS];
+  if (typeof raw !== "string" || !accepted.includes(raw)) {
+    throw new Error(`${where}: variant must be one of ${accepted.join(", ")}`);
   }
   return raw as Variant;
 }
@@ -363,6 +394,29 @@ export function parseDataset(jsonl: string): EvalCase[] {
       throw new Error(`${where}: blocking must be a boolean`);
     }
 
+    // The robustness block (#502): a re-asked seed, measured beside the gates.
+    // Never held out, since its seed is in every lane already; never blocking,
+    // since the block has its own gate; and always naming the case it
+    // re-asks, which is what `robustness.test.ts` checks it copied.
+    const robustness = variant === ROBUSTNESS;
+    const seed = typeof entry.seed === "string" ? entry.seed : "corpus";
+    if (robustness !== seed.startsWith(ROBUSTNESS_SEED_PREFIX)) {
+      throw new Error(
+        `${where}: a ${ROBUSTNESS} case, and only one, has seed "${ROBUSTNESS_SEED_PREFIX}<case id>"`,
+      );
+    }
+    if (robustness) {
+      if (seed === ROBUSTNESS_SEED_PREFIX) {
+        throw new Error(`${where}: a ${ROBUSTNESS} case names its seed case`);
+      }
+      if (heldOut) {
+        throw new Error(`${where}: a ${ROBUSTNESS} case is never held out`);
+      }
+      if (entry.blocking === true) {
+        throw new Error(`${where}: a ${ROBUSTNESS} case is never blocking`);
+      }
+    }
+
     // The Tier 1 contract (#254 §A3), enforced at parse time so a case cannot
     // claim the beta promise without carrying what makes it checkable.
     if (tier === 1) {
@@ -372,7 +426,7 @@ export function parseDataset(jsonl: string): EvalCase[] {
       if (requiredClaims === undefined) {
         throw new Error(`${where}: a tier 1 case needs requiredClaims`);
       }
-      if (entry.blocking === false) {
+      if (entry.blocking === false && !robustness) {
         throw new Error(`${where}: a tier 1 case is always blocking`);
       }
       // The three variants are the coverage claim itself (#261 req. 4): a
@@ -398,14 +452,15 @@ export function parseDataset(jsonl: string): EvalCase[] {
 
     cases.push({
       id: entry.id,
-      seed: typeof entry.seed === "string" ? entry.seed : "corpus",
+      seed,
       question: entry.question,
       ...(history === undefined
         ? {}
         : { history: history as ConversationTurn[] }),
       expected,
-      // Tier 1 is blocking by definition; anything else opts in.
-      blocking: entry.blocking ?? tier === 1,
+      // Tier 1 is blocking by definition, outside the robustness block;
+      // anything else opts in.
+      blocking: entry.blocking ?? (tier === 1 && !robustness),
       tier,
       heldOut,
       ...(variant === undefined ? {} : { variant }),
