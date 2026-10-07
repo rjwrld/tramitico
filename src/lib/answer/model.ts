@@ -3,8 +3,7 @@
  * module so route tests can swap in a mock language model.
  *
  * - `getAnswerModel` (SPEC §5): Claude Sonnet by default, overridable via
- *   ANSWER_MODEL so the Week 3 Haiku 4.5 cost/quality comparison is an env
- *   change, not a code change.
+ *   ANSWER_MODEL so a model comparison is an env change, not a code change.
  * - `getCondenseModel` (#132): the question-condensation call, pinned to the
  *   smallest adequate model and overridable the same way. Deliberately a
  *   *separate* seam rather than a reuse of `getAnswerModel`: condensation is
@@ -17,7 +16,10 @@
  *   *every* ask rather than every follow-up. One knob that silently priced
  *   both would hide which of the two a cost change came from.
  */
-import { createAnthropic } from "@ai-sdk/anthropic";
+import {
+  createAnthropic,
+  type AnthropicLanguageModelOptions,
+} from "@ai-sdk/anthropic";
 import type { LanguageModel } from "ai";
 
 export const DEFAULT_ANSWER_MODEL = "claude-sonnet-5-5";
@@ -26,9 +28,19 @@ export const DEFAULT_ANSWER_MODEL = "claude-sonnet-5-5";
  * Haiku, not Sonnet: rewriting "¿y si también soy asalariado?" plus its
  * antecedent into one Spanish sentence is the cheapest kind of work a model
  * does, and the failure mode is bounded — a bad rewrite falls back to the raw
- * question (condense.ts), it does not reach the reader.
+ * question (condense.ts), it does not reach the reader. The default for
+ * expansion too (`getExpandModel`).
+ *
+ * Haiku 5.5 rather than 4.5: a tenth of the price ($0.10 / $0.50 per MTok
+ * against $1 / $5), and faster, where expansion was already reaching its 3 s
+ * timeout in eval runs. Two of its request rules matter here, and both fail
+ * silently, because both calls fall back to the raw question on any error:
+ * it answers a `temperature` other than 1 (or any `top_p`/`top_k` override)
+ * with a 400, so neither call sends one — the old `temperature: 0` never made
+ * them deterministic anyway (eval/README.md, #457) — and it thinks by
+ * default, so both send `REWRITE_PROVIDER_OPTIONS`.
  */
-export const DEFAULT_CONDENSE_MODEL = "claude-haiku-4-5";
+export const DEFAULT_CONDENSE_MODEL = "claude-haiku-5-5";
 
 /**
  * `||`, not `??`, in all three — the same reading `rerank.ts` gives `RERANK`.
@@ -114,6 +126,24 @@ export function answerModelLabel(): string {
   const effort = answerEffort();
   return effort === null ? model : `${model}-effort-${effort}`;
 }
+
+/**
+ * The `providerOptions` both rewrite calls pass (condense.ts, expand.ts):
+ * thinking off. Haiku 5.5 thinks adaptively when a request omits `thinking`,
+ * and thinking tokens count toward the call's small output cap, so a rewrite
+ * could stop at `max_tokens` after a thinking block with no text in it — an
+ * `unusable` fallback on every such ask, with nothing in the log to say why.
+ * A rewrite has no judgement in it to think about.
+ *
+ * Sent as an explicit `disabled`, which the provider forwards rather than
+ * omits, and which Haiku 5.5 accepts at effort low/medium/high (no effort is
+ * sent, so the default applies). It is also valid on Haiku 4.5, so pointing
+ * `CONDENSE_MODEL`/`EXPAND_MODEL` back at the old model for a comparison arm
+ * needs no other change.
+ */
+export const REWRITE_PROVIDER_OPTIONS = {
+  anthropic: { thinking: { type: "disabled" } },
+} satisfies { anthropic: AnthropicLanguageModelOptions };
 
 export function getCondenseModel(): LanguageModel {
   const anthropic = createAnthropic();

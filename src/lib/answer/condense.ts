@@ -33,7 +33,7 @@
  */
 import { generateText } from "ai";
 import { boundTurns, type ConversationTurn } from "./contract";
-import { getCondenseModel } from "./model";
+import { getCondenseModel, REWRITE_PROVIDER_OPTIONS } from "./model";
 import { describeError, timeoutOrError } from "../log-redaction";
 
 /**
@@ -49,6 +49,12 @@ export const CONDENSE_TIMEOUT_MS = 4_000;
  * Output cap for the rewrite. One question in Spanish, generously — enough
  * for a compound follow-up carrying two antecedents, far short of a model
  * that has started explaining itself instead of rewriting.
+ *
+ * Unchanged on Haiku 5.5, whose tokenizer spends about 30% more tokens on the
+ * same text: a long compound question runs a few hundred characters, near
+ * 100 tokens on the new tokenizer, so 200 still clears it. It holds only
+ * because thinking is off (`REWRITE_PROVIDER_OPTIONS`) — thinking tokens
+ * would count against it.
  */
 export const CONDENSE_MAX_OUTPUT_TOKENS = 200;
 
@@ -99,9 +105,10 @@ export function buildCondensePrompt(
  *
  * - `timeout` — the budget expired; the provider is slow or unreachable.
  * - `error` — anything else the provider answered with (a 429, a 5xx).
- * - `unusable` — a completed call whose output was empty or over the length
- *   cap. Worth splitting from `error`: it is a prompt or model problem, not
- *   an availability one, and the two call for different fixes.
+ * - `unusable` — a completed call whose output was empty, over the length
+ *   cap, or a safety refusal. Worth splitting from `error`: it is a prompt or
+ *   model problem, not an availability one, and the two call for different
+ *   fixes.
  */
 export type CondenseFailure = "timeout" | "error" | "unusable";
 
@@ -175,13 +182,14 @@ export async function condenseQuestion(
   if (bounded.length === 0) return { query: question, condensed: null };
 
   let text: string;
+  let refused: boolean;
   try {
     const result = await generateText({
       model: getCondenseModel(),
       system: CONDENSE_SYSTEM_PROMPT,
       prompt: buildCondensePrompt(question, bounded),
-      temperature: 0,
       maxOutputTokens: CONDENSE_MAX_OUTPUT_TOKENS,
+      providerOptions: REWRITE_PROVIDER_OPTIONS,
       // The timeout alone, not the request's own signal: a reader who presses
       // stop during condensation is handled by the route's abort checks
       // further down, and wiring their abort in here would only turn a
@@ -189,13 +197,17 @@ export async function condenseQuestion(
       abortSignal: AbortSignal.timeout(timeoutMs),
     });
     text = result.text;
+    // A safety refusal (`stop_reason: "refusal"`) is a completed call, not an
+    // error, and there is no server-side fallback model behind it. Whatever
+    // text came before it is not a rewrite to trust.
+    refused = result.finishReason === "content-filter";
   } catch (error) {
     recordCondenseFailure(timeoutOrError(error), error);
     return { query: question, condensed: null };
   }
 
   const condensed = cleanCondensed(text);
-  if (condensed === "" || condensed.length > MAX_CONDENSED_LENGTH) {
+  if (refused || condensed === "" || condensed.length > MAX_CONDENSED_LENGTH) {
     recordCondenseFailure("unusable");
     return { query: question, condensed: null };
   }

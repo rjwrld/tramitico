@@ -5,13 +5,16 @@
  * The properties expand.ts is built around, one describe each: the rewrite
  * reaches retrieval as text, the call is bounded, and every failure path
  * yields `null` — "search the question alone" — rather than throwing. Nothing
- * here talks to a provider; `getCondenseModel` is the seam, stubbed the way
+ * here talks to a provider; `getExpandModel` is the seam, stubbed the way
  * condense.test.ts stubs it.
  */
 import { MockLanguageModelV4 } from "ai/test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("./model", () => ({ getExpandModel: vi.fn() }));
+vi.mock("./model", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./model")>()),
+  getExpandModel: vi.fn(),
+}));
 
 import manifest from "../../../corpus/manifest.json";
 import {
@@ -19,6 +22,7 @@ import {
   CORPUS_INVENTORY,
   cleanExpansion,
   expandQuery,
+  EXPAND_MAX_OUTPUT_TOKENS,
   EXPAND_SYSTEM_PROMPT,
   MAX_EXPANSION_LENGTH,
 } from "./expand";
@@ -29,11 +33,17 @@ const EXPANSION =
   "Me inscribí un año tarde, ¿qué me pasa? Sanción por omisión de la " +
   "declaración de inscripción presentada fuera del plazo.";
 
-function mockExpander(text: string): MockLanguageModelV4 {
+function mockExpander(
+  text: string,
+  finish: { unified: "stop" | "length" | "content-filter"; raw: string } = {
+    unified: "stop",
+    raw: "end_turn",
+  },
+): MockLanguageModelV4 {
   const model = new MockLanguageModelV4({
     doGenerate: async () => ({
-      content: [{ type: "text" as const, text }],
-      finishReason: { unified: "stop" as const, raw: "end_turn" },
+      content: text === "" ? [] : [{ type: "text" as const, text }],
+      finishReason: finish,
       usage: {
         inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 },
         outputTokens: { total: 1, text: 1, reasoning: 0 },
@@ -86,6 +96,23 @@ describe("the rewrite", () => {
     expect(model.doGenerateCalls).toHaveLength(1);
     expect(JSON.stringify(model.doGenerateCalls[0].prompt)).toContain(QUESTION);
     expect(failureReasons()).toEqual([]);
+  });
+
+  it("sends no temperature, turns thinking off, and caps the output", async () => {
+    const model = mockExpander(EXPANSION);
+
+    await expandQuery(QUESTION);
+
+    // Same two Haiku 5.5 rules as condensation: a temperature is a 400 this
+    // module would swallow, and default thinking would spend the cap.
+    const call = model.doGenerateCalls[0];
+    expect(call.temperature).toBeUndefined();
+    expect(call.topP).toBeUndefined();
+    expect(call.topK).toBeUndefined();
+    expect(call.providerOptions).toEqual({
+      anthropic: { thinking: { type: "disabled" } },
+    });
+    expect(call.maxOutputTokens).toBe(EXPAND_MAX_OUTPUT_TOKENS);
   });
 
   it("makes no call when expansion is switched off", async () => {
@@ -172,6 +199,20 @@ describe("every failure searches the question alone", () => {
     expect(await expandQuery(QUESTION)).toBeNull();
 
     expect(failureReasons()).toEqual(["unusable", "unusable"]);
+  });
+
+  it("returns null when the cap is hit before any text", async () => {
+    mockExpander("", { unified: "length", raw: "max_tokens" });
+
+    expect(await expandQuery(QUESTION)).toBeNull();
+    expect(failureReasons()).toEqual(["unusable"]);
+  });
+
+  it("returns null on a safety refusal, even with text before it", async () => {
+    mockExpander(EXPANSION, { unified: "content-filter", raw: "refusal" });
+
+    expect(await expandQuery(QUESTION)).toBeNull();
+    expect(failureReasons()).toEqual(["unusable"]);
   });
 
   it("logs on a stable prefix and never logs the question", async () => {

@@ -83,7 +83,7 @@ question, hybrid retrieval, a rerank, one model call, a citation check, and pers
   ([ADR 0013](docs/adr/0013-disconnect-refunds-and-internal-deadline.md)). The pipeline
   carries its own deadline so the platform never kills it mid-answer.
 
-Models: `claude-sonnet-5-5` writes the answer, `claude-haiku-4-5` condenses and expands,
+Models: `claude-sonnet-5-5` writes the answer, `claude-haiku-5-5` condenses and expands,
 Voyage `voyage-3` embeds and `rerank-2.5-lite` reranks. Postgres with pgvector holds the
 corpus, the question history and the quota, all behind row-level security.
 

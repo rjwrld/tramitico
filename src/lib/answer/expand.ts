@@ -25,9 +25,10 @@
  * properties, and for the same reasons:
  *
  * 1. **It can never block an ask.** Every failure — outage, timeout, an empty
- *    or overlong rewrite — returns `null`, and `retrieve` then runs the two
- *    legs it always ran. A degraded search is what the product did last week;
- *    a failed ask is a regression. Nothing here throws at its caller.
+ *    or overlong rewrite, a refusal — returns `null`, and `retrieve` then
+ *    runs the two legs it always ran. A degraded search is what the product
+ *    did last week; a failed ask is a regression. Nothing here throws at its
+ *    caller.
  * 2. **Its cost is flat and small.** One bounded call on the smallest model,
  *    output capped, no corpus and no history in the prompt.
  * 3. **It only ever adds candidates.** The expansion is a *fourth and fifth*
@@ -46,7 +47,7 @@
  */
 import { generateText } from "ai";
 import manifest from "../../../corpus/manifest.json";
-import { getExpandModel } from "./model";
+import { getExpandModel, REWRITE_PROVIDER_OPTIONS } from "./model";
 import { describeError, timeoutOrError } from "../log-redaction";
 
 /**
@@ -58,8 +59,19 @@ import { describeError, timeoutOrError } from "../log-redaction";
  */
 export const EXPAND_TIMEOUT_MS = 3_000;
 
-/** Output cap. Two or three lines of corpus vocabulary, not an answer. */
-export const EXPAND_MAX_OUTPUT_TOKENS = 200;
+/**
+ * Output cap. Two or three sentences of corpus vocabulary, not an answer.
+ *
+ * 300, up from 200 for Haiku 4.5, because Haiku 5.5's tokenizer spends about
+ * 30% more tokens on the same text. The longest of the 164 distinct
+ * expansions in the committed `eval/runs/` is 776 characters and none stopped
+ * at the old cap; at the new rate that one alone would run past 200. 300
+ * puts the cap at roughly `MAX_EXPANSION_LENGTH`'s worth of tokens, so the
+ * character limit, not a truncated last sentence, is what turns away a
+ * rambling rewrite.
+ * Thinking is off (`REWRITE_PROVIDER_OPTIONS`), so none of it is spent there.
+ */
+export const EXPAND_MAX_OUTPUT_TOKENS = 300;
 
 /** Longest expansion we will accept, in characters. */
 export const MAX_EXPANSION_LENGTH = 1_000;
@@ -179,26 +191,30 @@ export async function expandQuery(
   if (!expansionEnabled()) return null;
 
   let text: string;
+  let refused: boolean;
   try {
     const result = await generateText({
       model: getExpandModel(),
       system: EXPAND_SYSTEM_PROMPT,
       prompt: buildExpandPrompt(trimmed),
-      temperature: 0,
       maxOutputTokens: EXPAND_MAX_OUTPUT_TOKENS,
+      providerOptions: REWRITE_PROVIDER_OPTIONS,
       // The timeout alone, not the request's own signal — same reasoning as
       // condensation: a reader who presses stop is handled downstream, and
       // wiring their abort in here would log it as an expansion failure.
       abortSignal: AbortSignal.timeout(timeoutMs),
     });
     text = result.text;
+    // A safety refusal is a completed call with no fallback model behind it;
+    // same reading as condensation's.
+    refused = result.finishReason === "content-filter";
   } catch (error) {
     recordExpandFailure(timeoutOrError(error), error);
     return null;
   }
 
   const expansion = cleanExpansion(text);
-  if (expansion === "" || expansion.length > MAX_EXPANSION_LENGTH) {
+  if (refused || expansion === "" || expansion.length > MAX_EXPANSION_LENGTH) {
     recordExpandFailure("unusable");
     return null;
   }
