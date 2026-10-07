@@ -11,12 +11,16 @@
 import { MockLanguageModelV4 } from "ai/test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("./model", () => ({ getCondenseModel: vi.fn() }));
+vi.mock("./model", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./model")>()),
+  getCondenseModel: vi.fn(),
+}));
 
 import {
   buildCondensePrompt,
   cleanCondensed,
   condenseQuestion,
+  CONDENSE_MAX_OUTPUT_TOKENS,
   CONDENSE_SYSTEM_PROMPT,
 } from "./condense";
 import {
@@ -41,12 +45,21 @@ function turn(
   };
 }
 
-/** A condenser that answers with `text`, and records what it was asked. */
-function mockCondenser(text: string): MockLanguageModelV4 {
+/**
+ * A condenser that answers with `text`, and records what it was asked.
+ * `finish` is how the call ended — `stop` unless a case says otherwise.
+ */
+function mockCondenser(
+  text: string,
+  finish: { unified: "stop" | "length" | "content-filter"; raw: string } = {
+    unified: "stop",
+    raw: "end_turn",
+  },
+): MockLanguageModelV4 {
   const model = new MockLanguageModelV4({
     doGenerate: async () => ({
-      content: [{ type: "text" as const, text }],
-      finishReason: { unified: "stop" as const, raw: "end_turn" },
+      content: text === "" ? [] : [{ type: "text" as const, text }],
+      finishReason: finish,
       usage: {
         inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 },
         outputTokens: { total: 1, text: 1, reasoning: 0 },
@@ -141,10 +154,26 @@ describe("the standalone rewrite", () => {
     });
     expect(promptText(model)).toContain(turn(1).question);
     expect(promptText(model)).toContain(FOLLOW_UP);
-    // Deterministic and capped: a rewrite is not a place for sampling, and a
-    // model that has started explaining itself is stopped rather than paid for.
-    expect(call.temperature).toBe(0);
-    expect(call.maxOutputTokens).toBeGreaterThan(0);
+    // Capped: a model that has started explaining itself is stopped rather
+    // than paid for.
+    expect(call.maxOutputTokens).toBe(CONDENSE_MAX_OUTPUT_TOKENS);
+  });
+
+  it("sends no temperature and turns thinking off (Haiku 5.5)", async () => {
+    const model = mockCondenser(STANDALONE);
+
+    await condenseQuestion(FOLLOW_UP, [turn(1)]);
+
+    // Haiku 5.5 answers any temperature but 1 with a 400, which this module
+    // would swallow as a fallback on every follow-up; and its default
+    // thinking would spend the output cap before the rewrite.
+    const call = model.doGenerateCalls[0];
+    expect(call.temperature).toBeUndefined();
+    expect(call.topP).toBeUndefined();
+    expect(call.topK).toBeUndefined();
+    expect(call.providerOptions).toEqual({
+      anthropic: { thinking: { type: "disabled" } },
+    });
   });
 
   it("strips the quoting a model puts around a one-line answer", () => {
@@ -257,6 +286,27 @@ describe("failure always falls back to the raw question (#132 req. 4)", () => {
     });
 
     expect(failureReasons()).toEqual(["unusable", "unusable"]);
+  });
+
+  it("falls back when the cap is hit before any text", async () => {
+    // What a thinking-on call looks like when its thinking used the whole cap.
+    mockCondenser("", { unified: "length", raw: "max_tokens" });
+
+    const result = await condenseQuestion(FOLLOW_UP, [turn(1)]);
+
+    expect(result).toEqual({ query: FOLLOW_UP, condensed: null });
+    expect(failureReasons()).toEqual(["unusable"]);
+  });
+
+  it("falls back on a safety refusal, even with text before it", async () => {
+    // `stop_reason: "refusal"` reaches us as `content-filter`, from a call
+    // that did not throw. Haiku 5.5 has no server-side fallback behind it.
+    mockCondenser(STANDALONE, { unified: "content-filter", raw: "refusal" });
+
+    const result = await condenseQuestion(FOLLOW_UP, [turn(1)]);
+
+    expect(result).toEqual({ query: FOLLOW_UP, condensed: null });
+    expect(failureReasons()).toEqual(["unusable"]);
   });
 
   it("logs on the stable prefix, with no question text in the line", async () => {

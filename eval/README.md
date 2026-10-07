@@ -22,7 +22,7 @@ value, except for `ANSWER_EFFORT`:
 | -------------------------------- | --------------------------------------------- | ---------------------------- |
 | `ANSWER_MODEL`                   | `claude-sonnet-5-5`                           | `src/lib/answer/model.ts`    |
 | `ANSWER_EFFORT`                  | unset = no effort sent; **production: `low`** | `model.ts`, Vercel env       |
-| `CONDENSE_MODEL`, `EXPAND_MODEL` | `claude-haiku-4-5`                            | `model.ts`                   |
+| `CONDENSE_MODEL`, `EXPAND_MODEL` | `claude-haiku-5-5`                            | `model.ts`                   |
 | `EXPAND`                         | `on` (needs `ANTHROPIC_API_KEY`)              | `src/lib/answer/expand.ts`   |
 | `STEPS`                          | `on`                                          | `src/lib/answer/steps.ts`    |
 | `STEPS_RERANK`                   | `pin1` (`pin`, `slot`, `max`, `off`)          | `src/lib/answer/rerank.ts`   |

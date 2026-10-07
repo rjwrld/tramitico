@@ -47,7 +47,10 @@ import {
   vi,
 } from "vitest";
 
-vi.mock("./model", () => ({ getCondenseModel: vi.fn() }));
+vi.mock("./model", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./model")>()),
+  getCondenseModel: vi.fn(),
+}));
 
 import { condenseQuestion } from "./condense";
 import { getCondenseModel } from "./model";
