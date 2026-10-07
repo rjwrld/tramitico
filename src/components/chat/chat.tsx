@@ -77,9 +77,10 @@ const transport = new DefaultChatTransport<AskUIMessage>({
  * page and the boundary a decline names are one string. DESIGN §9 voice:
  * sentence case, usted, no exclamation, no apology.
  */
-export const SCOPE_LINE = `Responde sobre ${SCOPE_PHRASE}, citando el artículo oficial.`;
+const SCOPE_STEM = `Responde sobre ${SCOPE_PHRASE}, citando el artículo`;
+export const SCOPE_LINE = `${SCOPE_STEM} oficial.`;
 /** The same line when the corpus count closes it: «…citando el artículo de 23 documentos oficiales.» */
-export const SCOPE_LEAD = `Responde sobre ${SCOPE_PHRASE}, citando el artículo de`;
+export const SCOPE_LEAD = `${SCOPE_STEM} de`;
 export const NON_PROMISE_LINE =
   "No calcula su caso ni cubre sociedades ni otras instituciones.";
 

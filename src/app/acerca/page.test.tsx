@@ -9,12 +9,7 @@ import {
 import type { CorpusSource } from "@/lib/corpus-sources";
 import { NON_PROMISE_ITEMS, PROMISE_SENTENCE } from "@/lib/promise";
 import { REPOSITORY_URL } from "@/lib/site";
-import AcercaPage, {
-  ACERCA_SECTIONS,
-  EMPTY_SOURCES,
-  metadata,
-  sourcesCount,
-} from "./page";
+import AcercaPage, { ACERCA_SECTIONS, EMPTY_SOURCES, metadata } from "./page";
 
 let sources: CorpusSource[] = [];
 vi.mock("@/lib/corpus-sources", () => ({
@@ -168,11 +163,6 @@ describe("acerca page", () => {
     expect(
       colophon.getByRole("link", { name: "Términos" }).getAttribute("href"),
     ).toBe("/terminos");
-  });
-
-  it("phrases the count with Spanish plurals", () => {
-    expect(sourcesCount(1)).toBe("1 documento oficial");
-    expect(sourcesCount(23)).toBe("23 documentos oficiales");
   });
 
   it("titles itself in Spanish for the tab and for search", () => {

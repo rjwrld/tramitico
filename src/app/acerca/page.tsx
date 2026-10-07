@@ -6,6 +6,7 @@ import { Colophon } from "@/components/colophon";
 import { ACERCA_SOURCES_ANCHOR } from "@/components/chat/privacy-note";
 import { Sello, effectiveLabel, fetchedLabel } from "@/components/sello";
 import { loadCorpusSources, type CorpusSource } from "@/lib/corpus-sources";
+import { corpusCount } from "@/lib/corpus-summary";
 import { REPOSITORY_URL } from "@/lib/site";
 import { NON_PROMISE_ITEMS, PROMISE_SENTENCE } from "@/lib/promise";
 
@@ -51,11 +52,6 @@ export const ACERCA_SECTIONS = [
 
 export const EMPTY_SOURCES =
   "Todavía no hay documentos cargados en esta instalación.";
-
-/** `23 documentos oficiales`, or the singular. Never rendered at zero. */
-export function sourcesCount(n: number): string {
-  return n === 1 ? "1 documento oficial" : `${n} documentos oficiales`;
-}
 
 export default async function AcercaPage() {
   const sources = await loadCorpusSources();
@@ -130,7 +126,7 @@ export default async function AcercaPage() {
         ) : (
           <>
             <p data-slot="sources-count" className="tabular-nums">
-              {sourcesCount(sources.length)}. Cada uno abre en el sitio de la
+              {corpusCount(sources.length)}. Cada uno abre en el sitio de la
               institución que lo publica; las fechas son las del texto que
               Tramitico tiene cargado.
             </p>

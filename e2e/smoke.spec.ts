@@ -21,7 +21,7 @@ test("landing shows the wordmark and the empty-state invitation", async ({
   await expect(
     page.getByRole("heading", { name: "¿Qué trámite le quita el sueño?" }),
   ).toBeVisible();
-  // Five pills on every screen size; the rest behind «Ver más preguntas».
+  // Four pills on every screen size; the rest behind «Ver más preguntas».
   const seeds = page
     .getByRole("list", { name: "Preguntas frecuentes" })
     .getByRole("button");

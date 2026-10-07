@@ -214,21 +214,24 @@ leads nowhere.
   every divider sits on one vertical; never red. Hover: `--secondary` ground and a border nudged
   toward ink, 150ms. A transparent pill with an institution tag reads as a scoped action, not a
   tag. Four show on every screen size — Hacienda left, CCSS right; a quiet underlined «Ver más
-  preguntas (N)» discloses the rest in place, an odd last pill centred under the two columns — nine long pills made a tag cloud, rows (#478) a
-  wall of text, and a centred wrapping row broke into 1-1-2-1 lines at in-between widths. A pill shows a
-  short label; the click sends the full question, which then heads the exchange, so nothing asked
-  is hidden. The pill's accessible name is what it shows (tag + label), never the hidden question.
+  preguntas (N)» discloses the rest in place, an odd last pill centred under the two columns.
+  Nine long pills made a tag cloud, rows (#478) a wall of text, and a centred wrapping row broke
+  into 1-1-2-1 lines at in-between widths. A pill shows a short label; the click sends the full
+  question, which then heads the exchange, so nothing asked is hidden. The pill's accessible name
+  is what it shows (tag + label), never the hidden question.
 - **Composer**: one floating box inside the 44rem column — never a full-width docked bar, whose
   rule collided with the history sidebar. The stack under the thread (box, privacy note, and on
   the landing the colophon) sits 12px off the bottom edge, or the device's inset if larger.
   `--card` ground (crossfading with the page on a theme switch), 1px `--border`,
   `--radius-control`, `--lift` only; the field is borderless inside it and the whole box takes
-  focus (red-tinted border + soft `--ring` halo). Text 15px, 16px on touch (iOS zooms below it). The action is a compact 30px icon
-  button (arrow up; outline square while streaming) whose accessible name stays the verb
-  ("Enviar" / "Detener"). The thread fades out above it (`scroll-fade-b`, a 24px mask that eases
-  away as the reader reaches the end), no rule; «Ir al final» rests on that faded edge, round, on
-  `--card` with the same `--lift`. Under it, the privacy note: one centered 11px line carrying both #136 facts and the
-  «Privacidad» link.
+  focus (red-tinted border + soft `--ring` halo). Text 15px, 16px on touch (iOS zooms below
+  it). The action is a compact 30px icon button (arrow up; outline square while streaming)
+  whose accessible name stays the verb ("Enviar" / "Detener"). The thread fades out above it
+  (`scroll-fade-b`, a 24px mask that eases away as the reader reaches the end), no rule; «Ir al
+  final» rests on that faded edge, round, on `--card` with the same `--lift`. Under it, the
+  privacy note: one centered 11px line carrying both #136 facts and, in the conversation, the
+  «Privacidad» link. On the landing the colophon right under it already links the page, so the
+  note drops its own rather than say it twice.
 - **Colophon**: the standing pages — Acerca · Privacidad · Términos · Código — in Geist Mono 11px,
   muted, middot-separated: the foot of a document, not navigation chrome. It sits under the
   landing composer (gone once the conversation starts) and at the foot of /acerca, /privacidad
@@ -250,7 +253,8 @@ leads nowhere.
 Single-column chat, `max-width: 44rem`, centered; history sidebar (signed-in) collapses first.
 Spacing scale: 4 / 8 / 12 / 16 / 24 / 32 / 48px — vary rhythm deliberately (answers get 24–32px
 breathing room; metadata clusters tighten to 4–8px). Flexbox by default; grid only for genuinely
-2D regions. Z-index scale: dropdown 10 · sticky 20 · backdrop 30 · modal 40 · toast 50.
+2D regions — the seed pills qualify, since their dividers align down the rows as well as across.
+Z-index scale: dropdown 10 · sticky 20 · backdrop 30 · modal 40 · toast 50.
 
 ## 8. Motion
 

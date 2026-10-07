@@ -25,7 +25,7 @@ const LINKS = [
  * came from. Here it carries the site's standing pages — about, privacy,
  * terms, the code — under the landing composer and at the foot of those
  * pages, so they stay one click away without crowding the disclosure note
- * (which keeps only the link that backs its own claim).
+ * (which links only the privacy page, and only where this row is absent).
  *
  * Geist Mono in the 11px meta slot (DESIGN §3), muted, middots as separators:
  * an index, not navigation chrome. A `nav` with its own label so a screen

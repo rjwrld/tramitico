@@ -51,10 +51,9 @@ describe("SEED_PILLS", () => {
     }
   });
 
-  it("mixes both institutions before the disclosure", () => {
+  it("alternates the institutions before the disclosure, so the grid reads Hacienda left, CCSS right", () => {
     const first = SEED_PILLS.slice(0, VISIBLE_SEEDS).map((p) => p.institution);
-    expect(first).toContain("Hacienda");
-    expect(first).toContain("CCSS");
+    expect(first).toEqual(["Hacienda", "CCSS", "Hacienda", "CCSS"]);
   });
 });
 
@@ -109,7 +108,7 @@ describe("SeedPrompts", () => {
     expect(toggle.textContent).toBe(SHOW_LESS_LABEL);
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
 
-    // A disclosed pill works like the first five.
+    // A disclosed pill works like the first four.
     const last = SEED_PILLS[SEED_PILLS.length - 1];
     await userEvent.click(
       screen.getByRole("button", { name: (name) => name.includes(last.label) }),

@@ -39,7 +39,7 @@ export const TERMS_LINK_LABEL = "Términos";
  */
 export const ACERCA_PATH = "/acerca";
 export const ACERCA_LINK_LABEL = "Acerca";
-/** The fragment of `/acerca` that lists the documents; the home caption links to it. */
+/** The fragment of `/acerca` that lists the documents; the home scope sentence's count links to it. */
 export const ACERCA_SOURCES_ANCHOR = "fuentes";
 
 export function PrivacyNote({ linked = true }: { linked?: boolean }) {
