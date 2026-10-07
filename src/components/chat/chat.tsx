@@ -392,7 +392,7 @@ export function Chat({
               the floating composer, and reads as a control resting on the
               faded edge rather than a square stamped mid-paragraph: round,
               on the composer's own `--card` ground, with the same `--lift`. */}
-          <MessageScrollerButton className="size-8 rounded-full bg-card shadow-lift data-[direction=end]:bottom-1" />
+          <MessageScrollerButton className="size-8 rounded-full bg-card shadow-lift data-[direction=end]:bottom-1 pointer-coarse:size-11" />
         </MessageScroller>
         {/* The composer floats on the bottom edge and clears the home
             indicator itself (#138) — 12px or the device's inset, whichever is

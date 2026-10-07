@@ -31,7 +31,12 @@ export function QAView({
   return (
     <article className="mx-auto flex w-full max-w-[44rem] flex-col gap-4 px-safe pt-8 pb-8 [--safe-pad:1.5rem]">
       <div>
-        <Button variant="ghost" size="sm" onClick={onBack}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="pointer-coarse:h-11"
+          onClick={onBack}
+        >
           <ArrowLeft data-icon="inline-start" />
           Volver
         </Button>

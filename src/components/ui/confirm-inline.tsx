@@ -60,6 +60,7 @@ function ConfirmInline({
               <Button
                 variant="destructive"
                 size="xs"
+                className="pointer-coarse:h-11"
                 disabled={disabled}
                 onClick={onConfirm}
               >
@@ -68,6 +69,7 @@ function ConfirmInline({
               <Button
                 variant="ghost"
                 size="xs"
+                className="pointer-coarse:h-11"
                 disabled={disabled}
                 onClick={onCancel}
               >

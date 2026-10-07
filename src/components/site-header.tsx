@@ -24,7 +24,10 @@ export function SiteHeader({
 }) {
   return (
     <header className="flex h-12 items-center justify-between border-b px-safe">
-      <Link href="/" className="font-serif text-lg font-semibold">
+      <Link
+        href="/"
+        className="inline-flex h-8 items-center rounded-xs font-serif text-lg font-semibold pointer-coarse:h-11"
+      >
         trami<span className="text-primary">tico</span>
       </Link>
       <div className="flex items-center gap-2">

@@ -259,7 +259,7 @@ export function HistoryShell({
                   variant="ghost"
                   size="icon-sm"
                   aria-label="Abrir historial"
-                  className="md:hidden"
+                  className="md:hidden pointer-coarse:size-11"
                 />
               }
             >
@@ -281,7 +281,7 @@ export function HistoryShell({
             size="icon-sm"
             aria-label={collapsed ? "Mostrar historial" : "Ocultar historial"}
             aria-expanded={!collapsed}
-            className="hidden md:inline-flex"
+            className="hidden md:inline-flex pointer-coarse:size-11"
             onClick={toggleSidebar}
           >
             <PanelLeft />

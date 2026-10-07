@@ -93,6 +93,7 @@ export function SignInForm() {
               autoComplete="one-time-code"
               required
               placeholder="123456"
+              className="pointer-coarse:h-11"
               value={code}
               onChange={(e) =>
                 setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
@@ -102,6 +103,7 @@ export function SignInForm() {
           <Button
             type="submit"
             variant="secondary"
+            className="pointer-coarse:h-11"
             disabled={codeStatus === "verifying" || code.length !== 6}
           >
             {codeStatus === "verifying" && <Spinner data-icon="inline-start" />}
@@ -117,7 +119,7 @@ export function SignInForm() {
         <Button
           type="button"
           variant="link"
-          className="self-start px-0"
+          className="self-start px-0 pointer-coarse:h-11"
           onClick={resetToForm}
         >
           Solicitar un enlace nuevo
@@ -143,6 +145,7 @@ export function SignInForm() {
             required
             autoComplete="email"
             placeholder="nombre@ejemplo.com"
+            className="pointer-coarse:h-11"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -150,6 +153,7 @@ export function SignInForm() {
         <Button
           type="submit"
           variant="secondary"
+          className="pointer-coarse:h-11"
           disabled={status === "sending"}
         >
           {status === "sending" && <Spinner data-icon="inline-start" />}
@@ -167,6 +171,7 @@ export function SignInForm() {
       <Button
         type="button"
         variant="outline"
+        className="pointer-coarse:h-11"
         onClick={() => signInWithProvider("google")}
       >
         Continuar con Google
@@ -174,6 +179,7 @@ export function SignInForm() {
       <Button
         type="button"
         variant="outline"
+        className="pointer-coarse:h-11"
         onClick={() => signInWithProvider("github")}
       >
         Continuar con GitHub
