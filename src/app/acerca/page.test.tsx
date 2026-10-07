@@ -168,5 +168,12 @@ describe("acerca page", () => {
   it("titles itself in Spanish for the tab and for search", () => {
     expect(metadata.title).toBe("Acerca");
     expect(metadata.alternates).toEqual({ canonical: "/acerca" });
+    // Its own share card, not the root's (which a page without `openGraph`
+    // inherits): a shared link previews this page.
+    expect(metadata.openGraph).toMatchObject({
+      url: "https://tramitico.com/acerca",
+      title: "Acerca — Tramitico",
+      description: metadata.description,
+    });
   });
 });

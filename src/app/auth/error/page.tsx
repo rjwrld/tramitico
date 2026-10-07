@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+/**
+ * Where a failed magic link lands. The root template adds the wordmark, and
+ * an error page is never a search result: the auth routes that redirect here
+ * are crawlable, so Google can find it.
+ */
 export const metadata: Metadata = {
-  title: "Error de sesión — Tramitico",
+  title: "Error de sesión",
+  robots: { index: false, follow: true },
 };
 
 export default function AuthErrorPage() {

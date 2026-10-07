@@ -6,6 +6,7 @@ import { Colophon } from "@/components/colophon";
 import { DISCLAIMER } from "@/components/chat/answer-block";
 import { PRIVACY_PATH } from "@/components/chat/privacy-note";
 import { limitFor } from "@/lib/rate-limit";
+import { publicPageMetadata } from "@/lib/site";
 
 /**
  * The terms of use (#326). Same pattern as `/privacidad`: plain prose in the
@@ -18,12 +19,11 @@ import { limitFor } from "@/lib/rate-limit";
  * title, no cards.
  */
 
-export const metadata: Metadata = {
-  title: "Términos de uso",
-  alternates: { canonical: "/terminos" },
-  description:
-    "Qué es Tramitico, qué no es, y las condiciones bajo las que se ofrece.",
-};
+export const metadata: Metadata = publicPageMetadata(
+  "/terminos",
+  "Términos de uso",
+  "Qué es Tramitico, qué no es, y las condiciones bajo las que se ofrece.",
+);
 
 /** The same address `/privacidad` names; one inbox for both pages. */
 const CONTACT_EMAIL = "privacidad@tramitico.com";

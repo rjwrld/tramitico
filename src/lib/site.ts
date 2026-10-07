@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 /**
  * The crawl surface: what the site is called, where it lives, and which
  * routes a search engine may index. `robots.ts`, `sitemap.ts`, the root
@@ -35,11 +37,63 @@ export const PUBLIC_PATHS = [
 ] as const;
 
 /**
- * Routes a crawler has no business in: the sign-in form (its page also
- * carries `noindex`) and the API. `/api/` is a prefix, so the trailing slash
- * matters.
+ * Routes a crawler has no business in: the API. `/api/` is a prefix, so the
+ * trailing slash matters. Pages that must stay out of the index (`/login`,
+ * `/auth/error`) are deliberately absent: they carry `noindex` instead, and a
+ * crawler blocked here could never read it — Google would list the bare URL,
+ * linked from `/`, as «indexed, though blocked by robots.txt».
  */
-export const DISALLOWED_PATHS = ["/login", "/api/"] as const;
+export const DISALLOWED_PATHS = ["/api/"] as const;
+
+/**
+ * The Open Graph fields every page shares. A page that sets `openGraph`
+ * replaces the layout's object wholesale (Next.js merges metadata shallowly),
+ * so these are spread back in rather than inherited.
+ */
+export const OPEN_GRAPH_BASE = {
+  siteName: SITE_NAME,
+  locale: "es_CR",
+  type: "website",
+} as const;
+
+/**
+ * The share image, named explicitly for pages that set their own
+ * `openGraph`: Next.js attaches `app/opengraph-image.png` only to a segment
+ * that does not, so without this such a page's card has no picture. Same
+ * file, same alt text as `app/opengraph-image.alt.txt` (a test pins both).
+ */
+export const OPEN_GRAPH_IMAGE = {
+  url: "/opengraph-image.png",
+  width: 1280,
+  height: 640,
+  type: "image/png",
+  alt: "Tarjeta de Tramitico: impuestos y trámites para quien trabaja por cuenta propia en Costa Rica, con sellos de fuentes oficiales.",
+} as const;
+
+/**
+ * The metadata of an indexable child page: its title, description and
+ * canonical, and an Open Graph card that says the same — without its own
+ * `openGraph` a shared `/acerca` link would preview as `/`, with the root's
+ * url, title and description.
+ */
+export function publicPageMetadata(
+  path: (typeof PUBLIC_PATHS)[number],
+  title: string,
+  description: string,
+): Metadata {
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: {
+      ...OPEN_GRAPH_BASE,
+      images: [OPEN_GRAPH_IMAGE],
+      url: siteUrl(path),
+      title: TITLE_TEMPLATE.replace("%s", title),
+      description,
+    },
+  };
+}
 
 /**
  * `/` maps to the bare origin, no trailing slash: that is the form Next.js

@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import robots from "@/app/robots";
@@ -5,7 +8,9 @@ import sitemap from "@/app/sitemap";
 import {
   DEFAULT_TITLE,
   DISALLOWED_PATHS,
+  OPEN_GRAPH_IMAGE,
   PUBLIC_PATHS,
+  publicPageMetadata,
   SITE_ORIGIN,
   siteUrl,
   structuredData,
@@ -21,11 +26,19 @@ describe("siteUrl", () => {
 });
 
 describe("robots.txt", () => {
-  it("allows everything but the sign-in form and the API, and names the sitemap", () => {
+  it("allows everything but the API, and names the sitemap", () => {
     expect(robots()).toEqual({
-      rules: { userAgent: "*", allow: "/", disallow: ["/login", "/api/"] },
+      rules: { userAgent: "*", allow: "/", disallow: ["/api/"] },
       sitemap: "https://tramitico.com/sitemap.xml",
     });
+  });
+
+  it("leaves the noindex pages crawlable, so a crawler can read the noindex", () => {
+    for (const path of ["/login", "/auth/error"]) {
+      expect(DISALLOWED_PATHS.some((prefix) => path.startsWith(prefix))).toBe(
+        false,
+      );
+    }
   });
 
   it("disallows only routes the sitemap does not list", () => {
@@ -84,5 +97,35 @@ describe("default title", () => {
   it("stays inside the ~60 characters a result page shows", () => {
     expect(DEFAULT_TITLE.length).toBeLessThanOrEqual(60);
     expect(DEFAULT_TITLE.startsWith("Tramitico")).toBe(true);
+  });
+});
+
+describe("publicPageMetadata", () => {
+  it("gives a page its canonical and a share card of its own", () => {
+    expect(publicPageMetadata("/acerca", "Acerca", "Qué es.")).toEqual({
+      title: "Acerca",
+      description: "Qué es.",
+      alternates: { canonical: "/acerca" },
+      openGraph: {
+        siteName: "Tramitico",
+        locale: "es_CR",
+        type: "website",
+        images: [OPEN_GRAPH_IMAGE],
+        url: "https://tramitico.com/acerca",
+        title: "Acerca — Tramitico",
+        description: "Qué es.",
+      },
+    });
+  });
+
+  it("names the same share image the root serves, with its alt text", () => {
+    const app = path.join(__dirname, "../app");
+    const png = readFileSync(path.join(app, "opengraph-image.png"));
+    // PNG IHDR: width and height, big-endian, at bytes 16 and 20.
+    expect(png.readUInt32BE(16)).toBe(OPEN_GRAPH_IMAGE.width);
+    expect(png.readUInt32BE(20)).toBe(OPEN_GRAPH_IMAGE.height);
+    expect(
+      readFileSync(path.join(app, "opengraph-image.alt.txt"), "utf8").trim(),
+    ).toBe(OPEN_GRAPH_IMAGE.alt);
   });
 });

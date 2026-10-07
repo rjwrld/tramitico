@@ -403,9 +403,13 @@ export const DECLINE_OPENING =
   "No encuentro base oficial en los documentos que manejo para responder " +
   "esta pregunta con confianza, y prefiero no adivinar.";
 
-/** What the beta covers, said once in the decline and once on the empty state. */
+/**
+ * What the beta covers, said once in the decline and once on the empty state.
+ * «trabajadores independientes» is the term people search (#264); the
+ * parenthesis keeps the precise one, which excludes sociedades.
+ */
 export const SCOPE_PHRASE =
-  "Hacienda y la CCSS para personas físicas que trabajan por cuenta propia";
+  "Hacienda y la CCSS para trabajadores independientes (personas físicas que trabajan por cuenta propia)";
 
 /**
  * Rule 5 of the answer prompt, as the deterministic decline states it: the

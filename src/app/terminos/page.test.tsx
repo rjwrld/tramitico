@@ -94,5 +94,12 @@ describe("terms page", () => {
   it("titles itself for the tab and for search", () => {
     expect(metadata.title).toBe("Términos de uso");
     expect(metadata.alternates).toEqual({ canonical: "/terminos" });
+    // Its own share card, not the root's (which a page without `openGraph`
+    // inherits): a shared link previews this page.
+    expect(metadata.openGraph).toMatchObject({
+      url: "https://tramitico.com/terminos",
+      title: "Términos de uso — Tramitico",
+      description: metadata.description,
+    });
   });
 });
