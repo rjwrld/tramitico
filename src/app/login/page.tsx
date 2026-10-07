@@ -28,12 +28,17 @@ export default async function LoginPage() {
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-sm flex-col items-center justify-center gap-6 px-6">
-      <Link href="/" className="font-serif text-2xl font-semibold">
+      <Link
+        href="/"
+        className="inline-flex items-center rounded-xs font-serif text-2xl font-semibold pointer-coarse:min-h-11"
+      >
         trami<span className="text-primary">tico</span>
       </Link>
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Iniciar sesión</CardTitle>
+          {/* The page's one heading (#492): the card title rendered a bare
+              `div`, which left /login with no heading at all. */}
+          <CardTitle as="h1">Iniciar sesión</CardTitle>
           <CardDescription>
             Guarde su historial de preguntas y consulte hasta 50 por día.
           </CardDescription>

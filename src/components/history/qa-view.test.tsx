@@ -2,6 +2,12 @@
 import { describe, expect, it, afterEach, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 
+import {
+  COPY_ANSWER_LABEL,
+  DISCLAIMER,
+  ROUTED_DISCLAIMER,
+} from "@/components/chat/answer-block";
+
 import { QAView } from "./qa-view";
 import type { HistoryItem } from "./history-sidebar";
 
@@ -186,6 +192,77 @@ describe("QAView", () => {
   it("renders no sello row when there are no citations", () => {
     render(<QAView item={baseItem} onBack={vi.fn()} />);
     expect(screen.queryByRole("list", { name: "Fuentes" })).toBeNull();
+  });
+
+  // #491, DESIGN §9: the disclaimer is always present — a saved answer is
+  // read as much as a fresh one. Every cited answer points at Hacienda; a
+  // saved row with no citations is a decline (the #131 invariant puts at
+  // least one on every answer), which named its own institution.
+  it("closes a cited answer with the disclaimer and the copy action", () => {
+    render(
+      <QAView
+        item={{
+          ...baseItem,
+          citations: [
+            {
+              docKey: "reglamento-iva",
+              docTitle: "Reglamento IVA",
+              norma: null,
+              articulo: "Artículo 11",
+              url: null,
+            },
+          ],
+        }}
+        onBack={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(DISCLAIMER)).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: COPY_ANSWER_LABEL }),
+    ).toBeTruthy();
+  });
+
+  it("closes a saved decline with the routed disclaimer", () => {
+    render(<QAView item={baseItem} onBack={vi.fn()} />);
+    expect(screen.getByText(ROUTED_DISCLAIMER)).toBeTruthy();
+    expect(screen.queryByText(DISCLAIMER)).toBeNull();
+  });
+
+  it("copies the saved answer with its sources and the disclaimer", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText },
+      configurable: true,
+    });
+    render(
+      <QAView
+        item={{
+          ...baseItem,
+          answer: "Sí, debe facturar[1].",
+          citations: [
+            {
+              docKey: "reglamento-iva",
+              docTitle: "Reglamento IVA",
+              norma: null,
+              articulo: "Artículo 11",
+              url: "https://sinalevi.go.cr/x",
+            },
+          ],
+        }}
+        onBack={vi.fn()}
+      />,
+    );
+    const { default: userEvent } = await import("@testing-library/user-event");
+    await userEvent.click(
+      screen.getByRole("button", { name: COPY_ANSWER_LABEL }),
+    );
+    expect(writeText).toHaveBeenCalledWith(
+      [
+        "Sí, debe facturar [1].",
+        "Fuentes:\n[1] Reglamento IVA · Art. 11 — https://sinalevi.go.cr/x",
+        DISCLAIMER,
+      ].join("\n\n"),
+    );
   });
 
   it("calls onBack when the Volver button is clicked", async () => {

@@ -50,7 +50,9 @@ export function HistorySidebar({
 
   return (
     <nav aria-label="Historial" className="flex h-full flex-col gap-2 p-3">
-      <h2 className="px-1 font-mono text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
+      {/* Sentence case in the UI voice (#492): an uppercase tracked mono
+          label over a list is the eyebrow DESIGN §10 rules out. */}
+      <h2 className="px-1 text-xs font-medium text-muted-foreground">
         Historial
       </h2>
 
@@ -90,7 +92,9 @@ export function HistorySidebar({
                   type="button"
                   onClick={() => onSelect(item)}
                   className={cn(
-                    "flex min-w-0 flex-1 flex-col items-start gap-0.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+                    // Focus at full ring strength (#492): `ring-ring/50`
+                    // alone measured ≈2.5:1, under WCAG 1.4.11's 3:1.
+                    "flex min-w-0 flex-1 flex-col items-start gap-0.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring pointer-coarse:min-h-11 pointer-coarse:justify-center",
                     selectedId === item.id && "bg-muted",
                   )}
                 >
@@ -109,7 +113,7 @@ export function HistorySidebar({
                   // outright where hover does not exist: Tailwind's `hover:` only fires
                   // under `@media (hover: hover)`, so on a phone the button was invisible
                   // and undeletable (#138, the mobile Safari pass).
-                  className="text-muted-foreground opacity-0 group-hover/item:opacity-100 focus-visible:opacity-100 no-hover:opacity-100 hover:text-destructive"
+                  className="text-muted-foreground opacity-0 group-hover/item:opacity-100 focus-visible:opacity-100 no-hover:opacity-100 hover:text-destructive pointer-coarse:size-11"
                   onClick={() => setConfirmingId(item.id)}
                 >
                   <Trash2 />

@@ -33,9 +33,19 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+/**
+ * A `div` by default; `as="h1"` when the title is the page's heading (#492:
+ * /login's only title rendered as a `div`, leaving the page with none). A tag
+ * prop rather than Base UI's `render`: `useRender` is a hook, and /login is a
+ * server component.
+ */
+function CardTitle({
+  className,
+  as: Tag = "div",
+  ...props
+}: React.ComponentProps<"div"> & { as?: "div" | "h1" | "h2" | "h3" }) {
   return (
-    <div
+    <Tag
       data-slot="card-title"
       className={cn(
         "text-base leading-snug font-medium group-data-[size=sm]/card:text-sm",
