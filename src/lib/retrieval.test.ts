@@ -18,7 +18,16 @@ import {
 } from "./retrieval";
 import type { Embedder } from "./ingestion/embedder";
 import { describeError } from "./log-redaction";
-import { resolveDerivedFigures } from "./answer/derived";
+import { DERIVED_FIGURES, resolveDerivedFigures } from "./answer/derived";
+import { coversFiscalYear, type VigenciaManifest } from "./vigencia";
+import manifest from "../../corpus/manifest.json";
+
+/** The deployed manifest, as the slice vigencia reads. */
+const manifestDocs: VigenciaManifest["documents"] = manifest.documents;
+/** Costa Rica midnight opening fiscal year 2027. */
+const IN_2027 = new Date("2027-01-01T06:00:00Z");
+/** A manifest with no annual entry: the wire as it was before #505. */
+const NO_ANNUAL: VigenciaManifest = { documents: [] };
 
 /** The `reason=` of every degraded-retrieval line logged so far. */
 function degradedReasons(): string[] {
@@ -489,6 +498,7 @@ describe("retrieve", () => {
       }),
       embedder: fakeEmbedder(),
       matchCount: 5,
+      vigencia: NO_ANNUAL,
     });
     expect(seen).toEqual({
       query_text: "¿me cobran retroactivo?",
@@ -510,6 +520,7 @@ describe("retrieve", () => {
         seen = args;
       }),
       embedder: fakeEmbedder(),
+      vigencia: NO_ANNUAL,
     });
     expect(seen?.match_count).toBe(DEFAULT_MATCH_COUNT);
     expect(DEFAULT_MATCH_COUNT).toBe(8);
@@ -608,20 +619,19 @@ describe("retrieve", () => {
    * owner commits after it.
    */
   it("withholds a past fiscal year's annual sources on a pinned 2027 clock", async () => {
-    const annual2026 = (
-      n: number,
-      docKey: string,
-      articulo: string,
-    ): SearchChunksRow => ({
-      ...ROW,
-      chunk_id: `${n}${n}${n}${n}${n}${n}${n}${n}-0000-0000-0000-000000000000`,
-      doc_key: docKey,
-      articulo,
-      score: rrfScore(n),
-    });
-    const rows = [
-      annual2026(1, "salario-base-2026", "Circular 246-2025"),
-      annual2026(2, "tramos-renta-2026", "Tramos"),
+    const rows: SearchChunksRow[] = [
+      {
+        ...ROW,
+        chunk_id: "55555555-5555-5555-5555-555555555555",
+        doc_key: "salario-base-2026",
+        articulo: "Circular 246-2025",
+      },
+      {
+        ...ROW,
+        chunk_id: "66666666-6666-6666-6666-666666666666",
+        doc_key: "tramos-renta-2026",
+        articulo: null,
+      },
       { ...ROW, chunk_id: "33333333-3333-3333-3333-333333333333" },
       {
         ...ROW,
@@ -634,7 +644,7 @@ describe("retrieve", () => {
     const result = await retrieve("¿cuánto es la multa?", {
       client: fakeClient(rows),
       embedder: fakeEmbedder(),
-      now: new Date("2027-01-01T06:00:00Z"),
+      now: IN_2027,
     });
 
     expect(result.chunks.map((c) => c.docKey)).toEqual(["ley-10363", "cnpt"]);
@@ -650,10 +660,104 @@ describe("retrieve", () => {
     const stale = await retrieve("¿cuáles son los tramos?", {
       client: fakeClient(rows.slice(0, 2)),
       embedder: fakeEmbedder(),
-      now: new Date("2027-01-01T06:00:00Z"),
+      now: IN_2027,
     });
     expect(stale.chunks).toEqual([]);
     expect(stale.isWeak).toBe(true);
+  });
+
+  /**
+   * The same claim over the whole deployed manifest: one chunk per annual
+   * entry and per derived-figure input (the BMC's salario mínimo and
+   * escalas, the CNPT's salario base). Today that is all six series; after
+   * the owner's pass it is whatever still stops at 2026.
+   */
+  it("lets no 2026-only annual entry, or a figure built on one, through in 2027", async () => {
+    const pastIn2027 = new Set(
+      manifestDocs
+        .filter((doc) => doc.annualChurn && !coversFiscalYear(doc, 2027))
+        .map((doc) => doc.doc_key),
+    );
+    const sources = [
+      ...DERIVED_FIGURES.flatMap((figure) =>
+        figure.inputs.map(({ docKey, articulo }) => ({ docKey, articulo })),
+      ),
+      ...manifestDocs
+        .filter((doc) => doc.annualChurn)
+        .map((doc) => ({ docKey: doc.doc_key, articulo: null })),
+    ];
+    const rows = sources.map(
+      ({ docKey, articulo }, index): SearchChunksRow => ({
+        ...ROW,
+        chunk_id: `00000000-0000-0000-0000-${String(index).padStart(12, "0")}`,
+        doc_key: docKey,
+        articulo,
+      }),
+    );
+
+    const result = await retrieve("¿cuánto pago?", {
+      client: fakeClient(rows),
+      embedder: fakeEmbedder(),
+      matchCount: rows.length,
+      now: IN_2027,
+    });
+
+    expect(
+      result.chunks.filter((chunk) => pastIn2027.has(chunk.docKey)),
+    ).toEqual([]);
+    expect(
+      resolveDerivedFigures(result.chunks).filter((figure) =>
+        figure.inputs.some((input) => pastIn2027.has(input.docKey)),
+      ),
+    ).toEqual([]);
+  });
+
+  it("asks for twice the rows while a source is out of period, and refills the count", async () => {
+    const december: VigenciaManifest = {
+      documents: [
+        {
+          doc_key: "tramos-renta-2026",
+          effective_date: "2026-01-01",
+          annualChurn: true,
+        },
+        {
+          doc_key: "tramos-renta-2027",
+          effective_date: "2027-01-01",
+          annualChurn: true,
+        },
+      ],
+    };
+    const tramos = (chunkId: string, docKey: string): SearchChunksRow => ({
+      ...ROW,
+      chunk_id: chunkId,
+      doc_key: docKey,
+      articulo: null,
+    });
+    let seen: Record<string, unknown> | undefined;
+    const result = await retrieve("tramos de renta", {
+      client: fakeClient(
+        [
+          tramos("77777777-7777-7777-7777-777777777777", "tramos-renta-2027"),
+          tramos("88888888-8888-8888-8888-888888888888", "tramos-renta-2026"),
+          ROW,
+          { ...ROW, chunk_id: "99999999-9999-9999-9999-999999999999" },
+        ],
+        (args) => {
+          seen = args;
+        },
+      ),
+      embedder: fakeEmbedder(),
+      matchCount: 2,
+      now: new Date("2026-12-15T06:00:00Z"),
+      vigencia: december,
+    });
+
+    expect(seen?.match_count).toBe(4);
+    // Next year's source waits for 1 January; the count is still two.
+    expect(result.chunks.map((c) => c.docKey)).toEqual([
+      "tramos-renta-2026",
+      "ley-10363",
+    ]);
   });
 
   it("short-circuits a blank query without touching the database", async () => {

@@ -4,7 +4,8 @@ import {
   annualVigencia,
   coversFiscalYear,
   crFiscalYear,
-  withinFiscalYear,
+  isWithheld,
+  withheldSources,
   type VigenciaManifest,
 } from "./vigencia";
 
@@ -55,6 +56,16 @@ describe("coversFiscalYear", () => {
     ).toBe(true);
     expect(coversFiscalYear({ doc_key: "ccss-bmc" }, 2026)).toBe(false);
   });
+
+  it("covers no year when the verified year precedes the effective one", () => {
+    const muddled = {
+      doc_key: "x",
+      effective_date: "2027-01-01",
+      verifiedForFiscalYear: 2026,
+    };
+    expect(coversFiscalYear(muddled, 2026)).toBe(false);
+    expect(coversFiscalYear(muddled, 2027)).toBe(false);
+  });
 });
 
 describe("annualSeries", () => {
@@ -92,52 +103,54 @@ describe("annualVigencia", () => {
   it("is quiet through November, and from 1 December names what next year lacks", () => {
     expect(
       annualVigencia(TURN_OF_YEAR, new Date("2026-12-01T05:59:59Z")),
-    ).toEqual({ uncovered: [], dueForNextYear: [], expired: [] });
+    ).toEqual({ uncovered: [], dueForNextYear: [], superseded: [] });
     expect(annualVigencia(TURN_OF_YEAR, crMidnight("2026-12-01"))).toEqual({
       uncovered: [],
       dueForNextYear: ["ccss-escala-salud"],
-      expired: [],
+      superseded: [],
     });
   });
 
-  it("on 1 January gates the series nobody covered and lists what is left behind", () => {
+  it("on 1 January gates the series nobody covered and lists what a newer entry superseded", () => {
+    // The escala is not superseded: nothing replaced it, so it is a
+    // review (carry it over or replace it), and only the gate names it.
     expect(annualVigencia(TURN_OF_YEAR, IN_2027)).toEqual({
       uncovered: ["ccss-escala-salud"],
       dueForNextYear: [],
-      expired: ["tramos-renta-2026", "ccss-escala-salud"],
+      superseded: ["tramos-renta-2026"],
     });
   });
 });
 
-describe("withinFiscalYear", () => {
-  const chunks = [
-    { docKey: "ley-7092" },
-    { docKey: "tramos-renta-2026" },
-    { docKey: "tramos-renta-2027" },
-    { docKey: "ccss-escala-salud" },
-    { docKey: "fixture-not-in-the-manifest" },
+describe("withheldSources", () => {
+  const docKeys = [
+    "ley-7092",
+    "tramos-renta-2026",
+    "tramos-renta-2027",
+    "ccss-escala-salud",
+    "fixture-not-in-the-manifest",
   ];
+  const served = (now: Date, source: VigenciaManifest) => {
+    const withheld = withheldSources(now, source);
+    return docKeys.filter((docKey) => !isWithheld(withheld, docKey));
+  };
 
   it("hands each fiscal year its own annual sources and no other", () => {
-    expect(
-      withinFiscalYear(chunks, crMidnight("2026-12-31"), TURN_OF_YEAR).map(
-        (c) => c.docKey,
-      ),
-    ).toEqual([
+    expect(served(crMidnight("2026-12-31"), TURN_OF_YEAR)).toEqual([
       "ley-7092",
       "tramos-renta-2026",
       "ccss-escala-salud",
       "fixture-not-in-the-manifest",
     ]);
-    expect(
-      withinFiscalYear(chunks, IN_2027, TURN_OF_YEAR).map((c) => c.docKey),
-    ).toEqual(["ley-7092", "tramos-renta-2027", "fixture-not-in-the-manifest"]);
+    expect(served(IN_2027, TURN_OF_YEAR)).toEqual([
+      "ley-7092",
+      "tramos-renta-2027",
+      "fixture-not-in-the-manifest",
+    ]);
   });
 
-  it("drops a retired doc_key whatever the year", () => {
+  it("withholds a retired doc_key whatever the year", () => {
     const retiring = { ...TURN_OF_YEAR, retiredDocKeys: ["ley-7092"] };
-    expect(
-      withinFiscalYear(chunks, IN_2026, retiring).map((c) => c.docKey),
-    ).not.toContain("ley-7092");
+    expect(served(IN_2026, retiring)).not.toContain("ley-7092");
   });
 });

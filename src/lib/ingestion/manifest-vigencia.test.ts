@@ -60,21 +60,22 @@ describe("corpus/manifest.json vigencia", () => {
 
   // #505: free and dated. From 1 December it names each annual series with
   // no source for the coming fiscal year yet, and after 1 January each entry
-  // left behind. A warning, not a failure: the owner acts on it (runbook
+  // a newer one superseded. A warning, not a failure: the owner acts on it (runbook
   // §2.2), and no PR should go red for a gazette that is not out. CI shows it
   // as a PR annotation; `pnpm recrawl`, which runs this file, prints it.
   it("warns from 1 December about next year's annual sources", ({
     annotate,
   }) => {
-    const { dueForNextYear, expired } = annualVigencia(manifest);
+    // Asserts nothing, on purpose: it can only warn.
+    const { dueForNextYear, superseded } = annualVigencia(manifest);
     const warnings = [
       ...dueForNextYear.map(
         (series) =>
           `${series}: no source for the next fiscal year yet — owner: runbook §2.2 (#505)`,
       ),
-      ...expired.map(
+      ...superseded.map(
         (docKey) =>
-          `${docKey}: past its fiscal year and withheld from answers — owner: retire it, runbook §2.2`,
+          `${docKey}: superseded and withheld from answers — owner: retire it, runbook §2.2`,
       ),
     ];
     for (const warning of warnings) {
