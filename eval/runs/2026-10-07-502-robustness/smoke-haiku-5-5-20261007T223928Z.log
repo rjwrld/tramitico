@@ -1,0 +1,24 @@
+...
+retrieval cases: 3 (4 expected targets), abstention: 0, follow-ups condensed: 1
+condensation fell back to the question: none
+rewrites: live
+provider calls that did not come back: ccss-cuanto-pago-base(embed×1)
+rerank readings lost: none of 18
+weak: none
+expansion absent: none
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   2/4        0/1          0        —
+top8/capoff/pinon    3/4        0/1          2        —
+top8/cap3/pinoff     2/4        0/1          0        —
+top8/cap3/pinon      3/4        0/1          2        —
+top8/cap2/pinoff     2/4        0/1          0        —
+top8/cap2/pinon      3/4        0/1          2        —
+top10/capoff/pinoff  2/4        0/1          0        —
+top10/capoff/pinon   3/4        0/1          2        —
+top10/cap3/pinoff    2/4        0/1          0        —
+top10/cap3/pinon     3/4        0/1          2        —
+top10/cap2/pinoff    3/4        0/1          2        —
+top10/cap2/pinon     3/4        0/1          2        —
+
+top8/capoff/pinon, robustness block (#502): 2/2

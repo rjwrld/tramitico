@@ -731,7 +731,7 @@ describe("POST /api/ask", () => {
       resetAt: new Date(),
       reason: "rate_limited",
       counter: "subject",
-      message: "Alcanzó el límite de 10 preguntas gratis por hoy.",
+      message: "Alcanzó el límite de 10 preguntas por hoy.",
       refund: NO_REFUND,
     });
 
@@ -2686,6 +2686,7 @@ describe("POST /api/ask", () => {
         routedCategory: null,
         // RERANK=off in this file: the rerank never called Voyage.
         rerankDrops: null,
+        rerank: "off",
       });
     });
 
@@ -2744,6 +2745,7 @@ describe("POST /api/ask", () => {
       expect(soleEvent(capture)).toMatchObject({
         outcome: "ok",
         rerankDrops: voyage.mock.calls.map(() => "429"),
+        rerank: "on",
       });
     });
 
@@ -3086,7 +3088,7 @@ describe("POST /api/ask", () => {
         resetAt: new Date(),
         reason: "rate_limited",
         counter: "subject",
-        message: "Alcanzó el límite de 10 preguntas gratis por hoy.",
+        message: "Alcanzó el límite de 10 preguntas por hoy.",
         refund: NO_REFUND,
       });
 
@@ -3109,7 +3111,7 @@ describe("POST /api/ask", () => {
         resetAt: new Date(),
         reason: "rate_limited",
         counter: "ip",
-        message: "Alcanzó el límite de 10 preguntas gratis por hoy.",
+        message: "Alcanzó el límite de 10 preguntas por hoy.",
         refund: NO_REFUND,
       });
 
@@ -3217,6 +3219,7 @@ describe("POST /api/ask", () => {
         "providerError",
         "quotaHit",
         "quotaReason",
+        "rerank",
         "rerankDrops",
         "routedCategory",
         "stages",

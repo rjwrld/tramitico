@@ -1,0 +1,27 @@
+....................................................................................................aaaaaaaaa
+retrieval cases: 100 (27 in the robustness block; 191 expected targets outside it), abstention: 9, follow-ups condensed: 15
+condensation fell back to the question: none
+rewrites: live
+provider calls that did not come back: none
+rerank readings lost: none of 545
+weak: rb-corto-cuanto-pago-caja
+expansion absent: none
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   130/191    41/73        4        —
+top8/capoff/pinon    135/191    44/73        20       —
+top8/cap3/pinoff     124/191    38/73        4        —
+top8/cap3/pinon      129/191    41/73        22       —
+top8/cap2/pinoff     115/191    31/73        5        —
+top8/cap2/pinon      120/191    34/73        21       —
+top10/capoff/pinoff  139/191    43/73        7        —
+top10/capoff/pinon   143/191    46/73        20       —
+top10/cap3/pinoff    130/191    40/73        7        —
+top10/cap3/pinon     134/191    43/73        22       —
+top10/cap2/pinoff    123/191    36/73        9        —
+top10/cap2/pinon     127/191    38/73        21       —
+
+top8/capoff/pinon, robustness block (#502): 24/27
+  MISS  rb-pill-retroactivo ← ccss-cobro-retroactivo  «¿Me pueden cobrar retroactivo?»  (seed hit)
+  MISS  rb-corto-cuanto-es-iva ← iva-tarifa-general  «¿cuánto es el IVA?»  (seed missed too)
+  MISS  rb-corto-cuanto-pago-caja ← ccss-cuanto-pago-base  «¿cuánto pago a la caja?»  (seed hit)

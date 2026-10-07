@@ -20,10 +20,21 @@ describe("compareProbeRuns", () => {
     expect(row).toEqual({
       id: "inscripcion-tardia-sancion",
       tier: 1,
+      // A probe from before #502 recorded no variant.
+      variant: null,
       sameList: true,
       sameSet: true,
       divergence: "same",
     });
+  });
+
+  it("carries the robustness block's variant through (#502)", () => {
+    const [row] = compareProbeRuns(
+      [read({ variant: "robustez" })],
+      [read({ variant: "robustez" })],
+      CONFIG,
+    );
+    expect(row.variant).toBe("robustez");
   });
 
   it("tells a reordered set from a different one", () => {

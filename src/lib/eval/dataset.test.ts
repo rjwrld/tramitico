@@ -6,8 +6,10 @@ import {
   caseHit,
   chunkMatchesTarget,
   DATASET_PATH,
+  isRobustness,
   parseDataset,
   retrievalCases,
+  robustnessSeedId,
 } from "./dataset";
 
 const line = (obj: object) => JSON.stringify(obj);
@@ -152,6 +154,51 @@ describe("parseDataset coverage contract (#261)", () => {
     expect(() => parseDataset(line({ ...CASE, heldOut: "true" }))).toThrow(
       /heldOut must be a boolean/,
     );
+  });
+
+  describe("the robustness block (#502)", () => {
+    const BLOCK = {
+      ...TIER1,
+      id: "rb-corto",
+      seed: "robustez:q1",
+      question: "¿tasa del IVA?",
+      variant: "robustez",
+    };
+
+    it("parses a tier 1 robustness case as non-blocking and names its seed", () => {
+      const [parsed] = parseDataset(line(BLOCK));
+      expect(parsed.blocking).toBe(false);
+      expect(isRobustness(parsed)).toBe(true);
+      expect(robustnessSeedId(parsed)).toBe("q1");
+      expect(robustnessSeedId(parseDataset(line(CASE))[0])).toBeNull();
+    });
+
+    it("keeps it out of the held-out set and the blocking gates", () => {
+      expect(() => parseDataset(line({ ...BLOCK, heldOut: true }))).toThrow(
+        /never held out/,
+      );
+      expect(() => parseDataset(line({ ...BLOCK, blocking: true }))).toThrow(
+        /never blocking/,
+      );
+    });
+
+    it("pairs the variant with a seed naming the case it re-asks", () => {
+      expect(() => parseDataset(line({ ...BLOCK, seed: "corpus" }))).toThrow(
+        /robustez:<case id>/,
+      );
+      expect(() =>
+        parseDataset(line({ ...CASE, seed: "robustez:q0" })),
+      ).toThrow(/robustez:<case id>/);
+      expect(() => parseDataset(line({ ...BLOCK, seed: "robustez:" }))).toThrow(
+        /names its seed/,
+      );
+    });
+
+    it("still makes any other tier 1 case blocking", () => {
+      expect(() => parseDataset(line({ ...TIER1, blocking: false }))).toThrow(
+        /always blocking/,
+      );
+    });
   });
 
   it("rejects an unknown tier or family", () => {
@@ -332,8 +379,9 @@ describe("eval/dataset.jsonl", () => {
     // The band was on the whole file until #261 part B landed the held-out
     // set beside it. It still describes the thing it was written about — the
     // corpus-derived retrieval regression suite — and the held-out set has a
-    // composition of its own (held-out.test.ts), not a size band.
-    const corpusDerived = cases.filter((c) => !c.heldOut);
+    // composition of its own (held-out.test.ts), not a size band. So does
+    // the robustness block (#502, robustness.test.ts).
+    const corpusDerived = cases.filter((c) => !c.heldOut && !isRobustness(c));
     expect(corpusDerived.length).toBeGreaterThanOrEqual(25);
     expect(corpusDerived.length).toBeLessThanOrEqual(45);
   });

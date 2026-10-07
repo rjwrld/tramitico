@@ -174,7 +174,9 @@ Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3))
   The current annual set is tramos, salario base, salarios mínimos, both CCSS escalas, and the
   retained CCSS BMC adjustment mechanism. An unchanged source whose legal start predates the
   current period keeps that true `effective_date` and records the annual check in
-  `verifiedForFiscalYear`.
+  `verifiedForFiscalYear`. At runtime, retrieval drops every chunk from an annual source that
+  does not cover the current Costa Rican fiscal year, so next year's source can be ingested
+  beside this year's and takes over on 1 January (ADR 0016 amendment, #505).
 
 ## 4. Ingestion & chunking
 
@@ -331,7 +333,10 @@ _(pinned here per #10)_
   providers **[ADR 0022](docs/adr/0022-identity-linking-trust-boundary.md)** lists (#381).
 - **Anonymous: 10 questions/day** per subject = `HMAC-SHA256(RATE_LIMIT_SUBJECT_SECRET,
 crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed from an IP,
-  date-scoped so it doesn't link across days). **Authed: 50/day** per user.
+  date-scoped so it doesn't link across days). **Authed: 10/day** per user — the same as
+  anonymous (#501: the Anthropic workspace's monthly cap bounds every ask, and account churn
+  multiplies the authed limit). Sign-in copy — the anonymous 429, `/login` — pitches more
+  questions only while `RATE_LIMIT_AUTHED` exceeds `RATE_LIMIT_ANON`, the saved history otherwise.
 - **Per-IP umbrella (#383):** every anonymous ask is also counted against
   `HMAC-SHA256(RATE_LIMIT_SUBJECT_SECRET, crDate + IP)` — one row per IP that all browser
   families share — with a ceiling of `RATE_LIMIT_ANON_IP` (default 3 × the anonymous
@@ -397,8 +402,16 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   than for the other eight. The 25–45 band now describes only the corpus-derived half it was
   written for. Held out means held out: no one consults these cases while tuning retrieval,
   chunking or the prompt until the #267 baseline is published.
+- **Robustness block (#502):** about 25 cases marked `variant: "robustez"`, each re-asking one
+  seed case in the words production gets — the nine seed-pill labels verbatim, bare questions of
+  three to five words, no accents or typos, Spanglish, and follow-ups of three turns. Each carries
+  its seed's `expected`, tier, family and requirements verbatim (`seed: "robustez:<case id>"`),
+  is never held out and never blocking. Every other gate reads the population it read before the
+  block; each lane prints the block as its own line, and the block is gated as a tracked baseline
+  of cases hit, set by #511's full lane (`src/lib/eval/robustness.ts`).
 - **Retrieval:** every expected source/article must be present in the answer pool. A satisfiable
-  Tier 1 case that takes the weak-retrieval decline is a failure.
+  Tier 1 case that takes the weak-retrieval decline is a failure (outside the robustness block,
+  which reports its weak cases on its own line).
 - **Groundedness:** every material claim must be supported by a retrieved chunk. The pinned
   temperature-0 judge uses a majority of three for flagged answers
   ([ADR 0007](docs/adr/0007-groundedness-judge-model.md)). The global gate is **≥94%** (ratcheted
@@ -421,8 +434,11 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   quarterly verification window. See [ADR 0016](docs/adr/0016-source-freshness-policy.md).
 - **Abstention:** held-out cases cover missing/stale evidence, false premises, personalized exact
   calculations, and other institutions. Passing means declining without an invented figure and
-  naming the correct official/professional route. Tier 1 false declines are zero.
-- **Threshold policy:** every Tier 1 case is individually blocking across retrieval, groundedness,
+  naming the correct official/professional route. Tier 1 false declines are zero. An abstention
+  case may also declare `requiredClaims` (#502): `ho-abs-iva-2027` must still state the current
+  13 % and artículo 10, each cited, and must not say the artículo is absent from the documents.
+  The lane scores this on every run; the assertion is armed once #507 and #508 land.
+- **Threshold policy:** every Tier 1 case outside the robustness block is individually blocking across retrieval, groundedness,
   adequacy, citations, freshness, and abstention behavior; a strong aggregate cannot hide a red
   case. Numeric thresholds were fixed by the single authorized baseline on the beta corpus
   (#267, 2026-09-05; the tables are in `eval/README.md`), then ratchet upward and are never relaxed
@@ -444,7 +460,7 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   weak-retrieval decline on a case that declares required claims is an adequacy failure.
 - **Coverage contract in the dataset:** each case carries `tier` (1 / 2 / `abstain`), `family`
   (T1-A…T1-I on tier 1), `requiredClaims` (≤5), `requiredSteps`, `abstainIf`, `routeTo` and
-  `freshness`. Tier 1 cases are `blocking` by construction. Abstention cases carry no `expected`
+  `freshness`. Tier 1 cases are `blocking` by construction, outside the robustness block. Abstention cases carry no `expected`
   targets — no correct source exists — and are judged on whether they declined and routed to the
   right institution, with no invented figure.
 - **Citation invariant at eval time (#168):** the harness runs the runtime `validateCitations`

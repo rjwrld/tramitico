@@ -95,7 +95,7 @@ test.describe("history sheet at a phone viewport", () => {
   test.use({ viewport: PHONE });
 
   // One throwaway user per test: history is scoped by user id, so a fresh one
-  // is a clean list, and the authed quota (50/day) is never a factor.
+  // is a clean list, and the authed quota (10/day) is never a factor.
   test.beforeEach(async ({ page }) => {
     const email = `history-mobile-${randomUUID()}@example.test`;
     const { data, error } = await admin.auth.admin.createUser({

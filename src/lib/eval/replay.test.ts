@@ -166,6 +166,24 @@ describe("replayPlan", () => {
     ).toEqual(["ho-iva-en-cero-sin-facturar"]);
   });
 
+  it("keeps the robustness block out of a tier (#502)", () => {
+    const withBlock = [...rows, row({ id: "rb", variant: "robustez" })];
+    const blockDataset = [
+      ...dataset,
+      evalCase({ id: "rb", variant: "robustez", seed: "robustez:x" }),
+    ];
+    expect(
+      replayPlan(withBlock, blockDataset, { cases: null, tier: 1 }).map(
+        (p) => p.row.id,
+      ),
+    ).toEqual(["ho-iva-en-cero-sin-facturar"]);
+    expect(
+      replayPlan(withBlock, blockDataset, { cases: ["rb"], tier: null }).map(
+        (p) => p.row.id,
+      ),
+    ).toEqual(["rb"]);
+  });
+
   it("narrows to named cases", () => {
     expect(
       replayPlan(rows, dataset, { cases: ["t2"], tier: null }).map(

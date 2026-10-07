@@ -35,6 +35,12 @@ value, except for `ANSWER_EFFORT`:
 | `EVAL_TRANSCRIPT_DIR`            | `eval/transcripts/`                           | `src/lib/eval/transcript.ts` |
 | `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites     | `src/lib/eval/rewrites.ts`   |
 
+The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`)
+accept only the values above. Anything else runs the default and logs
+`config: unknown knob value` once (#499, `src/lib/knobs.ts`), so an arm that
+misspells `off` measures production rather than the baseline: check the run's
+output for that line.
+
 `.env.local` is loaded by `src/lib/test-support/suite-gate.ts` and never
 overrides an exported variable. To set an arm, export its knobs; there is no
 need to `source` the file. Since `ANSWER_EFFORT` has no code default, every
@@ -52,8 +58,13 @@ arm sets it, or the arm measures a configuration production doesn't run.
 
 The gate constants are `GROUNDEDNESS_GATE` (`groundedness.ts`), `HIT_RATE_GATE`
 (`retrieval-hitrate.eval.test.ts`), `ABSTENTION_GATE`
-(`abstention.eval.test.ts`), and `ADEQUACY_TIER2_GATE` with
-`TIER1_REQUIREMENT_BASELINE` (`adequacy.ts`).
+(`abstention.eval.test.ts`), `ADEQUACY_TIER2_GATE` with
+`TIER1_REQUIREMENT_BASELINE` (`adequacy.ts`), and `ROBUSTNESS_HIT_BASELINE`
+(`robustness.ts`, unset until #511). The robustness block (#502) sits outside
+every other gate and prints its own line in each lane. The abstention lane
+also scores `ho-abs-iva-2027`'s requirement (13 % and art. 10, cited, never
+denied); its assertion is a todo until #507 and #508. See «The robustness
+block».
 
 Two gates are zero, with no constant. One is the citation invariant. The other,
 since #500, is false corpus-absence claims: an answer that says the documents
@@ -130,7 +141,12 @@ instead of a size (see below). One JSON object per line:
 - `blocking` — the case fails the eval on its own, regardless of hit-rate.
   The canary from ADR 0003 is the one blocking case.
 - `seed` — provenance: `appendix-a:<n>` (SPEC Appendix A), `demand:<family>`,
-  `held-out:<family>` (#261 part B) or `corpus`.
+  `held-out:<family>` (#261 part B), `corpus`, or `robustez:<case id>` on a
+  robustness case (#502), naming the case it re-asks.
+- `variant` — on a held-out Tier 1 case, `literal`, `coloquial` or
+  `seguimiento`; `robustez` marks the robustness block (#502), whose cases copy
+  their seed's `expected`, tier, family and requirements verbatim
+  (`src/lib/eval/robustness.test.ts`).
 - `history` — optional, and what makes a case a **condensation case** (#132,
   [ADR 0012](../docs/adr/0012-multi-turn-question-condensation.md)): a
   non-empty list of `{ question, answer }` turns preceding this one. Both eval
@@ -3383,3 +3399,93 @@ minute because it asks no small model. At that pace Voyage returned 429 on
 none. #457 saw the same threshold. A frozen comparison needs pacing, or its
 per-case rows are not evidence. `PROBE_CASE_MS` paces the probe. A lane under `EVAL_REWRITES` with no answer model in the loop has the
 same exposure; it prints `rerank readings lost` (#466), so check it.
+
+## The robustness block (2026-10-07, #502)
+
+The eval asked well-formed questions, and production gets short ones (#490
+item 1). Of the 61 standalone answerable cases, 3 had six words or fewer, and
+none was a seed-pill label. The landing shows those labels, and people retype
+them.
+
+**The block.** 27 cases marked `variant: "robustez"`. Each re-asks one seed
+case (`seed: "robustez:<case id>"`) and copies its `expected`, tier, family,
+`requiredClaims`, `requiredSteps` and `freshness` verbatim, so a miss is the
+wording's. `src/lib/eval/robustness.test.ts` checks the copy and the shapes.
+Ids carry the shape:
+
+- `rb-pill-*`: the nine pill labels of `seed-prompts.tsx`, verbatim, each
+  re-asking the question its pill sends. The test fails if a label changes.
+- `rb-corto-*`: eight bare questions of three to five words.
+- `rb-tilde-*`: five as typed on a phone, with no accents or `¿`, and with
+  abbreviations and typos.
+- `rb-spanglish-*`: two.
+- `rb-seguimiento-*`: three follow-ups, each after two earlier turns.
+
+A robustness case is never held out (its seed is in every lane already) and
+never blocking. Seven of the 27 re-ask a Tier 1 seed and carry its
+requirements.
+
+**Beside the gates, not inside them.** Every gate reads the cases it read
+before #502: hit-rate, blocking, weak retrieval, groundedness, Tier 1 and
+Tier 2 adequacy, citations and derived figures. Their baselines stay
+comparable with every earlier run. Each lane prints the block on its own line
+(`formatRobustnessLine`), every miss beside its seed. So do `answer-set-probe`,
+`answer-set-compare` and `requirement-coverage`, and `answer-replay --tier`
+leaves the block out.
+
+**The gate: a tracked baseline, set by #511.** The other option was a hard
+gate (every case must hit its seed's `expected`). It would be red today:
+`rb-corto-cuanto-es-iva` misses because its seed `iva-tarifa-general` misses
+(#508), and «¿cuánto pago a la caja?» is weak on both rewrite models (below).
+A hard gate that starts red decides nothing, which is #474's complaint about
+the gates we already have. So the block is gated like Tier 1 since ADR 0023:
+the count of block cases that hit must not fall more than
+`ROBUSTNESS_REGRESSION_MARGIN` (2) below `ROBUSTNESS_HIT_BASELINE`
+(`src/lib/eval/robustness.ts`). #511's full lane sets the baseline, and a
+lane that beats it moves it up. Until then the hit-rate lane prints the line
+and shows the gate as a todo. The block's requirement count prints in the
+groundedness lane and is not gated.
+
+**`ho-abs-iva-2027` gains a requirement.** It still declines a 2027 rate. Now
+it must also give today's 13 % and the artículo 10 that sets it, each with a
+citation in its sentence, and never say the artículo is missing from the
+documents (#490 item 2). The case declares two `literal` claims. The
+abstention lane checks them deterministically
+(`abstentionRequirementFailures`), along with `articleAbsenceClaims`, a
+clause-level read for a sentence that names the artículo and says the
+documents lack it. #500 owns the general detector. This check reads only what
+this requirement needs. Its known limit: it reads «artículo 10» by its number,
+so a sentence denying the Reglamento's art. 10 would count too. `abstainIf`
+now tells the judge that giving the current rate, cited, is not answering
+about 2027.
+
+Backtested on the 19 committed `ho-abs-iva-2027` answers under `eval/runs/`
+(free), the requirement fails 17. All 5 answers #500 names as claiming art. 10
+is absent are flagged, plus `2026-09-24-352-req5`, and no honest sentence
+is. The two that pass (`2026-09-11-closing`, `2026-09-24-352`) give 13 % and
+art. 10, both cited. A hard assertion would start red, which is the same
+reason the block's gate is a baseline. So the lane scores and prints the
+requirement on every run, and the assertion is a todo, armed when #507 (the
+prompt) and #508 (art. 30 → art. 10) land. The absence half is gated sooner,
+by #500's detector.
+
+**The probe read** ([`runs/2026-10-07-502-robustness/`](runs/2026-10-07-502-robustness/),
+both rewrite models, route configuration):
+
+| Rewrite model | Outside the block | Block | `ho-t2-*` | Pill labels |
+| ------------- | ----------------- | ----- | --------- | ----------- |
+| Haiku 5.5     | 69/73             | 24/27 | 9/12      | 8/9         |
+| Haiku 4.5     | 71/73             | 25/27 | 12/12     | 9/9         |
+
+- The one pill label that misses is «¿Me pueden cobrar retroactivo?», on
+  Haiku 5.5. Its expansion read «retroactivo» as arrears interest.
+- «¿cuánto pago a la caja?» is weak on both models: production answers it
+  with the honest decline, while its seed and «¿Cuánto pago como
+  independiente?» both hit.
+- #496's colloquial signal held on a third pair of runs. Haiku 5.5 missed 4,
+  2 and 3 `ho-t2-*` cases across the three runs; Haiku 4.5 missed 0, 1 and 0.
+
+**Not fixed here.** `src/lib/answer/steps.ts` keys its families on phrases
+copied from held-out cases, against «The held-out set» rule above. The block
+does not repair that; the repair needs questions nobody on the project wrote
+(#506).

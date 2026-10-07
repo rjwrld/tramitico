@@ -26,6 +26,11 @@
  * Haiku comparison (SPEC §5, portfolio material): same command with
  * ANSWER_MODEL=claude-haiku-4-5 — the per-case table and pass rate print
  * with the run; record the numbers in eval/README.md.
+ *
+ * #502's robustness block is answered and judged with every other case, and
+ * every gate below reads the cases it read before the block existed, so its
+ * baselines still compare. The block prints its own lines — groundedness,
+ * adequacy, requirements stated — under each headline (`./robustness`).
  */
 import { readFileSync } from "node:fs";
 import { generateText } from "ai";
@@ -88,6 +93,7 @@ import {
   type CheckedCase,
 } from "./answer-checks";
 import { formatExposureTally, tallyByExposure } from "./exposure";
+import { formatRobustnessLine, splitRobustness } from "./robustness";
 import { rewriteCase, rewritesFromEnv } from "./rewrites";
 import {
   selectCases,
@@ -224,6 +230,9 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
   function assertFullRun(): void {
     if (subset !== null) throw new Error(subsetGateFailure(subset));
   }
+
+  /** What the gates read, and the robustness block (#502). */
+  const split = () => splitRobustness(results, (r) => r.evalCase);
 
   beforeAll(async () => {
     // Before any paid call: an id that names no case is a typo that would
@@ -394,10 +403,11 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
       ),
     );
 
-    const passes = results.filter((r) => r.verdict === "pass").length;
+    const { gated, block } = split();
+    const passes = gated.filter((r) => r.verdict === "pass").length;
     console.log(
       `\ngroundedness (answer=${answerModelId}, judge=${JUDGE_MODEL}): ` +
-        `${passes}/${results.length}`,
+        `${passes}/${gated.length}`,
     );
     for (const r of results) {
       const votes = r.verdicts.length > 1 ? ` [${r.verdicts.join("/")}]` : "";
@@ -408,23 +418,33 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
     }
 
     console.log(
+      formatRobustnessLine(
+        "groundedness",
+        block,
+        (r) => r.evalCase,
+        (r) => r.verdict === "pass",
+        (r) => `— ${r.reason}`,
+      ),
+    );
+
+    console.log(
       formatExposureTally(
         "groundedness",
         tallyByExposure(
-          results,
+          gated,
           (r) => r.evalCase,
           (r) => r.verdict === "pass",
         ),
       ),
     );
 
-    const judgedForAdequacy = results.filter((r) => r.adequacy !== null);
+    const judgedForAdequacy = gated.filter((r) => r.adequacy !== null);
     console.log(
       `\nadequacy (#130): ` +
         `${judgedForAdequacy.filter((r) => !adequacyFailed(r)).length}/` +
         `${judgedForAdequacy.length}`,
     );
-    for (const r of judgedForAdequacy) {
+    for (const r of results.filter((r) => r.adequacy !== null)) {
       console.log(
         `  ${adequacyFailed(r) ? "FAIL" : "pass"}  tier ${r.evalCase.tier}` +
           `  ${r.evalCase.family ?? "—"}  ${r.evalCase.id}` +
@@ -440,6 +460,19 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
     );
     console.log(
       `tier 1 requirements stated (#287): ${tier1Coverage.stated}/${tier1Coverage.total}`,
+    );
+    // The block's requirements are its seeds' (#502), so this is the same
+    // count asked in other words.
+    const blockJudged = block.filter((r) => r.adequacy !== null);
+    const blockCoverage = requirementCoverage(blockJudged);
+    console.log(
+      `${formatRobustnessLine(
+        "adequacy",
+        blockJudged,
+        (r) => r.evalCase,
+        (r) => !adequacyFailed(r),
+        (r) => `— missing: ${adequacyReason(r)}`,
+      )}\n  requirements stated: ${blockCoverage.stated}/${blockCoverage.total}`,
     );
 
     console.log(
@@ -480,7 +513,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
   // the goal) is printed above and named in the failure message.
   it(`states at least ${TIER1_REQUIREMENT_FLOOR} tier 1 requirements (baseline ${TIER1_REQUIREMENT_BASELINE} − ${TIER1_REGRESSION_MARGIN}, ADR 0023)`, () => {
     assertFullRun();
-    const tier1 = results.filter((r) => r.evalCase.tier === 1);
+    const tier1 = split().gated.filter((r) => r.evalCase.tier === 1);
     const { stated, total } = requirementCoverage(tier1);
     const inadequate = tier1
       .filter(adequacyFailed)
@@ -493,7 +526,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
 
   it(`at least ${ADEQUACY_TIER2_GATE * 100}% of tier 2 cases with required claims are adequate`, () => {
     assertFullRun();
-    const tier2 = results.filter(
+    const tier2 = split().gated.filter(
       (r) => r.evalCase.tier === 2 && r.adequacy !== null,
     );
     const failed = tier2
@@ -512,8 +545,8 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
     // The 2026 baseline (#267) measured 0 violations over all 73 answers, so
     // the threshold the #195 backlog was waiting for is zero, on every case —
     // not only the blocking ones it was asserted on until then.
-    const failed = results
-      .filter((r) => r.citations !== null && !r.citations.ok)
+    const failed = split()
+      .gated.filter((r) => r.citations !== null && !r.citations.ok)
       .map(
         (r) =>
           `${r.evalCase.id} (${(r.citations as Exclude<CitationVerdict, { ok: true }>).violation})`,
@@ -532,7 +565,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
     // SPEC §9: «no individually blocking Tier 1 case may fail». Until #324
     // this lane asserted only the rate below, and the 2026-09-11 closing run
     // passed it with two Tier 1 held-out cases failing unanimously.
-    const failed = blockingGroundednessFailures(results);
+    const failed = blockingGroundednessFailures(split().gated);
     expect(failed, `ungrounded blocking answers: ${failed.join("; ")}`).toEqual(
       [],
     );
@@ -540,12 +573,13 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
 
   it(`at least ${GROUNDEDNESS_GATE * 100}% of answers are supported by their retrieved chunks`, () => {
     assertFullRun();
-    const failed = results
+    const { gated } = split();
+    const failed = gated
       .filter((r) => r.verdict === "fail")
       .map((r) => `${r.evalCase.id} (${r.reason})`);
-    const passes = results.length - failed.length;
+    const passes = gated.length - failed.length;
     expect(
-      passes / results.length,
+      passes / gated.length,
       `ungrounded answers: ${failed.join("; ")}`,
     ).toBeGreaterThanOrEqual(GROUNDEDNESS_GATE);
   });
@@ -561,8 +595,8 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
     // `ADEQUACY_SYSTEM_PROMPT` tells to score *presence*: it could only ever
     // have been answered by accident. Every case that resolves a figure, not
     // just F1.
-    const failed = results
-      .filter((r) => r.derivedFigures.length > 0)
+    const failed = split()
+      .gated.filter((r) => r.derivedFigures.length > 0)
       .flatMap((r) => {
         const incomplete = incompletelyCitedDerivedFigures(
           r.answer,

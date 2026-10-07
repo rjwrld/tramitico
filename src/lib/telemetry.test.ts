@@ -92,6 +92,7 @@ describe("emitAskEvent", () => {
     abort: null,
     routedCategory: null,
     rerankDrops: null,
+    rerank: "on",
   };
 
   it("writes one line: the stable prefix, a space, then the JSON", () => {
@@ -508,6 +509,22 @@ describe("createAskTelemetry", () => {
     expect(capture.events()[0].rerankDrops).toBeNull();
   });
 
+  it("records the configured rerank mode, as rerank.ts reads RERANK (#499)", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    for (const value of ["", "voyage", "off", "on"]) {
+      vi.stubEnv("RERANK", value);
+      createAskTelemetry().emit();
+    }
+    vi.unstubAllEnvs();
+    // `on` is not a mode RERANK accepts, so it reranks, and says so.
+    expect(capture.events().map((e) => e.rerank)).toEqual([
+      "on",
+      "on",
+      "off",
+      "on",
+    ]);
+  });
+
   it("closes a dropped reading onto the classes a retry policy tells apart (#466)", () => {
     const http = (status: number) =>
       rerankDrop({ reading: "question", cause: "http", status });
@@ -590,6 +607,7 @@ describe("no telemetry event can carry content (#141)", () => {
       "providerError",
       "quotaHit",
       "quotaReason",
+      "rerank",
       "rerankDrops",
       "routedCategory",
       "stages",

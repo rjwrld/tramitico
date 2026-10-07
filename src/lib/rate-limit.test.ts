@@ -3,7 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   checkRateLimit,
   coarseUserAgent,
+  largerSignedInLimit,
   limitForAnonIp,
+  questionCount,
   quotaNetwork,
   rateLimitReachedMessage,
   RATE_LIMIT_UNAVAILABLE_MESSAGE,
@@ -289,6 +291,15 @@ describe("register (DESIGN §9: Spanish, usted)", () => {
     expect(message).not.toMatch(NOT_USTED);
   });
 
+  it("anon limit message addresses the reader as usted when it pitches more questions (#501)", () => {
+    vi.stubEnv("RATE_LIMIT_AUTHED", "25");
+    try {
+      expect(rateLimitReachedMessage("anon", resetAt)).not.toMatch(NOT_USTED);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("does not double the period after a p. m. reset time", () => {
     // 6 p.m. CR — Intl renders "6:00 p. m.", already sentence-final.
     const message = rateLimitReachedMessage("anon", resetAt);
@@ -314,7 +325,7 @@ describe("checkRateLimit — fake client", () => {
     expect(result.allowed).toBe(true);
     expect(result.reason).toBe("ok");
     expect(result.message).toBeNull();
-    expect(result.remaining).toBe(49);
+    expect(result.remaining).toBe(9);
   });
 
   it("denies once the incremented count exceeds the limit, naming the reset time and nudging sign-in for anon", async () => {
@@ -329,7 +340,7 @@ describe("checkRateLimit — fake client", () => {
   });
 
   it("does not nudge sign-in for the authed tier", async () => {
-    const client = fakeClient({ count: 51 });
+    const client = fakeClient({ count: 11 });
     const result = await checkRateLimit("user:1", "authed", client);
     expect(result.allowed).toBe(false);
     expect(result.message).not.toMatch(/Inicie sesión/);
@@ -553,6 +564,98 @@ describe("rateLimitReachedMessage", () => {
     const resetAt = new Date("2026-07-24T00:00:00Z"); // midnight UTC = 6pm CR (UTC-6)
     const msg = rateLimitReachedMessage("authed", resetAt);
     expect(msg).toMatch(/6:00\s*p\.?\s*m\.?/i);
+  });
+
+  /**
+   * #501: the anonymous 429 promises more questions only when signing in
+   * actually buys them; otherwise it pitches the saved history.
+   */
+  describe("the anonymous sign-in pitch", () => {
+    const resetAt = new Date("2026-07-24T00:00:00Z");
+
+    afterEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    it("pitches the saved history at the defaults, which are equal (SPEC §7)", () => {
+      vi.stubEnv("RATE_LIMIT_ANON", "");
+      vi.stubEnv("RATE_LIMIT_AUTHED", "");
+      expect(largerSignedInLimit()).toBeNull();
+      expect(rateLimitReachedMessage("anon", resetAt)).toBe(
+        "Alcanzó el límite de 10 preguntas por hoy. " +
+          "Inicie sesión para guardar su historial, " +
+          "o vuelva a intentarlo después de las 6:00 p. m.",
+      );
+    });
+
+    it("states the signed-in quota when it is larger", () => {
+      vi.stubEnv("RATE_LIMIT_ANON", "10");
+      vi.stubEnv("RATE_LIMIT_AUTHED", "25");
+      expect(largerSignedInLimit()).toBe(25);
+      const msg = rateLimitReachedMessage("anon", resetAt);
+      expect(msg).toBe(
+        "Alcanzó el límite de 10 preguntas por hoy. " +
+          "Inicie sesión para tener 25 preguntas diarias, " +
+          "o vuelva a intentarlo después de las 6:00 p. m.",
+      );
+    });
+
+    it("never promises more questions when the signed-in quota is smaller", () => {
+      vi.stubEnv("RATE_LIMIT_ANON", "10");
+      vi.stubEnv("RATE_LIMIT_AUTHED", "5");
+      expect(largerSignedInLimit()).toBeNull();
+      const msg = rateLimitReachedMessage("anon", resetAt);
+      expect(msg).toContain("Inicie sesión para guardar su historial");
+      expect(msg).not.toMatch(/preguntas diarias/);
+      expect(msg).not.toMatch(/\b5\b/);
+    });
+  });
+
+  /**
+   * #501 follow-up: there is no paid tier, so neither message calls the
+   * questions «gratis», and a limit of 1 reads «1 pregunta».
+   */
+  describe("the stated limit", () => {
+    const resetAt = new Date("2026-07-24T00:00:00Z");
+
+    afterEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    it.each(["anon", "authed"] as const)(
+      "never calls the %s questions free",
+      (tier) => {
+        expect(rateLimitReachedMessage(tier, resetAt)).not.toMatch(/gratis/);
+      },
+    );
+
+    it("agrees in number with an anonymous limit of 1", () => {
+      vi.stubEnv("RATE_LIMIT_ANON", "1");
+      vi.stubEnv("RATE_LIMIT_AUTHED", "");
+      expect(rateLimitReachedMessage("anon", resetAt)).toBe(
+        "Alcanzó el límite de 1 pregunta por hoy. " +
+          "Inicie sesión para tener 10 preguntas diarias, " +
+          "o vuelva a intentarlo después de las 6:00 p. m.",
+      );
+    });
+
+    it("agrees in number with a signed-in limit of 1", () => {
+      vi.stubEnv("RATE_LIMIT_AUTHED", "1");
+      expect(rateLimitReachedMessage("authed", resetAt)).toBe(
+        "Alcanzó el límite de 1 pregunta por hoy. " +
+          "Vuelva a intentarlo después de las 6:00 p. m.",
+      );
+    });
+  });
+});
+
+describe("questionCount", () => {
+  it.each([
+    [1, "1 pregunta"],
+    [2, "2 preguntas"],
+    [10, "10 preguntas"],
+  ])("%i → %s", (n, expected) => {
+    expect(questionCount(n)).toBe(expected);
   });
 });
 

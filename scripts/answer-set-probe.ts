@@ -36,11 +36,18 @@
  * makes each case take at least that long, so a frozen run can be paced
  * like a live one (≈21 cases/min, `PROBE_CASE_MS=3000`) (#460).
  *
+ * The robustness block (#502) is read like any other case and summed apart:
+ * the configuration table counts the cases it counted before the block
+ * existed, so an earlier probe's totals still compare, and the block prints
+ * its own line under the route's configuration, every miss beside its seed.
+ * `EVAL_CASES=<id,…>` scopes the probe the way it scopes the lanes
+ * (`src/lib/eval/subset.ts`): the three-case smoke before a full arm.
+ *
  * Cents: embeddings, expansions, condensations and a Voyage call per rerank
  * reading. A diagnostic, not a gate. Usage (reads `.env.local` like
  * `ingest.ts`):
  *
- *   [EVAL_REWRITES=<earlier.json>] [PROBE_CASE_MS=<ms>] pnpm answer-set-probe [out.json]
+ *   [EVAL_CASES=<id,…>] [EVAL_REWRITES=<earlier.json>] [PROBE_CASE_MS=<ms>] pnpm answer-set-probe [out.json]
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -65,20 +72,26 @@ import {
   type RerankedChunk,
   type RerankReadingCount,
 } from "../src/lib/answer/rerank";
+import { PRODUCTION_CONFIG } from "../src/lib/eval/answer-set-variance";
 import {
   abstentionCases,
   chunkMatchesTarget,
   DATASET_PATH,
+  isRobustness,
   parseDataset,
   retrievalCases,
+  robustnessSeedId,
   type EvalCase,
+  type Variant,
 } from "../src/lib/eval/dataset";
+import { formatRobustnessLine } from "../src/lib/eval/robustness";
 import {
   REWRITES_ENV,
   rewriteCase,
   rewritesFromEnv,
   type CaseRewrites,
 } from "../src/lib/eval/rewrites";
+import { selectCases, subsetSpec } from "../src/lib/eval/subset";
 import { droppedReadingsSummary } from "../src/lib/eval/transcript";
 import { createEmbedder, type Embedder } from "../src/lib/ingestion/embedder";
 import { retrieve, type RetrievedChunk } from "../src/lib/retrieval";
@@ -108,6 +121,8 @@ interface CaseRead {
   condenseFailed: boolean;
   tier: unknown;
   family: string | null;
+  /** The held-out shape, or `robustez` for the robustness block (#502). */
+  variant: Variant | null;
   weak: boolean;
   expansionFailed: boolean;
   expectedCount: number;
@@ -227,6 +242,7 @@ async function readCase(
     condenseFailed: evalCase.history !== undefined && condensed === null,
     tier: evalCase.tier,
     family: evalCase.family ?? null,
+    variant: evalCase.variant ?? null,
     weak: retrieval.isWeak,
     expansionFailed: retrieval.expansion === null,
     expectedCount: evalCase.expected.length,
@@ -319,7 +335,11 @@ async function readCase(
 
 async function main(): Promise<void> {
   loadDotEnvLocal();
-  const all = parseDataset(readFileSync(DATASET_PATH, "utf8"));
+  // Before any paid call: an id that names no case throws here.
+  const all = selectCases(
+    parseDataset(readFileSync(DATASET_PATH, "utf8")),
+    subsetSpec(),
+  );
   const retrievals = retrievalCases(all);
   const abs = abstentionCases(all);
   const out = process.argv[2] ?? "answer-set-probe.json";
@@ -344,12 +364,15 @@ async function main(): Promise<void> {
   console.log();
   writeFileSync(out, JSON.stringify({ configs: CONFIGS, reads }, null, 1));
 
-  const totalTargets = reads
-    .filter((r) => r.kind === "retrieval")
-    .reduce((n, r) => n + r.expectedCount, 0);
+  // The table below counts what it counted before #502; the block is summed
+  // apart, under it.
+  const retrievalReads = reads.filter(
+    (r) => r.kind === "retrieval" && !isRobustness(r),
+  );
+  const totalTargets = retrievalReads.reduce((n, r) => n + r.expectedCount, 0);
   const followUps = [...retrievals, ...abs].filter((c) => c.history).length;
   console.log(
-    `retrieval cases: ${retrievals.length} (${totalTargets} expected targets), abstention: ${abs.length}, follow-ups condensed: ${followUps}`,
+    `retrieval cases: ${retrievals.length} (${retrievals.length - retrievalReads.length} in the robustness block; ${totalTargets} expected targets outside it), abstention: ${abs.length}, follow-ups condensed: ${followUps}`,
   );
   console.log(
     `condensation fell back to the question: ${
@@ -403,7 +426,6 @@ async function main(): Promise<void> {
     `\n${"config".padEnd(20)} ${"targets".padEnd(10)} ${"cases w/ all".padEnd(12)} figures  abs-figures`,
   );
   for (const c of CONFIGS) {
-    const retrievalReads = reads.filter((r) => r.kind === "retrieval");
     const present = retrievalReads.reduce(
       (n, r) => n + r.per[c.name].present,
       0,
@@ -422,6 +444,32 @@ async function main(): Promise<void> {
       .map((r) => `${r.id}(${r.per[c.name].figures.join(",")})`);
     console.log(
       `${c.name.padEnd(20)} ${`${present}/${totalTargets}`.padEnd(10)} ${`${full}/${retrievalReads.length}`.padEnd(12)} ${String(figures).padEnd(8)} ${absFigures.join(" ") || "—"}`,
+    );
+  }
+
+  // #502: a block case hits when one of its seed's targets is in the route's
+  // answer set — the hit-rate lane's metric. Its seed's own read, when the
+  // run had it, says whether the miss is the wording's or the seed's too.
+  const block = all.filter(isRobustness);
+  if (block.length > 0) {
+    const byId = new Map(reads.map((r) => [r.id, r]));
+    const hit = (id: string | null) => {
+      const read = id === null ? undefined : byId.get(id);
+      return read === undefined
+        ? null
+        : read.per[PRODUCTION_CONFIG].present > 0;
+    };
+    console.log(
+      `\n${formatRobustnessLine(
+        PRODUCTION_CONFIG,
+        block,
+        (evalCase) => evalCase,
+        (evalCase) => hit(evalCase.id) === true,
+        (evalCase) => {
+          const seedHit = hit(robustnessSeedId(evalCase));
+          return `(seed ${seedHit === null ? "not read" : seedHit ? "hit" : "missed too"})`;
+        },
+      )}`,
     );
   }
 }
