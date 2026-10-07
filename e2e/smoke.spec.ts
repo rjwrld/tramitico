@@ -42,6 +42,8 @@ test("seeded prompt click streams an answer with sello and disclaimer", async ({
   );
 
   await page.goto("/");
+  // The IVA pill sits behind the disclosure (four show before it).
+  await page.getByRole("button", { name: SHOW_MORE_LABEL }).click();
   await page
     .getByRole("button", {
       // The pill's accessible name is its short label; it sends the full
