@@ -397,6 +397,13 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   than for the other eight. The 25–45 band now describes only the corpus-derived half it was
   written for. Held out means held out: no one consults these cases while tuning retrieval,
   chunking or the prompt until the #267 baseline is published.
+- **Robustness block (#502):** about 25 cases marked `variant: "robustez"`, each re-asking one
+  seed case in the words production gets — the nine seed-pill labels verbatim, bare questions of
+  three to five words, no accents or typos, Spanglish, and follow-ups of three turns. Each carries
+  its seed's `expected`, tier, family and requirements verbatim (`seed: "robustez:<case id>"`),
+  is never held out and never blocking. Every other gate reads the population it read before the
+  block; each lane prints the block as its own line, and the block is gated as a tracked baseline
+  of cases hit, set by #511's full lane (`src/lib/eval/robustness.ts`).
 - **Retrieval:** every expected source/article must be present in the answer pool. A satisfiable
   Tier 1 case that takes the weak-retrieval decline is a failure.
 - **Groundedness:** every material claim must be supported by a retrieved chunk. The pinned
@@ -416,7 +423,9 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   quarterly verification window. See [ADR 0016](docs/adr/0016-source-freshness-policy.md).
 - **Abstention:** held-out cases cover missing/stale evidence, false premises, personalized exact
   calculations, and other institutions. Passing means declining without an invented figure and
-  naming the correct official/professional route. Tier 1 false declines are zero.
+  naming the correct official/professional route. Tier 1 false declines are zero. An abstention
+  case may also declare `requiredClaims` (#502): `ho-abs-iva-2027` must still state the current
+  13 % and artículo 10, each cited, and must not say the artículo is absent from the documents.
 - **Threshold policy:** every Tier 1 case is individually blocking across retrieval, groundedness,
   adequacy, citations, freshness, and abstention behavior; a strong aggregate cannot hide a red
   case. Numeric thresholds were fixed by the single authorized baseline on the beta corpus
@@ -439,7 +448,7 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   weak-retrieval decline on a case that declares required claims is an adequacy failure.
 - **Coverage contract in the dataset:** each case carries `tier` (1 / 2 / `abstain`), `family`
   (T1-A…T1-I on tier 1), `requiredClaims` (≤5), `requiredSteps`, `abstainIf`, `routeTo` and
-  `freshness`. Tier 1 cases are `blocking` by construction. Abstention cases carry no `expected`
+  `freshness`. Tier 1 cases are `blocking` by construction, outside the robustness block. Abstention cases carry no `expected`
   targets — no correct source exists — and are judged on whether they declined and routed to the
   right institution, with no invented figure.
 - **Citation invariant at eval time (#168):** the harness runs the runtime `validateCitations`
