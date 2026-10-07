@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 
 import { PRIVACY_PATH } from "@/components/chat/privacy-note";
 import PrivacyPage, { metadata } from "./page";
@@ -122,7 +122,9 @@ describe("privacy page", () => {
   it("links the terms of use, so the two pages sit side by side (#326)", () => {
     render(<PrivacyPage />);
 
-    const link = screen.getByRole("link", { name: "Términos de uso" });
+    const link = within(
+      screen.getByRole("navigation", { name: "Enlaces del sitio" }),
+    ).getByRole("link", { name: "Términos" });
     expect(link.getAttribute("href")).toBe("/terminos");
   });
 

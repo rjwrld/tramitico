@@ -68,6 +68,26 @@ describe("ChatInput", () => {
     expect(onStop).toHaveBeenCalledTimes(1);
   });
 
+  // DESIGN §9: an icon-only button carries its verb as its accessible name.
+  // The arrow and the square draw nothing a screen reader can read, so the
+  // name has to come from the label — and the glyphs stay out of it.
+  it("names the icon-only actions by their verb", () => {
+    const { rerender } = render(
+      <ChatInput onSubmit={vi.fn()} onStop={vi.fn()} />,
+    );
+    const enviar = button("Enviar");
+    expect(enviar.getAttribute("aria-label")).toBe("Enviar");
+    expect(enviar.textContent).toBe("");
+    expect(enviar.querySelector("svg")?.getAttribute("aria-hidden")).toBe(
+      "true",
+    );
+
+    rerender(<ChatInput onSubmit={vi.fn()} onStop={vi.fn()} busy />);
+    const detener = button("Detener");
+    expect(detener.getAttribute("aria-label")).toBe("Detener");
+    expect(detener.textContent).toBe("");
+  });
+
   it("does not submit while busy, even via Enter", async () => {
     const onSubmit = vi.fn();
     render(<ChatInput onSubmit={onSubmit} onStop={vi.fn()} busy />);

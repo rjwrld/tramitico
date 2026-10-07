@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   CORPUS_DOCUMENT_COUNT,
   CORPUS_SAMPLE_DOC_KEYS,
-  corpusCaption,
+  corpusCount,
   corpusSample,
 } from "./corpus-summary";
 
@@ -18,13 +18,9 @@ describe("corpus summary", () => {
     expect(CORPUS_DOCUMENT_COUNT).toBeGreaterThan(0);
   });
 
-  it("phrases the caption with Spanish plurals", () => {
-    expect(corpusCaption(19)).toBe(
-      "19 documentos oficiales · cada respuesta cita el artículo",
-    );
-    expect(corpusCaption(1)).toBe(
-      "1 documento oficial · cada respuesta cita el artículo",
-    );
+  it("phrases the count with Spanish plurals", () => {
+    expect(corpusCount(19)).toBe("19 documentos oficiales");
+    expect(corpusCount(1)).toBe("1 documento oficial");
   });
 
   it("samples only documents the manifest lists, as unlinked whole-document stamps", () => {

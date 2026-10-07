@@ -1,13 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { accountDeleteWaitCopy } from "@/lib/account-delete";
+import { Colophon } from "@/components/colophon";
 
-import {
-  ACERCA_PATH,
-  PRIVACY_PATH,
-  TERMS_PATH,
-} from "@/components/chat/privacy-note";
+import { accountDeleteWaitCopy } from "@/lib/account-delete";
 
 /**
  * The privacy statement (#136 req. 3, privacy contract from #121).
@@ -191,21 +187,12 @@ export default function PrivacyPage() {
       </Section>
 
       <p className="mt-12 text-xs text-muted-foreground">
-        Esta página describe el funcionamiento actual de Tramitico. Su dirección
-        es{" "}
-        <Link href={PRIVACY_PATH} className="underline underline-offset-4">
-          tramitico.com{PRIVACY_PATH}
-        </Link>
-        . Las condiciones de uso del servicio están en{" "}
-        <Link href={TERMS_PATH} className="underline underline-offset-4">
-          Términos de uso
-        </Link>
-        ; qué es Tramitico y de qué documentos responde, en{" "}
-        <Link href={ACERCA_PATH} className="underline underline-offset-4">
-          Acerca
-        </Link>
-        .
+        Esta página describe el funcionamiento actual de Tramitico.
       </p>
+
+      {/* The colophon: the standing pages, the same line the landing
+          composer carries, at the foot of the document. */}
+      <Colophon className="mt-6 border-t border-border pt-6" />
     </main>
   );
 }

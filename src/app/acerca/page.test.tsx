@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 
 import {
   ACERCA_PATH,
@@ -8,13 +8,8 @@ import {
 } from "@/components/chat/privacy-note";
 import type { CorpusSource } from "@/lib/corpus-sources";
 import { NON_PROMISE_ITEMS, PROMISE_SENTENCE } from "@/lib/promise";
-import AcercaPage, {
-  ACERCA_SECTIONS,
-  AUTHOR,
-  EMPTY_SOURCES,
-  metadata,
-  sourcesCount,
-} from "./page";
+import { REPOSITORY_URL } from "@/lib/site";
+import AcercaPage, { ACERCA_SECTIONS, EMPTY_SOURCES, metadata } from "./page";
 
 let sources: CorpusSource[] = [];
 vi.mock("@/lib/corpus-sources", () => ({
@@ -47,9 +42,9 @@ async function renderPage() {
 
 /**
  * #328 Phase 2 req. 4: the page in the `/privacidad` pattern. Prose, so the
- * assertions are the decided facts — four sections in order, the promise and
- * the full non-promise, the author block and its two links, the source list
- * from the decided origin with an honest empty state, and no motion.
+ * assertions are the decided facts — three sections in order, the promise and
+ * the full non-promise, the repository link and no author block, the source
+ * list from the decided origin with an honest empty state, and no motion.
  */
 describe("acerca page", () => {
   beforeEach(() => {
@@ -61,7 +56,7 @@ describe("acerca page", () => {
     expect(ACERCA_PATH).toBe("/acerca");
   });
 
-  it("has a single h1 and the four sections as h2s, in order", async () => {
+  it("has a single h1 and the three sections as h2s, in order", async () => {
     await renderPage();
 
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
@@ -72,6 +67,7 @@ describe("acerca page", () => {
       .getAllByRole("heading", { level: 2 })
       .map((h) => h.textContent);
     expect(h2s).toEqual([...ACERCA_SECTIONS]);
+    expect(h2s).toEqual(["Qué es", "Cómo funciona", "Las fuentes"]);
     expect(screen.queryAllByRole("heading", { level: 3 })).toHaveLength(0);
   });
 
@@ -84,26 +80,31 @@ describe("acerca page", () => {
     expect(NON_PROMISE_ITEMS).toHaveLength(6);
   });
 
-  it("names the model in how it works, not in the author block", async () => {
+  it("names the model and links the code in how it works", async () => {
     await renderPage();
     const steps = screen.getAllByRole("listitem").map((li) => li.textContent);
     const modelStep = steps.find((s) => s?.includes("Claude, de Anthropic"));
     expect(modelStep).toBeDefined();
     expect(modelStep).toContain("citando el artículo");
-    // The author block: name plus two links, no email, no photo.
-    expect(screen.getByText(AUTHOR.name)).not.toBeNull();
-    expect(
-      screen
-        .getByRole("link", { name: "josuecalderon.com" })
-        .getAttribute("href"),
-    ).toBe(AUTHOR.site);
-    expect(
-      screen
-        .getByRole("link", { name: "Código y documentación" })
-        .getAttribute("href"),
-    ).toBe(AUTHOR.repo);
+
+    const repo = screen.getByRole("link", { name: "Código y documentación" });
+    expect(repo.getAttribute("href")).toBe(REPOSITORY_URL);
+    expect(REPOSITORY_URL).toBe("https://github.com/rjwrld/tramitico");
+    expect(repo.closest("section")?.querySelector("h2")?.textContent).toBe(
+      "Cómo funciona",
+    );
+  });
+
+  it("is about the tool, not its author: no name, no personal site", async () => {
+    await renderPage();
+    const text = document.body.textContent ?? "";
+    expect(text).not.toContain("Quién lo hizo");
+    expect(text).not.toContain("Calderon");
+    expect(text).not.toContain("josuecalderon.com");
+    expect(document.querySelector('a[href*="josuecalderon"]')).toBeNull();
     expect(document.querySelector("img")).toBeNull();
     expect(document.querySelector('a[href^="mailto:"]')).toBeNull();
+    expect(metadata.description).not.toContain("quién lo hizo");
   });
 
   it("renders an honest empty state with no count when nothing is loaded", async () => {
@@ -151,21 +152,17 @@ describe("acerca page", () => {
     expect(section?.querySelector("h2")?.textContent).toBe("Las fuentes");
   });
 
-  it("links to the privacy and terms pages", async () => {
+  it("links to the privacy and terms pages from its colophon", async () => {
     await renderPage();
+    const colophon = within(
+      screen.getByRole("navigation", { name: "Enlaces del sitio" }),
+    );
     expect(
-      screen.getByRole("link", { name: "Privacidad" }).getAttribute("href"),
+      colophon.getByRole("link", { name: "Privacidad" }).getAttribute("href"),
     ).toBe("/privacidad");
     expect(
-      screen
-        .getByRole("link", { name: "Términos de uso" })
-        .getAttribute("href"),
+      colophon.getByRole("link", { name: "Términos" }).getAttribute("href"),
     ).toBe("/terminos");
-  });
-
-  it("phrases the count with Spanish plurals", () => {
-    expect(sourcesCount(1)).toBe("1 documento oficial");
-    expect(sourcesCount(23)).toBe("23 documentos oficiales");
   });
 
   it("titles itself in Spanish for the tab and for search", () => {

@@ -1,22 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import {
-  ACERCA_PATH,
-  ACERCA_SOURCES_ANCHOR,
-  PRIVACY_PATH,
-  TERMS_PATH,
-} from "@/components/chat/privacy-note";
+import { Colophon } from "@/components/colophon";
+
+import { ACERCA_SOURCES_ANCHOR } from "@/components/chat/privacy-note";
 import { Sello, effectiveLabel, fetchedLabel } from "@/components/sello";
 import { loadCorpusSources, type CorpusSource } from "@/lib/corpus-sources";
+import { corpusCount } from "@/lib/corpus-summary";
+import { REPOSITORY_URL } from "@/lib/site";
 import { NON_PROMISE_ITEMS, PROMISE_SENTENCE } from "@/lib/promise";
 
 /**
  * The page that bridges the app to the code (#328): what Tramitico is, how
- * it answers, which documents it answers from, and who made it. Decisions
- * recorded on the issue; the short version:
+ * it answers, and which documents it answers from. Decisions recorded on the
+ * issue; the short version:
  *
- * - Trust-seeker first: the promise opens the page, the author closes it.
+ * - Trust-seeker first: the promise opens the page, the sources close it.
+ * - About the tool, not a person: no author block. The one outward link is
+ *   to the open-source repository, under «Cómo funciona», since the code is
+ *   the long answer to how it works.
  * - The source list is read from `public.documents`, never the manifest, so
  *   «consultado el» is the date the corpus actually pulled the document. No
  *   rows (a corpus-less stack, a missing service client) is an honest empty
@@ -32,7 +34,7 @@ export const metadata: Metadata = {
   title: "Acerca",
   alternates: { canonical: "/acerca" },
   description:
-    "Qué es Tramitico, cómo responde, de qué documentos oficiales responde y quién lo hizo.",
+    "Qué es Tramitico, cómo responde y de qué documentos oficiales responde.",
 };
 
 /**
@@ -41,31 +43,19 @@ export const metadata: Metadata = {
  */
 export const revalidate = 3600;
 
-/** The four sections, in the order the issue fixes. Tests read this list. */
+/** The three sections, in order. Tests read this list. */
 export const ACERCA_SECTIONS = [
   "Qué es",
   "Cómo funciona",
   "Las fuentes",
-  "Quién lo hizo",
 ] as const;
-
-export const AUTHOR = {
-  name: "Ronald Josue Calderon Barrantes",
-  site: "https://josuecalderon.com",
-  repo: "https://github.com/rjwrld/tramitico",
-} as const;
 
 export const EMPTY_SOURCES =
   "Todavía no hay documentos cargados en esta instalación.";
 
-/** `23 documentos oficiales`, or the singular. Never rendered at zero. */
-export function sourcesCount(n: number): string {
-  return n === 1 ? "1 documento oficial" : `${n} documentos oficiales`;
-}
-
 export default async function AcercaPage() {
   const sources = await loadCorpusSources();
-  const [whatItIs, howItWorks, theSources, whoMadeIt] = ACERCA_SECTIONS;
+  const [whatItIs, howItWorks, theSources] = ACERCA_SECTIONS;
 
   return (
     <main className="mx-auto w-full max-w-[44rem] px-6 py-12">
@@ -115,6 +105,19 @@ export default async function AcercaPage() {
             Cuando la pregunta corresponde a otra institución, indica cuál.
           </li>
         </ol>
+        <p className="mt-4">
+          Tramitico es de código abierto: cualquiera puede revisar cómo busca,
+          cómo redacta y cómo se pone a prueba.
+        </p>
+        <p className="mt-2">
+          <a
+            href={REPOSITORY_URL}
+            rel="noopener noreferrer"
+            className="underline underline-offset-4"
+          >
+            Código y documentación
+          </a>
+        </p>
       </Section>
 
       <Section title={theSources} id={ACERCA_SOURCES_ANCHOR}>
@@ -123,7 +126,7 @@ export default async function AcercaPage() {
         ) : (
           <>
             <p data-slot="sources-count" className="tabular-nums">
-              {sourcesCount(sources.length)}. Cada uno abre en el sitio de la
+              {corpusCount(sources.length)}. Cada uno abre en el sitio de la
               institución que lo publica; las fechas son las del texto que
               Tramitico tiene cargado.
             </p>
@@ -139,47 +142,9 @@ export default async function AcercaPage() {
         )}
       </Section>
 
-      <Section title={whoMadeIt}>
-        <p>
-          <span className="text-foreground">{AUTHOR.name}</span>, desarrollador
-          independiente en Costa Rica. Tramitico existe porque la respuesta a
-          una pregunta sencilla de Hacienda o de la CCSS suele estar en un
-          documento oficial que nadie le señala.
-        </p>
-        <p className="mt-4">
-          <a
-            href={AUTHOR.site}
-            rel="noopener noreferrer"
-            className="underline underline-offset-4"
-          >
-            josuecalderon.com
-          </a>
-          {" · "}
-          <a
-            href={AUTHOR.repo}
-            rel="noopener noreferrer"
-            className="underline underline-offset-4"
-          >
-            Código y documentación
-          </a>
-        </p>
-      </Section>
-
-      <p className="mt-12 text-xs text-muted-foreground">
-        Su dirección es{" "}
-        <Link href={ACERCA_PATH} className="underline underline-offset-4">
-          tramitico.com{ACERCA_PATH}
-        </Link>
-        . Cómo se tratan sus datos está en{" "}
-        <Link href={PRIVACY_PATH} className="underline underline-offset-4">
-          Privacidad
-        </Link>
-        ; las condiciones del servicio, en{" "}
-        <Link href={TERMS_PATH} className="underline underline-offset-4">
-          Términos de uso
-        </Link>
-        .
-      </p>
+      {/* The colophon: the standing pages, the same line the landing
+          composer carries, at the foot of the document. */}
+      <Colophon className="mt-12 border-t border-border pt-6" />
     </main>
   );
 }

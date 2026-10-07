@@ -12,14 +12,24 @@
  * mounted in both the empty state and the conversation, and the one thing the
  * disclosure has to be is present *before* the first ask.
  *
- * Touch targets: on a coarse pointer the field and its button grow to 44px
- * (the HIG floor; WCAG 2.5.8 only asks 24). Keyed on `pointer-coarse`, not a
- * viewport width — a narrow desktop window keeps the 40px control, a tablet
- * in landscape gets the touch size. On a fine pointer the button matches the
- * field's 40px rather than the 32px button default, so the two read as one
- * control. The placeholder is short on purpose: the longer "…sobre impuestos
- * o trámites" wrapped to two lines at 375px and made the empty field 66px
- * tall before anyone typed; the headline above already names the scope.
+ * One contained surface: the field and its action share a single bordered
+ * box on `--card` that floats inside the 44rem column, rather than a field and
+ * a button side by side on a full-width docked bar. The box, not the bare
+ * field, takes focus — a red border and a soft ring around the whole thing
+ * (focus is one of red's four sanctioned places, DESIGN §2). Elevation is the
+ * `--lift` hairline only; the border does the rest. Its `--card` ground is in
+ * the transition, so it crossfades with the page on a theme switch (§8) — the
+ * base layer's `.crossfade-ground` rule would lose to this utility. Corners
+ * are `rounded-control` (12px): a control, rounder than the documents around
+ * it. The action is a compact
+ * icon button whose accessible name stays the verb ("Enviar" / "Detener").
+ *
+ * Touch targets: on a coarse pointer the field and its button grow (40px
+ * field, 36px button; WCAG 2.5.8 asks 24) and the field's text stays at 16px,
+ * under which iOS zooms the page on focus. Keyed on `pointer-coarse`, not a
+ * viewport width — a narrow desktop window keeps the compact control. The
+ * placeholder is short on purpose: the longer "…sobre impuestos o trámites"
+ * wrapped to two lines at 375px; the headline above already names the scope.
  *
  * The length cap: the route turns a question past `MAX_QUESTION_LENGTH`
  * away as `invalid_question`, and a long paste used to learn that only after
@@ -36,6 +46,7 @@
  * grow it past a phone's viewport, pushing "Enviar" and the count off-screen.
  */
 import * as React from "react";
+import { ArrowUpIcon, SquareIcon } from "lucide-react";
 import { PrivacyNote } from "@/components/chat/privacy-note";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -73,6 +84,7 @@ export function ChatInput({
   onStop,
   busy = false,
   focusOnMount = false,
+  privacyLink = true,
 }: {
   ref?: React.Ref<ChatInputHandle>;
   onSubmit: (question: string) => void;
@@ -86,6 +98,8 @@ export function ChatInput({
    * that replaces it takes focus, which is where they already were.
    */
   focusOnMount?: boolean;
+  /** Whether the privacy note links its page; the landing's colophon already does. */
+  privacyLink?: boolean;
 }) {
   const [question, setQuestion] = React.useState("");
   const field = React.useRef<HTMLTextAreaElement>(null);
@@ -119,7 +133,7 @@ export function ChatInput({
   return (
     <div className="flex flex-col gap-2">
       <form
-        className="flex items-end gap-2"
+        className="flex items-end gap-1.5 rounded-control border border-border bg-card p-1.5 shadow-lift transition-[background-color,border-color,box-shadow] duration-150 ease-out-quart focus-within:border-[color-mix(in_oklch,var(--ring)_70%,var(--border))] focus-within:ring-3 focus-within:ring-ring/20 motion-reduce:transition-none"
         onSubmit={(event) => {
           event.preventDefault();
           submit();
@@ -140,24 +154,28 @@ export function ChatInput({
           aria-label="Su pregunta"
           aria-describedby={counted ? counterId : undefined}
           rows={1}
-          className="max-h-40 min-h-10 resize-none overflow-y-auto pointer-coarse:min-h-11"
+          className="max-h-40 min-h-[2.125rem] resize-none overflow-y-auto rounded-none border-0 bg-transparent px-2 py-1 text-[0.9375rem] leading-normal focus-visible:border-0 focus-visible:ring-0 md:text-[0.9375rem] dark:bg-transparent pointer-coarse:min-h-10 pointer-coarse:text-base md:pointer-coarse:text-base"
         />
         {busy ? (
           <Button
             type="button"
             variant="outline"
-            className="h-10 px-4 pointer-coarse:h-11"
+            aria-label="Detener"
+            title="Detener"
+            className="mb-0.5 size-[1.875rem] rounded-[0.6875rem] p-0 pointer-coarse:size-9"
             onClick={onStop}
           >
-            Detener
+            <SquareIcon aria-hidden="true" className="size-3 fill-current" />
           </Button>
         ) : (
           <Button
             type="submit"
-            className="h-10 px-4 pointer-coarse:h-11"
+            aria-label="Enviar"
+            title="Enviar"
+            className="mb-0.5 size-[1.875rem] rounded-[0.6875rem] p-0 pointer-coarse:size-9"
             disabled={length === 0 || tooLong}
           >
-            Enviar
+            <ArrowUpIcon aria-hidden="true" strokeWidth={2.25} />
           </Button>
         )}
       </form>
@@ -165,7 +183,7 @@ export function ChatInput({
         <p
           id={counterId}
           className={cn(
-            "text-[0.6875rem] leading-snug text-muted-foreground",
+            "px-1 text-[0.6875rem] leading-snug text-muted-foreground",
             tooLong && "text-foreground",
           )}
         >
@@ -178,7 +196,7 @@ export function ChatInput({
       <p aria-live="polite" className="sr-only">
         {tooLong ? QUESTION_TOO_LONG_ANNOUNCEMENT : ""}
       </p>
-      <PrivacyNote />
+      <PrivacyNote linked={privacyLink} />
     </div>
   );
 }

@@ -4,23 +4,21 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  SEED_PILLS,
   SEED_PROMPTS,
   SeedPrompts,
   SHOW_LESS_LABEL,
   SHOW_MORE_LABEL,
-  VISIBLE_ON_PHONE,
+  VISIBLE_SEEDS,
 } from "./seed-prompts";
 
 afterEach(cleanup);
 
-/**
- * jsdom applies no stylesheet, so the phone cut (`hidden md:block`) is read
- * off the class list: an item carrying `hidden` is one a phone does not show.
- */
-function hiddenOnPhone(): HTMLElement[] {
-  return screen
-    .getAllByRole("listitem")
-    .filter((li) => li.classList.contains("hidden"));
+/** The pills a reader can reach: hidden ones leave the accessibility tree. */
+function pills(): HTMLButtonElement[] {
+  return within(
+    screen.getByRole("list", { name: "Preguntas frecuentes" }),
+  ).getAllByRole("button") as HTMLButtonElement[];
 }
 
 describe("SEED_PROMPTS (#264)", () => {
@@ -38,42 +36,67 @@ describe("SEED_PROMPTS (#264)", () => {
   });
 });
 
-describe("SeedPrompts", () => {
-  it("renders every seeded question as a button, in SPEC order", () => {
-    render(<SeedPrompts onSelect={() => {}} />);
-
-    const list = screen.getByRole("list", { name: "Preguntas frecuentes" });
-    expect(
-      within(list)
-        .getAllByRole("button")
-        .map((button) => button.textContent),
-    ).toEqual([...SEED_PROMPTS]);
+describe("SEED_PILLS", () => {
+  it("shows every seed exactly once", () => {
+    expect(SEED_PILLS.map((pill) => pill.question).sort()).toEqual(
+      [...SEED_PROMPTS].sort(),
+    );
   });
 
-  it("selects a question on click", async () => {
+  it("gives each a short question as its label", () => {
+    for (const { label, question } of SEED_PILLS) {
+      expect(label.length).toBeLessThanOrEqual(45);
+      expect(label.length).toBeLessThanOrEqual(question.length);
+      expect(label).toContain("?");
+    }
+  });
+
+  it("alternates the institutions before the disclosure, so the grid reads Hacienda left, CCSS right", () => {
+    const first = SEED_PILLS.slice(0, VISIBLE_SEEDS).map((p) => p.institution);
+    expect(first).toEqual(["Hacienda", "CCSS", "Hacienda", "CCSS"]);
+  });
+});
+
+describe("SeedPrompts", () => {
+  it("renders the first pills with their institution tag and short label", () => {
+    render(<SeedPrompts onSelect={() => {}} />);
+
+    const shown = pills();
+    expect(shown).toHaveLength(VISIBLE_SEEDS);
+    shown.forEach((button, i) => {
+      const { institution, label, question } = SEED_PILLS[i];
+      expect(button.textContent).toBe(`${institution} ${label}`);
+      // WCAG 2.5.3: the accessible name is what the pill shows (no
+      // aria-label swapping in the hidden full question).
+      expect(button.hasAttribute("aria-label")).toBe(false);
+      expect(question).not.toBe(label);
+    });
+  });
+
+  it("sends the full question, not the label, on click", async () => {
+    const onSelect = vi.fn();
+    render(<SeedPrompts onSelect={onSelect} />);
+    const pill = SEED_PILLS[2];
+
+    await userEvent.click(
+      screen.getByRole("button", { name: (name) => name.includes(pill.label) }),
+    );
+
+    expect(onSelect).toHaveBeenCalledTimes(1);
+    expect(onSelect).toHaveBeenCalledWith(pill.question);
+    expect(onSelect).not.toHaveBeenCalledWith(pill.label);
+  });
+
+  it("discloses the rest in place on every screen size", async () => {
     const onSelect = vi.fn();
     render(<SeedPrompts onSelect={onSelect} />);
 
-    await userEvent.click(
-      screen.getByRole("button", { name: SEED_PROMPTS[2] }),
-    );
-
-    expect(onSelect).toHaveBeenCalledWith(SEED_PROMPTS[2]);
-  });
-
-  it("cuts the list to the first few on a phone until disclosed", async () => {
-    render(<SeedPrompts onSelect={() => {}} />);
-
-    expect(hiddenOnPhone()).toHaveLength(
-      SEED_PROMPTS.length - VISIBLE_ON_PHONE,
-    );
-    // Everything before the cut stays visible, in order.
-    const items = screen.getAllByRole("listitem");
-    for (const li of items.slice(0, VISIBLE_ON_PHONE)) {
-      expect(li.classList.contains("hidden")).toBe(false);
-    }
-
     const toggle = screen.getByRole("button", { name: SHOW_MORE_LABEL });
+    expect(SHOW_MORE_LABEL).toBe(
+      `Ver más preguntas (${SEED_PILLS.length - VISIBLE_SEEDS})`,
+    );
+    // No breakpoint hides the toggle: the cut is the same everywhere.
+    expect(toggle.className).not.toMatch(/(^|\s)(sm|md|lg):hidden/);
     expect(toggle.getAttribute("aria-expanded")).toBe("false");
     expect(toggle.getAttribute("aria-controls")).toBe(
       screen.getByRole("list", { name: "Preguntas frecuentes" }).id,
@@ -81,39 +104,41 @@ describe("SeedPrompts", () => {
 
     await userEvent.click(toggle);
 
-    expect(hiddenOnPhone()).toHaveLength(0);
+    expect(pills()).toHaveLength(SEED_PILLS.length);
     expect(toggle.textContent).toBe(SHOW_LESS_LABEL);
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
 
+    // A disclosed pill works like the first four.
+    const last = SEED_PILLS[SEED_PILLS.length - 1];
+    await userEvent.click(
+      screen.getByRole("button", { name: (name) => name.includes(last.label) }),
+    );
+    expect(onSelect).toHaveBeenCalledWith(last.question);
+
     await userEvent.click(toggle);
 
-    expect(hiddenOnPhone()).toHaveLength(
-      SEED_PROMPTS.length - VISIBLE_ON_PHONE,
-    );
+    expect(pills()).toHaveLength(VISIBLE_SEEDS);
     expect(toggle.textContent).toBe(SHOW_MORE_LABEL);
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
   });
 
-  it("the toggle is a phone-only control", () => {
-    render(<SeedPrompts onSelect={() => {}} />);
+  it("disables the questions, not the disclosure, while an ask is in flight", async () => {
+    const onSelect = vi.fn();
+    render(<SeedPrompts onSelect={onSelect} disabled />);
 
-    expect(
-      screen.getByRole("button", { name: SHOW_MORE_LABEL }).classList,
-    ).toContain("md:hidden");
-  });
-
-  it("disables the questions, not the disclosure, while an ask is in flight", () => {
-    render(<SeedPrompts onSelect={() => {}} disabled />);
-
-    const list = screen.getByRole("list", { name: "Preguntas frecuentes" });
-    for (const button of within(list).getAllByRole("button")) {
-      expect((button as HTMLButtonElement).disabled).toBe(true);
+    for (const button of pills()) {
+      expect(button.disabled).toBe(true);
     }
-    expect(
-      (
-        screen.getByRole("button", {
-          name: SHOW_MORE_LABEL,
-        }) as HTMLButtonElement
-      ).disabled,
-    ).toBe(false);
+    const toggle = screen.getByRole("button", {
+      name: SHOW_MORE_LABEL,
+    }) as HTMLButtonElement;
+    expect(toggle.disabled).toBe(false);
+
+    await userEvent.click(toggle);
+    expect(pills()).toHaveLength(SEED_PILLS.length);
+    for (const button of pills()) {
+      expect(button.disabled).toBe(true);
+    }
+    expect(onSelect).not.toHaveBeenCalled();
   });
 });

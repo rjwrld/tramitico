@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 
+import { SHOW_MORE_LABEL } from "../src/components/chat/seed-prompts";
+
 import { answerStream, stubAsk } from "./support";
 
 /**
@@ -73,9 +75,13 @@ test("the happy path raises no CSP violation", async ({ page }) => {
   );
 
   await page.goto("/");
+  // The IVA pill sits behind the disclosure (four show before it).
+  await page.getByRole("button", { name: SHOW_MORE_LABEL }).click();
   await page
     .getByRole("button", {
-      name: "¿Debo cobrar IVA en facturas a clientes fuera de Costa Rica?",
+      // The pill's accessible name is its short label; it sends the full
+      // "¿Debo cobrar IVA en facturas a clientes fuera de Costa Rica?".
+      name: "¿Cobro IVA a clientes del exterior?",
     })
     .click();
   await expect(

@@ -35,6 +35,7 @@ import {
   ACERCA_SOURCES_ANCHOR,
 } from "@/components/chat/privacy-note";
 import { SeedPrompts } from "@/components/chat/seed-prompts";
+import { Colophon } from "@/components/colophon";
 import { Sello } from "@/components/sello";
 import type { Citation } from "@/lib/citations";
 import { SCOPE_PHRASE } from "@/lib/routing";
@@ -76,7 +77,10 @@ const transport = new DefaultChatTransport<AskUIMessage>({
  * page and the boundary a decline names are one string. DESIGN §9 voice:
  * sentence case, usted, no exclamation, no apology.
  */
-export const SCOPE_LINE = `Responde sobre ${SCOPE_PHRASE}, citando el artículo oficial.`;
+const SCOPE_STEM = `Responde sobre ${SCOPE_PHRASE}, citando el artículo`;
+export const SCOPE_LINE = `${SCOPE_STEM} oficial.`;
+/** The same line when the corpus count closes it: «…citando el artículo de 23 documentos oficiales.» */
+export const SCOPE_LEAD = `${SCOPE_STEM} de`;
 export const NON_PROMISE_LINE =
   "No calcula su caso ni cubre sociedades ni otras instituciones.";
 
@@ -93,18 +97,18 @@ interface AskFailure {
 }
 
 export function Chat({
-  corpusCaption,
+  corpusCount,
   corpusSample = [],
 }: {
   /**
-   * The record line under the empty state's headline (`corpusCaption` in
-   * lib/corpus-summary.ts) — read from the manifest on the server and passed
-   * down, so this client component never bundles the manifest. Absent, the
-   * headline stands alone.
+   * «23 documentos oficiales» (`corpusCount` in lib/corpus-summary.ts), the
+   * linked count the scope sentence closes on — read from the manifest on
+   * the server and passed down, so this client component never bundles the
+   * manifest. Absent, the sentence ends on «el artículo oficial».
    */
-  corpusCaption?: string;
+  corpusCount?: string;
   /**
-   * A few of those documents as stamps, set over the record line (#478) —
+   * A few of those documents as stamps, set over the scope sentence (#478) —
    * `corpusSample()` in the same module, passed down for the same reason.
    */
   corpusSample?: Citation[];
@@ -227,17 +231,12 @@ export function Chat({
               <h1 className="text-center font-serif text-[2rem] font-semibold tracking-display text-balance">
                 ¿Qué trámite le quita el sueño?
               </h1>
-              {/* The expediente line: what is open on the desk before the
-                  first question. Geist Mono in the 11px meta slot — the
-                  sello's caption voice (DESIGN §3, §5) — tabular so the
-                  count sits like a figure in a ledger. A caption under the
-                  heading, never an eyebrow above it. */}
               {/* The record, shown before it is described (#478): the
                   sello is the signature (DESIGN §5), and without this a
                   first-time visitor never saw one before asking. Still
                   stamps, not settling ones — a row stamping on page load is
-                  a staggered entrance (§8) — and not links: the record line
-                  under them is the way into the full list. */}
+                  a staggered entrance (§8) — and not links: the count in the
+                  scope sentence under them is the way into the full list. */}
               {corpusSample.length > 0 && (
                 <ul
                   aria-label="Algunas fuentes"
@@ -251,29 +250,32 @@ export function Chat({
                   ))}
                 </ul>
               )}
-              {corpusCaption && (
-                <p
-                  data-slot="corpus-caption"
-                  className="text-center font-mono text-[0.6875rem] tracking-[0.03em] text-balance text-muted-foreground tabular-nums"
-                >
-                  <Link
-                    href={`${ACERCA_PATH}#${ACERCA_SOURCES_ANCHOR}`}
-                    className="underline decoration-border underline-offset-4 hover:decoration-current"
-                  >
-                    {corpusCaption}
-                  </Link>
-                </p>
-              )}
               {/* The scope and the non-promise (#264): two short lines in
-                  the body voice, under the record line and above the seeds,
-                  so a first-time visitor reads what this covers before
-                  choosing a question. Not a card, not an eyebrow — prose
-                  (DESIGN §10). */}
+                  the body voice, under the sellos and above the seeds, so a
+                  first-time visitor reads what this covers before choosing a
+                  question. Not a card, not an eyebrow — prose (DESIGN §10).
+                  The record's count closes the first line rather than
+                  standing as a line of its own, which only repeated that
+                  every answer cites the artículo. */}
               <p
                 data-slot="scope"
-                className="text-center text-sm text-balance text-muted-foreground"
+                className="mt-1 text-center text-sm text-balance text-muted-foreground"
               >
-                {SCOPE_LINE}
+                {corpusCount ? (
+                  <>
+                    {SCOPE_LEAD}{" "}
+                    <Link
+                      href={`${ACERCA_PATH}#${ACERCA_SOURCES_ANCHOR}`}
+                      data-slot="corpus-count"
+                      className="text-foreground underline decoration-border underline-offset-4 transition-colors duration-150 ease-out-quart hover:decoration-current"
+                    >
+                      {corpusCount}
+                    </Link>
+                    .
+                  </>
+                ) : (
+                  SCOPE_LINE
+                )}
                 <br />
                 {NON_PROMISE_LINE}
               </p>
@@ -282,14 +284,21 @@ export function Chat({
             {failure && <InlineError failure={failure} onRetry={retry} />}
           </div>
         </div>
-        <div className="crossfade-ground border-t border-border bg-background pt-2 pb-safe">
-          <div className="mx-auto w-full max-w-[44rem] px-safe">
+        {/* The floating composer: no full-width rule or band behind it, so
+            nothing meets the history sidebar's border — the box itself is the
+            edge. 12px off the bottom, or the device's inset if larger. The
+            colophon sits under it here only: a first-time visitor's way to
+            the standing pages, gone once the conversation starts. */}
+        <div className="pt-2 [--safe-pad:0.75rem] pb-safe">
+          <div className="mx-auto w-full max-w-[44rem] [--safe-pad:1rem] px-safe">
             <ChatInput
               ref={composerRef}
               onSubmit={ask}
               onStop={() => void stop()}
               busy={busy}
+              privacyLink={false}
             />
+            <Colophon className="mt-3" />
           </div>
         </div>
       </div>
@@ -305,7 +314,7 @@ export function Chat({
             sighted readers — the messages already say what this is. */}
         <h1 className="sr-only">Conversación</h1>
         <MessageScroller className="flex-1">
-          <MessageScrollerViewport>
+          <MessageScrollerViewport className="[--scroll-fade-size:1.5rem]">
             <MessageScrollerContent className="mx-auto w-full max-w-[44rem] gap-0 px-4 py-6">
               {messages.map((message, index) => (
                 <MessageScrollerItem
@@ -379,13 +388,18 @@ export function Chat({
               )}
             </MessageScrollerContent>
           </MessageScrollerViewport>
-          <MessageScrollerButton />
+          {/* "Ir al final" drops into the thread's bottom fade, just above
+              the floating composer, and reads as a control resting on the
+              faded edge rather than a square stamped mid-paragraph: round,
+              on the composer's own `--card` ground, with the same `--lift`. */}
+          <MessageScrollerButton className="size-8 rounded-full bg-card shadow-lift data-[direction=end]:bottom-1" />
         </MessageScroller>
-        {/* The composer sits on the bottom edge, so it clears the home
-            indicator itself (#138) — 16px or the device's inset, whichever is
-            larger. */}
-        <div className="crossfade-ground sticky bottom-0 border-t border-border bg-background pt-2 pb-safe">
-          <div className="mx-auto w-full max-w-[44rem] px-safe">
+        {/* The composer floats on the bottom edge and clears the home
+            indicator itself (#138) — 12px or the device's inset, whichever is
+            larger. The thread fades out above it (the viewport's bottom
+            scroll fade) instead of ending on a hard rule. */}
+        <div className="sticky bottom-0 pt-2 [--safe-pad:0.75rem] pb-safe">
+          <div className="mx-auto w-full max-w-[44rem] [--safe-pad:1rem] px-safe">
             <ChatInput
               ref={composerRef}
               onSubmit={ask}

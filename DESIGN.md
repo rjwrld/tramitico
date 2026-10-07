@@ -48,7 +48,9 @@ on paper. If red appears anywhere else, it's a bug.
   --border: oklch(0.895 0.005 285);
   --input: oklch(0.895 0.005 285);
   --ring: oklch(0.5 0.155 27);
-  --radius: 0.25rem; /* sharp, document-like */
+  --radius: 0.25rem; /* sharp, document-like: answers, sellos, cards, buttons */
+  --radius-control: 0.75rem; /* a control a hand rests on: the composer */
+  --lift: 0 1px 2px oklch(0.24 0.015 285 / 0.06); /* the one lift a floating control gets */
 
   /* Tramitico-specific */
   --sello: oklch(0.5 0.155 27); /* citation ink */
@@ -81,6 +83,7 @@ on paper. If red appears anywhere else, it's a bug.
   --border: oklch(0.32 0.012 285);
   --input: oklch(0.32 0.012 285);
   --ring: oklch(0.66 0.14 25);
+  --lift: 0 1px 2px oklch(0 0 0 / 0.3);
 
   --sello: oklch(0.7 0.13 25);
   --sello-bg: oklch(0.25 0.03 20);
@@ -94,8 +97,13 @@ on paper. If red appears anywhere else, it's a bug.
 structural, not chromatic: destructive actions are always a tinted destructive surface
 (`Button variant="destructive"`: `--destructive-bg` ground, `--destructive` text) with an explicit
 verb ("Eliminar historial") inside a confirm step; red never fills a button except the single
-primary action ("Enviar"), which is the sello/brand red's exclusive fill. Success/warning use
+primary action ("Enviar", the composer's arrow), which is the sello/brand red's exclusive fill. Success/warning use
 their own hues and never lean on red.
+
+**Radius: documents sharp, controls softer.** Everything that reads as paper — answers, sellos,
+cards, outline buttons — keeps `--radius`. Two controls are rounder on purpose: the composer
+(`--radius-control`, 12px), the surface a hand rests on, and the seed pills (full radius), which
+are actions, not documents. Nothing else takes either.
 
 **Grounds are tokens, never an alpha of their text.** `--destructive-bg` is tuned per theme, the
 same way `--sello-bg` is, and for the same reason. A ground written as `bg-destructive/20` inverts
@@ -199,14 +207,42 @@ leads nowhere.
   Source Serif 4 at 1.25rem/600, left-aligned over its answer, with a hairline `--border` rule
   between exchanges. The same treatment the history view gives a saved question. It replaces
   the ink bubble, which outweighed the answer it asked for; no bubbles, with or without tails.
-- **Seeded prompts**: a left-aligned list of full-width rows between hairlines (`--border`), each
-  row one click target with a muted trailing arrow that nudges on hover (#478). Pills read as a
-  tag cloud at nine questions; rows read as an index, and a long question wraps like text.
+- **Seeded prompts**: a two-column grid of equal-width hairline pills (one column, at most
+  22.5rem, below a 40rem container) — transparent ground, 1px `--border`, full radius, ink text
+  at 0.875rem. Each opens with its institution (`HACIENDA` / `CCSS`) in Geist Mono 11px/500,
+  uppercase, `--muted-foreground`, in a fixed-width slot set off by a 1px `--border` divider, so
+  every divider sits on one vertical; never red. Hover: `--secondary` ground and a border nudged
+  toward ink, 150ms. A transparent pill with an institution tag reads as a scoped action, not a
+  tag. Four show on every screen size — Hacienda left, CCSS right; a quiet underlined «Ver más
+  preguntas (N)» discloses the rest in place, an odd last pill centred under the two columns.
+  Nine long pills made a tag cloud, rows (#478) a wall of text, and a centred wrapping row broke
+  into 1-1-2-1 lines at in-between widths. A pill shows a short label; the click sends the full
+  question, which then heads the exchange, so nothing asked is hidden. The pill's accessible name
+  is what it shows (tag + label), never the hidden question.
+- **Composer**: one floating box inside the 44rem column — never a full-width docked bar, whose
+  rule collided with the history sidebar. The stack under the thread (box, privacy note, and on
+  the landing the colophon) sits 12px off the bottom edge, or the device's inset if larger.
+  `--card` ground (crossfading with the page on a theme switch), 1px `--border`,
+  `--radius-control`, `--lift` only; the field is borderless inside it and the whole box takes
+  focus (red-tinted border + soft `--ring` halo). Text 15px, 16px on touch (iOS zooms below
+  it). The action is a compact 30px icon button (arrow up; outline square while streaming)
+  whose accessible name stays the verb ("Enviar" / "Detener"). The thread fades out above it
+  (`scroll-fade-b`, a 24px mask that eases away as the reader reaches the end), no rule; «Ir al
+  final» rests on that faded edge, round, on `--card` with the same `--lift`. Under it, the
+  privacy note: one centered 11px line carrying both #136 facts and, in the conversation, the
+  «Privacidad» link. On the landing the colophon right under it already links the page, so the
+  note drops its own rather than say it twice.
+- **Colophon**: the standing pages — Acerca · Privacidad · Términos · Código — in Geist Mono 11px,
+  muted, middot-separated: the foot of a document, not navigation chrome. It sits under the
+  landing composer (gone once the conversation starts) and at the foot of /acerca, /privacidad
+  and /terminos. The home header carries a quiet «Acerca» link beside the theme toggle, hidden
+  only under 360px, where it would touch the wordmark.
 - **Buttons**: default variant = outline (hairline + ink text). Exactly one filled primary per
-  view ("Enviar"). Destructive per red-discipline rule.
+  view ("Enviar", the composer's arrow). Destructive per red-discipline rule.
 - **Empty state**: serif headline ("¿Qué trámite le quita el sueño?"), a still row of sample
-  sellos over the corpus record line (#478 — the signature is on screen before the first ask),
-  the scope lines, seeded prompts below — invitation, not apology.
+  sellos (#478 — the signature is on screen before the first ask), the scope lines — the first
+  closing on the linked corpus count, «…citando el artículo de 23 documentos oficiales» — and
+  seeded prompts below: invitation, not apology.
 - **Hover-revealed controls** (the history row's delete): hover is a desktop affordance, and
   Tailwind's `hover:` never fires where `@media (hover: hover)` is false. Every such control
   also carries `no-hover:` (the `(hover: none)` variant in `globals.css`) and
@@ -217,7 +253,8 @@ leads nowhere.
 Single-column chat, `max-width: 44rem`, centered; history sidebar (signed-in) collapses first.
 Spacing scale: 4 / 8 / 12 / 16 / 24 / 32 / 48px — vary rhythm deliberately (answers get 24–32px
 breathing room; metadata clusters tighten to 4–8px). Flexbox by default; grid only for genuinely
-2D regions. Z-index scale: dropdown 10 · sticky 20 · backdrop 30 · modal 40 · toast 50.
+2D regions — the seed pills qualify, since their dividers align down the rows as well as across.
+Z-index scale: dropdown 10 · sticky 20 · backdrop 30 · modal 40 · toast 50.
 
 ## 8. Motion
 
@@ -251,7 +288,8 @@ static labels, instant text.
   narrated over a Spanish page. README and the demo script stay English — they address
   contributors, not users.
 - Sentence case everywhere; no exclamation marks in system copy.
-- Buttons: verb first ("Enviar", "Iniciar sesión", "Ver fuente").
+- Buttons: verb first ("Enviar", "Iniciar sesión", "Ver fuente"). An icon-only button carries the
+  verb as its accessible name (the composer's arrow is "Enviar", its square "Detener").
 - Errors: what happened + what to do, no apology theater ("No se pudo conectar. Intente de nuevo.").
 - Rate-limit message: friendly, names the reset time, nudges sign-in — never scolds.
 - The disclaimer is always present, always quiet, never a modal.

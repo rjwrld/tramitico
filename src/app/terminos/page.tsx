@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { Colophon } from "@/components/colophon";
+
 import { DISCLAIMER } from "@/components/chat/answer-block";
-import {
-  ACERCA_PATH,
-  PRIVACY_PATH,
-  TERMS_PATH,
-} from "@/components/chat/privacy-note";
+import { PRIVACY_PATH } from "@/components/chat/privacy-note";
 import { limitFor } from "@/lib/rate-limit";
 
 /**
@@ -202,21 +200,9 @@ export default function TermsPage() {
         </p>
       </Section>
 
-      <p className="mt-12 text-xs text-muted-foreground">
-        Su dirección es{" "}
-        <Link href={TERMS_PATH} className="underline underline-offset-4">
-          tramitico.com{TERMS_PATH}
-        </Link>
-        . La política de privacidad está en{" "}
-        <Link href={PRIVACY_PATH} className="underline underline-offset-4">
-          Privacidad
-        </Link>
-        ; qué es Tramitico y de qué documentos responde, en{" "}
-        <Link href={ACERCA_PATH} className="underline underline-offset-4">
-          Acerca
-        </Link>
-        .
-      </p>
+      {/* The colophon: the standing pages, the same line the landing
+          composer carries, at the foot of the document. */}
+      <Colophon className="mt-12 border-t border-border pt-6" />
     </main>
   );
 }
