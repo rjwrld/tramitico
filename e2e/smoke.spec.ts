@@ -75,7 +75,7 @@ test("a 429 renders the friendly rate-limit message inline", async ({
     JSON.stringify({
       error: "rate_limited",
       message:
-        "Alcanzó el límite de 10 preguntas gratis por hoy. Inicie sesión para guardar su historial, o vuelva a intentarlo después de las 12:00 a. m.",
+        "Alcanzó el límite de 10 preguntas por hoy. Inicie sesión para guardar su historial, o vuelva a intentarlo después de las 12:00 a. m.",
     }),
     { status: 429 },
   );
@@ -86,7 +86,7 @@ test("a 429 renders the friendly rate-limit message inline", async ({
 
   const alert = inlineAlert(page, "límite");
   await expect(alert).toContainText(
-    "Alcanzó el límite de 10 preguntas gratis por hoy",
+    "Alcanzó el límite de 10 preguntas por hoy",
   );
   await expect(alert).toContainText("Inicie sesión");
 });

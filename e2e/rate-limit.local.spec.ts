@@ -22,7 +22,7 @@ import { inlineAlert, UNMATCHABLE_QUESTION, WEAK_ANSWER_TEXT } from "./support";
  * consumes the ask. Keyless everywhere, refunded nowhere.
  */
 
-const NUDGE = "Alcanzó el límite de 1 preguntas gratis por hoy";
+const NUDGE = "Alcanzó el límite de 1 pregunta por hoy";
 /** es-CR reset time, e.g. "después de las 6:00 p. m." */
 const RESET_TIME = /después de las \d{1,2}:\d{2}/;
 

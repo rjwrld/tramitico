@@ -5,7 +5,7 @@ import { Colophon } from "@/components/colophon";
 
 import { DISCLAIMER } from "@/components/chat/answer-block";
 import { PRIVACY_PATH } from "@/components/chat/privacy-note";
-import { limitFor } from "@/lib/rate-limit";
+import { limitFor, questionCount } from "@/lib/rate-limit";
 import { publicPageMetadata } from "@/lib/site";
 
 /**
@@ -147,7 +147,7 @@ export default function TermsPage() {
       <Section title={acceptableUse}>
         <p>
           {anonLimit === authedLimit
-            ? `Cada persona dispone de una cuota diaria de ${anonLimit} preguntas, con o sin sesión iniciada.`
+            ? `Cada persona dispone de una cuota diaria de ${questionCount(anonLimit)}, con o sin sesión iniciada.`
             : `Cada persona dispone de una cuota diaria de preguntas: ${anonLimit} sin sesión iniciada y ${authedLimit} con sesión iniciada.`}{" "}
           El día se cuenta según el calendario de Costa Rica, y la cuota se
           reinicia a medianoche, hora local.

@@ -134,6 +134,15 @@ export function limitFor(tier: RateLimitTier): number {
 }
 
 /**
+ * A quota stated as a count of questions, agreeing in number: «1 pregunta»,
+ * «10 preguntas». Every sentence that interpolates a limit goes through this,
+ * since a limit of 1 is a real setting (the local e2e lane pins one).
+ */
+export function questionCount(n: number): string {
+  return n === 1 ? "1 pregunta" : `${n} preguntas`;
+}
+
+/**
  * The signed-in daily quota when it is larger than the anonymous one, else
  * null (#501). Copy that pitches signing in states a number only when this
  * returns one: with equal tiers, the saved history is the whole gain.
@@ -311,18 +320,20 @@ export function rateLimitReachedMessage(
 ): string {
   const time = resetTimeSentenceEnd(resetAt);
   if (tier === "anon") {
+    // Above a whole-number anonymous limit, so at least 2: always plural.
     const gain = largerSignedInLimit();
     const pitch =
       gain === null
         ? "Inicie sesión para guardar su historial"
         : `Inicie sesión para tener ${gain} preguntas diarias`;
+    // No «gratis»: there is no paid tier, so the word would promise one (#501).
     return (
-      `Alcanzó el límite de ${limitFor("anon")} preguntas gratis por hoy. ` +
+      `Alcanzó el límite de ${questionCount(limitFor("anon"))} por hoy. ` +
       `${pitch}, o vuelva a intentarlo después de las ${time}`
     );
   }
   return (
-    `Alcanzó el límite de ${limitFor("authed")} preguntas por hoy. ` +
+    `Alcanzó el límite de ${questionCount(limitFor("authed"))} por hoy. ` +
     `Vuelva a intentarlo después de las ${time}`
   );
 }

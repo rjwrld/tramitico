@@ -62,6 +62,15 @@ describe("terms page", () => {
     expect(text).toContain("automatizada");
   });
 
+  it("agrees in number with an equal quota of 1", () => {
+    vi.stubEnv("RATE_LIMIT_ANON", "1");
+    vi.stubEnv("RATE_LIMIT_AUTHED", "1");
+    render(<TermsPage />);
+    expect(document.body.textContent).toContain(
+      "una cuota diaria de 1 pregunta, con o sin sesión iniciada.",
+    );
+  });
+
   it("states each tier's quota when they differ", () => {
     vi.stubEnv("RATE_LIMIT_ANON", "10");
     vi.stubEnv("RATE_LIMIT_AUTHED", "25");

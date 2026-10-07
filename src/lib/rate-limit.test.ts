@@ -5,6 +5,7 @@ import {
   coarseUserAgent,
   largerSignedInLimit,
   limitForAnonIp,
+  questionCount,
   quotaNetwork,
   rateLimitReachedMessage,
   RATE_LIMIT_UNAVAILABLE_MESSAGE,
@@ -581,7 +582,7 @@ describe("rateLimitReachedMessage", () => {
       vi.stubEnv("RATE_LIMIT_AUTHED", "");
       expect(largerSignedInLimit()).toBeNull();
       expect(rateLimitReachedMessage("anon", resetAt)).toBe(
-        "Alcanzó el límite de 10 preguntas gratis por hoy. " +
+        "Alcanzó el límite de 10 preguntas por hoy. " +
           "Inicie sesión para guardar su historial, " +
           "o vuelva a intentarlo después de las 6:00 p. m.",
       );
@@ -593,7 +594,7 @@ describe("rateLimitReachedMessage", () => {
       expect(largerSignedInLimit()).toBe(25);
       const msg = rateLimitReachedMessage("anon", resetAt);
       expect(msg).toBe(
-        "Alcanzó el límite de 10 preguntas gratis por hoy. " +
+        "Alcanzó el límite de 10 preguntas por hoy. " +
           "Inicie sesión para tener 25 preguntas diarias, " +
           "o vuelva a intentarlo después de las 6:00 p. m.",
       );
@@ -608,6 +609,53 @@ describe("rateLimitReachedMessage", () => {
       expect(msg).not.toMatch(/preguntas diarias/);
       expect(msg).not.toMatch(/\b5\b/);
     });
+  });
+
+  /**
+   * #501 follow-up: there is no paid tier, so neither message calls the
+   * questions «gratis», and a limit of 1 reads «1 pregunta».
+   */
+  describe("the stated limit", () => {
+    const resetAt = new Date("2026-07-24T00:00:00Z");
+
+    afterEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    it.each(["anon", "authed"] as const)(
+      "never calls the %s questions free",
+      (tier) => {
+        expect(rateLimitReachedMessage(tier, resetAt)).not.toMatch(/gratis/);
+      },
+    );
+
+    it("agrees in number with an anonymous limit of 1", () => {
+      vi.stubEnv("RATE_LIMIT_ANON", "1");
+      vi.stubEnv("RATE_LIMIT_AUTHED", "");
+      expect(rateLimitReachedMessage("anon", resetAt)).toBe(
+        "Alcanzó el límite de 1 pregunta por hoy. " +
+          "Inicie sesión para tener 10 preguntas diarias, " +
+          "o vuelva a intentarlo después de las 6:00 p. m.",
+      );
+    });
+
+    it("agrees in number with a signed-in limit of 1", () => {
+      vi.stubEnv("RATE_LIMIT_AUTHED", "1");
+      expect(rateLimitReachedMessage("authed", resetAt)).toBe(
+        "Alcanzó el límite de 1 pregunta por hoy. " +
+          "Vuelva a intentarlo después de las 6:00 p. m.",
+      );
+    });
+  });
+});
+
+describe("questionCount", () => {
+  it.each([
+    [1, "1 pregunta"],
+    [2, "2 preguntas"],
+    [10, "10 preguntas"],
+  ])("%i → %s", (n, expected) => {
+    expect(questionCount(n)).toBe(expected);
   });
 });
 
