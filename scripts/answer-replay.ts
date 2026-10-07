@@ -31,6 +31,7 @@ import {
   resolveDerivedFigures,
 } from "../src/lib/answer/derived";
 import { validateCitations } from "../src/lib/answer/invariant";
+import { checkAnswer } from "../src/lib/eval/answer-checks";
 import {
   ANSWER_MAX_OUTPUT_TOKENS,
   answerModelLabel,
@@ -185,6 +186,7 @@ async function main(): Promise<void> {
         // The replay answers on the source row's chunks, so the readings
         // that chose them are the source's (#466); absent before #466.
         rerank: row.rerank ?? null,
+        checks: checkAnswer(answer, chunks),
       }),
     );
     const incomplete = incompletelyCitedDerivedFigures(answer, derivedFigures);
@@ -228,6 +230,19 @@ async function main(): Promise<void> {
       `grounded, recorded → replayed: ${recorded.length} → ${grounded.length} of ${replayed.length}`,
     );
   }
+  // #500, and #507's measurement: the recorded side is re-checked here, free,
+  // since rows written before #500 carry no `checks`.
+  const recordedClaims = plan.flatMap(({ row }) =>
+    checkAnswer(row.answer, row.chunks).absence.falseClaims.map(() => row.id),
+  );
+  const replayedClaims = replayed.flatMap((r) =>
+    (r.checks?.absence.falseClaims ?? []).map(() => r.id),
+  );
+  console.log(
+    `false absence claims (#500), recorded → replayed: ` +
+      `${recordedClaims.length} → ${replayedClaims.length}` +
+      (replayedClaims.length > 0 ? ` — ${replayedClaims.join(", ")}` : ""),
+  );
   const refused = replayed.filter((r) => r.citations && !r.citations.ok);
   const cut = replayed.filter((r) => r.generation?.finishReason !== "stop");
   const tokens = replayed.map((r) => r.generation?.outputTokens ?? 0);

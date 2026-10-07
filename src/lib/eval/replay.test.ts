@@ -71,6 +71,7 @@ function row(overrides: Partial<TranscriptRow>): TranscriptRow {
       today: "2026-09-29",
     },
     rerank: { asked: 2, returned: 2, dropped: [] },
+    checks: null,
     ...overrides,
   };
 }

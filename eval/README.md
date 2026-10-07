@@ -55,6 +55,15 @@ The gate constants are `GROUNDEDNESS_GATE` (`groundedness.ts`), `HIT_RATE_GATE`
 (`abstention.eval.test.ts`), and `ADEQUACY_TIER2_GATE` with
 `TIER1_REQUIREMENT_BASELINE` (`adequacy.ts`).
 
+Two gates are zero, with no constant. One is the citation invariant. The other,
+since #500, is false corpus-absence claims: an answer that says the documents
+lack an artículo or a listed figure that `corpus-index.json` covers
+(`src/lib/eval/absence.ts`). In the groundedness and abstention lanes, such a
+case fails whatever the judge said, and the lane lists it. Each lane also
+reports, without gating, the answers that open with an absence claim and any
+typo runs (`src/lib/eval/answer-checks.ts`). The detector's precision read is on
+#500: 66 of 67 hits on the committed runs were true.
+
 **Running a paid arm.** Get the owner's OK and a balance check first. Run one
 arm at a time, and smoke three cases before a full lane:
 
@@ -75,15 +84,16 @@ run's setup and deltas.
 
 **Cheaper reads.** Each script's header documents its flags.
 
-| Command                                                  | Answers                                                            | Cost                             |
-| -------------------------------------------------------- | ------------------------------------------------------------------ | -------------------------------- |
-| `pnpm requirement-coverage <transcript…>`                | Tier 1 requirements stated, per case, from committed transcripts   | free                             |
-| `pnpm answer-set-compare a.json b.json`                  | the first stage where two probe runs part, per case                | free                             |
-| `pnpm prompt-tokens <transcript…>`                       | the answer prompt's input size, per case                           | free (count_tokens)              |
-| `pnpm answer-replay <transcript> [--tier=1] [--cases=…]` | the current prompt re-answering recorded chunks; reads no database | ≈US$0.10 a row; `--dry-run` free |
-| `pnpm pool-dump <case…>`                                 | why a target missed the fused pool: every leg's rank               | one embed per case               |
-| `pnpm answer-set-probe [out.json]`                       | retrieve → rerank → cap → pin for every case, no answer model      | ≈US$0.15                         |
-| `pnpm answer-latency-probe`                              | answer latency per effort arm                                      | ≈US$1–2                          |
+| Command                                                  | Answers                                                                                   | Cost                             |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------- |
+| `pnpm requirement-coverage <transcript…>`                | Tier 1 requirements stated, per case, from committed transcripts                          | free                             |
+| `pnpm absence-backtest [--openings]`                     | false absence claims and typo runs in every committed answer                              | free                             |
+| `pnpm answer-set-compare a.json b.json`                  | the first stage where two probe runs part, per case                                       | free                             |
+| `pnpm prompt-tokens <transcript…>`                       | the answer prompt's input size, per case                                                  | free (count_tokens)              |
+| `pnpm answer-replay <transcript> [--tier=1] [--cases=…]` | the current prompt re-answering recorded chunks, false absence claims recorded → replayed | ≈US$0.10 a row; `--dry-run` free |
+| `pnpm pool-dump <case…>`                                 | why a target missed the fused pool: every leg's rank                                      | one embed per case               |
+| `pnpm answer-set-probe [out.json]`                       | retrieve → rerank → cap → pin for every case, no answer model                             | ≈US$0.15                         |
+| `pnpm answer-latency-probe`                              | answer latency per effort arm                                                             | ≈US$1–2                          |
 
 A transcript row is `TranscriptRow` in `src/lib/eval/transcript.ts`.
 

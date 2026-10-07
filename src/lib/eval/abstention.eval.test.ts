@@ -59,6 +59,13 @@ import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
 import { retrieve } from "../retrieval";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import { figureMentions, judgeAbstention } from "./adequacy";
+import {
+  checkAnswer,
+  falseAbsenceFailures,
+  formatAnswerChecks,
+  withAbsenceGate,
+  type AnswerChecks,
+} from "./answer-checks";
 import { abstentionCases, DATASET_PATH, parseDataset } from "./dataset";
 import { rewriteCase, rewritesFromEnv } from "./rewrites";
 import {
@@ -114,6 +121,7 @@ function writeAbstentionTranscript(results: readonly CaseResult[]): string {
           answer: r.answer,
           generation: r.generation,
           rerank: r.rerank,
+          checks: r.checks,
         }),
       )
       .join("\n") + "\n",
@@ -144,6 +152,11 @@ interface CaseResult {
   generation: TranscriptGeneration | null;
   /** The rerank's readings (#466); `null` when it never called Voyage. */
   rerank: RerankReadingCount | null;
+  /**
+   * #500's checks; `null` on the fallback route, a fixed text. A false
+   * absence claim has already failed `verdict` (`withAbsenceGate`).
+   */
+  checks: AnswerChecks | null;
 }
 
 describeEval("abstention set (eval/dataset.jsonl)", () => {
@@ -169,6 +182,7 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
       let answer = WEAK_RETRIEVAL_ANSWER;
       let generation: TranscriptGeneration | null = null;
       let rerank: RerankReadingCount | null = null;
+      let checks: AnswerChecks | null = null;
       // Empty on the fallback route, which had no fragments: `figureMentions`
       // then keeps its strict form and counts every figure (#290).
       let sources: string[] | undefined;
@@ -211,14 +225,20 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
           ...chunks.map((chunk) => chunk.content),
           ...derivedFigures.map((figure) => figure.formattedValue),
         ];
+        // #500: a decline that says the corpus lacks what it carries — Ley
+        // IVA art. 10 under «¿cuál será el IVA en 2027?» — is a hard zero.
+        checks = checkAnswer(answer, chunks);
       }
 
-      const judged = await judgeAbstention(query, answer, {
-        abstainIf: evalCase.abstainIf as string,
-        ...(evalCase.routeTo === undefined
-          ? {}
-          : { routeTo: evalCase.routeTo }),
-      });
+      const judged = withAbsenceGate(
+        await judgeAbstention(query, answer, {
+          abstainIf: evalCase.abstainIf as string,
+          ...(evalCase.routeTo === undefined
+            ? {}
+            : { routeTo: evalCase.routeTo }),
+        }),
+        checks,
+      );
       results.push({
         evalCase,
         ...judged,
@@ -228,6 +248,7 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
         answer,
         generation,
         rerank,
+        checks,
       });
     }
 
@@ -238,6 +259,11 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
       `  ${droppedReadingsSummary(
         results.map((r) => ({ id: r.evalCase.id, rerank: r.rerank })),
       )}`,
+    );
+    console.log(
+      formatAnswerChecks(
+        results.map((r) => ({ id: r.evalCase.id, checks: r.checks })),
+      ),
     );
     for (const r of results) {
       const votes = r.verdicts.length > 1 ? ` [${r.verdicts.join("/")}]` : "";
@@ -262,6 +288,13 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
       rate,
       `answered instead of declining: ${failed.join("; ")}`,
     ).toBeGreaterThanOrEqual(ABSTENTION_GATE);
+  });
+
+  it("claims nothing absent that the corpus carries (#500)", () => {
+    const claims = falseAbsenceFailures(
+      results.map((r) => ({ id: r.evalCase.id, checks: r.checks })),
+    );
+    expect(claims, `false absence claims: ${claims.join("; ")}`).toEqual([]);
   });
 
   it("invents no figure while declining", () => {

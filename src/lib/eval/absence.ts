@@ -30,6 +30,7 @@
  * reported (rule 6 says «no la empiece diciendo que no encuentra base
  * oficial»), true or false, never gated.
  */
+import committedIndex from "../../../eval/corpus-index.json";
 import { citationMarkers } from "../answer/citations";
 import type { CorpusIndex } from "./corpus-index";
 
@@ -94,6 +95,16 @@ export function corpusCoverage(index: CorpusIndex): CorpusCoverage {
   }
   return { articulos };
 }
+
+/**
+ * The coverage of the committed index. Bundled, like the step catalogue, so
+ * the route reads the same corpus the lanes and the backtest do. Production
+ * runs main's corpus, and `pnpm ingest` rewrites the file whenever coverage
+ * changes (#163).
+ */
+export const COMMITTED_COVERAGE: CorpusCoverage = corpusCoverage(
+  committedIndex satisfies CorpusIndex,
+);
 
 type DocKind = "ley" | "reglamento" | "codigo";
 

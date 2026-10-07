@@ -27,6 +27,7 @@ import type { ResolvedDerivedFigure } from "../answer/derived";
 import type { RerankReadingCount } from "../answer/rerank";
 import type { RetrievedChunk } from "../retrieval";
 import type { GenerationFinishReason } from "../telemetry";
+import type { AnswerChecks } from "./answer-checks";
 import type { EvalCase, Family, Tier, Variant } from "./dataset";
 import type { Verdict } from "./groundedness";
 
@@ -94,6 +95,13 @@ export interface TranscriptRow {
    * `RERANK=off`, no key. Absent from transcripts written before #466.
    */
   rerank: RerankReadingCount | null;
+  /**
+   * #500's checks on the answer: the absence claims the corpus index
+   * contradicts (each one fails the case), the opening absence claim and the
+   * typo runs (reported). `null` on a weak-retrieval decline, which is a
+   * fixed text. Absent from transcripts written before #500.
+   */
+  checks: AnswerChecks | null;
 }
 
 export interface TranscriptGeneration {
@@ -119,6 +127,7 @@ export interface TranscriptInput {
   adequacy: { verdict: Verdict; missing: string[]; literals: string[] } | null;
   generation: TranscriptGeneration | null;
   rerank: RerankReadingCount | null;
+  checks: AnswerChecks | null;
 }
 
 export function transcriptRow({
@@ -132,6 +141,7 @@ export function transcriptRow({
   adequacy,
   generation,
   rerank,
+  checks,
 }: TranscriptInput): TranscriptRow {
   return {
     id: evalCase.id,
@@ -159,6 +169,7 @@ export function transcriptRow({
     adequacy,
     generation,
     rerank,
+    checks,
   };
 }
 
