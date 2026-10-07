@@ -13,14 +13,22 @@
  * - a word that starts with a doubled letter («ppagado») — no Spanish word
  *   does, except with «ll»;
  * - a word that starts with a doubled syllable («dedeclarar»), minus the few
- *   real words built that way.
+ *   real words built that way. Only at the start: inside a word the same
+ *   shape is ordinary Spanish («dividido», «estatutos»), so «pagagado» is a
+ *   miss this heuristic accepts.
  *
  * Roman numerals (inciso «iii», «XXX»), all-caps acronyms («CCSS») and
  * addresses («ccss.sa.cr», URLs) are not words for this purpose.
  */
 
-/** Real words that start with a doubled syllable. */
-const REDUPLICATED = /^(?:vivi|coco|papa|mama|nene|bebe|cucu|chacha|titi)/;
+/**
+ * Real words that start with a doubled syllable. Found by running the rule
+ * over every committed answer and every chunk the transcripts carry
+ * («vivienda», «sesenta», «queques»), plus the common ones a tax answer can
+ * plausibly write («dadas las condiciones», «raras veces»).
+ */
+const REDUPLICATED =
+  /^(?:vivi|sese|dada|rara|caca|queque|coco|papa|mama|nene|bebe|cucu|chacha|titi)/;
 
 const ADDRESS = /https?:\/\/\S+|www\.\S+|\S+@\S+|\S+\.(?:cr|com|org|net)\S*/giu;
 

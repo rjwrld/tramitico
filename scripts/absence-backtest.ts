@@ -12,16 +12,7 @@
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
-import {
-  citedChunks,
-  corpusCoverage,
-  detectAbsenceClaims,
-} from "../src/lib/eval/absence";
-import {
-  CORPUS_INDEX_PATH,
-  parseCorpusIndex,
-} from "../src/lib/eval/corpus-index";
-import { typoRuns } from "../src/lib/eval/typo";
+import { checkAnswer } from "../src/lib/eval/answer-checks";
 
 const RUNS_DIR = path.join(process.cwd(), "eval", "runs");
 
@@ -42,9 +33,6 @@ interface Row {
 }
 
 const showOpenings = process.argv.includes("--openings");
-const coverage = corpusCoverage(
-  parseCorpusIndex(readFileSync(CORPUS_INDEX_PATH, "utf8")),
-);
 
 let rows = 0;
 let answered = 0;
@@ -60,10 +48,10 @@ for (const file of jsonlFiles(RUNS_DIR)) {
     const row = JSON.parse(line) as Row;
     if (typeof row.answer !== "string" || row.answer === "") continue;
     answered += 1;
-    const report = detectAbsenceClaims(row.answer, {
-      cited: citedChunks(row.answer, row.chunks ?? []),
-      coverage,
-    });
+    const { absence: report, typos: runs } = checkAnswer(
+      row.answer,
+      row.chunks ?? [],
+    );
     for (const claim of report.falseClaims) {
       claims += 1;
       flaggedRows.add(`${where}\t${row.id}`);
@@ -77,7 +65,7 @@ for (const file of jsonlFiles(RUNS_DIR)) {
         console.log(`OPENING\t${where}\t${row.id}\t${report.opening}`);
       }
     }
-    for (const word of typoRuns(row.answer)) {
+    for (const word of runs) {
       typos += 1;
       console.log(`TYPO\t${where}\t${row.id}\t${word}`);
     }

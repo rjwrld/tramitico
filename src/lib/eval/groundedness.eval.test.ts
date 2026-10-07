@@ -85,6 +85,7 @@ import {
   formatAnswerChecks,
   withAbsenceGate,
   type AnswerChecks,
+  type CheckedCase,
 } from "./answer-checks";
 import { formatExposureTally, tallyByExposure } from "./exposure";
 import { rewriteCase, rewritesFromEnv } from "./rewrites";
@@ -192,6 +193,11 @@ function adequacyReason(result: CaseResult): string {
     ...(result.adequacy?.literals ?? []),
   ];
   return parts.join("; ");
+}
+
+/** The lane's results as #500's helpers read them. */
+function checkedCases(results: readonly CaseResult[]): CheckedCase[] {
+  return results.map((r) => ({ id: r.evalCase.id, checks: r.checks }));
 }
 
 describeEval("groundedness (eval/dataset.jsonl)", () => {
@@ -447,11 +453,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
       ),
     );
 
-    console.log(
-      `\n${formatAnswerChecks(
-        results.map((r) => ({ id: r.evalCase.id, checks: r.checks })),
-      )}`,
-    );
+    console.log(`\n${formatAnswerChecks(checkedCases(results))}`);
 
     const violations = results.filter(
       (r) => r.citations !== null && !r.citations.ok,
@@ -521,9 +523,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
 
   it("claims nothing absent that the corpus carries (#500)", () => {
     assertFullRun();
-    const claims = falseAbsenceFailures(
-      results.map((r) => ({ id: r.evalCase.id, checks: r.checks })),
-    );
+    const claims = falseAbsenceFailures(checkedCases(results));
     expect(claims, `false absence claims: ${claims.join("; ")}`).toEqual([]);
   });
 

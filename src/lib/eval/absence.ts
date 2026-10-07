@@ -27,8 +27,9 @@
  * false alarm: it gates the lanes, and #500's backtest is its precision read.
  *
  * Separately, an answer whose *opening* sentence is any absence claim is
- * reported (rule 6 says «no la empiece diciendo que no encuentra base
- * oficial»), true or false, never gated.
+ * reported (prompt rule 9: «no la anuncie al principio»; rule 6: «no la
+ * empiece diciendo que no encuentra base oficial»), true or false, never
+ * gated.
  */
 import committedIndex from "../../../eval/corpus-index.json";
 import { citationMarkers } from "../answer/citations";
@@ -258,7 +259,7 @@ const ABSENT_VERB = String.raw`(?:traen|trae|contienen|contiene|incluyen|incluye
 /**
  * Verbs that say the documents do not *state* something. «No indican el monto
  * del salario base» claims the amount absent; «no precisan cómo se cuenta la
- * multa del artículo 79» does not claim the artículo absent, and `HEAD` is
+ * multa del artículo 79» does not claim the artículo absent, and `TARGET_PREFIX` is
  * what tells the two apart.
  */
 const STATE_VERB = String.raw`(?:indican|indica|detallan|detalla|precisan|precisa|especifican|especifica)`;
@@ -296,9 +297,12 @@ const RELATIVE = new RegExp(
 const TOPIC =
   /^(?:sobre|en cuanto a|respecto (?:a|de)|acerca de|en lo que toca a)\s+([^,:;]+?)(?=,|:|\s+no\s)/;
 
-/** Where an object noun phrase ends. A comma before «ni» or a digit does not. */
+/**
+ * Where an object noun phrase ends. A comma before «ni» or a digit does not,
+ * and neither does the period of «art. 10».
+ */
 const OBJECT_END =
-  /[;:([]|\.(?!\w)|,(?!\s*(?:ni\b|\d))|\s(?:asi que|por lo que|porque|pues|pero|sino|ya que|dado que|de modo que|para (?:poder|que|saber|ubicar|calcular|confirmar|decir|indicar))\b/;
+  /[;:([]|(?<!\bart)\.(?!\w)|,(?!\s*(?:ni\b|\d))|\s(?:asi que|por lo que|porque|pues|pero|sino|ya que|dado que|de modo que|para (?:poder|que|saber|ubicar|calcular|confirmar|decir|indicar))\b/;
 /** Where a subject noun phrase starts, read backwards. */
 const SUBJECT_START = /[;:]|\b(?:pero|aunque|sino|mientras)\b/g;
 const LEADING_SUBORDINATOR =
@@ -315,7 +319,7 @@ const SUBDIVISION = String.raw`(?:(?:inciso|incisos|numeral|parrafo|apartado)\s+
  * numeral 4 del». Anything else in front — «el formulario para pagar la
  * sanción del artículo 78» — makes the artículo incidental, not absent.
  */
-const HEAD = new RegExp(
+const TARGET_PREFIX = new RegExp(
   String.raw`^(?:complet[oa]s?\s+)?(?:${DETERMINER}\s+)?(?:${HEAD_NOUN}(?:\s+${ADJECTIVE})*(?:\s+${PREPOSITION}(?:\s+${DETERMINER})?)?\s+){0,2}${SUBDIVISION}*$`,
 );
 /** An object that names nothing: «no encuentro base oficial», «no traen nada». */
@@ -416,14 +420,11 @@ function articuloTarget(phrase: string, context: Context): string | null {
   return `${candidates.join("|")} · Artículo ${covered.join(", ")}`;
 }
 
-function figureTarget(phrase: string, context: Context): string | null {
-  for (const figure of FIGURES) {
-    const match = figure.pattern.exec(phrase);
-    if (match === null || match.index !== 0) continue;
-    if (!figureCovered(figure, context.coverage)) return null;
-    return figure.label;
-  }
-  return null;
+/** The listed figure `phrase` starts with, if any. */
+function figureAt(phrase: string): (typeof FIGURES)[number] | null {
+  return (
+    FIGURES.find((figure) => figure.pattern.exec(phrase)?.index === 0) ?? null
+  );
 }
 
 function figureCovered(
@@ -438,13 +439,18 @@ function figureCovered(
   });
 }
 
-/** A phrase the honest-abstention rule exempts: a year the figure lacks. */
-function outsideCorpusYears(phrase: string): boolean {
-  if (OTHER_VERSION.test(phrase)) return true;
-  const years = [...phrase.matchAll(YEAR)].map((m) => Number(m[1]));
-  if (years.length === 0) return false;
-  const figure = FIGURES.find((f) => f.pattern.test(phrase));
-  if (figure === undefined || figure.years === null) return false;
+/**
+ * The honest-abstention rule: `scope` asks for another version of what it
+ * names — a future, later or different one, or a year the figure is not
+ * carried for. An artículo has no years: only the wording exempts it.
+ */
+function otherVersion(
+  scope: string,
+  figure: (typeof FIGURES)[number] | null,
+): boolean {
+  if (OTHER_VERSION.test(scope)) return true;
+  if (figure === null || figure.years === null) return false;
+  const years = [...scope.matchAll(YEAR)].map((m) => Number(m[1]));
   return years.some((year) => !figure.years!.includes(year));
 }
 
@@ -471,8 +477,12 @@ function targetAt(
   context: Context,
   scope: string = phrase,
 ): string | null {
-  if (outsideCorpusYears(scope)) return null;
-  return articuloTarget(phrase, context) ?? figureTarget(phrase, context);
+  const figure = figureAt(phrase);
+  if (otherVersion(scope, figure)) return null;
+  if (figure !== null) {
+    return figureCovered(figure, context.coverage) ? figure.label : null;
+  }
+  return articuloTarget(phrase, context);
 }
 
 /** Where «ni», «y» or «o» joins two noun phrases. Not before a digit. */
@@ -495,7 +505,7 @@ function conjunctAround(phrase: string, position: number): [number, number] {
 
 /**
  * What a phrase says is absent, if it is a covered artículo or figure that
- * heads its conjunct (`HEAD`): «el procedimiento ni el valor actual de la
+ * heads its conjunct (`TARGET_PREFIX`): «el procedimiento ni el valor actual de la
  * BMC» claims the BMC absent as much as the procedure. A conjunction inside
  * the target — «Catálogo de Bienes y Servicios» — is not a boundary, because
  * the target is found first and its conjunct read around it.
@@ -503,7 +513,7 @@ function conjunctAround(phrase: string, position: number): [number, number] {
 function phraseTarget(phrase: string, context: Context): string | null {
   for (const position of targetPositions(phrase).reverse()) {
     const [start, end] = conjunctAround(phrase, position);
-    if (!HEAD.test(phrase.slice(start, position))) continue;
+    if (!TARGET_PREFIX.test(phrase.slice(start, position))) continue;
     const target = targetAt(
       phrase.slice(position),
       context,
@@ -517,7 +527,7 @@ function phraseTarget(phrase: string, context: Context): string | null {
 /** «el listado», «el catálogo de códigos»: an object that is all head. */
 function headOnly(object: string): boolean {
   const [start, end] = conjunctAround(object, 0);
-  return HEAD.test(`${object.slice(start, end).trim()} `);
+  return TARGET_PREFIX.test(`${object.slice(start, end).trim()} `);
 }
 
 /**

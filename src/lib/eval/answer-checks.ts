@@ -14,7 +14,6 @@ import {
   detectAbsenceClaims,
   type AbsenceReport,
   type CitedChunk,
-  type CorpusCoverage,
 } from "./absence";
 import type { Verdict } from "./groundedness";
 import { typoRuns } from "./typo";
@@ -24,16 +23,22 @@ export interface AnswerChecks {
   typos: string[];
 }
 
+/** One case's checks, as a lane hands them to the two functions below. */
+export interface CheckedCase {
+  id: string;
+  /** `null` when there was nothing to check: a fixed-text decline. */
+  checks: AnswerChecks | null;
+}
+
 /** `chunks` is the numbered list the prompt showed; the answer's markers pick from it. */
 export function checkAnswer(
   answer: string,
   chunks: readonly CitedChunk[],
-  coverage: CorpusCoverage = COMMITTED_COVERAGE,
 ): AnswerChecks {
   return {
     absence: detectAbsenceClaims(answer, {
       cited: citedChunks(answer, chunks),
-      coverage,
+      coverage: COMMITTED_COVERAGE,
     }),
     typos: typoRuns(answer),
   };
@@ -61,9 +66,7 @@ export function withAbsenceGate<T extends { verdict: Verdict; reason: string }>(
 }
 
 /** Every false absence claim in `rows`, one line each: the lanes' zero gate. */
-export function falseAbsenceFailures(
-  rows: readonly { id: string; checks: AnswerChecks | null }[],
-): string[] {
+export function falseAbsenceFailures(rows: readonly CheckedCase[]): string[] {
   return rows.flatMap(({ id, checks }) =>
     (checks?.absence.falseClaims ?? []).map((claim) =>
       describeFalseAbsence(id, claim),
@@ -77,9 +80,7 @@ export function falseAbsenceFailures(
  * absence claim, and typo runs. Rows with `null` checks (weak-retrieval
  * declines, a fixed text) are left out of every count.
  */
-export function formatAnswerChecks(
-  rows: readonly { id: string; checks: AnswerChecks | null }[],
-): string {
+export function formatAnswerChecks(rows: readonly CheckedCase[]): string {
   const checked = rows.flatMap(({ id, checks }) =>
     checks === null ? [] : [{ id, checks }],
   );

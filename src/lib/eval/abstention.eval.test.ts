@@ -65,6 +65,7 @@ import {
   formatAnswerChecks,
   withAbsenceGate,
   type AnswerChecks,
+  type CheckedCase,
 } from "./answer-checks";
 import { abstentionCases, DATASET_PATH, parseDataset } from "./dataset";
 import { rewriteCase, rewritesFromEnv } from "./rewrites";
@@ -157,6 +158,11 @@ interface CaseResult {
    * absence claim has already failed `verdict` (`withAbsenceGate`).
    */
   checks: AnswerChecks | null;
+}
+
+/** The lane's results as #500's helpers read them. */
+function checkedCases(results: readonly CaseResult[]): CheckedCase[] {
+  return results.map((r) => ({ id: r.evalCase.id, checks: r.checks }));
 }
 
 describeEval("abstention set (eval/dataset.jsonl)", () => {
@@ -260,11 +266,7 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
         results.map((r) => ({ id: r.evalCase.id, rerank: r.rerank })),
       )}`,
     );
-    console.log(
-      formatAnswerChecks(
-        results.map((r) => ({ id: r.evalCase.id, checks: r.checks })),
-      ),
-    );
+    console.log(formatAnswerChecks(checkedCases(results)));
     for (const r of results) {
       const votes = r.verdicts.length > 1 ? ` [${r.verdicts.join("/")}]` : "";
       console.log(
@@ -291,9 +293,7 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
   });
 
   it("claims nothing absent that the corpus carries (#500)", () => {
-    const claims = falseAbsenceFailures(
-      results.map((r) => ({ id: r.evalCase.id, checks: r.checks })),
-    );
+    const claims = falseAbsenceFailures(checkedCases(results));
     expect(claims, `false absence claims: ${claims.join("; ")}`).toEqual([]);
   });
 

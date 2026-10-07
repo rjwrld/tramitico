@@ -58,6 +58,31 @@ describe("the tables", () => {
     expect(named.filter((docKey) => !docKeys.has(docKey))).toEqual([]);
   });
 
+  it("dates each figure by its newest source (the 2027 cliff, #505)", () => {
+    // `years` is hand-written. When a re-crawl ingests next year's escala or
+    // wage decree, its effective_date moves past them and this goes red, so
+    // a «BMC de 2027» claim stops being excused as a year the corpus lacks.
+    const effective = new Map(
+      manifest.documents.map((doc) => [
+        doc.doc_key,
+        "effective_date" in doc && typeof doc.effective_date === "string"
+          ? Number(doc.effective_date.slice(0, 4))
+          : null,
+      ]),
+    );
+    const stale = FIGURES.flatMap((figure) => {
+      const newest = Math.max(
+        ...figure.requires.map(({ docKey }) => effective.get(docKey) ?? 0),
+      );
+      return figure.years === null ||
+        newest === 0 ||
+        figure.years.includes(newest)
+        ? []
+        : [`${figure.label}: newest source ${newest}`];
+    });
+    expect(stale).toEqual([]);
+  });
+
   it("covers every figure in the committed index", () => {
     // A figure whose document left the corpus would make every claim about it
     // honest — right, but the table should then lose the row.
@@ -148,6 +173,14 @@ describe("detectAbsenceClaims: other false claims", () => {
         "Los documentos no detallan el contenido de los artículos 32, 33 y 36 del Reglamento del IVA.",
       ),
     ).toEqual(["reglamento-iva · Artículo 32, 33, 36"]);
+  });
+
+  it("reads «art. 10» like «artículo 10»", () => {
+    expect(
+      falseTargets(
+        "Los documentos no traen el texto del art. 10 de la Ley del IVA.",
+      ),
+    ).toEqual(["ley-iva · Artículo 10"]);
   });
 
   it("flags a subdivision of a covered artículo", () => {
