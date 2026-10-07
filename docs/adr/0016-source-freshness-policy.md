@@ -54,7 +54,10 @@ states the figure's year. Dropping was chosen because:
   withheld chunk takes away no answer the product promises.
 
 If dropping leaves nothing corroborated, the ask takes the honest decline, which is the
-«abstain or route» above. A `retiredDocKeys` entry is dropped the same way, because retiring a
+«abstain or route» above. While any annual source is out of period, `retrieve()` asks
+`search_chunks` for twice its count and refills the count after the drop: two years of one
+series are near-identical text, and the withheld year would otherwise take the other's places.
+The drop is by source, so a non-annual source that quotes a year's figure (the consolidated Ley 7092) is outside it; runbook §2.2 has the owner check those by hand. A `retiredDocKeys` entry is dropped the same way, because retiring a
 source from the manifest deploys before the ingest that deletes its rows.
 
 An entry covers the fiscal years from its `effective_date` year through `verifiedForFiscalYear`,
@@ -64,5 +67,5 @@ whose doc_keys differ only by a trailing year form one series (`tramos-renta-202
 the runtime switches over at Costa Rica midnight on 1 January with no deploy that day. The
 vigencia gate now asks that every series cover the current year, rather than that every entry
 name it. A free unit test warns, from 1 December, about each series with nothing for the
-coming year, and after 1 January about each entry left behind. The calendar and the owner's
+coming year, and after 1 January about each entry a newer one superseded. The calendar and the owner's
 steps are in [runbook §2.2](../runbook.md#22-annual-corpus-churn-novemberjanuary).
