@@ -66,6 +66,15 @@ also scores `ho-abs-iva-2027`'s requirement (13 % and art. 10, cited, never
 denied); its assertion is a todo until #507 and #508. See «The robustness
 block».
 
+Two gates are zero, with no constant. One is the citation invariant. The other,
+since #500, is false corpus-absence claims: an answer that says the documents
+lack an artículo or a listed figure that `corpus-index.json` covers
+(`src/lib/eval/absence.ts`). In the groundedness and abstention lanes, such a
+case fails whatever the judge said, and the lane lists it. Each lane also
+reports, without gating, the answers that open with an absence claim and any
+typo runs (`src/lib/eval/answer-checks.ts`). The detector's precision read is on
+#500: 66 of 67 hits on the committed runs were true.
+
 **Running a paid arm.** Get the owner's OK and a balance check first. Run one
 arm at a time, and smoke three cases before a full lane:
 
@@ -86,15 +95,16 @@ run's setup and deltas.
 
 **Cheaper reads.** Each script's header documents its flags.
 
-| Command                                                  | Answers                                                            | Cost                             |
-| -------------------------------------------------------- | ------------------------------------------------------------------ | -------------------------------- |
-| `pnpm requirement-coverage <transcript…>`                | Tier 1 requirements stated, per case, from committed transcripts   | free                             |
-| `pnpm answer-set-compare a.json b.json`                  | the first stage where two probe runs part, per case                | free                             |
-| `pnpm prompt-tokens <transcript…>`                       | the answer prompt's input size, per case                           | free (count_tokens)              |
-| `pnpm answer-replay <transcript> [--tier=1] [--cases=…]` | the current prompt re-answering recorded chunks; reads no database | ≈US$0.10 a row; `--dry-run` free |
-| `pnpm pool-dump <case…>`                                 | why a target missed the fused pool: every leg's rank               | one embed per case               |
-| `pnpm answer-set-probe [out.json]`                       | retrieve → rerank → cap → pin for every case, no answer model      | ≈US$0.15                         |
-| `pnpm answer-latency-probe`                              | answer latency per effort arm                                      | ≈US$1–2                          |
+| Command                                                  | Answers                                                                                   | Cost                             |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------- |
+| `pnpm requirement-coverage <transcript…>`                | Tier 1 requirements stated, per case, from committed transcripts                          | free                             |
+| `pnpm absence-backtest [--openings]`                     | false absence claims and typo runs in every committed answer                              | free                             |
+| `pnpm answer-set-compare a.json b.json`                  | the first stage where two probe runs part, per case                                       | free                             |
+| `pnpm prompt-tokens <transcript…>`                       | the answer prompt's input size, per case                                                  | free (count_tokens)              |
+| `pnpm answer-replay <transcript> [--tier=1] [--cases=…]` | the current prompt re-answering recorded chunks, false absence claims recorded → replayed | ≈US$0.10 a row; `--dry-run` free |
+| `pnpm pool-dump <case…>`                                 | why a target missed the fused pool: every leg's rank                                      | one embed per case               |
+| `pnpm answer-set-probe [out.json]`                       | retrieve → rerank → cap → pin for every case, no answer model                             | ≈US$0.15                         |
+| `pnpm answer-latency-probe`                              | answer latency per effort arm                                                             | ≈US$1–2                          |
 
 A transcript row is `TranscriptRow` in `src/lib/eval/transcript.ts`.
 
@@ -3441,11 +3451,10 @@ it must also give today's 13 % and the artículo 10 that sets it, each with a
 citation in its sentence, and never say the artículo is missing from the
 documents (#490 item 2). The case declares two `literal` claims. The
 abstention lane checks them deterministically
-(`abstentionRequirementFailures`), along with `articleAbsenceClaims`, a
-clause-level read for a sentence that names the artículo and says the
-documents lack it. #500 owns the general detector. This check reads only what
-this requirement needs. Its known limit: it reads «artículo 10» by its number,
-so a sentence denying the Reglamento's art. 10 would count too. `abstainIf`
+(`abstentionRequirementFailures`). Its absence half is #500's detector: the
+answer's false absence claims (`src/lib/eval/absence.ts`). #517 first shipped
+a clause-level read of its own there, `articleAbsenceClaims`, which #500
+folded in, so the lane reads absence one way. `abstainIf`
 now tells the judge that giving the current rate, cited, is not answering
 about 2027.
 
@@ -3457,7 +3466,9 @@ art. 10, both cited. A hard assertion would start red, which is the same
 reason the block's gate is a baseline. So the lane scores and prints the
 requirement on every run, and the assertion is a todo, armed when #507 (the
 prompt) and #508 (art. 30 → art. 10) land. The absence half is gated sooner,
-by #500's detector.
+by #500's detector. After the fold, the same backtest keeps every verdict (17
+fail, the same 2 pass) and all 6 denials. The detector also finds 5 more,
+all in answers that already failed on their literals.
 
 **The probe read** ([`runs/2026-10-07-502-robustness/`](runs/2026-10-07-502-robustness/),
 both rewrite models, route configuration):

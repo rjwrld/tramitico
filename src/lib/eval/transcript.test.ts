@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
+import { checkAnswer } from "./answer-checks";
 import type { EvalCase } from "./dataset";
 import {
   droppedReadingsSummary,
@@ -63,6 +64,9 @@ const ROW: TranscriptRow = transcriptRow({
     returned: 2,
     dropped: [{ reading: "step", cause: "http", status: 429 }],
   },
+  checks: checkAnswer("Las rentas de hasta ¢6.244.000 no están sujetas [1].", [
+    chunk({}),
+  ]),
 });
 
 describe("transcriptRow", () => {
@@ -83,6 +87,13 @@ describe("transcriptRow", () => {
         outputTokens: 1_412,
         today: "2026-09-29",
       },
+    });
+  });
+
+  it("carries #500's checks on the answer", () => {
+    expect(ROW.checks).toEqual({
+      absence: { falseClaims: [], opening: null },
+      typos: [],
     });
   });
 
@@ -146,6 +157,7 @@ describe("transcriptRow", () => {
         today: "2026-09-29",
       },
       rerank: { asked: 1, returned: 1, dropped: [] },
+      checks: null,
     });
     // Same docKey and articulo on both: only the id and the text tell them
     // apart.
@@ -169,6 +181,7 @@ describe("transcriptRow", () => {
       adequacy: null,
       generation: null,
       rerank: null,
+      checks: null,
     });
     expect(declined.chunks).toEqual([]);
     expect(declined.generation).toBeNull();

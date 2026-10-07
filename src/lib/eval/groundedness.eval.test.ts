@@ -84,6 +84,14 @@ import {
   retrievalCases,
   type EvalCase,
 } from "./dataset";
+import {
+  checkAnswer,
+  falseAbsenceFailures,
+  formatAnswerChecks,
+  withAbsenceGate,
+  type AnswerChecks,
+  type CheckedCase,
+} from "./answer-checks";
 import { formatExposureTally, tallyByExposure } from "./exposure";
 import { formatRobustnessLine, splitRobustness } from "./robustness";
 import { rewriteCase, rewritesFromEnv } from "./rewrites";
@@ -148,6 +156,11 @@ interface CaseResult {
   generation: TranscriptGeneration | null;
   /** The rerank's readings (#466); `null` when it never called Voyage. */
   rerank: RerankReadingCount | null;
+  /**
+   * #500's checks; `null` on a weak-retrieval decline. A false absence claim
+   * has already failed `verdict` (`withAbsenceGate`).
+   */
+  checks: AnswerChecks | null;
 }
 
 /**
@@ -186,6 +199,11 @@ function adequacyReason(result: CaseResult): string {
     ...(result.adequacy?.literals ?? []),
   ];
   return parts.join("; ");
+}
+
+/** The lane's results as #500's helpers read them. */
+function checkedCases(results: readonly CaseResult[]): CheckedCase[] {
+  return results.map((r) => ({ id: r.evalCase.id, checks: r.checks }));
 }
 
 describeEval("groundedness (eval/dataset.jsonl)", () => {
@@ -267,6 +285,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
           derivedFigures: [],
           generation: null,
           rerank: null,
+          checks: null,
         });
         continue;
       }
@@ -299,12 +318,12 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
       // Judged against the same question the answer was written for: asking
       // "is this supported?" about a bare "¿Y si también soy asalariado?"
       // would judge the condensation, not the groundedness.
-      const judged = await judgeAnswer(
-        query,
-        chunks,
-        answer,
-        undefined,
-        derivedFigures,
+      // #500: a false absence claim is a hard zero, whatever the judge says
+      // — it reads the same fragments the model did, so it cannot see one.
+      const checks = checkAnswer(answer, chunks);
+      const judged = withAbsenceGate(
+        await judgeAnswer(query, chunks, answer, undefined, derivedFigures),
+        checks,
       );
       const requirements = judgedRequirements(evalCase);
       const declaresRequirements =
@@ -323,6 +342,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
           today,
         },
         rerank,
+        checks,
         citations: validateCitations(answer, chunks.length),
         adequacy: declaresRequirements
           ? {
@@ -366,6 +386,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
                   },
             generation: r.generation,
             rerank: r.rerank,
+            checks: r.checks,
           }),
         ),
         { answerModel: answerModelId, subset: subset !== null },
@@ -465,6 +486,8 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
       ),
     );
 
+    console.log(`\n${formatAnswerChecks(checkedCases(results))}`);
+
     const violations = results.filter(
       (r) => r.citations !== null && !r.citations.ok,
     );
@@ -529,6 +552,12 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
           `${r.evalCase.id} (${(r.citations as Exclude<CitationVerdict, { ok: true }>).violation})`,
       );
     expect(failed, `citation violations: ${failed.join("; ")}`).toEqual([]);
+  });
+
+  it("claims nothing absent that the corpus carries (#500)", () => {
+    assertFullRun();
+    const claims = falseAbsenceFailures(checkedCases(results));
+    expect(claims, `false absence claims: ${claims.join("; ")}`).toEqual([]);
   });
 
   it("every blocking case's answer is supported by its retrieved chunks", () => {

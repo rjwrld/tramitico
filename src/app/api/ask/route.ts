@@ -182,6 +182,7 @@ import {
   rerankOptionsFor,
 } from "@/lib/answer/rerank";
 import { getUserId } from "@/lib/answer/user";
+import { checkAnswer } from "@/lib/eval/answer-checks";
 import {
   classifyRouting,
   declineAnswer,
@@ -720,6 +721,29 @@ function writeAnswer(
   writeCitations(writer, tracker);
 }
 
+/**
+ * #500's two checks on the answer about to be delivered — a false absence
+ * claim against the committed corpus index, a typo run — as telemetry flags.
+ * Reporting only: the answer ships either way, the eval lanes are where a
+ * false absence claim fails, and a check that throws must not cost the reader
+ * an answer that already passed the citation invariant.
+ */
+function recordAnswerChecks(
+  answer: string,
+  chunks: readonly RetrievedChunk[],
+  telemetry: AskTelemetry,
+): void {
+  try {
+    const checks = checkAnswer(answer, chunks);
+    telemetry.answerChecks({
+      absenceClaim: checks.absence.falseClaims.length > 0,
+      typoRun: checks.typos.length > 0,
+    });
+  } catch {
+    // Telemetry is the least important thing on this request.
+  }
+}
+
 export async function POST(request: Request): Promise<Response> {
   // Started here so the latency bucket covers the whole request, including the
   // auth and rate-limit work #71 kept in front of the 200 (telemetry.ts, #141).
@@ -1097,6 +1121,7 @@ export async function POST(request: Request): Promise<Response> {
     // every paid call behind it has already run.
     if (cutShort()) return;
 
+    recordAnswerChecks(answer, chunks, telemetry);
     const tracker = createCitationTracker(chunks);
     tracker.append(answer);
     writeAnswer(writer, answer, tracker);

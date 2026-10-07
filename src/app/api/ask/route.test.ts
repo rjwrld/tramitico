@@ -2678,6 +2678,8 @@ describe("POST /api/ask", () => {
         ],
         providerError: null,
         citationFailure: false,
+        absenceClaim: false,
+        typoRun: false,
         quotaHit: false,
         quotaReason: null,
         abort: null,
@@ -2686,6 +2688,39 @@ describe("POST /api/ask", () => {
         rerankDrops: null,
         rerank: "off",
       });
+    });
+
+    it("counts a false absence claim and a typo run, and still delivers (#500)", async () => {
+      const capture = captureTelemetry();
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      // The BMC is in the corpus (derived from the escalas, #287), so «no
+      // traen el monto de la BMC» is false; «ppagado» is #490's typo.
+      const answer =
+        "La cuota se calcula sobre la base [1]. Los documentos no traen el " +
+        "monto de la BMC, y lo ya ppagado se acredita [2].";
+      mockModel(answer);
+
+      const events = await readEvents(
+        await POST(askRequest({ question: "¿Cuánto pago a la Caja?" })),
+      );
+
+      expect(soleEvent(capture)).toMatchObject({
+        outcome: "ok",
+        absenceClaim: true,
+        typoRun: true,
+      });
+      // Flags, never the words.
+      const line = capture.lines.join("\n");
+      expect(line).not.toContain("BMC");
+      expect(line).not.toContain("ppagado");
+      expect(
+        events
+          .filter((e) => e.type === "text-delta")
+          .map((e) => (e as { delta: string }).delta)
+          .join("")
+          .trim(),
+      ).toBe(answer);
     });
 
     it("counts a rerank reading Voyage rejected, and still answers (#466)", async () => {
@@ -3175,6 +3210,7 @@ describe("POST /api/ask", () => {
       // Exhaustive: no field exists that could hold content in the first place.
       expect(Object.keys(event).sort()).toEqual([
         "abort",
+        "absenceClaim",
         "citationFailure",
         "event",
         "generations",
@@ -3187,6 +3223,7 @@ describe("POST /api/ask", () => {
         "rerankDrops",
         "routedCategory",
         "stages",
+        "typoRun",
       ]);
     });
   });

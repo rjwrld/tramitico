@@ -54,6 +54,14 @@ describe("privacy page", () => {
     expect(text).toContain("por cada consulta");
   });
 
+  it("says the log carries the answer's two checks as a yes or a no (#500)", () => {
+    render(<PrivacyPage />);
+    const text = document.body.textContent ?? "";
+
+    expect(text).toContain("como un sí o un no");
+    expect(text).toContain("dos revisiones automáticas");
+  });
+
   it("says the log carries the routing category of a decline, never the question (#264)", () => {
     render(<PrivacyPage />);
     const text = document.body.textContent ?? "";

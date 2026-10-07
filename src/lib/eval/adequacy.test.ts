@@ -3,10 +3,10 @@ import { describe, expect, it, vi } from "vitest";
 import { resolveDerivedFigures } from "../answer/derived";
 import type { RetrievedChunk } from "../retrieval";
 import { DATASET_PATH, parseDataset, type EvalCase } from "./dataset";
+import { checkAnswer } from "./answer-checks";
 import {
   abstentionRequirementFailures,
   ADEQUACY_REPORT_SCHEMA,
-  articleAbsenceClaims,
   buildAbstentionPrompt,
   buildAdequacyPrompt,
   checkLiteral,
@@ -913,87 +913,53 @@ describe("requirementCoverage (#287)", () => {
 });
 
 /**
- * `ho-abs-iva-2027`'s requirement (#502, #490 item 2). The denials are
- * sentences committed under `eval/runs/` — the rows #500 names, plus
- * `2026-09-24-352-req5` — and the honest declines are what the same answer
- * says when it does not deny the artículo.
+ * `ho-abs-iva-2027`'s requirement (#502, #490 item 2). Its absence half is
+ * #500's detector (`absence.test.ts` quotes the committed denials); here it
+ * is only wired in.
  */
-describe("articleAbsenceClaims", () => {
-  const ARTICLE_10 = ["artículo 10", "art. 10"];
-  const denials = [
-    // 2026-10-02-full-lane
-    "La ley remite a la tarifa general del artículo 10, que los documentos provistos no reproducen [1].",
-    // 2026-09-29-451 (abstention-checks)
-    "El artículo 10 no aparece en los documentos oficiales que consulté, así que la cifra del 13% la respalda solo esa mención del reglamento.",
-    // 2026-09-24-pin1 (off arm)
-    "Ninguno de los documentos provistos menciona el artículo 10 con su porcentaje, ni contiene un cambio de tarifa programado para el año 2027.",
-    // 2026-09-22-effort-medium
-    "Los documentos oficiales proporcionados no contienen el artículo 10 de la Ley del Impuesto sobre el Valor Agregado, que es donde se establecería la tarifa general del IVA.",
-    // 2026-09-29-454
-    "La tarifa general está en el artículo 10 de la ley, pero los documentos provistos no traen su porcentaje [3].",
-    // #490 item 2, production
-    "Remite a «la tarifa referida en el artículo 10» de la ley, pero el texto de ese artículo no está entre los documentos provistos.",
-  ];
-
-  it.each(denials)("flags a denial: %s", (sentence) => {
-    expect(
-      articleAbsenceClaims(`Intro. ${sentence} Cierre.`, ARTICLE_10),
-    ).toHaveLength(1);
-  });
-
-  it.each([
-    // 2026-09-11-closing: the absence is the 2027 rate's, not the artículo's.
-    "Los documentos oficiales no traen una tasa del IVA específica para 2027. Desde el 1 de julio de 2023 los servicios turísticos pasaron a la tarifa general del artículo 10 [4].",
-    "Ninguno de los documentos fija una tarifa para 2027, pero el artículo 10 fija la vigente, del 13 % [1].",
-    "La tarifa general vigente es del 13 % según el art. 10 de la Ley [1]; los documentos no traen otra para 2027.",
-    // One clause apart only by «y» (#502 review).
-    "Los documentos no traen una tarifa para 2027 y el artículo 10 fija el 13 % [1].",
-  ])("leaves an honest decline alone: %s", (answer) => {
-    expect(articleAbsenceClaims(answer, ARTICLE_10)).toEqual([]);
-  });
-
-  it("reads only sentences that name the artículo", () => {
-    expect(
-      articleAbsenceClaims(
-        "Los documentos no contienen el artículo 30 completo.",
-        ARTICLE_10,
-      ),
-    ).toEqual([]);
-    expect(
-      articleAbsenceClaims(
-        "Los documentos no contienen el artículo 100.",
-        ARTICLE_10,
-      ),
-    ).toEqual([]);
-  });
-});
-
 describe("abstentionRequirementFailures", () => {
   const claims = parseDataset(readFileSync(DATASET_PATH, "utf8")).find(
     (c) => c.id === "ho-abs-iva-2027",
   )!.requiredClaims!;
+  const failuresOf = (answer: string) =>
+    abstentionRequirementFailures(
+      answer,
+      claims,
+      checkAnswer(answer, []).absence.falseClaims,
+    );
 
   it("passes a decline that gives the current rate and its artículo, cited", () => {
     expect(
-      abstentionRequirementFailures(
+      failuresOf(
         "Ningún documento fija una tarifa para 2027. La tarifa general vigente es del 13 %, fijada en el artículo 10 de la Ley del IVA [1].",
-        claims,
       ),
     ).toEqual([]);
   });
 
   it("fails a decline that cites the artículo while denying it", () => {
-    const failures = abstentionRequirementFailures(
+    const failures = failuresOf(
       "El Reglamento se refiere a una tarifa general del 13% [7]. La ley remite a la tarifa general del artículo 10, que los documentos provistos no reproducen [1].",
-      claims,
     );
     expect(failures).toHaveLength(1);
-    expect(failures[0]).toMatch(/^denies the artículo/);
+    expect(failures[0]).toMatch(/^denies .*: «La ley remite/);
+  });
+
+  it("does not read absence for a case that names no artículo", () => {
+    const withoutArticle = claims.filter(
+      (claim) => !(claim.literal ?? []).some((v) => /^art/i.test(v)),
+    );
+    const answer =
+      "La tarifa general es del 13 % [1]. Los documentos no traen el artículo 10 de la Ley del IVA.";
+    expect(
+      abstentionRequirementFailures(
+        answer,
+        withoutArticle,
+        checkAnswer(answer, []).absence.falseClaims,
+      ).filter((failure) => failure.startsWith("denies")),
+    ).toEqual([]);
   });
 
   it("fails the weak-retrieval decline, which states neither", () => {
-    expect(
-      abstentionRequirementFailures("No encuentro base oficial.", claims),
-    ).toHaveLength(2);
+    expect(failuresOf("No encuentro base oficial.")).toHaveLength(2);
   });
 });

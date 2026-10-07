@@ -22,7 +22,7 @@
  * IP, no anonymous subject — a hashed subject is still a per-person key and
  * would turn the log drain into a behavioural record of who asked how often.
  * The shape below is the whole permitted vocabulary: a handful of enums and
- * two booleans, plus `describeError`'s log-safe token, which is the ONLY way
+ * booleans, plus `describeError`'s log-safe token, which is the ONLY way
  * an error may appear here (`log-redaction.ts`). A field is either a value
  * from a closed set decided in this file, or it does not go in.
  *
@@ -226,6 +226,18 @@ export interface AskEvent {
   generations: GenerationTiming[];
   providerError: string | null;
   citationFailure: boolean;
+  /**
+   * The delivered answer claimed something absent from the documents that
+   * the corpus index says is there (#500) — `detectAbsenceClaims` in
+   * `eval/absence.ts`, the check the eval lanes gate on. Which claim, and in
+   * what words, never rides here: the answer is content.
+   */
+  absenceClaim: boolean;
+  /**
+   * The delivered answer carried a typo run — a tripled letter or a doubled
+   * syllable, like #490's «ppagado» (`eval/typo.ts`). Not the word.
+   */
+  typoRun: boolean;
   quotaHit: boolean;
   /**
    * Which counter denied the ask (#383) — `subject` for the caller's own
@@ -285,6 +297,8 @@ interface AskFacts {
   degraded: boolean;
   failed: boolean;
   citationFailure: boolean;
+  absenceClaim: boolean;
+  typoRun: boolean;
   quotaHit: boolean;
   quotaReason: RateLimitCounter | null;
   providerError: string | null;
@@ -359,6 +373,11 @@ export interface AskTelemetry {
   /** The citation invariant rejected at least one generation (#131). */
   citationFailure: () => void;
   /**
+   * The checks #500 runs on the delivered answer: a false absence claim, a
+   * typo run. Flags only; the route decides nothing on them.
+   */
+  answerChecks: (checks: { absenceClaim: boolean; typoRun: boolean }) => void;
+  /**
    * The ask was denied because a daily quota was spent (#126): the caller's
    * own, or the anonymous per-IP umbrella (#383).
    */
@@ -399,6 +418,8 @@ export function createAskTelemetry(
     degraded: false,
     failed: false,
     citationFailure: false,
+    absenceClaim: false,
+    typoRun: false,
     quotaHit: false,
     quotaReason: null,
     providerError: null,
@@ -483,6 +504,10 @@ export function createAskTelemetry(
     citationFailure: () => {
       facts.citationFailure = true;
     },
+    answerChecks: ({ absenceClaim, typoRun }) => {
+      facts.absenceClaim = absenceClaim;
+      facts.typoRun = typoRun;
+    },
     quotaHit: (counter: RateLimitCounter) => {
       facts.quotaHit = true;
       facts.quotaReason = counter;
@@ -533,6 +558,8 @@ export function createAskTelemetry(
         generations,
         providerError: facts.providerError,
         citationFailure: facts.citationFailure,
+        absenceClaim: facts.absenceClaim,
+        typoRun: facts.typoRun,
         quotaHit: facts.quotaHit,
         quotaReason: facts.quotaReason,
         abort: facts.abort,

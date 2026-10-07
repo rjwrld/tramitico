@@ -424,6 +424,11 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   [ADR 0011](docs/adr/0011-runtime-citation-invariant.md). Every marker must resolve to a retrieved
   chunk, and required numeric/deadline claims must point to the expected document. A run may ship
   no uncited answer.
+- **Corpus-absence claims (#500):** an answer may not say the documents lack an artículo or a
+  listed figure that `eval/corpus-index.json` covers. The judges read only the fragments the model
+  saw, so none of them can catch it; a deterministic detector (`src/lib/eval/absence.ts`) does,
+  and such a case fails in the groundedness and abstention lanes whatever the judge said. Zero are
+  tolerated. Answers that open with an absence claim, and typo runs, are reported, not gated.
 - **Freshness:** a source carrying a figure or deadline must have `effective_date`; a source marked
   `annualChurn` must be current for the fiscal period. All other sources must be inside the
   quarterly verification window. See [ADR 0016](docs/adr/0016-source-freshness-policy.md).
