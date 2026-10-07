@@ -494,8 +494,10 @@ stage "Vercel: project, env, domain, preview protection"
 RATE_LIMIT_SUBJECT_SECRET=$(_existing RATE_LIMIT_SUBJECT_SECRET || openssl rand -hex 32)
 write_env RATE_LIMIT_SUBJECT_SECRET "$RATE_LIMIT_SUBJECT_SECRET"
 write_env NEXT_PUBLIC_SITE_URL "$SITE_URL"
+# The mode knobs (RERANK, EXPAND, STEPS, …) stay unset: production runs the
+# code defaults. scripts/deploy-wizard.test.ts reads every literal below as the
+# app does — `RERANK "on"` kept production unreranked until #498 (#499).
 write_env EMBEDDINGS_PROVIDER "voyage"
-write_env RERANK "on"
 write_env RATE_LIMIT_ANON "10"
 write_env RATE_LIMIT_AUTHED "10"
 open_url "https://vercel.com/new"
@@ -503,10 +505,10 @@ step "Import rjwrld/tramitico · Framework Next.js · Hobby · Production branch
 step "Environment Variables (Production only — previews carry no keys). Copy each from ${ENV_FILE}:"
 for k in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY SUPABASE_URL \
          SUPABASE_SERVICE_ROLE_KEY EMBEDDINGS_PROVIDER VOYAGE_API_KEY ANTHROPIC_API_KEY \
-         RERANK RATE_LIMIT_ANON RATE_LIMIT_AUTHED RATE_LIMIT_SUBJECT_SECRET NEXT_PUBLIC_SITE_URL; do
+         RATE_LIMIT_ANON RATE_LIMIT_AUTHED RATE_LIMIT_SUBJECT_SECRET NEXT_PUBLIC_SITE_URL; do
   say "    $k"
 done
-note "Not set (empty = shipped default): ANSWER_MODEL CONDENSE_MODEL EXPAND EXPAND_MODEL."
+note "Not set (empty = shipped default): ANSWER_MODEL CONDENSE_MODEL EXPAND EXPAND_MODEL RERANK STEPS STEPS_RERANK PIN_DERIVED_INPUTS."
 step "Deploy."
 pause "First deploy finished? (Enter)"
 step "Project → Settings → Domains: add tramitico.com (primary) and www.tramitico.com → redirect to apex."
