@@ -22,6 +22,7 @@ import { isCitation, parseCitations, type Citation } from "./citations";
 import { describeError, timeoutOrError } from "./log-redaction";
 import { expandQuery, expansionEnabled } from "./answer/expand";
 import { stepProbe, stepsEnabled, type StepProbe } from "./answer/steps";
+import { withinFiscalYear } from "./vigencia";
 
 /**
  * What the `search_chunks` RPC rejecting looks like to a caller. Used to read
@@ -283,6 +284,8 @@ export interface RetrieveOptions {
    * skipped under `STEPS=off`; pass `null` to search without it.
    */
   steps?: StepCatalogue | null;
+  /** The clock the fiscal-year check reads (#505); tests pin it. */
+  now?: Date;
 }
 
 /**
@@ -646,7 +649,12 @@ export async function retrieve(
     throw new SearchChunksError(error);
   }
 
-  const chunks = (data ?? []).map(toChunk);
+  // #505: a chunk from an annual source outside the current fiscal year
+  // cannot make an answer eligible (ADR 0016), so it leaves here, before
+  // anything downstream reads the pool: the citations, `isWeak` (a pool left
+  // with nothing corroborated takes the honest decline), the rerank, and the
+  // derived-figure pin, which can only append from this pool.
+  const chunks = withinFiscalYear((data ?? []).map(toChunk), options.now);
   const seen = new Set<string>();
   const citations: Citation[] = [];
   for (const chunk of chunks) {

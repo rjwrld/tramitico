@@ -18,6 +18,7 @@ import {
 } from "./retrieval";
 import type { Embedder } from "./ingestion/embedder";
 import { describeError } from "./log-redaction";
+import { resolveDerivedFigures } from "./answer/derived";
 
 /** The `reason=` of every degraded-retrieval line logged so far. */
 function degradedReasons(): string[] {
@@ -524,14 +525,16 @@ describe("retrieve", () => {
     const other: SearchChunksRow = {
       ...ROW,
       chunk_id: "33333333-3333-3333-3333-333333333333",
-      doc_key: "tramos-renta-2026",
-      doc_title: "Tramos del Impuesto sobre la Renta 2026",
-      norma: "Decreto Ejecutivo 45333-H",
+      // Not an annual source: on a 2027 clock `retrieve()` withholds those
+      // (#505), and this case is about the mapping, whatever the date.
+      doc_key: "tribu-cr-faq",
+      doc_title: "Preguntas y respuestas TRIBU-CR y la OVi",
+      norma: null,
       articulo: null,
       path: [],
       source: {
         kind: "hacienda-pdf",
-        url: "https://www.hacienda.go.cr/docs/TramosRenta2026.pdf",
+        url: "https://www.hacienda.go.cr/docs/dPreguntasYRespuestasDeTRIBU-CR.pdf",
       },
       score: rrfScore(3),
     };
@@ -552,7 +555,7 @@ describe("retrieve", () => {
     // Both parts of ARTÍCULO 2 collapse into one citation.
     expect(result.citations.map((c) => c.docKey)).toEqual([
       "ley-10363",
-      "tramos-renta-2026",
+      "tribu-cr-faq",
     ]);
   });
 
@@ -596,6 +599,61 @@ describe("retrieve", () => {
     expect(result.citations).toEqual([]);
     expect(result.topScore).toBe(0);
     expect(result.isWeak).toBe(true);
+  });
+
+  /**
+   * #505, ADR 0016: on a 2027 clock a 2026 annual source cannot ground an
+   * answer. The year-named keys are the ones a later annual pass can only
+   * retire, never carry over, so the case holds through every manifest the
+   * owner commits after it.
+   */
+  it("withholds a past fiscal year's annual sources on a pinned 2027 clock", async () => {
+    const annual2026 = (
+      n: number,
+      docKey: string,
+      articulo: string,
+    ): SearchChunksRow => ({
+      ...ROW,
+      chunk_id: `${n}${n}${n}${n}${n}${n}${n}${n}-0000-0000-0000-000000000000`,
+      doc_key: docKey,
+      articulo,
+      score: rrfScore(n),
+    });
+    const rows = [
+      annual2026(1, "salario-base-2026", "Circular 246-2025"),
+      annual2026(2, "tramos-renta-2026", "Tramos"),
+      { ...ROW, chunk_id: "33333333-3333-3333-3333-333333333333" },
+      {
+        ...ROW,
+        chunk_id: "44444444-4444-4444-4444-444444444444",
+        doc_key: "cnpt",
+        articulo: "Artículo 78",
+      },
+    ];
+
+    const result = await retrieve("¿cuánto es la multa?", {
+      client: fakeClient(rows),
+      embedder: fakeEmbedder(),
+      now: new Date("2027-01-01T06:00:00Z"),
+    });
+
+    expect(result.chunks.map((c) => c.docKey)).toEqual(["ley-10363", "cnpt"]);
+    expect(result.citations.map((c) => c.docKey)).toEqual([
+      "ley-10363",
+      "cnpt",
+    ]);
+    // The CNPT multa is arithmetic over the 2026 salario base: with its
+    // input withheld, no derived figure can state it.
+    expect(resolveDerivedFigures(result.chunks)).toEqual([]);
+
+    // A pool of nothing but last year's figures takes the honest decline.
+    const stale = await retrieve("¿cuáles son los tramos?", {
+      client: fakeClient(rows.slice(0, 2)),
+      embedder: fakeEmbedder(),
+      now: new Date("2027-01-01T06:00:00Z"),
+    });
+    expect(stale.chunks).toEqual([]);
+    expect(stale.isWeak).toBe(true);
   });
 
   it("short-circuits a blank query without touching the database", async () => {
