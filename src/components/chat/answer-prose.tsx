@@ -129,6 +129,16 @@ function inline(
 }
 
 /**
+ * «13 %» — the spaced percent Spanish style writes — keeps its sign on the
+ * number's line (#492): at phone width «0» ended one line and «%» opened the
+ * next. A no-break space, which the reveal's word split (on plain spaces)
+ * also leaves whole.
+ */
+export function gluePercent(text: string): string {
+  return text.replace(/(\d) %/g, "$1 %");
+}
+
+/**
  * A leaf segment split on its `[k]` references. Every other piece is the
  * captured digits, which become a superscript link to the matching sello;
  * everything else stays a text node, so the no-injection-surface property
@@ -148,6 +158,7 @@ function leaf(
 ): React.ReactNode[] {
   return text.split(REFERENCE).flatMap((piece, i): React.ReactNode[] => {
     if (i % 2 === 0) {
+      piece = gluePercent(piece);
       if (!reveal) return [piece];
       // Split on trailing spaces so each word rides its own fade; the space
       // travels with the word before it, keeping the text node identical.

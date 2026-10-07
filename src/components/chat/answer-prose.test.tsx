@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, afterEach } from "vitest";
 import { cleanup, render, screen, within } from "@testing-library/react";
-import { AnswerProse } from "@/components/chat/answer-prose";
+import { AnswerProse, gluePercent } from "@/components/chat/answer-prose";
 
 afterEach(cleanup);
 
@@ -469,5 +469,23 @@ describe("AnswerProse", () => {
     expect(root.className).toContain("max-w-[68ch]");
     expect(root.className).toContain("leading-[1.7]");
     expect(root.className).toContain("text-pretty");
+  });
+
+  // #492: at phone width «0» ended a line and «%» opened the next.
+  it("keeps a spaced percent sign on its number's line", () => {
+    expect(gluePercent("tarifa 0 % y 13 %.")).toBe(
+      "tarifa 0\u00a0% y 13\u00a0%.",
+    );
+    // Only a digit's own sign: prose with a free-standing «%» is untouched.
+    expect(gluePercent("el % de la base")).toBe("el % de la base");
+
+    const { container } = render(
+      <AnswerProse
+        text={"| Concepto | Tarifa |\n|---|---|\n| Exportación | 0 % |"}
+      />,
+    );
+    expect(container.querySelector("td:last-child")?.textContent).toBe(
+      "0\u00a0%",
+    );
   });
 });

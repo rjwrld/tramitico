@@ -153,6 +153,10 @@ export function Sello({
   const linkClassName = cn(
     base,
     "transition-colors duration-150 hover:border-sello focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+    // The chip's anatomy is fixed (§5) at 28px tall; on touch the tap area
+    // grows past it invisibly (#492) — 4px a side, which the tightest row
+    // gap (8px, the landing's sample) still keeps from overlapping.
+    "relative pointer-coarse:after:absolute pointer-coarse:after:inset-x-0 pointer-coarse:after:-inset-y-1 pointer-coarse:after:content-['']",
     className,
   );
   if (preview) {

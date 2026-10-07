@@ -159,18 +159,18 @@
 /* Answer reveal (DESIGN §8 as amended by #219) — each word of a validated
    answer fades in on its own schedule; the per-token `animation-delay` is what
    paces the reveal, so the keyframe itself is just the fade. ease-out-quart,
-   like the stamp it hands off to. */
+   like the stamp it hands off to. Opacity only (#492): it also animated a
+   3px blur, which put a filter on every word of the answer at once — a few
+   hundred filtered spans per reveal — for an effect §8 never asked for. */
 @theme inline {
   --animate-word-fade: word-fade 200ms cubic-bezier(0.25, 1, 0.5, 1) both;
 
   @keyframes word-fade {
     from {
       opacity: 0;
-      filter: blur(3px);
     }
     to {
       opacity: 1;
-      filter: blur(0);
     }
   }
 }
@@ -324,6 +324,14 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
+  }
+  /* One full-strength focus ring for every link (#492, WCAG 1.4.11). A link
+     with no focus style of its own fell back to the browser's `auto` 1px
+     ring in the `outline-ring/50` above — sello red at half alpha, ≈2.5:1 on
+     white. Base layer, so a link that styles its own focus still wins. */
+  a:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
   /* Theme toggle (DESIGN §8): 150ms crossfade on ground colors only.
      next-themes sets .theme-crossfade on <html> around the switch. */
