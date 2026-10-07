@@ -133,9 +133,12 @@ export default function PrivacyPage() {
           responder, se registra también a qué institución se le remitió (una
           categoría de una lista fija: Hacienda, CCSS, INS, municipalidad,
           Registro Nacional, colegio profesional, banco, MEIC, migración o
-          MTSS). Nunca el texto de la pregunta ni el de la respuesta, ni quién
-          consultó. Los conserva el proveedor de alojamiento alrededor de 30
-          días.
+          MTSS). De cada respuesta se registra además, como un sí o un no, el
+          resultado de dos revisiones automáticas: si dijo que un dato no está
+          en los documentos cuando sí está, y si traía una palabra con letras
+          repetidas por error. Nunca el texto de la pregunta ni el de la
+          respuesta, ni quién consultó. Los conserva el proveedor de alojamiento
+          alrededor de 30 días.
         </p>
         <p className="mt-4">
           <strong className="font-medium text-foreground">

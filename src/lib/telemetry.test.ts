@@ -85,6 +85,8 @@ describe("emitAskEvent", () => {
     generations: [],
     providerError: null,
     citationFailure: false,
+    absenceClaim: false,
+    typoRun: false,
     quotaHit: false,
     quotaReason: null,
     abort: null,
@@ -379,6 +381,24 @@ describe("createAskTelemetry", () => {
     });
   });
 
+  it("carries #500's answer checks as two booleans, false by default", () => {
+    const quiet = createAskTelemetry();
+    quiet.answered();
+    quiet.emit();
+    const flagged = createAskTelemetry();
+    flagged.answerChecks({ absenceClaim: true, typoRun: false });
+    flagged.answered();
+    flagged.emit();
+    expect(
+      capture
+        .events()
+        .map(({ absenceClaim, typoRun }) => ({ absenceClaim, typoRun })),
+    ).toEqual([
+      { absenceClaim: false, typoRun: false },
+      { absenceClaim: true, typoRun: false },
+    ]);
+  });
+
   it("names the anonymous per-IP umbrella as its own quota reason (#383)", () => {
     const telemetry = createAskTelemetry();
     telemetry.quotaHit("ip");
@@ -561,6 +581,7 @@ describe("no telemetry event can carry content (#141)", () => {
     // no question, no answer, no user id, no IP, no subject hash.
     expect(Object.keys(capture.events()[0]).sort()).toEqual([
       "abort",
+      "absenceClaim",
       "citationFailure",
       "event",
       "generations",
@@ -572,6 +593,7 @@ describe("no telemetry event can carry content (#141)", () => {
       "rerankDrops",
       "routedCategory",
       "stages",
+      "typoRun",
     ]);
   });
 });
