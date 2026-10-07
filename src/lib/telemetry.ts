@@ -34,7 +34,7 @@
  */
 
 import type { FinishReason, ProviderMetadata } from "ai";
-import type { DroppedReading } from "./answer/rerank";
+import { type DroppedReading, rerankEnabled } from "./answer/rerank";
 import { describeError } from "./log-redaction";
 import type { RateLimitCounter } from "./rate-limit";
 import type { RoutedCategory } from "./routing";
@@ -192,6 +192,15 @@ export function rerankDrop({ cause, status }: DroppedReading): RerankDrop {
   return "other_status";
 }
 
+/**
+ * The rerank mode the deployment is configured with (#499): `RERANK` as
+ * rerank.ts reads it, so an unknown value is `on`, as it is in the pipeline.
+ * Configured, not performed — `rerankDrops: null` is the same on an
+ * opted-out ask and on an unkeyed or aborted one, and this is the field that
+ * tells them apart.
+ */
+export type RerankMode = "on" | "off";
+
 export interface GenerationTiming {
   latency: LatencyBucket;
   /** Time to first nonempty text delta; null if none arrived. */
@@ -247,6 +256,8 @@ export interface AskEvent {
    * sentence count is a topic, which the event never carries.
    */
   rerankDrops: RerankDrop[] | null;
+  /** The configured rerank mode (#499); see `RerankMode`. */
+  rerank: RerankMode;
 }
 
 /**
@@ -527,6 +538,7 @@ export function createAskTelemetry(
         abort: facts.abort,
         routedCategory: facts.routedCategory,
         rerankDrops: facts.rerankDrops,
+        rerank: rerankEnabled() ? "on" : "off",
       });
     },
   };

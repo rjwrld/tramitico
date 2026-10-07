@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { KNOB_ERROR_PREFIX } from "../knobs";
 import type { RetrievedChunk } from "../retrieval";
 import {
   DERIVED_FIGURES,
@@ -412,6 +413,7 @@ describe("pinDerivedFigureInputs", () => {
   });
   afterEach(() => {
     vi.unstubAllEnvs();
+    vi.restoreAllMocks();
   });
 
   const escala = chunk("ccss-escala-ivm", "Artículo 4°, sesión 9570");
@@ -600,6 +602,17 @@ describe("pinDerivedFigureInputs", () => {
     expect(
       pinDerivedFigureInputs([escala], [escala, salarios], [BMC_IVM]),
     ).toEqual([escala]);
+  });
+
+  it("pins under an unknown value, and logs it as an error (#499)", () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.stubEnv("PIN_DERIVED_INPUTS", "false");
+    expect(pinEnabled()).toBe(true);
+    expect(errors).toHaveBeenCalledWith(
+      expect.stringContaining(
+        `${KNOB_ERROR_PREFIX} PIN_DERIVED_INPUTS="false"`,
+      ),
+    );
   });
 });
 

@@ -22,11 +22,13 @@ import {
   CORPUS_INVENTORY,
   cleanExpansion,
   expandQuery,
+  expansionEnabled,
   EXPAND_MAX_OUTPUT_TOKENS,
   EXPAND_SYSTEM_PROMPT,
   MAX_EXPANSION_LENGTH,
 } from "./expand";
 import { getExpandModel } from "./model";
+import { KNOB_ERROR_PREFIX } from "../knobs";
 
 const QUESTION = "Me inscribí un año tarde, ¿qué me pasa?";
 const EXPANSION =
@@ -124,6 +126,19 @@ describe("the rewrite", () => {
     // Switched off is not failed: `EXPAND=off` is a measurement, not an
     // incident, so it counts nothing and logs nothing.
     expect(failureReasons()).toEqual([]);
+  });
+
+  it("still expands under an unknown EXPAND value, and logs it as an error (#499)", async () => {
+    const model = mockExpander(EXPANSION);
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.stubEnv("EXPAND", "disabled");
+
+    expect(expansionEnabled()).toBe(true);
+    expect(await expandQuery(QUESTION)).toBe(EXPANSION);
+    expect(model.doGenerateCalls).toHaveLength(1);
+    expect(errors).toHaveBeenCalledWith(
+      expect.stringContaining(`${KNOB_ERROR_PREFIX} EXPAND="disabled"`),
+    );
   });
 
   it("makes no call with no provider configured", async () => {
