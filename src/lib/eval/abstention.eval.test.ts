@@ -67,6 +67,7 @@ import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
 import { retrieve } from "../retrieval";
 import { classifyRouting, declineAnswer } from "../routing";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
+import { scopedLane } from "./scoped-lane";
 import {
   abstentionRequirementFailures,
   figureMentions,
@@ -101,14 +102,19 @@ export const ABSTENTION_GATE = 0.9;
 
 const REAL_EMBEDDINGS =
   "a real embeddings provider (EMBEDDINGS_PROVIDER + its API key)";
-const describeEval = integrationSuite({
-  ...envPrereqs(
-    "SUPABASE_URL",
-    "SUPABASE_SERVICE_ROLE_KEY",
-    "ANTHROPIC_API_KEY",
-  ),
-  [REAL_EMBEDDINGS]: realEmbedderConfigured(),
-});
+const DATASET = parseDataset(readFileSync(DATASET_PATH, "utf8"));
+// #536: `EVAL_CASES` naming none of this lane's cases skips it.
+const describeEval = scopedLane(
+  integrationSuite({
+    ...envPrereqs(
+      "SUPABASE_URL",
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "ANTHROPIC_API_KEY",
+    ),
+    [REAL_EMBEDDINGS]: realEmbedderConfigured(),
+  }),
+  abstentionCases(DATASET),
+);
 
 /**
  * The run's answers, written beside the other lanes' transcripts (#290).
@@ -195,9 +201,7 @@ function checkedCases(results: readonly CaseResult[]): CheckedCase[] {
 }
 
 describeEval("abstention set (eval/dataset.jsonl)", () => {
-  const allCases = abstentionCases(
-    parseDataset(readFileSync(DATASET_PATH, "utf8")),
-  );
+  const allCases = abstentionCases(DATASET);
   const subset = subsetSpec();
   const results: CaseResult[] = [];
 
@@ -208,7 +212,7 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
 
   beforeAll(async () => {
     // Before any paid call: an id that names no abstention case throws.
-    const cases = selectCases(allCases, subset);
+    const cases = selectCases(allCases, subset, DATASET);
     if (subset !== null) {
       console.log(
         `\n${SUBSET_ENV}: ${cases.length}/${allCases.length} case(s) — ` +

@@ -18,7 +18,7 @@ import {
 const CASE: EvalCase = {
   id: "ho-minimo-renta-2026",
   seed: "held-out:T1-E",
-  question: "¿Cuánto es el mínimo de renta que no paga en 2026?",
+  question: "¿Hasta qué monto no se paga renta en 2026?",
   expected: [{ docKey: "tramos-renta-2026" }],
   blocking: true,
   tier: 1,

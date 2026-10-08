@@ -43,8 +43,12 @@ import {
 } from "./amending-law";
 import { judgeAnswer, JUDGE_MODEL, type Verdict } from "./groundedness";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
+import { fixtureLane } from "./scoped-lane";
 
-const describeEval = integrationSuite(envPrereqs("ANTHROPIC_API_KEY"));
+// #536: no dataset case lives here, so any `EVAL_CASES` skips this lane.
+const describeEval = fixtureLane(
+  integrationSuite(envPrereqs("ANTHROPIC_API_KEY")),
+);
 const answerModelId = answerModelLabel();
 
 describeEval("consolidated law beside its reform (#182)", () => {
