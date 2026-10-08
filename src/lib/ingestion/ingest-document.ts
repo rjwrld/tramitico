@@ -16,7 +16,7 @@ import {
   type Chunk,
   type ChunkOptions,
 } from "./chunker";
-import type { YearFigure } from "../vigencia";
+import type { DatedFact, YearFigure } from "../vigencia";
 import {
   persistDocument,
   type DocumentRowClient,
@@ -33,6 +33,8 @@ export interface IngestableDocument {
   chunking?: ChunkOptions;
   /** Artículos stating one fiscal year's figures (#518). */
   yearFigures?: readonly YearFigure[];
+  /** Artículos stating a fact that ends on a given day (#531). */
+  datedFacts?: readonly DatedFact[];
 }
 
 /** The slice of `Embedder` a document ingest uses — the batched one. */
@@ -86,6 +88,7 @@ export async function ingestChunks(
 ): Promise<number> {
   assertChunksCarryContent(doc.doc_key, chunks);
   assertYearFigureEvidence(doc.doc_key, chunks, doc.yearFigures ?? []);
+  assertDatedFactEvidence(doc.doc_key, chunks, doc.datedFacts ?? []);
 
   const embeddings: number[][] = [];
   for (let i = 0; i < chunks.length; i += EMBED_BATCH) {
@@ -133,19 +136,49 @@ export function assertYearFigureEvidence(
   yearFigures: readonly YearFigure[],
 ): void {
   for (const figure of yearFigures) {
-    const own = chunks.filter((chunk) => chunk.articulo === figure.articulo);
-    if (own.length === 0) {
-      throw new Error(
-        `${docKey}: yearFigures lists «${figure.articulo}», but the crawl has no chunk with that heading — re-read the source and update the manifest (#518)`,
-      );
-    }
-    const lacking = own.filter(
-      (chunk) => !chunk.content.includes(figure.evidence),
+    assertArticuloCarries(docKey, chunks, figure, {
+      missing: `yearFigures lists «${figure.articulo}», but the crawl has no chunk with that heading — re-read the source and update the manifest (#518)`,
+      lacking: `the evidence for its ${figure.fiscalYear} figures — if the source moved to a new year, set fiscalYear and evidence to match it (#518, runbook §2.2)`,
+    });
+  }
+}
+
+/**
+ * The same refusal for `datedFacts` (#531). A heading the publisher renamed
+ * would let a deadline through unlisted after its day; a text that no longer
+ * states the listed day has moved it — an extension, most often — and the
+ * owner sets `lastDay` and `evidence` to the new one before the run goes on.
+ * A fact past its day whose answer the publisher took down fails here too:
+ * its manifest entry is retired, not kept (runbook §2.4).
+ */
+export function assertDatedFactEvidence(
+  docKey: string,
+  chunks: readonly Chunk[],
+  datedFacts: readonly DatedFact[],
+): void {
+  for (const fact of datedFacts) {
+    assertArticuloCarries(docKey, chunks, fact, {
+      missing: `datedFacts lists «${fact.articulo}», but the crawl has no chunk with that heading — if its day (${fact.lastDay}) has passed and the source dropped it, retire the entry; otherwise re-read the source and update the manifest (#531, runbook §2.4)`,
+      lacking: `the evidence for its last day, ${fact.lastDay} — if the source moved the date, set lastDay and evidence to match it (#531, runbook §2.4)`,
+    });
+  }
+}
+
+/** Throws unless the crawl has `articulo` and each of its chunks carries `evidence`. */
+function assertArticuloCarries(
+  docKey: string,
+  chunks: readonly Chunk[],
+  { articulo, evidence }: { articulo: string; evidence: string },
+  messages: { missing: string; lacking: string },
+): void {
+  const own = chunks.filter((chunk) => chunk.articulo === articulo);
+  if (own.length === 0) {
+    throw new Error(`${docKey}: ${messages.missing}`);
+  }
+  const lacking = own.filter((chunk) => !chunk.content.includes(evidence));
+  if (lacking.length > 0) {
+    throw new Error(
+      `${docKey}: «${articulo}» part(s) ${lacking.map((chunk) => chunk.part).join(", ")} no longer carry «${evidence}», ${messages.lacking}`,
     );
-    if (lacking.length > 0) {
-      throw new Error(
-        `${docKey}: «${figure.articulo}» part(s) ${lacking.map((chunk) => chunk.part).join(", ")} no longer carry «${figure.evidence}», the evidence for its ${figure.fiscalYear} figures — if the source moved to a new year, set fiscalYear and evidence to match it (#518, runbook §2.2)`,
-      );
-    }
   }
 }

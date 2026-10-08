@@ -24,8 +24,8 @@ import { expandQuery, expansionEnabled } from "./answer/expand";
 import { stepProbe, stepsEnabled, type StepProbe } from "./answer/steps";
 import {
   isWithheld,
+  searchCount,
   withheldSources,
-  withholdsAny,
   type VigenciaManifest,
 } from "./vigencia";
 import { normaliseQuestion } from "./routing";
@@ -675,7 +675,8 @@ export async function retrieve(
   // is out of period the RPC is asked for twice the rows, and the count is
   // refilled after they leave. Nothing out of period: the wire is unchanged.
   // A non-annual source's artículo that states another year's figures (the
-  // consolidated Ley 7092's tramos) leaves the same way (#518).
+  // consolidated Ley 7092's tramos) leaves the same way (#518), and a dated
+  // fact past its last day costs one more row (#531).
   const withheld = withheldSources(options.now, options.vigencia);
   const embedder = options.embedder ?? createEmbedder();
   const client = options.client ?? createRetrievalClient();
@@ -731,7 +732,7 @@ export async function retrieve(
     const { data, error } = await client.rpc("search_chunks", {
       query_text: queryText,
       query_embedding: embedding === null ? null : JSON.stringify(embedding),
-      match_count: withholdsAny(withheld) ? 2 * matchCount : matchCount,
+      match_count: searchCount(withheld, matchCount),
       expansion_text: expansion,
       expansion_embedding:
         expansionEmbedding === null ? null : JSON.stringify(expansionEmbedding),

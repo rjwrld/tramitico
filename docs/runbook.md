@@ -404,6 +404,10 @@ pnpm recrawl $(node -p 'require("./corpus/manifest.json").documents.map((d) => d
 
 The same holds for `ccss-faq` once the CCSS replaces its rate image: leave it out of the list too.
 
+**A dated fact moved or vanished (#531).** A `datedFacts` artículo whose text no longer states its
+last day, or whose heading is gone, stops the run at its document the same way: `ccss-faq`
+today. Leave it out of the list above until the manifest PR of §2.4 merges.
+
 **A pinned source changed.** Two checks stop the run instead of ingesting bytes nobody has read.
 Documents ingested before the stop stay written and the corpus-index step does not run, so
 finish with a complete re-run (ingestion is idempotent per document).
@@ -421,6 +425,46 @@ finish with a complete re-run (ingestion is idempotent per document).
   drop `fetchFrom`.
 
 ---
+
+### 2.4 Dated facts (#531)
+
+A few chunks state a fact that ends on a day: a deadline, a transitional window. The manifest
+lists them as `datedFacts`, each with its `lastDay` (Costa Rica time) and an `evidence` phrase
+stating that day. `retrieve()` serves such a chunk through its last day, and only while its
+text carries the evidence. From the next day it is withheld
+([ADR 0016 third amendment](adr/0016-source-freshness-policy.md), which also records why the
+other dated passages are not listed).
+
+| Listed                                                    | Last day   | Look for an extension at                                                                                           |
+| --------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------ |
+| `ccss-faq` · the Ley 10.232 condonación question (Cobros) | 2026-11-11 | the same question on [ccss.sa.cr/preguntas-frecuentes](https://www.ccss.sa.cr/preguntas-frecuentes), and CCSS news |
+
+The vigencia test (`manifest-vigencia.test.ts`, also run by `pnpm recrawl`) warns, never fails,
+from 7 days before each last day through 7 days after it.
+
+1. **Before the day.** Check the publisher for an extension. If there is none, do nothing: the
+   chunk leaves answers on its own.
+2. **An extension.** Open a manifest PR that sets `lastDay` and `evidence` to the new day, as
+   the new text states it. Merge, then `pnpm recrawl <doc_key>` from the main checkout. Between
+   the two, the text and the declaration disagree and the chunk is withheld. A re-crawl that
+   lands the new text before the PR merges fails with «no longer carry», and asks for the same
+   PR.
+3. **After the day.** Nothing, while the publisher keeps the old text up: the entry has to stay,
+   or the chunk would be served again. Once a re-crawl fails with «no chunk with that heading»,
+   the answer is gone. Delete its `datedFacts` entry and the line in the inventory test in
+   `manifest-vigencia.test.ts`, then re-crawl.
+4. **A new dated fact.** After each re-crawl, look for one on the shared local stack:
+
+   ```sql
+   select d.doc_key, c.articulo
+   from chunks c join documents d on d.id = c.document_id
+   where c.content ~* '(hasta|a más tardar|vence|plazo).{0,120}20[2-9][0-9]'
+   order by 1, 2;
+   ```
+
+   A window that ends while the product is live, in a chunk that says nothing of what follows it
+   and holds nothing else still current, joins `datedFacts`, the inventory test and the ADR's
+   table in the same PR. The ADR records why the others stay.
 
 ## 3. Alerts to create (#29 provisioning step)
 

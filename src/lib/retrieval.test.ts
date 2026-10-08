@@ -22,6 +22,7 @@ import { describeError } from "./log-redaction";
 import { DERIVED_FIGURES, resolveDerivedFigures } from "./answer/derived";
 import {
   coversFiscalYear,
+  datedFactRefs,
   yearFigureRefs,
   type VigenciaManifest,
 } from "./vigencia";
@@ -628,6 +629,50 @@ describe("retrieve", () => {
       expect(result.chunks).toHaveLength(1);
     });
 
+    it("withholds a dated fact from the as-typed search too (#531)", async () => {
+      const condonacion: SearchChunksRow = {
+        ...ROW,
+        chunk_id: "33333333-3333-3333-3333-333333333333",
+        doc_key: "ccss-faq",
+        articulo: "¿Hasta cuándo puedo solicitar la condonación?",
+        content: "… estará disponible hasta el día 11 de noviembre del 2026.",
+      };
+      const vigencia: VigenciaManifest = {
+        documents: [
+          {
+            doc_key: "ccss-faq",
+            datedFacts: [
+              {
+                articulo: condonacion.articulo ?? "",
+                lastDay: "2026-11-11",
+                evidence: "11 de noviembre del 2026",
+              },
+            ],
+          },
+        ],
+      };
+      const served = async (now: Date) => {
+        const { client, asked } = byQueryText({
+          "¿ pido la condonación?": [UNCORROBORATED],
+          "¿Cómo pido la condonación?": [condonacion, ROW],
+        });
+        const result = await retrieve("¿Cómo pido la condonación?", {
+          client,
+          embedder: fakeEmbedder(),
+          now,
+          vigencia,
+        });
+        expect(asked).toHaveLength(2);
+        return result.chunks.map((c) => c.docKey);
+      };
+
+      expect(await served(crMidnight("2026-11-11"))).toEqual([
+        "ccss-faq",
+        "ley-10363",
+      ]);
+      expect(await served(crMidnight("2026-11-12"))).toEqual(["ley-10363"]);
+    });
+
     it("asks once when the question has no question word to drop", async () => {
       const { client, asked } = byQueryText({});
       const result = await retrieve("¿me cobran retroactivo?", {
@@ -895,6 +940,67 @@ describe("retrieve", () => {
   });
 
   /**
+   * #531's acceptance: on a clock after 2026-11-11, no answer set presents
+   * the condonación deadline as open. Every answer set is cut from this pool
+   * — the rerank, the pins and the route read nothing else — so the claim is
+   * that the chunk never reaches it. The row is the production text, word for
+   * word.
+   */
+  it("keeps the CCSS condonación deadline out of the pool after 2026-11-11", async () => {
+    const row: SearchChunksRow = {
+      ...ROW,
+      doc_key: "ccss-faq",
+      articulo:
+        "¿Hasta cuándo puedo solicitar la condonación de recargos, multas, intereses y facturas por servicios médicos en aplicación de la Ley N°10.232, sus ampliaciones y reglamento?",
+      content:
+        "[CCSS — Preguntas frecuentes — Cobros — ¿Hasta cuándo puedo solicitar la condonación de recargos, multas, intereses y facturas por servicios médicos en aplicación de la Ley N°10.232, sus ampliaciones y reglamento?] La posibilidad de solicitar la condonación de recargos, multas, intereses y facturas por servicios médicos estará disponible hasta el día 11 de noviembre del 2026.",
+    };
+    const served = async (now: Date) =>
+      (
+        await retrieve("¿hasta cuándo puedo pedir la condonación de la CCSS?", {
+          client: fakeClient([row, ROW]),
+          embedder: fakeEmbedder(),
+          now,
+        })
+      ).chunks.map((chunk) => chunk.docKey);
+
+    expect(await served(new Date("2026-11-12T05:59:59Z"))).toEqual([
+      "ccss-faq",
+      "ley-10363",
+    ]);
+    expect(await served(crMidnight("2026-11-12"))).toEqual(["ley-10363"]);
+  });
+
+  /**
+   * The same claim for every `datedFacts` artículo in the deployed manifest,
+   * its text carrying the declared evidence as the real chunks do: served on
+   * its last day, withheld on the next.
+   */
+  it("lets no dated fact through after its last day", async () => {
+    for (const ref of datedFactRefs({ documents: manifestDocs })) {
+      const row: SearchChunksRow = {
+        ...ROW,
+        doc_key: ref.docKey,
+        articulo: ref.articulo,
+        content: `${ROW.content} ${ref.evidence}`,
+      };
+      const served = async (now: Date) =>
+        (
+          await retrieve("¿hasta cuándo?", {
+            client: fakeClient([row]),
+            embedder: fakeEmbedder(),
+            now,
+          })
+        ).chunks.length;
+      const next = new Date(`${ref.lastDay}T06:00:00Z`);
+      next.setUTCDate(next.getUTCDate() + 1);
+
+      expect(await served(crMidnight(ref.lastDay))).toBe(1);
+      expect(await served(next)).toBe(0);
+    }
+  });
+
+  /**
    * The year bump merges, and deploys, before the production re-crawl can run
    * (it crawls only merged main). In between, the rows still hold last year's
    * text under this year's declaration: the text decides, and it is withheld.
@@ -958,6 +1064,47 @@ describe("retrieve", () => {
                 articulo: "ARTICULO 34",
                 fiscalYear: 2026,
                 evidence: "a partir del 01 de enero del 2026",
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(seen?.match_count).toBe(2);
+    expect(result.chunks.map((c) => c.docKey)).toEqual(["ley-10363"]);
+  });
+
+  it("asks for one more row per dated fact past its last day, and refills the count (#531)", async () => {
+    let seen: Record<string, unknown> | undefined;
+    const result = await retrieve("¿hasta cuándo la condonación?", {
+      client: fakeClient(
+        [
+          {
+            ...ROW,
+            chunk_id: "33333333-3333-3333-3333-333333333333",
+            doc_key: "ccss-faq",
+            articulo: "¿Hasta cuándo puedo solicitar la condonación?",
+            content: "… hasta el día 11 de noviembre del 2026.",
+          },
+          ROW,
+        ],
+        (args) => {
+          seen = args;
+        },
+      ),
+      embedder: fakeEmbedder(),
+      matchCount: 1,
+      now: crMidnight("2026-11-12"),
+      vigencia: {
+        documents: [
+          {
+            doc_key: "ccss-faq",
+            datedFacts: [
+              {
+                articulo: "¿Hasta cuándo puedo solicitar la condonación?",
+                lastDay: "2026-11-11",
+                evidence: "11 de noviembre del 2026",
               },
             ],
           },
@@ -1372,6 +1519,8 @@ describe("retrieve", () => {
           seen = args;
         }),
         embedder: failingEmbedder(embedFailure),
+        // The wire as it is with nothing withheld, whatever today's date.
+        vigencia: NO_ANNUAL,
       });
       expect(seen).toEqual({
         query_text: "¿me cobran retroactivo?",
