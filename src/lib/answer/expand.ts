@@ -8,7 +8,7 @@
  * of the twenty expected chunks retrieve themselves at vector rank 1, so the
  * embeddings are healthy; all six questions already take the lexical
  * OR-fallback branch, so the strict/loose switch is not holding anything
- * back. What fails is that a reader writes «me inscribí un año tarde» and the
+ * back. What fails is that a reader writes «fui a inscribirme tarde» and the
  * artículo that answers it says «omisión de la declaración de inscripción».
  * The Spanish snowball stemmer cannot bridge those two — `inscrib` and
  * `inscripcion` do not even share a prefix — and the vector leg puts that
@@ -82,12 +82,12 @@ export const MAX_EXPANSION_LENGTH = 1_000;
  * `corpus/manifest.json`, the same file `pnpm ingest` reads and
  * `corpus-summary.ts` and `derived.ts` already build from.
  *
- * This is the difference between a rewrite that guesses at official
- * vocabulary and one that uses the corpus's own. Asked «me inscribí un año
- * tarde» with no inventory, the model reads it as CCSS affiliation and the
- * expansion pulls the pool away from Hacienda; with the inventory in front of
- * it, «Código de Normas y Procedimientos Tributarios — intereses y hechos
- * ilícitos tributarios» is on the list and the rewrite names the sanción.
+ * This is the difference between a rewrite that guesses at official vocabulary
+ * and one that uses the corpus's own. Asked `inscripcion-tardia-sancion` with
+ * no inventory, the model reads it as CCSS affiliation and the expansion pulls
+ * the pool away from Hacienda; with the inventory in front of it, «Código de
+ * Normas y Procedimientos Tributarios — intereses y hechos ilícitos
+ * tributarios» is on the list and the rewrite names the sanción.
  *
  * A corpus change therefore changes this prompt, which is the same rule the
  * manifest already carries (CLAUDE.md): the titles are the contract.

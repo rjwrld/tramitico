@@ -4,7 +4,7 @@
  *
  * Ley IVA art. 30 says «la tarifa referida en el artículo 10 de la presente
  * ley», and art. 10 is where the 13 % is. The rerank pool of 40 cannot be
- * relied on to carry it — for «¿Cuál va a ser la tasa del IVA en 2027?» it
+ * relied on to carry it — for #490's question on the 2027 IVA rate it
  * was 74th on word match and outside the vector top 50 — so the model read
  * art. 30 and said art. 10 «no está entre los documentos provistos» (#490).
  * The reference itself is the signal, and reading it takes no model call.

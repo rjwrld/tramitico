@@ -18,14 +18,23 @@
  * individually blocking" mean something different for that family than for
  * the other eight — so that grid is the one number that may not drift.
  */
-import { readdirSync, readFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 import { figureMentions } from "./adequacy";
 import { CORPUS_INDEX_PATH, parseCorpusIndex } from "./corpus-index";
 import {
   abstentionCases,
   DATASET_PATH,
+  type EvalCase,
   FAMILIES,
   heldOutCases,
   MAX_REQUIRED_CLAIMS,
@@ -201,56 +210,247 @@ describe("the held-out set is answerable by the committed corpus", () => {
 });
 
 /**
- * A held-out question is one nothing was tuned against (#536). A unit test
- * that quotes one verbatim is a keyword table, a classifier tie or a fixture
- * written with that exact wording in front of it, and the held-out number
- * then measures less than it claims. Tests use made-up wordings of the same
- * shape instead; this fails a test file under `src/` or `scripts/` that
- * quotes one, case, accents, `¿?¡!`, spacing and `"…" + "…"` splits aside.
+ * A held-out question is one nothing was tuned against (#536). A keyword
+ * table, a classifier tie, a fixture or a docstring example written with that
+ * exact wording in front of it makes the held-out number measure less than it
+ * claims. Code and tests use made-up wordings of the same shape instead; this
+ * fails any `.ts`/`.tsx` file under `src/`, `scripts/` or `e2e/` that quotes a
+ * held-out question or one of its follow-up turns (#543), case, accents,
+ * `¿?¡!`, spacing, `"…" + "…"` splits and comment line breaks aside.
+ *
+ * A quote of one clause counts: `steps.ts` quoted the first clause of
+ * `inscripcion-tardia-sancion`, wrapped across a docstring, and not its
+ * second (#543). A clause is what punctuation bounds, and it counts from
+ * `MIN_CLAUSE_WORDS` words: shorter ones («¿qué me pasa?») are how anyone
+ * writes, not a wording someone copied.
  */
-describe("no test quotes a held-out question (#536)", () => {
-  // Its own folding, not routing's `normaliseQuestion`: what counts as a
-  // quote must not move when the classifier's normalisation does. A string
-  // split by `"…" + "…"` is joined first, so a wrapped quote still reads as
-  // one.
-  const quotable = (text: string) =>
-    text
-      .replace(/["'`]\s*\+\s*["'`]/g, "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .replace(/[¿?¡!]/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-  const questions = heldOut.map((c) => ({
-    id: c.id,
-    text: quotable(c.question),
-  }));
-  const testFiles = ["src", "scripts"].flatMap((root) =>
-    readdirSync(path.join(process.cwd(), root), {
-      recursive: true,
-      encoding: "utf8",
-    })
-      .filter((file) => /\.test\.tsx?$/.test(file))
+const QUOTE_ROOTS = ["src", "scripts", "e2e"];
+const MIN_CLAUSE_WORDS = 4;
+
+// Its own folding, not routing's `normaliseQuestion`: what counts as a quote
+// must not move when the classifier's normalisation does. A string split by
+// `"…" + "…"` is joined first, so a wrapped quote still reads as one.
+const quotable = (text: string) =>
+  text
+    .replace(/["'`]\s*\+\s*["'`]/g, "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[¿?¡!]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+// A comment's line break reads as a space, so a quote wrapped across
+// `/** … * …` or `// …` lines still reads as one.
+const uncommented = (text: string) =>
+  text.replace(/\n[ \t]*(?:\*(?!\/)|\/\/)/g, "\n");
+
+interface Wording {
+  /** The case id, plus `#history[n]` for a follow-up turn. */
+  id: string;
+  /** The whole wording, then each clause of `MIN_CLAUSE_WORDS` or more. */
+  texts: string[];
+}
+
+function wording(id: string, question: string): Wording {
+  const clauses = question
+    .split(/[,.;:¿?¡!«»()]+/)
+    .map(quotable)
+    .filter((clause) => clause.split(" ").length >= MIN_CLAUSE_WORDS);
+  return { id, texts: [...new Set([quotable(question), ...clauses])] };
+}
+
+/** Every wording a held-out case asks the pipeline: its turns, then itself. */
+function heldOutWordings(
+  set: readonly Pick<EvalCase, "id" | "question" | "history">[],
+): Wording[] {
+  return set.flatMap((c) => [
+    wording(c.id, c.question),
+    ...(c.history ?? []).map((turn, i) =>
+      wording(`${c.id}#history[${i}]`, turn.question),
+    ),
+  ]);
+}
+
+/** Every `.ts`/`.tsx` file under `QUOTE_ROOTS`, relative to `base`. */
+function sourceFiles(base: string): string[] {
+  return QUOTE_ROOTS.flatMap((root) =>
+    readdirSync(path.join(base, root), { recursive: true, encoding: "utf8" })
+      .filter((file) => /\.tsx?$/.test(file))
       .map((file) => path.join(root, file)),
   );
+}
 
-  it("reads the test files and the questions", () => {
-    // Vacuity guard: an empty glob or set would pass the check below.
-    expect(testFiles.length).toBeGreaterThan(100);
-    expect(testFiles).toContain(path.join("src", "lib", "retrieval.test.ts"));
-    expect(questions.every((q) => q.text.length >= 10)).toBe(true);
+interface Quote {
+  /** `<file> quotes <wording id>`: what the allowlist names. */
+  key: string;
+  /** The folded text that matched, so a failure says what to reword. */
+  clause: string;
+}
+
+/** One per wording quoted in a file under `base`. */
+function heldOutQuotes(base: string, wordings: readonly Wording[]): Quote[] {
+  return sourceFiles(base).flatMap((file) => {
+    const text = quotable(
+      uncommented(readFileSync(path.join(base, file), "utf8")),
+    );
+    return wordings.flatMap((w) => {
+      const clause = w.texts.find((t) => text.includes(t));
+      return clause === undefined
+        ? []
+        : [{ key: `${file} quotes ${w.id}`, clause }];
+    });
+  });
+}
+
+const keys = (quotes: readonly Quote[]) => quotes.map((q) => q.key).sort();
+
+/**
+ * Quotes that must stay verbatim, each with its reason. A stale entry fails
+ * too, so the list cannot outlive the text it excuses.
+ *
+ * `SEED_PROMPTS` are the product's Appendix A pills: a click sends the string
+ * verbatim, and `e2e/`, the chat tests and the latency probe key on it. The
+ * cases quoting them measure exactly what a pill sends, either as the
+ * promoted Appendix A seeds or as a follow-up that opens on a pill, so the
+ * wording is the product's, not one tuned against the set.
+ */
+const ALLOWED_QUOTES = [
+  "src/components/chat/seed-prompts.tsx quotes ccss-cese-actividad#history[0]",
+  "src/components/chat/seed-prompts.tsx quotes ccss-obligacion-ingreso-bajo",
+  "src/components/chat/seed-prompts.tsx quotes desinscripcion-dejar-actividad",
+  "src/components/chat/seed-prompts.tsx quotes ho-donde-me-afilio-caja#history[0]",
+  "src/components/chat/seed-prompts.tsx quotes inscripcion-tardia-sancion",
+];
+
+describe("no file quotes a held-out question (#536, #543)", () => {
+  const wordings = heldOutWordings(heldOut);
+  const files = sourceFiles(process.cwd());
+
+  it("reads the files and the wordings", () => {
+    // Vacuity guard: an empty glob or set would pass the check below. 315
+    // files on 2026-10-08; the floor leaves room to delete, not to lose a root.
+    expect(files.length).toBeGreaterThan(250);
+    for (const file of [
+      path.join("src", "lib", "retrieval.test.ts"),
+      path.join("src", "lib", "answer", "steps.ts"),
+      path.join("scripts", "answer-replay.ts"),
+      path.join("e2e", "chat-flow.spec.ts"),
+    ]) {
+      expect(files).toContain(file);
+    }
+    expect(wordings.filter((w) => w.id.includes("#history["))).not.toEqual([]);
+    expect(wordings.every((w) => w.texts[0].length >= 10)).toBe(true);
   });
 
-  it("finds none of them in any test file", () => {
-    const quoted = testFiles.flatMap((file) => {
-      const text = quotable(
-        readFileSync(path.join(process.cwd(), file), "utf8"),
-      );
-      return questions
-        .filter((q) => text.includes(q.text))
-        .map((q) => `${file} quotes ${q.id}`);
+  it("finds none of them outside the allowlist, and no stale entry", () => {
+    const quoted = heldOutQuotes(process.cwd(), wordings);
+    const unallowed = quoted
+      .filter((q) => !ALLOWED_QUOTES.includes(q.key))
+      .map((q) => `${q.key}: «${q.clause}»`);
+    expect(unallowed).toEqual([]);
+    const stale = ALLOWED_QUOTES.filter(
+      (entry) => !keys(quoted).includes(entry),
+    );
+    expect(stale).toEqual([]);
+  });
+});
+
+describe("the quote guard, on a planted tree (#543)", () => {
+  // Made-up wordings: a real held-out one would fail the guard above.
+  const planted = {
+    id: "planted",
+    question: "Pagué el marchamo con monedas de oro, ¿me lo aceptan?",
+    history: [
+      {
+        question: "¿Qué pasa si el perro se come la factura?",
+        answer: "…",
+      },
+    ],
+  };
+  const wordings = heldOutWordings([planted]);
+
+  const bases: string[] = [];
+  afterAll(() => {
+    for (const base of bases) rmSync(base, { recursive: true, force: true });
+  });
+
+  function plant(files: Record<string, string>): string {
+    const base = mkdtempSync(path.join(tmpdir(), "held-out-"));
+    bases.push(base);
+    for (const root of QUOTE_ROOTS) mkdirSync(path.join(base, root));
+    for (const [file, text] of Object.entries(files)) {
+      mkdirSync(path.dirname(path.join(base, file)), { recursive: true });
+      writeFileSync(path.join(base, file), text);
+    }
+    return base;
+  }
+
+  it("reads a follow-up turn as a wording of its own", () => {
+    expect(wordings.map((w) => w.id)).toEqual([
+      "planted",
+      "planted#history[0]",
+    ]);
+  });
+
+  it("fails a quote in a non-test file's comment", () => {
+    const base = plant({
+      [path.join("src", "lib", "plain.ts")]:
+        "/** «Pagué el marchamo con monedas de oro, ¿me lo aceptan?» */\n",
     });
-    expect(quoted).toEqual([]);
+    expect(keys(heldOutQuotes(base, wordings))).toEqual([
+      `${path.join("src", "lib", "plain.ts")} quotes planted`,
+    ]);
+  });
+
+  it("fails a quoted follow-up turn, split by `+` across lines", () => {
+    const base = plant({
+      [path.join("scripts", "probe.ts")]:
+        'const q = "Que pasa si el perro " +\n  "se come la FACTURA";\n',
+    });
+    expect(keys(heldOutQuotes(base, wordings))).toEqual([
+      `${path.join("scripts", "probe.ts")} quotes planted#history[0]`,
+    ]);
+  });
+
+  it("fails a quote under e2e/, in a .tsx file too", () => {
+    const base = plant({
+      [path.join("e2e", "flow.spec.ts")]:
+        'await ask("pague el marchamo con monedas de oro, me lo aceptan");\n',
+      [path.join("e2e", "fixture.tsx")]:
+        "<p>Pagué el marchamo con monedas de oro, ¿me lo aceptan?</p>\n",
+      [path.join("e2e", "notes.md")]:
+        "Pagué el marchamo con monedas de oro, ¿me lo aceptan?\n",
+    });
+    expect(keys(heldOutQuotes(base, wordings))).toEqual([
+      `${path.join("e2e", "fixture.tsx")} quotes planted`,
+      `${path.join("e2e", "flow.spec.ts")} quotes planted`,
+    ]);
+  });
+
+  it("fails one clause of a wording, wrapped across docstring lines", () => {
+    const base = plant({
+      [path.join("src", "lib", "wrapped.ts")]:
+        "/**\n * A reader writes «Pagué el marchamo\n * con monedas de oro» and…\n */\n",
+      [path.join("src", "lib", "line.ts")]:
+        "// A reader writes «pagué el\n// marchamo con monedas de oro».\n",
+    });
+    const quoted = heldOutQuotes(base, wordings);
+    expect(keys(quoted)).toEqual([
+      `${path.join("src", "lib", "line.ts")} quotes planted`,
+      `${path.join("src", "lib", "wrapped.ts")} quotes planted`,
+    ]);
+    // The failure names the clause that matched, not just the case.
+    expect(quoted.map((q) => q.clause)).toEqual([
+      "pague el marchamo con monedas de oro",
+      "pague el marchamo con monedas de oro",
+    ]);
+  });
+
+  it(`passes a clause under ${MIN_CLAUSE_WORDS} words`, () => {
+    const base = plant({
+      [path.join("src", "lib", "short.ts")]: "// «¿Me lo aceptan?»\n",
+    });
+    expect(keys(heldOutQuotes(base, wordings))).toEqual([]);
   });
 });

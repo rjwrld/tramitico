@@ -44,7 +44,7 @@ function evalCase(overrides: Partial<EvalCase> = {}): EvalCase {
   return {
     id: "inscripcion-tardia-sancion",
     seed: "appendix-a:9",
-    question: "Me inscribí un año tarde en Hacienda, ¿qué pasa?",
+    question: "Fui a inscribirme tarde en Hacienda, ¿qué pasa?",
     expected: [{ docKey: "cnpt", articulo: "Artículo 78" }],
     blocking: false,
     tier: 1,
@@ -58,7 +58,7 @@ describe("rewriteCase", () => {
     // A single-turn case: condensation skips the call, so this is free.
     const rewritten = await rewriteCase(evalCase(), null);
     expect(rewritten).toEqual({
-      query: "Me inscribí un año tarde en Hacienda, ¿qué pasa?",
+      query: "Fui a inscribirme tarde en Hacienda, ¿qué pasa?",
       condensed: null,
       expander: undefined,
     });
@@ -69,14 +69,14 @@ describe("rewriteCase", () => {
       [
         "inscripcion-tardia-sancion",
         {
-          query: "Me inscribí un año tarde en Hacienda, ¿qué pasa?",
+          query: "Fui a inscribirme tarde en Hacienda, ¿qué pasa?",
           expansion: "Sanción por omisión de la declaración de inscripción.",
         },
       ],
     ]);
     const rewritten = await rewriteCase(evalCase(), frozen);
     expect(rewritten.query).toBe(
-      "Me inscribí un año tarde en Hacienda, ¿qué pasa?",
+      "Fui a inscribirme tarde en Hacienda, ¿qué pasa?",
     );
     expect(await rewritten.expander?.expand(rewritten.query)).toBe(
       "Sanción por omisión de la declaración de inscripción.",

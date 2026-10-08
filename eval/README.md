@@ -15,8 +15,14 @@ updates this block in the same change.
 claims (red, #507's starting point; #507's prompt replays them to 0, see
 [`runs/2026-10-08-507/`](runs/2026-10-08-507/)). Its groundedness transcript
 (`low/groundedness-…-20261008T022706Z.jsonl`, also copied to the main
-checkout's `eval/transcripts/2026-10-08-baseline-511/`) is the input for
-`answer-replay`. The tracked baselines are still those of the previous
+checkout's `eval/transcripts/2026-10-08-baseline-511/`) stays the record of
+#511's numbers but is no longer `answer-replay`'s input. 45 of its 100 rows
+with chunks carry `reglamento-iva` chunks, whose ids #530's re-ingest re-minted
+(local 05:10 UTC, production 05:21 UTC, 2026-10-08), and `replayChunks` in
+`src/lib/eval/replay.ts` throws on a chunk id the corpus no longer carries
+(the other 55 rows still resolve on the local stack, 2026-10-08).
+#507's transcripts carry the same ids. The next replay input is #512's fresh
+lanes. The tracked baselines are still those of the previous
 run, [`runs/2026-10-02-full-lane/`](runs/2026-10-02-full-lane/): groundedness
 68/73 and Tier 1 70/116. That run was read before the robustness block,
 #503's cases and #520's re-ingest. The owner held both baselines rather

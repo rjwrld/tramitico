@@ -2,19 +2,19 @@
  * The step catalogue — searching for the step the reader did not ask for
  * (issue #304).
  *
- * #303 read the 19 Tier 1 "answer omission" rows of #267 through the
- * production path and located every missing requirement in the reranked
- * order. Of the 23 that were retrieval, 20 were **pool** depth — the chunk
- * that carries the requirement was deep in the 40 or not among them — and the
- * absent ones share a shape: they carry a *step* the dataset requires of a
- * complete answer and the question never asks for. «¿Dónde me afilio?»
- * requires when to pay; «¿me puedo desinscribir si debo declaraciones?»
- * requires the sanction; «¿qué porcentaje me cobra la Caja?» requires how to
- * adjust the declared income. Neither the question's own legs nor its
- * corpus-register rewrite (#286) look for those, because nothing in the
- * question points at them — and #303 measured that the expansion model cannot
- * be asked to guess them either: a "next step" probe written by Haiku either
- * rewrote the question again or copied the prompt's worked example.
+ * #303 read the 19 Tier 1 "answer omission" rows of #267 through the production
+ * path and located every missing requirement in the reranked order. Of the 23
+ * that were retrieval, 20 were **pool** depth — the chunk that carries the
+ * requirement was deep in the 40 or not among them — and the absent ones share
+ * a shape: they carry a *step* the dataset requires of a complete answer and
+ * the question never asks for. «¿En qué oficina me afilio?» requires when to
+ * pay; «¿me desinscribo aunque deba declaraciones?» requires the sanction;
+ * «¿cuánto por ciento me quita la Caja?» requires how to adjust the declared
+ * income. Neither the question's own legs nor its corpus-register rewrite
+ * (#286) look for those, because nothing in the question points at them — and
+ * #303 measured that the expansion model cannot be asked to guess them either:
+ * a "next step" probe written by Haiku either rewrote the question again or
+ * copied the prompt's worked example.
  *
  * The steps are not open-ended, though. The dataset's nine Tier 1 families
  * already name them, and a family's steps are the same whichever of its
@@ -225,10 +225,10 @@ const PATTERNS = byFamily((family) => wordPatterns(KEYWORDS[family]));
  * The family with the most keyword hits wins. A tie goes to the **later**
  * family in `FAMILIES`' order, and that is a rule rather than an accident:
  * the later families name a situation — a sanction (T1-I), a cessation
- * (T1-H), a prescription (T1-G) — that presupposes the earlier ones. «Me
- * inscribí un año tarde» names inscription (T1-A) and lateness (T1-I), and
- * the step the reader needs is how to regularise the sanction, not where to
- * inscribe. Zero hits everywhere is `null`: no probe, not a guessed one.
+ * (T1-H), a prescription (T1-G) — that presupposes the earlier ones. «Fui a
+ * inscribirme dos años tarde» names inscription (T1-A) and lateness (T1-I),
+ * and the step the reader needs is how to regularise the sanction, not where
+ * to inscribe. Zero hits everywhere is `null`: no probe, not a guessed one.
  */
 export function classifyFamily(question: string): Family | null {
   const normalised = normaliseQuestion(question);
