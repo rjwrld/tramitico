@@ -12,7 +12,8 @@ updates this block in the same change.
 [`runs/2026-10-08-baseline/`](runs/2026-10-08-baseline/) on main at
 66a2cf9 (#511): groundedness 72/74, Tier 1 86/116, Tier 2 12/14, abstention
 14/15, hit-rate 68/74 (red), robustness block 25/27 hits, 4 false absence
-claims (red, #507's starting point). Its groundedness transcript
+claims (red, #507's starting point; #507's prompt replays them to 0, see
+[`runs/2026-10-08-507/`](runs/2026-10-08-507/)). Its groundedness transcript
 (`low/groundedness-…-20261008T022706Z.jsonl`, also copied to the main
 checkout's `eval/transcripts/2026-10-08-baseline-511/`) is the input for
 `answer-replay`. The tracked baselines are still those of the previous
@@ -3657,3 +3658,27 @@ configuration, and both sides carry their own live expansion:
   every target.
 - The robustness block fell from 25/27 to 21/27, including «¿Cuánto pago
   como independiente?».
+
+## Fragments, not the corpus (2026-10-08, #507)
+
+The prompt used to call the eight chunks «los documentos oficiales», so a gap
+among them read as a gap in the corpus. Rule 7 now tells the model it sees
+only some parts of the documents, never the whole collection, and never to
+write that a document, artículo, rate or figure is missing. Rules 3 and 9 send
+a datum it cannot see to the closing referral («confírmelo con la
+institución») instead of «los documentos no…». Measured with fixed-chunk
+replays of #511's transcript, one round, ≈US$3
+([`runs/2026-10-08-507/README.md`](runs/2026-10-08-507/README.md)):
+
+- **False absence claims 4 → 0** on the four flagged rows, whose control
+  replay on main's prompt reproduced 4. `ho-abs-iva-2027`, through the scoped
+  abstention lane, made none, and met its requirement.
+- **Tier 1 85/116**, against the lane's 86 and the control replay's 78. The
+  baseline stays 70 (ADR 0023). The control's 78 says one replay of this
+  transcript moves more than ±2 on its own.
+- **Openings** (reported): the Tier 1 rows went 4 → 2 against the control.
+  The ones left say a procedure or a code is not in the documents, which the
+  detector does not count.
+
+`answer-replay` now prints the absence openings, recorded → replayed, next to
+the false claims.

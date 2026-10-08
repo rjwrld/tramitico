@@ -1,0 +1,13 @@
+replaying 3 row(s) of groundedness-claude-sonnet-5-5-effort-low-20261008T022706Z.jsonl on claude-sonnet-5-5-effort-low (no groundedness judge)
+  iva-ajuste-bien-de-capital  pass
+  ho-t2-panaderia-simplificado  pass  missing 0
+  rb-seguimiento-de-cuanto-multa  pass  missing 3
+
+transcript: <worktree>/eval/runs/2026-10-08-507/control/groundedness-claude-sonnet-5-5-effort-low-replay-ungrounded-subset-20261008T033732Z.jsonl
+
+requirements stated, recorded → replayed: 3 → 3 of 6
+  2 → 2 / 5  rb-seguimiento-de-cuanto-multa
+false absence claims (#500), recorded → replayed: 3 → 3 — ho-t2-panaderia-simplificado, rb-seguimiento-de-cuanto-multa, rb-seguimiento-de-cuanto-multa
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+finish other than stop: 0; output tokens max 1435
