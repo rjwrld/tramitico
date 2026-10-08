@@ -66,6 +66,11 @@ export const ADEQUACY_TIER2_GATE = 0.84;
  * as shipped (70/116, eval/runs/2026-10-02-full-lane/). A lane more than
  * `TIER1_REGRESSION_MARGIN` below it is a regression and fails. A lane that
  * beats it moves the baseline up, the way `HIT_RATE_GATE` ratchets.
+ *
+ * #511's baseline lane stated 86/116 (eval/runs/2026-10-08-baseline/), and
+ * the owner held the baseline at 70 rather than ratchet it (2026-10-08): one
+ * lane, a +16 unexplained with the prompt unchanged, and a pipeline that
+ * changes again before #512, whose two lanes re-set it.
  */
 export const TIER1_REQUIREMENT_BASELINE = 70;
 

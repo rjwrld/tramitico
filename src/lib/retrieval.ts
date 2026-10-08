@@ -22,7 +22,12 @@ import { isCitation, parseCitations, type Citation } from "./citations";
 import { describeError, timeoutOrError } from "./log-redaction";
 import { expandQuery, expansionEnabled } from "./answer/expand";
 import { stepProbe, stepsEnabled, type StepProbe } from "./answer/steps";
-import { isWithheld, withheldSources, type VigenciaManifest } from "./vigencia";
+import {
+  isWithheld,
+  withheldSources,
+  withholdsAny,
+  type VigenciaManifest,
+} from "./vigencia";
 import { normaliseQuestion } from "./routing";
 
 /**
@@ -295,7 +300,8 @@ export interface RetrieveOptions {
   /** The clock the fiscal-year check reads (#505); tests pin it. */
   now?: Date;
   /**
-   * The manifest whose annual entries and retired keys are withheld (#505).
+   * The manifest whose annual entries, year-figure artículos (#518) and
+   * retired keys are withheld (#505).
    * Omit for the deployed `corpus/manifest.json`; tests hand in a fixture so
    * a case does not move with the owner's annual pass.
    */
@@ -668,6 +674,8 @@ export async function retrieve(
   // last year's until it is retired, with near-identical text. So while any
   // is out of period the RPC is asked for twice the rows, and the count is
   // refilled after they leave. Nothing out of period: the wire is unchanged.
+  // A non-annual source's artículo that states another year's figures (the
+  // consolidated Ley 7092's tramos) leaves the same way (#518).
   const withheld = withheldSources(options.now, options.vigencia);
   const embedder = options.embedder ?? createEmbedder();
   const client = options.client ?? createRetrievalClient();
@@ -723,7 +731,7 @@ export async function retrieve(
     const { data, error } = await client.rpc("search_chunks", {
       query_text: queryText,
       query_embedding: embedding === null ? null : JSON.stringify(embedding),
-      match_count: withheld.outOfPeriod.size > 0 ? 2 * matchCount : matchCount,
+      match_count: withholdsAny(withheld) ? 2 * matchCount : matchCount,
       expansion_text: expansion,
       expansion_embedding:
         expansionEmbedding === null ? null : JSON.stringify(expansionEmbedding),
@@ -745,7 +753,7 @@ export async function retrieve(
     // from this pool.
     const chunks = (data ?? [])
       .map(toChunk)
-      .filter((chunk) => !isWithheld(withheld, chunk.docKey))
+      .filter((chunk) => !isWithheld(withheld, chunk))
       .slice(0, matchCount);
     return {
       chunks,

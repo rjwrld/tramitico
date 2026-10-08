@@ -21,6 +21,7 @@ import {
   type AnthropicLanguageModelOptions,
 } from "@ai-sdk/anthropic";
 import type { LanguageModel } from "ai";
+import { modeKnob } from "../knobs";
 
 export const DEFAULT_ANSWER_MODEL = "claude-sonnet-5-5";
 
@@ -88,8 +89,10 @@ export const ANSWER_MAX_OUTPUT_TOKENS = 4096;
  *
  * `ANSWER_EFFORT` sets it for a measured run or a deploy; unset, empty (what
  * `eval.yml` interpolates for an unset repository variable) and anything
- * unrecognised all mean "send nothing", which is the provider default —
- * ignored rather than trusted, the reading `answerTopK` gives its knob.
+ * unrecognised all mean "send nothing", which is the provider default. An
+ * unrecognised value is never sent, and logs one `config: unknown knob value`
+ * per cold start (#519, knobs.ts): production sets `low`, so a typo there
+ * would otherwise run the provider's `high` without a word.
  */
 export const ANSWER_EFFORTS = [
   "low",
@@ -100,10 +103,11 @@ export const ANSWER_EFFORTS = [
 ] as const;
 export type AnswerEffort = (typeof ANSWER_EFFORTS)[number];
 
-export function answerEffort(): AnswerEffort | null {
-  const raw = process.env.ANSWER_EFFORT;
-  return ANSWER_EFFORTS.find((effort) => effort === raw) ?? null;
-}
+export const answerEffort: () => AnswerEffort | null = modeKnob(
+  "ANSWER_EFFORT",
+  ANSWER_EFFORTS,
+  null,
+);
 
 /**
  * The `providerOptions` every answer call passes — the route and every eval

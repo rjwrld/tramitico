@@ -89,38 +89,51 @@ corpus, the question history and the quota, all behind row-level security.
 
 ## The numbers
 
-The corpus is 23 official documents in 876 chunks. The eval set is 73 hand-written cases,
-each with the artículo the answer must cite and, for the 40 that carry them, the claims a
-complete answer must make. Every case is run through the production pipeline and judged by
-a second model at temperature 0. The table carries the three full runs since the pipeline
-was frozen: the closing run of 2026-09-11
+The corpus is 23 official documents in 873 chunks. The eval set those runs read is 73
+hand-written cases, each with the artículo the answer must cite and, for the 40 that carry
+them, the claims a complete answer must make. Every case is run through the production
+pipeline and judged by a second model at temperature 0. The table carries the three full
+runs since the pipeline was frozen: the closing run of 2026-09-11
 ([`eval/runs/2026-09-11-closing/`](eval/runs/2026-09-11-closing/)), the record run of
 2026-09-15 that measured the last knob and left it where it was
 ([`eval/runs/2026-09-15-top-k/`](eval/runs/2026-09-15-top-k/)), and the first run against
 the deployed stack on 2026-09-16, executed by the eval workflow on GitHub Actions
 ([`eval/runs/2026-09-16-production/`](eval/runs/2026-09-16-production/)).
 
-| Gate                                            | Baseline (2026-09-05) | Closing run (2026-09-11) | Record (2026-09-15) | Production (2026-09-16) | Threshold |
-| ----------------------------------------------- | --------------------- | ------------------------ | ------------------- | ----------------------- | --------- |
-| Retrieval hit-rate (cited artículo in top 8)    | 63/73                 | 70/73                    | 72/73               | **70/73**               | ≥ 0.92    |
-| Groundedness (answer supported by its chunks)   | 70/73                 | 70/73                    | 69/73               | **69/73**               | ≥ 0.94    |
-| Adequacy, Tier 2 (every required claim present) | 9/13                  | 12/13                    | 10/13               | **12/13**               | ≥ 0.84    |
-| Abstention (declines when it should)            | 4/7                   | 9/9                      | 9/9                 | **8/9**                 | ≥ 0.90    |
-| Adequacy, Tier 1 (every required claim present) | —                     | 5/27                     | 3/27                | **6/27**                | 27/27     |
-| Blocking cases that fail groundedness           | —                     | 2                        | 3                   | **2**                   | 0         |
-| Answers with an unresolved citation marker      | —                     | 0                        | 2                   | **1**                   | 0         |
+| Gate                                            | Baseline (2026-09-05) | Closing run (2026-09-11) | Record (2026-09-15) | Production (2026-09-16) | Gate today                                     |
+| ----------------------------------------------- | --------------------- | ------------------------ | ------------------- | ----------------------- | ---------------------------------------------- |
+| Retrieval hit-rate (cited artículo in top 8)    | 63/73                 | 70/73                    | 72/73               | **70/73**               | ≥ 0.92                                         |
+| Groundedness (answer supported by its chunks)   | 70/73                 | 70/73                    | 69/73               | **69/73**               | baseline 68 answers; fails at ≤ 63             |
+| Adequacy, Tier 2 (every required claim present) | 9/13                  | 12/13                    | 10/13               | **12/13**               | ≥ 0.84                                         |
+| Abstention (declines when it should)            | 4/7                   | 9/9                      | 9/9                 | **8/9**                 | ≥ 0.90                                         |
+| Adequacy, Tier 1 (every required claim present) | —                     | 5/27                     | 3/27                | **6/27**                | reported; the gate counts requirements (below) |
+| Blocking cases that fail groundedness           | —                     | 2                        | 3                   | **2**                   | 0, a case failing on 2 of 3 answers            |
+| Answers with an unresolved citation marker      | —                     | 0                        | 2                   | **1**                   | 0                                              |
 
 The last three rows are the per-case gates added after the baseline; the closing run's
 values are read from its transcripts. Read the three dated columns as a band, not a trend:
 the pipeline barely changed between them, and Tier 1 moved by three cases, hit-rate and
 groundedness by one or two. A single reading is a point inside that band.
 
-Tier 1, the 27 cases the product promise depends on, is fully adequate in 6 of 27 on the
-production run: the answers are cited and grounded but miss required steps or figures. That
-is the open work ([#352](https://github.com/rjwrld/tramitico/issues/352), with
-[#311](https://github.com/rjwrld/tramitico/issues/311) measured inside its next run), and it
-is recorded as an accepted, dated risk rather than hidden by an aggregate. A full run costs
-about US$6 in provider spend.
+The last column is today's gates, not the ones those runs were read against. Since then
+[ADR 0023](docs/adr/0023-eval-gates-after-sonnet-5-5.md) and its 2026-10-07 amendment changed
+three of them:
+
+- **Tier 1** is a tracked baseline of requirements stated rather than of whole cases: 70 of
+  the 116 required claims and steps across the 27 Tier 1 cases, on the 2026-10-02 lane
+  ([`eval/runs/2026-10-02-full-lane/`](eval/runs/2026-10-02-full-lane/)). A lane at 65 or
+  below fails.
+- **Groundedness** is a tracked baseline too: 68 grounded answers on that lane, so a lane at
+  63 or below fails. It is counted over 74 cases since a Tier 2 case joined (#503).
+- **A blocking case** fails only when two of its three answers fail: the lane re-asks a
+  failing one twice.
+
+One gate is new: an answer that says the documents lack something the corpus holds fails its
+case, whatever the judges say ([#500](https://github.com/rjwrld/tramitico/issues/500)). The
+next numbers come from
+[#511](https://github.com/rjwrld/tramitico/issues/511) and
+[#512](https://github.com/rjwrld/tramitico/issues/512). A full run costs about US$10 in
+provider spend.
 
 How the gates are defined, how thresholds ratchet and never lower, and every run since the
 first are in [`eval/README.md`](eval/README.md).
@@ -136,28 +149,38 @@ The full account, including what was lost and what the gates failed to say, is i
 
 ## Limitations
 
-- Four eval gates are red on the production run. Tier 1 adequacy and the per-case
-  groundedness gate were red on the two runs before it; abstention and the citation
-  invariant were clean on the closing run and have slipped by one case since. They are the
-  open work in [#352](https://github.com/rjwrld/tramitico/issues/352):
-  - Tier 1 adequacy is 6 of 27. Answers in those families are cited and grounded but
-    incomplete.
-  - Two Tier 1 answers fail groundedness, both on IVA for services sold abroad, both wrong
-    statements rather than missing ones
-    ([#324](https://github.com/rjwrld/tramitico/issues/324)). One of them has failed on every
-    run since the per-case gate was added.
-  - One of nine abstention cases answers: asked for a personalised calculation, the model
-    gives the method and the tables instead of declining.
-  - One answer carried a citation marker that points at no source. The runtime contract
-    should refuse it before it ships; the invariant caught it at eval time.
-- The adversarial conflicting-sources case also failed on the production run, on the judge's
-  reading of one sentence rather than on a wrong claim. [#352](https://github.com/rjwrld/tramitico/issues/352) re-judges it before spending
-  anything on it.
+- Until 2026-10-07 production did not rerank, while the eval lanes behind ADR 0023's
+  baselines did ([#498](https://github.com/rjwrld/tramitico/issues/498)). Production has run
+  the pipeline those baselines measure only since then.
+- No full lane has passed every gate since 2026-09-24. The gates changed on 2026-10-07. The
+  first lane read under them, [#511](https://github.com/rjwrld/tramitico/issues/511)'s on
+  2026-10-08, failed four: hit-rate (68/74), one blocking case's hit, one blocking case's
+  groundedness and four false absence claims.
+- Answers are incomplete. On the baseline lane they stated 70 of the 116 required claims and
+  steps across the Tier 1 cases. In about 25 of the 46 misses, no chunk carrying the
+  requirement reached the model
+  ([#497](https://github.com/rjwrld/tramitico/issues/497)). ADR 0023 tracks the count rather
+  than paying for prompt rounds aimed at a number.
+- Some answers state what their fragments don't support. The baseline lane grounded 68 of 73.
+  A read of 18 judge failures, on the Sonnet 5.5 lanes and 2026-09-25, found about 7 real
+  errors (a contradiction, a wrong citation, a URL in no fragment), about 7 strict calls on
+  reasonable inferences, and about 4 claims that the documents don't say something, one of
+  them false.
+- The model sometimes says the documents lack an artículo or figure that the corpus holds. The
+  eval now fails any answer that does ([#500](https://github.com/rjwrld/tramitico/issues/500));
+  the fix in the answer itself is open
+  ([#507](https://github.com/rjwrld/tramitico/issues/507),
+  [#508](https://github.com/rjwrld/tramitico/issues/508)).
+- Short, unaccented, Spanglish and seed-pill questions are measured by a robustness block
+  outside every gate ([#502](https://github.com/rjwrld/tramitico/issues/502)). Its baseline
+  is 25 of 27 hits, set by #511's lane.
 - No one outside the author has used it, and the author wrote the eval set. Peer questions
   are the next dataset.
-- The corpus has annual obligations, tramos, minimum wage, contribution scales, that a
-  freshness policy describes ([ADR 0016](docs/adr/0016-source-freshness-policy.md)) and
-  nothing automates yet.
+- The corpus has annual obligations, tramos, minimum wage, contribution scales, that change
+  every year. Retrieval withholds a source once its fiscal year is over
+  ([ADR 0016](docs/adr/0016-source-freshness-policy.md)), so last year's figures stop
+  reaching the model. Ingesting the next year's sources is still a manual pass each
+  December ([runbook §2.2](docs/runbook.md#22-annual-corpus-churn-novemberjanuary)).
 - Tramitico is not legal or tax advice. It cites the general rule and the conditions that
   change it; the decision is the reader's, or their accountant's.
 

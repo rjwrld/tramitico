@@ -176,7 +176,10 @@ Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3))
   current period keeps that true `effective_date` and records the annual check in
   `verifiedForFiscalYear`. At runtime, retrieval drops every chunk from an annual source that
   does not cover the current Costa Rican fiscal year, so next year's source can be ingested
-  beside this year's and takes over on 1 January (ADR 0016 amendment, #505).
+  beside this year's and takes over on 1 January (ADR 0016 amendment, #505). A source that is
+  not annual but states one year's figures in some artículos (the consolidated Ley 7092's
+  tramos, the CCSS FAQ's rate image) lists them as `yearFigures`, and retrieval drops those
+  chunks in every other fiscal year (ADR 0016 second amendment, #518).
 
 ## 4. Ingestion & chunking
 
@@ -191,7 +194,11 @@ Chunking rules ([#4](https://github.com/rjwrld/tramitico/issues/4), prototype on
    overlap; every part keeps the artículo label.
 3. **Cleaning pass (mandatory):** strip SINALEVI nav chrome (`Usted está en la última versión…`,
    `Ficha Artículo N`, version pager) and mso/Word markup. Title blocks become doc metadata,
-   never retrievable chunks. Preamble/considerandos → one chunk tagged `preambulo`.
+   never retrievable chunks. Preamble/considerandos → one chunk tagged `preambulo`. Words the
+   source runs together («dederechos») are split only on the same document's evidence, weighed by
+   what Word's spellchecker said about each token; every ingest prints each split it made and each
+   document's remaining suspicious joins
+   ([#520](https://github.com/rjwrld/tramitico/issues/520), `src/lib/ingestion/word-joins.ts`).
 4. **Unstructured PDFs** (tramos decree): whole-doc chunk; window only if long.
 5. **Structured FAQs:** one question/modal pair per chunk; the visible question is its citation
    label and the category is its path. These chunks are prepared by the declared HTML extractor
@@ -263,7 +270,9 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   dropped, not retried, and counted: `rerankDrops` in the telemetry event, the eval transcripts
   and `pnpm answer-set-probe` (#466). The full lane of 2026-10-02 lost 0 of 377 readings at
   eval pace, and production asks far slower. Drops have appeared at about 58 asks a minute and
-  not at 21 (#457, #460). Only a replayed probe runs that fast.
+  not at 21 (#457, #460). Only a replayed probe runs that fast. When every reading is lost, the
+  answer set is the fused order's top-k, step legs included: the same pools with the step legs'
+  share taken out carried 47 of 93 Tier 1 targets against 57 (#510).
 - **Step catalogue (#304, amends this section):** retrieval also searches for the _step_ a
   complete answer needs and the question never asks for — when to pay, what the sanction is,
   how to adjust a declared figure. A hand-written catalogue per Tier 1 family
@@ -278,6 +287,13 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   gate, while one pick tied the unpinned mode on groundedness and stated 83/116 Tier 1
   requirements against 71/116 —
   **[ADR 0020](docs/adr/0020-step-catalogue-legs.md)**.
+- **Cross-references (#508, amends this section):** after the cut, an artículo the answer set
+  names inside its own instrument — «la tarifa referida en el artículo 10 de la presente ley»,
+  or a reglamento's «artículo 10 de la Ley» for the law its manifest entry `regulates` — is
+  fetched and appended, one chunk — a deferred figure first («la tarifa referida en…») — ahead of the derived-figure inputs and numbered and
+  cited like any other. A reference to another instrument is not followed, and an appended
+  chunk's own references are not read. `PIN_CROSS_REFERENCES=off` is the baseline —
+  **[ADR 0024](docs/adr/0024-in-document-cross-references.md)**.
 - **Answer assembly:** Claude **Sonnet by default, model as env var** — Week 3 runs Haiku 4.5
   through the same groundedness gate as a cost/quality comparison (portfolio material either way).
   Via Vercel AI SDK, streaming. System prompt constrains
@@ -366,10 +382,15 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
 - **Honest decline, routed by institution (#264, #254 Q1–Q3):** when retrieval is weak, a
   deterministic keyword classifier (`src/lib/routing.ts`, no model call) reads the condensed
   question and the decline names the institution it belongs to and its official URL — Hacienda,
-  CCSS, INS, municipalidad, Registro Nacional, colegio profesional, banco, MEIC, migración, MTSS,
-  y (#285) un profesional en contabilidad para lo que ninguna fuente oficial fija — from one table the prompt's rule 6 also lists and the quarterly re-crawl verifies. The
+  CCSS, INS, municipalidad, Registro Nacional, colegio profesional, banco, MEIC, migración,
+  COSEVI (#503), MTSS, y (#285) un profesional en contabilidad para lo que ninguna fuente oficial
+  fija — from one table the prompt's rule 6 also lists and the quarterly re-crawl verifies. The
   category rides on the per-ask telemetry event as `routedCategory`, the content-free counter
-  Tier 2 promotion is decided against; the question never does.
+  Tier 2 promotion is decided against; the question never does. Only weak retrieval takes this
+  path. An out-of-scope question that retrieves well («¿Cómo renuevo mi pasaporte?») goes to the
+  model, a paid call, and rule 6 routes it from the same table. There is no early keyword decline
+  (#503): the classifier reads «¿Puedo inscribirme en Hacienda con mi DIMEX?», which the corpus
+  answers, as migración.
 - **Components: shadcn/ui; chat scaffolding from Vercel AI Elements** (shadcn-based registry —
   streaming message list + sources primitives that become the citation chips). Owned code, themeable.
 - **Visual identity comes from DESIGN.md** (authored pre-build); the Week-2 UI prototype session
@@ -411,14 +432,28 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   its seed's `expected`, tier, family and requirements verbatim (`seed: "robustez:<case id>"`),
   is never held out and never blocking. Every other gate reads the population it read before the
   block; each lane prints the block as its own line, and the block is gated as a tracked baseline
-  of cases hit, set by #511's full lane (`src/lib/eval/robustness.ts`).
+  of cases hit, set by #511's full lane at 25 of 27 (`src/lib/eval/robustness.ts`).
 - **Retrieval:** every expected source/article must be present in the answer pool. A satisfiable
   Tier 1 case that takes the weak-retrieval decline is a failure (outside the robustness block,
   which reports its weak cases on its own line).
 - **Groundedness:** every material claim must be supported by a retrieved chunk. The pinned
   temperature-0 judge uses a majority of three for flagged answers
-  ([ADR 0007](docs/adr/0007-groundedness-judge-model.md)). The global gate is **≥94%** (ratcheted
-  from 90% by the 2026 baseline, #267: 70/73), and no individually blocking Tier 1 case may fail.
+  ([ADR 0007](docs/adr/0007-groundedness-judge-model.md)). Since #474 the count of grounded
+  answers is a **tracked baseline of 68/73** (the 2026-10-02 lane), failing only a lane more than
+  4 below it (**≤ 63**); a lane that beats it raises it, and #512's final lanes re-set it.
+  #511's baseline lane (2026-10-08) read 72/74, and the owner held 68 until #512 rather than
+  ratchet on one lane. It
+  counts the judges' verdict on each case's first answer, before #500's override (as the 68 was
+  measured), over the 74 cases outside the abstention tier and the robustness block (73 when
+  the 68 was measured; #503 added `t2-inscripcion-dimex`, and the counts stay absolute until
+  #512 re-sets them; #511 was the first read over 74). No
+  individually blocking case may fail, and a blocking case fails **on 2 of 3 answers**: when its
+  first answer fails, the lane asks the whole pipeline twice more and judges each new answer the
+  same way. An answer the route would refuse to ship (#168's citation invariant, #281's derived
+  figures) counts as a failing one. Every failure the judges make carries a
+  `contradiction`/`inference` label from a second call to the pinned judge; it is recorded, not
+  gated, until it agrees with a human read of #512's failures
+  ([ADR 0023, amendment](docs/adr/0023-eval-gates-after-sonnet-5-5.md#amendment-2026-10-07-474-groundedness-and-the-blocking-gate)).
 - **Adequacy:** an eligible answer must contain every required claim and required procedural step;
   numeric and date claims also get deterministic checks against the official input. Every Tier 1
   case must pass individually. Tier 2 uses the same evidence standard but is not part of the
@@ -431,7 +466,9 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   listed figure that `eval/corpus-index.json` covers. The judges read only the fragments the model
   saw, so none of them can catch it; a deterministic detector (`src/lib/eval/absence.ts`) does,
   and such a case fails in the groundedness and abstention lanes whatever the judge said. Zero are
-  tolerated. Answers that open with an absence claim, and typo runs, are reported, not gated.
+  tolerated, on every scored answer: it wins over the 2-of-3 blocking rule, so a blocking case
+  fails on whichever of its answers makes the claim, and a passing re-ask does not clear it.
+  Answers that open with an absence claim, and typo runs, are reported, not gated.
 - **Freshness:** a source carrying a figure or deadline must have `effective_date`; a source marked
   `annualChurn` must be current for the fiscal period. All other sources must be inside the
   quarterly verification window. See [ADR 0016](docs/adr/0016-source-freshness-policy.md).
@@ -448,11 +485,13 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   to make a regression pass ([ADR 0015](docs/adr/0015-coverage-tiers-and-required-claims.md)). The
   ratchet rule: a gate is the measured pass rate minus one case, rounded down, never below its
   previous value. Current gates (closing run, 2026-09-11): hit-rate ≥92% (measured 95.9%, held
-  at 0.92 by #296 requirement 4), groundedness ≥94% (measured 95.9%), Tier 1 requirements stated
-  tracked against a baseline of 70/116, failing only on a lane more than 4 below it (≤ 65;
-  [ADR 0023](docs/adr/0023-eval-gates-after-sonnet-5-5.md), the one relaxation the ratchet
-  rule has had, recorded there), Tier 2 adequacy ≥84% (measured
-  12/13), abstention ≥90% (measured 9/9), citation invariant zero violations on every case
+  at 0.92 by #296 requirement 4), groundedness tracked against a baseline of 68 grounded answers
+  (measured over 73, read over 74 since #503), failing at ≤ 63 (ADR 0023's #474 amendment; ≥94% from the closing run until then), Tier 1 requirements
+  stated tracked against a baseline of 70/116, failing only on a lane more than 4 below it
+  (≤ 65; #511's lane read 72/74 and 86/116, and the owner held both baselines until #512;
+  [ADR 0023](docs/adr/0023-eval-gates-after-sonnet-5-5.md); it and the groundedness
+  baseline are the relaxations the ratchet rule has had, both recorded there), Tier 2 adequacy
+  ≥84% (measured 12/13), abstention ≥90% (measured 9/9), citation invariant zero violations on every case
   (measured 0/73).
 - **Adequacy gate (#130/#261):** groundedness passes a supported-but-incomplete answer, so a
   second, independent question is asked of every case that declares them — are all
@@ -462,8 +501,9 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   (100%)**, Tier 2 gates on ≥ 80% — a strong average must never hide a red Tier 1 case. A
   weak-retrieval decline on a case that declares required claims is an adequacy failure.
 - **Coverage contract in the dataset:** each case carries `tier` (1 / 2 / `abstain`), `family`
-  (T1-A…T1-I on tier 1), `requiredClaims` (≤5), `requiredSteps`, `abstainIf`, `routeTo` and
-  `freshness`. Tier 1 cases are `blocking` by construction, outside the robustness block. Abstention cases carry no `expected`
+  (T1-A…T1-I on tier 1), `requiredClaims` (≤5), `requiredSteps`, `abstainIf`, `routeTo`,
+  `routedCategory` (#503: what `classifyRouting` must make of an abstention case, checked by a
+  free unit test) and `freshness`. Tier 1 cases are `blocking` by construction, outside the robustness block. Abstention cases carry no `expected`
   targets — no correct source exists — and are judged on whether they declined and routed to the
   right institution, with no invented figure.
 - **Citation invariant at eval time (#168):** the harness runs the runtime `validateCitations`
@@ -511,9 +551,11 @@ MCP server (phase-2) · peer question collection (post-launch) · Renta Global D
 
 Societies, employers/patronos, customs/imports, free-zone matters, employee labor rights,
 municipalities/patentes, INS, Registro Nacional, professional associations, banks, MEIC, and
-immigration are not beta coverage. They are **routed, not covered**: the deterministic decline
-names the appropriate institution and official URL, while the corpus and prompt encode none of
-that institution's substantive rules. Promotion to Tier 2 requires both direct-user demand and a
+immigration (and, since #503, driver's licences) are not beta coverage. They are **routed, not
+covered**: the decline names the appropriate institution and official URL, while the corpus and
+prompt encode none of that institution's substantive rules. On weak retrieval the decline is
+deterministic, with no model call; otherwise the model declines under rule 6, from the same table
+(§8). Promotion to Tier 2 requires both direct-user demand and a
 content-free routing-category signal; see [ADR 0017](docs/adr/0017-other-institutions-are-routed.md).
 
 ---

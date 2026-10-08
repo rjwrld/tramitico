@@ -19,8 +19,8 @@
  * off six of them is worse than no number. Two things enforce that, and both
  * are loud rather than silent:
  *
- * - every gate in `groundedness.eval.test.ts` **fails** while a subset is
- *   selected, naming it (the #129 rule: a required check that silently
+ * - every gate in the groundedness, hit-rate (#303) and abstention lanes
+ *   **fails** while a subset is selected, naming it (the #129 rule: a required check that silently
  *   asserts nothing is the failure mode the gate exists to prevent);
  * - the transcript filename carries `subset`, so the file a later comparison
  *   picks up cannot be mistaken for a full run's.
@@ -48,7 +48,9 @@ export function subsetSpec(
 }
 
 /**
- * The cases the run should cover, in dataset order.
+ * The cases the run should cover, in dataset order. `cases` is the lane's own
+ * population, so an id another lane runs throws here too: each lane is scoped
+ * on its own.
  *
  * An id that matches nothing throws, and the message names it: a typo that
  * silently selected zero cases would produce a run that measured nothing,
@@ -67,7 +69,9 @@ export function selectCases(
   const unknown = [...wanted].filter((id) => !found.has(id));
   if (unknown.length > 0) {
     throw new Error(
-      `${SUBSET_ENV}: no case in eval/dataset.jsonl has id ${unknown.join(", ")}`,
+      `${SUBSET_ENV}: no case this lane runs has id ${unknown.join(", ")} — ` +
+        "a typo, or a case another lane runs (abstention cases run only in " +
+        "abstention.eval.test.ts, every other case in the rest)",
     );
   }
   return selected;

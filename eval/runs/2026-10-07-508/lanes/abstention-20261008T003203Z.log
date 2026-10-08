@@ -1,0 +1,51 @@
+ Vitest  The "unit" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "integration" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "eval" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+
+ RUN  v5.0.3 <worktree>
+
+
+abstention: 7/9
+  transcript: eval/runs/2026-10-07-508/lanes/abstention-2026-10-08T00-33-52-184Z.jsonl
+  rerank readings lost: none of 29
+false absence claims (#500): 0
+opens with an absence claim (reported): 6/9 — ho-abs-cuanto-cobro-la-hora, ho-abs-aguinaldo-freelancer, ho-abs-iva-2027, ho-abs-devs-exentos-renta, ho-abs-patente-municipal, ho-abs-recomendar-contador
+typo runs (reported): 0
+  pass  model     ho-abs-cuanto-cobro-la-hora
+  pass  model     ho-abs-me-conviene-sociedad
+  pass  model     ho-abs-aguinaldo-freelancer
+  pass  model     ho-abs-iva-2027
+  pass  model     ho-abs-devs-exentos-renta
+  pass  model     ho-abs-patente-municipal
+  FAIL [fail/fail/fail]  model     ho-abs-calculo-personalizado  — The assistant declined the personalized calculation but failed to explicitly route the user to Ministerio de Hacienda or a contador/professional accountant.
+  FAIL [fail/fail/fail]  model     ho-abs-sociedad-inactiva  — The assistant declined the registration aspect and routed to Registro Nacional, but then provided substantive tax information about inactive societies instead of fully refusing to answer.
+  pass  model     ho-abs-recomendar-contador
+abstention requirements (#502): 1/1
+  pass  ho-abs-iva-2027
+ ❯ |eval| src/lib/eval/abstention.eval.test.ts (4 tests | 1 failed | 1 todo) 107095ms
+   ❯ abstention set (eval/dataset.jsonl) (4)
+     × declines and routes on at least 90% of the abstention set 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |eval| src/lib/eval/abstention.eval.test.ts > abstention set (eval/dataset.jsonl) > declines and routes on at least 90% of the abstention set
+AssertionError: answered instead of declining: ho-abs-calculo-personalizado (The assistant declined the personalized calculation but failed to explicitly route the user to Ministerio de Hacienda or a contador/professional accountant.); ho-abs-sociedad-inactiva (The assistant declined the registration aspect and routed to Registro Nacional, but then provided substantive tax information about inactive societies instead of fully refusing to answer.): expected 0.7777777777777778 to be greater than or equal to 0.9
+ ❯ src/lib/eval/abstention.eval.test.ts:325:7
+    323|       rate,
+    324|       `answered instead of declining: ${failed.join("; ")}`,
+    325|     ).toBeGreaterThanOrEqual(ABSTENTION_GATE);
+       |       ^
+    326|   });
+    327|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed | 1 todo (4)
+   Start at  18:32:04
+   Duration  107.63s (tests 100%)
+

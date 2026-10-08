@@ -34,6 +34,7 @@
  */
 
 import type { FinishReason, ProviderMetadata } from "ai";
+import type { CrossReferenceOutcome } from "./answer/cross-references";
 import { type DroppedReading, rerankEnabled } from "./answer/rerank";
 import { describeError } from "./log-redaction";
 import type { RateLimitCounter } from "./rate-limit";
@@ -101,8 +102,19 @@ export function latencyBucket(ms: number): LatencyBucket {
  */
 export type AskAbort = "client" | "deadline";
 
+/**
+ * `pin` (#508) is the appends after the cut (pins.ts): the cross-reference
+ * lookup, one database read on most asks, and the derived-input pin. Its own
+ * stage so the read is not hidden inside `rerank`.
+ */
 export type AskStage =
-  "condense" | "retrieve" | "rerank" | "generate" | "validate" | "persist";
+  | "condense"
+  | "retrieve"
+  | "rerank"
+  | "pin"
+  | "generate"
+  | "validate"
+  | "persist";
 
 /**
  * What the attempt did with the prompt cache (#413): read the cached system
@@ -277,6 +289,13 @@ export interface AskEvent {
    * retrieval.
    */
   lexicalRetry: boolean;
+  /**
+   * What the cross-reference append did (#508): `appended`, `none` or
+   * `failed` (`CrossReferenceOutcome`); `null` when it never ran — a
+   * decline, an ask that ended before it, `PIN_CROSS_REFERENCES=off`. Never
+   * which artículo.
+   */
+  crossReference: CrossReferenceOutcome | null;
 }
 
 /**
@@ -313,6 +332,7 @@ interface AskFacts {
   routedCategory: RoutedCategory | null;
   rerankDrops: RerankDrop[] | null;
   lexicalRetry: boolean;
+  crossReference: CrossReferenceOutcome | null;
   chargeKept: boolean;
 }
 
@@ -405,6 +425,8 @@ export interface AskTelemetry {
   rerankReadings: (count: { dropped: readonly DroppedReading[] }) => void;
   /** Retrieval ran its as-typed second search (#509). */
   lexicalRetry: () => void;
+  /** The cross-reference append's outcome — `pinAnswerSet`'s `onOutcome`. */
+  crossReference: (outcome: CrossReferenceOutcome) => void;
   /**
    * The ask settled without a refund: it keeps its quota slot. Called by the
    * route's settlement, the one place that knows, so `outcome` can never
@@ -437,12 +459,14 @@ export function createAskTelemetry(
     routedCategory: null,
     rerankDrops: null,
     lexicalRetry: false,
+    crossReference: null,
     chargeKept: false,
   };
   const durations: Record<AskStage, number | null> = {
     condense: null,
     retrieve: null,
     rerank: null,
+    pin: null,
     generate: null,
     validate: null,
     persist: null,
@@ -535,6 +559,9 @@ export function createAskTelemetry(
     lexicalRetry: () => {
       facts.lexicalRetry = true;
     },
+    crossReference: (outcome) => {
+      facts.crossReference = outcome;
+    },
     chargeKept: () => {
       facts.chargeKept = true;
     },
@@ -556,6 +583,7 @@ export function createAskTelemetry(
               : latencyBucket(durations.retrieve),
           rerank:
             durations.rerank === null ? null : latencyBucket(durations.rerank),
+          pin: durations.pin === null ? null : latencyBucket(durations.pin),
           generate:
             durations.generate === null
               ? null
@@ -581,6 +609,7 @@ export function createAskTelemetry(
         rerankDrops: facts.rerankDrops,
         rerank: rerankEnabled() ? "on" : "off",
         lexicalRetry: facts.lexicalRetry,
+        crossReference: facts.crossReference,
       });
     },
   };
