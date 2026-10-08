@@ -232,8 +232,9 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   exact-term queries (tramos, CCSS, CABYS codes) reward the lexical leg. Top-k ≈ 8 fused → answer.
   The lexical leg's tsquery semantics (strict AND with a conditional OR fallback) —
   **[ADR 0005](docs/adr/0005-lexical-and-or-fallback.md)**. Since #509 that leg searches the
-  question without its question words («cuánto», «cuál», «cómo»…), which the `spanish` stop
-  list keeps when accented.
+  question without its question words («cuánto», «cuál», «cómo»…, which the `spanish` stop
+  list keeps when accented) and the auxiliaries «va» and «ser»; a weak result is searched again
+  as typed.
 - **Embedding model:** Voyage vs OpenAI `text-embedding-3-small` — **ADR during Week 2**,
   benchmarked on the eval set; the exportación vocabulary-gap question is the canary.
 - **Multi-turn via condensation (#132, amends this section):** the pipeline below assembles an

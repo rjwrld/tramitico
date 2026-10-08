@@ -48,8 +48,8 @@ describe("lexicalQueryText (#509)", () => {
       "¿ pago a la caja?",
     );
     expect(lexicalQueryText("cuanto pago a la ccss")).toBe("pago a la ccss");
-    expect(lexicalQueryText("¿Cuál va a ser la tasa del IVA en 2027?")).toBe(
-      "¿ a la tasa del IVA en 2027?",
+    expect(lexicalQueryText("¿Cuál va a ser la cuota en 2030?")).toBe(
+      "¿ a la cuota en 2030?",
     );
     expect(lexicalQueryText("¿Dónde y cuándo? ¿Quiénes, cómo, cuántas?")).toBe(
       "¿ y ? ¿, , ?",
@@ -72,9 +72,10 @@ describe("lexicalQueryText (#509)", () => {
   });
 
   it("leaves no words of a question that is nothing but question words", () => {
-    // Its lexical leg finds nothing, so the ask takes the honest decline.
+    // Its lexical leg finds nothing, the result is weak, and `retrieve`
+    // asks again with the question as typed (below).
     expect(lexicalQueryText("¿Cómo?")).toBe("¿?");
-    expect(lexicalQueryText("¿Cuál va a ser?")).toBe("¿ a ?");
+    expect(lexicalQueryText("¿Cuándo y dónde?")).toBe("¿ y ?");
   });
 });
 

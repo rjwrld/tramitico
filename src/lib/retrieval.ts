@@ -23,6 +23,7 @@ import { describeError, timeoutOrError } from "./log-redaction";
 import { expandQuery, expansionEnabled } from "./answer/expand";
 import { stepProbe, stepsEnabled, type StepProbe } from "./answer/steps";
 import { isWithheld, withheldSources, type VigenciaManifest } from "./vigencia";
+import { normaliseQuestion } from "./routing";
 
 /**
  * What the `search_chunks` RPC rejecting looks like to a caller. Used to read
@@ -345,8 +346,9 @@ export function isCorroborated(chunk: {
 }
 
 /**
- * Question words, folded (lower case, no diacritics), that the question's
- * lexical leg does not search for (#509).
+ * Words the question's lexical leg does not search for (#509): the question
+ * words, and two auxiliaries. Folded the way `normaliseQuestion` folds (lower
+ * case, no diacritics).
  *
  * `search_chunks` ANDs every lexeme of `query_text` (ADR 0005), and the
  * `spanish` stop list only knows the unaccented forms: «cuando», «donde»,
@@ -357,14 +359,15 @@ export function isCorroborated(chunk: {
  * instead of the 72 that say «pago» and «independiente». «¿cuánto pago a la
  * caja?» did the same with four Hacienda chunks, none of which any
  * similarity leg corroborated, so the ask took the honest decline. «va» and
- * «ser» are the auxiliaries of «¿cuál va a ser…?», which the stop list keeps
- * too. A document answers the question's subject, never its question word.
+ * «ser», which #509 lists beside them, are the auxiliaries a question about
+ * a coming figure leans on, and the stop list keeps both too. A document
+ * answers the question's subject, never its question word.
  *
  * Unaccented forms are listed as well: «cuanto pago a la ccss» is how the
  * question arrives from a phone, and the forms the stop list already drops
  * cost nothing to drop twice.
  */
-export const LEXICAL_QUESTION_WORDS: ReadonlySet<string> = new Set([
+const LEXICAL_SKIP_WORDS: ReadonlySet<string> = new Set([
   "que",
   "cual",
   "cuales",
@@ -382,13 +385,9 @@ export const LEXICAL_QUESTION_WORDS: ReadonlySet<string> = new Set([
   "ser",
 ]);
 
-function fold(word: string): string {
-  return word.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-}
-
 /**
  * The text the question's lexical leg searches: the question without its
- * question words (#509). Everything else — punctuation, quotes, the rest of
+ * question words and the two auxiliaries (#509). Everything else — punctuation, quotes, the rest of
  * the words — passes through untouched, so `websearch_to_tsquery` reads the
  * same syntax it always read.
  *
@@ -401,7 +400,7 @@ function fold(word: string): string {
 export function lexicalQueryText(question: string): string {
   return question
     .replace(/[\p{L}\p{N}]+/gu, (word) =>
-      LEXICAL_QUESTION_WORDS.has(fold(word)) ? "" : word,
+      LEXICAL_SKIP_WORDS.has(normaliseQuestion(word)) ? "" : word,
     )
     .replace(/\s+/g, " ")
     .trim();
