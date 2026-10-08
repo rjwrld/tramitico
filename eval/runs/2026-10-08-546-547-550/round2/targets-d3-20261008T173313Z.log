@@ -1,0 +1,15 @@
+replaying 3 row(s) of groundedness-claude-sonnet-5-5-effort-low-20261008T070254Z.jsonl on claude-sonnet-5-5-effort-low
+  iva-tarifa-general  pass
+  multa-iva-no-declarado  pass  missing 0
+  rb-seguimiento-de-cuanto-multa  pass  missing 1
+
+transcript: <worktree>/eval/runs/2026-10-08-546-547-550/round2/groundedness-claude-sonnet-5-5-effort-low-replay-subset-20261008T173402Z.jsonl
+
+requirements stated, recorded → replayed: 9 → 9 of 10
+  4 → 4 / 5  rb-seguimiento-de-cuanto-multa
+grounded, recorded → replayed: 2 → 3 of 3
+false absence claims (#500), recorded → replayed: 0 → 0
+absence openings, recorded → replayed: 0 → 0
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+finish other than stop: 0; output tokens max 1213

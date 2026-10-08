@@ -1,0 +1,12 @@
+replaying 1 row(s) of groundedness-claude-sonnet-5-5-effort-low-20261008T073302Z.jsonl on claude-sonnet-5-5-effort-low
+  ho-800-mil-que-porcentaje-caja  pass  missing 0
+
+transcript: <worktree>/eval/runs/2026-10-08-546-547-550/round2/groundedness-claude-sonnet-5-5-effort-low-replay-subset-20261008T174619Z.jsonl
+
+requirements stated, recorded → replayed: 5 → 5 of 5
+grounded, recorded → replayed: 1 → 1 of 1
+false absence claims (#500), recorded → replayed: 0 → 0
+absence openings, recorded → replayed: 0 → 0
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+finish other than stop: 0; output tokens max 756

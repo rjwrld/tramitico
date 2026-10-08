@@ -3803,3 +3803,26 @@ replays of #511's transcript, one round, ≈US$3
 
 `answer-replay` now prints the absence openings, recorded → replayed, next to
 the false claims.
+
+## Three prompt fixes on #512's transcripts (2026-10-08, #546, #547, #550)
+
+Fixed-chunk replays of #512's lanes, a control on main's prompt and two
+rounds, ≈US$4.20
+([`runs/2026-10-08-546-547-550/README.md`](runs/2026-10-08-546-547-550/README.md)).
+The target verdicts are a human read: the judges pass every answer that
+breaks rule 3 or makes the #547 hedge.
+
+- **#546, rule 3.** It now names the two moves `rb-seguimiento-de-cuanto-multa`
+  made: multiplying a monthly fine by the reader's months, and saying whether
+  the reader's case reached a tope. Control 1/3, both rounds 3/3.
+- **#547, rules 7 and 9 and the derived-figure block.** Rule 7's widening
+  alone (round 1) moved the hedge to the sentence after the label's count:
+  1/3. Round 2 adds rule 9's «sin agregar que los documentos no dicen cómo se
+  cuenta» and tells the block that a label's count is part of what the
+  sources say: 2/3, against the control's 0/3.
+- **#550, rule 3.** A stated figure names the artículo its document gives.
+  `ho-abs-iva-2027` names art. 10 in the 13 % sentence on 3/3 (control 1/3 on
+  the claim), and `iva-tarifa-general` does on 6/6 round draws (control 0/3).
+- **Tier 1 guard** on lane 2's 27 rows: 84 → 81, no false absence claim. One
+  new first-verdict judge failure (`ho-800-mil-que-porcentaje-caja`, a rule 4
+  reading of the IVM escala no change touches) passed both re-asks.
