@@ -477,7 +477,15 @@ export async function crossReferencedChunks(
   for (const chunk of answerSet) {
     for (const reference of crossReferences(chunk, options.links)) {
       const key = referenceKey(reference.docKey, reference.articulo);
-      if (present.has(key) || isWithheld(withheld, reference.docKey)) continue;
+      // A source withheld whole (#505) is not even asked for; a single
+      // withheld artículo (#518's `yearFigures`) is judged on its chunk below.
+      if (
+        present.has(key) ||
+        withheld.outOfPeriod.has(reference.docKey) ||
+        withheld.retired.has(reference.docKey)
+      ) {
+        continue;
+      }
       const earlier = candidates.get(key);
       if (earlier === undefined) candidates.set(key, { ...reference });
       else if (reference.figure) earlier.figure = true;
@@ -510,7 +518,9 @@ export async function crossReferencedChunks(
   for (const reference of ranked) {
     if (appended.length === CROSS_REFERENCE_CAP) break;
     const named = fetched.filter((chunk) => namedBy(chunk, reference));
-    if (named.length === 1) appended.push(named[0]);
+    if (named.length === 1 && !isWithheld(withheld, named[0])) {
+      appended.push(named[0]);
+    }
   }
   options.onOutcome?.(appended.length > 0 ? "appended" : "none");
   return appended;

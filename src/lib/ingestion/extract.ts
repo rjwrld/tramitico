@@ -4,6 +4,7 @@ import { renderLabelRail } from "./label-rail";
 import { type LayoutTableSpec, renderLayoutTable } from "./layout-table";
 import { renderStackedFraction } from "./stacked-fraction";
 import { renderWrappedRow } from "./wrapped-row";
+import { repairWordJoins, type WordRepair } from "./word-joins";
 
 /** SINALEVI navigation chrome that must never reach a chunk (SPEC §4.3). */
 const CHROME_RE =
@@ -158,9 +159,17 @@ export function cleanParagraphs(paragraphs: string[]): string[] {
 /**
  * Word-export HTML (SINALEVI payload) → cleaned paragraph list.
  * Block-level tags act as paragraph boundaries; styles/scripts are dropped whole.
+ * Words the source runs together are split where the document gives evidence
+ * for the split, and `repairs` collects each one (#520, word-joins.ts).
  */
-export function htmlToParagraphs(html: string): string[] {
-  const withBreaks = dropNonContent(html).replace(BLOCK_TAG_RE, "\n");
+export function htmlToParagraphs(
+  html: string,
+  /** Receives every repair made, for the ingest report (#520). */
+  repairs?: WordRepair[],
+): string[] {
+  const repaired = repairWordJoins(dropNonContent(html));
+  repairs?.push(...repaired.repairs);
+  const withBreaks = repaired.html.replace(BLOCK_TAG_RE, "\n");
   const text = decodeHTML(withBreaks.replace(TAG_RE, " "));
   return cleanParagraphs(text.split("\n"));
 }
@@ -174,8 +183,9 @@ export function htmlToParagraphs(html: string): string[] {
 export function htmlExcerptToParagraphs(
   html: string,
   excerpt: ExcerptSpec | readonly ExcerptSpec[],
+  repairs?: WordRepair[],
 ): string[] {
-  const paragraphs = htmlToParagraphs(html);
+  const paragraphs = htmlToParagraphs(html, repairs);
   return sliceExcerpt(paragraphs.join("\n"), excerpt)
     .split("\n")
     .filter(Boolean);

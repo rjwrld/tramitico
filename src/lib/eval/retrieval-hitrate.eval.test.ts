@@ -450,13 +450,13 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
     ).toEqual([]);
   });
 
-  // #502: a tracked baseline, set by #511's full lane. Until then the block's
-  // line above is the read, and the gate shows as a todo instead of passing
-  // on nothing.
+  // #502: a tracked baseline, set by #511's full lane. With no baseline the
+  // block's line above is the read, and the gate shows as a todo instead of
+  // passing on nothing.
   const robustnessFloor = robustnessHitFloor();
   if (robustnessFloor === null) {
     it.todo(
-      "robustness block (#502) holds its hit baseline — #511's lane sets ROBUSTNESS_HIT_BASELINE",
+      "robustness block (#502) holds its hit baseline — ROBUSTNESS_HIT_BASELINE is unset",
     );
   } else {
     it(`robustness block (#502) hits at least ${robustnessFloor} (baseline ${ROBUSTNESS_HIT_BASELINE} − ${ROBUSTNESS_REGRESSION_MARGIN})`, () => {

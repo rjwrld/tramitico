@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it, afterEach, vi } from "vitest";
 import { DERIVED_FIGURES, formatCostaRicanColones } from "./derived";
 import { KNOB_ERROR_PREFIX } from "../knobs";
+import { crDate } from "../cr-time";
+import { crFiscalYear } from "../vigencia";
 import { parseCorpusIndex, CORPUS_INDEX_PATH } from "../eval/corpus-index";
 import { DATASET_PATH, FAMILIES, parseDataset } from "../eval/dataset";
 import {
@@ -13,6 +15,30 @@ import {
 
 const dataset = parseDataset(readFileSync(DATASET_PATH, "utf8"));
 const corpusIndex = parseCorpusIndex(readFileSync(CORPUS_INDEX_PATH, "utf8"));
+
+/**
+ * The catalogue sentences quoting a colón figure that the January pass must
+ * update (#518): every one from 1 December, and any time one that names only
+ * past years.
+ */
+function colonFigureWarnings(now: Date): string[] {
+  const year = crFiscalYear(now);
+  const isDecember = crDate(now).slice(5, 7) === "12";
+  return FAMILIES.flatMap((family) =>
+    STEP_CATALOGUE[family].steps
+      .filter((sentence) => /[¢₡]\s?\d/.test(sentence))
+      .flatMap((sentence) => {
+        const years = (sentence.match(/\b20\d{2}\b/g) ?? []).map(Number);
+        const past = years.length > 0 && Math.max(...years) < year;
+        if (!isDecember && !past) return [];
+        return [
+          `${family}: «${sentence.slice(0, 80)}…» quotes a colón figure ${
+            past ? "from a past year" : "due for the next fiscal year"
+          } — owner: update it in the January manifest PR, runbook §2.2 step 7 (#518)`,
+        ];
+      }),
+  );
+}
 
 describe("the step catalogue (#304)", () => {
   it("carries two to five corpus-register sentences for every family", () => {
@@ -86,6 +112,40 @@ describe("the step catalogue (#304)", () => {
     expect(quoting.length).toBe(1);
     expect(quoting[0]).toContain(
       formatCostaRicanColones(input!.value, input!.decimals),
+    );
+  });
+
+  // #518: free and dated, like the manifest vigencia warnings. A sentence
+  // quoting a colón figure is a search input written against one year's
+  // decree, and from 1 January it matches nothing. From 1 December it names
+  // every such sentence, and any time it names one that dates itself to a
+  // past year. A warning, not a failure: the owner updates them in the
+  // January manifest PR (runbook §2.2 step 7), and the two figures pinned
+  // above already fail once their derived-figure inputs move.
+  it("warns about colón-figure sentences due for the next fiscal year", ({
+    annotate,
+  }) => {
+    // Asserts nothing, on purpose: it can only warn.
+    for (const warning of colonFigureWarnings(new Date())) {
+      console.warn(`steps: ${warning}`);
+      annotate(warning, "warning");
+    }
+  });
+
+  it("names the colón-figure sentences on the clocks that warn", () => {
+    const crMidnight = (date: string) => new Date(`${date}T06:00:00Z`);
+    const quoting = FAMILIES.flatMap((family) =>
+      STEP_CATALOGUE[family].steps.filter((s) => /[¢₡]\s?\d/.test(s)),
+    );
+    expect(quoting.length).toBeGreaterThan(0);
+    // November of the sentences' own year: quiet.
+    expect(colonFigureWarnings(crMidnight("2026-11-30"))).toEqual([]);
+    // From 1 December, and after 1 January, every one is named.
+    expect(colonFigureWarnings(crMidnight("2026-12-01"))).toHaveLength(
+      quoting.length,
+    );
+    expect(colonFigureWarnings(crMidnight("2027-01-05"))).toHaveLength(
+      quoting.length,
     );
   });
 

@@ -657,6 +657,82 @@ describe("the step catalogue at the rerank (#304)", () => {
   });
 });
 
+describe("the total-loss fallback (#510)", () => {
+  beforeEach(() => {
+    vi.unstubAllEnvs();
+    vi.stubEnv("RERANK", "voyage");
+    vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+    vi.stubEnv("STEPS_RERANK", "pin1");
+    vi.stubEnv("ANSWER_TOP_K", "3");
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  /** A chunk only the step legs found; the pool below puts two at its head. */
+  function stepOnly(id: number): RetrievedChunk {
+    return {
+      ...chunk(id),
+      // Two legs' RRF shares, the way `search_chunks` sums them.
+      score: 2 / (60 + id),
+      vectorRank: null,
+      lexicalRank: null,
+      expansionVectorRank: null,
+      expansionLexicalRank: null,
+      stepVectorRank: id,
+      stepLexicalRank: id,
+    };
+  }
+
+  const pool = [stepOnly(1), stepOnly(2), chunk(3), chunk(4), chunk(5)];
+  const options = {
+    expansion: "términos oficiales",
+    steps: ["paso uno", "paso dos"],
+  };
+
+  it("cuts the fused order as retrieval returned it, step-leg chunks and all", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(new Response("nope", { status: 500 }));
+    expect(
+      await rerankReadings("pregunta", pool, { ...options, fetchImpl }),
+    ).toBeNull();
+    expect(fetchImpl).toHaveBeenCalledTimes(4);
+    expect(
+      (await rerankChunks("pregunta", pool, { ...options, fetchImpl })).map(
+        (c) => c.chunkId,
+      ),
+    ).toEqual(["c1", "c2", "c3"]);
+  });
+
+  it("leaves a partial loss to the readings that came back", async () => {
+    // Only the question's reading comes back: its order is cut, and the
+    // fused head the step legs set does not return. A lost question reading
+    // is the #296 tests' case, in `rerankOrder` below.
+    const fetchImpl = (async (_url: string, init: RequestInit) => {
+      const { query } = JSON.parse(init.body as string);
+      if (query !== "pregunta") return new Response("nope", { status: 500 });
+      return new Response(
+        JSON.stringify({
+          data: [
+            { index: 4, relevance_score: 0.9 },
+            { index: 3, relevance_score: 0.8 },
+            { index: 2, relevance_score: 0.7 },
+            { index: 0, relevance_score: 0.1 },
+          ],
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    }) as unknown as typeof fetch;
+    expect(
+      (await rerankChunks("pregunta", pool, { ...options, fetchImpl })).map(
+        (c) => c.chunkId,
+      ),
+    ).toEqual(["c5", "c4", "c3"]);
+  });
+});
+
 describe("STEPS_RERANK=slot (#287)", () => {
   beforeEach(() => {
     vi.unstubAllEnvs();
@@ -851,6 +927,7 @@ describe("answerTopK", () => {
   });
   afterEach(() => {
     vi.unstubAllEnvs();
+    vi.restoreAllMocks();
   });
 
   it("defaults to the SPEC §5 top-8", () => {
@@ -863,11 +940,16 @@ describe("answerTopK", () => {
     expect(answerTopK()).toBe(12);
   });
 
-  it("ignores a value that is not a positive integer", () => {
+  it("reads a value that is not a positive integer as the default, and logs it (#519)", () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
     for (const value of ["0", "-3", "8.5", "muchos"]) {
       vi.stubEnv("ANSWER_TOP_K", value);
       expect(answerTopK()).toBe(ANSWER_TOP_K);
     }
+    expect(errors).toHaveBeenCalledTimes(4);
+    expect(errors).toHaveBeenLastCalledWith(
+      expect.stringContaining(`${KNOB_ERROR_PREFIX} ANSWER_TOP_K="muchos"`),
+    );
   });
 });
 
@@ -1154,6 +1236,7 @@ describe("the per-document cap (#303)", () => {
   });
   afterEach(() => {
     vi.unstubAllEnvs();
+    vi.restoreAllMocks();
   });
 
   /** A chunk of document `doc`, ranked by its position in the list. */
@@ -1178,11 +1261,16 @@ describe("the per-document cap (#303)", () => {
     expect(answerDocCap()).toBe(Infinity);
   });
 
-  it("ignores a value that is not a positive integer", () => {
+  it("reads a value that is not a positive integer as the default, and logs it (#519)", () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
     for (const value of ["0", "-1", "1.5", "tres"]) {
       vi.stubEnv("ANSWER_DOC_CAP", value);
       expect(answerDocCap()).toBe(ANSWER_DOC_CAP);
     }
+    expect(errors).toHaveBeenCalledTimes(4);
+    expect(errors).toHaveBeenLastCalledWith(
+      expect.stringContaining(`${KNOB_ERROR_PREFIX} ANSWER_DOC_CAP="tres"`),
+    );
   });
 
   it("keeps no more than n chunks per docKey in the top-k when others are available", () => {

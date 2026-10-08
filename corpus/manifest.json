@@ -1,5 +1,5 @@
 {
-  "$comment": "Ingestion source of truth (SPEC §3). Seeded from docs/research/corpus-viability.md §1. carriesFigures requires effective_date; annualChurn marks entries that must identify the current Costa Rican fiscal year (#262). An unchanged rule whose true effective_date predates that year records the annual check in verifiedForFiscalYear instead of falsifying its vigencia. kinds: sinalevi (3-call API, idFichaNorma; vigente version resolved at fetch), html (official HTML with a source-specific extractor), hacienda-pdf (Playwright fetch — WAF blocks plain HTTP), cabys (curated dev-relevant subset, task #8), unresolved (official source to locate during ingestion; never ingest secondary commentary). retiredDocKeys names documents that a run must remove from the database before dumping the corpus index; retirementNotes records why. deepLink (#134): audited per source — how deep the official URL can be linked. `articulo` = SINALEVI ficha; the viewer opens one artículo at Informacion?param1=<ficha>&param2=<idVersionNorma>&param3=3&param4=<idArticulo>, and `source.articulos` (artículo number → idArticulo) is harvested at ingestion from the «Ficha Artículo» rail in the full-text payload — _BuscarArticulo answers -1 for our fichas, so the rail is the only mapping. `page` = PDF whose primary text is a page range; the chip appends #page=<first page>. excerpt (#176, #256): from/to line markers bounding the portion an entry claims, after PDF or SINALEVI HTML extraction; ingestion fails loudly if a marker is missing or ambiguous. keepArticulos (#259): the artículo labels a SINALEVI entry claims out of a whole código, applied after chunking so each kept chunk keeps its own Título path; for a claim that is a scattered list of artículos rather than one contiguous run of lines, and mutually exclusive with excerpt. Ingestion fails loudly when a listed artículo is gone or its number repeats across títulos. `none` = the document root is the deepest honest link, with the reason in that entry's notes. imagesAudited (#177): for entries carrying an IMAGE AUDIT note, every SINALEVI image src or PDF page/object identity a human looked at in that audit — ingestion logs a quiet receipt while the payload stays inside this set, and the full warning naming new identities the moment a re-crawl adds one. imageTranscriptions (#301): for the ccss-faq-modals entry only, a human's reading of each FAQ answer the page publishes as an image, keyed by the image src as the page links it, pinned to the bytes' SHA-256 (fetched from fetchFrom when the page's src is dead) — the chunk carries the text in place of the image notice, and ingestion fails loudly when the bytes change or the crawl no longer links that image. regulates (#508, ADR 0024): on a reglamento, the doc_key of the law it regulates; an answer-set chunk that cites «artículo N de la Ley» (or the law by title or number) brings that law's artículo N into the answer set. Read at runtime by src/lib/answer/cross-references.ts, never by ingestion.",
+  "$comment": "Ingestion source of truth (SPEC §3). Seeded from docs/research/corpus-viability.md §1. carriesFigures requires effective_date; annualChurn marks entries that must identify the current Costa Rican fiscal year (#262). An unchanged rule whose true effective_date predates that year records the annual check in verifiedForFiscalYear instead of falsifying its vigencia. yearFigures (#518) lists the artículos of a source that is not annual but states one fiscal year's figures (the consolidated Ley 7092's tramos, the CCSS FAQ's rate image): retrieval withholds those chunks in every other fiscal year, and ingestion fails loudly if no chunk of a listed artículo carries its evidence text, so the year and the text move together. kinds: sinalevi (3-call API, idFichaNorma; vigente version resolved at fetch), html (official HTML with a source-specific extractor), hacienda-pdf (Playwright fetch — WAF blocks plain HTTP), cabys (curated dev-relevant subset, task #8), unresolved (official source to locate during ingestion; never ingest secondary commentary). retiredDocKeys names documents that a run must remove from the database before dumping the corpus index; retirementNotes records why. deepLink (#134): audited per source — how deep the official URL can be linked. `articulo` = SINALEVI ficha; the viewer opens one artículo at Informacion?param1=<ficha>&param2=<idVersionNorma>&param3=3&param4=<idArticulo>, and `source.articulos` (artículo number → idArticulo) is harvested at ingestion from the «Ficha Artículo» rail in the full-text payload — _BuscarArticulo answers -1 for our fichas, so the rail is the only mapping. `page` = PDF whose primary text is a page range; the chip appends #page=<first page>. excerpt (#176, #256): from/to line markers bounding the portion an entry claims, after PDF or SINALEVI HTML extraction; ingestion fails loudly if a marker is missing or ambiguous. keepArticulos (#259): the artículo labels a SINALEVI entry claims out of a whole código, applied after chunking so each kept chunk keeps its own Título path; for a claim that is a scattered list of artículos rather than one contiguous run of lines, and mutually exclusive with excerpt. Ingestion fails loudly when a listed artículo is gone or its number repeats across títulos. `none` = the document root is the deepest honest link, with the reason in that entry's notes. imagesAudited (#177): for entries carrying an IMAGE AUDIT note, every SINALEVI image src or PDF page/object identity a human looked at in that audit — ingestion logs a quiet receipt while the payload stays inside this set, and the full warning naming new identities the moment a re-crawl adds one. imageTranscriptions (#301): for the ccss-faq-modals entry only, a human's reading of each FAQ answer the page publishes as an image, keyed by the image src as the page links it, pinned to the bytes' SHA-256 (fetched from fetchFrom when the page's src is dead) — the chunk carries the text in place of the image notice, and ingestion fails loudly when the bytes change or the crawl no longer links that image. regulates (#508, ADR 0024): on a reglamento, the doc_key of the law it regulates; an answer-set chunk that cites «artículo N de la Ley» (or the law by title or number) brings that law's artículo N into the answer set. Read at runtime by src/lib/answer/cross-references.ts, never by ingestion.",
   "retiredDocKeys": [
     "ley-9635",
     "reglamento-titulo-iv-9635",
@@ -32,7 +32,27 @@
         "idFichaNorma": 10969,
         "deepLink": "articulo"
       },
-      "notes": "Texto consolidado vigente de la Ley 7092. La ficha ya incorpora la Ley 10818 y sus cifras para 2026: el artículo 8 inciso s) permite a las personas físicas prestadoras de servicios optar por una deducción única del 25 % sin prueba, y el artículo 15 contiene la escala de personas físicas con actividades lucrativas y la regla aplicable cuando también perciben salario. Se ingiere junto a reglamento-renta porque la ley fija la obligación sustantiva y el reglamento su aplicación. Reemplaza por completo a ley-9635 Título II: la ley reformadora omitía con «[…]» los incisos no modificados y duplicaba, además, la Ley del IVA consolidada. Retiro en el mismo cambio #268; todos los objetivos de evaluación se migraron a ley-renta o ley-iva."
+      "notes": "Texto consolidado vigente de la Ley 7092. La ficha ya incorpora la Ley 10818 y sus cifras para 2026: el artículo 8 inciso s) permite a las personas físicas prestadoras de servicios optar por una deducción única del 25 % sin prueba, y el artículo 15 contiene la escala de personas físicas con actividades lucrativas y la regla aplicable cuando también perciben salario. Se ingiere junto a reglamento-renta porque la ley fija la obligación sustantiva y el reglamento su aplicación. Reemplaza por completo a ley-9635 Título II: la ley reformadora omitía con «[…]» los incisos no modificados y duplicaba, además, la Ley del IVA consolidada. Retiro en el mismo cambio #268; todos los objetivos de evaluación se migraron a ley-renta o ley-iva.",
+      "yearFigures": [
+        {
+          "articulo": "Artículo 15",
+          "fiscalYear": 2026,
+          "evidence": "a partir del 01 de enero del 2026",
+          "figures": "the renta bruta threshold and tramos for personas jurídicas, the escala for personas físicas con actividades lucrativas, and the annual créditos por hijo and por cónyuge, as DE 45333-H set them"
+        },
+        {
+          "articulo": "Artículo 33",
+          "fiscalYear": 2026,
+          "evidence": "a partir del 01 de enero del 2026",
+          "figures": "the monthly salario tramos, as DE 45333-H set them"
+        },
+        {
+          "articulo": "ARTICULO 34",
+          "fiscalYear": 2026,
+          "evidence": "a partir del 01 de enero del 2026",
+          "figures": "the monthly créditos por hijo and por cónyuge, as DE 45333-H set them"
+        }
+      ]
     },
     {
       "doc_key": "reglamento-iva",
@@ -272,6 +292,14 @@
           "fetchFrom": "https://www.ccss.sa.cr/assets/img/faq/fechas_aseg_vol.jpg",
           "sha256": "9f2c715b6c9f7edb86c8026c3e3f7a7316f1e4f88cbc3768aef5ad0de99c336a",
           "text": "Fecha límite de pago según la primera letra del primer apellido: entre A y C, el día 05; entre D y F, el día 06; entre G y K, el día 07; entre L y N, el día 08; entre O y Z, el día 09 de cada mes."
+        }
+      ],
+      "yearFigures": [
+        {
+          "articulo": "¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?",
+          "fiscalYear": 2026,
+          "evidence": "ENERO 2026",
+          "figures": "the av_tv_2026 transcription: the January 2026 Salud and IVM escalas for TI and AV, with colón bounds per category"
         }
       ]
     },

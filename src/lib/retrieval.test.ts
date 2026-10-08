@@ -19,13 +19,19 @@ import {
 import type { Embedder } from "./ingestion/embedder";
 import { describeError } from "./log-redaction";
 import { DERIVED_FIGURES, resolveDerivedFigures } from "./answer/derived";
-import { coversFiscalYear, type VigenciaManifest } from "./vigencia";
+import {
+  coversFiscalYear,
+  yearFigureRefs,
+  type VigenciaManifest,
+} from "./vigencia";
 import manifest from "../../corpus/manifest.json";
 
 /** The deployed manifest, as the slice vigencia reads. */
 const manifestDocs: VigenciaManifest["documents"] = manifest.documents;
+/** Costa Rica midnight, as an instant: CR is UTC-6 all year. */
+const crMidnight = (date: string) => new Date(`${date}T06:00:00Z`);
 /** Costa Rica midnight opening fiscal year 2027. */
-const IN_2027 = new Date("2027-01-01T06:00:00Z");
+const IN_2027 = crMidnight("2027-01-01");
 /** A manifest with no annual entry: the wire as it was before #505. */
 const NO_ANNUAL: VigenciaManifest = { documents: [] };
 
@@ -710,6 +716,136 @@ describe("retrieve", () => {
         figure.inputs.some((input) => pastIn2027.has(input.docKey)),
       ),
     ).toEqual([]);
+  });
+
+  /**
+   * #518: the same claim for sources that are not annual but state one
+   * year's figures — the consolidated Ley 7092's tramos and créditos, the
+   * CCSS FAQ's rate image. Every `yearFigures` artículo in the deployed
+   * manifest is offered beside an artículo of the same source that states
+   * none, its text carrying the declared evidence as the real chunks do; on
+   * a 2027 clock only the 2027 ones and the neutral ones get through, and in
+   * its own year each listed artículo does.
+   */
+  it("lets no year-figure artículo from another fiscal year through in 2027", async () => {
+    const listed = yearFigureRefs({ documents: manifestDocs });
+    const neutral = [...new Set(listed.map(({ docKey }) => docKey))].map(
+      (docKey) => ({
+        docKey,
+        articulo: "Artículo sin cifras",
+        fiscalYear: 0,
+        evidence: "",
+      }),
+    );
+    const rows = [...listed, ...neutral].map(
+      ({ docKey, articulo, evidence }, index): SearchChunksRow => ({
+        ...ROW,
+        chunk_id: `00000000-0000-0000-0000-${String(index).padStart(12, "0")}`,
+        doc_key: docKey,
+        articulo,
+        content: `${ROW.content} ${evidence}`,
+      }),
+    );
+    const served = async (now: Date) =>
+      (
+        await retrieve("¿cuánto pago de renta?", {
+          client: fakeClient(rows),
+          embedder: fakeEmbedder(),
+          matchCount: rows.length,
+          now,
+        })
+      ).chunks.map((chunk) => `${chunk.docKey} · ${chunk.articulo}`);
+    const label = ({
+      docKey,
+      articulo,
+    }: {
+      docKey: string;
+      articulo: string;
+    }) => `${docKey} · ${articulo}`;
+
+    expect(await served(IN_2027)).toEqual([
+      ...listed.filter((ref) => ref.fiscalYear === 2027).map(label),
+      ...neutral.map(label),
+    ]);
+    for (const ref of listed) {
+      const inItsYear = crMidnight(`${ref.fiscalYear}-06-15`);
+      expect(await served(inItsYear)).toContain(label(ref));
+    }
+  });
+
+  /**
+   * The year bump merges, and deploys, before the production re-crawl can run
+   * (it crawls only merged main). In between, the rows still hold last year's
+   * text under this year's declaration: the text decides, and it is withheld.
+   */
+  it("withholds last year's text under a year bump that merged before the re-crawl", async () => {
+    const bumped: VigenciaManifest = {
+      documents: [
+        {
+          doc_key: "ley-renta",
+          yearFigures: [
+            {
+              articulo: "ARTICULO 34",
+              fiscalYear: 2027,
+              evidence: "a partir del 01 de enero del 2027",
+            },
+          ],
+        },
+      ],
+    };
+    const art34 = (year: number): SearchChunksRow => ({
+      ...ROW,
+      doc_key: "ley-renta",
+      articulo: "ARTICULO 34",
+      content: `ARTICULO 34.- Por cada hijo … a partir del 01 de enero del ${year}`,
+    });
+    const served = async (row: SearchChunksRow) =>
+      (
+        await retrieve("créditos por hijo", {
+          client: fakeClient([row]),
+          embedder: fakeEmbedder(),
+          now: IN_2027,
+          vigencia: bumped,
+        })
+      ).chunks.map((chunk) => chunk.docKey);
+
+    expect(await served(art34(2026))).toEqual([]);
+    expect(await served(art34(2027))).toEqual(["ley-renta"]);
+  });
+
+  it("asks for twice the rows while only a year-figure artículo is out of period", async () => {
+    let seen: Record<string, unknown> | undefined;
+    const result = await retrieve("créditos por hijo", {
+      client: fakeClient(
+        [
+          { ...ROW, doc_key: "ley-renta", articulo: "ARTICULO 34" },
+          { ...ROW, chunk_id: "99999999-9999-9999-9999-999999999999" },
+        ],
+        (args) => {
+          seen = args;
+        },
+      ),
+      embedder: fakeEmbedder(),
+      matchCount: 1,
+      now: IN_2027,
+      vigencia: {
+        documents: [
+          {
+            doc_key: "ley-renta",
+            yearFigures: [
+              {
+                articulo: "ARTICULO 34",
+                fiscalYear: 2026,
+                evidence: "a partir del 01 de enero del 2026",
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(seen?.match_count).toBe(2);
+    expect(result.chunks.map((c) => c.docKey)).toEqual(["ley-10363"]);
   });
 
   it("asks for twice the rows while a source is out of period, and refills the count", async () => {

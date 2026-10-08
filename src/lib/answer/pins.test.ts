@@ -60,6 +60,7 @@ const lookupOf =
 
 const NOTHING_WITHHELD = {
   outOfPeriod: new Set<string>(),
+  yearFigures: new Map(),
   retired: new Set<string>(),
 };
 

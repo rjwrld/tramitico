@@ -49,7 +49,7 @@ tramitico.event {"event":"ask","outcome":"ok","latency":"1s_3s","stages":{"conde
 | `quotaHit`        | `true` / `false`                                                                                                                                                                                                                                                                                                                 | denied because the caller's daily quota was spent (#126)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `quotaReason`     | `subject` / `ip` / `null`                                                                                                                                                                                                                                                                                                        | which counter denied it (#383): `subject` is the caller's own daily quota (a user, or an anonymous IP + browser family), `ip` the anonymous per-IP umbrella every family on one IP shares. Non-null exactly when `quotaHit` is true                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `abort`           | `client` / `deadline` / `null`                                                                                                                                                                                                                                                                                                   | cut short: the client's signal (Detener or a network drop — refunded only if it landed before retrieval began), or the route's own ~50 s deadline expiring before the platform kill (a system failure: `refunded_error` before generation began, `charged_error` after)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `routedCategory`  | `general` `hacienda` `ccss` `ins` `municipal` `registro-nacional` `colegios` `bancos` `meic` `migracion` `mtss` `contadores` / `null`                                                                                                                                                                                            | which institution the honest decline sent the reader to (#264) — non-null exactly on a weak-retrieval decline; `null` on every other ask, the #131 fail-closed decline included. A closed enum from `routing.ts`, derived by a keyword table; never the question. `contadores` (#285) is the one value that is not an institution: the question asked what to charge or which professional to hire                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `routedCategory`  | `general` `hacienda` `ccss` `ins` `municipal` `registro-nacional` `colegios` `bancos` `meic` `migracion` `cosevi` `mtss` `contadores` / `null`                                                                                                                                                                                   | which institution the honest decline sent the reader to (#264) — non-null exactly on a weak-retrieval decline; `null` on every other ask, the #131 fail-closed decline included. A closed enum from `routing.ts`, derived by a keyword table; never the question. `contadores` (#285) is the one value that is not an institution: the question asked what to charge or which professional to hire                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `rerankDrops`     | array of `429` / `4xx` / `5xx` / `other_status` / `timeout` / `network` / `unreadable`, or `null`                                                                                                                                                                                                                                | one entry per rerank reading this ask lost (#466) — the question's, its expansion's or a step sentence's Voyage call; its length is the count. A lost reading is not an error: the answer is built from the readings that came back (all lost → the fused order), so the outcome stays `ok`, but the answer set may differ from the one a clean rerank would have chosen. `[]` when every reading came back; `null` when the rerank never called Voyage (a weak-retrieval decline, an ask that ended before it, `RERANK=off`). The number of readings _asked_ is deliberately absent: it depends on the step family the question classified to, which is a topic                                                                                                                                                                                                     |
 | `rerank`          | `on` / `off`                                                                                                                                                                                                                                                                                                                     | the `RERANK` mode the deployment is configured with (#499), read as `rerank.ts` reads it — so an unknown value is `on`, the mode the pipeline actually runs. Configured, not performed: it tells `RERANK=off` apart from the other ways `rerankDrops` is `null` (no Voyage key, a decline, an ask that ended before the rerank). Production is `on`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `crossReference`  | `appended` / `none` / `failed` / `null`                                                                                                                                                                                                                                                                                          | what the cross-reference append did after the cut (#508, ADR 0024): `appended` one chunk, found `none` to append, or the lookup `failed` (an error, no service client, its 2 s budget — the line `cross-references: lookup failed` names which). `null` when it never ran: a decline, an ask that ended before it, `PIN_CROSS_REFERENCES=off`. Its time, with the derived pin's, is `stages.pin`: one database read on most asks, measured on the local stack at p50 ≈7 ms, p95 ≈14 ms (`pnpm cross-reference-census --timing`, eval/runs/2026-10-07-508/); production adds the Vercel → Supabase hop, which that measurement cannot see. Never which artículo                                                                                                                                                                                                       |
@@ -140,7 +140,7 @@ later in answer generation — this line says only that the search was the pre-e
 | `ask: expansion failed`               | `src/lib/answer/expand.ts`           | `reason=timeout\|error\|unusable`, `error=`                |
 | `rate limit: unavailable`             | `src/lib/rate-limit.ts`              | `error=`                                                   |
 | `[csp-report] violation`              | `src/app/api/csp-report/route.ts`    | `directive=`, `blocked=`, `document=`                      |
-| `config: unknown knob value`          | `src/lib/knobs.ts`                   | `NAME="value"`, the accepted modes, the mode it is read as |
+| `config: unknown knob value`          | `src/lib/knobs.ts`                   | `NAME="value"`, the accepted values, the one it is read as |
 | `cross-references: lookup failed`     | `src/lib/answer/cross-references.ts` | `error=`                                                   |
 
 `rate limit: unavailable` is the whole diagnosis of a 503 (§1.3): the ask never reached the
@@ -149,13 +149,17 @@ telemetry event, so this line and its `error=` token — a `PostgrestError#…`,
 there is. One line per denied ask, so it also counts the blast radius.
 
 `config: unknown knob value` (#499) is an environment variable that switches a pipeline
-stage — `RERANK`, `EXPAND`, `STEPS`, `STEPS_RERANK`, `PIN_DERIVED_INPUTS`, `PIN_CROSS_REFERENCES` — set to a word
-it does not accept. The ask carries on in the variable's default mode, the production
-pipeline, and the line repeats once per cold start until the variable is fixed in Vercel
-and redeployed. Only the exact word `off` (or a listed mode) opts out; `RERANK=on` kept
+stage — `RERANK`, `EXPAND`, `STEPS`, `STEPS_RERANK`, `PIN_DERIVED_INPUTS`, `PIN_CROSS_REFERENCES` (#508) and, since #519,
+`ANSWER_EFFORT` — set to a word it does not accept, or a numeric answer-set knob —
+`ANSWER_TOP_K`, `ANSWER_DOC_CAP` (#519) — set to anything but a positive integer (or `off`,
+for the cap). The ask carries on in the variable's code default, and the line repeats once
+per cold start until the variable is fixed in Vercel and redeployed. For every knob but one
+that default is the production pipeline; `ANSWER_EFFORT`'s is to send no effort, which the
+provider reads as `high`, so a typo there costs production its `low` and its latency (#356).
+A mode knob opts out only on the exact word `off` (or another listed mode); `RERANK=on` kept
 production unreranked from launch to #498 because nothing said so. A value that does not
-look like a mode is reported by its length, never printed: it may be a key pasted into the
-wrong variable.
+look like a mode or a number is reported by its length, never printed: it may be a key
+pasted into the wrong variable.
 
 `[csp-report] violation` carries only what an unauthenticated caller cannot use as a
 channel: a directive name, the blocked load's **origin**, the document's **path**. Anything
@@ -234,7 +238,7 @@ result count over the selected timeline.
 | Q17 | Drafts the output cap cut off             | `"finishReason":"length"` — thinking and answer share `ANSWER_MAX_OUTPUT_TOKENS`; a rise after an effort or model change means the cap, not the model, is declining those asks                                                                                               |
 | Q18 | Asks that lost a rerank reading (#466)    | `"rerankDrops":["` — read the classes off the matching lines; the rate is this over `"rerankDrops":[` (asks whose rerank ran). `429` is Voyage's rate limit, the load #457 measured in eval; a steady share is the case for retrying a rejected reading (#466 requirement 3) |
 | Q19 | Rerank configured off (#499)              | `"rerank":"off"` — zero in production; any match is `RERANK=off` in the environment, deliberate or not                                                                                                                                                                       |
-| Q20 | Knob set to an unknown value (#499)       | `config: unknown knob value` — any match is a misconfigured variable, and the line names it. Fix it in Vercel and redeploy                                                                                                                                                   |
+| Q20 | Knob set to an unknown value (#499, #519) | `config: unknown knob value` — any match is a misconfigured variable, a mode knob (`ANSWER_EFFORT` included: production sets `low`) or a numeric one (`ANSWER_TOP_K`, `ANSWER_DOC_CAP`), and the line names it. Fix it in Vercel and redeploy                                |
 | Q21 | Answers with a false absence claim (#500) | `"absenceClaim":true` — the rate is this over delivered answers (`"outcome":"ok"` plus `"outcome":"degraded"`). It is the production read of what #507's prompt fix moves; a rise after a corpus or prompt change is worth a transcript read                                 |
 | Q22 | Answers with a typo run (#500)            | `"typoRun":true` — a heuristic: read a few answers before calling it a model regression                                                                                                                                                                                      |
 
@@ -286,11 +290,18 @@ Gaceta from late November. CCSS can change an escala at any Junta Directiva sess
 on 1 January. Coverage is counted in whole fiscal years, so add an entry that takes effect
 mid-year only once it does, and retire the one it replaces in the same PR.
 
-**Not caught by the runtime.** The drop is by source. Two sources that are not annual quote a
-year's figures: `ley-renta` (SINALEVI's consolidated Ley 7092: art. 15 carries the 2026 escala for personas
-físicas con actividades lucrativas) and `ccss-faq` (the transcribed `av_tv_2026` image holds the
-January 2026 escalas in colones). Check both in every pass, and re-crawl them once SINALEVI and
-CCSS publish the new year.
+**Year figures in sources that are not annual (#518).** Some artículos of non-annual sources
+state one year's figures: SINALEVI's consolidated Ley 7092 carries the tramos and créditos in
+arts. 15, 33 and 34, and the `ccss-faq` rate answer is the transcribed `av_tv_2026` image. The
+manifest lists them as `yearFigures`, each with its `fiscalYear` and an `evidence` phrase.
+`retrieve()` serves such a chunk only in its declared year **and** only while its own text carries
+that evidence; the rest of the source keeps grounding answers
+([ADR 0016 second amendment](adr/0016-source-freshness-policy.md)). So whichever moves first, the
+manifest or the rows, the chunk is withheld until the other catches up. From 1 December the
+vigencia test warns about each one; from 1 January it warns about each one still declared for a
+past year. Neither turns CI red: the fix waits on SINALEVI and the CCSS, and until then the old
+figure is already out of answers. Ingestion refuses a crawl in which a listed artículo is gone or
+any of its chunks lacks the evidence.
 
 **Steps.**
 
@@ -313,6 +324,50 @@ CCSS publish the new year.
    Retrieval withholds a retired key from the moment the manifest deploys.
 6. Query `documents` for the annual keys and check their `effective_date` and `fetched_at`. Open
    one live answer and one history answer to confirm both sello dates render.
+7. **Year figures, once the publishers move (#518).** The manifest goes first, because
+   `pnpm recrawl` crawls only merged `main` and refuses text that lacks the declared evidence.
+   1. **Notice.** After 1 January the vigencia test names each artículo still declared for last
+      year. Open SINALEVI's ficha for Ley 7092 (`idFichaNorma` 10969) and look for the new tramos
+      decree's note in arts. 15, 33 and 34; for the FAQ, look for the new rate image on the CCSS
+      page. An argument-less quarterly `pnpm recrawl` also stops at `ley-renta` once SINALEVI moves
+      (§2.3).
+   2. **Manifest PR.** Read the new figures against the decree. Set each moved artículo's
+      `fiscalYear` and `evidence` to the new year (the decree note's «a partir del 01 de enero del
+      2027»). For the FAQ, re-transcribe the new image first (#301, #407): its `imageTranscriptions`
+      hash fails the crawl on new bytes. Then set its `fiscalYear` and `evidence` («ENERO 2027»).
+      In the same PR, update the `eval/step-catalogue.json` sentences that quote the year's figures
+      (the salarios mínimos line in T1-B and T1-F, the salario base in T1-I) to the new year's text
+      and colones. They are search inputs only, and from 1 December `steps.test.ts` warns about
+      each one. Merge.
+   3. **Between the merge and the re-crawl,** production holds last year's text under this year's
+      declaration, so those artículos are withheld, not served stale. Seven dataset rows target
+      `ley-renta` arts. 15 and 33 (`renta-persona-fisica-deduccion`, `renta-tramos-2026`,
+      `renta-salario-y-actividad`, `ho-minimo-renta-2026`, `ho-ademas-tengo-salario`,
+      `rb-pill-impuesto-renta`, `rb-corto-tramos-renta`). From 1 January until the re-crawl of
+      the database an eval run reads, they cannot reach those artículos: their reds there are not
+      regressions.
+   4. **Re-crawl** from the main checkout: `pnpm recrawl ley-renta ccss-faq` (just the moved ones).
+      The chunks are served as soon as each document's rows are replaced. Commit
+      `eval/corpus-index.json` if it changed.
+
+   If SINALEVI keeps the old note beside the new one, both phrases are in the text: the re-crawl
+   still ingests, and the declared year decides. A crawl in which one part of an artículo lacks the
+   evidence fails; read that part before declaring it.
+
+8. **Look for new year figures.** Still by hand, because the per-PR test reads the committed
+   corpus index, which holds headings but not text: a re-crawl that adds a year's figure to an
+   artículo nobody listed is invisible to it. On the shared local stack, after the re-crawl:
+
+   ```sql
+   select d.doc_key, c.articulo, c.part
+   from chunks c join documents d on d.id = c.document_id
+   where c.content ~ '(¢|₡) ?[0-9]' and c.content ~ '20[2-9][0-9]'
+   order by 1, 2, 3;
+   ```
+
+   Every row should be an annual source, a listed `yearFigures` artículo, or one the ADR 0016
+   second amendment records as not listed. Add anything else to `yearFigures` (and to the
+   inventory test in `manifest-vigencia.test.ts`) in the same PR.
 
 ### 2.3 Quarterly re-crawl (owner-run, #405)
 
@@ -336,6 +391,17 @@ parsed out of the deploy wizard's env file (never sourced), `INGEST_NO_DOTENV=1`
 `PLAYWRIGHT_BROWSERS_PATH`: the file's other secrets never reach its child processes. Between
 November and January, §2.2 comes first. Close the issue with one line: what ingested, whether the
 corpus changed.
+
+**A year-figure artículo moved (#518).** Once SINALEVI has consolidated a new tramos decree into
+Ley 7092, an argument-less run stops at `ley-renta`, the second manifest entry, because its
+artículos no longer carry the declared evidence (§2.2 step 7), and the documents after it are not
+crawled. Until that manifest PR merges, re-crawl the rest by name:
+
+```
+pnpm recrawl $(node -p 'require("./corpus/manifest.json").documents.map((d) => d.doc_key).filter((k) => k !== "ley-renta").join(" ")')
+```
+
+The same holds for `ccss-faq` once the CCSS replaces its rate image: leave it out of the list too.
 
 **A pinned source changed.** Two checks stop the run instead of ingesting bytes nobody has read.
 Documents ingested before the stop stay written and the corpus-index step does not run, so

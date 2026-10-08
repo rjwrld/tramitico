@@ -305,6 +305,7 @@ function chunk(
 
 const NOTHING_WITHHELD: WithheldSources = {
   outOfPeriod: new Set(),
+  yearFigures: new Map(),
   retired: new Set(),
 };
 
@@ -462,10 +463,34 @@ describe("crossReferencedChunks", () => {
       await crossReferencedChunks([art30], {
         lookup,
         links: LINKS,
-        withheld: { outOfPeriod: new Set(["ley-iva"]), retired: new Set() },
+        withheld: {
+          outOfPeriod: new Set(["ley-iva"]),
+          yearFigures: new Map(),
+          retired: new Set(),
+        },
       }),
     ).toEqual([]);
     expect(asked).toEqual([]);
+  });
+
+  it("does not append an artículo withheld for its year's figure (#518)", async () => {
+    const { lookup } = fakeLookup([art10, art4]);
+    expect(
+      await crossReferencedChunks([art30], {
+        lookup,
+        links: LINKS,
+        withheld: {
+          outOfPeriod: new Set(),
+          yearFigures: new Map([
+            [
+              "ley-iva\u0000Artículo 10" /* vigencia.ts yearFigureKey */,
+              { current: false, evidence: "2026" },
+            ],
+          ]),
+          retired: new Set(),
+        },
+      }),
+    ).toEqual([art4]);
   });
 
   it("logs a failed lookup and appends nothing, without throwing", async () => {
