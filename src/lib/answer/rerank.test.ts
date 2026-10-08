@@ -670,7 +670,7 @@ describe("the total-loss fallback (#510)", () => {
     vi.restoreAllMocks();
   });
 
-  /** Found by the step legs alone, and heading the fused pool. */
+  /** A chunk only the step legs found; the pool below puts two at its head. */
   function stepOnly(id: number): RetrievedChunk {
     return {
       ...chunk(id),

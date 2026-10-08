@@ -1,0 +1,24 @@
+diff --git a/src/lib/answer/rerank.ts b/src/lib/answer/rerank.ts
+index ec02ea6..36e960c 100644
+--- a/src/lib/answer/rerank.ts
++++ b/src/lib/answer/rerank.ts
+@@ -675,7 +675,18 @@ export function answerSetFromOrder(
+ ): RetrievedChunk[] {
+   const topK = answerTopK();
+   const cap = answerDocCap();
+-  const ranked = order ?? fused.map((chunk) => ({ chunk }));
++  // SCRATCH #510 arm 2, never committed: the step legs' full share out.
++  const share = (rank: number | null | undefined) =>
++    rank == null ? 0 : 1 / (60 + rank);
++  const ranked =
++    order ??
++    fused
++      .map((chunk, i) => ({
++        chunk,
++        i,
++        k: chunk.score - share(chunk.stepVectorRank) - share(chunk.stepLexicalRank),
++      }))
++      .sort((a, b) => b.k - a.k || a.i - b.i);
+   const cut = capPerDocument(ranked, topK, cap).map(({ chunk }) => chunk);
+   const taken = new Set(cut.map((chunk) => chunk.chunkId));
+   const fresh = stepPicks.filter(({ chunk }) => !taken.has(chunk.chunkId));

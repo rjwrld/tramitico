@@ -1,0 +1,44 @@
+diff --git a/scripts/tmp-510-dump.ts b/scripts/tmp-510-dump.ts
+new file mode 100644
+index 0000000..c46cdbe
+--- /dev/null
++++ b/scripts/tmp-510-dump.ts
+@@ -0,0 +1,38 @@
++// Throwaway (#510): dump each case's fused pool with leg ranks. Not committed.
++import { existsSync, readFileSync, writeFileSync } from "node:fs";
++import path from "node:path";
++function loadDotEnvLocal(): void {
++  const file = path.resolve(__dirname, "..", ".env.local");
++  if (!existsSync(file)) return;
++  for (const line of readFileSync(file, "utf8").split("\n")) {
++    const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
++    if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2];
++  }
++}
++import { RERANK_POOL } from "../src/lib/answer/rerank";
++import { chunkMatchesTarget, DATASET_PATH, parseDataset, retrievalCases } from "../src/lib/eval/dataset";
++import { rewriteCase, rewritesFromEnv } from "../src/lib/eval/rewrites";
++import { retrieve } from "../src/lib/retrieval";
++async function main() {
++  loadDotEnvLocal();
++  const all = retrievalCases(parseDataset(readFileSync(DATASET_PATH, "utf8")));
++  const rewrites = rewritesFromEnv();
++  const out = [];
++  for (const c of all) {
++    const { query, expander } = await rewriteCase(c, rewrites);
++    const r = await retrieve(query, { matchCount: RERANK_POOL, expander });
++    out.push({
++      id: c.id, tier: c.tier, variant: c.variant ?? null, weak: r.isWeak, steps: r.steps?.family ?? null,
++      expected: c.expected.map((t) => `${t.docKey}/${t.articulo ?? "*"}`),
++      pool: r.chunks.map((ch) => ({
++        label: `${ch.docKey}·${ch.articulo ?? "*"}·#${ch.part}`, doc: ch.docKey, score: ch.score,
++        v: ch.vectorRank, l: ch.lexicalRank, xv: ch.expansionVectorRank ?? null, xl: ch.expansionLexicalRank ?? null,
++        sv: ch.stepVectorRank ?? null, sl: ch.stepLexicalRank ?? null,
++        hits: c.expected.map((t) => chunkMatchesTarget(ch, t)),
++      })),
++    });
++    process.stdout.write(".");
++  }
++  writeFileSync(process.argv[2], JSON.stringify(out));
++}
++main().catch((e) => { console.error(e); process.exit(1); });

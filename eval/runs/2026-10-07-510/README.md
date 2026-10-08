@@ -15,12 +15,15 @@ exported. Both replayed the queries and expansions #502's Haiku 5.5 arm wrote
 both arms cut identical pools and no small model was asked. Pacing was
 `PROBE_CASE_MS=1000`. No provider call failed in any run.
 
-| File               | What it is                                                                                         |
-| ------------------ | -------------------------------------------------------------------------------------------------- |
-| `smoke-current*`   | `EVAL_CASES=ccss-cuanto-pago-base,rb-pill-cuanto-pago-independiente,rb-seguimiento-cuanto-me-toca` |
-| `probe-current*`   | Arm 1: the fallback of record, the fused order                                                     |
-| `probe-step-free*` | Arm 2: the pool re-sorted with the step legs taken out (below), from an uncommitted edit           |
-| `pools-legs.json`  | Every retrieval case's pool with its fused score and six leg ranks, for the offline reads          |
+| File                  | What it is                                                                                                        |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `smoke-current*`      | Arm 1's smoke: `EVAL_CASES=ccss-cuanto-pago-base,rb-pill-cuanto-pago-independiente,rb-seguimiento-cuanto-me-toca` |
+| `probe-current*`      | Arm 1: the fallback of record, the fused order                                                                    |
+| `probe-step-free*`    | Arm 2: the pool re-sorted with the step legs taken out (below)                                                    |
+| `step-free-arm.patch` | The uncommitted edit arm 2 ran on, against this branch's `rerank.ts`                                              |
+| `pools-legs.json`     | Every retrieval case's pool with its fused score and six leg ranks, for the offline reads                         |
+| `dump-pools.patch`    | The throwaway script that wrote `pools-legs.json`, on the same replayed rewrites                                  |
+| `offline-reads.mjs`   | The offline table below, free: `node offline-reads.mjs pools-legs.json`                                           |
 
 ## What arm 2 ran
 
@@ -44,22 +47,30 @@ Route configuration, `top8/capoff/pinon`, outside the robustness block:
 | Fused (current, arm 1)      | **57/93**      | 12/27                 | 61/98          | 63/73     |
 | Step legs taken out (arm 2) | 47/93          | 9/27                  | 62/98          | 65/73     |
 
-- **Tier 1 loses 12 targets and gains 2.** The losses are the step chunks the
-  catalogue exists to carry: `inscripcion-tardia-sancion` 3 → 0,
-  `ccss-pedir-prescripcion-cuotas` 3 → 1, `ho-tiquete-en-vez-de-factura`
-  3 → 1, and one each on `ccss-cese-actividad`, `multa-iva-no-declarado`,
+- **Tier 1 loses 16 targets and gains 6**, net −10. The cases that lose net
+  are the step chunks the catalogue exists to carry:
+  `inscripcion-tardia-sancion` 3 → 0, `ccss-pedir-prescripcion-cuotas` 3 → 1,
+  `ho-tiquete-en-vez-de-factura` 3 → 1, and one each on
+  `ccss-cese-actividad`, `multa-iva-no-declarado`,
   `ho-cliente-espana-lleva-iva`, `ho-iva-en-cero-sin-facturar` and
-  `ho-tambien-asegurado-por-patrono`. The gains are `tramos-renta-2026` on
-  `ho-minimo-renta-2026` and on `ho-ademas-tengo-salario`.
+  `ho-tambien-asegurado-por-patrono`. The cases that gain net take
+  `tramos-renta-2026` (`ho-minimo-renta-2026`, `ho-ademas-tengo-salario`).
+  Three more swap one target for another: `desinscripcion-dejar-actividad`,
+  `ho-trabajitos-por-mi-cuenta`, `ho-desinscribir-debiendo-declaraciones`.
+- **Why the step legs matter here.** On a total loss there are no step picks:
+  `pin1`'s pick comes from the step sentences' rerank readings, which were
+  lost with the rest. The fused order's step legs are then the only way a
+  step chunk reaches the set.
 - **Tier 2 moves the other way, by less.** Rate and article targets the step
   chunks had crowded out come back (`ley-iva` 15, `tramos-renta-2026`,
   `reglamento-iva-bienes-capital` 31, `ley-renta` 5), and step targets go
   (`tribu-cr-faq` RUT on `inscripcion-tribu-cr`, `reglamento-renta` 57,
   `cabys-dev`).
 - **The robustness block** hits 21/27 on the fused order and 19/27 step-free.
-  Its Tier 1 cases lose 7 targets and gain 1: `rb-pill-me-salgo` 3 → 1,
+  Its Tier 1 cases lose 9 targets and gain 3: `rb-pill-me-salgo` 3 → 1,
   `rb-pill-inscribi-tarde` 3 → 0, `rb-tilde-deje-de-trabajr` 2 → 0,
-  `rb-tilde-asegurarme-poquito` 2 → 3.
+  `rb-tilde-asegurarme-poquito` 2 → 3, and `rb-pill-asegurarme-gano-poco`
+  swaps one.
 - **#490 item 1 is not this.** «¿Cuánto pago como independiente?»
   (`rb-pill-cuanto-pago-independiente`) misses all 4 targets on both orders.
   On the fused order its eight places are all step-leg chunks
@@ -74,13 +85,13 @@ From `pools-legs.json`, top 8 with no cap and no derived-figure pin
 (`top8/capoff/pinoff`). The fused row reproduces arm 1's 108/191 for that
 configuration exactly.
 
-| Order                                                        | Targets | Tier 1    | Cases hit |
-| ------------------------------------------------------------ | ------- | --------- | --------- |
-| Fused, as returned                                           | 108/191 | **49/93** | 63/73     |
-| Step legs' full share subtracted (arm 2)                     | 101/191 | 40/93     | 65/73     |
-| Step vector share only subtracted (upper bound on the exact) | 99/191  | 42/93     | 60/73     |
-| Step share apportioned by the lexical legs' common coverage  | 98/191  | 39/93     | 64/73     |
-| Plain RRF over the four ranks, no coverage scaling           | 82/191  | 31/93     | 57/73     |
+| Order                                                         | Targets | Tier 1    | Cases hit |
+| ------------------------------------------------------------- | ------- | --------- | --------- |
+| Fused, as returned                                            | 108/191 | **49/93** | 63/73     |
+| Step legs' full share subtracted (arm 2)                      | 101/191 | 40/93     | 65/73     |
+| Step vector share only subtracted (each score an upper bound) | 99/191  | 42/93     | 60/73     |
+| Step share apportioned by the lexical legs' common coverage   | 98/191  | 39/93     | 64/73     |
+| Plain RRF over the four ranks, no coverage scaling            | 82/191  | 31/93     | 57/73     |
 
 Chunk by chunk, the exact step-free sum lies between the second and third
 rows' scores. The three variants that keep the coverage cost 7–10 Tier 1

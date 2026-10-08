@@ -663,10 +663,11 @@ export async function rerankOrder(
  * The fused order is cut as retrieval returned it, with the step catalogue's
  * legs (#304) weighing as much as the question's and the expansion's. That
  * can make the set step-shaped (#490 item 1), and #510 measured the
- * alternative: the same pools re-sorted with the step legs taken out carried
- * 47 of 93 Tier 1 targets against the fused order's 57, because the chunks
- * they lose are the steps the catalogue exists to carry
- * (eval/runs/2026-10-07-510/). So the fallback stays the fused order.
+ * alternative: the same pools re-sorted with the step legs' share taken out
+ * carried 47 of 93 Tier 1 targets against the fused order's 57. A total loss
+ * has no step picks either, so the step legs are the only way the steps the
+ * catalogue exists to carry reach the set (eval/runs/2026-10-07-510/). The
+ * fallback stays the fused order.
  */
 export function answerSetFromOrder(
   order: readonly RerankedChunk[] | null,

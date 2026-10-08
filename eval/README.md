@@ -3508,9 +3508,11 @@ route's configuration, outside the robustness block:
 | Fused (kept)        | **57/93**      | 61/98          | 63/73     |
 | Step legs taken out | 47/93          | 62/98          | 65/73     |
 
-- Tier 1 loses 12 targets and gains 2. The losses are step chunks: `cnpt`
-  78 and 88 and the salario base on `inscripcion-tardia-sancion`, the
-  `ccss-prescripcion` entries, `reglamento-comprobantes` 4 and 9.
+- Tier 1 loses 16 targets and gains 6. The losses are step chunks, among
+  them `cnpt` 78 and 88 and the salario base on `inscripcion-tardia-sancion`,
+  the `ccss-prescripcion` entries and `reglamento-comprobantes` 4 and 9. On a
+  total loss there is no `pin1` pick, so the step legs are a step chunk's
+  only way into the set.
 - `search_chunks` does not return the coverage that scales a lexical leg, so
   the exact step-free sum cannot be rebuilt in code. The run README brackets
   it offline: the variants that keep the coverage land at 39–42 Tier 1
