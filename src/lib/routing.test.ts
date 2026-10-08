@@ -9,6 +9,7 @@ import {
   MTSS_FACT,
   normaliseQuestion,
   ROUTING,
+  ROUTED_CATEGORIES,
   ROUTING_CATEGORIES,
   routingEntriesFor,
   routingEntry,
@@ -82,6 +83,8 @@ describe("classifyRouting", () => {
     ["¿Cómo me registro como PYME en el MEIC?", "meic"],
     ["¿Puedo trabajar como nómada digital con visa de turista?", "migracion"],
     ["¿Necesito DIMEX para inscribirme?", "migracion"],
+    ["¿Cómo renuevo la licencia de conducir?", "cosevi"],
+    ["¿Dónde saco la licencia de manejo?", "cosevi"],
     ["¿Tengo aguinaldo como freelancer?", "mtss"],
     ["¿Me toca cesantía si me despiden?", "mtss"],
     ["¿Cuánto debería cobrar por hora como programador?", "contadores"],
@@ -140,12 +143,16 @@ describe("classifyRouting", () => {
     expect(
       classifyRouting("¿Tengo que llevar contabilidad de mi actividad?"),
     ).toBe("general");
+    // #503's list is phrase-only: a software licence is not COSEVI's.
+    expect(
+      classifyRouting("¿Cobro IVA si vendo una licencia de software?"),
+    ).toBe("hacienda");
   });
 });
 
 describe("declineAnswer", () => {
   it("opens every variant with the same first sentence", () => {
-    for (const category of [...ROUTING_CATEGORIES, "general"] as const) {
+    for (const category of ROUTED_CATEGORIES) {
       expect(declineAnswer(category).startsWith(DECLINE_OPENING)).toBe(true);
     }
   });
@@ -216,7 +223,7 @@ describe("declineAnswer", () => {
   });
 
   it("carries no apology and no markdown link syntax (DESIGN §9, ADR 0008)", () => {
-    for (const category of [...ROUTING_CATEGORIES, "general"] as const) {
+    for (const category of ROUTED_CATEGORIES) {
       const text = declineAnswer(category);
       expect(text).not.toMatch(/lo sentimos|disculp/i);
       expect(text).not.toMatch(/\]\(/);

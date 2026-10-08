@@ -37,6 +37,25 @@ labels the link «Registro de colegiados», because calling it an official sourc
 the decline itself. Everything else about the decision above holds: no corpus, no encoded rules,
 one table, the same re-crawl.
 
+## Amendment (2026-10-07, [#503](https://github.com/rjwrld/tramitico/issues/503))
+
+The eval had no routed case for migración, INS or driver's licences, and the table had no
+destination for the last: «¿Cómo renuevo la licencia de conducir?» fell to the general decline,
+Hacienda and the CCSS. A twelfth category, `cosevi`, sends it to the Consejo de Seguridad Vial
+(https://www.csv.go.cr), keyed on phrases only, since a bare «licencia» is as often a software
+licence. The eval gained six routed abstention cases, one for each of pasaporte, DIMEX, residencia,
+INS riesgos del trabajo, licencia de conducir and patente comercial. Each case declares the
+category the classifier must give, and a free unit test checks every one.
+
+The same issue asked whether to decline before generation when an out-of-scope keyword hits. The
+answer was no. The classifier still runs only on weak retrieval. An out-of-scope question that
+retrieves well goes to the model, and the prompt's rule 6 routes it from this table. That costs a
+paid call and risks a tangent (the production answer to «¿Cómo renuevo mi pasaporte?» added an
+unrelated CCSS fact). A keyword decline would turn away answerable questions instead: «¿Puedo
+inscribirme en Hacienda con mi DIMEX?» classifies as `migracion`, and `ho-t2-autorizar-contador`
+as `contadores`, because an out-of-scope hit outranks Hacienda vocabulary. The unit test lists such
+cases without failing on them. Revisit when real traffic shows model-path tangents.
+
 ## Consequences
 
 Routing is useful abstention, not partial coverage. A link or a count does not authorize an answer
