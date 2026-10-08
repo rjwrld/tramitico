@@ -337,7 +337,7 @@ export interface WithheldSources {
   /** `annualChurn` entries that do not cover the current fiscal year. */
   outOfPeriod: ReadonlySet<string>;
   /**
-   * Every `yearFigures` artículo, keyed by `yearFigureKey`: whether its
+   * Every `yearFigures` artículo, keyed by `articuloKey`: whether its
    * declared year is the current one, and the evidence a chunk of it must
    * carry to be served (#518).
    */
@@ -362,7 +362,7 @@ export interface ArticuloVigencia {
 }
 
 /** The chunk identity `yearFigures` and `datedFacts` are keyed by. */
-function yearFigureKey(docKey: string, articulo: string | null): string {
+function articuloKey(docKey: string, articulo: string | null): string {
   return `${docKey}\u0000${articulo ?? ""}`;
 }
 
@@ -408,13 +408,13 @@ export function withheldSources(
     ),
     yearFigures: new Map(
       yearFigureRefs(source).map((ref) => [
-        yearFigureKey(ref.docKey, ref.articulo),
+        articuloKey(ref.docKey, ref.articulo),
         { current: isCurrentYear(ref, year), evidence: ref.evidence },
       ]),
     ),
     datedFacts: new Map(
       datedFactRefs(source).map((ref) => [
-        yearFigureKey(ref.docKey, ref.articulo),
+        articuloKey(ref.docKey, ref.articulo),
         { current: holdsOn(ref, now), evidence: ref.evidence },
       ]),
     ),
@@ -451,7 +451,7 @@ export function isWithheld(
   ) {
     return true;
   }
-  const key = yearFigureKey(chunk.docKey, chunk.articulo);
+  const key = articuloKey(chunk.docKey, chunk.articulo);
   return [withheld.yearFigures.get(key), withheld.datedFacts.get(key)].some(
     (declared) =>
       declared !== undefined &&
