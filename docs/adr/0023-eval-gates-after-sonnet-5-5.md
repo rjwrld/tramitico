@@ -183,3 +183,12 @@ In code: `GROUNDEDNESS_BASELINE`, `GROUNDEDNESS_FLOOR`,
 `blockingCaseVerdict` and `labelFailure` in
 `src/lib/eval/groundedness.ts`, asserted by `groundedness.eval.test.ts`.
 SPEC §9 carries the rule.
+
+## Ratchet (2026-10-08, #511)
+
+Both tracked baselines moved up by the rule above, with no new decision. #511's
+baseline lane ([`eval/runs/2026-10-08-baseline/`](../../eval/runs/2026-10-08-baseline/))
+grounded 72 of 74 answers and stated 86 of 116 Tier 1 requirements. So
+`GROUNDEDNESS_BASELINE` is 72 (a lane fails at ≤ 67) and
+`TIER1_REQUIREMENT_BASELINE` is 86 (fails at ≤ 81). The numbers above are
+the ones this ADR decided on; the constants carry the current ones.

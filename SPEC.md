@@ -471,7 +471,7 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   (#267, 2026-09-05; the tables are in `eval/README.md`), then ratchet upward and are never relaxed
   to make a regression pass ([ADR 0015](docs/adr/0015-coverage-tiers-and-required-claims.md)). The
   ratchet rule: a gate is the measured pass rate minus one case, rounded down, never below its
-  previous value. Current gates (closing run, 2026-09-11): hit-rate ≥92% (measured 95.9%, held
+  previous value. Current gates (closing run, 2026-09-11, unless dated otherwise): hit-rate ≥92% (measured 95.9%, held
   at 0.92 by #296 requirement 4), groundedness tracked against a baseline of 72 grounded answers
   of 74 (#511's lane; 68 over 73 before it), failing at ≤ 67 (ADR 0023's #474 amendment; ≥94% from the closing run until then), Tier 1 requirements
   stated tracked against a baseline of 86/116 (#511's lane; 70 before it), failing only on a lane

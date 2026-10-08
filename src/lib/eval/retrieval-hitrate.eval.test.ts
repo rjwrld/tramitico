@@ -458,7 +458,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
   const robustnessFloor = robustnessHitFloor();
   if (robustnessFloor === null) {
     it.todo(
-      "robustness block (#502) holds its hit baseline — #511's lane sets ROBUSTNESS_HIT_BASELINE",
+      "robustness block (#502) holds its hit baseline — ROBUSTNESS_HIT_BASELINE is unset",
     );
   } else {
     it(`robustness block (#502) hits at least ${robustnessFloor} (baseline ${ROBUSTNESS_HIT_BASELINE} − ${ROBUSTNESS_REGRESSION_MARGIN})`, () => {

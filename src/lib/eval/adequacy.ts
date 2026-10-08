@@ -62,11 +62,11 @@ export const ADEQUACY_TIER2_GATE = 0.84;
  * Since ADR 0023 (2026-10-02) the count is a tracked baseline, not a floor to
  * tune toward. The floor of 80 was set on one Sonnet 5 lane (83/116), and no
  * Sonnet 5.5 lane reached it (74, 77, 70) after ≈US$275 of tuning. Each round
- * moved it less than the noise. The baseline is the first full lane on 5.5
- * as shipped (70/116, eval/runs/2026-10-02-full-lane/). A lane more than
- * `TIER1_REGRESSION_MARGIN` below it is a regression and fails. A lane that
- * beats it moves the baseline up, the way `HIT_RATE_GATE` ratchets: #511's
- * baseline lane stated 86/116 (eval/runs/2026-10-08-baseline/), so 86.
+ * moved it less than the noise. The baseline started at the first full lane
+ * on 5.5 as shipped (70/116, eval/runs/2026-10-02-full-lane/). A lane more
+ * than `TIER1_REGRESSION_MARGIN` below it is a regression and fails. A lane
+ * that beats it moves the baseline up, the way `HIT_RATE_GATE` ratchets:
+ * #511's baseline lane stated 86/116 (eval/runs/2026-10-08-baseline/), so 86.
  */
 export const TIER1_REQUIREMENT_BASELINE = 86;
 

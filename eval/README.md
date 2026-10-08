@@ -934,15 +934,16 @@ retrieved chunks?_ A failed item is re-judged twice more and the majority
 verdict stands, absorbing judge flakiness at n≈25 without loosening the gate.
 The gate started at ≥90% per #14 and ratcheted to ≥94% on the 2026 baseline
 (#267, 70/73). Since #474 ([ADR 0023's amendment](../docs/adr/0023-eval-gates-after-sonnet-5-5.md#amendment-2026-10-07-474-groundedness-and-the-blocking-gate))
-it is a **tracked baseline of 68/73, failing at ≤ 63** (`GROUNDEDNESS_BASELINE`,
-`GROUNDEDNESS_FLOOR` in `src/lib/eval/groundedness.ts`). It counts the judges'
+it is a **tracked baseline**, set at 68/73 and ratcheted to **72/74 by #511's
+lane, failing at ≤ 67** (`GROUNDEDNESS_BASELINE`, `GROUNDEDNESS_FLOOR` in
+`src/lib/eval/groundedness.ts`). It counts the judges'
 verdict on each case's first answer, before #500's override, as the 68 was
 measured: seven of that lane's judge passes make a claim the detector now
 calls false, and those fail the zero gate, not the count. A lane that beats
 the baseline raises it. The 68 was read over 73 cases; #503 added
 `t2-inscripcion-dimex`, so the lane counts over 74 (`GROUNDEDNESS_CASES`) and
-the baseline and floor stay absolute counts. #511 is the first read over 74,
-and #512 re-sets the baseline.
+the baseline and floor stay absolute counts. #511 was the first read over 74
+(72), and #512 re-sets the baseline.
 
 A blocking case fails on **2 of 3 answers**. When its first answer fails, the
 lane runs the whole pipeline on it twice more and judges each new answer the
