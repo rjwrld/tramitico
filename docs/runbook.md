@@ -284,11 +284,16 @@ Gaceta from late November. CCSS can change an escala at any Junta Directiva sess
 on 1 January. Coverage is counted in whole fiscal years, so add an entry that takes effect
 mid-year only once it does, and retire the one it replaces in the same PR.
 
-**Not caught by the runtime.** The drop is by source. Two sources that are not annual quote a
-year's figures: `ley-renta` (SINALEVI's consolidated Ley 7092: art. 15 carries the 2026 escala for personas
-físicas con actividades lucrativas) and `ccss-faq` (the transcribed `av_tv_2026` image holds the
-January 2026 escalas in colones). Check both in every pass, and re-crawl them once SINALEVI and
-CCSS publish the new year.
+**Year figures in sources that are not annual (#518).** Some artículos of non-annual sources
+state one year's figures: SINALEVI's consolidated Ley 7092 carries the tramos and créditos in
+arts. 15, 33 and 34, and the `ccss-faq` rate answer is the transcribed `av_tv_2026` image. The
+manifest lists them as `yearFigures`, each with its `fiscalYear` and an `evidence` phrase, and
+`retrieve()` withholds them outside that year while the rest of the source keeps grounding answers
+([ADR 0016 second amendment](adr/0016-source-freshness-policy.md)). From 1 December the vigencia
+test warns about each one; from 1 January it warns about each one still withheld. Neither turns
+CI red: the fix waits on SINALEVI and the CCSS, and until then the old figure is already out of
+answers. Ingestion refuses a crawl in which a listed artículo is gone or no longer carries its
+evidence, so the year cannot move without the text, nor the text without the year.
 
 **Steps.**
 
@@ -311,6 +316,28 @@ CCSS publish the new year.
    Retrieval withholds a retired key from the moment the manifest deploys.
 6. Query `documents` for the annual keys and check their `effective_date` and `fetched_at`. Open
    one live answer and one history answer to confirm both sello dates render.
+7. **Year figures, once the publishers move (#518).** When SINALEVI has consolidated the new tramos
+   decree into Ley 7092, run `pnpm recrawl ley-renta`. It fails on each listed artículo whose text
+   now names the new year: read the new figures against the decree, set that artículo's
+   `fiscalYear` and `evidence` to the new year (the decree note's «a partir del 01 de enero del
+   2027»), and re-run. A text that still names the old year ingests and stays withheld; wait and
+   re-crawl. When the CCSS publishes the new rate image, the `ccss-faq` re-crawl fails first on the
+   `imageTranscriptions` hash: transcribe the new image (#301, #407), then move the FAQ entry's
+   `fiscalYear` and `evidence` («ENERO 2027») with it. Commit `eval/corpus-index.json` if it changed.
+8. **Look for new year figures.** Still by hand, because the per-PR test reads the committed
+   corpus index, which holds headings but not text: a re-crawl that adds a year's figure to an
+   artículo nobody listed is invisible to it. On the shared local stack, after the re-crawl:
+
+   ```sql
+   select d.doc_key, c.articulo, c.part
+   from chunks c join documents d on d.id = c.document_id
+   where c.content ~ '(¢|₡) ?[0-9]' and c.content ~ '20[2-9][0-9]'
+   order by 1, 2, 3;
+   ```
+
+   Every row should be an annual source, a listed `yearFigures` artículo, or one the ADR 0016
+   second amendment records as not listed. Add anything else to `yearFigures` (and to the
+   inventory test in `manifest-vigencia.test.ts`) in the same PR.
 
 ### 2.3 Quarterly re-crawl (owner-run, #405)
 
