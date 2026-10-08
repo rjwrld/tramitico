@@ -33,12 +33,16 @@ import {
 } from "./conflicting-sources";
 import { judgeAnswer, JUDGE_MODEL, type Verdict } from "./groundedness";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
+import { fixtureLane } from "./scoped-lane";
 
 // `describe.runIf` was a silent skip: with no key this suite reported zero
 // tests and the eval lane went green having asserted nothing — the exact
 // failure mode #129 exists to prevent. The shared gate skips locally and
 // *fails*, naming ANTHROPIC_API_KEY, under CI.
-const describeEval = integrationSuite(envPrereqs("ANTHROPIC_API_KEY"));
+// #536: no dataset case lives here, so any `EVAL_CASES` skips this lane.
+const describeEval = fixtureLane(
+  integrationSuite(envPrereqs("ANTHROPIC_API_KEY")),
+);
 const answerModelId = answerModelLabel();
 
 describeEval("conflicting sources (#135)", () => {

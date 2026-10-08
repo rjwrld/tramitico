@@ -19,6 +19,7 @@ import { expect, it, vi } from "vitest";
 vi.setConfig({ testTimeout: 120_000 });
 import type { Database } from "./database.types";
 import { createEmbedder, realEmbedderConfigured } from "./ingestion/embedder";
+import { fixtureLane } from "./eval/scoped-lane";
 import { envPrereqs, integrationSuite } from "./test-support/suite-gate";
 import {
   DEFAULT_MATCH_COUNT,
@@ -42,12 +43,21 @@ const anonKey = process.env.SUPABASE_ANON_KEY;
 // vectors, and the vector leg asserts nothing.
 const REAL_EMBEDDINGS =
   "a real embeddings provider (EMBEDDINGS_PROVIDER + its API key)";
-const describeDb = integrationSuite({
-  ...envPrereqs("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"),
-  [REAL_EMBEDDINGS]: realEmbedderConfigured(),
-});
-const describeGrants = integrationSuite(
-  envPrereqs("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_ANON_KEY"),
+// #536: hand-written queries, no dataset case — any `EVAL_CASES` skips both.
+const describeDb = fixtureLane(
+  integrationSuite({
+    ...envPrereqs("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"),
+    [REAL_EMBEDDINGS]: realEmbedderConfigured(),
+  }),
+);
+const describeGrants = fixtureLane(
+  integrationSuite(
+    envPrereqs(
+      "SUPABASE_URL",
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "SUPABASE_ANON_KEY",
+    ),
+  ),
 );
 
 function serviceClient(): RetrievalRpcClient {

@@ -47,11 +47,12 @@ value, except for `ANSWER_EFFORT`:
 | `EVAL_TRANSCRIPT_DIR`            | `eval/transcripts/`                            | `src/lib/eval/transcript.ts`         |
 | `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites      | `src/lib/eval/rewrites.ts`           |
 
-¹ The groundedness, hit-rate and abstention lanes read it; the others ignore it.
-Each lane scopes to its own cases, and an id it does not run throws before
-the first paid call. Abstention ids therefore go to `abstention.eval.test.ts`
-alone, the rest to the other two: one `EVAL_CASES` mixing both fails every
-lane it is run with.
+¹ Every eval lane reads it (#536, `src/lib/eval/scoped-lane.ts`). A lane runs
+the named ids it holds and skips when it holds none, so the fixture lanes
+(conflicting sources, amending law, adequacy), the census and
+`retrieval.eval.test.ts` skip under any `EVAL_CASES`. One value may mix
+abstention and answerable ids. An id no dataset case carries fails every lane
+before the first paid call.
 
 ² Checked by the owner on 2026-10-08 (#504). The Production value is marked
 Sensitive in Vercel, so it can't be read back. The dashboard shows it added on
@@ -1369,13 +1370,32 @@ worse than no number. Two things prevent it, both loud:
   (`groundedness-<model>-subset-<instant>.jsonl`), so a scoped file cannot be
   mistaken a week later for the full run it sits beside.
 
-An id that matches no case throws **before the first paid call**: a typo that
-silently selected zero cases would print an empty table and spend the money
-anyway. Each lane checks against its own cases, so an abstention id fails the
-groundedness and hit-rate lanes, and any other id fails the abstention lane.
-Since #521 the abstention lane honours `EVAL_CASES` the same way (its
-transcript becomes `abstention-subset-<instant>.jsonl`); before, it ignored
-the variable, and #508 paid for all nine cases to read one.
+An id that matches no case **fails every lane before the first paid call**: a
+typo that silently selected zero cases would print an empty table and spend
+the money anyway. Since #521 the abstention lane honours `EVAL_CASES` the same
+way (its transcript becomes `abstention-subset-<instant>.jsonl`); before, it
+ignored the variable, and #508 paid for all nine cases to read one.
+
+**Every lane honours it (#536).** #536 offered two ways to stop a scoped run
+paying for full lanes: every lane honours `EVAL_CASES` and skips when none of
+its cases are named, or `pnpm test:eval` refuses `EVAL_CASES` unless one lane
+file is named. The first was chosen. A refusal in the package script would
+not reach `pnpm vitest run --project eval`, the form the smoke recipe uses,
+while a decision taken where each lane declares its suite reaches every way
+in. Each `*.eval.test.ts` builds its `describe` as
+`scopedLane(integrationSuite(…), <its cases>)`, or `fixtureLane(…)` when it
+holds no dataset case:
+
+| `EVAL_CASES`                      | the lanes holding a named case    | every other lane                |
+| --------------------------------- | --------------------------------- | ------------------------------- |
+| unset or blank                    | run in full                       | run in full                     |
+| ids the dataset carries           | run those cases; their gates fail | skipped, the suite name says so |
+| any id the dataset does not carry | one failing test naming it        | one failing test naming it      |
+
+So `EVAL_CASES=ho-abs-iva-2027 pnpm test:eval` asks one abstention case and
+nothing else. `src/lib/eval/scoped-lane.test.ts` fails, in the free lane, an
+eval file that declares a suite without the wrapper. The decision itself
+(`laneScope`) is unit-tested in `subset.test.ts`.
 
 ### The six-case read, and what it corrected (#289)
 

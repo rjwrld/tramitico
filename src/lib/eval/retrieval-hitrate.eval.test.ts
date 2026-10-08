@@ -57,6 +57,7 @@ import {
 } from "../answer/rerank";
 import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
+import { scopedLane } from "./scoped-lane";
 import { retrieve, type RetrievedChunk } from "../retrieval";
 import {
   caseHit,
@@ -118,14 +119,19 @@ const REAL_EMBEDDINGS =
 // the key those cases would silently fall back to their raw follow-up
 // ("¿Y si también soy asalariado?"), MISS, and report a retrieval regression
 // that is really a missing credential.
-const describeEval = integrationSuite({
-  ...envPrereqs(
-    "SUPABASE_URL",
-    "SUPABASE_SERVICE_ROLE_KEY",
-    "ANTHROPIC_API_KEY",
-  ),
-  [REAL_EMBEDDINGS]: realEmbedderConfigured(),
-});
+const DATASET = parseDataset(readFileSync(DATASET_PATH, "utf8"));
+// #536: `EVAL_CASES` naming none of this lane's cases skips it.
+const describeEval = scopedLane(
+  integrationSuite({
+    ...envPrereqs(
+      "SUPABASE_URL",
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "ANTHROPIC_API_KEY",
+    ),
+    [REAL_EMBEDDINGS]: realEmbedderConfigured(),
+  }),
+  retrievalCases(DATASET),
+);
 
 function describeChunk(chunk: RetrievedChunk): string {
   return `${chunk.docKey} · ${chunk.articulo ?? "—"}`;
@@ -175,9 +181,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
   // An abstention case has no correct source by construction (#261), so it
   // has nothing to hit and *should* trip the weak-retrieval fallback — the
   // opposite of what every assertion below says. It is judged in its own lane.
-  const allCases = retrievalCases(
-    parseDataset(readFileSync(DATASET_PATH, "utf8")),
-  );
+  const allCases = retrievalCases(DATASET);
   // #303: `EVAL_CASES` scopes this suite the way it scopes groundedness
   // (#289), so a retrieval knob can be read on the cases it was written for
   // before the whole dataset is spent on it. Same rule: every gate below
@@ -201,7 +205,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
   beforeAll(async () => {
     // Before any paid call: an id that names no case is a typo that would
     // otherwise buy an empty table.
-    const cases = selectCases(allCases, subset);
+    const cases = selectCases(allCases, subset, DATASET);
     if (subset !== null) {
       console.log(
         `\n${SUBSET_ENV}: ${cases.length}/${allCases.length} case(s) — ` +

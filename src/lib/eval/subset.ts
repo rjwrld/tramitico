@@ -24,6 +24,11 @@
  *   asserts nothing is the failure mode the gate exists to prevent);
  * - the transcript filename carries `subset`, so the file a later comparison
  *   picks up cannot be mistaken for a full run's.
+ *
+ * And a scoped run must never quietly become a full one (#536): every eval
+ * lane is built through `scopedLane` (`./scoped-lane`), which reads
+ * `laneScope` below and skips a lane none of whose cases were named. The
+ * fixture lanes hold no dataset case, so a scoped run skips them whole.
  */
 import type { EvalCase } from "./dataset";
 
@@ -48,11 +53,12 @@ export function subsetSpec(
 }
 
 /**
- * The cases the run should cover, in dataset order. `cases` is the lane's own
- * population, so an id another lane runs throws here too: each lane is scoped
- * on its own.
+ * The cases the run should cover, in dataset order. `cases` is the
+ * population being scoped; `dataset` is every id that may legitimately be
+ * named, and defaults to `cases`. A lane passes the whole dataset there, so an
+ * id another lane runs is left to that lane rather than thrown on (#536).
  *
- * An id that matches nothing throws, and the message names it: a typo that
+ * An id `dataset` does not carry throws, and the message names it: a typo that
  * silently selected zero cases would produce a run that measured nothing,
  * printed an empty table, and cost the money anyway. Duplicates are collapsed
  * rather than rejected — asking for the same case twice is a shell-loop
@@ -61,20 +67,63 @@ export function subsetSpec(
 export function selectCases(
   cases: readonly EvalCase[],
   ids: readonly string[] | null,
+  dataset: readonly EvalCase[] = cases,
 ): EvalCase[] {
   if (ids === null) return [...cases];
-  const wanted = new Set(ids);
-  const selected = cases.filter((evalCase) => wanted.has(evalCase.id));
-  const found = new Set(selected.map((evalCase) => evalCase.id));
-  const unknown = [...wanted].filter((id) => !found.has(id));
+  const unknown = unknownIds(
+    dataset.map((evalCase) => evalCase.id),
+    ids,
+  );
   if (unknown.length > 0) {
     throw new Error(
-      `${SUBSET_ENV}: no case this lane runs has id ${unknown.join(", ")} — ` +
-        "a typo, or a case another lane runs (abstention cases run only in " +
-        "abstention.eval.test.ts, every other case in the rest)",
+      `${SUBSET_ENV}: no case ${dataset === cases ? "this run covers" : "in the dataset"} ` +
+        `has id ${unknown.join(", ")} — a typo`,
     );
   }
-  return selected;
+  const wanted = new Set(ids);
+  return cases.filter((evalCase) => wanted.has(evalCase.id));
+}
+
+/** The named ids no case in `known` carries, deduplicated, in named order. */
+function unknownIds(
+  known: readonly string[],
+  ids: readonly string[],
+): string[] {
+  const carried = new Set(known);
+  return [...new Set(ids)].filter((id) => !carried.has(id));
+}
+
+/**
+ * What `EVAL_CASES` does to one lane (#536), decided before the lane's suite
+ * is declared, so no lane can spend while scoped unless it was named:
+ *
+ * - `full`: the variable is unset; the lane runs every case and its gates.
+ * - `scoped`: some of the lane's cases are named; it runs those and its gates
+ *   fail, naming the scope.
+ * - `skip`: none of the lane's cases are named — another lane's ids, or a
+ *   fixture lane, which holds no dataset case at all. Nothing runs.
+ * - `unknown`: an id no dataset case carries. Every lane fails before a paid
+ *   call, naming it, rather than any lane running on the rest.
+ */
+export type LaneScope =
+  | { mode: "full" }
+  | { mode: "scoped"; ids: string[] }
+  | { mode: "skip"; ids: string[] }
+  | { mode: "unknown"; ids: string[] };
+
+export function laneScope(
+  laneIds: readonly string[],
+  datasetIds: readonly string[],
+  ids: readonly string[] | null,
+): LaneScope {
+  if (ids === null) return { mode: "full" };
+  const unknown = unknownIds(datasetIds, ids);
+  if (unknown.length > 0) return { mode: "unknown", ids: unknown };
+  const lane = new Set(laneIds);
+  const selected = [...new Set(ids)].filter((id) => lane.has(id));
+  return selected.length === 0
+    ? { mode: "skip", ids: [...new Set(ids)] }
+    : { mode: "scoped", ids: selected };
 }
 
 /**
