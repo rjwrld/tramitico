@@ -176,7 +176,10 @@ Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3))
   current period keeps that true `effective_date` and records the annual check in
   `verifiedForFiscalYear`. At runtime, retrieval drops every chunk from an annual source that
   does not cover the current Costa Rican fiscal year, so next year's source can be ingested
-  beside this year's and takes over on 1 January (ADR 0016 amendment, #505).
+  beside this year's and takes over on 1 January (ADR 0016 amendment, #505). A source that is
+  not annual but states one year's figures in some artículos (the consolidated Ley 7092's
+  tramos, the CCSS FAQ's rate image) lists them as `yearFigures`, and retrieval drops those
+  chunks in every other fiscal year (ADR 0016 second amendment, #518).
 
 ## 4. Ingestion & chunking
 
@@ -191,7 +194,11 @@ Chunking rules ([#4](https://github.com/rjwrld/tramitico/issues/4), prototype on
    overlap; every part keeps the artículo label.
 3. **Cleaning pass (mandatory):** strip SINALEVI nav chrome (`Usted está en la última versión…`,
    `Ficha Artículo N`, version pager) and mso/Word markup. Title blocks become doc metadata,
-   never retrievable chunks. Preamble/considerandos → one chunk tagged `preambulo`.
+   never retrievable chunks. Preamble/considerandos → one chunk tagged `preambulo`. Words the
+   source runs together («dederechos») are split only on the same document's evidence, weighed by
+   what Word's spellchecker said about each token; every ingest prints each split it made and each
+   document's remaining suspicious joins
+   ([#520](https://github.com/rjwrld/tramitico/issues/520), `src/lib/ingestion/word-joins.ts`).
 4. **Unstructured PDFs** (tramos decree): whole-doc chunk; window only if long.
 5. **Structured FAQs:** one question/modal pair per chunk; the visible question is its citation
    label and the category is its path. These chunks are prepared by the declared HTML extractor
