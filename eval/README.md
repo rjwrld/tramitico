@@ -24,28 +24,34 @@ fixed-chunk replays of one prompt read 70–75 on the 2026-10-02 chunks.
 **Knobs.** Every knob is read at call time. Its code default is production's
 value, except for `ANSWER_EFFORT`:
 
-| Variable                         | Default                                       | Where                        |
-| -------------------------------- | --------------------------------------------- | ---------------------------- |
-| `ANSWER_MODEL`                   | `claude-sonnet-5-5`                           | `src/lib/answer/model.ts`    |
-| `ANSWER_EFFORT`                  | unset = no effort sent; **production: `low`** | `model.ts`, Vercel env       |
-| `CONDENSE_MODEL`, `EXPAND_MODEL` | `claude-haiku-5-5`                            | `model.ts`                   |
-| `EXPAND`                         | `on` (needs `ANTHROPIC_API_KEY`)              | `src/lib/answer/expand.ts`   |
-| `STEPS`                          | `on`                                          | `src/lib/answer/steps.ts`    |
-| `STEPS_RERANK`                   | `pin1` (`pin`, `slot`, `max`, `off`)          | `src/lib/answer/rerank.ts`   |
-| `RERANK`                         | `voyage`; `off` = the fused-only order        | `rerank.ts`                  |
-| `RERANK_MODEL`                   | `rerank-2.5-lite`                             | `rerank.ts`                  |
-| `ANSWER_TOP_K`                   | `8`                                           | `rerank.ts`                  |
-| `ANSWER_DOC_CAP`                 | `off`                                         | `rerank.ts`                  |
-| `PIN_DERIVED_INPUTS`             | `on` (since #344)                             | `src/lib/answer/derived.ts`  |
-| `EVAL_CASES`                     | every case; comma-separated ids scope a lane¹ | `src/lib/eval/subset.ts`     |
-| `EVAL_TRANSCRIPT_DIR`            | `eval/transcripts/`                           | `src/lib/eval/transcript.ts` |
-| `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites     | `src/lib/eval/rewrites.ts`   |
+| Variable                         | Default                                        | Where                        |
+| -------------------------------- | ---------------------------------------------- | ---------------------------- |
+| `ANSWER_MODEL`                   | `claude-sonnet-5-5`                            | `src/lib/answer/model.ts`    |
+| `ANSWER_EFFORT`                  | unset = no effort sent; **production: `low`**² | `model.ts`, Vercel env       |
+| `CONDENSE_MODEL`, `EXPAND_MODEL` | `claude-haiku-5-5`                             | `model.ts`                   |
+| `EXPAND`                         | `on` (needs `ANTHROPIC_API_KEY`)               | `src/lib/answer/expand.ts`   |
+| `STEPS`                          | `on`                                           | `src/lib/answer/steps.ts`    |
+| `STEPS_RERANK`                   | `pin1` (`pin`, `slot`, `max`, `off`)           | `src/lib/answer/rerank.ts`   |
+| `RERANK`                         | `voyage`; `off` = the fused-only order         | `rerank.ts`                  |
+| `RERANK_MODEL`                   | `rerank-2.5-lite`                              | `rerank.ts`                  |
+| `ANSWER_TOP_K`                   | `8`                                            | `rerank.ts`                  |
+| `ANSWER_DOC_CAP`                 | `off`                                          | `rerank.ts`                  |
+| `PIN_DERIVED_INPUTS`             | `on` (since #344)                              | `src/lib/answer/derived.ts`  |
+| `EVAL_CASES`                     | every case; comma-separated ids scope a lane¹  | `src/lib/eval/subset.ts`     |
+| `EVAL_TRANSCRIPT_DIR`            | `eval/transcripts/`                            | `src/lib/eval/transcript.ts` |
+| `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites      | `src/lib/eval/rewrites.ts`   |
 
 ¹ The groundedness, hit-rate and abstention lanes read it; the others ignore it.
 Each lane scopes to its own cases, and an id it does not run throws before
 the first paid call. Abstention ids therefore go to `abstention.eval.test.ts`
 alone, the rest to the other two: one `EVAL_CASES` mixing both fails every
 lane it is run with.
+
+² Checked by the owner on 2026-10-08 (#504). The Production value is marked
+Sensitive in Vercel, so it can't be read back. The dashboard shows it added on
+2026-09-29 and never updated since. That is the day #451 ran
+`printf low | vercel env add ANSWER_EFFORT production`. #402's `medium` predates
+it, so don't read the production value from notes older than #451.
 
 The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`)
 accept only the values above. Anything else runs the default and logs
@@ -61,9 +67,12 @@ arm sets it, or the arm measures a configuration production doesn't run.
 **What each suite spends.**
 
 - Answer model plus judges (`JUDGE_MODEL` in `src/lib/eval/groundedness.ts`):
-  groundedness (the bulk of a run), abstention, conflicting-sources and
+  groundedness (the bulk of a run, and where adequacy and Tier 1/Tier 2 are
+  judged, on the lane's own answers), abstention, conflicting-sources and
   amending-law.
-- Judges only, on fixed fixtures: adequacy.
+- Judges only, on fixed fixtures: the adequacy calibration suite
+  (`adequacy.eval.test.ts`), which pins the judges on one hand-written answer
+  pair. It gates no live answer.
 - Embeddings, rerank and expansion only: the retrieval-hitrate and
   `src/lib/retrieval.eval.test.ts` suites.
 - Database read only: dataset-satisfiability.
@@ -1138,11 +1147,19 @@ decline on a case that declares required claims is an adequacy failure**
 without the rule the honest fallback would be a way to score full marks on a
 question the product promised to answer.
 
-Thresholds: **tier 1 is per-case blocking** (100 %, no rate — a strong average
-must never hide a red Tier 1 case), tier 2 is an aggregate
-`ADEQUACY_TIER2_GATE` of 0.8. Both run inside `groundedness.eval.test.ts`,
-which already has the answers, so the gate costs judge calls rather than a
-second pass of the whole pipeline.
+Thresholds, as #130 first set them: **tier 1 per-case blocking** (100 %, no
+rate — a strong average must never hide a red Tier 1 case), tier 2 an aggregate
+`ADEQUACY_TIER2_GATE` of 0.8. Neither holds today:
+
+- **Tier 2:** the closing run ratcheted `ADEQUACY_TIER2_GATE` to **0.84**
+  (`adequacy.ts`; see «The closing run»).
+- **Tier 1:** since [ADR 0023](../docs/adr/0023-eval-gates-after-sonnet-5-5.md),
+  Tier 1 is a tracked baseline of requirements stated, not of cases fully
+  adequate (`TIER1_REQUIREMENT_BASELINE`, `TIER1_REQUIREMENT_FLOOR`; today's
+  values are in the Quick reference). The 27/27 count is reported, not gated.
+
+Both run inside `groundedness.eval.test.ts`, which already has the answers, so
+the gate costs judge calls rather than a second pass of the whole pipeline.
 
 `src/lib/eval/adequacy.eval.test.ts` is the fixture that pins the behavior:
 a hand-written CCSS answer, supported by its fragments and missing the rate,
@@ -1152,7 +1169,7 @@ visible. It needs no database and no embeddings:
 
 ```sh
 ANTHROPIC_API_KEY=<key> \
-pnpm vitest run --disableConsoleIntercept src/lib/eval/adequacy.eval.test.ts
+pnpm vitest run --project eval --disableConsoleIntercept src/lib/eval/adequacy.eval.test.ts
 ```
 
 ### The abstention lane (#261)
