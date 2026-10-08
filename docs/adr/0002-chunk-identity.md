@@ -64,14 +64,14 @@ real artículo 25 resolved to nothing.
 The paragraph-start regex now takes the inline split's rule: a delimiter follows the número
 («.-», «-», «.—», «°.-», «º-», after any ordinal or letter suffix), or the label ends its
 paragraph, which is how fragmented headings arrive before they are rejoined. #237 had already
-put transitorios under the same rule. Over the cached corpus the change moves one label: once
-the reglamento is re-ingested, its Artículo 1 has 6 parts and Artículo 25 is the Capítulo VIII
-chunk alone.
+put transitorios under the same rule. Over the cached corpus the change moves one label, and
+the re-ingest bore it out: the reglamento's Artículo 1 has 6 parts and Artículo 25 is the
+Capítulo VIII chunk alone.
 
 Duplicate labels are no longer accepted silently. A unit test over `eval/corpus-index.json`
 fails on any `(doc_key, artículo)` pair carried under two paths unless `ALLOWED_REPEATED_LABELS`
 (`src/lib/eval/corpus-index.ts`) names it with the source's reason, and on any entry no repeat
 needs. Labels compare by the resolver's own `articuloKey`, so the test calls two labels one
-exactly when the resolver would. The source-real entries are two CCSS FAQ questions published
-under two sections with different answers; reglamento-iva's Artículo 25 stays listed until the
-corpus-index re-dump that follows its re-ingest removes it.
+exactly when the resolver would. The entries are two CCSS FAQ questions published under two
+sections with different answers; reglamento-iva's Artículo 25 was listed only until the
+corpus-index re-dump that followed its re-ingest.

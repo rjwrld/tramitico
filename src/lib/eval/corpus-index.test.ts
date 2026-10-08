@@ -247,8 +247,8 @@ describe("repeated artículo labels (#530)", () => {
   });
 
   // Exactly the allowlist, both ways: a new repeat must be fixed or allowed
-  // with a reason, and an entry the corpus no longer needs must go (the
-  // #530 re-dump removes reglamento-iva's).
+  // with a reason, and an entry the corpus no longer needs must go (#530's
+  // re-dump removed reglamento-iva's).
   it("holds over the committed corpus, allowlist included", () => {
     const committed = parseCorpusIndex(readFileSync(CORPUS_INDEX_PATH, "utf8"));
     const { unallowed, stale } = auditRepeatedLabels(committed);
