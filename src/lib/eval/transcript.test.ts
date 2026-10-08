@@ -105,6 +105,69 @@ describe("transcriptRow", () => {
     });
   });
 
+  it("records no failure label and no re-asks unless the lane gave them (#474)", () => {
+    expect(ROW.groundedness.label).toBeNull();
+    expect(ROW.reasks).toEqual([]);
+  });
+
+  it("records a blocking case's re-asks, each with its own chunks and label (#474)", () => {
+    const row = transcriptRow({
+      evalCase: CASE,
+      query: CASE.question,
+      answer: "Primera [1].",
+      chunks: [chunk({})],
+      derivedFigures: [],
+      groundedness: {
+        verdict: "fail",
+        verdicts: ["fail", "fail", "fail"],
+        reason: "wrong rate",
+        label: { label: "contradiction", reason: "[1] says 10 %" },
+      },
+      citations: { ok: true },
+      adequacy: null,
+      generation: null,
+      rerank: null,
+      checks: null,
+      reasks: [
+        {
+          query: CASE.question,
+          answer: "Segunda [1].",
+          chunks: [chunk({ chunkId: "c9" })],
+          derivedFigures: [],
+          groundedness: { verdict: "pass", verdicts: ["pass"], reason: "" },
+          checks: null,
+          generation: null,
+          rerank: null,
+        },
+      ],
+    });
+    expect(row.groundedness.label).toEqual({
+      label: "contradiction",
+      reason: "[1] says 10 %",
+    });
+    expect(row.reasks).toHaveLength(1);
+    expect(Object.keys(row.reasks[0]).sort()).toEqual([
+      "answer",
+      "checks",
+      "chunks",
+      "derivedFigures",
+      "generation",
+      "groundedness",
+      "query",
+      "rerank",
+    ]);
+    expect(row.reasks[0]).toMatchObject({
+      answer: "Segunda [1].",
+      chunks: [{ marker: 1, chunkId: "c9" }],
+      groundedness: {
+        verdict: "pass",
+        verdicts: ["pass"],
+        reason: "",
+        label: null,
+      },
+    });
+  });
+
   /**
    * The whole point of #289 req. 1 is that "the answer omitted it" and "the
    * chunk was never in the top-8" look identical in the printed table. The

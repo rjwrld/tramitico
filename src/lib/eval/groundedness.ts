@@ -3,7 +3,9 @@
  * assembly, verdict parsing, and judgeAnswer() — the judge → re-judge →
  * majority orchestration the eval uses. The orchestration takes an
  * injectable judgeOnce so the branching stays unit-testable; only the
- * default judgeOnce touches the model.
+ * default judgeOnce touches the model. Since #474 it also holds the gates'
+ * shape — a tracked baseline, the blocking 2-of-3 rule — and the recorded,
+ * ungated label on a failed answer.
  *
  * The question the judge answers: "is this answer supported by the retrieved
  * chunks?" — the same chunks the production route handed the answer model.
@@ -15,13 +17,33 @@ import type { ResolvedDerivedFigure } from "../answer/derived";
 import { formatChunks, formatDerivedFigures } from "../answer/prompt";
 
 /**
- * Blocking gate. Started at ≥90% (#14); the 2026 baseline (#267) measured
- * 70/73 on the beta corpus and set this one case of headroom below it, per
- * the ratchet rule in eval/README.md: measured rate minus one case, rounded
- * down, never below the previous value. Ratchet up as the pipeline improves —
- * never lower.
+ * Groundedness is a tracked baseline, not a rate gate (#474, ADR 0023's
+ * amendment). It started as ≥90% (#14) and ratcheted to ≥94% on the 2026
+ * baseline (#267, 70/73); from 2026-09-24 every full lane sat at 67–70 of
+ * 73, so 69 passed and 68 failed and a run read green or red on one case.
+ * Now a lane counts its grounded answers against the baseline, as Tier 1
+ * does (`TIER1_REQUIREMENT_BASELINE`): 68 of 73, the 2026-10-02 lane.
  */
-export const GROUNDEDNESS_GATE = 0.94;
+export const GROUNDEDNESS_BASELINE = 68;
+
+/**
+ * The cases the baseline counts: every non-abstention case outside the
+ * robustness block. A count means nothing over a different population, so a
+ * dataset change that moves this re-sets the baseline in the same change
+ * (`groundedness.test.ts` reads the dataset).
+ */
+export const GROUNDEDNESS_CASES = 73;
+
+/** Tier 1's margin (#457's ±4), held for the same run-to-run noise. */
+export const GROUNDEDNESS_REGRESSION_MARGIN = 4;
+
+/**
+ * The fewest grounded answers a full lane may score: 64, so a lane at 63 or
+ * below fails. A lane that beats the baseline raises it (the ratchet); #512's
+ * two final lanes re-set it.
+ */
+export const GROUNDEDNESS_FLOOR =
+  GROUNDEDNESS_BASELINE - GROUNDEDNESS_REGRESSION_MARGIN;
 
 /**
  * The judge is pinned, not ANSWER_MODEL: the Sonnet-vs-Haiku comparison only
@@ -202,27 +224,199 @@ export async function judgeAnswer(
   return { verdict: majorityVerdict(verdicts), verdicts, reason };
 }
 
-/** The slice of a judged case the per-case gate reads. */
-export interface BlockingVerdict {
-  evalCase: { id: string; blocking: boolean };
-  verdict: Verdict;
+/**
+ * What a failed answer got wrong, as a second call to the pinned judge reads
+ * it (#474). Recorded in every failing row and never gated: the 2026-10-07
+ * audit split the judges' fails into real errors and strict calls on
+ * reasonable inferences, and the label becomes a gate only if it agrees with a
+ * human read of #512's failures. A call of its own, not a field added to
+ * `JUDGE_SYSTEM_PROMPT`, so the verdicts the baseline counts are asked
+ * exactly as they were when it was measured.
+ */
+export type FailureLabel = "contradiction" | "inference";
+
+export interface FailureLabelling {
+  /** `null` when the call failed or answered out of shape: see `labelFailure`. */
+  label: FailureLabel | null;
   reason: string;
 }
 
+export const FAILURE_LABEL_SYSTEM_PROMPT = `A strict groundedness judge has failed an answer from a Costa Rican tax/trámite assistant. You are given the user question, the numbered official fragments and any system-calculated figures the assistant was allowed to use, the assistant's answer (in Spanish), and the judge's reason for failing it.
+
+Label the failure with exactly one category:
+- "contradiction": the answer says something the fragments contradict or do not contain at all — a wrong or invented figure, monto, porcentaje, plazo or requirement; a citation [n] whose fragment does not say what the adjacent claim says; a URL, office, channel or step that appears in no fragment; or a statement that the fragments lack something they in fact contain.
+- "inference": every fact the judge objected to is in the fragments, and the answer combines, applies or restates them in a way a careful reader could defend, though no fragment says it in those words — including an accurate remark that the fragments do not cover a point.
+
+Read the fragments yourself; do not take the judge's reason as settled.
+
+Respond with only a JSON object, no other text:
+{"label": "contradiction" | "inference", "reason": "<one short sentence>"}`;
+
+/** The judge's prompt, plus the reason the judges failed the answer. */
+export function buildFailureLabelPrompt(
+  question: string,
+  chunks: readonly RetrievedChunk[],
+  answer: string,
+  judgeReason: string,
+  derivedFigures: readonly ResolvedDerivedFigure[] = [],
+): string {
+  return (
+    `${buildJudgePrompt(question, chunks, answer, derivedFigures)}\n\n` +
+    `Motivo del juez:\n${judgeReason}`
+  );
+}
+
+/** The labelling call's JSON, or a throw on anything out of shape. */
+export function parseFailureLabel(text: string): FailureLabelling {
+  const object = firstJsonObject(text);
+  if (object === null) {
+    throw new Error(`label output has no JSON object: ${text.slice(0, 200)}`);
+  }
+  const entry = JSON.parse(object) as { label?: unknown; reason?: unknown };
+  if (entry.label !== "contradiction" && entry.label !== "inference") {
+    throw new Error(`label must be "contradiction" or "inference": ${object}`);
+  }
+  return {
+    label: entry.label,
+    reason: typeof entry.reason === "string" ? entry.reason : "",
+  };
+}
+
+/** One labelling call: the prompt in, the model's raw text out. Injectable. */
+export type LabelOnce = (prompt: string) => Promise<string>;
+
+const realLabelOnce: LabelOnce = async (prompt) => {
+  const { text } = await generateText({
+    model: getJudgeModel(),
+    system: FAILURE_LABEL_SYSTEM_PROMPT,
+    prompt,
+    temperature: JUDGE_TEMPERATURE,
+  });
+  return text;
+};
+
 /**
- * The per-case half of SPEC §9's groundedness rule (#324): «no individually
- * blocking Tier 1 case may fail». The aggregate gate above held 70/73 on the
- * 2026-09-11 closing run while two Tier 1 held-out cases failed unanimously —
- * wrong statements, not missing ones — and the lane passed, because it only
- * asserted the rate. Mirrors the hit-rate lane's shape: every `blocking` case
- * must pass, and a failure is named by id, with the judge's reason, so the
- * eval output says which case and why. Pure, so the filter is unit-tested
- * without a provider.
+ * Labels one failed answer. Unlike the verdict, an error here is recorded
+ * rather than thrown: the label gates nothing, and a full lane is half an
+ * hour of paid calls, so a label the call could not give reads `null`, with
+ * the error as its reason, and the run goes on.
+ */
+export async function labelFailure(
+  question: string,
+  chunks: readonly RetrievedChunk[],
+  answer: string,
+  judgeReason: string,
+  derivedFigures: readonly ResolvedDerivedFigure[] = [],
+  labelOnce: LabelOnce = realLabelOnce,
+): Promise<FailureLabelling> {
+  try {
+    return parseFailureLabel(
+      await labelOnce(
+        buildFailureLabelPrompt(
+          question,
+          chunks,
+          answer,
+          judgeReason,
+          derivedFigures,
+        ),
+      ),
+    );
+  } catch (error) {
+    return { label: null, reason: `not labelled: ${String(error)}` };
+  }
+}
+
+/**
+ * How many more answers the lane asks for a blocking case whose first answer
+ * failed (#474): two, so the case is read on three answers. Over 14
+ * committed full lanes, re-judging the 88 first-judge fails flipped 2 to
+ * pass; the variance is in the answer, so the second and third readings are
+ * new answers, not new judges.
+ */
+export const BLOCKING_REASK_COUNT = 2;
+
+/** One scored answer to a case: the lane's first, or a re-ask. */
+export interface ScoredAnswer {
+  /** After #500's absence gate: a false absence claim has already failed it. */
+  verdict: Verdict;
+  reason: string;
+  /** #500: the answer says the documents lack what the corpus carries. */
+  falseAbsence: boolean;
+}
+
+/** The slice of a judged case the per-case gate reads. */
+export interface BlockingCase {
+  evalCase: { id: string; blocking: boolean };
+  /** The first answer, then its re-asks, in order. */
+  answers: readonly ScoredAnswer[];
+}
+
+/**
+ * Whether the lane re-asks a case: blocking, and its first answer failed on
+ * the judges alone. A false absence claim has already decided the case (see
+ * `blockingCaseVerdict`), so asking again could buy nothing.
+ */
+export function needsReask({ evalCase, answers }: BlockingCase): boolean {
+  const [first] = answers;
+  return (
+    evalCase.blocking &&
+    answers.length === 1 &&
+    first.verdict === "fail" &&
+    !first.falseAbsence
+  );
+}
+
+/**
+ * A blocking case's verdict (#474): it fails when two of its three answers
+ * fail. A first answer that passes is the case's only answer and settles it.
+ *
+ * #500's hard zero wins over the 2-of-3 reading: a false absence claim fails
+ * the case on whichever answer shows it, and is never re-sampled away. Both
+ * rules guard a reader, but a «no está en los documentos» about something the
+ * corpus carries is a wrong statement a deterministic check proved, not a
+ * judge's call that another answer might not repeat.
+ *
+ * Throws on a failing case read without its re-asks, so a lane that forgot
+ * them fails loudly instead of passing the case on one answer.
+ */
+export function blockingCaseVerdict(answers: readonly ScoredAnswer[]): Verdict {
+  if (answers.some((answer) => answer.falseAbsence)) return "fail";
+  const failed = answers.filter((answer) => answer.verdict === "fail").length;
+  if (failed === 0) return "pass";
+  if (answers.length < 1 + BLOCKING_REASK_COUNT) {
+    throw new Error(
+      `a failing blocking case is read on ${1 + BLOCKING_REASK_COUNT} ` +
+        `answers; got ${answers.length}`,
+    );
+  }
+  return failed * 2 > answers.length ? "fail" : "pass";
+}
+
+/**
+ * The per-case half of SPEC §9's groundedness rule (#324): a blocking case
+ * may not fail. The aggregate gate held 70/73 on the 2026-09-11 closing run
+ * while two Tier 1 held-out cases failed unanimously — wrong statements, not
+ * missing ones — and the lane passed, because it only asserted the rate.
+ * Since #474 a case fails on two of three answers (`blockingCaseVerdict`).
+ * A failure is named by id, with the reasons, so the eval output says which
+ * case and why. Pure, so the rule is unit-tested without a provider.
  */
 export function blockingGroundednessFailures(
-  results: readonly BlockingVerdict[],
+  results: readonly BlockingCase[],
 ): string[] {
   return results
-    .filter((r) => r.evalCase.blocking && r.verdict === "fail")
-    .map((r) => `${r.evalCase.id} (${r.reason})`);
+    .filter(
+      (r) => r.evalCase.blocking && blockingCaseVerdict(r.answers) === "fail",
+    )
+    .map(({ evalCase, answers }) => {
+      const absent = answers.findIndex((answer) => answer.falseAbsence);
+      if (absent !== -1) {
+        return `${evalCase.id} (answer ${absent + 1}: ${answers[absent].reason})`;
+      }
+      const failed = answers.filter((answer) => answer.verdict === "fail");
+      return (
+        `${evalCase.id} (${failed.length} of ${answers.length} answers: ` +
+        `${failed.map((answer) => answer.reason).join(" | ")})`
+      );
+    });
 }

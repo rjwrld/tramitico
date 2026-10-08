@@ -9,8 +9,13 @@
  * LLM judge at temperature 0 whether the answer is supported by the
  * retrieved chunks. Failed items are re-judged twice more; the majority
  * verdict stands (absorbs judge flakiness at n≈25 without loosening the
- * gate). Blocking gate: ≥90% pass, ratchet-only — and, since #324, every
- * `blocking` case individually, as SPEC §9 has said since #277.
+ * gate). Since #474 (ADR 0023's amendment) the count of grounded answers is a
+ * tracked baseline that fails below `GROUNDEDNESS_FLOOR`, and every
+ * `blocking` case is read on up to three answers: one whose first answer
+ * fails is asked twice more, and fails on two of the three. A false
+ * corpus-absence claim (#500) fails its case on whichever answer makes it.
+ * Each failure the judges made carries a contradiction/inference label,
+ * recorded and never gated.
  *
  * Env-gated like retrieval-hitrate.eval.test.ts, plus it needs an
  * Anthropic key for the answer + judge calls: skipped locally when any is
@@ -61,7 +66,11 @@ import {
   RERANK_POOL,
   type RerankReadingCount,
 } from "../answer/rerank";
-import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
+import {
+  createEmbedder,
+  realEmbedderConfigured,
+  type Embedder,
+} from "../ingestion/embedder";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import { retrieve, type RetrievedChunk } from "../retrieval";
 import { validateCitations, type CitationVerdict } from "../answer/invariant";
@@ -94,7 +103,7 @@ import {
 } from "./answer-checks";
 import { formatExposureTally, tallyByExposure } from "./exposure";
 import { formatRobustnessLine, splitRobustness } from "./robustness";
-import { rewriteCase, rewritesFromEnv } from "./rewrites";
+import { rewriteCase, rewritesFromEnv, type CaseRewrites } from "./rewrites";
 import {
   selectCases,
   subsetGateFailure,
@@ -108,10 +117,20 @@ import {
   type TranscriptGeneration,
 } from "./transcript";
 import {
+  BLOCKING_REASK_COUNT,
+  blockingCaseVerdict,
   blockingGroundednessFailures,
-  GROUNDEDNESS_GATE,
+  GROUNDEDNESS_BASELINE,
+  GROUNDEDNESS_CASES,
+  GROUNDEDNESS_FLOOR,
+  GROUNDEDNESS_REGRESSION_MARGIN,
   judgeAnswer,
   JUDGE_MODEL,
+  labelFailure,
+  needsReask,
+  type BlockingCase,
+  type FailureLabelling,
+  type ScoredAnswer,
   type Verdict,
 } from "./groundedness";
 
@@ -128,11 +147,13 @@ const describeEval = integrationSuite({
 
 const answerModelId = answerModelLabel();
 
-interface CaseResult {
-  evalCase: EvalCase;
+/** One answer to a case and how it scored: the lane's first, or a re-ask. */
+interface Answered {
   /** The standalone question the pipeline ran (#132) — the case's own, unless
    * it carries `history`. */
   query: string;
+  /** Retrieval was weak and the route's fixed decline stood in (no model call). */
+  weak: boolean;
   /** The chunks the prompt numbered, so a transcript row can resolve `[n]`.
    * Empty on a weak-retrieval decline, which makes no model call. */
   chunks: readonly RetrievedChunk[];
@@ -140,6 +161,11 @@ interface CaseResult {
   /** One entry per judge call: 1 normally, 1 + REJUDGE_COUNT after a fail. */
   verdicts: Verdict[];
   reason: string;
+  /**
+   * #474's label on a failure the judges made — recorded, never gated.
+   * `null` when they passed the answer, one failed only by #500 included.
+   */
+  label: FailureLabelling | null;
   answer: string;
   /**
    * The runtime citation invariant, run over the eval's own answers (#168).
@@ -149,8 +175,6 @@ interface CaseResult {
    * route streams without markers by construction.
    */
   citations: CitationVerdict | null;
-  /** Absent on a case that declares no requiredClaims/requiredSteps. */
-  adequacy: (AdequacyOutcome & { literals: string[] }) | null;
   derivedFigures: ResolvedDerivedFigure[];
   /** `null` on a weak-retrieval decline, which makes no model call. */
   generation: TranscriptGeneration | null;
@@ -161,6 +185,141 @@ interface CaseResult {
    * has already failed `verdict` (`withAbsenceGate`).
    */
   checks: AnswerChecks | null;
+}
+
+interface CaseResult extends Answered {
+  evalCase: EvalCase;
+  /** Absent on a case that declares no requiredClaims/requiredSteps. */
+  adequacy: (AdequacyOutcome & { literals: string[] }) | null;
+  /**
+   * #474: the further answers a blocking case is asked when its first fails
+   * on the judges, scored for groundedness and #500's absence check alone.
+   * Every rate and count in the lane reads the first answer, as the baseline
+   * was measured; only the blocking and absence gates read these.
+   */
+  reasks: Answered[];
+}
+
+/** One answer as #474's blocking rule reads it. */
+function scored(answered: Answered): ScoredAnswer {
+  return {
+    verdict: answered.verdict,
+    reason: answered.reason,
+    falseAbsence: (answered.checks?.absence.falseClaims.length ?? 0) > 0,
+  };
+}
+
+/** A case and every answer it was asked, first to last. */
+function blockingCase(result: CaseResult): BlockingCase {
+  return {
+    evalCase: result.evalCase,
+    answers: [result, ...result.reasks].map(scored),
+  };
+}
+
+/**
+ * The production answer path on one case, then the judges: the route's
+ * pipeline, asked once. The lane calls it for every case, and again for
+ * #474's re-asks.
+ */
+async function answerCase(
+  evalCase: EvalCase,
+  embedder: Embedder,
+  rewrites: Map<string, CaseRewrites> | null,
+): Promise<Answered> {
+  // #132: a case carrying `history` is a follow-up, and the whole pipeline
+  // below — retrieval, rerank, the answer prompt and the judge — sees the
+  // condensed standalone question, exactly as /api/ask does. A case without
+  // history makes no condensation call at all.
+  const { query, expander } = await rewriteCase(evalCase, rewrites);
+  const retrieval = await retrieve(query, {
+    matchCount: RERANK_POOL,
+    embedder,
+    expander,
+  });
+
+  // The production route streams the deterministic honest fallback on weak
+  // retrieval without a model call — no claims, grounded by construction.
+  // (The hit-rate eval separately asserts no legitimate question is weak.)
+  if (retrieval.isWeak) {
+    return {
+      query,
+      weak: true,
+      chunks: [],
+      verdict: "pass",
+      verdicts: [],
+      reason: "weak-retrieval fallback (no model call)",
+      label: null,
+      answer: WEAK_RETRIEVAL_ANSWER,
+      citations: null,
+      derivedFigures: [],
+      generation: null,
+      rerank: null,
+      checks: null,
+    };
+  }
+
+  let rerank: RerankReadingCount | null = null;
+  const chunks = pinDerivedFigureInputs(
+    await rerankChunks(query, retrieval.chunks, {
+      ...rerankOptionsFor(retrieval),
+      onReadings: (count) => {
+        rerank = count;
+      },
+    }),
+    retrieval.chunks,
+  );
+  const derivedFigures = resolveDerivedFigures(chunks);
+  // The route's date (#455), recorded with the answer below.
+  const today = crDate();
+  const {
+    text: answer,
+    finishReason,
+    usage,
+  } = await generateText({
+    model: getAnswerModel(),
+    providerOptions: answerProviderOptions(),
+    maxOutputTokens: ANSWER_MAX_OUTPUT_TOKENS,
+    system: ANSWER_SYSTEM,
+    prompt: buildUserPrompt(query, chunks, { today, derivedFigures }),
+  });
+
+  // Judged against the same question the answer was written for: asking "is
+  // this supported?" about a bare "¿Y si también soy asalariado?" would judge
+  // the condensation, not the groundedness.
+  const judged = await judgeAnswer(
+    query,
+    chunks,
+    answer,
+    undefined,
+    derivedFigures,
+  );
+  // #474: the label reads the judges' failure, before #500's gate can turn a
+  // pass into a fail the judges never made.
+  const label =
+    judged.verdict === "fail"
+      ? await labelFailure(query, chunks, answer, judged.reason, derivedFigures)
+      : null;
+  // #500: a false absence claim is a hard zero, whatever the judge says — it
+  // reads the same fragments the model did, so it cannot see one.
+  const checks = checkAnswer(answer, chunks);
+  return {
+    query,
+    weak: false,
+    chunks,
+    ...withAbsenceGate(judged, checks),
+    label,
+    answer,
+    derivedFigures,
+    generation: {
+      finishReason: generationFinishReason(finishReason),
+      outputTokens: usage.outputTokens ?? null,
+      today,
+    },
+    rerank,
+    checks,
+    citations: validateCitations(answer, chunks.length),
+  };
 }
 
 /**
@@ -201,9 +360,25 @@ function adequacyReason(result: CaseResult): string {
   return parts.join("; ");
 }
 
-/** The lane's results as #500's helpers read them. */
+/**
+ * The lane's results as #500's helpers read them: every scored answer, the
+ * re-asks included, since a false absence claim fails its case on whichever
+ * answer makes it (#474).
+ */
 function checkedCases(results: readonly CaseResult[]): CheckedCase[] {
-  return results.map((r) => ({ id: r.evalCase.id, checks: r.checks }));
+  return results.flatMap((r) => [
+    { id: r.evalCase.id, checks: r.checks },
+    ...r.reasks.map((reask, i) => ({
+      id: `${r.evalCase.id} (re-ask ${i + 1})`,
+      checks: reask.checks,
+    })),
+  ]);
+}
+
+/** A failure's #474 label, for the console. */
+function labelTag(answered: Answered): string {
+  if (answered.label === null) return "";
+  return ` {${answered.label.label ?? "unlabelled"}}`;
 }
 
 describeEval("groundedness (eval/dataset.jsonl)", () => {
@@ -252,107 +427,44 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
     // #457: unset, every case is rewritten live, as the route does it.
     const rewrites = rewritesFromEnv();
     for (const evalCase of cases) {
-      // #132: a case carrying `history` is a follow-up, and the whole
-      // pipeline below — retrieval, rerank, the answer prompt and the judge —
-      // sees the condensed standalone question, exactly as /api/ask does. A
-      // case without history makes no condensation call at all.
-      const { query, expander } = await rewriteCase(evalCase, rewrites);
-      const retrieval = await retrieve(query, {
-        matchCount: RERANK_POOL,
-        embedder,
-        expander,
-      });
-
-      // The production route streams the deterministic honest fallback on
-      // weak retrieval without a model call — no claims, grounded by
-      // construction. (The hit-rate eval separately asserts no legitimate
-      // question is weak.)
-      if (retrieval.isWeak) {
-        results.push({
-          evalCase,
-          query,
-          chunks: [],
-          verdict: "pass",
-          verdicts: [],
-          reason: "weak-retrieval fallback (no model call)",
-          answer: WEAK_RETRIEVAL_ANSWER,
-          citations: null,
-          // …but a decline is never *adequate* on a case that declares
-          // required claims: the satisfiability census says the corpus can
-          // answer it, so declining is a product failure groundedness cannot
-          // see (#261 req. 2).
-          adequacy: requirementsOf(evalCase),
-          derivedFigures: [],
-          generation: null,
-          rerank: null,
-          checks: null,
-        });
-        continue;
-      }
-
-      let rerank: RerankReadingCount | null = null;
-      const chunks = pinDerivedFigureInputs(
-        await rerankChunks(query, retrieval.chunks, {
-          ...rerankOptionsFor(retrieval),
-          onReadings: (count) => {
-            rerank = count;
-          },
-        }),
-        retrieval.chunks,
-      );
-      const derivedFigures = resolveDerivedFigures(chunks);
-      // The route's date (#455), recorded with the answer below.
-      const today = crDate();
-      const {
-        text: answer,
-        finishReason,
-        usage,
-      } = await generateText({
-        model: getAnswerModel(),
-        providerOptions: answerProviderOptions(),
-        maxOutputTokens: ANSWER_MAX_OUTPUT_TOKENS,
-        system: ANSWER_SYSTEM,
-        prompt: buildUserPrompt(query, chunks, { today, derivedFigures }),
-      });
-
-      // Judged against the same question the answer was written for: asking
-      // "is this supported?" about a bare "¿Y si también soy asalariado?"
-      // would judge the condensation, not the groundedness.
-      // #500: a false absence claim is a hard zero, whatever the judge says
-      // — it reads the same fragments the model did, so it cannot see one.
-      const checks = checkAnswer(answer, chunks);
-      const judged = withAbsenceGate(
-        await judgeAnswer(query, chunks, answer, undefined, derivedFigures),
-        checks,
-      );
-      const requirements = judgedRequirements(evalCase);
+      const answered = await answerCase(evalCase, embedder, rewrites);
       const declaresRequirements =
         evalCase.requiredClaims !== undefined ||
         evalCase.requiredSteps !== undefined;
       results.push({
+        ...answered,
         evalCase,
-        query,
-        chunks,
-        ...judged,
-        answer,
-        derivedFigures,
-        generation: {
-          finishReason: generationFinishReason(finishReason),
-          outputTokens: usage.outputTokens ?? null,
-          today,
-        },
-        rerank,
-        checks,
-        citations: validateCitations(answer, chunks.length),
-        adequacy: declaresRequirements
-          ? {
-              ...(await judgeAdequacy(query, requirements, answer)),
-              literals: literalFailures(
-                checkLiterals(answer, evalCase.requiredClaims ?? []),
-              ),
-            }
-          : null,
+        // A decline is never *adequate* on a case that declares required
+        // claims: the satisfiability census says the corpus can answer it, so
+        // declining is a product failure groundedness cannot see (#261 req. 2).
+        adequacy: answered.weak
+          ? requirementsOf(evalCase)
+          : declaresRequirements
+            ? {
+                ...(await judgeAdequacy(
+                  answered.query,
+                  judgedRequirements(evalCase),
+                  answered.answer,
+                )),
+                literals: literalFailures(
+                  checkLiterals(answered.answer, evalCase.requiredClaims ?? []),
+                ),
+              }
+            : null,
+        reasks: [],
       });
+    }
+
+    // #474: a blocking case whose first answer the judges failed is asked
+    // again, BLOCKING_REASK_COUNT times, through the whole pipeline — the
+    // variance is in the answer, not the judge.
+    for (const result of results) {
+      if (!needsReask(blockingCase(result))) continue;
+      for (let i = 0; i < BLOCKING_REASK_COUNT; i++) {
+        result.reasks.push(
+          await answerCase(result.evalCase, embedder, rewrites),
+        );
+      }
     }
 
     // #289 req. 1: the run leaves its answers behind. The printed table says
@@ -374,6 +486,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
               verdict: r.verdict,
               verdicts: r.verdicts,
               reason: r.reason,
+              label: r.label,
             },
             citations: r.citations,
             adequacy:
@@ -387,6 +500,15 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
             generation: r.generation,
             rerank: r.rerank,
             checks: r.checks,
+            reasks: r.reasks.map((reask) => ({
+              ...reask,
+              groundedness: {
+                verdict: reask.verdict,
+                verdicts: reask.verdicts,
+                reason: reask.reason,
+                label: reask.label,
+              },
+            })),
           }),
         ),
         { answerModel: answerModelId, subset: subset !== null },
@@ -407,15 +529,52 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
     const passes = gated.filter((r) => r.verdict === "pass").length;
     console.log(
       `\ngroundedness (answer=${answerModelId}, judge=${JUDGE_MODEL}): ` +
-        `${passes}/${gated.length}`,
+        `${passes}/${gated.length} (baseline ${GROUNDEDNESS_BASELINE}, ` +
+        `floor ${GROUNDEDNESS_FLOOR}; ADR 0023)` +
+        (passes > GROUNDEDNESS_BASELINE && subset === null
+          ? ` — beats the baseline: ratchet GROUNDEDNESS_BASELINE to ${passes}`
+          : ""),
     );
     for (const r of results) {
       const votes = r.verdicts.length > 1 ? ` [${r.verdicts.join("/")}]` : "";
       console.log(
         `  ${r.verdict === "pass" ? "pass" : "FAIL"}${votes}  ${r.evalCase.id}` +
-          (r.verdict === "fail" ? `  — ${r.reason}` : ""),
+          (r.verdict === "fail" ? `${labelTag(r)}  — ${r.reason}` : ""),
       );
+      for (const [i, reask] of r.reasks.entries()) {
+        console.log(
+          `      re-ask ${i + 1}: ${reask.verdict === "pass" ? "pass" : "FAIL"}` +
+            (reask.verdict === "fail"
+              ? `${labelTag(reask)}  — ${reask.reason}`
+              : ""),
+        );
+      }
     }
+
+    // #474's two readings beside the headline: the blocking cases settled on
+    // three answers, and the labels on every failure the judges made.
+    const reasked = gated.filter((r) => r.reasks.length > 0);
+    console.log(
+      `\nblocking cases re-asked (#474, fail on 2 of 3): ${reasked.length}` +
+        (reasked.length > 0
+          ? ` — ${reasked
+              .map(
+                (r) =>
+                  `${r.evalCase.id} ${blockingCaseVerdict(blockingCase(r).answers)}`,
+              )
+              .join(", ")}`
+          : ""),
+    );
+    const labelled = results
+      .flatMap((r) => [r, ...r.reasks])
+      .filter((a) => a.label !== null);
+    const tally = (label: string | null) =>
+      labelled.filter((a) => a.label?.label === label).length;
+    console.log(
+      `failure labels (#474, recorded, not gated): ` +
+        `contradiction ${tally("contradiction")}, inference ${tally("inference")}` +
+        (tally(null) > 0 ? `, unlabelled ${tally(null)}` : ""),
+    );
 
     console.log(
       formatRobustnessLine(
@@ -554,34 +713,44 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
     expect(failed, `citation violations: ${failed.join("; ")}`).toEqual([]);
   });
 
-  it("claims nothing absent that the corpus carries (#500)", () => {
+  it("claims nothing absent that the corpus carries, in any answer (#500, #474)", () => {
     assertFullRun();
     const claims = falseAbsenceFailures(checkedCases(results));
     expect(claims, `false absence claims: ${claims.join("; ")}`).toEqual([]);
   });
 
-  it("every blocking case's answer is supported by its retrieved chunks", () => {
+  it(`no blocking case fails on 2 of its ${1 + BLOCKING_REASK_COUNT} answers (#474)`, () => {
     assertFullRun();
     // SPEC §9: «no individually blocking Tier 1 case may fail». Until #324
     // this lane asserted only the rate below, and the 2026-09-11 closing run
-    // passed it with two Tier 1 held-out cases failing unanimously.
-    const failed = blockingGroundednessFailures(split().gated);
+    // passed it with two Tier 1 held-out cases failing unanimously. Since
+    // #474 a case is read on three answers when its first fails, and a false
+    // absence claim on any of them fails it.
+    const failed = blockingGroundednessFailures(
+      split().gated.map(blockingCase),
+    );
     expect(failed, `ungrounded blocking answers: ${failed.join("; ")}`).toEqual(
       [],
     );
   });
 
-  it(`at least ${GROUNDEDNESS_GATE * 100}% of answers are supported by their retrieved chunks`, () => {
+  it(`grounds at least ${GROUNDEDNESS_FLOOR} of ${GROUNDEDNESS_CASES} answers (baseline ${GROUNDEDNESS_BASELINE} − ${GROUNDEDNESS_REGRESSION_MARGIN}, ADR 0023)`, () => {
     assertFullRun();
     const { gated } = split();
+    // A count means nothing over another population: the dataset grew or
+    // shrank, and the baseline is re-set in that change (#474).
+    expect(
+      gated.length,
+      `the baseline counts ${GROUNDEDNESS_CASES} cases; re-set it for ${gated.length}`,
+    ).toBe(GROUNDEDNESS_CASES);
+    // The first answer only: the baseline was measured on one answer a case.
     const failed = gated
       .filter((r) => r.verdict === "fail")
       .map((r) => `${r.evalCase.id} (${r.reason})`);
-    const passes = gated.length - failed.length;
     expect(
-      passes / gated.length,
+      gated.length - failed.length,
       `ungrounded answers: ${failed.join("; ")}`,
-    ).toBeGreaterThanOrEqual(GROUNDEDNESS_GATE);
+    ).toBeGreaterThanOrEqual(GROUNDEDNESS_FLOOR);
   });
 
   it("ships no answer whose derived figures are incompletely cited", () => {

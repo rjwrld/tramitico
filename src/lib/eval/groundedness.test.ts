@@ -4,18 +4,35 @@
  * re-judge/majority orchestration via an injected judgeOnce. The
  * model-calling eval lives in groundedness.eval.test.ts.
  */
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
 import type { ResolvedDerivedFigure } from "../answer/derived";
 import {
+  DATASET_PATH,
+  isRobustness,
+  parseDataset,
+  retrievalCases,
+} from "./dataset";
+import {
+  BLOCKING_REASK_COUNT,
+  blockingCaseVerdict,
   blockingGroundednessFailures,
+  buildFailureLabelPrompt,
   buildJudgePrompt,
-  GROUNDEDNESS_GATE,
+  FAILURE_LABEL_SYSTEM_PROMPT,
+  GROUNDEDNESS_BASELINE,
+  GROUNDEDNESS_CASES,
+  GROUNDEDNESS_FLOOR,
   judgeAnswer,
   JUDGE_SYSTEM_PROMPT,
+  labelFailure,
   majorityVerdict,
+  needsReask,
+  parseFailureLabel,
   parseJudgeVerdict,
   type JudgeVerdict,
+  type ScoredAnswer,
 } from "./groundedness";
 
 const chunk = (over: Partial<RetrievedChunk> = {}): RetrievedChunk => ({
@@ -222,10 +239,6 @@ describe("judgeAnswer", () => {
 });
 
 describe("judge configuration", () => {
-  it("gates at 90% per SPEC §9", () => {
-    expect(GROUNDEDNESS_GATE).toBeGreaterThanOrEqual(0.9);
-  });
-
   it("instructs the judge to answer with the JSON verdict shape", () => {
     expect(JUDGE_SYSTEM_PROMPT).toContain('"verdict"');
     expect(JUDGE_SYSTEM_PROMPT).toContain('"pass"');
@@ -233,51 +246,236 @@ describe("judge configuration", () => {
   });
 });
 
-describe("blockingGroundednessFailures (#324)", () => {
+describe("the tracked groundedness baseline (#474)", () => {
+  it("is 68 of 73, failing a lane at 63 or below", () => {
+    expect(GROUNDEDNESS_BASELINE).toBe(68);
+    expect(GROUNDEDNESS_CASES).toBe(73);
+    expect(GROUNDEDNESS_FLOOR).toBe(64);
+  });
+
+  it("counts the population the lane gates: no case added without a re-set", () => {
+    // The lane's `gated` set: every non-abstention case outside the
+    // robustness block. A count baseline over a different population reads
+    // as a regression or a gain that is neither.
+    const gated = retrievalCases(
+      parseDataset(readFileSync(DATASET_PATH, "utf8")),
+    ).filter((evalCase) => !isRobustness(evalCase));
+    expect(gated).toHaveLength(GROUNDEDNESS_CASES);
+  });
+});
+
+const answer = (
+  verdict: "pass" | "fail",
+  reason = "",
+  falseAbsence = false,
+): ScoredAnswer => ({ verdict, reason, falseAbsence });
+
+describe("blockingCaseVerdict (#474)", () => {
+  it("reads a failing case on three answers", () => {
+    expect(BLOCKING_REASK_COUNT).toBe(2);
+  });
+
+  it("passes a case whose first answer passed, on that answer alone", () => {
+    expect(blockingCaseVerdict([answer("pass")])).toBe("pass");
+  });
+
+  it("fails a case on two failing answers of three", () => {
+    expect(
+      blockingCaseVerdict([answer("fail"), answer("fail"), answer("pass")]),
+    ).toBe("fail");
+    expect(
+      blockingCaseVerdict([answer("fail"), answer("pass"), answer("fail")]),
+    ).toBe("fail");
+    expect(
+      blockingCaseVerdict([answer("fail"), answer("fail"), answer("fail")]),
+    ).toBe("fail");
+  });
+
+  it("passes a case whose first answer alone failed", () => {
+    expect(
+      blockingCaseVerdict([answer("fail"), answer("pass"), answer("pass")]),
+    ).toBe("pass");
+  });
+
+  it("fails on a false absence claim in any answer, whatever the others read", () => {
+    // #500's hard zero wins over the 2-of-3 reading.
+    expect(blockingCaseVerdict([answer("fail", "", true)])).toBe("fail");
+    expect(
+      blockingCaseVerdict([
+        answer("fail"),
+        answer("pass"),
+        answer("fail", "", true),
+      ]),
+    ).toBe("fail");
+  });
+
+  it("refuses to read a failing case without its re-asks", () => {
+    expect(() => blockingCaseVerdict([answer("fail")])).toThrow(/3 answers/);
+    expect(() => blockingCaseVerdict([answer("fail"), answer("pass")])).toThrow(
+      /got 2/,
+    );
+  });
+});
+
+describe("needsReask (#474)", () => {
+  const read = (blocking: boolean, ...answers: ScoredAnswer[]) => ({
+    evalCase: { id: "c", blocking },
+    answers,
+  });
+
+  it("re-asks a blocking case whose first answer the judges failed", () => {
+    expect(needsReask(read(true, answer("fail")))).toBe(true);
+  });
+
+  it("does not re-ask a pass, a non-blocking case, or one already re-asked", () => {
+    expect(needsReask(read(true, answer("pass")))).toBe(false);
+    expect(needsReask(read(false, answer("fail")))).toBe(false);
+    expect(
+      needsReask(read(true, answer("fail"), answer("fail"), answer("pass"))),
+    ).toBe(false);
+  });
+
+  it("does not re-ask a false absence claim: it has decided the case", () => {
+    expect(needsReask(read(true, answer("fail", "", true)))).toBe(false);
+  });
+});
+
+describe("blockingGroundednessFailures (#324, #474)", () => {
   const judged = (
     id: string,
     blocking: boolean,
-    verdict: "pass" | "fail",
-    reason = "",
-  ) => ({ evalCase: { id, blocking }, verdict, reason });
+    ...answers: ScoredAnswer[]
+  ) => ({ evalCase: { id, blocking }, answers });
 
-  it("names a blocking case that failed, with the judge's reason", () => {
+  it("names a blocking case that failed two of three, with each failing reason", () => {
     expect(
       blockingGroundednessFailures([
-        judged("ho-hacienda-solo-cliente-eeuu", true, "pass"),
+        judged("ho-hacienda-solo-cliente-eeuu", true, answer("pass")),
         judged(
           "ho-minimo-caja-independiente-2026",
           true,
-          "fail",
-          "states 11,66 % as category 1's IVM rate; [6] says 9,91 %",
+          answer("fail", "states 11,66 % as category 1's IVM rate"),
+          answer("pass"),
+          answer("fail", "cites [6] for 9,91 %, which [6] does not carry"),
         ),
-        judged("ho-t2-tipo-de-cambio", false, "fail", "invented discrepancy"),
+        judged("ho-t2-tipo-de-cambio", false, answer("fail", "invented")),
       ]),
     ).toEqual([
-      "ho-minimo-caja-independiente-2026 (states 11,66 % as category 1's IVM rate; [6] says 9,91 %)",
+      "ho-minimo-caja-independiente-2026 (2 of 3 answers: states 11,66 % as " +
+        "category 1's IVM rate | cites [6] for 9,91 %, which [6] does not carry)",
+    ]);
+  });
+
+  it("passes a blocking case that failed on its first answer only", () => {
+    expect(
+      blockingGroundednessFailures([
+        judged(
+          "multa",
+          true,
+          answer("fail", "x"),
+          answer("pass"),
+          answer("pass"),
+        ),
+      ]),
+    ).toEqual([]);
+  });
+
+  it("names the answer that made a false absence claim", () => {
+    expect(
+      blockingGroundednessFailures([
+        judged(
+          "ho-abs",
+          true,
+          answer("fail", "strict call"),
+          answer("pass"),
+          answer(
+            "fail",
+            "false corpus-absence claim (#500): Artículo 10",
+            true,
+          ),
+        ),
+      ]),
+    ).toEqual([
+      "ho-abs (answer 3: false corpus-absence claim (#500): Artículo 10)",
     ]);
   });
 
   it("names every blocking failure, in result order", () => {
     expect(
       blockingGroundednessFailures([
-        judged("b", true, "fail", "second"),
-        judged("a", true, "fail", "first"),
+        judged("b", true, answer("fail", "second", true)),
+        judged("a", true, answer("fail", "first", true)),
       ]),
-    ).toEqual(["b (second)", "a (first)"]);
+    ).toEqual(["b (answer 1: second)", "a (answer 1: first)"]);
   });
 
   it("is empty when only non-blocking cases failed", () => {
     expect(
       blockingGroundednessFailures([
-        judged("t1", true, "pass"),
-        judged("t2-a", false, "fail", "unsupported claim"),
-        judged("t2-b", false, "fail", "unsupported claim"),
+        judged("t1", true, answer("pass")),
+        judged("t2-a", false, answer("fail", "unsupported claim")),
       ]),
     ).toEqual([]);
   });
 
   it("is empty on no results", () => {
     expect(blockingGroundednessFailures([])).toEqual([]);
+  });
+});
+
+describe("failure labels (#474, recorded, never gated)", () => {
+  it("asks for one of the two labels in a JSON object", () => {
+    expect(FAILURE_LABEL_SYSTEM_PROMPT).toContain('"contradiction"');
+    expect(FAILURE_LABEL_SYSTEM_PROMPT).toContain('"inference"');
+    expect(FAILURE_LABEL_SYSTEM_PROMPT).toContain('"label"');
+  });
+
+  it("shows the labeller the judge's material and the judges' reason", () => {
+    const prompt = buildFailureLabelPrompt(
+      "¿Cuánto pago?",
+      [chunk()],
+      "Pagás 11,66 % [1].",
+      "[1] does not carry 11,66 %",
+    );
+    expect(prompt).toContain(
+      buildJudgePrompt("¿Cuánto pago?", [chunk()], "Pagás 11,66 % [1]."),
+    );
+    expect(prompt).toMatch(/Motivo del juez:\n\[1\] does not carry 11,66 %$/);
+  });
+
+  it("parses a label and its reason", () => {
+    expect(
+      parseFailureLabel(
+        '```json\n{"label": "inference", "reason": "restates [2]"}\n```',
+      ),
+    ).toEqual({ label: "inference", reason: "restates [2]" });
+  });
+
+  it("rejects an unknown label", () => {
+    expect(() => parseFailureLabel('{"label": "minor"}')).toThrow(/label/);
+  });
+
+  it("returns the labeller's reading", async () => {
+    await expect(
+      labelFailure("q", [chunk()], "a", "why", [], () =>
+        Promise.resolve('{"label": "contradiction", "reason": "wrong rate"}'),
+      ),
+    ).resolves.toEqual({ label: "contradiction", reason: "wrong rate" });
+  });
+
+  it("records a failed call as no label rather than throwing", async () => {
+    await expect(
+      labelFailure("q", [chunk()], "a", "why", [], () =>
+        Promise.reject(new Error("overloaded")),
+      ),
+    ).resolves.toEqual({
+      label: null,
+      reason: "not labelled: Error: overloaded",
+    });
+    await expect(
+      labelFailure("q", [chunk()], "a", "why", [], () =>
+        Promise.resolve("no idea"),
+      ),
+    ).resolves.toMatchObject({ label: null });
   });
 });
