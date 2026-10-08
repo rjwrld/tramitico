@@ -176,7 +176,10 @@ Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3))
   current period keeps that true `effective_date` and records the annual check in
   `verifiedForFiscalYear`. At runtime, retrieval drops every chunk from an annual source that
   does not cover the current Costa Rican fiscal year, so next year's source can be ingested
-  beside this year's and takes over on 1 January (ADR 0016 amendment, #505).
+  beside this year's and takes over on 1 January (ADR 0016 amendment, #505). A source that is
+  not annual but states one year's figures in some artículos (the consolidated Ley 7092's
+  tramos, the CCSS FAQ's rate image) lists them as `yearFigures`, and retrieval drops those
+  chunks in every other fiscal year (ADR 0016 second amendment, #518).
 
 ## 4. Ingestion & chunking
 

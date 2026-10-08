@@ -67,6 +67,7 @@ import { fetchPdfSource } from "../src/lib/ingestion/pdf";
 import { pdfImageNotice } from "../src/lib/ingestion/pdf-images";
 import { retireDocuments } from "../src/lib/ingestion/replace";
 import type { DeepLinkKind } from "../src/lib/retrieval";
+import type { YearFigure } from "../src/lib/vigencia";
 import {
   articuloAnchors,
   fetchNorma,
@@ -138,6 +139,13 @@ interface ManifestDoc {
   annualChurn?: boolean;
   /** Current fiscal year verified for an unchanged, older effective date. */
   verifiedForFiscalYear?: number;
+  /**
+   * Artículos of a source that is not annual but states one fiscal year's
+   * figures (#518): retrieval withholds them in every other year, and
+   * `ingestChunks` refuses a crawl in which one is missing or no longer
+   * carries its evidence.
+   */
+  yearFigures?: YearFigure[];
   /** Source-gated arithmetic made available to answer assembly (#263). */
   derivedFigures?: DerivedFigure[];
   /** Chunking overrides for documents with no artículo structure of their own. */
