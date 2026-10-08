@@ -24,6 +24,7 @@
 import { expect, it } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
+import { fixtureLane } from "./scoped-lane";
 import {
   checkLiterals,
   judgeAdequacy,
@@ -33,7 +34,10 @@ import {
 import type { EvalCase } from "./dataset";
 import { judgeAnswer } from "./groundedness";
 
-const describeEval = integrationSuite(envPrereqs("ANTHROPIC_API_KEY"));
+// #536: no dataset case lives here, so any `EVAL_CASES` skips this lane.
+const describeEval = fixtureLane(
+  integrationSuite(envPrereqs("ANTHROPIC_API_KEY")),
+);
 
 const QUESTION = "¿Cuánto tengo que pagarle a la Caja como independiente?";
 

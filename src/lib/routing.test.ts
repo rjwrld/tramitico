@@ -65,7 +65,7 @@ describe("classifyRouting", () => {
   });
 
   it.each([
-    ["¿Necesito patente municipal para trabajar desde mi casa?", "municipal"],
+    ["¿Me piden patente para vender desde el apartamento?", "municipal"],
     ["¿Cuánto pago de bienes inmuebles en Escazú?", "municipal"],
     [
       "¿Tengo que pagar riesgos del trabajo al INS siendo independiente?",
@@ -88,7 +88,7 @@ describe("classifyRouting", () => {
     ["¿Tengo aguinaldo como freelancer?", "mtss"],
     ["¿Me toca cesantía si me despiden?", "mtss"],
     ["¿Cuánto debería cobrar por hora como programador?", "contadores"],
-    ["¿Qué contador me recomienda?", "contadores"],
+    ["¿Conoce un contador de confianza?", "contadores"],
   ])("routes %s to %s", (question, category) => {
     expect(classifyRouting(question)).toBe(category);
   });

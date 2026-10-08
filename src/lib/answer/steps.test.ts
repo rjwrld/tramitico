@@ -201,7 +201,7 @@ describe("classifyFamily (#304)", () => {
   });
 
   it("is null when nothing in the question names a family", () => {
-    expect(classifyFamily("¿Qué contador me recomienda?")).toBeNull();
+    expect(classifyFamily("¿Conoce un contador de confianza?")).toBeNull();
     expect(classifyFamily("")).toBeNull();
   });
 
@@ -218,7 +218,7 @@ describe("classifyFamily (#304)", () => {
   it("gives a tie to the later family — the situation, not the obligation", () => {
     // Inscription (T1-A) and lateness (T1-I), one hit each: the step the
     // reader needs is how to regularise the sanction.
-    expect(classifyFamily("Me inscribí un año tarde, ¿qué me pasa?")).toBe(
+    expect(classifyFamily("Hice la inscripción tarde, ¿qué sigue?")).toBe(
       "T1-I",
     );
   });
@@ -233,14 +233,16 @@ describe("classifyFamily (#304)", () => {
 
 describe("stepProbe (#304)", () => {
   it("returns the family and its sentences, as a copy", () => {
-    const probe = stepProbe("¿Me puedo desinscribir si debo declaraciones?");
+    const probe = stepProbe(
+      "¿Puedo desinscribirme con declaraciones pendientes?",
+    );
     expect(probe?.family).toBe("T1-H");
     expect(probe?.sentences).toEqual(STEP_CATALOGUE["T1-H"].steps);
     expect(probe?.sentences).not.toBe(STEP_CATALOGUE["T1-H"].steps);
   });
 
   it("is null for a question of no family", () => {
-    expect(stepProbe("¿Qué contador me recomienda?")).toBeNull();
+    expect(stepProbe("¿Conoce un contador de confianza?")).toBeNull();
   });
 });
 

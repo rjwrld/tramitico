@@ -1295,7 +1295,7 @@ describe("retrieve", () => {
 
     it("sends each sentence and its embedding beside the question's", async () => {
       let seen: Record<string, unknown> | undefined;
-      const result = await retrieve("¿Y dónde me afilio?", {
+      const result = await retrieve("¿Y en qué oficina me afilio?", {
         client: fakeClient([ROW], (args) => {
           seen = args;
         }),
@@ -1305,7 +1305,7 @@ describe("retrieve", () => {
 
       expect(seen).toMatchObject({
         // Without its question word: the lexical leg's text (#509).
-        query_text: "¿Y me afilio?",
+        query_text: "¿Y en oficina me afilio?",
         query_embedding: "[0.5,0.5,0.5]",
         step_texts: ["Dónde se afilia.", "Cuándo se paga la cuota."],
         step_embeddings: ["[0.5,0.5,0.5]", "[0.5,0.5,0.5]"],
@@ -1319,7 +1319,7 @@ describe("retrieve", () => {
       vi.stubEnv("STEPS", "");
       let seen: Record<string, unknown> | undefined;
       const on = await retrieve(
-        "¿Me puedo desinscribir si debo declaraciones?",
+        "¿Puedo desinscribirme con declaraciones pendientes?",
         {
           client: fakeClient([ROW], (args) => {
             seen = args;
@@ -1332,7 +1332,7 @@ describe("retrieve", () => {
 
       vi.stubEnv("STEPS", "off");
       const off = await retrieve(
-        "¿Me puedo desinscribir si debo declaraciones?",
+        "¿Puedo desinscribirme con declaraciones pendientes?",
         {
           client: fakeClient([ROW], (args) => {
             seen = args;
@@ -1368,7 +1368,7 @@ describe("retrieve", () => {
           return [0.5, 0.5, 0.5];
         },
       };
-      const result = await retrieve("¿Y dónde me afilio?", {
+      const result = await retrieve("¿Y en qué oficina me afilio?", {
         client: fakeClient([ROW], (args) => {
           seen = args;
         }),
@@ -1387,7 +1387,7 @@ describe("retrieve", () => {
     });
 
     it("maps the step ranks onto the chunk", async () => {
-      const result = await retrieve("¿Y dónde me afilio?", {
+      const result = await retrieve("¿Y en qué oficina me afilio?", {
         client: fakeClient([
           { ...ROW, step_vector_rank: 2, step_lexical_rank: null },
         ]),
@@ -1411,7 +1411,7 @@ describe("retrieve", () => {
         step_vector_rank: 1,
         step_lexical_rank: 1,
       };
-      const result = await retrieve("¿Y dónde me afilio?", {
+      const result = await retrieve("¿Y en qué oficina me afilio?", {
         client: fakeClient([catalogueOnly]),
         embedder: fakeEmbedder(),
         steps: { probe: () => probe },
@@ -1421,7 +1421,7 @@ describe("retrieve", () => {
 
       // Nor on the degraded path, where "the reader's own words matched"
       // is the whole test.
-      const degraded = await retrieve("¿Y dónde me afilio?", {
+      const degraded = await retrieve("¿Y en qué oficina me afilio?", {
         client: fakeClient([catalogueOnly]),
         embedder: failingEmbedder(new Error("voyage 503")),
         steps: { probe: () => probe },
@@ -1434,7 +1434,7 @@ describe("retrieve", () => {
   describe("the expansion legs (#286)", () => {
     it("sends the rewrite and its embedding beside the question's", async () => {
       let seen: Record<string, unknown> | undefined;
-      const result = await retrieve("Me inscribí un año tarde, ¿qué me pasa?", {
+      const result = await retrieve("Hice la inscripción tarde, ¿qué sigue?", {
         client: fakeClient([ROW], (args) => {
           seen = args;
         }),
@@ -1445,7 +1445,7 @@ describe("retrieve", () => {
       });
 
       expect(seen).toMatchObject({
-        query_text: "Me inscribí un año tarde, ¿ me pasa?",
+        query_text: "Hice la inscripción tarde, ¿ sigue?",
         query_embedding: "[0.5,0.5,0.5]",
         expansion_text: "Omisión de la declaración de inscripción",
         expansion_embedding: "[0.5,0.5,0.5]",

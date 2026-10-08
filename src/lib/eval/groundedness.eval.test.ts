@@ -72,6 +72,7 @@ import {
   type Embedder,
 } from "../ingestion/embedder";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
+import { scopedLane } from "./scoped-lane";
 import { retrieve, type RetrievedChunk } from "../retrieval";
 import { validateCitations, type CitationVerdict } from "../answer/invariant";
 import {
@@ -139,14 +140,19 @@ import {
 
 const REAL_EMBEDDINGS =
   "a real embeddings provider (EMBEDDINGS_PROVIDER + its API key)";
-const describeEval = integrationSuite({
-  ...envPrereqs(
-    "SUPABASE_URL",
-    "SUPABASE_SERVICE_ROLE_KEY",
-    "ANTHROPIC_API_KEY",
-  ),
-  [REAL_EMBEDDINGS]: realEmbedderConfigured(),
-});
+const DATASET = parseDataset(readFileSync(DATASET_PATH, "utf8"));
+// #536: `EVAL_CASES` naming none of this lane's cases skips it.
+const describeEval = scopedLane(
+  integrationSuite({
+    ...envPrereqs(
+      "SUPABASE_URL",
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "ANTHROPIC_API_KEY",
+    ),
+    [REAL_EMBEDDINGS]: realEmbedderConfigured(),
+  }),
+  retrievalCases(DATASET),
+);
 
 const answerModelId = answerModelLabel();
 
@@ -413,9 +419,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
   // Abstention cases have no correct source and must not be answered at all;
   // they are judged in their own lane (`abstention.eval.test.ts`), not by a
   // judge asking whether their answer was supported.
-  const allCases = retrievalCases(
-    parseDataset(readFileSync(DATASET_PATH, "utf8")),
-  );
+  const allCases = retrievalCases(DATASET);
   // #289: `EVAL_CASES` scopes the run to the cases someone named, so the
   // transcript that settles a classification costs cents instead of the whole
   // dataset. Read here and *asserted on* below — a scoped run measures no rate
@@ -440,7 +444,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
   beforeAll(async () => {
     // Before any paid call: an id that names no case is a typo that would
     // otherwise buy an empty table.
-    const cases = selectCases(allCases, subset);
+    const cases = selectCases(allCases, subset, DATASET);
     if (subset !== null) {
       console.log(
         `\n${SUBSET_ENV}: ${cases.length}/${allCases.length} case(s) — ` +

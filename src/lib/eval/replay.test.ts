@@ -14,7 +14,7 @@ function evalCase(overrides: Partial<EvalCase>): EvalCase {
   return {
     id: "ho-iva-en-cero-sin-facturar",
     seed: "held-out:T1-D",
-    question: "¿Tengo que presentar el IVA en cero si no facturé este mes?",
+    question: "¿Declaro el IVA aunque este mes no vendí nada?",
     expected: [{ docKey: "ley-iva" }],
     blocking: false,
     tier: 1,
@@ -38,8 +38,8 @@ function row(overrides: Partial<TranscriptRow>): TranscriptRow {
     variant: "coloquial",
     seed: "held-out:T1-D",
     heldOut: true,
-    question: "¿Tengo que presentar el IVA en cero si no facturé este mes?",
-    query: "¿Tengo que presentar el IVA en cero si no facturé este mes?",
+    question: "¿Declaro el IVA aunque este mes no vendí nada?",
+    query: "¿Declaro el IVA aunque este mes no vendí nada?",
     answer: "Sí [1].",
     chunks: [
       {
