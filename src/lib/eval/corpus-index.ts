@@ -76,6 +76,71 @@ export function collidingEntries(index: CorpusIndex): CorpusIndexEntry[] {
   return index.entries.filter((entry) => entry.chunks !== entry.parts);
 }
 
+/**
+ * A label a document carries under two paths, where the source really does
+ * (#530). Each needs its reason: the guard below exists because a repeated
+ * label is usually a chunking bug, not a quirk of the source.
+ */
+export interface AllowedRepeatedLabel {
+  docKey: string;
+  articulo: string;
+  reason: string;
+}
+
+export const ALLOWED_REPEATED_LABELS: readonly AllowedRepeatedLabel[] = [
+  {
+    docKey: "ccss-faq",
+    articulo:
+      "¿Qué hago si voy a salir del país por un periodo de tiempo mayor a tres meses?",
+    reason:
+      "CCSS asks it under «Seguro voluntario» and «Trabajador Independiente» and answers it differently in each (identical answers are deduped, #301); dataset targets pick one with pathIncludes",
+  },
+  {
+    docKey: "ccss-faq",
+    articulo: "¿Si me atraso en el pago debo pagar intereses?",
+    reason:
+      "CCSS asks it under «Seguro voluntario» and «Trabajador Independiente» and answers it differently in each (identical answers are deduped, #301)",
+  },
+  {
+    docKey: "reglamento-iva",
+    articulo: "Artículo 25",
+    reason:
+      "TEMPORARY until the #530 re-ingest: the chunker read a wrapped reference in Artículo 1 inciso 30 as a heading. The source numbers one Artículo 25; the corpus-index re-dump PR deletes this entry",
+  },
+];
+
+/** Lowercase, unaccented, single-spaced: «quáter» and «quater» are one label. */
+function foldLabel(label: string): string {
+  return label
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * The `(docKey, articulo)` labels carried under more than one path, in index
+ * order (#530). A citation names a label, not a path, and #508's
+ * cross-reference resolver refuses a label two artículos share, so one
+ * mislabelled chunk costs every reference to the real artículo. Labels are
+ * compared folded, the way the resolver's lookup matches them; unlabelled
+ * entries and an artículo's parts are not repeats.
+ */
+export function repeatedLabels(
+  index: CorpusIndex,
+): { docKey: string; articulo: string }[] {
+  const seen = new Map<string, { docKey: string; articulo: string }>();
+  const repeated = new Map<string, { docKey: string; articulo: string }>();
+  for (const { docKey, articulo } of index.entries) {
+    if (articulo === null) continue;
+    const key = JSON.stringify([docKey, foldLabel(articulo)]);
+    if (seen.has(key)) repeated.set(key, seen.get(key)!);
+    else seen.set(key, { docKey, articulo });
+  }
+  return [...repeated.values()];
+}
+
 /** Distinct triples in a deterministic order, so a re-dump of an unchanged
  * corpus produces a byte-identical file and only real drift shows in a diff. */
 export function buildCorpusIndex(

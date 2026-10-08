@@ -20,6 +20,7 @@ import { beforeAll, expect, it } from "vitest";
 import { serviceClient } from "../supabase/service";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import {
+  ALLOWED_REPEATED_LABELS,
   buildCorpusIndex,
   type CensusChunk,
   collidingEntries,
@@ -27,6 +28,7 @@ import {
   describeEntry,
   fetchCorpusChunks,
   parseCorpusIndex,
+  repeatedLabels,
 } from "./corpus-index";
 import { DATASET_PATH, parseDataset } from "./dataset";
 import {
@@ -69,6 +71,20 @@ describeEval("eval dataset targets are satisfiable by the corpus", () => {
     expect(
       collisions.map(describeEntry),
       "chunks sharing one (docKey, articulo, path, part) citation",
+    ).toEqual([]);
+  });
+
+  // The table-level twin of the per-PR repeated-label check (#530).
+  it("carries no label under two paths unless the source does", () => {
+    const allowed = new Set(
+      ALLOWED_REPEATED_LABELS.map((a) => `${a.docKey} · ${a.articulo}`),
+    );
+    const repeated = repeatedLabels(
+      buildCorpusIndex(chunks, new Date().toISOString()),
+    ).map(({ docKey, articulo }) => `${docKey} · ${articulo}`);
+    expect(
+      repeated.filter((label) => !allowed.has(label)),
+      "labels carried under two paths and not in ALLOWED_REPEATED_LABELS",
     ).toEqual([]);
   });
 
