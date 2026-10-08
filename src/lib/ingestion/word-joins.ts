@@ -29,7 +29,8 @@
  * must be a Spanish one-letter word («y», «o», «a»), an enclitic pronoun
  * never splits off its verb («cobrarse»), an accented interrogative stays
  * with its word («porqué»), two content words split only when both halves
- * are long or a camelCase seam marks the join («ZonaFranca»), and a phrase
+ * are long and the first is not a word-building prefix («dominiopleno», not
+ * «parauniversitaria»), and a phrase
  * split needs more than a three-letter remainder («quedan» is not «que
  * dan»), unless that remainder is a function word itself («delos»). Three
  * real words read as two function words, and are named outright: «porque»,
@@ -38,19 +39,20 @@
 import { decodeHTML } from "entities";
 
 const WORD_RE = /\p{L}+(?:-\p{L}+)*/gu;
-const ENTITY_RE = /(&#?\w+;)/;
 const SPAN_RE = /^<(\/?)span\b([^>]*)>$/i;
 const FLAG_RE = /\bclass\s*=\s*["']?(SpellE|GramE)\b/i;
 
 /**
  * Closed-class words that run into a neighbour in the corpus: articles,
- * prepositions, conjunctions and a few determiners.
+ * prepositions, conjunctions and a few determiners. «para», «sobre» and
+ * «entre» are left out: Spanish builds words with them («parauniversitaria»,
+ * «sobretasa», «entrelazar»), so a seam after one is no evidence of a slip.
  */
 const FUNCTION_WORDS = new Set(
   (
-    "a al como con cuya cuyas cuyo cuyos de del e el en entre esta estas " +
-    "este estos la las lo los no o otra otras otro otros para por que se " +
-    "según sin sobre su sus u un una y"
+    "a al como con cuya cuyas cuyo cuyos de del e el en esta estas este " +
+    "estos la las lo los no o otra otras otro otros por que se según sin " +
+    "su sus u un una y"
   ).split(" "),
 );
 
@@ -70,6 +72,18 @@ const INTERROGATIVES = new Set([
 ]);
 
 const ONE_LETTER_WORDS = new Set(["a", "e", "o", "u", "y"]);
+
+/**
+ * Spanish builds words on these («parauniversitaria», «agroindustrialización»),
+ * so two content words never split after one: the first half is a prefix,
+ * not a word the typist forgot to space.
+ */
+const WORD_BUILDING_PREFIXES = new Set(
+  (
+    "agro ante anti auto contra entre extra infra inter micro multi para " +
+    "semi sobre super tele ultra"
+  ).split(" "),
+);
 
 /** Real words that read as two function words the document also writes spaced. */
 const NOT_JOINS = new Set(["conque", "porque", "quede"]);
@@ -119,8 +133,9 @@ function textEvidence(text: string): {
 }
 
 /**
- * A function word glued to a word the document otherwise writes after it,
- * spaced: «debienes» → «de bienes». Shared by the repair and the report.
+ * A function word glued to a word the document otherwise writes beside it,
+ * spaced: «debienes» → «de bienes», «plazode» → «plazo de». Shared by the
+ * repair and the report.
  */
 function phraseSeam(
   token: string,
@@ -128,17 +143,29 @@ function phraseSeam(
 ): number | null {
   const lower = token.toLowerCase();
   if (NOT_JOINS.has(lower)) return null;
-  let best: { at: number; score: number } | null = null;
-  for (const prefix of FUNCTION_WORDS) {
-    if (prefix.length === 1 || !lower.startsWith(prefix)) continue;
-    const rest = lower.slice(prefix.length);
-    if (rest.length < 4 && !(rest.length > 1 && FUNCTION_WORDS.has(rest))) {
-      continue;
+  const seams: number[] = [];
+  for (const word of FUNCTION_WORDS) {
+    if (word.length === 1) continue;
+    const rest = lower.slice(word.length);
+    if (
+      lower.startsWith(word) &&
+      (rest.length >= 4 || (rest.length > 1 && FUNCTION_WORDS.has(rest))) &&
+      !INTERROGATIVES.has(rest)
+    ) {
+      seams.push(word.length);
     }
-    if (INTERROGATIVES.has(rest)) continue;
-    const score = pairs.get(pairKey(prefix, rest)) ?? 0;
+    // Trailing: the head must be a word of its own length, and a pronoun
+    // after a verb is an enclitic («cobrarse»), not a slip.
+    const head = lower.length - word.length;
+    if (lower.endsWith(word) && head >= 4 && !ENCLITICS.has(word)) {
+      seams.push(head);
+    }
+  }
+  let best: { at: number; score: number } | null = null;
+  for (const at of seams) {
+    const score = pairs.get(pairKey(lower.slice(0, at), lower.slice(at))) ?? 0;
     if (score >= MIN_PHRASE && (!best || score > best.score)) {
-      best = { at: prefix.length, score };
+      best = { at, score };
     }
   }
   return best?.at ?? null;
@@ -154,7 +181,7 @@ function vocabularySeam(
   words: ReadonlyMap<string, number>,
 ): number | null {
   const lower = token.toLowerCase();
-  let best: { score: number; at: number } | null = null;
+  let best: { at: number; score: number } | null = null;
   for (let at = 1; at < token.length; at++) {
     const left = lower.slice(0, at);
     const right = lower.slice(at);
@@ -163,20 +190,18 @@ function vocabularySeam(
     const functionSeam =
       FUNCTION_WORDS.has(left) ||
       (FUNCTION_WORDS.has(right) && !ENCLITICS.has(right));
-    const camelSeam =
-      /\p{Ll}/u.test(token[at - 1]) &&
-      /\p{Lu}/u.test(token[at]) &&
-      left.length >= 3 &&
-      right.length >= 3;
-    const contentSeam = left.length >= 4 && right.length >= 4;
-    if (!functionSeam && !camelSeam && !contentSeam) continue;
+    const contentSeam =
+      left.length >= 4 &&
+      right.length >= 4 &&
+      !WORD_BUILDING_PREFIXES.has(left);
+    if (!functionSeam && !contentSeam) continue;
     // Where several seams qualify («dela»: «de la» or «del a»), the one whose
     // rarer half the document uses most wins.
     const score = Math.min(
       words.get(left) ?? Infinity,
       words.get(right) ?? Infinity,
     );
-    if (!best || score > best.score) best = { score, at };
+    if (!best || score > best.score) best = { at, score };
   }
   return best?.at ?? null;
 }
@@ -251,13 +276,9 @@ function spacePunctuation(text: string): string {
     .replace(/(?<=\p{Ll})\.(?=\p{Lu})/gu, ". ");
 }
 
-/** Apply `fix` to the text between entities, never to an entity itself. */
-function outsideEntities(text: string, fix: (s: string) => string): string {
-  return text
-    .split(ENTITY_RE)
-    .map((piece, i) => (i % 2 === 1 ? piece : fix(piece)))
-    .join("");
-}
+/** Text back into markup, for `htmlToParagraphs` to decode a second time. */
+const escapeText = (text: string) =>
+  text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 /**
  * Word-export HTML with the joins the document gives evidence for repaired;
@@ -267,19 +288,22 @@ export function repairWordJoins(html: string): string {
   const { parts, nodes } = walk(html);
   const evidence = evidenceOf(nodes);
   for (const node of nodes) {
-    parts[node.index] = outsideEntities(node.text, (piece) =>
-      (node.spell || node.grammar ? spacePunctuation(piece) : piece).replace(
-        WORD_RE,
-        (word) => splitJoinedWord(word, evidence, node.spell) ?? word,
-      ),
+    // Decoded first, so «t&iacute;tulo» is read as the one word it is.
+    const text = decodeHTML(node.text);
+    const repaired = (
+      node.spell || node.grammar ? spacePunctuation(text) : text
+    ).replace(
+      WORD_RE,
+      (word) => splitJoinedWord(word, evidence, node.spell) ?? word,
     );
+    if (repaired !== text) parts[node.index] = escapeText(repaired);
   }
   return parts.join("");
 }
 
 /**
- * Tokens in extracted text that still read as a function word glued to the
- * next word, by the same phrase evidence the repair uses. Reads only text,
+ * Tokens in extracted text that still read as a function word glued to a
+ * neighbour, by the same phrase evidence the repair uses. Reads only text,
  * so it covers every document kind, PDFs included. The texts are read as one
  * run, as the repair reads its document: SINALEVI paragraphs break at the
  * source's line ends, mid-sentence, and a pair split there still counts.
@@ -294,19 +318,63 @@ export function suspiciousJoins(texts: readonly string[]): string[] {
   return found.sort();
 }
 
-/** The ingest report's line for one document: a count, and samples when any. */
+/**
+ * Spanish words this long are rare enough to read by eye: #520's survey used
+ * the same cut, and found «empresasconsolidadoras» beside the legitimate
+ * «agroindustrialización».
+ */
+const LONG_WORD = 19;
+
+/**
+ * Distinct words of `LONG_WORD` letters or more. The second count is the
+ * report's check on the first: it shares no rule with the repair, so it
+ * catches the joins the phrase evidence cannot vouch for.
+ */
+export function longWords(texts: readonly string[]): string[] {
+  const { tokens } = textEvidence(texts.join("\n"));
+  return [...tokens.keys()]
+    .filter((word) => !word.includes("-") && [...word].length >= LONG_WORD)
+    .sort();
+}
+
+/** How many of each list the report line names before it summarises. */
+const SAMPLES = 12;
+
+function sample(words: readonly string[]): string {
+  const more =
+    words.length > SAMPLES ? `, … ${words.length - SAMPLES} more` : "";
+  return `${words.slice(0, SAMPLES).join(", ")}${more}`;
+}
+
+/** The ingest report's line for one document. */
+export interface WordJoinNotice {
+  /** `warn` when a function-word join got through; `info` otherwise. */
+  level: "info" | "warn";
+  message: string;
+}
+
+/**
+ * Both counts for one document, naming the words behind each. Only a
+ * function-word join warns: the long words are a list to read, and a
+ * legitimate one («agroindustrialización») would otherwise warn forever.
+ */
 export function wordJoinNotice(
   docKey: string,
   texts: readonly string[],
-): { level: "info" | "warn"; message: string } {
+): WordJoinNotice {
   const joins = suspiciousJoins(texts);
-  if (joins.length === 0) {
-    return { level: "info", message: `${docKey}: 0 suspicious word joins` };
+  const long = longWords(texts);
+  const lines = [
+    `${docKey}: ${joins.length} suspicious word join${joins.length === 1 ? "" : "s"}, ${long.length} word${long.length === 1 ? "" : "s"} of ${LONG_WORD}+ letters (#520)`,
+  ];
+  if (joins.length > 0) {
+    lines.push(
+      `    joins (a function word run into its neighbour, which lexical search cannot match): ${sample(joins)}`,
+    );
   }
-  const shown = joins.slice(0, 12).join(", ");
-  const more = joins.length > 12 ? `, … ${joins.length - 12} more` : "";
+  if (long.length > 0) lines.push(`    long: ${sample(long)}`);
   return {
-    level: "warn",
-    message: `${docKey}: ${joins.length} suspicious word join${joins.length === 1 ? "" : "s"} — a function word run into the next word, which lexical search cannot match (#520): ${shown}${more}`,
+    level: joins.length > 0 ? "warn" : "info",
+    message: lines.join("\n"),
   };
 }

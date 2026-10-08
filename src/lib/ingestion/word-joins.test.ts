@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { htmlToParagraphs } from "./extract";
 import {
   type JoinEvidence,
+  longWords,
   repairWordJoins,
   splitJoinedWord,
   suspiciousJoins,
@@ -103,6 +104,8 @@ describe("splitJoinedWord", () => {
     dominio: 2,
     pleno: 3,
     mas: 9,
+    para: 9,
+    universitaria: 2,
   });
 
   it("splits a flagged token into two words the document uses", () => {
@@ -132,6 +135,10 @@ describe("splitJoinedWord", () => {
     expect(splitJoinedWord("plenomas", words, true)).toBeNull();
   });
 
+  it("never splits a word built on a prefix", () => {
+    expect(splitJoinedWord("parauniversitaria", words, true)).toBeNull();
+  });
+
   it("splits an unflagged token only on the document's own phrase", () => {
     const phrase = evidence(
       { bienes: 9, bajo: 3 },
@@ -142,6 +149,16 @@ describe("splitJoinedWord", () => {
     expect(splitJoinedWord("delos", phrase, false)).toBe("de los");
     // Nobody writes «de bajo»: «debajo» is a word.
     expect(splitJoinedWord("debajo", phrase, false)).toBeNull();
+  });
+
+  it("splits a function word off the end on the same evidence", () => {
+    const phrase = evidence(
+      {},
+      { "plazo de": 7, "cobrar se": 3 },
+      { plazode: 1, cobrarse: 1 },
+    );
+    expect(splitJoinedWord("plazode", phrase, false)).toBe("plazo de");
+    expect(splitJoinedWord("cobrarse", phrase, false)).toBeNull();
   });
 
   it("needs the phrase twice, a remainder over three letters, and a rare token", () => {
@@ -191,6 +208,15 @@ describe("repairWordJoins", () => {
     );
   });
 
+  it("reads a word across an entity, and escapes what it writes back", () => {
+    const html =
+      "<p>del T&iacute;tulo I y del T&iacute;tulo II</p>" +
+      "<p><span lang=EN-US>vigencia delT&iacute;tulo &amp; otros</span></p>";
+    const repaired = repairWordJoins(html);
+    expect(repaired).toContain("vigencia del Título &amp; otros");
+    expect(htmlToParagraphs(repaired)).toContain("vigencia del Título & otros");
+  });
+
   it("counts a phrase that crosses a span boundary", () => {
     const html =
       "<p>venta <span lang=ES>de</span> bienes; compra de <b>bienes</b></p>" +
@@ -199,12 +225,33 @@ describe("repairWordJoins", () => {
   });
 });
 
+describe("longWords", () => {
+  it("lists distinct words of 19 letters or more, accents counted once", () => {
+    expect(
+      longWords([
+        "empresasconsolidadoras y agroindustrialización; administración",
+        "empresasconsolidadoras",
+      ]),
+    ).toEqual(["agroindustrialización", "empresasconsolidadoras"]);
+  });
+});
+
 describe("wordJoinNotice", () => {
-  it("reports zero quietly", () => {
+  it("reports zeros quietly", () => {
     expect(wordJoinNotice("ley-iva", ["de bienes y de bienes"])).toEqual({
       level: "info",
-      message: "ley-iva: 0 suspicious word joins",
+      message:
+        "ley-iva: 0 suspicious word joins, 0 words of 19+ letters (#520)",
     });
+  });
+
+  it("lists long words without warning", () => {
+    const notice = wordJoinNotice("ley-iva", ["la agroindustrialización"]);
+    expect(notice.level).toBe("info");
+    expect(notice.message.split("\n")).toEqual([
+      "ley-iva: 0 suspicious word joins, 1 word of 19+ letters (#520)",
+      "    long: agroindustrialización",
+    ]);
   });
 
   it("warns with the count and the joins it found", () => {
@@ -214,9 +261,11 @@ describe("wordJoinNotice", () => {
       "contratos de los socios; debienes y delos",
     ]);
     expect(notice.level).toBe("warn");
-    expect(notice.message).toMatch(
-      /^reglamento-iva: 2 suspicious word joins .*#520\): debienes, delos$/,
+    const [head, joins] = notice.message.split("\n");
+    expect(head).toBe(
+      "reglamento-iva: 2 suspicious word joins, 0 words of 19+ letters (#520)",
     );
+    expect(joins).toMatch(/: debienes, delos$/);
   });
 
   it("caps the samples it names", () => {
@@ -225,8 +274,10 @@ describe("wordJoinNotice", () => {
       (_, i) => `palabra${"x".repeat(i)}`,
     );
     const text = words.flatMap((w) => [`de ${w}`, `de ${w}`, `de${w}`]);
-    const notice = wordJoinNotice("doc", [text.join(" ")]);
-    expect(notice.message).toMatch(/^doc: 14 suspicious word joins/);
-    expect(notice.message).toMatch(/, … 2 more$/);
+    const [head, joins] = wordJoinNotice("doc", [text.join(" ")]).message.split(
+      "\n",
+    );
+    expect(head).toMatch(/^doc: 14 suspicious word joins/);
+    expect(joins).toMatch(/, … 2 more$/);
   });
 });
