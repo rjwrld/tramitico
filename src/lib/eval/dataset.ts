@@ -39,6 +39,7 @@
  */
 import path from "node:path";
 import type { ConversationTurn } from "../answer/contract";
+import { ROUTING_CATEGORIES, type RoutedCategory } from "../routing";
 
 export const DATASET_PATH = path.join(process.cwd(), "eval", "dataset.jsonl");
 
@@ -101,6 +102,14 @@ export type Variant = (typeof VARIANTS)[number] | typeof ROBUSTNESS;
 export const ROBUSTNESS_SEED_PREFIX = "robustez:";
 
 /**
+ * The provenance of #503's cases: the routed abstentions written for the
+ * institutions the set did not cover, and the answerable question beside them
+ * that a keyword decline would wrongly route. Written after the #267
+ * baseline, so neither held out nor part of the corpus-derived suite.
+ */
+export const ROUTING_SEED = "routing";
+
+/**
  * One thing the answer must say. Written short and verifiable, because a
  * judge reads it one at a time: "la tarifa general del IVA es 13 %", not "the
  * answer explains IVA".
@@ -127,8 +136,8 @@ export interface EvalCase {
   /**
    * Provenance: "appendix-a:<n>" (a SPEC Appendix A seed, numbered by Tier 1
    * family since #264), "demand:<family>" (the demand taxonomy of #254),
-   * "held-out:<family>" (#261 Part B), "corpus", or "robustez:<case id>" (a
-   * robustness case and the case it re-asks, #502).
+   * "held-out:<family>" (#261 Part B), "corpus", "robustez:<case id>" (a
+   * robustness case and the case it re-asks, #502), or "routing" (#503).
    */
   seed: string;
   question: string;
@@ -176,6 +185,13 @@ export interface EvalCase {
   abstainIf?: string;
   /** The institution or professional an abstention must name and route to. */
   routeTo?: string;
+  /**
+   * What `classifyRouting` must make of the question (#503): the category the
+   * deterministic decline links when retrieval comes back weak. Required on
+   * an abstention case, absent elsewhere — an answerable case has no decline
+   * to route. `routeTo` is the judge's prose for the same destination.
+   */
+  routedCategory?: RoutedCategory;
   /**
    * docKeys whose figures the answer depends on — the ones that go stale on a
    * decree cycle. Read by the freshness half of the trust contract, not by
@@ -239,6 +255,20 @@ function parseVariant(where: string, raw: unknown): Variant | undefined {
     throw new Error(`${where}: variant must be one of ${accepted.join(", ")}`);
   }
   return raw as Variant;
+}
+
+function parseRoutedCategory(
+  where: string,
+  raw: unknown,
+): RoutedCategory | undefined {
+  if (raw === undefined) return undefined;
+  const accepted: readonly string[] = [...ROUTING_CATEGORIES, "general"];
+  if (typeof raw !== "string" || !accepted.includes(raw)) {
+    throw new Error(
+      `${where}: routedCategory must be one of ${accepted.join(", ")}`,
+    );
+  }
+  return raw as RoutedCategory;
 }
 
 function parseOptionalString(where: string, raw: unknown): string | undefined {
@@ -361,6 +391,7 @@ export function parseDataset(jsonl: string): EvalCase[] {
       requiredSteps?: unknown;
       abstainIf?: unknown;
       routeTo?: unknown;
+      routedCategory?: unknown;
       freshness?: unknown;
     };
     const family = parseFamily(where, coverage.family);
@@ -386,6 +417,7 @@ export function parseDataset(jsonl: string): EvalCase[] {
       coverage.abstainIf,
     );
     const routeTo = parseOptionalString(`${where}: routeTo`, coverage.routeTo);
+    const routedCategory = parseRoutedCategory(where, coverage.routedCategory);
 
     // Checked, not coerced: the old `entry.blocking === true` read any
     // non-`true` value as false, which would quietly swallow a hand-written
@@ -451,6 +483,14 @@ export function parseDataset(jsonl: string): EvalCase[] {
       if (routeTo === undefined) {
         throw new Error(`${where}: an abstention case needs routeTo`);
       }
+      // The deterministic half of the same promise (#503): what the decline
+      // links when the case never reaches the model, checked for free by
+      // `routing-dataset.test.ts`.
+      if (routedCategory === undefined) {
+        throw new Error(`${where}: an abstention case needs routedCategory`);
+      }
+    } else if (routedCategory !== undefined) {
+      throw new Error(`${where}: only an abstention case has a routedCategory`);
     }
 
     cases.push({
@@ -472,6 +512,7 @@ export function parseDataset(jsonl: string): EvalCase[] {
       ...(requiredSteps === undefined ? {} : { requiredSteps }),
       ...(abstainIf === undefined ? {} : { abstainIf }),
       ...(routeTo === undefined ? {} : { routeTo }),
+      ...(routedCategory === undefined ? {} : { routedCategory }),
       ...(freshness === undefined ? {} : { freshness }),
       notes: typeof entry.notes === "string" ? entry.notes : undefined,
     });

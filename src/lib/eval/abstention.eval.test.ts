@@ -10,9 +10,12 @@
  *
  * It runs the same production path as the groundedness gate — condense,
  * retrieve, rerank, answer — because *how* the pipeline declines is the thing
- * under test: usually `retrieval.isWeak` short-circuits to the deterministic
- * fallback, but a question whose vocabulary happens to retrieve well reaches
- * the model, and then rule 6 of the answer prompt is what must hold. Both
+ * under test: `retrieval.isWeak` short-circuits to the deterministic decline,
+ * routed by `classifyRouting`, but a question whose vocabulary happens to
+ * retrieve well reaches the model, and then rule 6 of the answer prompt is
+ * what must hold. That is the common route: all 126 rows on record when #503
+ * was filed took it, which is why `routing-dataset.test.ts` checks the
+ * classifier on every case for free. Both
  * routes are judged by the same binary question: did it decline, and did it
  * name where to go?
  *
@@ -46,11 +49,7 @@ import {
   getAnswerModel,
 } from "../answer/model";
 import { generationFinishReason } from "../telemetry";
-import {
-  ANSWER_SYSTEM,
-  buildUserPrompt,
-  WEAK_RETRIEVAL_ANSWER,
-} from "../answer/prompt";
+import { ANSWER_SYSTEM, buildUserPrompt } from "../answer/prompt";
 import { crDate } from "../cr-time";
 import {
   pinDerivedFigureInputs,
@@ -64,6 +63,7 @@ import {
 } from "../answer/rerank";
 import { createEmbedder, realEmbedderConfigured } from "../ingestion/embedder";
 import { retrieve } from "../retrieval";
+import { classifyRouting, declineAnswer } from "../routing";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import {
   abstentionRequirementFailures,
@@ -202,7 +202,10 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
         expander,
       });
 
-      let answer = WEAK_RETRIEVAL_ANSWER;
+      // The route's weak-retrieval decline, routed on the condensed question
+      // (#503). The general text would send a pasaporte question to Hacienda
+      // and fail a case production passes.
+      let answer = declineAnswer(classifyRouting(query));
       let generation: TranscriptGeneration | null = null;
       let rerank: RerankReadingCount | null = null;
       let checks: AnswerChecks | null = null;

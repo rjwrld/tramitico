@@ -10,6 +10,7 @@ import {
   parseDataset,
   retrievalCases,
   robustnessSeedId,
+  ROUTING_SEED,
 } from "./dataset";
 
 const line = (obj: object) => JSON.stringify(obj);
@@ -82,6 +83,7 @@ describe("parseDataset coverage contract (#261)", () => {
     tier: "abstain",
     abstainIf: "no existe fuente oficial de tarifas de mercado",
     routeTo: "un colegio profesional",
+    routedCategory: "contadores",
   };
 
   it("defaults a case with no tier to tier 2, non-blocking", () => {
@@ -253,6 +255,22 @@ describe("parseDataset coverage contract (#261)", () => {
     ).toThrow(/no expected targets/);
   });
 
+  it("requires the routed category on an abstention case, and only there (#503)", () => {
+    expect(parseDataset(line(ABSTAIN))[0].routedCategory).toBe("contadores");
+    expect(
+      parseDataset(line({ ...ABSTAIN, routedCategory: "general" }))[0],
+    ).toMatchObject({ routedCategory: "general" });
+    expect(() =>
+      parseDataset(line({ ...ABSTAIN, routedCategory: undefined })),
+    ).toThrow(/needs routedCategory/);
+    expect(() =>
+      parseDataset(line({ ...ABSTAIN, routedCategory: "cosevi " })),
+    ).toThrow(/routedCategory must be one of/);
+    expect(() =>
+      parseDataset(line({ ...CASE, routedCategory: "migracion" })),
+    ).toThrow(/only an abstention case/);
+  });
+
   it("still demands expected targets on every other tier", () => {
     expect(() => parseDataset(line({ ...CASE, expected: undefined }))).toThrow(
       /missing expected targets/,
@@ -381,7 +399,10 @@ describe("eval/dataset.jsonl", () => {
     // corpus-derived retrieval regression suite — and the held-out set has a
     // composition of its own (held-out.test.ts), not a size band. So does
     // the robustness block (#502, robustness.test.ts).
-    const corpusDerived = cases.filter((c) => !c.heldOut && !isRobustness(c));
+    // Nor are #503's routed cases, written for the routing table.
+    const corpusDerived = cases.filter(
+      (c) => !c.heldOut && !isRobustness(c) && c.seed !== ROUTING_SEED,
+    );
     expect(corpusDerived.length).toBeGreaterThanOrEqual(25);
     expect(corpusDerived.length).toBeLessThanOrEqual(45);
   });

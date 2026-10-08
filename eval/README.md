@@ -66,6 +66,11 @@ also scores `ho-abs-iva-2027`'s requirement (13 % and art. 10, cited, never
 denied); its assertion is a todo until #507 and #508. See «The robustness
 block».
 
+Since #503 the abstention set has 15 cases, so `ABSTENTION_GATE` (0.9) allows
+one miss, and there are 74 answerable cases outside the block (the baseline
+above read 73). `src/lib/eval/routing-dataset.test.ts` runs `classifyRouting`
+over every case in the unit lane, for free. See «Routed cases».
+
 Two gates are zero, with no constant. One is the citation invariant. The other,
 since #500, is false corpus-absence claims: an answer that says the documents
 lack an artículo or a listed figure that `corpus-index.json` covers
@@ -1053,6 +1058,9 @@ case also carries its place in the coverage contract of the #254 map:
 - `routeTo` — the institution or professional an abstention must name. Also
   **required on an abstention case**: the verdict has two halves, and without a
   named destination there is nothing to check the routing against.
+- `routedCategory` — what `classifyRouting` must make of an abstention case:
+  the category the deterministic decline links on weak retrieval (#503).
+  **Required on an abstention case** and refused on any other.
 - `freshness` — docKeys whose figures the answer depends on: the ones a decree
   cycle invalidates.
 - `heldOut` — membership in the held-out set of #261 part B, and `variant` —
@@ -1109,8 +1117,9 @@ pnpm vitest run --disableConsoleIntercept src/lib/eval/adequacy.eval.test.ts
 `src/lib/eval/abstention.eval.test.ts` runs the `"abstain"` cases through the
 same production path and asks the binary question: did it decline, **and** did
 it name where to go? Both routes are measured — the deterministic
-weak-retrieval fallback and, when a question's vocabulary retrieves well
-anyway, rule 6 of the answer prompt. Gate: correct abstention ≥ 90 %
+weak-retrieval fallback, routed by `classifyRouting` as the route routes it
+(#503; it streamed the general decline before), and, when a question's
+vocabulary retrieves well anyway, rule 6 of the answer prompt. Gate: correct abstention ≥ 90 %
 (`ABSTENTION_GATE`), and **zero invented figures** (`figureMentions`), since an
 answer with no fragments behind it that prints a colón amount or a percentage
 made it up.
@@ -3490,3 +3499,51 @@ both rewrite models, route configuration):
 copied from held-out cases, against «The held-out set» rule above. The block
 does not repair that; the repair needs questions nobody on the project wrote
 (#506).
+
+## Routed cases (2026-10-07, #503)
+
+Routing runs only on weak retrieval (`route.ts`), and all 126 abstention rows on
+record took the model path. So no lane had exercised the deterministic decline,
+and the nine abstention cases named no Migración, INS or COSEVI destination.
+
+**Decision (owner, on #503): no early decline.** A keyword decline before
+generation would turn away answerable questions, because an out-of-scope hit
+outranks Hacienda vocabulary. ADR 0017's amendment records it.
+
+**The cases.** Six routed abstentions and one answerable case, all with
+`seed: "routing"`. They were written after the #267 baseline, so they are neither
+held out nor part of the corpus-derived band.
+
+| Case                        | Question                                                                    | `routedCategory`   |
+| --------------------------- | --------------------------------------------------------------------------- | ------------------ |
+| `abs-pasaporte-renovar`     | ¿Cómo renuevo mi pasaporte?                                                 | `migracion`        |
+| `abs-dimex-sacar`           | ¿Cómo saco el DIMEX?                                                        | `migracion`        |
+| `abs-residencia-permanente` | ¿Qué requisitos piden para la residencia permanente?                        | `migracion`        |
+| `abs-ins-riesgos-trabajo`   | ¿Tengo que sacar el seguro de riesgos del trabajo si trabajo por mi cuenta? | `ins`              |
+| `abs-licencia-conducir`     | ¿Cómo renuevo la licencia de conducir?                                      | `cosevi` (new)     |
+| `abs-patente-comercial`     | ¿Dónde saco la patente comercial para mi negocio?                           | `municipal`        |
+| `t2-inscripcion-dimex`      | ¿Puedo inscribirme en Hacienda con mi DIMEX?                                | answerable, Tier 2 |
+
+`t2-inscripcion-dimex` is the case that must not route. `tribu-cr-faq`
+answers it (RUT · 1 and · 3), and `classifyRouting` reads it as `migracion`.
+`abs-patente-comercial` sits beside `ho-abs-patente-municipal` because it says
+«patente» without «municipal». The table had no destination for licences, so
+`cosevi` (Consejo de Seguridad Vial) joined it, with phrases only.
+
+**The gate.** `ABSTENTION_GATE` stays 0.9, now over 15 cases, so one miss is
+allowed. A real routing bug would show in more than one case.
+
+**The free test.** `src/lib/eval/routing-dataset.test.ts` asserts that every
+abstention case classifies to its `routedCategory`. It also prints, without
+failing, the answerable cases the classifier reads as out of scope (pass
+`--silent=false` to see the line). Today that is `t2-inscripcion-dimex` →
+`migracion` and `ho-t2-autorizar-contador` → `contadores`, both harmless while
+routing waits for weak retrieval.
+
+**A lane fix.** On weak retrieval the abstention lane streamed
+`WEAK_RETRIEVAL_ANSWER`, the general decline, where production streams
+`declineAnswer(classifyRouting(query))`. A pasaporte case that came back weak
+would have been judged on a decline that sends the reader to Hacienda. The lane
+now streams the route's text.
+
+No paid run: the routed cases first run in the next authorized lane (#511).
