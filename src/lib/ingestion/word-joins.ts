@@ -92,10 +92,12 @@ const NOT_JOINS = new Set(["conque", "porque", "quede"]);
 const MIN_PHRASE = 2;
 
 /**
- * A slip is rare; a token the document writes more often than this is a
- * word («demás», «porque»), whatever the phrase evidence says.
+ * A slip is rare: a token the document writes more often than this is a
+ * word («demás»), unless the spaced phrase outnumbers it `OUTNUMBERED` to
+ * one — `ccss-reglamento-ti` writes «delos» three times and «de los» 42.
  */
 const MAX_JOIN_COUNT = 2;
+const OUTNUMBERED = 5;
 
 /** What a document vouches for. */
 export interface JoinEvidence {
@@ -139,10 +141,11 @@ function textEvidence(text: string): {
  */
 function phraseSeam(
   token: string,
-  pairs: ReadonlyMap<string, number>,
+  { pairs, tokens }: Pick<JoinEvidence, "pairs" | "tokens">,
 ): number | null {
   const lower = token.toLowerCase();
   if (NOT_JOINS.has(lower)) return null;
+  const uses = tokens.get(lower) ?? 0;
   const seams: number[] = [];
   for (const word of FUNCTION_WORDS) {
     if (word.length === 1) continue;
@@ -164,9 +167,10 @@ function phraseSeam(
   let best: { at: number; score: number } | null = null;
   for (const at of seams) {
     const score = pairs.get(pairKey(lower.slice(0, at), lower.slice(at))) ?? 0;
-    if (score >= MIN_PHRASE && (!best || score > best.score)) {
-      best = { at, score };
-    }
+    const vouched =
+      score >= MIN_PHRASE &&
+      (uses <= MAX_JOIN_COUNT || score >= OUTNUMBERED * uses);
+    if (vouched && (!best || score > best.score)) best = { at, score };
   }
   return best?.at ?? null;
 }
@@ -220,10 +224,7 @@ export function splitJoinedWord(
   const at =
     (flagged && !evidence.words.has(lower)
       ? vocabularySeam(token, evidence.words)
-      : null) ??
-    ((evidence.tokens.get(lower) ?? 0) <= MAX_JOIN_COUNT
-      ? phraseSeam(token, evidence.pairs)
-      : null);
+      : null) ?? phraseSeam(token, evidence);
   return at == null ? null : `${token.slice(0, at)} ${token.slice(at)}`;
 }
 
@@ -311,9 +312,9 @@ export function repairWordJoins(html: string): string {
 export function suspiciousJoins(texts: readonly string[]): string[] {
   const { pairs, tokens } = textEvidence(texts.join("\n"));
   const found: string[] = [];
-  for (const [word, n] of tokens) {
-    if (n > MAX_JOIN_COUNT || word.includes("-")) continue;
-    if (phraseSeam(word, pairs) != null) found.push(word);
+  for (const word of tokens.keys()) {
+    if (word.includes("-")) continue;
+    if (phraseSeam(word, { pairs, tokens }) != null) found.push(word);
   }
   return found.sort();
 }

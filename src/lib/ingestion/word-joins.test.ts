@@ -172,6 +172,11 @@ describe("splitJoinedWord", () => {
     expect(splitJoinedWord("demás", phrase, false)).toBeNull();
   });
 
+  it("splits a frequent token when its phrase outnumbers it five to one", () => {
+    const phrase = evidence({}, { "de los": 42 }, { delos: 3 });
+    expect(splitJoinedWord("delos", phrase, false)).toBe("de los");
+  });
+
   it("never splits the words that read as two function words", () => {
     const phrase = evidence(
       {},
