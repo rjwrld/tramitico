@@ -98,6 +98,15 @@ before anything reads the pool, exactly as it drops an out-of-period annual sour
 the source keeps grounding answers. Coverage is the one stated year, so a text that moves to next
 year's figures in December is withheld until 1 January, like next year's annual source.
 
+It also drops such a chunk whose own text does not carry the declared evidence. An annual source
+gets a new doc_key each year, so next year's rows sit beside this year's before the switch. A
+listed artículo keeps one doc_key, so the manifest that names its year and the rows that hold
+its text deploy at different moments. A year bump has to merge before the production re-crawl
+can run, because `scripts/recrawl.sh` crawls only merged `main`. Without the text check, the
+deployed manifest would vouch for last year's rows until the re-crawl finished, which is the
+window this amendment exists to close. With it, whichever lands first, the declaration and the
+text disagree and the chunk is withheld.
+
 The first amendment's reasoning holds at chunk level, and was checked against the other two
 options:
 
@@ -116,8 +125,8 @@ options:
   every chunk already carries, so the declaration deploys with the code: no migration and no
   re-ingest, here or in production.
 
-What keeps the declaration honest is ingestion: a crawl in which a listed artículo is gone, or no
-longer carries its evidence, fails before anything is written. The year cannot be advanced without
+Ingestion keeps the declaration honest on the way in: a crawl in which a listed artículo is
+gone, or any of its chunks lacks the evidence, fails before anything is written. The year cannot be advanced without
 the text, nor the text without the year. A per-PR unit test checks that each listed artículo is in
 the committed corpus index under exactly one heading. An artículo still on last year's figures is
 a warning, not a gate: unlike an annual series, the owner cannot fix it until SINALEVI or the CCSS
