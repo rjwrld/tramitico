@@ -157,6 +157,53 @@ no computation).
   «etiqueta», «marcador») son para usted, no para la persona: no las escriba
   en la respuesta.»
 
+## Round 1
+
+From this worktree, `round1/`. Transcripts by draw: `230629` d1, `230756` d2,
+`230910` d3, `230930`/`230949`/`231010` seguimiento d1–d3, `232040` the Tier 1
+guard; `abstention-subset-…` the three scoped abstention draws. No row
+errored and no log carries `config: unknown knob value`.
+
+| Target                              | d1                                                                  | d2                                                                              | d3                                                      | Passes                 | Judges |
+| ----------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------- | ---------------------- | ------ |
+| `multa-iva-no-declarado`            | ✓ «Cuántas declaraciones suman…, y el total, lo determina Hacienda» | ✗ «Las fuentes no dicen cómo se cuenta…» (#547) and «no puedo darle un total»   | ✓ «el total de su caso lo determina Hacienda»           | 2/3                    | 3/3    |
+| `iva-ajuste-bien-de-capital`        | ✓                                                                   | ✓ «el cálculo con sus datos lo hace usted o Hacienda»                           | ✓ «El cálculo con sus cifras lo hace usted, o Hacienda» | 3/3                    | 3/3    |
+| `rb-pill-cuanto-pago-independiente` | ✓                                                                   | ✓ «el monto de su caso lo determina la CCSS»                                    | ✓                                                       | 3/3                    | 3/3    |
+| `ho-tambien-asegurado-por-patrono`  | ✓ «El monto en colones lo determina la CCSS»                        | ✓                                                                               | ✓                                                       | 3/3                    | 3/3    |
+| `renta-plazo-followup`              | ✓ «debe ubicarla con base en esa regla»                             | ✓ (judges fail: «la fecha de setiembre de 2026 ya pasó», the control's d1 slip) | ✗ «así que no la calculo»                               | 2/3                    | 2/3    |
+| `rb-seguimiento-de-cuanto-multa`    | ✓ «El total de su caso… lo determina Hacienda»                      | ✓ «lo determina Hacienda; la operación… no la hacen estas fuentes»              | ✓                                                       | 3/3                    | 3/3    |
+| `ho-abs-calculo-personalizado`      | ✗ «No puedo darle un total exacto: … la determina Hacienda»         | ✗ «No puedo darle un monto exacto: …»                                           | ✗ «No puedo darle un total exacto, porque…»             | **0/3** (declines 3/3) | —      |
+
+The Tier 1 guard's fourth draws: `multa-iva-no-declarado` ✗ («La suma por sus
+tres meses no la hago aquí»), `ho-tambien-asegurado-por-patrono` ✓. No answer
+wrote «cifra derivada», «etiqueta» or «marcador» (control: 3 of 22 target
+answers). #546 held on every draw: no multiplied figure, no «ya llegó al
+tope». Two reads are close calls, counted as passes: `multa` d3 writes «cada
+mes sin declarar es una declaración omitida» (the label's count put to the
+reader's months, with no number or total), and `rb-seguimiento` d2 ends «la
+operación con sus meses no la hacen estas fuentes» after naming Hacienda.
+
+**Tier 1 guard: 86/116** (control 84), grounded 26/27; the one failure,
+`ccss-ventana-prescripcion-24-meses`, failed on the control too, so no new
+judge failure. False absence claims 0 → 0. Absence openings (reported, not
+gated) 5, against the control's 2: `inscripcion-tardia-sancion`,
+`ho-hacienda-solo-cliente-eeuu`, `ho-cabys-paginas-web`,
+`ho-minimo-caja-independiente-2026`, `ho-desinscribir-debiendo-declaraciones`.
+
+**Round 1 misses the bar** on `ho-abs-calculo-personalizado`: it declines and
+now remits to Hacienda in the same sentence, but opens in the first person
+every time. Rule 6c's «corríjala o dígalo» is where that opening comes from;
+round 1's rule 8 sentence did not reach it.
+
+## Round 2
+
+Round 1's three clauses, plus:
+
+- Rule 6c, after the liquidación sentence: «Ese «dígalo» es la remisión
+  misma, no una negativa en primera persona (regla 8): no «No puedo darle un
+  total exacto», sino «El monto exacto de su caso lo determina Hacienda».»
+- Rule 8's examples add «no la hago aquí», the fourth draw's wording.
+
 ## Cost
 
 Estimated at ≈US$0.10 a row (`answer-replay`'s header), and at #556's measured
@@ -173,8 +220,11 @@ replay rate (36 rows ≈ US$1.55, ≈US$0.043 a row) beside it.
 Spent so far (estimated at #556's rate; there is no console figure, and the
 replays' output tokens, 954–1,870 a row, are in line with #556's):
 
-| Step          | Rows | ≈US$ |
-| ------------- | ---- | ---- |
-| Control smoke | 3    | 0.13 |
-| Control, rest | 42   | 1.80 |
-| **Total**     |      | 1.93 |
+| Step                       | Rows | ≈US$ |
+| -------------------------- | ---- | ---- |
+| Control smoke              | 3    | 0.13 |
+| Control, rest              | 42   | 1.80 |
+| Round 1 (a), targets ×3    | 18   | 0.80 |
+| Round 1 (b), abstention ×3 | 3    | 0.30 |
+| Round 1 (c), Tier 1 guard  | 27   | 1.15 |
+| **Total**                  |      | 4.18 |
