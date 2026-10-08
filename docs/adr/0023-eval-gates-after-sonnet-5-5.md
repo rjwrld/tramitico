@@ -139,8 +139,14 @@ The owner chose #474's option 2 with three changes.
   make a claim #500's detector now calls false, so counting the verdict
   after #500's override would read the same lane as 61, under the floor.
   A false absence claim fails its own zero gate instead. A dataset change
-  that moves the population re-sets the baseline in the same change; a
-  unit test fails otherwise.
+  that moves the population says so in the same change; a unit test fails
+  otherwise.
+- **Over 74 cases since #503.** #503 added one answerable Tier 2 case,
+  `t2-inscripcion-dimex`, so the lane counts over 74. The 68/73 baseline
+  was measured before it joined. The baseline (68) and the floor (64)
+  stay absolute counts of grounded answers, since a new case can only add
+  a pass. #511 is the first lane read over 74, and #512's final lanes
+  re-set the baseline. (The orchestrator's call, acked by the owner.)
 - **A blocking case fails only on 2 of 3 answers.** When the judges fail a
   blocking case's first answer, the lane asks the whole pipeline the same
   case twice more. Each new answer is judged the same way, with the same

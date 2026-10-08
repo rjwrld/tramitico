@@ -32,12 +32,17 @@ import type { AnswerChecks } from "./answer-checks";
 export const GROUNDEDNESS_BASELINE = 68;
 
 /**
- * The cases the baseline counts: every non-abstention case outside the
- * robustness block. A count means nothing over a different population, so a
- * dataset change that moves this re-sets the baseline in the same change
+ * The cases the lane counts over: every non-abstention case outside the
+ * robustness block. A count means nothing over a population nobody chose, so
+ * a dataset change that moves this says so here in the same change
  * (`groundedness.test.ts` reads the dataset).
+ *
+ * 74 since #503 added `t2-inscripcion-dimex`. The baseline and the floor stay
+ * absolute counts of grounded answers: the 68 was read over the 73 before it,
+ * a new case can only add a pass, and #511 is the first lane read over 74.
+ * #512's final lanes re-set the baseline over the population they run.
  */
-export const GROUNDEDNESS_CASES = 73;
+export const GROUNDEDNESS_CASES = 74;
 
 /** Tier 1's margin (#457's ±4), held for the same run-to-run noise. */
 export const GROUNDEDNESS_REGRESSION_MARGIN = 4;

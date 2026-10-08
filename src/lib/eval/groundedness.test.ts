@@ -249,9 +249,11 @@ describe("judge configuration", () => {
 });
 
 describe("the tracked groundedness baseline (#474)", () => {
-  it("is 68 of 73, failing a lane at 63 or below", () => {
+  it("is 68 grounded answers over 74 cases, failing a lane at 63 or below", () => {
+    // 68 was read over 73; #503's `t2-inscripcion-dimex` made 74, and the
+    // owner kept the counts absolute until #512 re-sets them.
     expect(GROUNDEDNESS_BASELINE).toBe(68);
-    expect(GROUNDEDNESS_CASES).toBe(73);
+    expect(GROUNDEDNESS_CASES).toBe(74);
     expect(GROUNDEDNESS_FLOOR).toBe(64);
   });
 

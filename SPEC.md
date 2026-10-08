@@ -423,7 +423,9 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   answers is a **tracked baseline of 68/73** (the 2026-10-02 lane), failing only a lane more than
   4 below it (**≤ 63**); a lane that beats it raises it, and #512's final lanes re-set it. It
   counts the judges' verdict on each case's first answer, before #500's override (as the 68 was
-  measured), over the 73 cases outside the abstention tier and the robustness block. No
+  measured), over the 74 cases outside the abstention tier and the robustness block (73 when
+  the 68 was measured; #503 added `t2-inscripcion-dimex`, and the counts stay absolute until
+  #512 re-sets them, #511 being the first read over 74). No
   individually blocking case may fail, and a blocking case fails **on 2 of 3 answers**: when its
   first answer fails, the lane asks the whole pipeline twice more and judges each new answer the
   same way. An answer the route would refuse to ship (#168's citation invariant, #281's derived
@@ -462,8 +464,8 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   to make a regression pass ([ADR 0015](docs/adr/0015-coverage-tiers-and-required-claims.md)). The
   ratchet rule: a gate is the measured pass rate minus one case, rounded down, never below its
   previous value. Current gates (closing run, 2026-09-11): hit-rate ≥92% (measured 95.9%, held
-  at 0.92 by #296 requirement 4), groundedness tracked against a baseline of 68/73, failing at
-  ≤ 63 (ADR 0023's #474 amendment; ≥94% from the closing run until then), Tier 1 requirements
+  at 0.92 by #296 requirement 4), groundedness tracked against a baseline of 68 grounded answers
+  (measured over 73, read over 74 since #503), failing at ≤ 63 (ADR 0023's #474 amendment; ≥94% from the closing run until then), Tier 1 requirements
   stated tracked against a baseline of 70/116, failing only on a lane more than 4 below it
   (≤ 65; [ADR 0023](docs/adr/0023-eval-gates-after-sonnet-5-5.md); it and the groundedness
   baseline are the relaxations the ratchet rule has had, both recorded there), Tier 2 adequacy

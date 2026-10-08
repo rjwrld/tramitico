@@ -67,8 +67,9 @@ The gate constants are `GROUNDEDNESS_BASELINE` (`groundedness.ts`), `HIT_RATE_GA
 (`abstention.eval.test.ts`), `ADEQUACY_TIER2_GATE` with
 `TIER1_REQUIREMENT_BASELINE` (`adequacy.ts`), and `ROBUSTNESS_HIT_BASELINE`
 (`robustness.ts`, unset until #511). Groundedness and Tier 1 are tracked
-baselines: a lane fails only more than 4 below one (groundedness 68/73, so
-≤ 63), and a lane that beats one raises it. A blocking case fails groundedness
+baselines: a lane fails only more than 4 below one (groundedness 68 grounded
+answers, so ≤ 63, read over 74 cases since #503), and a lane that beats one
+raises it. A blocking case fails groundedness
 on 2 of 3 answers: the lane re-asks a failing one twice (#474, about US$0.50 a
 lane), and each failure the judges make carries a `contradiction`/`inference`
 label that is recorded, never gated (one more judge call per failed answer,
@@ -932,7 +933,10 @@ it is a **tracked baseline of 68/73, failing at ≤ 63** (`GROUNDEDNESS_BASELINE
 verdict on each case's first answer, before #500's override, as the 68 was
 measured: seven of that lane's judge passes make a claim the detector now
 calls false, and those fail the zero gate, not the count. A lane that beats
-the baseline raises it.
+the baseline raises it. The 68 was read over 73 cases; #503 added
+`t2-inscripcion-dimex`, so the lane counts over 74 (`GROUNDEDNESS_CASES`) and
+the baseline and floor stay absolute counts. #511 is the first read over 74,
+and #512 re-sets the baseline.
 
 A blocking case fails on **2 of 3 answers**. When its first answer fails, the
 lane runs the whole pipeline on it twice more and judges each new answer the
