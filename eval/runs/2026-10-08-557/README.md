@@ -96,6 +96,51 @@ The change **passes** when:
 At most three rounds. If round 3 misses the bar, the run stops and reports;
 no tuning toward a number (ADR 0023).
 
+## The control, on main's prompt
+
+From the main checkout at ddfb9a1 (= origin/main, clean), `control/`. The
+smoke was the first draw of three targets (`targets-d1a-….log`); no row
+errored and no log carries `config: unknown knob value`. Transcripts by draw:
+`224820` d1a, `224908` d1b, `225037` d2, `225157` d3, `225219`/`225241`/`225302`
+seguimiento d1–d3, `230311` the Tier 1 guard.
+
+| Target                              | d1                                                      | d2                                             | d3                                                   | Passes  | Judges |
+| ----------------------------------- | ------------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------- | ------- | ------ |
+| `multa-iva-no-declarado`            | ✗ «no multiplico la cifra por los meses»                | ✗ «No la multiplico por sus tres meses»        | ✗ «Esa etiqueta no extiende la cifra…»               | **0/3** | 1/3    |
+| `iva-ajuste-bien-de-capital`        | ✓ «debe hacerlos usted o su contador»                   | ✓ «el cálculo lo debe hacer usted o su asesor» | ✓ «debe calcularlas usted o su contador»             | 3/3     | 3/3    |
+| `rb-pill-cuanto-pago-independiente` | ✗ «Esta respuesta no calcula su cuota»                  | ✓ «esa operación le toca a usted o a la CCSS»  | ✓                                                    | 2/3     | 3/3    |
+| `ho-tambien-asegurado-por-patrono`  | ✓                                                       | ✗ «porque no opero la cifra con sus datos»     | ✗ «Las fuentes no me permiten hacer la liquidación…» | **1/3** | 2/3    |
+| `renta-plazo-followup`              | ✗ «no traen la fecha exacta…, por lo que no la calculo» | ✓                                              | ✗ «no la calculo por mi cuenta»                      | **1/3** | 2/3    |
+| `rb-seguimiento-de-cuanto-multa`    | ✗ «Cuánto le corresponde en su caso no lo calculo»      | ✓ «le corresponde determinar a Hacienda»       | ✓ «queda a Hacienda»                                 | 2/3     | 3/3    |
+
+The Tier 1 guard's row is a fourth draw of two targets:
+`multa-iva-no-declarado` ✗ («la cifra derivada es: …», «No digo cuántas veces
+se aplica a sus tres meses»; judges fail) and `ho-tambien-asegurado-por-patrono`
+✓. `rb-pill-cuanto-pago-independiente` d1 counts as a miss though it is not in
+the first person: «Esta respuesta no calcula su cuota» describes what the
+answer won't do instead of saying who does it (bar item 2, the issue's «without
+describing what it won't do»).
+
+#556's fixes held on every control draw: no figure multiplied by the reader's
+months, no «ya llegó al tope» (`rb-seguimiento` d2 leaves «si el tope ya se
+alcanzó» to Hacienda), and no «las fuentes no dicen cómo se cuenta». The
+nearest is `multa-iva-no-declarado` d1/d2: «cuántas veces se aplica esa multa
+debe confirmarlo con Hacienda» beside the label's «por cada declaración», a
+remit, not a denial.
+
+The judge failures on targets are not the leak: `renta-plazo-followup` d1
+wrote «La fecha de setiembre de 2026 ya pasó»; `ho-tambien` d2 gave IVM 9.91 %
+beside the ficha's 11.66 % (the `ho-800-mil` reading #556 recorded);
+`multa-iva-no-declarado` d2/d3 were failed on the first-person sentence and on
+«Esa etiqueta no extiende…».
+
+**Tier 1 guard (control): 84/116 requirements stated** (the lane recorded 83),
+grounded 24/27, the failures `ccss-ventana-prescripcion-24-meses`,
+`multa-iva-no-declarado` and `ho-rebajar-25-sin-facturas`. False absence
+claims 0 → 0; absence openings 4 → 2 (`ho-cabys-paginas-web`,
+`ho-desinscribir-debiendo-declaraciones`, both also first person but refusing
+no computation).
+
 ## The prompt change (round 1)
 
 - Rule 7, after «nunca hable de extractos, pasajes ni textos numerados»: «Tampoco
@@ -124,3 +169,12 @@ replay rate (36 rows ≈ US$1.55, ≈US$0.043 a row) beside it.
 | Each round: targets ×3                     | 18   | 1.80               | 0.80             |
 | Each round: Tier 1 guard                   | 27   | 2.70               | 1.15             |
 | Each round: `ho-abs-calculo-personalizado` | 3    | 0.30               | 0.30             |
+
+Spent so far (estimated at #556's rate; there is no console figure, and the
+replays' output tokens, 954–1,870 a row, are in line with #556's):
+
+| Step          | Rows | ≈US$ |
+| ------------- | ---- | ---- |
+| Control smoke | 3    | 0.13 |
+| Control, rest | 42   | 1.80 |
+| **Total**     |      | 1.93 |
