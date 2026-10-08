@@ -16,7 +16,7 @@ import {
   type Chunk,
   type ChunkOptions,
 } from "./chunker";
-import type { DatedFact, YearFigure } from "../vigencia";
+import type { DatedFact, OverriddenFigure, YearFigure } from "../vigencia";
 import {
   persistDocument,
   type DocumentRowClient,
@@ -35,6 +35,8 @@ export interface IngestableDocument {
   yearFigures?: readonly YearFigure[];
   /** Artículos stating a fact that ends on a given day (#531). */
   datedFacts?: readonly DatedFact[];
+  /** Artículos stating figures a later law has overridden (#529). */
+  overriddenFigures?: readonly OverriddenFigure[];
 }
 
 /** The slice of `Embedder` a document ingest uses — the batched one. */
@@ -89,6 +91,11 @@ export async function ingestChunks(
   assertChunksCarryContent(doc.doc_key, chunks);
   assertYearFigureEvidence(doc.doc_key, chunks, doc.yearFigures ?? []);
   assertDatedFactEvidence(doc.doc_key, chunks, doc.datedFacts ?? []);
+  assertOverriddenFigureEvidence(
+    doc.doc_key,
+    chunks,
+    doc.overriddenFigures ?? [],
+  );
 
   const embeddings: number[][] = [];
   for (let i = 0; i < chunks.length; i += EMBED_BATCH) {
@@ -164,6 +171,36 @@ export function assertDatedFactEvidence(
   }
 }
 
+/**
+ * The same refusal for `overriddenFigures` (#529), with the evidence read the
+ * other way: retrieval withholds the chunks that carry the overridden words,
+ * so the crawl must still have the artículo, and at least one of its chunks
+ * must still carry them. A heading the publisher renamed would let the
+ * overridden figure through unlisted. A text that dropped the words has
+ * most often been brought in line with the later law, and the entry is
+ * retired — but the owner reads it first, since a reworded figure would also
+ * pass (runbook §2.5).
+ */
+export function assertOverriddenFigureEvidence(
+  docKey: string,
+  chunks: readonly Chunk[],
+  overriddenFigures: readonly OverriddenFigure[],
+): void {
+  for (const { articulo, evidence } of overriddenFigures) {
+    const own = articuloChunks(
+      docKey,
+      chunks,
+      articulo,
+      `overriddenFigures lists «${articulo}», but the crawl has no chunk with that heading — re-read the source and update the manifest (#529, runbook §2.5)`,
+    );
+    if (!own.some((chunk) => chunk.content.includes(evidence))) {
+      throw new Error(
+        `${docKey}: «${articulo}» no longer carries «${evidence}» — if the publisher brought it in line with the later law, retire the entry; if it reworded the figure, set evidence to the new words (#529, runbook §2.5)`,
+      );
+    }
+  }
+}
+
 /** Throws unless the crawl has `articulo` and each of its chunks carries `evidence`. */
 function assertArticuloCarries(
   docKey: string,
@@ -171,14 +208,25 @@ function assertArticuloCarries(
   { articulo, evidence }: { articulo: string; evidence: string },
   messages: { missing: string; lacking: string },
 ): void {
-  const own = chunks.filter((chunk) => chunk.articulo === articulo);
-  if (own.length === 0) {
-    throw new Error(`${docKey}: ${messages.missing}`);
-  }
+  const own = articuloChunks(docKey, chunks, articulo, messages.missing);
   const lacking = own.filter((chunk) => !chunk.content.includes(evidence));
   if (lacking.length > 0) {
     throw new Error(
       `${docKey}: «${articulo}» part(s) ${lacking.map((chunk) => chunk.part).join(", ")} no longer carry «${evidence}», ${messages.lacking}`,
     );
   }
+}
+
+/** The crawl's chunks under `articulo`; throws `missing` when there are none. */
+function articuloChunks(
+  docKey: string,
+  chunks: readonly Chunk[],
+  articulo: string,
+  missing: string,
+): Chunk[] {
+  const own = chunks.filter((chunk) => chunk.articulo === articulo);
+  if (own.length === 0) {
+    throw new Error(`${docKey}: ${missing}`);
+  }
+  return own;
 }

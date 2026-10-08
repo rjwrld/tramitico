@@ -226,12 +226,12 @@ describe("the rerank queries (#286, recomposed in #296)", () => {
 
   it("adds the step catalogue's sentences after the expansion, one query each (#304)", () => {
     expect(
-      rerankQueries("¿y dónde me afilio?", "trámite de afiliación", [
+      rerankQueries("¿y en qué oficina me afilio?", "trámite de afiliación", [
         "Dónde se afilia.",
         "Cuándo se paga la cuota.",
       ]),
     ).toEqual([
-      "¿y dónde me afilio?",
+      "¿y en qué oficina me afilio?",
       "trámite de afiliación",
       "Dónde se afilia.",
       "Cuándo se paga la cuota.",
@@ -239,12 +239,12 @@ describe("the rerank queries (#286, recomposed in #296)", () => {
     // The question is always first — the tiebreak in `fuseByMaxScore`
     // reads slot 0 as the reader's own reading.
     expect(
-      rerankQueries("¿y dónde me afilio?", null, ["Dónde se afilia."]),
-    ).toEqual(["¿y dónde me afilio?", "Dónde se afilia."]);
+      rerankQueries("¿y en qué oficina me afilio?", null, ["Dónde se afilia."]),
+    ).toEqual(["¿y en qué oficina me afilio?", "Dónde se afilia."]);
     for (const steps of [undefined, null, []]) {
-      expect(rerankQueries("¿y dónde me afilio?", null, steps)).toEqual([
-        "¿y dónde me afilio?",
-      ]);
+      expect(
+        rerankQueries("¿y en qué oficina me afilio?", null, steps),
+      ).toEqual(["¿y en qué oficina me afilio?"]);
     }
   });
 

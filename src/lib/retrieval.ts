@@ -673,10 +673,11 @@ export async function retrieve(
   // ranks — next year's source sits beside this year's from December, and
   // last year's until it is retired, with near-identical text. So while any
   // is out of period the RPC is asked for twice the rows, and the count is
-  // refilled after they leave. Nothing out of period: the wire is unchanged.
+  // refilled after they leave. Nothing out of period: no doubling.
   // A non-annual source's artículo that states another year's figures (the
-  // consolidated Ley 7092's tramos) leaves the same way (#518), and a dated
-  // fact past its last day costs one more row (#531).
+  // consolidated Ley 7092's tramos) leaves the same way (#518), a dated fact
+  // past its last day costs one more row (#531), and so does each figure a
+  // later law has overridden (#529), on every ask.
   const withheld = withheldSources(options.now, options.vigencia);
   const embedder = options.embedder ?? createEmbedder();
   const client = options.client ?? createRetrievalClient();

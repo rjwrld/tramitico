@@ -19,6 +19,7 @@ import { readFileSync } from "node:fs";
 import { beforeAll, expect, it } from "vitest";
 import { serviceClient } from "../supabase/service";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
+import { fixtureLane } from "./scoped-lane";
 import {
   auditRepeatedLabels,
   buildCorpusIndex,
@@ -38,8 +39,10 @@ import {
   unsatisfiableTargets,
 } from "./satisfiability";
 
-const describeEval = integrationSuite(
-  envPrereqs("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"),
+// #536: a census over the whole corpus has no subset to read, so any
+// `EVAL_CASES` skips it.
+const describeEval = fixtureLane(
+  integrationSuite(envPrereqs("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY")),
 );
 
 describeEval("eval dataset targets are satisfiable by the corpus", () => {

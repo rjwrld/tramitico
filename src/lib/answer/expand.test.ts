@@ -30,9 +30,9 @@ import {
 import { getExpandModel } from "./model";
 import { KNOB_ERROR_PREFIX } from "../knobs";
 
-const QUESTION = "Me inscribí un año tarde, ¿qué me pasa?";
+const QUESTION = "Hice la inscripción tarde, ¿qué sigue?";
 const EXPANSION =
-  "Me inscribí un año tarde, ¿qué me pasa? Sanción por omisión de la " +
+  "Hice la inscripción tarde, ¿qué sigue? Sanción por omisión de la " +
   "declaración de inscripción presentada fuera del plazo.";
 
 function mockExpander(

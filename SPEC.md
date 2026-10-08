@@ -181,7 +181,10 @@ Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3))
   tramos, the CCSS FAQ's rate image) lists them as `yearFigures`, and retrieval drops those
   chunks in every other fiscal year (ADR 0016 second amendment, #518). An artículo stating a
   fact that ends on a day (the CCSS FAQ's condonación deadline) is listed as `datedFacts` with
-  its last day, and retrieval drops it from the day after (ADR 0016 third amendment, #531).
+  its last day, and retrieval drops it from the day after (ADR 0016 third amendment, #531). An
+  artículo whose figure a later law has overridden (the reglamento de renta's art. 23 Mipymes
+  reduction, rewritten by Ley 10392) lists the overridden words as `overriddenFigures`, and
+  retrieval drops every chunk still carrying them, on any day (ADR 0016 fourth amendment, #529).
 
 ## 4. Ingestion & chunking
 

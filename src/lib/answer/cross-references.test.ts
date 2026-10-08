@@ -503,6 +503,21 @@ describe("crossReferencedChunks", () => {
     ).toEqual([art4]);
   });
 
+  it("does not append a chunk carrying a figure a later law overrode (#529)", async () => {
+    const { lookup } = fakeLookup([art10, art4]);
+    expect(
+      await crossReferencedChunks([art30], {
+        lookup,
+        links: LINKS,
+        withheld: noneWithheld({
+          overriddenFigures: new Map([
+            ["ley-iva\u0000Artículo 10" /* vigencia.ts listedKey */, ["13 %"]],
+          ]),
+        }),
+      }),
+    ).toEqual([art4]);
+  });
+
   it("logs a failed lookup and appends nothing, without throwing", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const failing: ArticuloLookup = async () => {

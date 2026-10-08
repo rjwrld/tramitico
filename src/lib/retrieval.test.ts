@@ -23,6 +23,7 @@ import { DERIVED_FIGURES, resolveDerivedFigures } from "./answer/derived";
 import {
   coversFiscalYear,
   datedFactRefs,
+  overriddenFigureRefs,
   yearFigureRefs,
   type VigenciaManifest,
 } from "./vigencia";
@@ -1001,6 +1002,109 @@ describe("retrieve", () => {
   });
 
   /**
+   * #529's acceptance: no answer set presents `reglamento-renta` art. 23's
+   * ¢106.000.000 ceiling or 100/75/50 Mipymes reduction, or `ley-renta`
+   * art. 38's ¢72.000, as current law — on any clock. The rows are excerpts
+   * of the production text, word for word. Art. 23's second part states none
+   * of the overridden figures and still gets through, and so does art. 15,
+   * whose «ochocientos setenta y dos mil colones» must not read as art. 38's
+   * «setenta y dos mil colones».
+   */
+  it("keeps the overridden figures of reglamento-renta art. 23 and ley-renta art. 38 out of the pool", async () => {
+    const row = (
+      id: number,
+      docKey: string,
+      articulo: string,
+      part: number,
+      content: string,
+    ): SearchChunksRow => ({
+      ...ROW,
+      chunk_id: `00000000-0000-0000-0000-${String(id).padStart(12, "0")}`,
+      doc_key: docKey,
+      articulo,
+      part,
+      content,
+    });
+    const rows = [
+      row(
+        1,
+        "reglamento-renta",
+        "Artículo 23",
+        0,
+        "[Reglamento de la Ley del Impuesto sobre la Renta — CAPÍTULO IX DE LA TARIFA Y DEDUCCIONES APLICABLES AL IMPUESTO — Artículo 23] Artículo 23.- Tarifa del impuesto. … b) Personas jurídicas cuya renta bruta no supere los ¢106.000.000 durante el período del impuesto. … Durante los primeros tres años a partir del inicio de sus operaciones, las empresas antes señaladas podrán reducir su deuda tributaria del siguiente modo: i) Durante el primer año, en un 100% de su impuesto determinado, por lo que no tendrá impuesto alguno que cancelar para este período. ii) Durante el segundo año, en un 75% de su impuesto determinado …",
+      ),
+      row(
+        2,
+        "reglamento-renta",
+        "Artículo 23",
+        1,
+        "[Reglamento de la Ley del Impuesto sobre la Renta — CAPÍTULO IX DE LA TARIFA Y DEDUCCIONES APLICABLES AL IMPUESTO — Artículo 23] … El Ministerio de Hacienda actualizará mediante decreto ejecutivo los montos indicados en los incisos a), b) y c) del artículo 15 de la Ley del Impuesto sobre la Renta …",
+      ),
+      row(
+        3,
+        "ley-renta",
+        "ARTICULO 38",
+        0,
+        "[Ley del Impuesto sobre la Renta (texto consolidado) — TITULO II — CAPITULO XVII — ARTICULO 38] ARTICULO 38.-Rentas de más de un empleador. La cuota libre de setenta y dos mil colones (¢72.000), como no sujeta del impuesto, es una sola. …",
+      ),
+      row(
+        4,
+        "ley-renta",
+        "Artículo 15",
+        0,
+        "[Ley del Impuesto sobre la Renta (texto consolidado) — TITULO I Del impuesto sobre las utilidades — CAPITULO VII De la tarifa del impuesto — Artículo 15] … hasta ¢20.872.000,00 (veinte millones ochocientos setenta y dos mil colones) anuales, se pagará el veinte por ciento (20%). … a partir del 01 de enero del 2026 …",
+      ),
+    ];
+    const served = async (now: Date) =>
+      (
+        await retrieve("¿cuánto pagan de renta las pymes nuevas?", {
+          client: fakeClient(rows),
+          embedder: fakeEmbedder(),
+          matchCount: rows.length,
+          now,
+        })
+      ).chunks.map(
+        (chunk) => `${chunk.docKey} · ${chunk.articulo} · ${chunk.part}`,
+      );
+
+    expect(await served(crMidnight("2026-10-08"))).toEqual([
+      "reglamento-renta · Artículo 23 · 1",
+      "ley-renta · Artículo 15 · 0",
+    ]);
+    expect(await served(IN_2027)).toEqual([
+      "reglamento-renta · Artículo 23 · 1",
+    ]);
+  });
+
+  /**
+   * The same claim for every `overriddenFigures` entry in the deployed
+   * manifest: a chunk of the artículo carrying the overridden words is
+   * withheld, and one of the same artículo without them is served.
+   */
+  it("lets no overridden figure through, and leaves the rest of its artículo", async () => {
+    const refs = overriddenFigureRefs({ documents: manifestDocs });
+    expect(refs.length).toBeGreaterThan(0);
+    for (const ref of refs) {
+      const row = (content: string): SearchChunksRow => ({
+        ...ROW,
+        doc_key: ref.docKey,
+        articulo: ref.articulo,
+        content,
+      });
+      const served = async (content: string) =>
+        (
+          await retrieve("¿cuánto pago?", {
+            client: fakeClient([row(content)]),
+            embedder: fakeEmbedder(),
+          })
+        ).chunks.length;
+
+      expect(await served(`${ROW.content} ${ref.evidence}`)).toBe(0);
+      expect(await served(ROW.content)).toBe(1);
+    }
+  });
+
+  /**
    * The year bump merges, and deploys, before the production re-crawl can run
    * (it crawls only merged main). In between, the rows still hold last year's
    * text under this year's declaration: the text decides, and it is withheld.
@@ -1191,7 +1295,7 @@ describe("retrieve", () => {
 
     it("sends each sentence and its embedding beside the question's", async () => {
       let seen: Record<string, unknown> | undefined;
-      const result = await retrieve("¿Y dónde me afilio?", {
+      const result = await retrieve("¿Y en qué oficina me afilio?", {
         client: fakeClient([ROW], (args) => {
           seen = args;
         }),
@@ -1201,7 +1305,7 @@ describe("retrieve", () => {
 
       expect(seen).toMatchObject({
         // Without its question word: the lexical leg's text (#509).
-        query_text: "¿Y me afilio?",
+        query_text: "¿Y en oficina me afilio?",
         query_embedding: "[0.5,0.5,0.5]",
         step_texts: ["Dónde se afilia.", "Cuándo se paga la cuota."],
         step_embeddings: ["[0.5,0.5,0.5]", "[0.5,0.5,0.5]"],
@@ -1215,7 +1319,7 @@ describe("retrieve", () => {
       vi.stubEnv("STEPS", "");
       let seen: Record<string, unknown> | undefined;
       const on = await retrieve(
-        "¿Me puedo desinscribir si debo declaraciones?",
+        "¿Puedo desinscribirme con declaraciones pendientes?",
         {
           client: fakeClient([ROW], (args) => {
             seen = args;
@@ -1228,7 +1332,7 @@ describe("retrieve", () => {
 
       vi.stubEnv("STEPS", "off");
       const off = await retrieve(
-        "¿Me puedo desinscribir si debo declaraciones?",
+        "¿Puedo desinscribirme con declaraciones pendientes?",
         {
           client: fakeClient([ROW], (args) => {
             seen = args;
@@ -1264,7 +1368,7 @@ describe("retrieve", () => {
           return [0.5, 0.5, 0.5];
         },
       };
-      const result = await retrieve("¿Y dónde me afilio?", {
+      const result = await retrieve("¿Y en qué oficina me afilio?", {
         client: fakeClient([ROW], (args) => {
           seen = args;
         }),
@@ -1283,7 +1387,7 @@ describe("retrieve", () => {
     });
 
     it("maps the step ranks onto the chunk", async () => {
-      const result = await retrieve("¿Y dónde me afilio?", {
+      const result = await retrieve("¿Y en qué oficina me afilio?", {
         client: fakeClient([
           { ...ROW, step_vector_rank: 2, step_lexical_rank: null },
         ]),
@@ -1307,7 +1411,7 @@ describe("retrieve", () => {
         step_vector_rank: 1,
         step_lexical_rank: 1,
       };
-      const result = await retrieve("¿Y dónde me afilio?", {
+      const result = await retrieve("¿Y en qué oficina me afilio?", {
         client: fakeClient([catalogueOnly]),
         embedder: fakeEmbedder(),
         steps: { probe: () => probe },
@@ -1317,7 +1421,7 @@ describe("retrieve", () => {
 
       // Nor on the degraded path, where "the reader's own words matched"
       // is the whole test.
-      const degraded = await retrieve("¿Y dónde me afilio?", {
+      const degraded = await retrieve("¿Y en qué oficina me afilio?", {
         client: fakeClient([catalogueOnly]),
         embedder: failingEmbedder(new Error("voyage 503")),
         steps: { probe: () => probe },
@@ -1330,7 +1434,7 @@ describe("retrieve", () => {
   describe("the expansion legs (#286)", () => {
     it("sends the rewrite and its embedding beside the question's", async () => {
       let seen: Record<string, unknown> | undefined;
-      const result = await retrieve("Me inscribí un año tarde, ¿qué me pasa?", {
+      const result = await retrieve("Hice la inscripción tarde, ¿qué sigue?", {
         client: fakeClient([ROW], (args) => {
           seen = args;
         }),
@@ -1341,7 +1445,7 @@ describe("retrieve", () => {
       });
 
       expect(seen).toMatchObject({
-        query_text: "Me inscribí un año tarde, ¿ me pasa?",
+        query_text: "Hice la inscripción tarde, ¿ sigue?",
         query_embedding: "[0.5,0.5,0.5]",
         expansion_text: "Omisión de la declaración de inscripción",
         expansion_embedding: "[0.5,0.5,0.5]",

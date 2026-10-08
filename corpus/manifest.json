@@ -52,6 +52,14 @@
           "evidence": "a partir del 01 de enero del 2026",
           "figures": "the monthly créditos por hijo and por cónyuge, as DE 45333-H set them"
         }
+      ],
+      "overriddenFigures": [
+        {
+          "articulo": "ARTICULO 38",
+          "evidence": "setenta y dos mil colones (¢72.000)",
+          "overriddenBy": "the salario tramos of artículo 33, whose non-taxable first tramo is set each year by decree (DE 45333-H for 2026); the ¢72.000 is pre-1995 text. The multi-employer rule itself is current, and reglamento-renta Artículo 61 states it too",
+          "figures": "the pre-1995 ¢72.000 cuota libre"
+        }
       ]
     },
     {
@@ -133,7 +141,33 @@
         "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2020-2029\\2021\\D_43198_0_95992\\14AA39\\image004.png",
         "https://sinalevi.go.cr/ImagenesSINALEVI\\Normativa\\2020-2029\\2021\\D_43198_0_95992\\14AA39\\image006.png"
       ],
-      "notes": "IMAGE AUDIT (#150): 3 images, all rendered formulas, all 3 image-only — the proration rules in TRANSITORIO I («Disposiciones sobre el Transitorio XIX de la Ley 9635»): tramo de renta and crédito fiscal prorated as (valor del periodo ordinario / 12) × meses del periodo, and impuesto determinado re-annualised as (impuesto 2020 / meses del periodo) × 12. Each chunk keeps «deberán utilizar la siguiente fórmula:» and loses the formula. Not replaced: the rule governs fiscal periods closing 2020-12-31 and pagos parciales for 2021–2023 — spent as of 2026, so ingesting a source for it would add dead law rather than an answerable fact. Never cite this Transitorio for a computation; the rest of the reglamento is unaffected. SURVEY (#203): out of #203's reach, and recorded here so nobody re-opens it. #203 restores fraction bars that pdftotext drops; this ficha is SINALEVI HTML, so pdftotext never runs on it, and its three formulas are lost as *images* (the IMAGE AUDIT above), not as flattened text. Same verdict as #150's: the rule is spent, and nothing here is worth ingesting a second source for."
+      "notes": "IMAGE AUDIT (#150): 3 images, all rendered formulas, all 3 image-only — the proration rules in TRANSITORIO I («Disposiciones sobre el Transitorio XIX de la Ley 9635»): tramo de renta and crédito fiscal prorated as (valor del periodo ordinario / 12) × meses del periodo, and impuesto determinado re-annualised as (impuesto 2020 / meses del periodo) × 12. Each chunk keeps «deberán utilizar la siguiente fórmula:» and loses the formula. Not replaced: the rule governs fiscal periods closing 2020-12-31 and pagos parciales for 2021–2023 — spent as of 2026, so ingesting a source for it would add dead law rather than an answerable fact. Never cite this Transitorio for a computation; the rest of the reglamento is unaffected. SURVEY (#203): out of #203's reach, and recorded here so nobody re-opens it. #203 restores fraction bars that pdftotext drops; this ficha is SINALEVI HTML, so pdftotext never runs on it, and its three formulas are lost as *images* (the IMAGE AUDIT above), not as flattened text. Same verdict as #150's: the rule is spent, and nothing here is worth ingesting a second source for.",
+      "overriddenFigures": [
+        {
+          "articulo": "Artículo 23",
+          "evidence": "¢106.000.000",
+          "overriddenBy": "the yearly indexation of ley-renta Artículo 15 inciso b), whose ceiling Hacienda updates by decree (¢119.174.000 for 2026, DE 45333-H); Ley 10392 changed the reduction, not this amount",
+          "figures": "the ¢106.000.000 renta bruta ceiling for personas jurídicas on the reduced escala"
+        },
+        {
+          "articulo": "Artículo 23",
+          "evidence": "en un 100% de su impuesto determinado",
+          "overriddenBy": "Ley 10392 (2023-11-14) rewrote ley-renta Artículo 15: new Mipymes pay 0 % of the tax in years one to three, 25 % in years four and five and 50 % in year six, and personas físicas qualify too",
+          "figures": "the 100/75/50 reduction for new micro and small businesses over their first three years: its first year"
+        },
+        {
+          "articulo": "Artículo 23",
+          "evidence": "en un 75% de su impuesto determinado",
+          "overriddenBy": "Ley 10392 (2023-11-14) rewrote ley-renta Artículo 15, as above",
+          "figures": "the same reduction: its second year, listed apart so a chunk boundary that splits the list cannot serve it"
+        },
+        {
+          "articulo": "Artículo 23",
+          "evidence": "en un 50% de su impuesto determinado",
+          "overriddenBy": "Ley 10392 (2023-11-14) rewrote ley-renta Artículo 15, as above",
+          "figures": "the same reduction: its third year"
+        }
+      ]
     },
     {
       "doc_key": "tramos-renta-2026",
