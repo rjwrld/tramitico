@@ -411,6 +411,12 @@ The same holds for `ccss-faq` once the CCSS replaces its rate image: leave it ou
 last day, or whose heading is gone, stops the run at its document the same way: `ccss-faq`
 today. Leave it out of the list above until the manifest PR of §2.4 merges.
 
+**An overridden figure's text changed (#529).** An `overriddenFigures` artículo that fails with
+«no longer carries» or «no chunk with that heading» stops the run at its document the same way:
+`reglamento-renta` once Hacienda brings art. 23 in line with Ley 10392, or `ley-renta` if
+SINALEVI rewrites art. 38. Read the new text as §2.5 says, and leave the document out of the list
+above until that manifest PR merges.
+
 **A pinned source changed.** Two checks stop the run instead of ingesting bytes nobody has read.
 Documents ingested before the stop stay written and the corpus-index step does not run, so
 finish with a complete re-run (ingestion is idempotent per document).
@@ -478,10 +484,10 @@ withholds every chunk of the artículo that still carries those words, on any da
 the artículo's other chunks
 ([ADR 0016 fourth amendment](adr/0016-source-freshness-policy.md)).
 
-| Listed                           | Overridden words                                                             | By                                       |
-| -------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------- |
-| `reglamento-renta` · Artículo 23 | «¢106.000.000», «en un 100% / 75% / 50% de su impuesto determinado» (part 0) | Ley 10392 → `ley-renta` Artículo 15      |
-| `ley-renta` · ARTICULO 38        | «setenta y dos mil colones (¢72.000)»                                        | the yearly tramos of `ley-renta` art. 33 |
+| Listed                           | Overridden words                                                             | By                                                                          |
+| -------------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `reglamento-renta` · Artículo 23 | «¢106.000.000», «en un 100% / 75% / 50% de su impuesto determinado» (part 0) | `ley-renta` Artículo 15: its yearly decree (ceiling), Ley 10392 (reduction) |
+| `ley-renta` · ARTICULO 38        | «setenta y dos mil colones (¢72.000)»                                        | the yearly tramos of `ley-renta` art. 33                                    |
 
 Nothing warns on a clock: the figures are stale today and stay stale. A re-crawl is what can
 change them.
