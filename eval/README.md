@@ -101,7 +101,7 @@ label that is recorded, never gated (one more judge call per failed answer,
 cents a lane). A scoped `EVAL_CASES` run re-asks too. The robustness block
 (#502) sits outside every other gate and prints its own line in each lane. The abstention lane
 also scores `ho-abs-iva-2027`'s requirement (13 % and art. 10, cited, never
-denied), and asserts it since #507 and #508. See «The robustness
+denied); its assertion is a todo that awaits #512's lane. See «The robustness
 block».
 
 Since #503 the abstention set has 15 cases, so `ABSTENTION_GATE` (0.9) allows
@@ -3549,7 +3549,8 @@ is. The two that pass (`2026-09-11-closing`, `2026-09-24-352`) give 13 % and
 art. 10, both cited. A hard assertion would start red, which is the same
 reason the block's gate is a baseline. So the lane scores and prints the
 requirement on every run, and the assertion is a todo, armed when #507 (the
-prompt) and #508 (art. 30 → art. 10) land. The absence half is gated sooner,
+prompt) and #508 (art. 30 → art. 10) land. (Both landed; it awaits #512's lane,
+see «Fragments, not the corpus».) The absence half is gated sooner,
 by #500's detector. After the fold, the same backtest keeps every verdict (17
 fail, the same 2 pass) and all 6 denials. The detector also finds 5 more,
 all in answers that already failed on their literals.
@@ -3760,8 +3761,15 @@ replays of #511's transcript, one round, ≈US$3
 - **False absence claims 4 → 0** on the four flagged rows, whose control
   replay on main's prompt reproduced 4. `ho-abs-iva-2027`, through the scoped
   abstention lane, made none, and met its requirement.
+- **`ho-abs-iva-2027`'s assertion stays a todo** (owner, 2026-10-08). Both
+  passing draws name «artículo 10» only in the ICT transitorio sentence, not
+  in the 13 % one. Neither ran on the full pipeline with #508 and #509
+  merged, and before #507 the requirement failed 17 of 19 answers. #512's
+  full lane reads it, and arms it if it passes on the claim itself.
 - **Tier 1 85/116**, against the lane's 86 and the control replay's 78. The
-  baseline stays 70 (ADR 0023). The control's 78 says one replay of this
+  owner signed off the +7 on the control as within the intent of ±2
+  (2026-10-08): no case went down, and ADR 0023 forbids tuning toward a
+  number. No second control replay. The baseline stays 70. The control's 78 says one replay of this
   transcript moves more than ±2 on its own.
 - **Openings** (reported): the Tier 1 rows went 4 → 2 against the control.
   The ones left say a procedure or a code is not in the documents, which the

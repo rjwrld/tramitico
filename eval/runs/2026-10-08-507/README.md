@@ -67,6 +67,11 @@ solo dicen lo que rige hoy», followed by «La tarifa general del impuesto es
 del trece por ciento (13%) [2].» The lane failed it 3/3 and read the
 requirement 0/1. Its retrieval was live, so this is one draw with no control,
 and #508 owns the cross-reference that puts art. 10 in front of the model.
+The pass is narrower than it reads: the answer names «artículo 10» only in
+the ICT transitorio sentence («pasaron a la tarifa general del artículo 10 de
+la Ley … [4]»), not in the 13 % one. So the lane's assertion stays a todo
+(owner, 2026-10-08), and #512's full lane, on the pipeline with #508 and #509
+merged, reads it and arms it if it passes on the claim itself.
 
 **What the zero does not show.** Rule 7's example of the right sentence is
 the salario base, which three of the four flagged rows named, so part of the
@@ -117,6 +122,10 @@ The control's own 78, eight below the lane on the same chunks and the same
 prompt, says that one replay of this transcript moves more than ±2, so this
 check cannot resolve ±2 with one replay a side, and the +7
 is read as noise, not as a gain.
+
+**Signed off** (owner, 2026-10-08): the +7 on the control replay is within
+the intent of ±2, since no case went down and ADR 0023 forbids tuning toward
+a number. There is no second control replay.
 
 ## Cost
 

@@ -482,7 +482,7 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   naming the correct official/professional route. Tier 1 false declines are zero. An abstention
   case may also declare `requiredClaims` (#502): `ho-abs-iva-2027` must still state the current
   13 % and artículo 10, each cited, and must not say the artículo is absent from the documents.
-  The lane asserts it since #507 and #508.
+  The lane scores this on every run; the assertion awaits #512's lane, after #507 and #508.
 - **Threshold policy:** every Tier 1 case outside the robustness block is individually blocking across retrieval, groundedness,
   adequacy, citations, freshness, and abstention behavior; a strong aggregate cannot hide a red
   case. Numeric thresholds were fixed by the single authorized baseline on the beta corpus
