@@ -56,11 +56,16 @@ arm sets it, or the arm measures a configuration production doesn't run.
   `src/lib/retrieval.eval.test.ts` suites.
 - Database read only: dataset-satisfiability.
 
-The gate constants are `GROUNDEDNESS_GATE` (`groundedness.ts`), `HIT_RATE_GATE`
+The gate constants are `GROUNDEDNESS_BASELINE` (`groundedness.ts`), `HIT_RATE_GATE`
 (`retrieval-hitrate.eval.test.ts`), `ABSTENTION_GATE`
 (`abstention.eval.test.ts`), `ADEQUACY_TIER2_GATE` with
 `TIER1_REQUIREMENT_BASELINE` (`adequacy.ts`), and `ROBUSTNESS_HIT_BASELINE`
-(`robustness.ts`, unset until #511). The robustness block (#502) sits outside
+(`robustness.ts`, unset until #511). Groundedness and Tier 1 are tracked
+baselines: a lane fails only more than 4 below one (groundedness 68/73, so
+≤ 63), and a lane that beats one raises it. A blocking case fails groundedness
+on 2 of 3 answers: the lane re-asks a failing one twice (#474, about US$0.50 a
+lane), and each failure the judges make carries a `contradiction`/`inference`
+label that is recorded, never gated. The robustness block (#502) sits outside
 every other gate and prints its own line in each lane. The abstention lane
 also scores `ho-abs-iva-2027`'s requirement (13 % and art. 10, cited, never
 denied); its assertion is a todo until #507 and #508. See «The robustness
@@ -70,7 +75,8 @@ Two gates are zero, with no constant. One is the citation invariant. The other,
 since #500, is false corpus-absence claims: an answer that says the documents
 lack an artículo or a listed figure that `corpus-index.json` covers
 (`src/lib/eval/absence.ts`). In the groundedness and abstention lanes, such a
-case fails whatever the judge said, and the lane lists it. Each lane also
+case fails whatever the judge said, and the lane lists it. It wins over the
+2-of-3 rule: a re-asked answer that makes one fails its case too. Each lane also
 reports, without gating, the answers that open with an absence claim and any
 typo runs (`src/lib/eval/answer-checks.ts`). The detector's precision read is on
 #500: 66 of 67 hits on the committed runs were true.
@@ -907,9 +913,21 @@ model (`ANSWER_MODEL`, default Sonnet) with the production system prompt —
 and asks an LLM judge at temperature 0: _is this answer supported by the
 retrieved chunks?_ A failed item is re-judged twice more and the majority
 verdict stands, absorbing judge flakiness at n≈25 without loosening the gate.
-**Blocking gate: ≥94% pass** (`GROUNDEDNESS_GATE` in
-`src/lib/eval/groundedness.ts`) — started at 90% per #14, ratcheted by the 2026
-baseline (#267, 70/73); ratchet up, never down.
+The gate started at ≥90% per #14 and ratcheted to ≥94% on the 2026 baseline
+(#267, 70/73). Since #474 ([ADR 0023's amendment](../docs/adr/0023-eval-gates-after-sonnet-5-5.md#amendment-2026-10-07-474-groundedness-and-the-blocking-gate))
+it is a **tracked baseline of 68/73, failing at ≤ 63** (`GROUNDEDNESS_BASELINE`,
+`GROUNDEDNESS_FLOOR` in `src/lib/eval/groundedness.ts`), counted on each
+case's first answer. A lane that beats the baseline raises it.
+
+A blocking case fails on **2 of 3 answers**. When the judges fail its first
+answer, the lane runs the whole pipeline on it twice more and judges each new
+answer the same way (`BLOCKING_REASK_COUNT`, `blockingCaseVerdict`); the
+console prints each re-ask under its case, and the transcript row carries them
+in `reasks`. A false absence claim (#500) on any of the three fails the case,
+and a first answer that makes one is not re-asked. Each answer the judges fail
+also gets a `contradiction`/`inference` label from a second call to the pinned
+judge (`labelFailure`), in the row's `groundedness.label` and the console's
+tally. It gates nothing until it agrees with a human read of #512's failures.
 
 The judge is pinned (`JUDGE_MODEL`, Sonnet 4.5 — it accepts temperature 0,
 which Sonnet 5 rejects; [ADR 0007](../docs/adr/0007-groundedness-judge-model.md))

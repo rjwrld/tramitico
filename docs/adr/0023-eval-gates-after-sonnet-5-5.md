@@ -1,6 +1,7 @@
 # ADR 0023 — What the eval gates mean after Sonnet 5.5: the Tier 1 floor, and the model
 
-Date: 2026-10-02 · Status: accepted (A) · Amends
+Date: 2026-10-02 · Status: accepted (A); amended 2026-10-07
+([#474, below](#amendment-2026-10-07-474-groundedness-and-the-blocking-gate)) · Amends
 [SPEC §9](../../SPEC.md) · Context: issues
 [#449](https://github.com/rjwrld/tramitico/issues/449),
 [#451](https://github.com/rjwrld/tramitico/issues/451),
@@ -92,7 +93,7 @@ of 70/116, and only a lane at 65 or below fails it (`TIER1_REQUIREMENT_FLOOR`,
 paid prompt round aims at a Tier 1 number. Full lanes run on a model change
 or before a release, and prompt work is read on scoped replays. Groundedness
 and the blocking gate stay as SPEC §9 has them. Whether they should stay
-hard gates is left open, as above.
+hard gates is left open, as above; the amendment below decides it.
 
 ## Consequences
 
@@ -103,3 +104,64 @@ hard gates is left open, as above.
 - **B:** `ANSWER_MODEL`/`ANSWER_EFFORT` in Vercel and the GitHub variable
   (#451's rollback commands), a prompt revert or a measured pairing, and one
   approved full lane. The floor of 80 stays.
+
+## Amendment (2026-10-07, #474): groundedness and the blocking gate
+
+Status: accepted (owner, decision session for
+[#497](https://github.com/rjwrld/tramitico/issues/497)) · Context:
+[#474](https://github.com/rjwrld/tramitico/issues/474)
+
+The question this ADR left open is decided. Neither gate gave a decision:
+no full lane had been green since 2026-09-24. The 2026-10-07 audit read the
+committed runs and found the following.
+
+- **The blocking gate failed 0–6 cases per lane** over 14 full lanes, across
+  30 distinct cases. 13 of those cases failed exactly once.
+- **The variance is in the answer, not the judge.** The 14 lanes had 88
+  first-judge fails. Re-judging gave 82 fff and 4 fpf, and flipped only 2
+  to pass. Asking the judges again cannot steady the gate; asking for the
+  answer again can.
+- **About half the fails are real errors.** The 18 judge reasons on the 5.5
+  lanes and 2026-09-25 split into about 7 real errors (a contradiction, a
+  wrong citation, a URL in no fragment), about 7 strict calls on reasonable
+  inferences, and about 4 «the documents don't say X» claims, one of them
+  false.
+
+The owner chose #474's option 2 with three changes.
+
+- **Groundedness is a tracked baseline**, with the Tier 1 mechanics above.
+  The baseline is **68/73** (this ADR's 2026-10-02 lane), the margin **4**,
+  so the floor is **64**, and a lane at **63 or below** fails. A lane that
+  beats the baseline raises it. #512's two final lanes re-set it. The
+  count reads each case's first answer, as the baseline was measured, over
+  the 73 cases outside the abstention tier and the robustness block. A
+  dataset change that moves that population re-sets the baseline in the
+  same change; a unit test fails otherwise.
+- **A blocking case fails only on 2 of 3 answers.** When the judges fail a
+  blocking case's first answer, the lane asks the whole pipeline the same
+  case twice more. Each new answer is judged the same way, with the same
+  majority of three. The case fails when two of its three answers fail.
+  That costs about US$0.50 a lane, and #511 is the first lane that pays
+  it.
+- **The judges' failures carry a label**: `contradiction` (the answer says
+  something the fragments contradict or do not contain) or `inference` (a
+  defensible reading the fragments do not state in those words). A second
+  call to the pinned judge gives it, so the verdict prompt the baseline was
+  measured with is unchanged. It is recorded in every failing transcript
+  row and on the console, and it gates nothing. It becomes a gate only if
+  it agrees with a human read of #512's failures.
+
+**#500's false-absence check stays a hard zero, and it wins over the 2-of-3
+rule.** A false absence claim fails its case on whichever scored answer
+makes it, the first or a re-ask, and a passing re-ask does not clear it. A
+first answer that makes one is not re-asked: nothing can change the
+outcome. Such a claim is a wrong statement a deterministic check proved,
+not a judge's strict call that another answer might not repeat.
+
+This clears [#358](https://github.com/rjwrld/tramitico/issues/358) row 8,
+whose «cleared by» was a gate that counts a case only when it fails twice.
+
+In code: `GROUNDEDNESS_BASELINE`, `GROUNDEDNESS_FLOOR`,
+`blockingCaseVerdict` and `labelFailure` in
+`src/lib/eval/groundedness.ts`, asserted by `groundedness.eval.test.ts`.
+SPEC §9 carries the rule.
