@@ -46,6 +46,19 @@ Two free-text files beside them:
   (embeddings only).
 - `catalogue-check-502-rewrites-haiku-{5-5,4-5}.txt`: #418's check, below.
 
+**After every read here**, rule 8 gained one sentence (orchestrator review):
+when the reader names no institution, the model neither picks one nor asks,
+and rule 5 governs. It is unmeasured by a paid read. On the recorded
+rewrites, every Haiku 5.5 rewrite of `inscripcion-tardia-sancion` names both
+the CCSS and Hacienda. `ho-t2-constancia-al-dia`, whose reader names
+Hacienda, names Hacienda alone on every recorded read, #502's included,
+except the smoke, which on rules 7 and 8's earlier wording added a CCSS
+sentence. The Haiku 4.5 arm wrote
+`inscripcion-tardia-sancion`'s expansion as a question: «No puedo redactar la
+respuesta sin saber ante cuál institución se inscribió tarde…». The case still
+hit, from its own legs and the catalogue's. That rewrite is what the sentence
+is for.
+
 ## #418's check: no blocking target leaves the pool
 
 Every blocking case (the 34 Tier 1 cases and the canary), on #502's own

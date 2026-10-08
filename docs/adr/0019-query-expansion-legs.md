@@ -19,7 +19,11 @@ Three rules join the expansion prompt (`EXPAND_SYSTEM_PROMPT`). The decision bel
   interest. The rule asks for the concrete situation a norm regulates (what is charged, paid,
   declared or deducted, to whom, from when and until when) rather than the norm of one loose
   word. No example in it is taken from a dataset question, because the held-out rule forbids
-  that.
+  that. Its «a quién» could pull the model into choosing an institution, against rule 5, and on
+  the Haiku 4.5 arm «Me inscribí un año tarde» came back as a question («No puedo redactar la
+  respuesta sin saber ante cuál institución…»). So rule 8 now says that when the reader names no
+  institution, the model neither picks one nor asks, and rule 5 governs. That sentence was added
+  after the paid reads: it is checked only against the recorded rewrites.
 - **Rule 9: no heading over a list of neighbouring topics.** Haiku 5.5 wrote «X, con sus
   requisitos, condiciones y procedimientos…» and padded the probe with topics nobody asked
   about. A first version also said «redacte la regla misma». That made 5.5 state a conclusion

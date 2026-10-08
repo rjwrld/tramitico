@@ -180,6 +180,11 @@ describe("the rewrite", () => {
     // («retroactivo» as arrears interest) and wrote a heading over a list
     // of neighbouring topics, where Haiku 4.5 wrote the rule (#502).
     expect(EXPAND_SYSTEM_PROMPT).toContain("tradúzcala a la situación");
+    // …without choosing an institution the reader did not name, or asking
+    // which: Haiku 4.5 answered «Me inscribí un año tarde» with «No puedo
+    // redactar la respuesta sin saber ante cuál institución…» under rule 8's
+    // first wording. Rule 5 still governs.
+    expect(EXPAND_SYSTEM_PROMPT).toContain("no elija una ni pregunte cuál");
     expect(EXPAND_SYSTEM_PROMPT).toContain("lista de asuntos vecinos");
   });
 
