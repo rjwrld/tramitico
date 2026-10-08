@@ -132,8 +132,8 @@ const limitKnobs: Record<RateLimitTier, () => number> = {
 };
 
 /**
- * The daily quota for a tier: the env override when set, else the SPEC §7
- * default. Exported so `/terminos` states the number that is enforced rather
+ * The daily quota for a tier: the env override when it is a positive
+ * integer, else the SPEC §7 default — a bad override logged (#532). Exported so `/terminos` states the number that is enforced rather
  * than a copy of it.
  */
 export function limitFor(tier: RateLimitTier): number {

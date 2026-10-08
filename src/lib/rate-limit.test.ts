@@ -296,6 +296,9 @@ describe("limitForAnonIp (#383)", () => {
  * rather than as a limit the 429 would state as «2.5 preguntas».
  */
 describe("limitFor (#532)", () => {
+  // The readers are module-level, so the value each last logged carries across
+  // this file: every log-counting test here uses a bad value no other test
+  // sets on the same variable, or the second one would read silently.
   let errors: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
