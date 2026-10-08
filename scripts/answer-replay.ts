@@ -243,6 +243,21 @@ async function main(): Promise<void> {
       `${recordedClaims.length} → ${replayedClaims.length}` +
       (replayedClaims.length > 0 ? ` — ${replayedClaims.join(", ")}` : ""),
   );
+  // Rule 9's «no la anuncie al principio» (#507): answers that open with an
+  // absence claim, true or false. Reported, as in the lanes, never gated.
+  const recordedOpenings = plan.filter(
+    ({ row }) => checkAnswer(row.answer, row.chunks).absence.opening !== null,
+  );
+  const replayedOpenings = replayed.filter(
+    (r) => (r.checks?.absence.opening ?? null) !== null,
+  );
+  console.log(
+    `absence openings, recorded → replayed: ` +
+      `${recordedOpenings.length} → ${replayedOpenings.length}` +
+      (replayedOpenings.length > 0
+        ? ` — ${replayedOpenings.map((r) => r.id).join(", ")}`
+        : ""),
+  );
   const refused = replayed.filter((r) => r.citations && !r.citations.ok);
   const cut = replayed.filter((r) => r.generation?.finishReason !== "stop");
   const tokens = replayed.map((r) => r.generation?.outputTokens ?? 0);

@@ -287,7 +287,9 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   Via Vercel AI SDK, streaming. System prompt constrains
   answers to retrieved chunks; when retrieval is empty/weak, the answer says so and links the
   agency the question belongs to instead of guessing (routed by institution since #264, §8).
-  MTSS questions get the encoded fact: the Labor Code mostly does not apply to independents.
+  The prompt tells the model it sees only part of the documents, never the whole collection
+  (#507): it never says a document, artículo or figure is absent, and a datum it cannot see goes
+  to the closing referral («confírmelo con Hacienda»), never to the opening. MTSS questions get the encoded fact: the Labor Code mostly does not apply to independents.
   The user prompt carries today's Costa Rica date (#455), outside the cached system prompt, so
   the answer can say whether a documented plazo has passed; counting days from it stays
   forbidden by rule 3.
