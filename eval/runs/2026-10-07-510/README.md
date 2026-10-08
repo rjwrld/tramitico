@@ -35,8 +35,8 @@ TypeScript. Arm 2 subtracts the step legs' full share from the score:
     score − 1/(60 + step_vector_rank) − 1/(60 + step_lexical_rank)
 
 That is exact when the step lexical match had full coverage, and demotes the
-chunk a little further otherwise. The offline reads below bracket the exact
-sum, and every variant that keeps the coverage loses Tier 1 targets.
+chunk a little further otherwise. In the offline reads below, every variant
+that keeps the coverage weighting lands at 39–42 Tier 1 targets, against 49.
 
 ## Readings
 
@@ -94,7 +94,7 @@ configuration exactly.
 | Plain RRF over the four ranks, no coverage scaling            | 82/191  | 31/93     | 57/73     |
 
 Chunk by chunk, the exact step-free sum lies between the second and third
-rows' scores. The three variants that keep the coverage cost 7–10 Tier 1
+rows' scores; that bounds each score, not the top-8 counts. The three variants that keep the coverage cost 7–10 Tier 1
 targets before the pin, and dropping the coverage as well costs 18.
 
 ## Cost

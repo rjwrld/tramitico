@@ -3514,9 +3514,9 @@ route's configuration, outside the robustness block:
   total loss there is no `pin1` pick, so the step legs are a step chunk's
   only way into the set.
 - `search_chunks` does not return the coverage that scales a lexical leg, so
-  the exact step-free sum cannot be rebuilt in code. The run README brackets
-  it offline: the variants that keep the coverage land at 39–42 Tier 1
-  targets before the pin, against 49.
+  the exact step-free sum cannot be rebuilt in code. In the run README's
+  offline reads, every variant that keeps the coverage weighting lands at
+  39–42 Tier 1 targets before the pin, against 49.
 - #490 item 1, «¿Cuánto pago como independiente?», misses on both orders. Its
   fused head is all step-leg chunks, and taking them out brings
   `ccss-prescripcion` entries, not the escalas. The rerank and #509 are its

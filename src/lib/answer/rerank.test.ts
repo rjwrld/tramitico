@@ -674,6 +674,8 @@ describe("the total-loss fallback (#510)", () => {
   function stepOnly(id: number): RetrievedChunk {
     return {
       ...chunk(id),
+      // Two legs' RRF shares, the way `search_chunks` sums them.
+      score: 2 / (60 + id),
       vectorRank: null,
       lexicalRank: null,
       expansionVectorRank: null,
@@ -706,7 +708,8 @@ describe("the total-loss fallback (#510)", () => {
 
   it("leaves a partial loss to the readings that came back", async () => {
     // Only the question's reading comes back: its order is cut, and the
-    // fused head the step legs set does not return.
+    // fused head the step legs set does not return. A lost question reading
+    // is the #296 tests' case, in `rerankOrder` below.
     const fetchImpl = (async (_url: string, init: RequestInit) => {
       const { query } = JSON.parse(init.body as string);
       if (query !== "pregunta") return new Response("nope", { status: 500 });
