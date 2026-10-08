@@ -440,21 +440,20 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   its seed's `expected`, tier, family and requirements verbatim (`seed: "robustez:<case id>"`),
   is never held out and never blocking. Every other gate reads the population it read before the
   block; each lane prints the block as its own line, and the block is gated as a tracked baseline
-  of cases hit, set by #511's full lane at 25 of 27 (`src/lib/eval/robustness.ts`).
+  of cases hit, set by #511's full lane at 25 of 27 and raised to 27 of 27 by #512's two final lanes
+  (`src/lib/eval/robustness.ts`).
 - **Retrieval:** every expected source/article must be present in the answer pool. A satisfiable
   Tier 1 case that takes the weak-retrieval decline is a failure (outside the robustness block,
   which reports its weak cases on its own line).
 - **Groundedness:** every material claim must be supported by a retrieved chunk. The pinned
   temperature-0 judge uses a majority of three for flagged answers
   ([ADR 0007](docs/adr/0007-groundedness-judge-model.md)). Since #474 the count of grounded
-  answers is a **tracked baseline of 68/73** (the 2026-10-02 lane), failing only a lane more than
-  4 below it (**≤ 63**); a lane that beats it raises it, and #512's final lanes re-set it.
-  #511's baseline lane (2026-10-08) read 72/74, and the owner held 68 until #512 rather than
-  ratchet on one lane. It
-  counts the judges' verdict on each case's first answer, before #500's override (as the 68 was
-  measured), over the 74 cases outside the abstention tier and the robustness block (73 when
-  the 68 was measured; #503 added `t2-inscripcion-dimex`, and the counts stay absolute until
-  #512 re-sets them; #511 was the first read over 74). No
+  answers is a tracked baseline, failing only a lane more than 4 below it; a lane that beats it
+  raises it. #512's two final lanes (2026-10-08) both read 73/74 and set it at **73**, so a lane
+  fails at **≤ 68** (it was 68/73 from the 2026-10-02 lane until then). It
+  counts the judges' verdict on each case's first answer, before #500's override (as the first
+  baseline was measured), over the 74 cases outside the abstention tier and the robustness block.
+  No
   individually blocking case may fail, and a blocking case fails **on 2 of 3 answers**: when its
   first answer fails, the lane asks the whole pipeline twice more and judges each new answer the
   same way. An answer the route would refuse to ship (#168's citation invariant, #281's derived
@@ -485,7 +484,8 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   naming the correct official/professional route. Tier 1 false declines are zero. An abstention
   case may also declare `requiredClaims` (#502): `ho-abs-iva-2027` must still state the current
   13 % and artículo 10, each cited, and must not say the artículo is absent from the documents.
-  The lane scores this on every run; the assertion awaits #512's lane, after #507 and #508.
+  The lane scores this on every run; the assertion stays a todo, since #512's two lanes both
+  read it 0/1 (the 13 % cited, no artículo 10).
 - **Threshold policy:** every Tier 1 case outside the robustness block is individually blocking across retrieval, groundedness,
   adequacy, citations, freshness, and abstention behavior; a strong aggregate cannot hide a red
   case. Numeric thresholds were fixed by the single authorized baseline on the beta corpus
@@ -493,12 +493,12 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   to make a regression pass ([ADR 0015](docs/adr/0015-coverage-tiers-and-required-claims.md)). The
   ratchet rule: a gate is the measured pass rate minus one case, rounded down, never below its
   previous value. Current gates (closing run, 2026-09-11): hit-rate ≥92% (measured 95.9%, held
-  at 0.92 by #296 requirement 4), groundedness tracked against a baseline of 68 grounded answers
-  (measured over 73, read over 74 since #503), failing at ≤ 63 (ADR 0023's #474 amendment; ≥94% from the closing run until then), Tier 1 requirements
-  stated tracked against a baseline of 70/116, failing only on a lane more than 4 below it
-  (≤ 65; #511's lane read 72/74 and 86/116, and the owner held both baselines until #512;
-  [ADR 0023](docs/adr/0023-eval-gates-after-sonnet-5-5.md); it and the groundedness
-  baseline are the relaxations the ratchet rule has had, both recorded there), Tier 2 adequacy
+  at 0.92 by #296 requirement 4), groundedness tracked against a baseline of 73/74 grounded answers,
+  failing at ≤ 68, and Tier 1 requirements stated against a baseline of 78/116, failing at
+  ≤ 73, both set by #512's two final lanes (2026-10-08) at the lower lane of the two
+  ([ADR 0023](docs/adr/0023-eval-gates-after-sonnet-5-5.md); the 2026-10-02 baselines of 68
+  and 70, and the ≥94% groundedness gate before them, are the relaxations the ratchet rule
+  has had, both recorded there), Tier 2 adequacy
   ≥84% (measured 12/13), abstention ≥90% (measured 9/9), citation invariant zero violations on every case
   (measured 0/73).
 - **Adequacy gate (#130/#261):** groundedness passes a supported-but-incomplete answer, so a

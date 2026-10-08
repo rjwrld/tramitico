@@ -8,27 +8,21 @@ finds one issue's reading. A PR that moves a default, a gate or the baseline
 updates this block in the same change.
 
 **Production and the baseline** ([ADR 0023](../docs/adr/0023-eval-gates-after-sonnet-5-5.md)):
-`claude-sonnet-5-5` at `ANSWER_EFFORT=low`. The baseline run is
-[`runs/2026-10-08-baseline/`](runs/2026-10-08-baseline/) on main at
-66a2cf9 (#511): groundedness 72/74, Tier 1 86/116, Tier 2 12/14, abstention
-14/15, hit-rate 68/74 (red), robustness block 25/27 hits, 4 false absence
-claims (red, #507's starting point; #507's prompt replays them to 0, see
-[`runs/2026-10-08-507/`](runs/2026-10-08-507/)). Its groundedness transcript
-(`low/groundedness-…-20261008T022706Z.jsonl`, also copied to the main
-checkout's `eval/transcripts/2026-10-08-baseline-511/`) stays the record of
-#511's numbers but is no longer `answer-replay`'s input. 45 of its 100 rows
-with chunks carry `reglamento-iva` chunks, whose ids #530's re-ingest re-minted
-(local 05:10 UTC, production 05:21 UTC, 2026-10-08), and `replayChunks` in
-`src/lib/eval/replay.ts` throws on a chunk id the corpus no longer carries
-(the other 55 rows still resolve on the local stack, 2026-10-08).
-#507's transcripts carry the same ids. The next replay input is #512's fresh
-lanes. The tracked baselines are still those of the previous
-run, [`runs/2026-10-02-full-lane/`](runs/2026-10-02-full-lane/): groundedness
-68/73 and Tier 1 70/116. That run was read before the robustness block,
-#503's cases and #520's re-ingest. The owner held both baselines rather
-than ratchet them to #511's 72 and 86 (2026-10-08). It was one lane, Tier 1's
-+16 is unexplained with the prompt unchanged, the pipeline changes again
-before #512, and #512's two lanes re-set both.
+`claude-sonnet-5-5` at `ANSWER_EFFORT=low`. The baseline runs are #512's
+two final lanes, [`runs/2026-10-08-final/`](runs/2026-10-08-final/), on main
+at b8d8667: groundedness 73/74 and 73/74, Tier 1 78/116 and 79/116, Tier 2
+12/14 and 13/14, abstention 14/15 and 15/15, hit-rate 72/74 and 73/74,
+robustness block 27/27 hits in both, and no false absence claim in either.
+Lane 2 passed every gate; lane 1's one red was `multa-iva-no-declarado`, a
+blocking case failed on 2 of 3 answers. Each tracked baseline is the lower
+lane of the two: groundedness 73 (a lane fails at ≤ 68), Tier 1 78 (≤ 73) and
+robustness 27 (≤ 24). Their transcripts (`lane1/`, `lane2/`, also copied to
+the main checkout's `eval/transcripts/2026-10-08-final-512/`) are the next
+`answer-replay` input. #511's lane
+([`runs/2026-10-08-baseline/`](runs/2026-10-08-baseline/)) read 72/74 and
+86/116, and its transcripts no longer replay: #530's re-ingest re-minted the
+`reglamento-iva` chunk ids they carry, and `replayChunks` in
+`src/lib/eval/replay.ts` throws on a chunk id the corpus no longer holds.
 Two identical full lanes differ by ±4 Tier 1 requirements (#457), and
 fixed-chunk replays of one prompt read 70–75 on the 2026-10-02 chunks.
 
@@ -97,18 +91,17 @@ The gate constants are `GROUNDEDNESS_BASELINE` (`groundedness.ts`), `HIT_RATE_GA
 (`retrieval-hitrate.eval.test.ts`), `ABSTENTION_GATE`
 (`abstention.eval.test.ts`), `ADEQUACY_TIER2_GATE` with
 `TIER1_REQUIREMENT_BASELINE` (`adequacy.ts`), and `ROBUSTNESS_HIT_BASELINE`
-(`robustness.ts`, 25 since #511). Groundedness and Tier 1 are tracked
-baselines: a lane fails only more than 4 below one (groundedness 68 grounded
-answers, so ≤ 63, read over 74 cases since #503; Tier 1 70, so ≤ 65), and a
-lane that beats one raises it, unless the owner holds it, as for #511's
-lane. A blocking case fails groundedness
+(`robustness.ts`, 27 since #512). Groundedness and Tier 1 are tracked
+baselines: a lane fails only more than 4 below one (groundedness 73 grounded
+answers of 74, so ≤ 68; Tier 1 78, so ≤ 73), and a lane that beats one raises
+it, unless the owner holds it, as for #511's lane. A blocking case fails groundedness
 on 2 of 3 answers: the lane re-asks a failing one twice (#474, about US$0.50 a
 lane), and each failure the judges make carries a `contradiction`/`inference`
 label that is recorded, never gated (one more judge call per failed answer,
 cents a lane). A scoped `EVAL_CASES` run re-asks too. The robustness block
 (#502) sits outside every other gate and prints its own line in each lane. The abstention lane
 also scores `ho-abs-iva-2027`'s requirement (13 % and art. 10, cited, never
-denied); its assertion is a todo that awaits #512's lane. See «The robustness
+denied); its assertion stays a todo, since #512's two lanes both read it 0/1. See «The robustness
 block».
 
 Since #503 the abstention set has 15 cases, so `ABSTENTION_GATE` (0.9) allows
@@ -961,15 +954,16 @@ retrieved chunks?_ A failed item is re-judged twice more and the majority
 verdict stands, absorbing judge flakiness at n≈25 without loosening the gate.
 The gate started at ≥90% per #14 and ratcheted to ≥94% on the 2026 baseline
 (#267, 70/73). Since #474 ([ADR 0023's amendment](../docs/adr/0023-eval-gates-after-sonnet-5-5.md#amendment-2026-10-07-474-groundedness-and-the-blocking-gate))
-it is a **tracked baseline of 68/73, failing at ≤ 63** (`GROUNDEDNESS_BASELINE`,
+it is a **tracked baseline, 73/74 since #512, failing at ≤ 68** (`GROUNDEDNESS_BASELINE`,
 `GROUNDEDNESS_FLOOR` in `src/lib/eval/groundedness.ts`). It counts the judges'
-verdict on each case's first answer, before #500's override, as the 68 was
-measured: seven of that lane's judge passes make a claim the detector now
+verdict on each case's first answer, before #500's override, as the first
+baseline (68/73, the 2026-10-02 lane) was measured: seven of that lane's judge passes make a claim the detector now
 calls false, and those fail the zero gate, not the count. A lane that beats
 the baseline raises it. The 68 was read over 73 cases; #503 added
 `t2-inscripcion-dimex`, so the lane counts over 74 (`GROUNDEDNESS_CASES`) and
 the baseline and floor stay absolute counts. #511 was the first read over 74.
-It read 72, and the owner held the baseline at 68 until #512 re-sets it.
+It read 72, and the owner held the baseline at 68 until #512, whose two lanes
+both read 73 and set it there (the lower lane of the two).
 
 A blocking case fails on **2 of 3 answers**. When its first answer fails, the
 lane runs the whole pipeline on it twice more and judges each new answer the
@@ -983,7 +977,10 @@ throws, the transcript is written before the run fails (`runThenRecord`), so
 the rows already paid for survive. Each answer the judges fail
 also gets a `contradiction`/`inference` label from a second call to the pinned
 judge (`labelFailure`), in the row's `groundedness.label` and the console's
-tally. It gates nothing until it agrees with a human read of #512's failures.
+tally. It gates nothing until it agrees with a human read of the failures. On
+#512's two lanes it matched four of five failing cases and mislabelled a real
+error as `inference`, so it stays recorded
+([`runs/2026-10-08-final/`](runs/2026-10-08-final/)).
 
 The judge is pinned (`JUDGE_MODEL`, Sonnet 4.5 — it accepts temperature 0,
 which Sonnet 5 rejects; [ADR 0007](../docs/adr/0007-groundedness-judge-model.md))
@@ -3578,8 +3575,8 @@ is. The two that pass (`2026-09-11-closing`, `2026-09-24-352`) give 13 % and
 art. 10, both cited. A hard assertion would start red, which is the same
 reason the block's gate is a baseline. So the lane scores and prints the
 requirement on every run, and the assertion is a todo, armed when #507 (the
-prompt) and #508 (art. 30 → art. 10) land. (Both landed; it awaits #512's lane,
-see «Fragments, not the corpus».) The absence half is gated sooner,
+prompt) and #508 (art. 30 → art. 10) land. (Both landed, and #512's two lanes
+both read it 0/1, so it stays a todo; see «Fragments, not the corpus».) The absence half is gated sooner,
 by #500's detector. After the fold, the same backtest keeps every verdict (17
 fail, the same 2 pass) and all 6 denials. The detector also finds 5 more,
 all in answers that already failed on their literals.

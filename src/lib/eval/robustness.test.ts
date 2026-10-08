@@ -140,9 +140,9 @@ describe("robustnessHitFloor", () => {
     expect(robustnessHitFloor(24)).toBe(24 - ROBUSTNESS_REGRESSION_MARGIN);
   });
 
-  it("is armed at 25 of 27 hits, #511's lane, failing a lane at 22 or below", () => {
-    expect(ROBUSTNESS_HIT_BASELINE).toBe(25);
-    expect(robustnessHitFloor()).toBe(23);
+  it("is armed at 27 of 27 hits, #512's lanes, failing a lane at 24 or below", () => {
+    expect(ROBUSTNESS_HIT_BASELINE).toBe(27);
+    expect(robustnessHitFloor()).toBe(25);
   });
 });
 

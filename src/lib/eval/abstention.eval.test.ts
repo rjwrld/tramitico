@@ -375,10 +375,11 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
   // (owner, 2026-10-08): both passing draws name «artículo 10» only in the
   // ICT transitorio sentence, not in the 13 % one, and neither ran on the
   // full pipeline with #508 and #509 merged (eval/runs/2026-10-08-507/).
-  // #512's full lane reads it, and arms it if it passes on the claim itself.
-  // The absence half is gated already, by #500's detector.
+  // #512's two final lanes (eval/runs/2026-10-08-final/) both failed it: each
+  // cites the 13 % and names no «artículo 10», so it is not armed. The
+  // absence half is gated already, by #500's detector.
   it.todo(
-    "gives what an abstention case requires, and denies no artículo (#502) — awaits #512's lane",
+    "gives what an abstention case requires, and denies no artículo (#502) — 0/1 on #512's lanes",
   );
 
   it("invents no figure while declining", () => {
