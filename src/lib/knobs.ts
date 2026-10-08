@@ -29,6 +29,12 @@
  * positive integer — nor one of the knob's words, `off` for the cap — is the
  * default, logged on the same prefix.
  *
+ * The three daily quotas, `RATE_LIMIT_ANON`, `RATE_LIMIT_AUTHED` and
+ * `RATE_LIMIT_ANON_IP`, read through `positiveIntKnob` too (#532): a quota is
+ * a count of asks, so a fraction is a typo like any other. The umbrella's
+ * default is derived from the anonymous quota, so it reads with a `null`
+ * fallback, logged as `unset`, and rate-limit.ts supplies the multiple.
+ *
  * `EMBEDDINGS_PROVIDER` is the one mode knob that does not read through here:
  * `createEmbedder` already throws on a provider it does not know, and has to
  * (ingestion/embedder.ts) — a fallback there would quietly embed questions
@@ -65,15 +71,18 @@ export function modeKnob<const T extends string, const F extends T | null = T>(
  * A reader for one numeric knob (#519): a positive integer, as `Number` reads
  * it, or one of `words` — `{ off: Infinity }` for `ANSWER_DOC_CAP`. Unset,
  * empty and anything else read as `fallback`, the last logged once per cold
- * start exactly as `modeKnob` logs.
+ * start exactly as `modeKnob` logs. A `null` fallback, logged as `unset`, is
+ * for a knob whose default the caller derives (`RATE_LIMIT_ANON_IP`, #532).
  */
-export function positiveIntKnob(
+export function positiveIntKnob<F extends number | null = number>(
   name: string,
-  fallback: number,
+  fallback: F,
   words: Readonly<Record<string, number>> = {},
-): () => number {
-  const label = (n: number) =>
-    Object.keys(words).find((word) => words[word] === n) ?? String(n);
+): () => number | F {
+  const label = (n: number | null) =>
+    n === null
+      ? "unset"
+      : (Object.keys(words).find((word) => words[word] === n) ?? String(n));
   const report = logOncePerValue(
     name,
     ["a positive integer", ...Object.keys(words)].join(" | "),
