@@ -13,11 +13,10 @@
  * under test: `retrieval.isWeak` short-circuits to the deterministic decline,
  * routed by `classifyRouting`, but a question whose vocabulary happens to
  * retrieve well reaches the model, and then rule 6 of the answer prompt is
- * what must hold. That is the common route: all 126 rows on record when #503
- * was filed took it, which is why `routing-dataset.test.ts` checks the
- * classifier on every case for free. Both
- * routes are judged by the same binary question: did it decline, and did it
- * name where to go?
+ * what must hold. That is the common route (all 126 rows on record when #503
+ * was filed took it), which is why `routing-dataset.test.ts` checks the
+ * classifier on every case for free. Both routes are judged by the same
+ * binary question: did it decline, and did it name where to go?
  *
  * Two assertions, matching §A3: correct abstention ≥ 90%, and **zero** invented
  * figures — a regex, not a judgement. What counts as invented depends on the

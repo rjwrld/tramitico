@@ -39,7 +39,7 @@
  */
 import path from "node:path";
 import type { ConversationTurn } from "../answer/contract";
-import { ROUTING_CATEGORIES, type RoutedCategory } from "../routing";
+import { ROUTED_CATEGORIES, type RoutedCategory } from "../routing";
 
 export const DATASET_PATH = path.join(process.cwd(), "eval", "dataset.jsonl");
 
@@ -189,7 +189,8 @@ export interface EvalCase {
    * What `classifyRouting` must make of the question (#503): the category the
    * deterministic decline links when retrieval comes back weak. Required on
    * an abstention case, absent elsewhere — an answerable case has no decline
-   * to route. `routeTo` is the judge's prose for the same destination.
+   * to route. `routeTo` is the judge's prose for the destination, and may
+   * name more than the one link («Hacienda o un profesional en contabilidad»).
    */
   routedCategory?: RoutedCategory;
   /**
@@ -262,7 +263,7 @@ function parseRoutedCategory(
   raw: unknown,
 ): RoutedCategory | undefined {
   if (raw === undefined) return undefined;
-  const accepted: readonly string[] = [...ROUTING_CATEGORIES, "general"];
+  const accepted: readonly string[] = ROUTED_CATEGORIES;
   if (typeof raw !== "string" || !accepted.includes(raw)) {
     throw new Error(
       `${where}: routedCategory must be one of ${accepted.join(", ")}`,

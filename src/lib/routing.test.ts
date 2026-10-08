@@ -9,6 +9,7 @@ import {
   MTSS_FACT,
   normaliseQuestion,
   ROUTING,
+  ROUTED_CATEGORIES,
   ROUTING_CATEGORIES,
   routingEntriesFor,
   routingEntry,
@@ -151,7 +152,7 @@ describe("classifyRouting", () => {
 
 describe("declineAnswer", () => {
   it("opens every variant with the same first sentence", () => {
-    for (const category of [...ROUTING_CATEGORIES, "general"] as const) {
+    for (const category of ROUTED_CATEGORIES) {
       expect(declineAnswer(category).startsWith(DECLINE_OPENING)).toBe(true);
     }
   });
@@ -222,7 +223,7 @@ describe("declineAnswer", () => {
   });
 
   it("carries no apology and no markdown link syntax (DESIGN §9, ADR 0008)", () => {
-    for (const category of [...ROUTING_CATEGORIES, "general"] as const) {
+    for (const category of ROUTED_CATEGORIES) {
       const text = declineAnswer(category);
       expect(text).not.toMatch(/lo sentimos|disculp/i);
       expect(text).not.toMatch(/\]\(/);

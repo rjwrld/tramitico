@@ -60,6 +60,12 @@ export type RoutingCategory = (typeof ROUTING_CATEGORIES)[number];
  */
 export type RoutedCategory = RoutingCategory | "general";
 
+/** Every value `classifyRouting` can return, the table's order then `general`. */
+export const ROUTED_CATEGORIES: readonly RoutedCategory[] = [
+  ...ROUTING_CATEGORIES,
+  "general",
+];
+
 export interface RoutingEntry {
   category: RoutingCategory;
   /** The institution's name as the decline prints it, in Spanish. */
@@ -314,6 +320,7 @@ const KEYWORDS: Record<RoutingCategory, readonly string[]> = {
     "licencia de conducir",
     "licencias de conducir",
     "licencia de manejo",
+    "licencias de manejo",
     "licencia de manejar",
   ],
   mtss: [
@@ -348,9 +355,11 @@ const KEYWORDS: Record<RoutingCategory, readonly string[]> = {
   ],
 };
 
-const OUT_OF_SCOPE: readonly RoutingCategory[] = ROUTING_CATEGORIES.filter(
-  (category) => category !== "hacienda" && category !== "ccss",
-);
+/** The categories whose decline says the question is outside the beta. */
+export const OUT_OF_SCOPE: readonly RoutingCategory[] =
+  ROUTING_CATEGORIES.filter(
+    (category) => category !== "hacienda" && category !== "ccss",
+  );
 
 function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

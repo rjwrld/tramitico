@@ -25,7 +25,7 @@
  */
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { classifyRouting, type RoutedCategory } from "../routing";
+import { classifyRouting, OUT_OF_SCOPE, type RoutedCategory } from "../routing";
 import {
   abstentionCases,
   DATASET_PATH,
@@ -35,8 +35,7 @@ import {
 
 const cases = parseDataset(readFileSync(DATASET_PATH, "utf8"));
 
-/** The categories a decline may name without leaving the beta's scope. */
-const IN_SCOPE: readonly RoutedCategory[] = ["hacienda", "ccss", "general"];
+const outOfScope: readonly RoutedCategory[] = OUT_OF_SCOPE;
 
 describe("classifyRouting over eval/dataset.jsonl (#503)", () => {
   it("routes every abstention case to its routedCategory", () => {
@@ -59,10 +58,14 @@ describe("classifyRouting over eval/dataset.jsonl (#503)", () => {
     }
   });
 
+  // No assertion, by decision (#503): routing runs only on weak retrieval, so
+  // these cases reach the model and are answered. A pinned list would fail the
+  // next answerable case that mentions an institution, which is the failure
+  // the decision ruled out.
   it("lists, without failing, the answerable cases an early decline would turn away", () => {
     const early = retrievalCases(cases)
       .map((c) => ({ id: c.id, category: classifyRouting(c.question) }))
-      .filter((row) => !IN_SCOPE.includes(row.category));
+      .filter((row) => outOfScope.includes(row.category));
     if (early.length > 0) {
       console.info(
         `#503: answerable cases classifyRouting reads as out of scope ` +

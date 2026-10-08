@@ -68,7 +68,7 @@ block».
 
 Since #503 the abstention set has 15 cases, so `ABSTENTION_GATE` (0.9) allows
 one miss, and there are 74 answerable cases outside the block (the baseline
-above read 73). `src/lib/eval/routing-dataset.test.ts` runs `classifyRouting`
+above read 73; the new one is Tier 2, so Tier 2 reads out of 14). `src/lib/eval/routing-dataset.test.ts` runs `classifyRouting`
 over every case in the unit lane, for free. See «Routed cases».
 
 Two gates are zero, with no constant. One is the citation invariant. The other,
