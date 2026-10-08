@@ -329,7 +329,10 @@ any of its chunks lacks the evidence.
       `fiscalYear` and `evidence` to the new year (the decree note's «a partir del 01 de enero del
       2027»). For the FAQ, re-transcribe the new image first (#301, #407): its `imageTranscriptions`
       hash fails the crawl on new bytes. Then set its `fiscalYear` and `evidence` («ENERO 2027»).
-      Merge.
+      In the same PR, update the `eval/step-catalogue.json` sentences that quote the year's figures
+      (the salarios mínimos line in T1-B and T1-F, the salario base in T1-I) to the new year's text
+      and colones. They are search inputs only, and from 1 December `steps.test.ts` warns about
+      each one. Merge.
    3. **Between the merge and the re-crawl,** production holds last year's text under this year's
       declaration, so those artículos are withheld, not served stale. Seven dataset rows target
       `ley-renta` arts. 15 and 33 (`renta-persona-fisica-deduccion`, `renta-tramos-2026`,
