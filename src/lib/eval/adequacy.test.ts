@@ -967,9 +967,10 @@ describe("abstentionRequirementFailures", () => {
 });
 
 describe("the tracked Tier 1 baseline (ADR 0023)", () => {
-  it("is 86 requirements, #511's lane, failing a lane at 81 or below", () => {
-    // 70 on the 2026-10-02 lane; #511's lane stated 86 and ratcheted it.
-    expect(TIER1_REQUIREMENT_BASELINE).toBe(86);
-    expect(TIER1_REQUIREMENT_FLOOR).toBe(82);
+  it("is 70 requirements, failing a lane at 65 or below", () => {
+    // The 2026-10-02 lane. #511's lane stated 86 and the owner held 70
+    // (no ratchet before #512's two lanes re-set it).
+    expect(TIER1_REQUIREMENT_BASELINE).toBe(70);
+    expect(TIER1_REQUIREMENT_FLOOR).toBe(66);
   });
 });

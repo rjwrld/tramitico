@@ -15,9 +15,13 @@ updates this block in the same change.
 claims (red, #507's starting point). Its groundedness transcript
 (`low/groundedness-…-20261008T022706Z.jsonl`, also copied to the main
 checkout's `eval/transcripts/2026-10-08-baseline-511/`) is the input for
-`answer-replay`. The previous baseline,
-[`runs/2026-10-02-full-lane/`](runs/2026-10-02-full-lane/) (68/73, 70/116),
-was read before the robustness block, #503's cases and #520's re-ingest.
+`answer-replay`. The tracked baselines are still those of the previous
+run, [`runs/2026-10-02-full-lane/`](runs/2026-10-02-full-lane/): groundedness
+68/73 and Tier 1 70/116. That run was read before the robustness block,
+#503's cases and #520's re-ingest. The owner held both baselines rather
+than ratchet them to #511's 72 and 86 (2026-10-08). It was one lane, Tier 1's
++16 is unexplained with the prompt unchanged, the pipeline changes again
+before #512, and #512's two lanes re-set both.
 Two identical full lanes differ by ±4 Tier 1 requirements (#457), and
 fixed-chunk replays of one prompt read 70–75 on the 2026-10-02 chunks.
 
@@ -82,9 +86,10 @@ The gate constants are `GROUNDEDNESS_BASELINE` (`groundedness.ts`), `HIT_RATE_GA
 (`abstention.eval.test.ts`), `ADEQUACY_TIER2_GATE` with
 `TIER1_REQUIREMENT_BASELINE` (`adequacy.ts`), and `ROBUSTNESS_HIT_BASELINE`
 (`robustness.ts`, 25 since #511). Groundedness and Tier 1 are tracked
-baselines: a lane fails only more than 4 below one (groundedness 72 grounded
-answers of 74, so ≤ 67; Tier 1 86 requirements, so ≤ 81; both ratcheted by
-#511's lane), and a lane that beats one raises it. A blocking case fails groundedness
+baselines: a lane fails only more than 4 below one (groundedness 68 grounded
+answers, so ≤ 63, read over 74 cases since #503; Tier 1 70, so ≤ 65), and a
+lane that beats one raises it, unless the owner holds it, as for #511's
+lane. A blocking case fails groundedness
 on 2 of 3 answers: the lane re-asks a failing one twice (#474, about US$0.50 a
 lane), and each failure the judges make carries a `contradiction`/`inference`
 label that is recorded, never gated (one more judge call per failed answer,
@@ -943,16 +948,15 @@ retrieved chunks?_ A failed item is re-judged twice more and the majority
 verdict stands, absorbing judge flakiness at n≈25 without loosening the gate.
 The gate started at ≥90% per #14 and ratcheted to ≥94% on the 2026 baseline
 (#267, 70/73). Since #474 ([ADR 0023's amendment](../docs/adr/0023-eval-gates-after-sonnet-5-5.md#amendment-2026-10-07-474-groundedness-and-the-blocking-gate))
-it is a **tracked baseline**, set at 68/73 and ratcheted to **72/74 by #511's
-lane, failing at ≤ 67** (`GROUNDEDNESS_BASELINE`, `GROUNDEDNESS_FLOOR` in
-`src/lib/eval/groundedness.ts`). It counts the judges'
+it is a **tracked baseline of 68/73, failing at ≤ 63** (`GROUNDEDNESS_BASELINE`,
+`GROUNDEDNESS_FLOOR` in `src/lib/eval/groundedness.ts`). It counts the judges'
 verdict on each case's first answer, before #500's override, as the 68 was
 measured: seven of that lane's judge passes make a claim the detector now
 calls false, and those fail the zero gate, not the count. A lane that beats
 the baseline raises it. The 68 was read over 73 cases; #503 added
 `t2-inscripcion-dimex`, so the lane counts over 74 (`GROUNDEDNESS_CASES`) and
-the baseline and floor stay absolute counts. #511 was the first read over 74
-(72), and #512 re-sets the baseline.
+the baseline and floor stay absolute counts. #511 was the first read over 74.
+It read 72, and the owner held the baseline at 68 until #512 re-sets it.
 
 A blocking case fails on **2 of 3 answers**. When its first answer fails, the
 lane runs the whole pipeline on it twice more and judges each new answer the
@@ -3622,11 +3626,13 @@ gate and the per-case reads are in
 [`runs/2026-10-08-baseline/README.md`](runs/2026-10-08-baseline/README.md).
 There was no provider error and no rerank reading lost (0 of 1,090).
 
-- **Groundedness 72/74** by the judges' first verdict, so the baseline
-  ratchets from 68 to 72 (floor 68).
+- **Groundedness 72/74** by the judges' first verdict.
 - **Tier 1 86/116**, +16 on the 2026-10-02 lane with the answer prompt
   unchanged. `requirement-coverage` reads the old transcript at 70 still, so
-  the gain is in the answers. The baseline ratchets to 86 (floor 82).
+  the gain is in the answers.
+- **No ratchet** (owner, 2026-10-08). Both baselines stay at 68 and 70: it
+  was one lane, the +16 is unexplained, the pipeline changes again before
+  #512 (Track 2 and #507), and #512's two lanes re-set both.
 - **Tier 2 12/14, abstention 14/15**, citation invariant 0, derived figures
   green.
 - **False absence claims: 4**, one in a blocking case

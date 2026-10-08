@@ -427,9 +427,10 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
 - **Groundedness:** every material claim must be supported by a retrieved chunk. The pinned
   temperature-0 judge uses a majority of three for flagged answers
   ([ADR 0007](docs/adr/0007-groundedness-judge-model.md)). Since #474 the count of grounded
-  answers is a **tracked baseline**, set at 68/73 by the 2026-10-02 lane and ratcheted to **72/74**
-  by #511's baseline lane (2026-10-08), failing only a lane more than 4 below it (**≤ 67**); a
-  lane that beats it raises it, and #512's final lanes re-set it. It
+  answers is a **tracked baseline of 68/73** (the 2026-10-02 lane), failing only a lane more than
+  4 below it (**≤ 63**); a lane that beats it raises it, and #512's final lanes re-set it.
+  #511's baseline lane (2026-10-08) read 72/74, and the owner held 68 until #512 rather than
+  ratchet on one lane. It
   counts the judges' verdict on each case's first answer, before #500's override (as the 68 was
   measured), over the 74 cases outside the abstention tier and the robustness block (73 when
   the 68 was measured; #503 added `t2-inscripcion-dimex`, and the counts stay absolute until
@@ -471,11 +472,12 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   (#267, 2026-09-05; the tables are in `eval/README.md`), then ratchet upward and are never relaxed
   to make a regression pass ([ADR 0015](docs/adr/0015-coverage-tiers-and-required-claims.md)). The
   ratchet rule: a gate is the measured pass rate minus one case, rounded down, never below its
-  previous value. Current gates (closing run, 2026-09-11, unless dated otherwise): hit-rate ≥92% (measured 95.9%, held
-  at 0.92 by #296 requirement 4), groundedness tracked against a baseline of 72 grounded answers
-  of 74 (#511's lane; 68 over 73 before it), failing at ≤ 67 (ADR 0023's #474 amendment; ≥94% from the closing run until then), Tier 1 requirements
-  stated tracked against a baseline of 86/116 (#511's lane; 70 before it), failing only on a lane
-  more than 4 below it (≤ 81; [ADR 0023](docs/adr/0023-eval-gates-after-sonnet-5-5.md); it and the groundedness
+  previous value. Current gates (closing run, 2026-09-11): hit-rate ≥92% (measured 95.9%, held
+  at 0.92 by #296 requirement 4), groundedness tracked against a baseline of 68 grounded answers
+  (measured over 73, read over 74 since #503), failing at ≤ 63 (ADR 0023's #474 amendment; ≥94% from the closing run until then), Tier 1 requirements
+  stated tracked against a baseline of 70/116, failing only on a lane more than 4 below it
+  (≤ 65; #511's lane read 72/74 and 86/116, and the owner held both baselines until #512;
+  [ADR 0023](docs/adr/0023-eval-gates-after-sonnet-5-5.md); it and the groundedness
   baseline are the relaxations the ratchet rule has had, both recorded there), Tier 2 adequacy
   ≥84% (measured 12/13), abstention ≥90% (measured 9/9), citation invariant zero violations on every case
   (measured 0/73).

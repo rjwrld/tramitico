@@ -52,10 +52,10 @@ Neither is a provider error, so the run is recorded.
 
 | Gate                                           | 2026-10-02 (ADR 0023) | This run          | Read                                                                         |
 | ---------------------------------------------- | --------------------- | ----------------- | ---------------------------------------------------------------------------- |
-| Groundedness, judges' first verdict (#474)     | 68/73                 | **72/74**         | green (floor 64); beats the baseline, so it ratchets to 72 (floor 68)        |
+| Groundedness, judges' first verdict (#474)     | 68/73                 | **72/74**         | green (floor 64); beats the baseline, held at 68 (no ratchet, below)         |
 | Blocking cases, 2 of 3 answers (#474)          | red (1)               | **red (1)**       | `ho-trabajitos-por-mi-cuenta`, by #500's override, not the judges; 0 re-asks |
 | False corpus-absence claims (#500)             | not gated yet         | **4**             | red by design: #507's starting point, see below                              |
-| Tier 1 requirements stated                     | 70/116                | **86/116**        | green (floor 66); +16, past the ±4 noise; ratchets to 86 (floor 82)          |
+| Tier 1 requirements stated                     | 70/116                | **86/116**        | green (floor 66); +16, past the ±4 noise; held at 70 (no ratchet, below)     |
 | Tier 1 cases fully adequate (reported)         | 6/27                  | 7/27              | reported, not gated                                                          |
 | Tier 2 adequate ≥ 84%                          | 10/13                 | **12/14**         | green (85.7%)                                                                |
 | Citation invariant                             | 0                     | 0                 | green                                                                        |
@@ -135,9 +135,17 @@ The missing requirements are still mostly where-and-how content: TRIBU-CR
 and OVi steps, CCSS channels, and how to regularize. The log's `missing:`
 lists name each one.
 
-Under the ratchet (ADR 0023, «a lane that beats it moves the baseline up»),
-this PR moves `TIER1_REQUIREMENT_BASELINE` to 86 and `GROUNDEDNESS_BASELINE`
-to 72. #512's final lanes re-set both.
+**No ratchet.** ADR 0023's rule, «a lane that beats it moves the baseline
+up», would raise Tier 1 to 86 and groundedness to 72. The owner held both
+(2026-10-08), so `TIER1_REQUIREMENT_BASELINE` stays at 70 and
+`GROUNDEDNESS_BASELINE` at 68, for four reasons:
+
+- it is one lane;
+- the Tier 1 +16 is unexplained, since the answer prompt had not changed;
+- the pipeline changes again before #512 (Track 2 and #507);
+- #512's two final lanes re-set both baselines.
+
+This run's 72/74 and 86/116 are recorded as #511's reading.
 
 ### Hit-rate: red by a fraction, and the blocking miss is variance
 

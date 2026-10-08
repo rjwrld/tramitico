@@ -206,11 +206,18 @@ In code: `GROUNDEDNESS_BASELINE`, `GROUNDEDNESS_FLOOR`,
 `src/lib/eval/groundedness.ts`, asserted by `groundedness.eval.test.ts`.
 SPEC §9 carries the rule.
 
-## Ratchet (2026-10-08, #511)
+## #511's reading, and no ratchet (2026-10-08)
 
-Both tracked baselines moved up by the rule above, with no new decision. #511's
-baseline lane ([`eval/runs/2026-10-08-baseline/`](../../eval/runs/2026-10-08-baseline/))
-grounded 72 of 74 answers and stated 86 of 116 Tier 1 requirements. So
-`GROUNDEDNESS_BASELINE` is 72 (a lane fails at ≤ 67) and
-`TIER1_REQUIREMENT_BASELINE` is 86 (fails at ≤ 81). The numbers above are
-the ones this ADR decided on; the constants carry the current ones.
+#511's baseline lane
+([`eval/runs/2026-10-08-baseline/`](../../eval/runs/2026-10-08-baseline/))
+grounded 72 of 74 answers and stated 86 of 116 Tier 1 requirements. Both beat
+their baselines, and the rule above would raise them. The owner held them
+instead, so groundedness stays at 68 (a lane fails at ≤ 63) and Tier 1 at 70
+(fails at ≤ 65), for four reasons:
+
+- it was one lane;
+- Tier 1's +16 is unexplained, since the answer prompt had not changed;
+- the pipeline changes again before #512 (Track 2 and #507);
+- #512's two final lanes re-set both baselines anyway.
+
+The robustness block's baseline, which #511 had to set, is 25 of 27.
