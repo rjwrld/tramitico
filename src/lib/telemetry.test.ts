@@ -93,6 +93,7 @@ describe("emitAskEvent", () => {
     routedCategory: null,
     rerankDrops: null,
     rerank: "on",
+    lexicalRetry: false,
   };
 
   it("writes one line: the stable prefix, a space, then the JSON", () => {
@@ -382,6 +383,20 @@ describe("createAskTelemetry", () => {
     });
   });
 
+  it("carries retrieval's as-typed second search as a boolean, false by default (#509)", () => {
+    const quiet = createAskTelemetry();
+    quiet.answered();
+    quiet.emit();
+    const retried = createAskTelemetry();
+    retried.lexicalRetry();
+    retried.answered();
+    retried.emit();
+    expect(capture.events().map(({ lexicalRetry }) => lexicalRetry)).toEqual([
+      false,
+      true,
+    ]);
+  });
+
   it("carries #500's answer checks as two booleans, false by default", () => {
     const quiet = createAskTelemetry();
     quiet.answered();
@@ -603,6 +618,7 @@ describe("no telemetry event can carry content (#141)", () => {
       "event",
       "generations",
       "latency",
+      "lexicalRetry",
       "outcome",
       "providerError",
       "quotaHit",

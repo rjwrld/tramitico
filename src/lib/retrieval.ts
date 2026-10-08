@@ -249,6 +249,13 @@ export interface RetrievalResult {
    * the question named no family, `STEPS=off`, or a caller that opted out.
    */
   steps: StepProbe | null;
+  /**
+   * The search ran a second time with the question as typed (#509): its
+   * question words dropped, the first search was weak. Whether the second
+   * one was kept is `isWeak`'s business; this only says the extra round trip
+   * happened, for the telemetry event.
+   */
+  retriedAsTyped: boolean;
 }
 
 /**
@@ -650,6 +657,7 @@ export async function retrieve(
       isDegraded: false,
       expansion: null,
       steps: null,
+      retriedAsTyped: false,
     };
   }
 
@@ -768,7 +776,8 @@ export async function retrieve(
   // decline; it cannot put one in.
   const lexicalText = lexicalQueryText(trimmed);
   let found = await search(lexicalText);
-  if (found.isWeak && lexicalText !== trimmed) {
+  const retriedAsTyped = found.isWeak && lexicalText !== trimmed;
+  if (retriedAsTyped) {
     const asTyped = await search(trimmed);
     if (!asTyped.isWeak) found = asTyped;
   }
@@ -793,5 +802,6 @@ export async function retrieve(
     isDegraded,
     expansion,
     steps,
+    retriedAsTyped,
   };
 }

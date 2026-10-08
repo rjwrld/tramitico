@@ -96,6 +96,7 @@ function retrievalResult(
     isDegraded: false,
     expansion: null,
     steps: null,
+    retriedAsTyped: false,
     ...overrides,
   };
 }
@@ -2687,6 +2688,25 @@ describe("POST /api/ask", () => {
         // RERANK=off in this file: the rerank never called Voyage.
         rerankDrops: null,
         rerank: "off",
+        lexicalRetry: false,
+      });
+    });
+
+    it("counts retrieval's as-typed second search (#509)", async () => {
+      const capture = captureTelemetry();
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(
+        retrievalResult({ retriedAsTyped: true }),
+      );
+      mockModel("La tarifa es la del artículo [1].");
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cómo pago el tributo?" })),
+      );
+
+      expect(soleEvent(capture)).toMatchObject({
+        outcome: "ok",
+        lexicalRetry: true,
       });
     });
 
@@ -3215,6 +3235,7 @@ describe("POST /api/ask", () => {
         "event",
         "generations",
         "latency",
+        "lexicalRetry",
         "outcome",
         "providerError",
         "quotaHit",

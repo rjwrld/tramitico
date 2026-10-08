@@ -270,6 +270,13 @@ export interface AskEvent {
   rerankDrops: RerankDrop[] | null;
   /** The configured rerank mode (#499); see `RerankMode`. */
   rerank: RerankMode;
+  /**
+   * Retrieval searched a second time with the question as typed (#509): the
+   * search without its question words came back weak. One extra database
+   * round trip, no provider call; `false` on every ask that never reached
+   * retrieval.
+   */
+  lexicalRetry: boolean;
 }
 
 /**
@@ -305,6 +312,7 @@ interface AskFacts {
   abort: AskAbort | null;
   routedCategory: RoutedCategory | null;
   rerankDrops: RerankDrop[] | null;
+  lexicalRetry: boolean;
   chargeKept: boolean;
 }
 
@@ -395,6 +403,8 @@ export interface AskTelemetry {
    * `rerankChunks`' `onReadings`, passed straight through.
    */
   rerankReadings: (count: { dropped: readonly DroppedReading[] }) => void;
+  /** Retrieval ran its as-typed second search (#509). */
+  lexicalRetry: () => void;
   /**
    * The ask settled without a refund: it keeps its quota slot. Called by the
    * route's settlement, the one place that knows, so `outcome` can never
@@ -426,6 +436,7 @@ export function createAskTelemetry(
     abort: null,
     routedCategory: null,
     rerankDrops: null,
+    lexicalRetry: false,
     chargeKept: false,
   };
   const durations: Record<AskStage, number | null> = {
@@ -521,6 +532,9 @@ export function createAskTelemetry(
     rerankReadings: ({ dropped }) => {
       facts.rerankDrops = dropped.map(rerankDrop);
     },
+    lexicalRetry: () => {
+      facts.lexicalRetry = true;
+    },
     chargeKept: () => {
       facts.chargeKept = true;
     },
@@ -566,6 +580,7 @@ export function createAskTelemetry(
         routedCategory: facts.routedCategory,
         rerankDrops: facts.rerankDrops,
         rerank: rerankEnabled() ? "on" : "off",
+        lexicalRetry: facts.lexicalRetry,
       });
     },
   };
