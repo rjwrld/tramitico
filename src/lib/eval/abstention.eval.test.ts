@@ -55,10 +55,8 @@ import {
 import { generationFinishReason } from "../telemetry";
 import { ANSWER_SYSTEM, buildUserPrompt } from "../answer/prompt";
 import { crDate } from "../cr-time";
-import {
-  pinDerivedFigureInputs,
-  resolveDerivedFigures,
-} from "../answer/derived";
+import { resolveDerivedFigures } from "../answer/derived";
+import { pinAnswerSet } from "../answer/pins";
 import {
   rerankChunks,
   rerankOptionsFor,
@@ -248,7 +246,7 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
         // is exactly the case worth measuring. The route's rerank options,
         // step sentences included (#465): without them a case that classifies
         // into a family declines on a chunk set production never builds.
-        const chunks = pinDerivedFigureInputs(
+        const chunks = await pinAnswerSet(
           await rerankChunks(query, retrieval.chunks, {
             ...rerankOptionsFor(retrieval),
             onReadings: (count) => {

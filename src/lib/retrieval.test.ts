@@ -6,6 +6,7 @@ import {
   fuseRrf,
   isCitation,
   isCorroborated,
+  lexicalQueryText,
   parseCitations,
   retrieve,
   rrfScore,
@@ -44,6 +45,48 @@ function degradedReasons(): string[] {
     .filter((line) => line.startsWith("retrieval: degraded to lexical-only"))
     .map((line) => /reason=(\S+)/.exec(line)?.[1] ?? "");
 }
+
+describe("lexicalQueryText (#509)", () => {
+  it("drops the question words the stop list keeps, accented or not", () => {
+    expect(lexicalQueryText("¿Cuánto cobro como consultora?")).toBe(
+      "¿ cobro consultora?",
+    );
+    expect(lexicalQueryText("¿cuánto debo a la municipalidad?")).toBe(
+      "¿ debo a la municipalidad?",
+    );
+    expect(lexicalQueryText("cuanto cobra el notario")).toBe(
+      "cobra el notario",
+    );
+    expect(lexicalQueryText("¿Cuál va a ser la cuota en 2030?")).toBe(
+      "¿ a la cuota en 2030?",
+    );
+    expect(lexicalQueryText("¿Dónde y cuándo? ¿Quiénes, cómo, cuántas?")).toBe(
+      "¿ y ? ¿, , ?",
+    );
+  });
+
+  it("matches whole words only, so IVA and Cuantía keep their letters", () => {
+    expect(lexicalQueryText("¿Cuantía del IVA para servir?")).toBe(
+      "¿Cuantía del IVA para servir?",
+    );
+  });
+
+  it("leaves a question with no question word as typed", () => {
+    expect(lexicalQueryText("¿me cobran retroactivo?")).toBe(
+      "¿me cobran retroactivo?",
+    );
+    expect(lexicalQueryText('"tramos de renta" -2025')).toBe(
+      '"tramos de renta" -2025',
+    );
+  });
+
+  it("leaves no words of a question that is nothing but question words", () => {
+    // Its lexical leg finds nothing, the result is weak, and `retrieve`
+    // asks again with the question as typed (below).
+    expect(lexicalQueryText("¿Cómo?")).toBe("¿?");
+    expect(lexicalQueryText("¿Cuándo y dónde?")).toBe("¿ y ?");
+  });
+});
 
 describe("rrfScore", () => {
   it("is 1/(k + rank)", () => {
@@ -517,6 +560,84 @@ describe("retrieve", () => {
       // And no catalogue (#304): v5's four-leg contract, on the wire.
       step_texts: null,
       step_embeddings: null,
+    });
+  });
+
+  describe("the question as typed, when its subject alone is weak (#509)", () => {
+    const UNCORROBORATED: SearchChunksRow = { ...ROW, vector_rank: null };
+
+    /** Answers by `query_text`, and records each one it was asked. */
+    function byQueryText(rows: Record<string, SearchChunksRow[]>) {
+      const asked: string[] = [];
+      const client: RetrievalRpcClient = {
+        rpc: async (_fn, args) => {
+          asked.push(args.query_text);
+          return { data: rows[args.query_text] ?? [], error: null };
+        },
+      };
+      return { client, asked };
+    }
+
+    it("searches the subject first and stops there when it is corroborated", async () => {
+      const { client, asked } = byQueryText({
+        "¿ debo a la municipalidad?": [ROW],
+      });
+      const result = await retrieve("¿cuánto debo a la municipalidad?", {
+        client,
+        embedder: fakeEmbedder(),
+        vigencia: NO_ANNUAL,
+      });
+      expect(asked).toEqual(["¿ debo a la municipalidad?"]);
+      expect(result.isWeak).toBe(false);
+    });
+
+    it("keeps the as-typed search when the subject alone is weak and it is not", async () => {
+      // The shape #509's probe found: without «cómo» the strict AND matched
+      // one uncorroborated chunk, with it the OR fallback ran wide.
+      const asTyped = {
+        ...ROW,
+        chunk_id: "22222222-2222-2222-2222-222222222222",
+      };
+      const { client, asked } = byQueryText({
+        "¿ presento mi primera declaración?": [UNCORROBORATED],
+        "¿Cómo presento mi primera declaración?": [asTyped],
+      });
+      const result = await retrieve("¿Cómo presento mi primera declaración?", {
+        client,
+        embedder: fakeEmbedder(),
+        vigencia: NO_ANNUAL,
+      });
+      expect(asked).toEqual([
+        "¿ presento mi primera declaración?",
+        "¿Cómo presento mi primera declaración?",
+      ]);
+      expect(result.isWeak).toBe(false);
+      expect(result.chunks.map((c) => c.chunkId)).toEqual([asTyped.chunk_id]);
+    });
+
+    it("keeps the subject's search when both are weak", async () => {
+      const { client, asked } = byQueryText({
+        "¿ presento mi primera declaración?": [UNCORROBORATED],
+      });
+      const result = await retrieve("¿Cómo presento mi primera declaración?", {
+        client,
+        embedder: fakeEmbedder(),
+        vigencia: NO_ANNUAL,
+      });
+      expect(asked).toHaveLength(2);
+      expect(result.isWeak).toBe(true);
+      expect(result.chunks).toHaveLength(1);
+    });
+
+    it("asks once when the question has no question word to drop", async () => {
+      const { client, asked } = byQueryText({});
+      const result = await retrieve("¿me cobran retroactivo?", {
+        client,
+        embedder: fakeEmbedder(),
+        vigencia: NO_ANNUAL,
+      });
+      expect(asked).toEqual(["¿me cobran retroactivo?"]);
+      expect(result.isWeak).toBe(true);
     });
   });
 
@@ -994,7 +1115,8 @@ describe("retrieve", () => {
       });
 
       expect(seen).toMatchObject({
-        query_text: "¿Y dónde me afilio?",
+        // Without its question word: the lexical leg's text (#509).
+        query_text: "¿Y me afilio?",
         query_embedding: "[0.5,0.5,0.5]",
         step_texts: ["Dónde se afilia.", "Cuándo se paga la cuota."],
         step_embeddings: ["[0.5,0.5,0.5]", "[0.5,0.5,0.5]"],
@@ -1134,7 +1256,7 @@ describe("retrieve", () => {
       });
 
       expect(seen).toMatchObject({
-        query_text: "Me inscribí un año tarde, ¿qué me pasa?",
+        query_text: "Me inscribí un año tarde, ¿ me pasa?",
         query_embedding: "[0.5,0.5,0.5]",
         expansion_text: "Omisión de la declaración de inscripción",
         expansion_embedding: "[0.5,0.5,0.5]",

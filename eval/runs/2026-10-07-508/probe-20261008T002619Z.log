@@ -1,0 +1,113 @@
+
+EVAL_REWRITES: 109 cases' query and expansion replayed from eval/runs/2026-10-07-508/probe-r1-cap2.json
+....................................................................................................aaaaaaaaa
+retrieval cases: 100 (27 in the robustness block; 191 expected targets outside it), abstention: 9, follow-ups condensed: 15
+condensation fell back to the question: none
+rewrites: replayed from eval/runs/2026-10-07-508/probe-r1-cap2.json
+provider calls that did not come back: none
+rerank readings lost: none of 545
+weak: rb-corto-cuanto-pago-caja
+expansion absent: none
+
+config                     targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff         131/191    40/73        7        —
+top8/capoff/pinon          136/191    43/73        21       —
+top8/cap3/pinoff           131/191    41/73        4        —
+top8/cap3/pinon            136/191    44/73        23       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top8/cap2/pinoff           124/191    35/73        2        —
+top8/cap2/pinon            130/191    38/73        22       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/capoff/pinoff        143/191    44/73        10       —
+top10/capoff/pinon         147/191    47/73        22       —
+top10/cap3/pinoff          136/191    42/73        4        —
+top10/cap3/pinon           141/191    45/73        22       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/cap2/pinoff          132/191    40/73        7        —
+top10/cap2/pinon           136/191    42/73        22       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top8/capoff/pinon/xrefoff  133/191    41/73        20       —
+
+cross-references (#508): targets 133 → 136, Tier 1 62 → 64
+  inscripcion-hacienda-clientes-extranjero: +ley-iva·Artículo 14·#0
+  iva-clientes-fuera-cr: +ley-iva·Artículo 11·#0
+  cabys-desarrollo-software: +ley-iva·Artículo 30·#0
+  ccss-asalariado-y-freelance: +ley-renta·ARTICULO 32·#0
+  factura-electronica-v44: +reglamento-comprobantes·Artículo 9·#0
+  desinscripcion-dejar-actividad: +ley-iva·Artículo 9·#0
+  renta-persona-fisica-deduccion: +ley-renta·Artículo 33·#0
+  tribu-cr-declarar-pagar: +tribu-cr-res-0011-2025·Artículo 7·#0
+  iva-servicios-extranjero-comprados: +ley-iva·Artículo 30·#0 (targets +1)
+  iva-credito-fiscal-compras: +ley-iva·Artículo 11·#0
+  iva-declaracion-mensual: +ley-iva·Artículo 10·#0
+  iva-tarifa-general: +reglamento-rts·Artículo 1·#0
+  iva-tarifas-reducidas: +ley-iva·Artículo 10·#0
+  iva-momento-hecho-generador: +ley-iva·Artículo 10·#0
+  renta-bruta-que-incluye: +ley-renta·Artículo 15·#0
+  renta-tramos-2026: +ley-renta·ARTICULO 46·#0
+  renta-declaracion-plazo: +ley-renta·ARTICULO 2·#0
+  renta-pagos-parciales-retenciones: +ley-renta·ARTICULO 21·#0
+  renta-salario-y-actividad: +ley-renta·ARTICULO 32·#0
+  comprobantes-plazo-conservacion: +reglamento-comprobantes·Artículo 2·#0
+  comprobantes-factura-vs-tiquete: +reglamento-comprobantes·Artículo 23·#0
+  exportacion-servicios-comprobante: +ley-iva·Artículo 10·#0
+  iva-facturas-en-dolares: +ley-iva·Artículo 10·#0
+  ccss-asalariado-followup: +ley-renta·ARTICULO 2·#0
+  exportacion-comprobante-followup: +ley-iva·Artículo 10·#0
+  renta-plazo-followup: +ley-renta·ARTICULO 2·#0
+  iva-ajuste-bien-de-capital: +ley-iva·Artículo 11·#0
+  iva-retencion-tarjetas-porcentaje: +ley-iva·Artículo 10·#0
+  multa-iva-no-declarado: +ley-iva·Artículo 4·#0
+  inscripcion-tardia-sancion: +cnpt·Artículo 79·#0
+  factura-primera-cabys: +reglamento-comprobantes·Artículo 10·#0
+  ho-hacienda-solo-cliente-eeuu: +reglamento-comprobantes·Artículo 9·#0
+  ho-trabajitos-por-mi-cuenta: +ley-renta·ARTICULO 2·#0 (targets +1)
+  ho-donde-inscribo-ya-no-atv: +ley-renta·ARTICULO 2·#0
+  ho-tiquete-en-vez-de-factura: +reglamento-comprobantes·Artículo 7·#0
+  ho-factura-electronica-o-recibo: +reglamento-comprobantes·Artículo 23·#0
+  ho-cabys-paginas-web: +ley-iva·Artículo 4·#0
+  ho-cliente-espana-lleva-iva: +ley-iva·Artículo 10·#0 (targets +1)
+  ho-iva-en-cero-sin-facturar: +ley-iva·Artículo 10·#0
+  ho-hasta-que-dia-tengo-iva: +ley-iva·Artículo 4·#0
+  ho-rebajar-25-sin-facturas: +ley-renta·Artículo 15·#0
+  ho-minimo-renta-2026: +ley-renta·ARTICULO 46·#0
+  ho-ademas-tengo-salario: +ley-renta·ARTICULO 32·#0
+  ho-tambien-asegurado-por-patrono: +ley-renta·ARTICULO 46·#0
+  ho-desinscribir-debiendo-declaraciones: +ley-renta·ARTICULO 2·#0
+  ho-rebajar-multa-si-pago-ya: +ley-iva·Artículo 4·#0
+  ho-t2-credito-iva-compras: +ley-iva·Artículo 10·#0
+  ho-t2-hosting-extranjero: +ley-iva·Artículo 10·#0
+  ho-t2-retencion-tarjetas: +ley-renta·ARTICULO 11·#0
+  ho-t2-compu-cara-iva: +ley-iva·Artículo 11·#0
+  ho-t2-tipo-de-cambio: +reglamento-comprobantes·Artículo 9·#0
+  ho-t2-payoneer: +ley-iva·Artículo 10·#0
+  rb-pill-inscribo-exterior: +ley-iva·Artículo 11·#0
+  rb-pill-primera-factura: +reglamento-comprobantes·Artículo 9·#0
+  rb-pill-iva-exterior: +ley-iva·Artículo 11·#0
+  rb-pill-impuesto-renta: +ley-renta·ARTICULO 32·#0
+  rb-pill-me-salgo: +ley-iva·Artículo 9·#0
+  rb-pill-inscribi-tarde: +ley-iva·Artículo 4·#0
+  rb-corto-cuanto-es-iva: +ley-iva·Artículo 4·#0
+  rb-corto-tasa-iva: +ley-iva·Artículo 28·#0
+  rb-corto-tramos-renta: +ley-renta·ARTICULO 32·#0
+  rb-corto-cuando-declaro-renta: +ley-renta·ARTICULO 2·#0
+  rb-corto-cuando-declaro-iva: +ley-iva·Artículo 4·#0
+  rb-corto-que-cabys: +reglamento-comprobantes·Artículo 12·#0
+  rb-corto-multa-tarde: +cnpt·Artículo 79·#0
+  rb-tilde-inscribirme-afuera: +reglamento-rts·Artículo 1·#0
+  rb-tilde-primera-fatura: +reglamento-comprobantes·Artículo 23·#0
+  rb-tilde-deje-de-trabajr: +ley-renta·ARTICULO 2·#0
+  rb-spanglish-client-usa: +ley-iva·Artículo 11·#0
+  rb-spanglish-invoice: +reglamento-comprobantes·Artículo 12·#0
+  rb-seguimiento-le-cobro-iva: +ley-iva·Artículo 11·#0
+  rb-seguimiento-de-cuanto-multa: +ley-iva·Artículo 4·#0
+  ho-abs-cuanto-cobro-la-hora: +ley-renta·ARTICULO 35·#0
+  ho-abs-me-conviene-sociedad: +ley-iva·Artículo 10·#0
+  ho-abs-iva-2027: +ley-iva·Artículo 10·#0
+  ho-abs-devs-exentos-renta: +ley-renta·Artículo 33·#0
+  ho-abs-patente-municipal: +tribu-cr-res-0011-2025·Artículo 4·#0
+  ho-abs-calculo-personalizado: +ley-renta·ARTICULO 46·#0
+  ho-abs-sociedad-inactiva: +reglamento-renta·Artículo 1·#0
+  ho-abs-recomendar-contador: +reglamento-renta·Artículo 8·#0
+
+top8/capoff/pinon, robustness block (#502): 23/27
+  MISS  rb-pill-inscribo-exterior ← inscripcion-hacienda-clientes-extranjero  «¿Me inscribo si facturo al exterior?»  (seed hit)
+  MISS  rb-corto-cuanto-es-iva ← iva-tarifa-general  «¿cuánto es el IVA?»  (seed hit)
+  MISS  rb-corto-cuanto-pago-caja ← ccss-cuanto-pago-base  «¿cuánto pago a la caja?»  (seed hit)
+  MISS  rb-tilde-inscribirme-afuera ← inscripcion-hacienda-clientes-extranjero  «tengo q inscribirme en hacienda si le facturo a clientes de afuera»  (seed hit)

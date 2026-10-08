@@ -52,9 +52,9 @@ import { streamText } from "ai";
 import { SEED_PROMPTS } from "../src/components/chat/seed-prompts";
 import {
   incompletelyCitedDerivedFigures,
-  pinDerivedFigureInputs,
   resolveDerivedFigures,
 } from "../src/lib/answer/derived";
+import { pinAnswerSet } from "../src/lib/answer/pins";
 import { validateCitations } from "../src/lib/answer/invariant";
 import {
   ANSWER_MAX_OUTPUT_TOKENS,
@@ -186,7 +186,7 @@ async function main(): Promise<void> {
       );
       continue;
     }
-    const chunks = pinDerivedFigureInputs(
+    const chunks = await pinAnswerSet(
       await rerankChunks(
         question,
         retrieval.chunks,

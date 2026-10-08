@@ -1,0 +1,25 @@
+$ tsx scripts/answer-set-probe.ts /tmp/509/rule9b-a.json
+........a
+retrieval cases: 8 (3 in the robustness block; 17 expected targets outside it), abstention: 1, follow-ups condensed: 0
+condensation fell back to the question: none
+rewrites: live
+provider calls that did not come back: none
+rerank readings lost: none of 47
+weak: none
+expansion absent: none
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   5/17       0/5          0        —
+top8/capoff/pinon    5/17       0/5          0        —
+top8/cap3/pinoff     3/17       0/5          0        —
+top8/cap3/pinon      3/17       0/5          0        —
+top8/cap2/pinoff     5/17       0/5          0        —
+top8/cap2/pinon      5/17       0/5          0        —
+top10/capoff/pinoff  7/17       0/5          0        —
+top10/capoff/pinon   7/17       0/5          0        —
+top10/cap3/pinoff    5/17       0/5          0        —
+top10/cap3/pinon     5/17       0/5          0        —
+top10/cap2/pinoff    6/17       0/5          0        —
+top10/cap2/pinon     6/17       0/5          0        —
+
+top8/capoff/pinon, robustness block (#502): 3/3

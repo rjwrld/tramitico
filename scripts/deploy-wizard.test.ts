@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { crossReferencesEnabled } from "../src/lib/answer/cross-references";
 import { expansionEnabled } from "../src/lib/answer/expand";
 import { pinEnabled } from "../src/lib/answer/derived";
 import {
@@ -47,6 +48,7 @@ const READINGS: Record<string, Reading> = {
   EXPAND: { read: expansionEnabled, meaning: onOff },
   STEPS: { read: stepsEnabled, meaning: onOff },
   PIN_DERIVED_INPUTS: { read: pinEnabled, meaning: onOff },
+  PIN_CROSS_REFERENCES: { read: crossReferencesEnabled, meaning: onOff },
   STEPS_RERANK: {
     read: stepRerankMode,
     meaning: (value) => STEP_RERANK_MODES.find((mode) => mode === value),

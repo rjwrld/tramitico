@@ -96,3 +96,34 @@ OAuth, and stale CCSS-note text. The relaxed OR branch can no longer rank those 
 lexical leg's candidate distribution has changed. No quality gain is claimed until the authorized
 post-corpus baseline (#267) measures hit-rate case by case; any tuning must use that result and keep
 the strict-AND invariant above.
+
+## Amendment (2026-10-07, issue [#509](https://github.com/rjwrld/tramitico/issues/509)) — question words are not terms
+
+The conditional AND→OR decision is unchanged; what changes is the text it runs on. The
+`spanish` stop list drops «cuando», «donde», «como», but only unaccented: «cuánto», «cuál»,
+«cómo», «dónde» survive as `cuant`, `cual`, `com`, `dond`, and «va», «ser» (from «¿cuál va a
+ser…?») are not stop words at all. So the strict branch ANDed the question word beside the
+subject. «¿Cuánto pago como independiente?» matched the four chunks that happen to contain
+«cuanto», none of them a rate, instead of the 72 that say «pago» and «independiente»; «¿cuánto
+pago a la caja?» matched four Hacienda chunks no similarity leg corroborated, so the ask took
+the honest decline on a question the corpus answers.
+
+`retrieve` now hands `search_chunks` the question without those words (`lexicalQueryText` and
+`LEXICAL_SKIP_WORDS` in `src/lib/retrieval.ts`), compared folded, so the accented, the
+unaccented and the capitalised forms go alike. Only the question's lexical leg changes: the
+embedding is of the question as typed, and the expansion and the catalogue carry no question.
+Dropping a word can also narrow the strict branch, and the probe found the case: «¿Cómo emito mi
+primera factura?» took the OR fallback while «cómo» was a term no chunk shared, and without it
+the AND matched a single chunk no similarity leg corroborated, so the ask turned weak. A weak
+result is therefore searched once more with the question as typed, and kept if that one is
+corroborated. The honest decline fires only when neither reading of the reader's words is
+corroborated: the strip can lift an ask out of the decline and cannot put one in. The second
+search costs one database round trip on weak asks only, and no provider call. So the question
+words stop being AND terms whenever the subject alone finds a corroborated chunk, and return as
+terms only on that second search: a weak subject is the one case where the question as typed
+has done better, and #509's probe found one.
+
+It is done before the RPC rather than inside it. The argument list and the SQL stay as they
+are, so the change deploys with the code and rolls back with it, with no migration and no
+two-step release (runbook «A migration must be compatible with the deployment before it»); the
+integration lane checks the strict branch now serves «¿Cuánto cuesta…?» at full coverage.

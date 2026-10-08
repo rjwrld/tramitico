@@ -8,7 +8,8 @@
  * knobs.ts): production ran unreranked from launch to #498 because the
  * wizard wrote `RERANK=on` and this module read it as off without a word.
  * Any rerank failure — missing key, HTTP error, timeout — falls back to the
- * fused order. Reranking must never fail the ask.
+ * fused order, step legs included (#510, `answerSetFromOrder`). Reranking
+ * must never fail the ask.
  *
  * Since #287 the Voyage call asks for the *whole* pool in rank order rather
  * than only its top 8, and the cut to the answer set happens here. Voyage
@@ -53,7 +54,7 @@
  * lost a case that concatenation held.
  */
 import type { RetrievalResult, RetrievedChunk } from "../retrieval";
-import { modeKnob } from "../knobs";
+import { modeKnob, positiveIntKnob } from "../knobs";
 import { isDerivedFigureInput, pinDerivedFigureInputs } from "./derived";
 
 /**
@@ -368,30 +369,19 @@ function pinsSteps(mode: StepRerankMode): boolean {
 /**
  * How many chunks reach the answer prompt. `ANSWER_TOP_K` in the environment
  * overrides the constant for a measured run (#287 option 1); anything that is
- * not a positive integer is ignored rather than trusted.
+ * not a positive integer reads as the constant, logged (#519, knobs.ts).
  */
-export function answerTopK(): number {
-  const raw = process.env.ANSWER_TOP_K;
-  if (!raw) return ANSWER_TOP_K;
-  const parsed = Number(raw);
-  if (!Number.isInteger(parsed) || parsed < 1) return ANSWER_TOP_K;
-  return parsed;
-}
+export const answerTopK = positiveIntKnob("ANSWER_TOP_K", ANSWER_TOP_K);
 
 /**
  * How many chunks of one document may reach the answer prompt. `ANSWER_DOC_CAP`
  * in the environment sets a cap for a measured run; `off`, unset and empty
  * all mean the default (no cap), and anything else that is not a positive
- * integer is ignored rather than trusted.
+ * integer reads as the default too, logged (#519, knobs.ts).
  */
-export function answerDocCap(): number {
-  const raw = process.env.ANSWER_DOC_CAP;
-  if (!raw) return ANSWER_DOC_CAP;
-  if (raw === "off") return Infinity;
-  const parsed = Number(raw);
-  if (!Number.isInteger(parsed) || parsed < 1) return ANSWER_DOC_CAP;
-  return parsed;
-}
+export const answerDocCap = positiveIntKnob("ANSWER_DOC_CAP", ANSWER_DOC_CAP, {
+  off: Infinity,
+});
 
 /**
  * The first `topK` of `order` with no more than `cap` chunks per document,
@@ -658,6 +648,15 @@ export async function rerankOrder(
  * was already adding, and the step target it displaced (`cnpt` 88) was lost
  * (eval/runs/2026-10-02-460/). Under `slot` (#287) the picks take the cut's
  * last places instead (`slotSteps`), and the set keeps its size.
+ *
+ * The fused order is cut as retrieval returned it, with the step catalogue's
+ * legs (#304) weighing as much as the question's and the expansion's. That
+ * can make the set step-shaped (#490 item 1), and #510 measured the
+ * alternative: the same pools re-sorted with the step legs' share taken out
+ * carried 47 of 93 Tier 1 targets against the fused order's 57. A total loss
+ * has no step picks either, so the step legs are the only way the steps the
+ * catalogue exists to carry reach the set (eval/runs/2026-10-07-510/). The
+ * fallback stays the fused order.
  */
 export function answerSetFromOrder(
   order: readonly RerankedChunk[] | null,

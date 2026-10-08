@@ -1,0 +1,32 @@
+
+EVAL_REWRITES: 109 cases' query and expansion replayed from eval/runs/2026-10-07-502-robustness/probe-haiku-5-5.json
+....................................................................................................aaaaaaaaa
+retrieval cases: 100 (27 in the robustness block; 191 expected targets outside it), abstention: 9, follow-ups condensed: 15
+condensation fell back to the question: none
+rewrites: replayed from eval/runs/2026-10-07-502-robustness/probe-haiku-5-5.json
+provider calls that did not come back: none
+rerank readings lost: none of 0
+weak: rb-corto-cuanto-pago-caja
+expansion absent: none
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   108/191    30/73        1        —
+top8/capoff/pinon    118/191    34/73        20       —
+top8/cap3/pinoff     103/191    28/73        1        —
+top8/cap3/pinon      112/191    31/73        20       —
+top8/cap2/pinoff     99/191     28/73        6        —
+top8/cap2/pinon      104/191    30/73        16       —
+top10/capoff/pinoff  116/191    30/73        2        —
+top10/capoff/pinon   124/191    34/73        20       —
+top10/cap3/pinoff    112/191    30/73        6        —
+top10/cap3/pinon     118/191    32/73        20       —
+top10/cap2/pinoff    113/191    30/73        14       —
+top10/cap2/pinon     116/191    32/73        22       —
+
+top8/capoff/pinon, robustness block (#502): 21/27
+  MISS  rb-pill-cuanto-pago-independiente ← ccss-cuanto-pago-base  «¿Cuánto pago como independiente?»  (seed hit)
+  MISS  rb-corto-cuanto-es-iva ← iva-tarifa-general  «¿cuánto es el IVA?»  (seed missed too)
+  MISS  rb-corto-tasa-iva ← iva-tarifa-general  «¿tasa del IVA?»  (seed missed too)
+  MISS  rb-corto-cuanto-pago-caja ← ccss-cuanto-pago-base  «¿cuánto pago a la caja?»  (seed hit)
+  MISS  rb-tilde-cuanto-pago-ccss ← ccss-cuanto-pago-base  «cuanto pago a la ccss como trabajador independiente»  (seed hit)
+  MISS  rb-tilde-primera-fatura ← factura-primera-cabys  «como hago mi primera fatura electronica»  (seed hit)

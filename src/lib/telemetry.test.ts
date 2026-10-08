@@ -78,6 +78,7 @@ describe("emitAskEvent", () => {
       condense: null,
       retrieve: null,
       rerank: null,
+      pin: null,
       generate: null,
       validate: null,
       persist: null,
@@ -93,6 +94,8 @@ describe("emitAskEvent", () => {
     routedCategory: null,
     rerankDrops: null,
     rerank: "on",
+    lexicalRetry: false,
+    crossReference: null,
   };
 
   it("writes one line: the stable prefix, a space, then the JSON", () => {
@@ -134,6 +137,7 @@ describe("createAskTelemetry", () => {
       condense: null,
       retrieve: null,
       rerank: null,
+      pin: null,
       generate: "3s_10s",
       validate: null,
       persist: null,
@@ -279,6 +283,7 @@ describe("createAskTelemetry", () => {
       condense: null,
       retrieve: null,
       rerank: null,
+      pin: null,
       generate: null,
       validate: null,
       persist: null,
@@ -380,6 +385,20 @@ describe("createAskTelemetry", () => {
       quotaHit: true,
       quotaReason: "subject",
     });
+  });
+
+  it("carries retrieval's as-typed second search as a boolean, false by default (#509)", () => {
+    const quiet = createAskTelemetry();
+    quiet.answered();
+    quiet.emit();
+    const retried = createAskTelemetry();
+    retried.lexicalRetry();
+    retried.answered();
+    retried.emit();
+    expect(capture.events().map(({ lexicalRetry }) => lexicalRetry)).toEqual([
+      false,
+      true,
+    ]);
   });
 
   it("carries #500's answer checks as two booleans, false by default", () => {
@@ -509,6 +528,38 @@ describe("createAskTelemetry", () => {
     expect(capture.events()[0].rerankDrops).toBeNull();
   });
 
+  it("carries the cross-reference outcome, and null when the append never ran (#508)", () => {
+    const telemetry = createAskTelemetry();
+    telemetry.emit();
+    const appended = createAskTelemetry();
+    appended.crossReference("appended");
+    appended.emit();
+    const failed = createAskTelemetry();
+    failed.crossReference("failed");
+    failed.emit();
+    expect(capture.events().map((e) => e.crossReference)).toEqual([
+      null,
+      "appended",
+      "failed",
+    ]);
+  });
+
+  it("times the appends after the cut as their own stage (#508)", () => {
+    const clock = fakeClock();
+    const telemetry = createAskTelemetry(clock.now);
+    const rerank = telemetry.startStage("rerank");
+    clock.advance(500);
+    rerank();
+    const pin = telemetry.startStage("pin");
+    clock.advance(1_500);
+    pin();
+    telemetry.emit();
+    expect(capture.events()[0].stages).toMatchObject({
+      rerank: "lt_1s",
+      pin: "1s_3s",
+    });
+  });
+
   it("records the configured rerank mode, as rerank.ts reads RERANK (#499)", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     for (const value of ["", "voyage", "off", "on"]) {
@@ -600,9 +651,11 @@ describe("no telemetry event can carry content (#141)", () => {
       "abort",
       "absenceClaim",
       "citationFailure",
+      "crossReference",
       "event",
       "generations",
       "latency",
+      "lexicalRetry",
       "outcome",
       "providerError",
       "quotaHit",

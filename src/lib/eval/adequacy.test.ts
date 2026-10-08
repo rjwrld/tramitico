@@ -23,6 +23,8 @@ import {
   reportVerdict,
   requirementCoverage,
   requirementTotal,
+  TIER1_REQUIREMENT_BASELINE,
+  TIER1_REQUIREMENT_FLOOR,
   type Requirement,
   type RequirementVerdict,
 } from "./adequacy";
@@ -961,5 +963,14 @@ describe("abstentionRequirementFailures", () => {
 
   it("fails the weak-retrieval decline, which states neither", () => {
     expect(failuresOf("No encuentro base oficial.")).toHaveLength(2);
+  });
+});
+
+describe("the tracked Tier 1 baseline (ADR 0023)", () => {
+  it("is 70 requirements, failing a lane at 65 or below", () => {
+    // The 2026-10-02 lane. #511's lane stated 86 and the owner held 70
+    // (no ratchet before #512's two lanes re-set it).
+    expect(TIER1_REQUIREMENT_BASELINE).toBe(70);
+    expect(TIER1_REQUIREMENT_FLOOR).toBe(66);
   });
 });

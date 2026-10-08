@@ -15,7 +15,7 @@ original scope (its §5 OUT-list is binding).
 | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `src/app/api/ask/route.ts`                                     | the ask pipeline: rate-limit → condense → expand → retrieve → rerank → answer → persist; the eval lanes and `scripts/answer-*` copy it   |
 | `src/lib/retrieval.ts`                                         | hybrid search (vector + lexical, RRF); chunks → citations; the RPC is the newest `supabase/migrations/*search_chunks*.sql`               |
-| `src/lib/answer/`                                              | prompt, model call, condensation (#132), query expansion (#286), step catalogue (#304), rerank, citation contract, persistence           |
+| `src/lib/answer/`                                              | prompt, model call, condensation (#132), query expansion (#286), step catalogue (#304), rerank+pins #508, citation contract, persistence |
 | `src/lib/rate-limit.ts`                                        | daily quota via RPC; refunds on system failure                                                                                           |
 | `src/lib/routing.ts` + `scripts/check-routing-urls.ts`         | institution table + keyword classifier behind the routed decline; URLs verified by the re-crawl                                          |
 | `src/lib/ingestion/` + `scripts/ingest.ts`                     | corpus fetch → extract → chunk → embed, CLI-driven; quarterly re-crawl is owner-run `pnpm recrawl` (#405)                                |

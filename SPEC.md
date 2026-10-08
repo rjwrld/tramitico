@@ -240,7 +240,10 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   misses vocabulary gaps ("clientes fuera de Costa Rica" vs "exportación de servicios"), while
   exact-term queries (tramos, CCSS, CABYS codes) reward the lexical leg. Top-k ≈ 8 fused → answer.
   The lexical leg's tsquery semantics (strict AND with a conditional OR fallback) —
-  **[ADR 0005](docs/adr/0005-lexical-and-or-fallback.md)**.
+  **[ADR 0005](docs/adr/0005-lexical-and-or-fallback.md)**. Since #509 that leg searches the
+  question without its question words («cuánto», «cuál», «cómo»…, which the `spanish` stop
+  list keeps when accented) and the auxiliaries «va» and «ser»; a weak result is searched again
+  as typed.
 - **Embedding model:** Voyage vs OpenAI `text-embedding-3-small` — **ADR during Week 2**,
   benchmarked on the eval set; the exportación vocabulary-gap question is the canary.
 - **Multi-turn via condensation (#132, amends this section):** the pipeline below assembles an
@@ -269,7 +272,9 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   dropped, not retried, and counted: `rerankDrops` in the telemetry event, the eval transcripts
   and `pnpm answer-set-probe` (#466). The full lane of 2026-10-02 lost 0 of 377 readings at
   eval pace, and production asks far slower. Drops have appeared at about 58 asks a minute and
-  not at 21 (#457, #460). Only a replayed probe runs that fast.
+  not at 21 (#457, #460). Only a replayed probe runs that fast. When every reading is lost, the
+  answer set is the fused order's top-k, step legs included: the same pools with the step legs'
+  share taken out carried 47 of 93 Tier 1 targets against 57 (#510).
 - **Step catalogue (#304, amends this section):** retrieval also searches for the _step_ a
   complete answer needs and the question never asks for — when to pay, what the sanction is,
   how to adjust a declared figure. A hand-written catalogue per Tier 1 family
@@ -284,6 +289,13 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   gate, while one pick tied the unpinned mode on groundedness and stated 83/116 Tier 1
   requirements against 71/116 —
   **[ADR 0020](docs/adr/0020-step-catalogue-legs.md)**.
+- **Cross-references (#508, amends this section):** after the cut, an artículo the answer set
+  names inside its own instrument — «la tarifa referida en el artículo 10 de la presente ley»,
+  or a reglamento's «artículo 10 de la Ley» for the law its manifest entry `regulates` — is
+  fetched and appended, one chunk — a deferred figure first («la tarifa referida en…») — ahead of the derived-figure inputs and numbered and
+  cited like any other. A reference to another instrument is not followed, and an appended
+  chunk's own references are not read. `PIN_CROSS_REFERENCES=off` is the baseline —
+  **[ADR 0024](docs/adr/0024-in-document-cross-references.md)**.
 - **Answer assembly:** Claude **Sonnet by default, model as env var** — Week 3 runs Haiku 4.5
   through the same groundedness gate as a cost/quality comparison (portfolio material either way).
   Via Vercel AI SDK, streaming. System prompt constrains
@@ -422,7 +434,7 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   its seed's `expected`, tier, family and requirements verbatim (`seed: "robustez:<case id>"`),
   is never held out and never blocking. Every other gate reads the population it read before the
   block; each lane prints the block as its own line, and the block is gated as a tracked baseline
-  of cases hit, set by #511's full lane (`src/lib/eval/robustness.ts`).
+  of cases hit, set by #511's full lane at 25 of 27 (`src/lib/eval/robustness.ts`).
 - **Retrieval:** every expected source/article must be present in the answer pool. A satisfiable
   Tier 1 case that takes the weak-retrieval decline is a failure (outside the robustness block,
   which reports its weak cases on its own line).
@@ -430,11 +442,13 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   temperature-0 judge uses a majority of three for flagged answers
   ([ADR 0007](docs/adr/0007-groundedness-judge-model.md)). Since #474 the count of grounded
   answers is a **tracked baseline of 68/73** (the 2026-10-02 lane), failing only a lane more than
-  4 below it (**≤ 63**); a lane that beats it raises it, and #512's final lanes re-set it. It
+  4 below it (**≤ 63**); a lane that beats it raises it, and #512's final lanes re-set it.
+  #511's baseline lane (2026-10-08) read 72/74, and the owner held 68 until #512 rather than
+  ratchet on one lane. It
   counts the judges' verdict on each case's first answer, before #500's override (as the 68 was
   measured), over the 74 cases outside the abstention tier and the robustness block (73 when
   the 68 was measured; #503 added `t2-inscripcion-dimex`, and the counts stay absolute until
-  #512 re-sets them, #511 being the first read over 74). No
+  #512 re-sets them; #511 was the first read over 74). No
   individually blocking case may fail, and a blocking case fails **on 2 of 3 answers**: when its
   first answer fails, the lane asks the whole pipeline twice more and judges each new answer the
   same way. An answer the route would refuse to ship (#168's citation invariant, #281's derived
@@ -476,7 +490,8 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   at 0.92 by #296 requirement 4), groundedness tracked against a baseline of 68 grounded answers
   (measured over 73, read over 74 since #503), failing at ≤ 63 (ADR 0023's #474 amendment; ≥94% from the closing run until then), Tier 1 requirements
   stated tracked against a baseline of 70/116, failing only on a lane more than 4 below it
-  (≤ 65; [ADR 0023](docs/adr/0023-eval-gates-after-sonnet-5-5.md); it and the groundedness
+  (≤ 65; #511's lane read 72/74 and 86/116, and the owner held both baselines until #512;
+  [ADR 0023](docs/adr/0023-eval-gates-after-sonnet-5-5.md); it and the groundedness
   baseline are the relaxations the ratchet rule has had, both recorded there), Tier 2 adequacy
   ≥84% (measured 12/13), abstention ≥90% (measured 9/9), citation invariant zero violations on every case
   (measured 0/73).
