@@ -23,11 +23,12 @@ import {
   mkdtempSync,
   readdirSync,
   readFileSync,
+  rmSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 import { figureMentions } from "./adequacy";
 import { CORPUS_INDEX_PATH, parseCorpusIndex } from "./corpus-index";
 import {
@@ -226,7 +227,7 @@ const quotable = (text: string) =>
   text
     .replace(/["'`]\s*\+\s*["'`]/g, "")
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[¿?¡!]/g, " ")
     .replace(/\s+/g, " ")
@@ -239,7 +240,9 @@ interface Wording {
 }
 
 /** Every wording a held-out case asks the pipeline: its turns, then itself. */
-function heldOutWordings(set: readonly EvalCase[]): Wording[] {
+function heldOutWordings(
+  set: readonly Pick<EvalCase, "id" | "question" | "history">[],
+): Wording[] {
   return set.flatMap((c) => [
     { id: c.id, text: quotable(c.question) },
     ...(c.history ?? []).map((turn, i) => ({
@@ -291,7 +294,8 @@ describe("no file quotes a held-out question (#536, #543)", () => {
   const files = sourceFiles(process.cwd());
 
   it("reads the files and the wordings", () => {
-    // Vacuity guard: an empty glob or set would pass the check below.
+    // Vacuity guard: an empty glob or set would pass the check below. 315
+    // files on 2026-10-08; the floor leaves room to delete, not to lose a root.
     expect(files.length).toBeGreaterThan(250);
     for (const file of [
       path.join("src", "lib", "retrieval.test.ts"),
@@ -323,11 +327,17 @@ describe("the quote guard, on a planted tree (#543)", () => {
         answer: "…",
       },
     ],
-  } as EvalCase;
+  };
   const wordings = heldOutWordings([planted]);
+
+  const bases: string[] = [];
+  afterAll(() => {
+    for (const base of bases) rmSync(base, { recursive: true, force: true });
+  });
 
   function plant(files: Record<string, string>): string {
     const base = mkdtempSync(path.join(tmpdir(), "held-out-"));
+    bases.push(base);
     for (const root of QUOTE_ROOTS) mkdirSync(path.join(base, root));
     for (const [file, text] of Object.entries(files)) {
       mkdirSync(path.dirname(path.join(base, file)), { recursive: true });
