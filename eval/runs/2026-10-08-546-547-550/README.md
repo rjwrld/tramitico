@@ -132,21 +132,85 @@ passed both times, so it fails 1 of 3. By #474's rule a blocking case would
 not count that as a failure. Read strictly, «no new judge failure» is not met
 on the first verdict. Read the way a lane reads it, it is.
 
+## Step 2: one full lane on round 2's prompt
+
+The owner OK'd it in the thread, on condition that the replays passed, and
+confirmed it after the `ho-800-mil` reading above. After a balance check and a
+three-case smoke (`smoke-groundedness-….log`, `smoke/`: #512's three cases,
+3/3 grounded, no provider error), one `pnpm test:eval` ran at
+`ANSWER_EFFORT=low`, with every other knob at its code default
+(`lane-20261008T182751Z.log`, `lane/`).
+
+**It did not finish clean.** After the 74 gated rows and 3 of the 27
+robustness rows, one groundedness judge call stalled for about 48 minutes and
+failed with `AI_RetryError: … Cannot connect to API: read ETIMEDOUT` after
+three attempts. That is a network failure, not a 429 or 5xx. The suite's
+`beforeAll` threw, so its 8 gates were skipped (vitest: 1 failed, 7 passed).
+The transcript was written up to the crash, 77 rows. The readings below come
+from it, and the groundedness gates are read off it by hand. The other seven
+suites ran to the end: abstention, hit-rate, census, conflicting sources,
+amending law, adequacy calibration and `retrieval.eval.test.ts`. Two query
+expansions timed out and fell back, as production does.
+
+| Gate                                 | #512 lane 1 · lane 2 | This lane                                                                   |
+| ------------------------------------ | -------------------- | --------------------------------------------------------------------------- |
+| Groundedness, judges' first verdict  | 73/74 · 73/74        | **73/74** (`factura-primera-cabys`, Tier 2), read by hand                   |
+| Tier 1 requirements stated           | 78 · 79              | **83/116**, read by hand; reported, not ratcheted                           |
+| Tier 2 adequate                      | 12/14 · 13/14        | 13/14 (`ho-t2-payoneer`)                                                    |
+| False corpus-absence claims (#500)   | 0 · 0                | **1**: `factura-primera-cabys`, see below                                   |
+| Abstention                           | 14/15 · 15/15        | **15/15**, no figure invented, no false absence claim                       |
+| `ho-abs-iva-2027` requirement (#502) | 0/1 · 0/1            | **1/1**, on the claim itself                                                |
+| Hit-rate                             | 72/74 · 73/74        | **72/74** (`ccss-asalariado-followup` pool #7, `ho-t2-credito-iva-compras`) |
+| Robustness block, hit                | 27/27 · 27/27        | 27/27                                                                       |
+| Robustness block, grounded           | 26/27 · 25/27        | 3/3 before the crash, the rest unread                                       |
+| Census                               | 278/278              | 278/278                                                                     |
+
+**The target cases on the full pipeline.** `multa-iva-no-declarado` is
+grounded, with «en principio» and no count hedge (#547). `iva-tarifa-general`
+names art. 10 (#550). `ho-abs-iva-2027` declines 2027 and writes «La tarifa
+general del impuesto es del 13% …, según el artículo 10 de la Ley del Impuesto
+sobre el Valor Agregado [3]». `rb-seguimiento-de-cuanto-multa` sits in the
+robustness rows the crash cut, so the lane has no read of #546. The replays
+above are its evidence.
+
+**The false absence claim is an old one.** `factura-primera-cabys` opens
+with «Sobre el código CABYS no encuentro base oficial en los documentos que
+consulté, y lo aclaro al final». `pnpm absence-backtest` finds the same
+claim in 9 committed runs back to 2026-09-16, the 2026-10-02 full lane
+among them, in almost these words. #511's and #512's lanes didn't make it.
+It uses rule 6's own «no encuentra base oficial» for a part the fragments
+don't cover, the opening rule 6 forbids, and none of the clauses changed here
+is about it. Under #500 it would fail the lane's zero gate.
+
+**What the lane changed in the gates**, per the brief:
+
+- Hit-rate read 72/74, so `HIT_RATE_GATE` goes from 0.92 to **0.94**
+  (owner decision, 2026-10-08), with SPEC §9 and the Quick reference.
+- `ho-abs-iva-2027` passed on the claim itself, so its `it.todo` in
+  `abstention.eval.test.ts` is now an assertion.
+- Groundedness, Tier 1 and robustness baselines are **not** ratcheted from
+  one lane, let alone a partial one: Tier 1's 83 is reported only.
+
 ## Cost
 
-There is no console figure. The estimate uses #507's measured rate for fixed-chunk
+There is no console figure. The replays' estimate uses #507's measured rate for fixed-chunk
 replays (≈US$1.30 for 30 rows, both judges) and #507's scoped-abstention
-read (≈US$0.10).
+read (≈US$0.10). The lane's scales #512's lane 2 (≈US$8.10 for its 101
+answers and their judges) by the 77 rows it answered.
 
-| Step                                                       | Rows | ≈US$      |
-| ---------------------------------------------------------- | ---- | --------- |
-| Balance check (one-token Haiku call)                       | —    | 0.00      |
-| Control: targets ×3, Tier 1 guard                          | 36   | 1.55      |
-| Control: `ho-abs-iva-2027` ×3                              | 3    | 0.30      |
-| Round 1: targets ×3                                        | 9    | 0.40      |
-| Round 2: targets ×3, Tier 1 guard, `ho-800-mil` re-asks ×2 | 38   | 1.65      |
-| Round 2: `ho-abs-iva-2027` ×3                              | 3    | 0.30      |
-| **Total**                                                  |      | **≈4.20** |
+| Step                                                       | Rows | ≈US$       |
+| ---------------------------------------------------------- | ---- | ---------- |
+| Balance check (one-token Haiku call)                       | —    | 0.00       |
+| Control: targets ×3, Tier 1 guard                          | 36   | 1.55       |
+| Control: `ho-abs-iva-2027` ×3                              | 3    | 0.30       |
+| Round 1: targets ×3                                        | 9    | 0.40       |
+| Round 2: targets ×3, Tier 1 guard, `ho-800-mil` re-asks ×2 | 38   | 1.65       |
+| Round 2: `ho-abs-iva-2027` ×3                              | 3    | 0.30       |
+| Replays subtotal                                           |      | ≈4.20      |
+| Full lane: balance check, 3-case smoke                     | 3    | 0.20       |
+| Full lane: abstention, hit-rate, fixtures, census          | —    | 2.10       |
+| Full lane: groundedness, 77 rows answered and judged       | 77   | 6.20       |
+| **Total**                                                  |      | **≈12.70** |
 
 The groundedness rows embed the text of the retrieved chunks, which are excerpts
 of official public documents of the Government of Costa Rica (Hacienda, CCSS,

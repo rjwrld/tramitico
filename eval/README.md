@@ -23,7 +23,8 @@ the main checkout's `eval/transcripts/2026-10-08-final-512/`) are the next
 86/116, and its transcripts no longer replay: #530's re-ingest re-minted the
 `reglamento-iva` chunk ids they carry, and `replayChunks` in
 `src/lib/eval/replay.ts` throws on a chunk id the corpus no longer holds.
-Two identical full lanes differ by ±4 Tier 1 requirements (#457), and
+`HIT_RATE_GATE` is 0.94 since #546/#547/#550's lane read 72/74 (owner,
+2026-10-08); #512 held it at 0.92. Two identical full lanes differ by ±4 Tier 1 requirements (#457), and
 fixed-chunk replays of one prompt read 70–75 on the 2026-10-02 chunks.
 
 **Knobs.** Every knob is read at call time. Its code default is production's
@@ -101,8 +102,8 @@ label that is recorded, never gated (one more judge call per failed answer,
 cents a lane). A scoped `EVAL_CASES` run re-asks too. The robustness block
 (#502) sits outside every other gate and prints its own line in each lane. The abstention lane
 also scores `ho-abs-iva-2027`'s requirement (13 % and art. 10, cited, never
-denied); its assertion stays a todo, since #512's two lanes both read it 0/1. See «The robustness
-block».
+denied), and since #550 it asserts it: #512's two lanes read it 0/1, and #550's
+lane read it 1/1 on the claim itself. See «The robustness block».
 
 Since #503 the abstention set has 15 cases, so `ABSTENTION_GATE` (0.9) allows
 one miss, and there are 74 answerable cases outside the block (the new one is
@@ -3826,3 +3827,11 @@ breaks rule 3 or makes the #547 hedge.
 - **Tier 1 guard** on lane 2's 27 rows: 84 → 81, no false absence claim. One
   new first-verdict judge failure (`ho-800-mil-que-porcentaje-caja`, a rule 4
   reading of the IVM escala no change touches) passed both re-asks.
+- **One full lane on round 2's prompt** (owner OK), which a network failure
+  (`read ETIMEDOUT` on a judge call, after 3 retries) cut inside the
+  robustness block: the 74 gated rows read groundedness 73/74, Tier 1
+  83/116 (reported, not ratcheted), hit-rate 72/74, abstention 15/15 and
+  `ho-abs-iva-2027` 1/1 on the claim. One false absence claim,
+  `factura-primera-cabys`'s CABYS opening, is an old one (9 committed runs
+  back to 2026-09-16). On the lane's 72/74, `HIT_RATE_GATE` goes to 0.94
+  (owner decision), and `ho-abs-iva-2027`'s assertion is armed.

@@ -109,8 +109,13 @@ import {
  * Tier 2 and two of them never reach the pool, so raising the floor would
  * spend headroom on a lane whose next fix is a corpus one, not a retrieval
  * one. eval/README.md has the per-case table.
+ *
+ * 0.94 since #546/#547/#550's lane (2026-10-08, 72/74). #512's two final
+ * lanes read 72/74 and 73/74 and held 0.92, and the owner set 0.94 as the
+ * next step once a further lane read at least 72/74. It is under the ratchet
+ * rule's 0.95, so one more miss than that lane still passes.
  */
-export const HIT_RATE_GATE = 0.92;
+export const HIT_RATE_GATE = 0.94;
 
 const REAL_EMBEDDINGS =
   "a real embeddings provider (EMBEDDINGS_PROVIDER + its API key)";

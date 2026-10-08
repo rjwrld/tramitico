@@ -484,16 +484,16 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   naming the correct official/professional route. Tier 1 false declines are zero. An abstention
   case may also declare `requiredClaims` (#502): `ho-abs-iva-2027` must still state the current
   13 % and artículo 10, each cited, and must not say the artículo is absent from the documents.
-  The lane scores this on every run; the assertion stays a todo, since #512's two lanes both
-  read it 0/1 (the 13 % cited, no artículo 10).
+  The lane scores and asserts this on every run. #512's two lanes read it 0/1 (the 13 % cited, no
+  artículo 10), and it was armed after #550's lane read it 1/1.
 - **Threshold policy:** every Tier 1 case outside the robustness block is individually blocking across retrieval, groundedness,
   adequacy, citations, freshness, and abstention behavior; a strong aggregate cannot hide a red
   case. Numeric thresholds were fixed by the single authorized baseline on the beta corpus
   (#267, 2026-09-05; the tables are in `eval/README.md`), then ratchet upward and are never relaxed
   to make a regression pass ([ADR 0015](docs/adr/0015-coverage-tiers-and-required-claims.md)). The
   ratchet rule: a gate is the measured pass rate minus one case, rounded down, never below its
-  previous value. Current gates (closing run, 2026-09-11): hit-rate ≥92% (measured 95.9%, held
-  at 0.92 by #296 requirement 4), groundedness tracked against a baseline of 73/74 grounded answers,
+  previous value. Current gates (closing run, 2026-09-11): hit-rate ≥94% (0.92 since #296 requirement 4,
+  raised by owner decision after #546/#547/#550's lane read 72/74, 2026-10-08), groundedness tracked against a baseline of 73/74 grounded answers,
   failing at ≤ 68, and Tier 1 requirements stated against a baseline of 78/116, failing at
   ≤ 73, both set by #512's two final lanes (2026-10-08) at the lower lane of the two
   ([ADR 0023](docs/adr/0023-eval-gates-after-sonnet-5-5.md); the 2026-10-02 baselines of 68
