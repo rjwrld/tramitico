@@ -3436,7 +3436,8 @@ leaves the block out.
 **The gate: a tracked baseline, set by #511.** The other option was a hard
 gate (every case must hit its seed's `expected`). It would be red today:
 `rb-corto-cuanto-es-iva` misses because its seed `iva-tarifa-general` misses
-(#508), and «¿cuánto pago a la caja?» is weak on both rewrite models (below).
+(#508), and «¿cuánto pago a la caja?» is weak on both rewrite models (below;
+both fixed by #509, «Rate questions reach their rate sources»).
 A hard gate that starts red decides nothing, which is #474's complaint about
 the gates we already have. So the block is gated like Tier 1 since ADR 0023:
 the count of block cases that hit must not fall more than
@@ -3479,10 +3480,11 @@ both rewrite models, route configuration):
 | Haiku 4.5     | 71/73             | 25/27 | 12/12     | 9/9         |
 
 - The one pill label that misses is «¿Me pueden cobrar retroactivo?», on
-  Haiku 5.5. Its expansion read «retroactivo» as arrears interest.
+  Haiku 5.5. Its expansion read «retroactivo» as arrears interest (fixed by
+  #509, below).
 - «¿cuánto pago a la caja?» is weak on both models: production answers it
   with the honest decline, while its seed and «¿Cuánto pago como
-  independiente?» both hit.
+  independiente?» both hit (fixed by #509, below).
 - #496's colloquial signal held on a third pair of runs. Haiku 5.5 missed 4,
   2 and 3 `ho-t2-*` cases across the three runs; Haiku 4.5 missed 0, 1 and 0.
 

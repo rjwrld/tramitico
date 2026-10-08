@@ -41,13 +41,15 @@ function degradedReasons(): string[] {
 
 describe("lexicalQueryText (#509)", () => {
   it("drops the question words the stop list keeps, accented or not", () => {
-    expect(lexicalQueryText("¿Cuánto pago como independiente?")).toBe(
-      "¿ pago independiente?",
+    expect(lexicalQueryText("¿Cuánto cobro como consultora?")).toBe(
+      "¿ cobro consultora?",
     );
-    expect(lexicalQueryText("¿cuánto pago a la caja?")).toBe(
-      "¿ pago a la caja?",
+    expect(lexicalQueryText("¿cuánto debo a la municipalidad?")).toBe(
+      "¿ debo a la municipalidad?",
     );
-    expect(lexicalQueryText("cuanto pago a la ccss")).toBe("pago a la ccss");
+    expect(lexicalQueryText("cuanto cobra el notario")).toBe(
+      "cobra el notario",
+    );
     expect(lexicalQueryText("¿Cuál va a ser la cuota en 2030?")).toBe(
       "¿ a la cuota en 2030?",
     );
@@ -571,36 +573,36 @@ describe("retrieve", () => {
 
     it("searches the subject first and stops there when it is corroborated", async () => {
       const { client, asked } = byQueryText({
-        "¿ pago a la caja?": [ROW],
+        "¿ debo a la municipalidad?": [ROW],
       });
-      const result = await retrieve("¿cuánto pago a la caja?", {
+      const result = await retrieve("¿cuánto debo a la municipalidad?", {
         client,
         embedder: fakeEmbedder(),
         vigencia: NO_ANNUAL,
       });
-      expect(asked).toEqual(["¿ pago a la caja?"]);
+      expect(asked).toEqual(["¿ debo a la municipalidad?"]);
       expect(result.isWeak).toBe(false);
     });
 
     it("keeps the as-typed search when the subject alone is weak and it is not", async () => {
-      // «¿Cómo emito mi primera factura?»: without «cómo» the strict AND
-      // matched one uncorroborated chunk, with it the OR fallback ran wide.
+      // The shape #509's probe found: without «cómo» the strict AND matched
+      // one uncorroborated chunk, with it the OR fallback ran wide.
       const asTyped = {
         ...ROW,
         chunk_id: "22222222-2222-2222-2222-222222222222",
       };
       const { client, asked } = byQueryText({
-        "¿ emito mi primera factura?": [UNCORROBORATED],
-        "¿Cómo emito mi primera factura?": [asTyped],
+        "¿ presento mi primera declaración?": [UNCORROBORATED],
+        "¿Cómo presento mi primera declaración?": [asTyped],
       });
-      const result = await retrieve("¿Cómo emito mi primera factura?", {
+      const result = await retrieve("¿Cómo presento mi primera declaración?", {
         client,
         embedder: fakeEmbedder(),
         vigencia: NO_ANNUAL,
       });
       expect(asked).toEqual([
-        "¿ emito mi primera factura?",
-        "¿Cómo emito mi primera factura?",
+        "¿ presento mi primera declaración?",
+        "¿Cómo presento mi primera declaración?",
       ]);
       expect(result.isWeak).toBe(false);
       expect(result.chunks.map((c) => c.chunkId)).toEqual([asTyped.chunk_id]);
@@ -608,9 +610,9 @@ describe("retrieve", () => {
 
     it("keeps the subject's search when both are weak", async () => {
       const { client, asked } = byQueryText({
-        "¿ emito mi primera factura?": [UNCORROBORATED],
+        "¿ presento mi primera declaración?": [UNCORROBORATED],
       });
-      const result = await retrieve("¿Cómo emito mi primera factura?", {
+      const result = await retrieve("¿Cómo presento mi primera declaración?", {
         client,
         embedder: fakeEmbedder(),
         vigencia: NO_ANNUAL,
