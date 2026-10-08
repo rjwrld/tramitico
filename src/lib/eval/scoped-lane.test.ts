@@ -12,9 +12,11 @@ const LANE_ID = CASES[0].id;
  * What keeps an eval lane's suites from going through `scopedLane` or
  * `fixtureLane`, one line per problem; empty when the wiring holds.
  *
- * vitest may be imported only by name, and never its `describe`: a namespace
- * or default import (`import * as v`, `import v`) reaches `v.describe` without
- * naming it (#543), and so does a dynamic `import("vitest")`.
+ * vitest may be imported only by name, and never its `describe` or that
+ * alias, `suite`: a namespace or default import (`import * as v`, `import v`)
+ * reaches `v.describe` without naming it (#543), and so does a dynamic
+ * `import("vitest")`. An import counts from the start of its line, so the
+ * word «import» in a comment above it does not.
  */
 function laneWiring(text: string): string[] {
   const problems: string[] = [];
@@ -28,12 +30,12 @@ function laneWiring(text: string): string[] {
     );
   }
   for (const [, clause] of text.matchAll(
-    /\bimport\s+([^;]*?)\s*from\s*["']vitest["']/g,
+    /^[ \t]*import\s+([^;]*?)\s*from\s*["']vitest["']/gm,
   )) {
     const named = /^(?:type\s+)?\{([^}]*)\}$/.exec(clause);
     if (named === null) problems.push(`vitest imported whole: ${clause}`);
-    else if (/\bdescribe\b/.test(named[1])) {
-      problems.push("vitest's describe imported");
+    else if (/\b(?:describe|suite)\b/.test(named[1])) {
+      problems.push("vitest's describe or suite imported");
     }
   }
   if (/\b(?:import|require)\(\s*["']vitest["']\s*\)/.test(text)) {
@@ -90,10 +92,27 @@ describe("the wiring guard, on planted lanes (#543)", () => {
     ['import * as v from "vitest";', "vitest imported whole: * as v"],
     ['import v from "vitest";', "vitest imported whole: v"],
     ['import v, { it } from "vitest";', "vitest imported whole: v, { it }"],
-    ['import { describe, it } from "vitest";', "vitest's describe imported"],
-    ['import { describe as d } from "vitest";', "vitest's describe imported"],
+    [
+      'import { describe, it } from "vitest";',
+      "vitest's describe or suite imported",
+    ],
+    [
+      'import { describe as d } from "vitest";',
+      "vitest's describe or suite imported",
+    ],
+    ['import { suite } from "vitest";', "vitest's describe or suite imported"],
   ])("fails %s", (vitestImport, problem) => {
     expect(laneWiring(lane(vitestImport))).toEqual([problem]);
+  });
+
+  it("reads an import from its line, not from a comment above it", () => {
+    const comment = "// Lanes import vitest by name only\n";
+    expect(
+      laneWiring(lane(`${comment}import { expect, it } from "vitest";`)),
+    ).toEqual([]);
+    expect(laneWiring(lane(`${comment}import * as v from "vitest";`))).toEqual([
+      "vitest imported whole: * as v",
+    ]);
   });
 
   it("fails a dynamic import of vitest", () => {
