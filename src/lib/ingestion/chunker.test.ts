@@ -663,6 +663,7 @@ describe("chunkDocument — artículo suffixes (#274)", () => {
       "Artículo 40 bis .- Determinación , liquidación",
       "Artículo 61 bis.— (Derogado).",
       "ARTÍCULO 9 -Gastos no deducibles.",
+      "ARTICULO 66-B .-(ANULADO por Resolución de la Sala Constitucional).",
       "Artículo 10",
       "Hecho generador.",
     ]);
@@ -674,6 +675,7 @@ describe("chunkDocument — artículo suffixes (#274)", () => {
       "Artículo 40 bis",
       "Artículo 61 bis",
       "ARTÍCULO 9",
+      "ARTICULO 66-B",
       "Artículo 10",
     ]);
   });

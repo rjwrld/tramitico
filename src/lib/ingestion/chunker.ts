@@ -42,7 +42,9 @@ const artNumber = (ordinals: string) =>
 // heading is structural: the ordinal is followed by a delimiter (the corpus
 // writes «.-», «-», «.—», «°.-» and «º-»). An artículo label may also end its
 // paragraph: the markup fragments headings ("Artículo 64" / "bis.—…"), and
-// normalizeFragments rejoins those by matching the bare label.
+// normalizeFragments rejoins those by matching the bare label. That `$`
+// branch still opens a false boundary on a wrapped line that is exactly
+// «Artículo N», its prose on the next paragraph; none exists in the corpus.
 const TRANSITORIO_DELIMITER = "(?=[ .°\\-–—]*[.°\\-–—])";
 const ARTICULO_DELIMITER = "(?=[ .°º\\-–—]*(?:[.°º\\-–—]|$))";
 const ART_RE = new RegExp(
