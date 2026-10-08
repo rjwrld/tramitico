@@ -221,6 +221,11 @@ describe("classifyFamily (#304)", () => {
     expect(classifyFamily("Hice la inscripción tarde, ¿qué sigue?")).toBe(
       "T1-I",
     );
+    // The docstring's example, so the comment cannot drift from the rule:
+    // each half alone names its own family, so together they tie.
+    expect(classifyFamily("Fui a inscribirme")).toBe("T1-A");
+    expect(classifyFamily("Fui dos años tarde")).toBe("T1-I");
+    expect(classifyFamily("Fui a inscribirme dos años tarde")).toBe("T1-I");
   });
 
   it("lets the count win over the order", () => {
