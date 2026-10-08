@@ -30,7 +30,7 @@
  * the reader today's — 13 % and the artículo 10 that sets it, cited, and
  * never the claim that the artículo is missing from the documents (#490 item
  * 2), which the committed answers made and the judge passed. The lane scores
- * and prints it; the assertion waits for #507 and #508.
+ * and prints it; the assertion awaits #512's lane.
  *
  * `EVAL_CASES` scopes it as it scopes the groundedness and hit-rate lanes
  * (`./subset`): only the named abstention cases are asked, the transcript's
@@ -366,11 +366,15 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
     expect(claims, `false absence claims: ${claims.join("; ")}`).toEqual([]);
   });
   // #502: scored and printed above on every lane, not yet asserted. 17 of the
-  // 19 committed answers fail it, the fixes are #507 (the prompt) and #508
-  // (art. 30 → art. 10), and a gate that starts red decides nothing (#497).
-  // The absence half is gated sooner, by #500's detector.
+  // 19 committed answers before #507 failed it, and a gate that starts red
+  // decides nothing (#497). #507 and #508 have landed, and it stays a todo
+  // (owner, 2026-10-08): both passing draws name «artículo 10» only in the
+  // ICT transitorio sentence, not in the 13 % one, and neither ran on the
+  // full pipeline with #508 and #509 merged (eval/runs/2026-10-08-507/).
+  // #512's full lane reads it, and arms it if it passes on the claim itself.
+  // The absence half is gated already, by #500's detector.
   it.todo(
-    "gives what an abstention case requires, and denies no artículo (#502) — armed when #507 and #508 land",
+    "gives what an abstention case requires, and denies no artículo (#502) — awaits #512's lane",
   );
 
   it("invents no figure while declining", () => {

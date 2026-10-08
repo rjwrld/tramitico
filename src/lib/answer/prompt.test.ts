@@ -239,7 +239,7 @@ describe("formatDerivedFigures", () => {
   it("counts the sentence of what to confirm, and makes the label the default after the first mention (#458)", () => {
     const block = formatDerivedFigures([DERIVED_FIGURE]);
     expect(block).toContain(
-      "la que dice lo que los documentos no precisan sobre ella o lo que debe confirmar con la institución",
+      "la que dice lo que debe confirmar con la institución sobre ella",
     );
     expect(block).toContain(
       "Dé el monto una vez, con sus marcadores; para volver a referirse a la cifra, nómbrela por su etiqueta",
@@ -484,7 +484,7 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
       /3\. [^\n]*Compare solo fechas que los documentos escriben: no suponga una fecha que no traen ni razone sobre el tiempo transcurrido/,
     );
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
-      /3\. [^\n]*si la fecha que haría falta no está en los documentos, dígalo/,
+      /3\. [^\n]*si la fecha que haría falta no está entre lo que recibió, no la suponga: diga que esa fecha debe confirmarla con la institución/,
     );
     // The date itself is the user prompt's: the system prompt is cached.
     expect(ANSWER_SYSTEM_PROMPT).not.toContain("Fecha de hoy en Costa Rica:");
@@ -591,7 +591,7 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     );
     // What to do instead, for a question about several periods.
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
-      /9\. [^\n]*diga que los documentos no precisan cómo se cuenta/,
+      /9\. [^\n]*diga que cómo se cuenta debe confirmarlo con la institución/,
     );
   });
 
@@ -612,6 +612,40 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     // Rule 2's wire contract survives the register change: the tracker still
     // needs the model to emit [n].
     expect(ANSWER_SYSTEM_PROMPT).toContain("[n]");
+  });
+
+  /**
+   * #507: rule 7 used to name the eight chunks «los documentos oficiales», so
+   * a gap among them read as a gap in the corpus — «los documentos no traen
+   * el monto del salario base», four times on #511's lane, though the corpus
+   * carries it. The model is told it sees part of the collection, never all
+   * of it, and a datum it cannot see goes to rule 9's closing referral. The
+   * word «fragmento» stays out (#75), so the model never echoes it.
+   */
+  it("tells the model it sees part of the documents, never claims one is absent (#507)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /7\. [^\n]*recibe solo algunas partes de los documentos oficiales[^\n]*nunca la colección completa/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /7\. [^\n]*nunca afirme que algo falta en las fuentes: no escriba que los documentos oficiales no traen, no incluyen, no mencionan o no reproducen un documento, un artículo, una tarifa, un monto o una cifra/,
+    );
+    // A cross-reference: say what the chunk says, refer for the datum at the end.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /7\. [^\n]*diga lo que sí dice, con su cita, sin dar el dato que no ve, y deje para la oración final de la regla 9 que la persona lo confirme con la institución/,
+    );
+    // Rule 6's «no encuentra base oficial» still answers a question nothing covers.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /7\. [^\n]*Cuando nada de lo que recibió responde la pregunta, rige la regla 6/,
+    );
+    // Rule 9's referral stays one closing sentence, never the opening (#500's
+    // opening report reads it).
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /9\. [^\n]*en una sola oración, al final[^\n]*no la anuncie al principio ni la repita/,
+    );
+    // No rule asks the model to say the documents lack something.
+    expect(ANSWER_SYSTEM_PROMPT).not.toMatch(
+      /los documentos no precisan|no está en los documentos, dígalo/,
+    );
   });
 
   it("permits only the three constructs AnswerProse renders (#77)", () => {

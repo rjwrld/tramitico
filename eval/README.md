@@ -12,7 +12,8 @@ updates this block in the same change.
 [`runs/2026-10-08-baseline/`](runs/2026-10-08-baseline/) on main at
 66a2cf9 (#511): groundedness 72/74, Tier 1 86/116, Tier 2 12/14, abstention
 14/15, hit-rate 68/74 (red), robustness block 25/27 hits, 4 false absence
-claims (red, #507's starting point). Its groundedness transcript
+claims (red, #507's starting point; #507's prompt replays them to 0, see
+[`runs/2026-10-08-507/`](runs/2026-10-08-507/)). Its groundedness transcript
 (`low/groundedness-…-20261008T022706Z.jsonl`, also copied to the main
 checkout's `eval/transcripts/2026-10-08-baseline-511/`) is the input for
 `answer-replay`. The tracked baselines are still those of the previous
@@ -100,7 +101,7 @@ label that is recorded, never gated (one more judge call per failed answer,
 cents a lane). A scoped `EVAL_CASES` run re-asks too. The robustness block
 (#502) sits outside every other gate and prints its own line in each lane. The abstention lane
 also scores `ho-abs-iva-2027`'s requirement (13 % and art. 10, cited, never
-denied); its assertion is a todo until #507 and #508. See «The robustness
+denied); its assertion is a todo that awaits #512's lane. See «The robustness
 block».
 
 Since #503 the abstention set has 15 cases, so `ABSTENTION_GATE` (0.9) allows
@@ -3548,7 +3549,8 @@ is. The two that pass (`2026-09-11-closing`, `2026-09-24-352`) give 13 % and
 art. 10, both cited. A hard assertion would start red, which is the same
 reason the block's gate is a baseline. So the lane scores and prints the
 requirement on every run, and the assertion is a todo, armed when #507 (the
-prompt) and #508 (art. 30 → art. 10) land. The absence half is gated sooner,
+prompt) and #508 (art. 30 → art. 10) land. (Both landed; it awaits #512's lane,
+see «Fragments, not the corpus».) The absence half is gated sooner,
 by #500's detector. After the fold, the same backtest keeps every verdict (17
 fail, the same 2 pass) and all 6 denials. The detector also finds 5 more,
 all in answers that already failed on their literals.
@@ -3744,3 +3746,34 @@ route configuration, Haiku 5.5, shipped prompt):
 #502's own expansions with only the catalogue changed: no blocking target
 leaves the fused 40 on Haiku 5.5's rewrites, and one, at the pool's last
 place, on Haiku 4.5's.
+
+## Fragments, not the corpus (2026-10-08, #507)
+
+The prompt used to call the eight chunks «los documentos oficiales», so a gap
+among them read as a gap in the corpus. Rule 7 now tells the model it sees
+only some parts of the documents, never the whole collection, and never to
+write that a document, artículo, rate or figure is missing; a datum it cannot
+see goes to rule 9's closing referral. Rules 3 and 9 trade their «los
+documentos no…» wordings for «confírmelo con la institución». Measured with fixed-chunk
+replays of #511's transcript, one round, ≈US$3
+([`runs/2026-10-08-507/README.md`](runs/2026-10-08-507/README.md)):
+
+- **False absence claims 4 → 0** on the four flagged rows, whose control
+  replay on main's prompt reproduced 4. `ho-abs-iva-2027`, through the scoped
+  abstention lane, made none, and met its requirement.
+- **`ho-abs-iva-2027`'s assertion stays a todo** (owner, 2026-10-08). Both
+  passing draws name «artículo 10» only in the ICT transitorio sentence, not
+  in the 13 % one. Neither ran on the full pipeline with #508 and #509
+  merged, and before #507 the requirement failed 17 of 19 answers. #512's
+  full lane reads it, and arms it if it passes on the claim itself.
+- **Tier 1 85/116**, against the lane's 86 and the control replay's 78. The
+  owner signed off the +7 on the control as within the intent of ±2
+  (2026-10-08): no case went down, and ADR 0023 forbids tuning toward a
+  number. No second control replay. The baseline stays 70. The control's 78 says one replay of this
+  transcript moves more than ±2 on its own.
+- **Openings** (reported): the Tier 1 rows went 4 → 2 against the control.
+  The ones left say a procedure or a code is not in the documents, which the
+  detector does not count.
+
+`answer-replay` now prints the absence openings, recorded → replayed, next to
+the false claims.

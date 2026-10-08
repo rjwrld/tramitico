@@ -301,7 +301,10 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   Via Vercel AI SDK, streaming. System prompt constrains
   answers to retrieved chunks; when retrieval is empty/weak, the answer says so and links the
   agency the question belongs to instead of guessing (routed by institution since #264, §8).
-  MTSS questions get the encoded fact: the Labor Code mostly does not apply to independents.
+  The prompt tells the model it sees only part of the documents, never the whole collection
+  (#507): it never says a document, artículo or figure is absent, and a datum it cannot see goes
+  to the closing referral («confírmelo con la institución»), never to the opening. MTSS
+  questions get the encoded fact: the Labor Code mostly does not apply to independents.
   The user prompt carries today's Costa Rica date (#455), outside the cached system prompt, so
   the answer can say whether a documented plazo has passed; counting days from it stays
   forbidden by rule 3.
@@ -479,7 +482,7 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   naming the correct official/professional route. Tier 1 false declines are zero. An abstention
   case may also declare `requiredClaims` (#502): `ho-abs-iva-2027` must still state the current
   13 % and artículo 10, each cited, and must not say the artículo is absent from the documents.
-  The lane scores this on every run; the assertion is armed once #507 and #508 land.
+  The lane scores this on every run; the assertion awaits #512's lane, after #507 and #508.
 - **Threshold policy:** every Tier 1 case outside the robustness block is individually blocking across retrieval, groundedness,
   adequacy, citations, freshness, and abstention behavior; a strong aggregate cannot hide a red
   case. Numeric thresholds were fixed by the single authorized baseline on the beta corpus

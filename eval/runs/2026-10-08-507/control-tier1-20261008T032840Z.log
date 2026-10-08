@@ -1,0 +1,57 @@
+replaying 27 row(s) of groundedness-claude-sonnet-5-5-effort-low-20261008T022706Z.jsonl on claude-sonnet-5-5-effort-low (no groundedness judge)
+  ccss-pedir-prescripcion-cuotas  pass  missing 2
+  ccss-ventana-prescripcion-24-meses  pass  missing 0
+  ccss-obligacion-ingreso-bajo  pass  missing 3
+  ccss-cese-actividad  pass  missing 0
+  desinscripcion-dejar-actividad  pass  missing 1
+  multa-iva-no-declarado  pass  missing 0
+  inscripcion-tardia-sancion  pass  missing 1
+  ho-hacienda-solo-cliente-eeuu  pass  missing 4
+  ho-trabajitos-por-mi-cuenta  pass  missing 1
+  ho-donde-inscribo-ya-no-atv  pass  missing 1
+  ho-desde-cuanta-plata-caja  pass  missing 1
+  ho-donde-me-afilio-caja  pass  missing 1
+  ho-tiquete-en-vez-de-factura  pass  missing 3
+  ho-factura-electronica-o-recibo  pass  missing 2
+  ho-cabys-paginas-web  pass  missing 0
+  ho-cliente-espana-lleva-iva  pass  missing 5
+  ho-iva-en-cero-sin-facturar  pass  missing 1
+  ho-hasta-que-dia-tengo-iva  pass  missing 1
+  ho-rebajar-25-sin-facturas  pass  missing 1
+  ho-minimo-renta-2026  pass  missing 3
+  ho-ademas-tengo-salario  pass  missing 4
+  ho-minimo-caja-independiente-2026  pass  missing 0
+  ho-800-mil-que-porcentaje-caja  pass  missing 0
+  ho-tambien-asegurado-por-patrono  pass  missing 1
+  ho-cobrar-8-anos-atras-caja  pass  missing 0
+  ho-desinscribir-debiendo-declaraciones  pass  missing 1
+  ho-rebajar-multa-si-pago-ya  pass  missing 1
+
+transcript: <worktree>/eval/runs/2026-10-08-507/control/groundedness-claude-sonnet-5-5-effort-low-replay-ungrounded-subset-20261008T033657Z.jsonl
+
+requirements stated, recorded → replayed: 86 → 78 of 116
+  4 → 3 / 5  ccss-pedir-prescripcion-cuotas
+  4 → 2 / 5  ccss-obligacion-ingreso-bajo
+  4 → 5 / 6  desinscripcion-dejar-actividad
+  4 → 5 / 5  multa-iva-no-declarado
+  4 → 4 / 5  inscripcion-tardia-sancion
+  2 → 1 / 5  ho-hacienda-solo-cliente-eeuu
+  3 → 3 / 4  ho-trabajitos-por-mi-cuenta
+  3 → 3 / 4  ho-donde-inscribo-ya-no-atv
+  4 → 4 / 5  ho-desde-cuanta-plata-caja
+  3 → 3 / 4  ho-donde-me-afilio-caja
+  3 → 1 / 4  ho-tiquete-en-vez-de-factura
+  3 → 2 / 4  ho-factura-electronica-o-recibo
+  2 → 1 / 6  ho-cliente-espana-lleva-iva
+  3 → 3 / 4  ho-iva-en-cero-sin-facturar
+  3 → 2 / 3  ho-hasta-que-dia-tengo-iva
+  3 → 3 / 4  ho-rebajar-25-sin-facturas
+  2 → 1 / 4  ho-minimo-renta-2026
+  2 → 2 / 6  ho-ademas-tengo-salario
+  2 → 2 / 3  ho-tambien-asegurado-por-patrono
+  3 → 3 / 4  ho-desinscribir-debiendo-declaraciones
+  3 → 3 / 4  ho-rebajar-multa-si-pago-ya
+false absence claims (#500), recorded → replayed: 1 → 1 — ho-trabajitos-por-mi-cuenta
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+finish other than stop: 0; output tokens max 1676
