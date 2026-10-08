@@ -31,9 +31,15 @@ value, except for `ANSWER_EFFORT`:
 | `ANSWER_TOP_K`                   | `8`                                           | `rerank.ts`                  |
 | `ANSWER_DOC_CAP`                 | `off`                                         | `rerank.ts`                  |
 | `PIN_DERIVED_INPUTS`             | `on` (since #344)                             | `src/lib/answer/derived.ts`  |
-| `EVAL_CASES`                     | every case; comma-separated ids scope a lane  | `src/lib/eval/subset.ts`     |
+| `EVAL_CASES`                     | every case; comma-separated ids scope a lane¹ | `src/lib/eval/subset.ts`     |
 | `EVAL_TRANSCRIPT_DIR`            | `eval/transcripts/`                           | `src/lib/eval/transcript.ts` |
 | `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites     | `src/lib/eval/rewrites.ts`   |
+
+¹ The groundedness, hit-rate and abstention lanes read it; the others ignore it.
+Each lane scopes to its own cases, and an id it does not run throws before
+the first paid call. Abstention ids therefore go to `abstention.eval.test.ts`
+alone, the rest to the other two: one `EVAL_CASES` mixing both fails every
+lane it is run with.
 
 The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`)
 accept only the values above. Anything else runs the default and logs
@@ -66,8 +72,8 @@ baselines: a lane fails only more than 4 below one (groundedness 68/73, so
 on 2 of 3 answers: the lane re-asks a failing one twice (#474, about US$0.50 a
 lane), and each failure the judges make carries a `contradiction`/`inference`
 label that is recorded, never gated (one more judge call per failed answer,
-cents a lane). A scoped `EVAL_CASES` run re-asks too. The robustness block (#502) sits outside
-every other gate and prints its own line in each lane. The abstention lane
+cents a lane). A scoped `EVAL_CASES` run re-asks too. The robustness block
+(#502) sits outside every other gate and prints its own line in each lane. The abstention lane
 also scores `ho-abs-iva-2027`'s requirement (13 % and art. 10, cited, never
 denied); its assertion is a todo until #507 and #508. See «The robustness
 block».
@@ -1318,7 +1324,11 @@ worse than no number. Two things prevent it, both loud:
 
 An id that matches no case throws **before the first paid call**: a typo that
 silently selected zero cases would print an empty table and spend the money
-anyway.
+anyway. Each lane checks against its own cases, so an abstention id fails the
+groundedness and hit-rate lanes, and any other id fails the abstention lane.
+Since #521 the abstention lane honours `EVAL_CASES` the same way (its
+transcript becomes `abstention-subset-<instant>.jsonl`); before, it ignored
+the variable, and #508 paid for all nine cases to read one.
 
 ### The six-case read, and what it corrected (#289)
 
