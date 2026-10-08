@@ -515,7 +515,9 @@ change them.
 ## 3. Alerts to create (#29 provisioning step)
 
 Two alerts must reach the owner. Neither can be created from the repo — both are Vercel
-dashboard configuration, and this section is the specification for it.
+dashboard configuration, and this section is the specification for it. The third signal,
+§3.3, lives in the repo: a daily canary that asks production three questions and files an
+issue when an answer fails. On Hobby it is the provider-failure coverage.
 
 ### 3.1 5xx rate — Vercel built-in Error Anomaly
 
@@ -552,8 +554,8 @@ queries were sunset. So this alert needs the logs to leave Vercel.
 
 **Not provisioned on the free stack (#327).** Drains are Pro-only, and Hobby is the decision
 (§2). The design below stays as the specification for the day the plan changes; until then
-the "launch-day fallback" at the end of this section _is_ the coverage, and §4 says when
-the thresholds start meaning anything.
+§3.3's daily canary _is_ the coverage, and §4 says when the thresholds start meaning
+anything.
 
 **What to create**, when production moves to Pro:
 
@@ -574,14 +576,55 @@ count(message contains "tramitico.event") > 0.05`, evaluated over a rolling 30 m
 Drains are Pro/Enterprise only, billed by volume ($0.50/GB at the time of writing). One line
 per ask at a couple hundred bytes makes this negligible at launch volume.
 
-**Until the drain exists — the launch-day fallback.** The alert is not optional, but the drain
-may not be ready on day one. In that gap, the owner checks Q1/Q2/Q5 (§2.1) by hand:
+**Until the drain exists — the canary (§3.3).** It replaced the launch-day fallback, the
+owner reading Q1/Q2/Q5 (§2.1) by hand twice a day, which this file always called a known
+gap rather than coverage. The hand check still runs after every production deploy (§5).
 
-- after every production deploy, at +15 min and +60 min;
-- twice daily otherwise.
+### 3.3 The daily canary (#551) — provider-failure coverage on Hobby
 
-Log this as a known gap, not as coverage. An eyeball at two fixed times is not an alert, and
-the rollback threshold in §4 assumes someone is looking.
+`.github/workflows/canary.yml` runs `scripts/canary.ts` every day at 12:23 UTC (06:23 in
+Costa Rica), and on demand. It asks `https://tramitico.com/api/ask` three fixed questions,
+one at a time and signed out — the general IVA rate, the CCSS independent-worker quota and
+Hacienda registration for foreign clients — and reads the stream the way the chat does. An
+ask fails on any of:
+
+| The log says                                               | What it usually is                                                                                                                                                                                             |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `error part: answer_failed`                                | the `refunded_error`/`charged_error` of §1.1: `tramitico-prod`'s cap spent, a revoked or rotated key, a retired model (§7). Q2 (§2.1) names the `providerError` — read it inside the hour                      |
+| `error part: retrieval_failed`                             | the search RPC failed: a paused or unreachable Supabase project (§7)                                                                                                                                           |
+| `HTTP 503: rate_limit_unavailable`                         | the limiter could not answer: the same paused project, or `RATE_LIMIT_SUBJECT_SECRET` gone (§1.3)                                                                                                              |
+| `degraded`                                                 | Voyage embeddings down (#127): answers still go out, labeled. Not a rollback trigger (§4)                                                                                                                      |
+| `the rerank did not run (#498)`                            | the stream's `data-reranked` part said `false`: Voyage's rerank lost every reading (outage, key) or `RERANK=off` in Vercel, so the answer set is the fused order                                               |
+| `declined: …`, `no citations: …`                           | a fixed question that answers on main now declines — routed (weak retrieval) or fail-closed (#131, the model could not cite twice). A corpus or prompt regression; check what changed since the last green run |
+| `marker [n] resolves to no seal`, `unclosed marker [n`     | the citation contract broke on the wire (#133, #352): the reader sees an orphan superscript or a literal bracket                                                                                               |
+| `no percentage in an answer that asks for a rate`          | the IVA answer lost its figure                                                                                                                                                                                 |
+| `request failed: …`, any other `HTTP …`, `not a stream: …` | the site itself: DNS, Vercel, a deploy that broke the route, or a bot challenge in front of it                                                                                                                 |
+
+**The issue.** A failed run files one `needs-triage` issue titled «Production canary failed»
+with the run's verdicts in it; while it stays open, later failures comment on it rather than
+file another. Close it when production answers again; the next green run is the evidence.
+
+**Cost.** Three asks a day is about US$1.50 a month of `tramitico-prod`'s US$10 cap — some
+15% of it — plus a few Voyage calls. Each run also spends three of the runner IP's ten
+anonymous asks (SPEC §7); runner IPs vary, so a stranger never inherits a spent quota from it.
+A `429` in the log means the runner drew an IP that had already asked ten times that day.
+
+**What it cannot see.** Three questions once a day: an outage that starts after 12:23 UTC
+waits up to a day, the signed-in path (history, persistence) is not exercised, and a single
+failed question is a bug report before it is an incident. §5 stays the check after a deploy.
+
+**A quiet repo disables it.** GitHub turns off every scheduled workflow after 60 days
+without a commit — this one, `keepalive.yml` and `recrawl.yml` together (§7, #553).
+
+**Privacy.** The questions are fixed and about no one, so `/privacidad` stays true: they pass
+through the subprocessors any anonymous ask does, and no other. The run log is public, as
+the repo is; it prints question ids, counts, the failures and the opening of each failed
+answer, which is text about official documents.
+
+**By hand.** Production: `gh workflow run canary.yml`. A forced failure, which files (or
+comments on) the issue: `gh workflow run canary.yml -f host=https://canary-forced-failure.invalid`
+— close the issue afterwards. From a checkout, `pnpm canary` asks production and spends its
+cap; `CANARY_HOST=http://localhost:3000 pnpm canary` asks a local `pnpm dev`.
 
 ---
 
@@ -615,7 +658,7 @@ a 30-minute window; the second is a rate against a trailing 24-hour average that
 cannot form. At portfolio traffic neither condition can be met, so the thresholds are not
 _wrong_, they are _dormant_: a single broken ask in an otherwise empty hour is 100% error rate
 and still not a rollback signal, it is a bug report. Until traffic makes the floor reachable,
-the operative signal is §5 (the deploy check) and the periodic eyeball in §3.2. The
+the operative signal is §5 (the deploy check) and the daily canary in §3.3. The
 thresholds are unchanged so that nothing has to be re-derived when the floor is reached.
 
 **Authority: the owner.** Not a threshold that auto-reverts, not a decision delegated to an
@@ -643,7 +686,7 @@ window. Do them in order; a failure at any step is a rollback per §6, not a ret
 4. **One real ask, signed in.** Sign in (magic link or OAuth — the sign-in path is part of the
    deploy), ask again, confirm the row appears in history and that deleting it works. Q7 = 0.
 5. **At +60 min**, Q1/Q2/Q5 again. This is the last look the 1-hour retention allows; past
-   it, §3.2's twice-daily eyeball takes over.
+   it, the daily canary (§3.3) takes over.
 
 Record the result as a comment on the deploy PR: the five steps, pass or fail, the time.
 
