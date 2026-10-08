@@ -258,6 +258,7 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
             },
           }),
           retrieval.chunks,
+          query,
         );
         // `derivedFigures` because the route passes them (#287): a lane that
         // omits them measures a decline written without the one block the

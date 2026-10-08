@@ -61,10 +61,14 @@ const lookupOf =
 
 const NOTHING_WITHHELD = noneWithheld();
 
+/** A question that names no source, for the tests of the first two pins. */
+const QUESTION = "¿Cuánto pago?";
+
 describe("pinAnswerSet", () => {
   beforeEach(() => {
     vi.stubEnv("PIN_CROSS_REFERENCES", "on");
     vi.stubEnv("PIN_DERIVED_INPUTS", "on");
+    vi.stubEnv("PIN_NAMED_SOURCES", "on");
   });
   afterEach(() => {
     vi.unstubAllEnvs();
@@ -83,6 +87,7 @@ describe("pinAnswerSet", () => {
     const pinned = await pinAnswerSet(
       [naming, inputA],
       [naming, inputA, inputB],
+      QUESTION,
       {
         lookup: lookupOf([named]),
         withheld: NOTHING_WITHHELD,
@@ -101,6 +106,7 @@ describe("pinAnswerSet", () => {
     const pinned = await pinAnswerSet(
       [naming, inputA],
       [naming, inputA, inputB],
+      QUESTION,
       {
         lookup: lookupOf([inputB]),
         withheld: NOTHING_WITHHELD,
@@ -118,7 +124,7 @@ describe("pinAnswerSet", () => {
       "Artículo 2",
       "Según el artículo 1 de esta ley.",
     );
-    const pinned = await pinAnswerSet([naming], [naming, inputB], {
+    const pinned = await pinAnswerSet([naming], [naming, inputB], QUESTION, {
       lookup: lookupOf([inputA]),
       withheld: NOTHING_WITHHELD,
       figures: [FIGURE],
@@ -136,6 +142,7 @@ describe("pinAnswerSet", () => {
     const pinned = await pinAnswerSet(
       [naming, inputA],
       [naming, inputA, inputB],
+      QUESTION,
       {
         lookup: lookupOf([chunk("doc-c", "Artículo 6")]),
         withheld: NOTHING_WITHHELD,
@@ -143,5 +150,71 @@ describe("pinAnswerSet", () => {
       },
     );
     expect(pinned).toEqual([naming, inputA, inputB]);
+  });
+
+  describe("a source the question names (#559)", () => {
+    const options = { lookup: lookupOf([]), withheld: NOTHING_WITHHELD };
+    const article4 = chunk("reglamento-comprobantes", "Artículo 4");
+    const cabys = { ...chunk("cabys-dev", "—"), articulo: null };
+    const cabysTail = { ...cabys, chunkId: "cabys-dev-1", part: 1 };
+    const QUESTION_CABYS =
+      "¿Cómo emito mi primera factura electrónica y qué código CABYS uso?";
+
+    it("appends the named document's best pooled chunk, after the other pins", async () => {
+      const pinned = await pinAnswerSet(
+        [article4, inputA],
+        [article4, cabys, inputA, cabysTail, inputB],
+        QUESTION_CABYS,
+        { ...options, figures: [FIGURE] },
+      );
+      expect(pinned).toEqual([article4, inputA, inputB, cabys]);
+    });
+
+    it("matches the word whatever its case and accents", async () => {
+      for (const question of ["¿que codigo cabys uso?", "¿Qué CÁBYS uso?"]) {
+        const pinned = await pinAnswerSet(
+          [article4],
+          [article4, cabys],
+          question,
+          options,
+        );
+        expect(pinned).toEqual([article4, cabys]);
+      }
+    });
+
+    it("appends nothing when the set already holds a chunk of that document", async () => {
+      const pinned = await pinAnswerSet(
+        [article4, cabysTail],
+        [article4, cabys, cabysTail],
+        QUESTION_CABYS,
+        options,
+      );
+      expect(pinned).toEqual([article4, cabysTail]);
+    });
+
+    it("appends nothing the pool lacks, nor for a word that only contains the name", async () => {
+      expect(
+        await pinAnswerSet([article4], [article4], QUESTION_CABYS, options),
+      ).toEqual([article4]);
+      expect(
+        await pinAnswerSet(
+          [article4],
+          [article4, cabys],
+          "¿Qué es un cabysario?",
+          options,
+        ),
+      ).toEqual([article4]);
+    });
+
+    it("appends nothing under PIN_NAMED_SOURCES=off", async () => {
+      vi.stubEnv("PIN_NAMED_SOURCES", "off");
+      const pinned = await pinAnswerSet(
+        [article4],
+        [article4, cabys],
+        QUESTION_CABYS,
+        options,
+      );
+      expect(pinned).toEqual([article4]);
+    });
   });
 });

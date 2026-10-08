@@ -273,3 +273,41 @@ const stepsKnob = modeKnob("STEPS", ["on", "off"], "on");
 export function stepsEnabled(): boolean {
   return stepsKnob() === "on";
 }
+
+/**
+ * Sources a question names by their own name (#559): a whole word of the
+ * normalised question → the doc_key whose subject it is. `pinAnswerSet`
+ * appends that document's best pooled chunk when the set has none of it.
+ *
+ * The step catalogue cannot do this. «¿Cómo emito mi primera factura
+ * electrónica y qué código CABYS uso?» classifies to T1-C and its CABYS
+ * sentence picks `cabys-dev`, fused #3 on every recorded probe; but a list of
+ * codes reads #13–#23 against the question at the rerank, and `pin1`'s one
+ * append goes to the step pick the question ranks best — always a
+ * `reglamento-comprobantes` artículo. The model then says, truthfully, that
+ * it saw no CABYS source (#500's false-absence gate). A cross-reference
+ * cannot reach it either: no artículo the set carries names CABYS.
+ *
+ * A word goes in only when it is the name of one document's subject and no
+ * other's, so naming it is asking for that document. CABYS is the one.
+ */
+export const NAMED_SOURCES: Readonly<Record<string, string>> = {
+  cabys: "cabys-dev",
+};
+
+const NAMED_SOURCE_PATTERNS = Object.entries(NAMED_SOURCES).map(
+  ([word, docKey]) => ({ pattern: wordPatterns([word])[0], docKey }),
+);
+
+/**
+ * The doc_keys a question names, in the table's order, each once. Matched as
+ * whole words on the normalised question (case and diacritics folded), like
+ * `classifyFamily`; deterministic, no model call.
+ */
+export function namedSources(question: string): string[] {
+  const normalised = normaliseQuestion(question);
+  const named = NAMED_SOURCE_PATTERNS.filter(({ pattern }) =>
+    pattern.test(normalised),
+  ).map(({ docKey }) => docKey);
+  return [...new Set(named)];
+}
