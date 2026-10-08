@@ -37,6 +37,7 @@
  */
 import { readFileSync } from "node:fs";
 import { beforeAll, expect, it } from "vitest";
+import { crossReferencesEnabled } from "../answer/cross-references";
 import { pinEnabled, resolveDerivedFigures } from "../answer/derived";
 import { pinAnswerSet } from "../answer/pins";
 import { expansionEnabled } from "../answer/expand";
@@ -319,7 +320,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
     console.log(
       `\nretrieval hit-rate (rerank=${rerankMode} ${process.env.RERANK_MODEL || RERANK_MODEL}, pool ${RERANK_POOL} → top ${topKSize}, ` +
         `cap=${docCap === Infinity ? "off" : docCap}/doc, expand=${expandMode}, steps=${stepsMode}, ` +
-        `pin=${pinEnabled() ? "on" : "off"}): ${hits}/${gated.length}`,
+        `pin=${pinEnabled() ? "on" : "off"}, xref=${crossReferencesEnabled() ? "on" : "off"}): ${hits}/${gated.length}`,
     );
     console.log(
       formatRobustnessLine(
