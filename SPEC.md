@@ -267,7 +267,9 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   dropped, not retried, and counted: `rerankDrops` in the telemetry event, the eval transcripts
   and `pnpm answer-set-probe` (#466). The full lane of 2026-10-02 lost 0 of 377 readings at
   eval pace, and production asks far slower. Drops have appeared at about 58 asks a minute and
-  not at 21 (#457, #460). Only a replayed probe runs that fast.
+  not at 21 (#457, #460). Only a replayed probe runs that fast. When every reading is lost, the
+  answer set is the fused order's top-k, step legs included: the same pools with the step legs'
+  share taken out carried 47 of 93 Tier 1 targets against 57 (#510).
 - **Step catalogue (#304, amends this section):** retrieval also searches for the _step_ a
   complete answer needs and the question never asks for — when to pay, what the sanction is,
   how to adjust a declared figure. A hand-written catalogue per Tier 1 family

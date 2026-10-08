@@ -3616,6 +3616,37 @@ now streams the route's text.
 
 No paid run: the routed cases first run in the next authorized lane (#511).
 
+## The total-loss fallback keeps the fused order (2026-10-07, #510)
+
+> Two `pnpm answer-set-probe` arms under `RERANK=off`, the fallback path a
+> total loss takes, on #502's replayed rewrites, so both cut identical pools.
+> Voyage embeddings only, well under US$0.01. Rows in
+> [`runs/2026-10-07-510/`](runs/2026-10-07-510/).
+
+When every rerank reading is lost, the answer set is the top 8 of the fused
+pool, where the step catalogue's legs weigh as much as the question's and the
+expansion's. #510 measured a fallback with the step legs taken out. Under the
+route's configuration, outside the robustness block:
+
+| Fallback order      | Tier 1 targets | Tier 2 targets | Cases hit |
+| ------------------- | -------------- | -------------- | --------- |
+| Fused (kept)        | **57/93**      | 61/98          | 63/73     |
+| Step legs taken out | 47/93          | 62/98          | 65/73     |
+
+- Tier 1 loses 16 targets and gains 6. The losses are step chunks, among
+  them `cnpt` 78 and 88 and the salario base on `inscripcion-tardia-sancion`,
+  the `ccss-prescripcion` entries and `reglamento-comprobantes` 4 and 9. On a
+  total loss there is no `pin1` pick, so the step legs are a step chunk's
+  only way into the set.
+- `search_chunks` does not return the coverage that scales a lexical leg, so
+  the exact step-free sum cannot be rebuilt in code. In the run README's
+  offline reads, every variant that keeps the coverage weighting lands at
+  39–42 Tier 1 targets before the pin, against 49.
+- #490 item 1, «¿Cuánto pago como independiente?», misses on both orders. Its
+  fused head is all step-leg chunks, and taking them out brings
+  `ccss-prescripcion` entries, not the escalas. The rerank and #509 are its
+  fixes.
+
 ## The baseline lane (2026-10-08, #511)
 
 The first full lane since #496 moved the rewrites to Haiku 5.5, and the
