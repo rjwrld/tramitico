@@ -1147,10 +1147,9 @@ rate — a strong average must never hide a red Tier 1 case), tier 2 an aggregat
 - **Tier 2:** the closing run ratcheted `ADEQUACY_TIER2_GATE` to **0.84**
   (`adequacy.ts`; see «The closing run»).
 - **Tier 1:** since [ADR 0023](../docs/adr/0023-eval-gates-after-sonnet-5-5.md),
-  Tier 1 is a tracked baseline. It counts requirements stated out of 116, not
-  cases fully adequate. The baseline is 70 (`TIER1_REQUIREMENT_BASELINE`), and a
-  lane at 65 or below fails (`TIER1_REQUIREMENT_FLOOR`). The 27/27 count is
-  reported, not gated.
+  Tier 1 is a tracked baseline of requirements stated, not of cases fully
+  adequate (`TIER1_REQUIREMENT_BASELINE`, `TIER1_REQUIREMENT_FLOOR`; today's
+  values are in the Quick reference). The 27/27 count is reported, not gated.
 
 Both run inside `groundedness.eval.test.ts`, which already has the answers, so
 the gate costs judge calls rather than a second pass of the whole pipeline.

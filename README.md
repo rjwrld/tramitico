@@ -92,8 +92,8 @@ corpus, the question history and the quota, all behind row-level security.
 The corpus is 23 official documents in 876 chunks. The eval set those runs read is 73
 hand-written cases, each with the artículo the answer must cite and, for the 40 that carry
 them, the claims a complete answer must make. Every case is run through the production
-pipeline and judged by a second model at temperature 0. The table carries the three full runs since the pipeline
-was frozen: the closing run of 2026-09-11
+pipeline and judged by a second model at temperature 0. The table carries the three full
+runs since the pipeline was frozen: the closing run of 2026-09-11
 ([`eval/runs/2026-09-11-closing/`](eval/runs/2026-09-11-closing/)), the record run of
 2026-09-15 that measured the last knob and left it where it was
 ([`eval/runs/2026-09-15-top-k/`](eval/runs/2026-09-15-top-k/)), and the first run against
@@ -124,7 +124,7 @@ three of them:
   ([`eval/runs/2026-10-02-full-lane/`](eval/runs/2026-10-02-full-lane/)). A lane at 65 or
   below fails.
 - **Groundedness** is a tracked baseline too: 68 grounded answers on that lane, so a lane at
-  63 or below fails. It has been read over 74 cases since a Tier 2 case joined.
+  63 or below fails. It is counted over 74 cases since a Tier 2 case joined (#503).
 - **A blocking case** fails only when two of its three answers fail: the lane re-asks a
   failing one twice.
 
@@ -163,7 +163,8 @@ The full account, including what was lost and what the gates failed to say, is i
 - Some answers state what their fragments don't support. The baseline lane grounded 68 of 73.
   A read of 18 judge failures, on the Sonnet 5.5 lanes and 2026-09-25, found about 7 real
   errors (a contradiction, a wrong citation, a URL in no fragment), about 7 strict calls on
-  reasonable inferences, and about 4 claims that the documents don't say something.
+  reasonable inferences, and about 4 claims that the documents don't say something, one of
+  them false.
 - The model sometimes says the documents lack an artículo or figure that the corpus holds. The
   eval now fails any answer that does ([#500](https://github.com/rjwrld/tramitico/issues/500));
   the fix in the answer itself is open
@@ -176,8 +177,8 @@ The full account, including what was lost and what the gates failed to say, is i
   are the next dataset.
 - The corpus has annual obligations, tramos, minimum wage, contribution scales, that change
   every year. Retrieval withholds a source once its fiscal year is over
-  ([ADR 0016](docs/adr/0016-source-freshness-policy.md)), so no answer quotes last year's
-  figure as current. Ingesting the next year's sources is still a manual pass each
+  ([ADR 0016](docs/adr/0016-source-freshness-policy.md)), so last year's figures stop
+  reaching the model. Ingesting the next year's sources is still a manual pass each
   December ([runbook §2.2](docs/runbook.md#22-annual-corpus-churn-novemberjanuary)).
 - Tramitico is not legal or tax advice. It cites the general rule and the conditions that
   change it; the decision is the reader's, or their accountant's.

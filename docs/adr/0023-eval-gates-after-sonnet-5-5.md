@@ -2,7 +2,8 @@
 
 Date: 2026-10-02 · Status: accepted (A); amended 2026-10-07
 ([#474, below](#amendment-2026-10-07-474-groundedness-and-the-blocking-gate));
-the blocking column corrected 2026-10-07 (#504, note ² under the table) · Amends
+the blocking column corrected 2026-10-07
+([#504](https://github.com/rjwrld/tramitico/issues/504), note ² under the table) · Amends
 [SPEC §9](../../SPEC.md) · Context: issues
 [#449](https://github.com/rjwrld/tramitico/issues/449),
 [#451](https://github.com/rjwrld/tramitico/issues/451),
@@ -24,12 +25,9 @@ US$275, and none has reached the floor on a full lane:
 | 2026-09-29 (#451)              | 5.5, low         | 69/73        | red (2)²          | 77           | 12/13  | red             | 9/9, figure red |
 | **2026-10-02 (this decision)** | 5.5, low         | **68/73**    | **red (1)**       | **70**       | 10/13  | **green**       | **9/9, green**  |
 
-¹ Checked by the owner on 2026-10-08 for
-[#504](https://github.com/rjwrld/tramitico/issues/504). The Production value is
-marked Sensitive in Vercel, so it can't be read back. The dashboard shows it
-added on 2026-09-29 and never updated since. That is the day #451 ran
-`printf low | vercel env add ANSWER_EFFORT production`. #402's `medium`
-predates it.
+¹ Owner-checked on 2026-10-08 for #504: the Vercel dashboard shows the variable
+added on #451's day and never updated. The evidence is in
+[eval/README's Quick reference](../../eval/README.md#quick-reference), note ².
 
 ² Corrected 2026-10-07 ([#504](https://github.com/rjwrld/tramitico/issues/504)).
 These three cells first read red (1), — and red (1). Each committed log's
