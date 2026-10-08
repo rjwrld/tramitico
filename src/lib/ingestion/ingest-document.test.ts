@@ -232,10 +232,32 @@ describe("assertYearFigureEvidence (#518)", () => {
 
     await expect(
       ingestDocument({ client, embedder }, ley, paragraphs("2027")),
-    ).rejects.toThrow(/«ARTICULO 34» no longer carries .* 2026 figures/);
+    ).rejects.toThrow(
+      /«ARTICULO 34» part\(s\) 0 no longer carry .* 2026 figures/,
+    );
 
     expect(calls).toEqual([]);
     expect(embedder.embed).not.toHaveBeenCalled();
+  });
+
+  it("refuses a crawl in which one part of the artículo lacks the evidence", () => {
+    const part = (n: number, content: string) => ({
+      docKey: "ley-renta",
+      articulo: "ARTICULO 34",
+      path: [],
+      part: n,
+      content,
+    });
+    expect(() =>
+      assertYearFigureEvidence(
+        "ley-renta",
+        [
+          part(0, "… a partir del 01 de enero del 2026"),
+          part(1, "… a partir del 01 de enero del 2027"),
+        ],
+        ley.yearFigures,
+      ),
+    ).toThrow(/part\(s\) 1 no longer carry/);
   });
 
   it("refuses a crawl in which the listed heading is gone", () => {

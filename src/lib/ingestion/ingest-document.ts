@@ -119,13 +119,13 @@ export async function ingestChunks(
 
 /**
  * Throws — before anything is embedded or written — unless every
- * `yearFigures` artículo is still in the crawl and one of its chunks carries
- * its evidence (#518). Retrieval withholds a listed artículo by its heading
- * and its declared year, so a heading the publisher renamed would let the
- * figure through unlisted, and a text that moved to a new year under an old
- * declaration (or the reverse) would be withheld or served in the wrong year.
- * Either way the manifest and the text have parted, and the owner re-reads
- * the source before the run can go on (runbook §2.2).
+ * `yearFigures` artículo is still in the crawl and each of its chunks carries
+ * its evidence (#518). Retrieval matches a listed artículo by its heading, so
+ * a heading the publisher renamed would let the figure through unlisted; and
+ * it serves only chunks carrying the evidence, so a crawl that moved to a new
+ * year under the old declaration would ingest text withheld for good. Either
+ * way the manifest and the text have parted, and the owner re-reads the
+ * source before the run can go on (runbook §2.2).
  */
 export function assertYearFigureEvidence(
   docKey: string,
@@ -139,9 +139,12 @@ export function assertYearFigureEvidence(
         `${docKey}: yearFigures lists «${figure.articulo}», but the crawl has no chunk with that heading — re-read the source and update the manifest (#518)`,
       );
     }
-    if (!own.some((chunk) => chunk.content.includes(figure.evidence))) {
+    const lacking = own.filter(
+      (chunk) => !chunk.content.includes(figure.evidence),
+    );
+    if (lacking.length > 0) {
       throw new Error(
-        `${docKey}: «${figure.articulo}» no longer carries «${figure.evidence}», the evidence for its ${figure.fiscalYear} figures — if the source moved to a new year, set fiscalYear and evidence to match it (#518, runbook §2.2)`,
+        `${docKey}: «${figure.articulo}» part(s) ${lacking.map((chunk) => chunk.part).join(", ")} no longer carry «${figure.evidence}», the evidence for its ${figure.fiscalYear} figures — if the source moved to a new year, set fiscalYear and evidence to match it (#518, runbook §2.2)`,
       );
     }
   }

@@ -35,8 +35,9 @@ export interface YearFigure {
   fiscalYear: number;
   /**
    * Words of the source that tie the artículo to `fiscalYear` — the decree
-   * note, the image's heading. Ingestion refuses a crawl in which no chunk of
-   * the artículo carries them, so the year cannot be advanced without the
+   * note, the image's heading. Every chunk of the artículo must carry them:
+   * ingestion refuses a crawl in which one does not, and `retrieve()`
+   * withholds one that does not, so the year cannot be advanced without the
    * text, nor the text without the year.
    */
   evidence: string;
@@ -165,6 +166,7 @@ export interface YearFigureRef {
   docKey: string;
   articulo: string;
   fiscalYear: number;
+  evidence: string;
 }
 
 /** `docKey · articulo (fiscalYear)`. */
@@ -175,10 +177,11 @@ export function yearFigureLabel(ref: YearFigureRef): string {
 /** Every `yearFigures` artículo in a manifest, with its source's doc_key. */
 export function yearFigureRefs(source: VigenciaManifest): YearFigureRef[] {
   return source.documents.flatMap((entry) =>
-    (entry.yearFigures ?? []).map(({ articulo, fiscalYear }) => ({
+    (entry.yearFigures ?? []).map(({ articulo, fiscalYear, evidence }) => ({
       docKey: entry.doc_key,
       articulo,
       fiscalYear,
+      evidence,
     })),
   );
 }
@@ -222,15 +225,16 @@ export interface WithheldSources {
   /** `annualChurn` entries that do not cover the current fiscal year. */
   outOfPeriod: ReadonlySet<string>;
   /**
-   * `yearFigures` artículos stating another fiscal year's figures, keyed by
-   * `yearFigureKey` (#518).
+   * Every `yearFigures` artículo, keyed by `yearFigureKey`: whether its
+   * declared year is the current one, and the evidence a chunk of it must
+   * carry to be served (#518).
    */
-  outOfPeriodArticulos: ReadonlySet<string>;
+  yearFigures: ReadonlyMap<string, { current: boolean; evidence: string }>;
   /** The manifest's `retiredDocKeys`. */
   retired: ReadonlySet<string>;
 }
 
-/** The chunk identity `outOfPeriodArticulos` is keyed by. */
+/** The chunk identity `yearFigures` is keyed by. */
 function yearFigureKey(docKey: string, articulo: string | null): string {
   return `${docKey}\u0000${articulo ?? ""}`;
 }
@@ -251,6 +255,14 @@ function yearFigureKey(docKey: string, articulo: string | null): string {
  * artículo instead: each `yearFigures` artículo is dropped in every fiscal
  * year but its own, for the same reason and with the same guarantee (#518).
  * The rest of the source still grounds answers.
+ *
+ * Unlike an annual source, such an artículo keeps one doc_key across years,
+ * so the manifest that names its year and the rows that hold its text are
+ * deployed at different moments: a year bump merges before the production
+ * re-crawl can run (`scripts/recrawl.sh` crawls only origin/main), and a
+ * re-crawl can land a new year's text before the bump. So a chunk is served
+ * only while its declared year is current **and** its own text carries the
+ * declared evidence: in either window the two disagree, and it is withheld.
  */
 export function withheldSources(
   now = new Date(),
@@ -263,32 +275,47 @@ export function withheldSources(
         .filter((entry) => entry.annualChurn && !coversFiscalYear(entry, year))
         .map((entry) => entry.doc_key),
     ),
-    outOfPeriodArticulos: new Set(
-      yearFigureRefs(source)
-        .filter((ref) => !isCurrentYear(ref, year))
-        .map((ref) => yearFigureKey(ref.docKey, ref.articulo)),
+    yearFigures: new Map(
+      yearFigureRefs(source).map((ref) => [
+        yearFigureKey(ref.docKey, ref.articulo),
+        { current: isCurrentYear(ref, year), evidence: ref.evidence },
+      ]),
     ),
     retired: new Set(source.retiredDocKeys ?? []),
   };
 }
 
-/** Whether anything is withheld for being out of period. */
+/**
+ * Whether anything is withheld for being out of period. A listed artículo
+ * whose text and declaration disagree is not counted: that is the brief
+ * window around a re-crawl, and it costs at most a few of the pool's places.
+ */
 export function withholdsAny(withheld: WithheldSources): boolean {
   return (
-    withheld.outOfPeriod.size > 0 || withheld.outOfPeriodArticulos.size > 0
+    withheld.outOfPeriod.size > 0 ||
+    [...withheld.yearFigures.values()].some((figure) => !figure.current)
   );
 }
 
-/** Whether a chunk may not ground an answer: by source, or by artículo. */
+/**
+ * Whether a chunk may not ground an answer: by source, or — for a
+ * `yearFigures` artículo — by its declared year and its own text.
+ */
 export function isWithheld(
   withheld: WithheldSources,
-  chunk: { docKey: string; articulo: string | null },
+  chunk: { docKey: string; articulo: string | null; content: string },
 ): boolean {
-  return (
+  if (
     withheld.outOfPeriod.has(chunk.docKey) ||
-    withheld.retired.has(chunk.docKey) ||
-    withheld.outOfPeriodArticulos.has(
-      yearFigureKey(chunk.docKey, chunk.articulo),
-    )
+    withheld.retired.has(chunk.docKey)
+  ) {
+    return true;
+  }
+  const figure = withheld.yearFigures.get(
+    yearFigureKey(chunk.docKey, chunk.articulo),
+  );
+  return (
+    figure !== undefined &&
+    (!figure.current || !chunk.content.includes(figure.evidence))
   );
 }
