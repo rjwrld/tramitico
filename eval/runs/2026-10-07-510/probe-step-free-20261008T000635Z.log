@@ -1,0 +1,34 @@
+
+EVAL_REWRITES: 109 cases' query and expansion replayed from eval/runs/2026-10-07-502-robustness/probe-haiku-5-5.json
+....................................................................................................aaaaaaaaa
+retrieval cases: 100 (27 in the robustness block; 191 expected targets outside it), abstention: 9, follow-ups condensed: 15
+condensation fell back to the question: none
+rewrites: replayed from eval/runs/2026-10-07-502-robustness/probe-haiku-5-5.json
+provider calls that did not come back: none
+rerank readings lost: none of 0
+weak: rb-corto-cuanto-pago-caja
+expansion absent: none
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   101/191    30/73        0        —
+top8/capoff/pinon    109/191    33/73        18       —
+top8/cap3/pinoff     98/191     27/73        0        —
+top8/cap3/pinon      105/191    30/73        17       —
+top8/cap2/pinoff     89/191     25/73        0        —
+top8/cap2/pinon      95/191     28/73        16       —
+top10/capoff/pinoff  107/191    31/73        0        —
+top10/capoff/pinon   115/191    34/73        18       —
+top10/cap3/pinoff    104/191    27/73        0        —
+top10/cap3/pinon     110/191    31/73        17       —
+top10/cap2/pinoff    99/191     27/73        2        —
+top10/cap2/pinon     105/191    31/73        16       —
+
+top8/capoff/pinon, robustness block (#502): 19/27
+  MISS  rb-pill-cuanto-pago-independiente ← ccss-cuanto-pago-base  «¿Cuánto pago como independiente?»  (seed hit)
+  MISS  rb-pill-retroactivo ← ccss-cobro-retroactivo  «¿Me pueden cobrar retroactivo?»  (seed hit)
+  MISS  rb-pill-inscribi-tarde ← inscripcion-tardia-sancion  «Me inscribí tarde, ¿qué me pasa?»  (seed missed too)
+  MISS  rb-corto-cuanto-es-iva ← iva-tarifa-general  «¿cuánto es el IVA?»  (seed missed too)
+  MISS  rb-corto-cuanto-pago-caja ← ccss-cuanto-pago-base  «¿cuánto pago a la caja?»  (seed hit)
+  MISS  rb-corto-cuando-declaro-renta ← renta-declaracion-plazo  «¿cuándo se declara renta?»  (seed hit)
+  MISS  rb-tilde-primera-fatura ← factura-primera-cabys  «como hago mi primera fatura electronica»  (seed hit)
+  MISS  rb-tilde-deje-de-trabajr ← desinscripcion-dejar-actividad  «deje de trabajr por mi cuenta como me salgo de hacienda»  (seed hit)

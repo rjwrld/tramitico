@@ -29,22 +29,23 @@ fixed-chunk replays of one prompt read 70–75 on the 2026-10-02 chunks.
 **Knobs.** Every knob is read at call time. Its code default is production's
 value, except for `ANSWER_EFFORT`:
 
-| Variable                         | Default                                        | Where                        |
-| -------------------------------- | ---------------------------------------------- | ---------------------------- |
-| `ANSWER_MODEL`                   | `claude-sonnet-5-5`                            | `src/lib/answer/model.ts`    |
-| `ANSWER_EFFORT`                  | unset = no effort sent; **production: `low`**² | `model.ts`, Vercel env       |
-| `CONDENSE_MODEL`, `EXPAND_MODEL` | `claude-haiku-5-5`                             | `model.ts`                   |
-| `EXPAND`                         | `on` (needs `ANTHROPIC_API_KEY`)               | `src/lib/answer/expand.ts`   |
-| `STEPS`                          | `on`                                           | `src/lib/answer/steps.ts`    |
-| `STEPS_RERANK`                   | `pin1` (`pin`, `slot`, `max`, `off`)           | `src/lib/answer/rerank.ts`   |
-| `RERANK`                         | `voyage`; `off` = the fused-only order         | `rerank.ts`                  |
-| `RERANK_MODEL`                   | `rerank-2.5-lite`                              | `rerank.ts`                  |
-| `ANSWER_TOP_K`                   | `8`                                            | `rerank.ts`                  |
-| `ANSWER_DOC_CAP`                 | `off`                                          | `rerank.ts`                  |
-| `PIN_DERIVED_INPUTS`             | `on` (since #344)                              | `src/lib/answer/derived.ts`  |
-| `EVAL_CASES`                     | every case; comma-separated ids scope a lane¹  | `src/lib/eval/subset.ts`     |
-| `EVAL_TRANSCRIPT_DIR`            | `eval/transcripts/`                            | `src/lib/eval/transcript.ts` |
-| `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites      | `src/lib/eval/rewrites.ts`   |
+| Variable                         | Default                                        | Where                                |
+| -------------------------------- | ---------------------------------------------- | ------------------------------------ |
+| `ANSWER_MODEL`                   | `claude-sonnet-5-5`                            | `src/lib/answer/model.ts`            |
+| `ANSWER_EFFORT`                  | unset = no effort sent; **production: `low`**² | `model.ts`, Vercel env               |
+| `CONDENSE_MODEL`, `EXPAND_MODEL` | `claude-haiku-5-5`                             | `model.ts`                           |
+| `EXPAND`                         | `on` (needs `ANTHROPIC_API_KEY`)               | `src/lib/answer/expand.ts`           |
+| `STEPS`                          | `on`                                           | `src/lib/answer/steps.ts`            |
+| `STEPS_RERANK`                   | `pin1` (`pin`, `slot`, `max`, `off`)           | `src/lib/answer/rerank.ts`           |
+| `RERANK`                         | `voyage`; `off` = the fused-only order         | `rerank.ts`                          |
+| `RERANK_MODEL`                   | `rerank-2.5-lite`                              | `rerank.ts`                          |
+| `ANSWER_TOP_K`                   | `8`                                            | `rerank.ts`                          |
+| `ANSWER_DOC_CAP`                 | `off`                                          | `rerank.ts`                          |
+| `PIN_DERIVED_INPUTS`             | `on` (since #344)                              | `src/lib/answer/derived.ts`          |
+| `PIN_CROSS_REFERENCES`           | `on` (since #508)                              | `src/lib/answer/cross-references.ts` |
+| `EVAL_CASES`                     | every case; comma-separated ids scope a lane¹  | `src/lib/eval/subset.ts`             |
+| `EVAL_TRANSCRIPT_DIR`            | `eval/transcripts/`                            | `src/lib/eval/transcript.ts`         |
+| `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites      | `src/lib/eval/rewrites.ts`           |
 
 ¹ The groundedness, hit-rate and abstention lanes read it; the others ignore it.
 Each lane scopes to its own cases, and an id it does not run throws before
@@ -58,11 +59,14 @@ Sensitive in Vercel, so it can't be read back. The dashboard shows it added on
 `printf low | vercel env add ANSWER_EFFORT production`. #402's `medium` predates
 it, so don't read the production value from notes older than #451.
 
-The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`)
-accept only the values above. Anything else runs the default and logs
-`config: unknown knob value` once (#499, `src/lib/knobs.ts`), so an arm that
-misspells `off` measures production rather than the baseline: check the run's
-output for that line.
+The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`,
+`PIN_CROSS_REFERENCES`)
+accept only the values above, `ANSWER_EFFORT` only `low`, `medium`, `high`,
+`xhigh` or `max`, and `ANSWER_TOP_K` and `ANSWER_DOC_CAP` only a positive
+integer (or `off`, for the cap; #519). Anything else runs the default and logs `config: unknown knob
+value` once (#499, `src/lib/knobs.ts`), so an arm that misspells `off`
+measures production rather than the baseline, and one that misspells `low`
+measures no effort at all: check the run's output for that line.
 
 `.env.local` is loaded by `src/lib/test-support/suite-gate.ts` and never
 overrides an exported variable. To set an arm, export its knobs; there is no
@@ -135,16 +139,17 @@ run's setup and deltas.
 
 **Cheaper reads.** Each script's header documents its flags.
 
-| Command                                                  | Answers                                                                                   | Cost                             |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------- |
-| `pnpm requirement-coverage <transcript…>`                | Tier 1 requirements stated, per case, from committed transcripts                          | free                             |
-| `pnpm absence-backtest [--openings]`                     | false absence claims and typo runs in every committed answer                              | free                             |
-| `pnpm answer-set-compare a.json b.json`                  | the first stage where two probe runs part, per case                                       | free                             |
-| `pnpm prompt-tokens <transcript…>`                       | the answer prompt's input size, per case                                                  | free (count_tokens)              |
-| `pnpm answer-replay <transcript> [--tier=1] [--cases=…]` | the current prompt re-answering recorded chunks, false absence claims recorded → replayed | ≈US$0.10 a row; `--dry-run` free |
-| `pnpm pool-dump <case…>`                                 | why a target missed the fused pool: every leg's rank                                      | one embed per case               |
-| `pnpm answer-set-probe [out.json]`                       | retrieve → rerank → cap → pin for every case, no answer model                             | ≈US$0.15                         |
-| `pnpm answer-latency-probe`                              | answer latency per effort arm                                                             | ≈US$1–2                          |
+| Command                                                  | Answers                                                                                              | Cost                             |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------- |
+| `pnpm requirement-coverage <transcript…>`                | Tier 1 requirements stated, per case, from committed transcripts                                     | free                             |
+| `pnpm absence-backtest [--openings]`                     | false absence claims and typo runs in every committed answer                                         | free                             |
+| `pnpm answer-set-compare a.json b.json`                  | the first stage where two probe runs part, per case                                                  | free                             |
+| `pnpm prompt-tokens <transcript…>`                       | the answer prompt's input size, per case                                                             | free (count_tokens)              |
+| `pnpm answer-replay <transcript> [--tier=1] [--cases=…]` | the current prompt re-answering recorded chunks, false absence claims recorded → replayed            | ≈US$0.10 a row; `--dry-run` free |
+| `pnpm pool-dump <case…>`                                 | why a target missed the fused pool: every leg's rank                                                 | one embed per case               |
+| `pnpm answer-set-probe [out.json]`                       | retrieve → rerank → cap → pins for every case, no answer model; prints what the cross-references add | ≈US$0.15                         |
+| `pnpm cross-reference-census [--all]`                    | every cross-reference in the corpus, held or not; `--timing=<probe.json>` times the append (#508)    | free                             |
+| `pnpm answer-latency-probe`                              | answer latency per effort arm                                                                        | ≈US$1–2                          |
 
 A transcript row is `TranscriptRow` in `src/lib/eval/transcript.ts`.
 
@@ -3514,7 +3519,8 @@ leaves the block out.
 **The gate: a tracked baseline, set by #511.** The other option was a hard
 gate (every case must hit its seed's `expected`). It would be red today:
 `rb-corto-cuanto-es-iva` misses because its seed `iva-tarifa-general` misses
-(#508), and «¿cuánto pago a la caja?» is weak on both rewrite models (below).
+(#508), and «¿cuánto pago a la caja?» is weak on both rewrite models (below;
+both fixed by #509, «Rate questions reach their rate sources»).
 A hard gate that starts red decides nothing, which is #474's complaint about
 the gates we already have. So the block is gated like Tier 1 since ADR 0023:
 the count of block cases that hit must not fall more than
@@ -3557,10 +3563,11 @@ both rewrite models, route configuration):
 | Haiku 4.5     | 71/73             | 25/27 | 12/12     | 9/9         |
 
 - The one pill label that misses is «¿Me pueden cobrar retroactivo?», on
-  Haiku 5.5. Its expansion read «retroactivo» as arrears interest.
+  Haiku 5.5. Its expansion read «retroactivo» as arrears interest (fixed by
+  #509, below).
 - «¿cuánto pago a la caja?» is weak on both models: production answers it
   with the honest decline, while its seed and «¿Cuánto pago como
-  independiente?» both hit.
+  independiente?» both hit (fixed by #509, below).
 - #496's colloquial signal held on a third pair of runs. Haiku 5.5 missed 4,
   2 and 3 `ho-t2-*` cases across the three runs; Haiku 4.5 missed 0, 1 and 0.
 
@@ -3617,6 +3624,37 @@ now streams the route's text.
 
 No paid run: the routed cases first run in the next authorized lane (#511).
 
+## The total-loss fallback keeps the fused order (2026-10-07, #510)
+
+> Two `pnpm answer-set-probe` arms under `RERANK=off`, the fallback path a
+> total loss takes, on #502's replayed rewrites, so both cut identical pools.
+> Voyage embeddings only, well under US$0.01. Rows in
+> [`runs/2026-10-07-510/`](runs/2026-10-07-510/).
+
+When every rerank reading is lost, the answer set is the top 8 of the fused
+pool, where the step catalogue's legs weigh as much as the question's and the
+expansion's. #510 measured a fallback with the step legs taken out. Under the
+route's configuration, outside the robustness block:
+
+| Fallback order      | Tier 1 targets | Tier 2 targets | Cases hit |
+| ------------------- | -------------- | -------------- | --------- |
+| Fused (kept)        | **57/93**      | 61/98          | 63/73     |
+| Step legs taken out | 47/93          | 62/98          | 65/73     |
+
+- Tier 1 loses 16 targets and gains 6. The losses are step chunks, among
+  them `cnpt` 78 and 88 and the salario base on `inscripcion-tardia-sancion`,
+  the `ccss-prescripcion` entries and `reglamento-comprobantes` 4 and 9. On a
+  total loss there is no `pin1` pick, so the step legs are a step chunk's
+  only way into the set.
+- `search_chunks` does not return the coverage that scales a lexical leg, so
+  the exact step-free sum cannot be rebuilt in code. In the run README's
+  offline reads, every variant that keeps the coverage weighting lands at
+  39–42 Tier 1 targets before the pin, against 49.
+- #490 item 1, «¿Cuánto pago como independiente?», misses on both orders. Its
+  fused head is all step-leg chunks, and taking them out brings
+  `ccss-prescripcion` entries, not the escalas. The rerank and #509 are its
+  fixes.
+
 ## The baseline lane (2026-10-08, #511)
 
 The first full lane since #496 moved the rewrites to Haiku 5.5, and the
@@ -3658,6 +3696,55 @@ configuration, and both sides carry their own live expansion:
   every target.
 - The robustness block fell from 25/27 to 21/27, including «¿Cuánto pago
   como independiente?».
+
+## Rate questions reach their rate sources (2026-10-07, #509)
+
+#490 item 1 asked «¿Cuánto pago como independiente?» and got no rate. The
+audit behind map #497 found three causes, and #502's probe added two more
+cases with the same shape: «¿cuánto pago a la caja?», weak on both rewrite
+models, and «¿Me pueden cobrar retroactivo?», which Haiku 5.5 read as arrears
+interest. Three changes:
+
+- **The question's lexical leg drops its question words**
+  (`lexicalQueryText`, ADR 0005's amendment). The `spanish` stop list keeps
+  «cuánto», «cuál», «cómo», «dónde» when accented, so the strict AND
+  demanded them. When the stripped search is weak, `retrieve` searches once
+  more with the question as typed: without «cómo», «¿Cómo emito mi primera
+  factura?» matched one uncorroborated chunk by strict AND and turned weak.
+  The change sits in front of the RPC, so it needs no migration.
+- **Two catalogue sentences** (`eval/step-catalogue.json`): the escalas'
+  shared heading for T1-F, and `ley-iva` art. 10's own text for T1-D.
+- **Three expansion rules** (ADR 0019's amendment): a future figure gets the
+  rule in force, casual wording is translated to the situation a norm
+  regulates, and no heading over a list of neighbouring topics.
+
+**The read** ([`runs/2026-10-07-509-rate-anchors/`](runs/2026-10-07-509-rate-anchors/),
+route configuration, Haiku 5.5, shipped prompt):
+
+| Read                | Tier 1 hits | Tier 1 targets in the set | `ho-t2-*` |
+| ------------------- | ----------- | ------------------------- | --------- |
+| #502, Haiku 5.5     | 27/27       | 63                        | 9/12      |
+| **#509, Haiku 5.5** | **27/27**   | **64**                    | **10/12** |
+
+- The pill label and «¿cuánto pago a la caja?» carry both escalas and
+  `salarios-minimos` art. 1; «¿tasa del IVA?», «¿cuánto es el IVA?», its seed
+  `iva-tarifa-general` and `ho-abs-iva-2027` carry art. 10.
+  «¿Me pueden cobrar retroactivo?» hits.
+- Replaying #502's expansions through the new retrieval, the strip and the
+  catalogue lose nothing; every loss in the live arms is the expansion's text,
+  inside the ±4 band of «Where two identical runs part».
+- The T1-D sentence is a trade. It pushes `ley-iva` art. 21 out of the fused
+  pool on `ho-t2-credito-iva-compras` under Haiku 4.5's rewrite. That case is
+  Tier 2, and Haiku 5.5 missed it on every run.
+- The full arms on both models ran on a first rule 9 that cost the blocking
+  case `ho-hacienda-solo-cliente-eeuu` on 5.5, and the shipped rule 9 drops
+  the clause that did it. Haiku 4.5 was not re-read on the shipped prompt.
+  #511's baseline reads the pipeline before this change, and #512's final lanes read it after.
+
+≈US$1.35, estimated (the run's README has the breakdown). #418's check, on
+#502's own expansions with only the catalogue changed: no blocking target
+leaves the fused 40 on Haiku 5.5's rewrites, and one, at the pool's last
+place, on Haiku 4.5's.
 
 ## Fragments, not the corpus (2026-10-08, #507)
 

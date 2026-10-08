@@ -1,0 +1,27 @@
+
+EVAL_REWRITES: 109 cases' query and expansion replayed from eval/runs/2026-10-07-502-robustness/probe-haiku-5-5.json
+...
+retrieval cases: 3 (2 in the robustness block; 4 expected targets outside it), abstention: 0, follow-ups condensed: 1
+condensation fell back to the question: none
+rewrites: replayed from eval/runs/2026-10-07-502-robustness/probe-haiku-5-5.json
+provider calls that did not come back: none
+rerank readings lost: none of 0
+weak: none
+expansion absent: none
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   1/4        0/1          0        —
+top8/capoff/pinon    3/4        0/1          2        —
+top8/cap3/pinoff     2/4        0/1          0        —
+top8/cap3/pinon      3/4        0/1          2        —
+top8/cap2/pinoff     2/4        0/1          0        —
+top8/cap2/pinon      3/4        0/1          2        —
+top10/capoff/pinoff  2/4        0/1          0        —
+top10/capoff/pinon   3/4        0/1          2        —
+top10/cap3/pinoff    2/4        0/1          0        —
+top10/cap3/pinon     3/4        0/1          2        —
+top10/cap2/pinoff    3/4        0/1          2        —
+top10/cap2/pinon     3/4        0/1          2        —
+
+top8/capoff/pinon, robustness block (#502): 1/2
+  MISS  rb-pill-cuanto-pago-independiente ← ccss-cuanto-pago-base  «¿Cuánto pago como independiente?»  (seed hit)

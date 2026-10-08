@@ -36,6 +36,12 @@
  * makes each case take at least that long, so a frozen run can be paced
  * like a live one (≈21 cases/min, `PROBE_CASE_MS=3000`) (#460).
  *
+ * Every configuration follows in-document cross-references (#508,
+ * `PIN_CROSS_REFERENCES`), as production does; one more, the route's own
+ * configuration with them off, is the baseline the closing lines compare
+ * against: the expected targets they add, Tier 1's apart, and every answer
+ * set they grow, with what they appended.
+ *
  * The robustness block (#502) is read like any other case and summed apart:
  * the configuration table counts the cases it counted before the block
  * existed, so an earlier probe's totals still compare, and the block prints
@@ -60,10 +66,8 @@ function loadDotEnvLocal(): void {
     if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2];
   }
 }
-import {
-  pinDerivedFigureInputs,
-  resolveDerivedFigures,
-} from "../src/lib/answer/derived";
+import { resolveDerivedFigures } from "../src/lib/answer/derived";
+import { pinAnswerSet } from "../src/lib/answer/pins";
 import {
   answerSetFromOrder,
   RERANK_POOL,
@@ -101,16 +105,21 @@ interface Config {
   topK: string;
   cap: string;
   pin: string;
+  xref: string;
 }
 
 const CONFIGS: Config[] = [];
 for (const topK of ["8", "10"]) {
   for (const cap of ["off", "3", "2"]) {
     for (const pin of ["off", "on"]) {
-      CONFIGS.push({ name: `top${topK}/cap${cap}/pin${pin}`, topK, cap, pin });
+      const name = `top${topK}/cap${cap}/pin${pin}`;
+      CONFIGS.push({ name, topK, cap, pin, xref: "on" });
     }
   }
 }
+/** The route's configuration without the cross-references (#508). */
+const XREF_OFF = `${PRODUCTION_CONFIG}/xrefoff`;
+CONFIGS.push({ name: XREF_OFF, topK: "8", cap: "off", pin: "on", xref: "off" });
 
 interface CaseRead {
   id: string;
@@ -309,12 +318,13 @@ async function readCase(
     process.env.ANSWER_TOP_K = c.topK;
     process.env.ANSWER_DOC_CAP = c.cap;
     process.env.PIN_DERIVED_INPUTS = c.pin;
+    process.env.PIN_CROSS_REFERENCES = c.xref;
     const cut = answerSetFromOrder(
       order,
       retrieval.chunks,
       outcome?.stepPicks ?? [],
     );
-    const chunks = pinDerivedFigureInputs(cut, retrieval.chunks);
+    const chunks = await pinAnswerSet(cut, retrieval.chunks);
     const figures = resolveDerivedFigures(chunks);
     const presentTargets = evalCase.expected.filter((t) =>
       chunks.some((ch) => chunkMatchesTarget(ch, t)),
@@ -423,7 +433,7 @@ async function main(): Promise<void> {
     }`,
   );
   console.log(
-    `\n${"config".padEnd(20)} ${"targets".padEnd(10)} ${"cases w/ all".padEnd(12)} figures  abs-figures`,
+    `\n${"config".padEnd(26)} ${"targets".padEnd(10)} ${"cases w/ all".padEnd(12)} figures  abs-figures`,
   );
   for (const c of CONFIGS) {
     const present = retrievalReads.reduce(
@@ -443,7 +453,24 @@ async function main(): Promise<void> {
       )
       .map((r) => `${r.id}(${r.per[c.name].figures.join(",")})`);
     console.log(
-      `${c.name.padEnd(20)} ${`${present}/${totalTargets}`.padEnd(10)} ${`${full}/${retrievalReads.length}`.padEnd(12)} ${String(figures).padEnd(8)} ${absFigures.join(" ") || "—"}`,
+      `${c.name.padEnd(26)} ${`${present}/${totalTargets}`.padEnd(10)} ${`${full}/${retrievalReads.length}`.padEnd(12)} ${String(figures).padEnd(8)} ${absFigures.join(" ") || "—"}`,
+    );
+  }
+
+  // #508: what the cross-references add to the route's configuration.
+  const tierOne = retrievalReads.filter((r) => r.tier === 1);
+  const sum = (rs: CaseRead[], config: string) =>
+    rs.reduce((n, r) => n + r.per[config].present, 0);
+  console.log(
+    `\ncross-references (#508): targets ${sum(retrievalReads, XREF_OFF)} → ${sum(retrievalReads, PRODUCTION_CONFIG)}, Tier 1 ${sum(tierOne, XREF_OFF)} → ${sum(tierOne, PRODUCTION_CONFIG)}`,
+  );
+  for (const r of reads) {
+    const before = new Set(r.per[XREF_OFF].set);
+    const added = r.per[PRODUCTION_CONFIG].set.filter((l) => !before.has(l));
+    if (added.length === 0) continue;
+    const gained = r.per[PRODUCTION_CONFIG].present - r.per[XREF_OFF].present;
+    console.log(
+      `  ${r.id}: +${added.join(", ")}${gained === 0 ? "" : ` (targets +${gained})`}`,
     );
   }
 

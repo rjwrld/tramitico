@@ -1,0 +1,1082 @@
+{
+  "configs": [
+    {
+      "name": "top8/capoff/pinoff",
+      "topK": "8",
+      "cap": "off",
+      "pin": "off"
+    },
+    {
+      "name": "top8/capoff/pinon",
+      "topK": "8",
+      "cap": "off",
+      "pin": "on"
+    },
+    {
+      "name": "top8/cap3/pinoff",
+      "topK": "8",
+      "cap": "3",
+      "pin": "off"
+    },
+    {
+      "name": "top8/cap3/pinon",
+      "topK": "8",
+      "cap": "3",
+      "pin": "on"
+    },
+    {
+      "name": "top8/cap2/pinoff",
+      "topK": "8",
+      "cap": "2",
+      "pin": "off"
+    },
+    {
+      "name": "top8/cap2/pinon",
+      "topK": "8",
+      "cap": "2",
+      "pin": "on"
+    },
+    {
+      "name": "top10/capoff/pinoff",
+      "topK": "10",
+      "cap": "off",
+      "pin": "off"
+    },
+    {
+      "name": "top10/capoff/pinon",
+      "topK": "10",
+      "cap": "off",
+      "pin": "on"
+    },
+    {
+      "name": "top10/cap3/pinoff",
+      "topK": "10",
+      "cap": "3",
+      "pin": "off"
+    },
+    {
+      "name": "top10/cap3/pinon",
+      "topK": "10",
+      "cap": "3",
+      "pin": "on"
+    },
+    {
+      "name": "top10/cap2/pinoff",
+      "topK": "10",
+      "cap": "2",
+      "pin": "off"
+    },
+    {
+      "name": "top10/cap2/pinon",
+      "topK": "10",
+      "cap": "2",
+      "pin": "on"
+    }
+  ],
+  "reads": [
+    {
+      "id": "ccss-cuanto-pago-base",
+      "kind": "retrieval",
+      "query": "¿Cuánto pago a la CCSS como trabajador independiente y cómo se calcula la base?",
+      "condenseFailed": false,
+      "tier": 2,
+      "family": null,
+      "variant": null,
+      "weak": false,
+      "expansionFailed": false,
+      "expectedCount": 4,
+      "per": {
+        "top8/capoff/pinoff": {
+          "present": 1,
+          "missing": [
+            "ccss-escala-salud/Artículo 30°, sesión 8999",
+            "ley-10363/ARTÍCULO 1",
+            "salarios-minimos/Artículo 1"
+          ],
+          "figures": [],
+          "size": 8,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 4·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-reglamento-ti·Preámbulo·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-reglamento-ti·Artículo 7·#0"
+          ]
+        },
+        "top8/capoff/pinon": {
+          "present": 3,
+          "missing": ["ley-10363/ARTÍCULO 1"],
+          "figures": ["bmc-ivm-2026", "bmc-sem-2026"],
+          "size": 10,
+          "pinned": [
+            "salarios-minimos·Artículo 1·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0"
+          ],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 4·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-reglamento-ti·Preámbulo·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-reglamento-ti·Artículo 7·#0",
+            "salarios-minimos·Artículo 1·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0"
+          ]
+        },
+        "top8/cap3/pinoff": {
+          "present": 2,
+          "missing": ["ley-10363/ARTÍCULO 1", "salarios-minimos/Artículo 1"],
+          "figures": [],
+          "size": 8,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 4·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0"
+          ]
+        },
+        "top8/cap3/pinon": {
+          "present": 3,
+          "missing": ["ley-10363/ARTÍCULO 1"],
+          "figures": ["bmc-ivm-2026", "bmc-sem-2026"],
+          "size": 9,
+          "pinned": ["salarios-minimos·Artículo 1·#0"],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 4·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "salarios-minimos·Artículo 1·#0"
+          ]
+        },
+        "top8/cap2/pinoff": {
+          "present": 2,
+          "missing": ["ley-10363/ARTÍCULO 1", "salarios-minimos/Artículo 1"],
+          "figures": [],
+          "size": 8,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-bmc·*·#0",
+            "ccss-prescripcion·¿Cuáles son los plazos de la prescripción conforme la Ley?·#0"
+          ]
+        },
+        "top8/cap2/pinon": {
+          "present": 3,
+          "missing": ["ley-10363/ARTÍCULO 1"],
+          "figures": ["bmc-ivm-2026", "bmc-sem-2026"],
+          "size": 9,
+          "pinned": ["salarios-minimos·Artículo 1·#0"],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-bmc·*·#0",
+            "ccss-prescripcion·¿Cuáles son los plazos de la prescripción conforme la Ley?·#0",
+            "salarios-minimos·Artículo 1·#0"
+          ]
+        },
+        "top10/capoff/pinoff": {
+          "present": 2,
+          "missing": ["ley-10363/ARTÍCULO 1", "salarios-minimos/Artículo 1"],
+          "figures": [],
+          "size": 10,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 4·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-reglamento-ti·Preámbulo·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-reglamento-ti·Artículo 7·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0"
+          ]
+        },
+        "top10/capoff/pinon": {
+          "present": 3,
+          "missing": ["ley-10363/ARTÍCULO 1"],
+          "figures": ["bmc-ivm-2026", "bmc-sem-2026"],
+          "size": 11,
+          "pinned": ["salarios-minimos·Artículo 1·#0"],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 4·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-reglamento-ti·Preámbulo·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-reglamento-ti·Artículo 7·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "salarios-minimos·Artículo 1·#0"
+          ]
+        },
+        "top10/cap3/pinoff": {
+          "present": 2,
+          "missing": ["ley-10363/ARTÍCULO 1", "salarios-minimos/Artículo 1"],
+          "figures": [],
+          "size": 10,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 4·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ccss-bmc·*·#0",
+            "ccss-prescripcion·¿Cuáles son los plazos de la prescripción conforme la Ley?·#0"
+          ]
+        },
+        "top10/cap3/pinon": {
+          "present": 3,
+          "missing": ["ley-10363/ARTÍCULO 1"],
+          "figures": ["bmc-ivm-2026", "bmc-sem-2026"],
+          "size": 11,
+          "pinned": ["salarios-minimos·Artículo 1·#0"],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 4·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ccss-bmc·*·#0",
+            "ccss-prescripcion·¿Cuáles son los plazos de la prescripción conforme la Ley?·#0",
+            "salarios-minimos·Artículo 1·#0"
+          ]
+        },
+        "top10/cap2/pinoff": {
+          "present": 3,
+          "missing": ["ley-10363/ARTÍCULO 1"],
+          "figures": ["bmc-ivm-2026", "bmc-sem-2026"],
+          "size": 10,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-bmc·*·#0",
+            "ccss-prescripcion·¿Cuáles son los plazos de la prescripción conforme la Ley?·#0",
+            "ley-10363·ARTÍCULO 2·#0",
+            "salarios-minimos·Artículo 1·#0"
+          ]
+        },
+        "top10/cap2/pinon": {
+          "present": 3,
+          "missing": ["ley-10363/ARTÍCULO 1"],
+          "figures": ["bmc-ivm-2026", "bmc-sem-2026"],
+          "size": 10,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-bmc·*·#0",
+            "ccss-prescripcion·¿Cuáles son los plazos de la prescripción conforme la Ley?·#0",
+            "ley-10363·ARTÍCULO 2·#0",
+            "salarios-minimos·Artículo 1·#0"
+          ]
+        }
+      },
+      "targetRanks": [
+        {
+          "target": "ccss-escala-salud/Artículo 30°, sesión 8999",
+          "rank": null
+        },
+        {
+          "target": "ccss-escala-ivm/Artículo 4°, sesión 9570",
+          "rank": null
+        },
+        {
+          "target": "ley-10363/ARTÍCULO 1",
+          "rank": null
+        },
+        {
+          "target": "salarios-minimos/Artículo 1",
+          "rank": null
+        }
+      ],
+      "expansion": "El Reglamento para el Aseguramiento Contributivo de los Trabajadores Independientes establece la base mínima contributiva y la escala de cuotas del seguro de salud y del seguro de invalidez, vejez y muerte que debe pagar el trabajador independiente, según los ingresos declarados y las tablas aprobadas por la Junta Directiva de la Caja Costarricense de Seguro Social.",
+      "steps": "T1-F",
+      "pool": [
+        "ccss-reglamento-ti·Artículo 10·#0",
+        "ccss-reglamento-ti·Artículo 12·#0",
+        "ccss-reglamento-ti·Artículo 4·#0",
+        "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+        "ccss-reglamento-ti·Preámbulo·#0",
+        "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+        "ccss-reglamento-ti·Artículo 6·#0",
+        "ccss-reglamento-ti·Artículo 7·#0",
+        "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+        "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+        "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+        "ccss-reglamento-ti·Artículo 1·#0",
+        "ccss-bmc·*·#0",
+        "ccss-faq·En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA?·#0",
+        "ccss-reglamento-ti·Artículo 13·#0",
+        "ccss-prescripcion·¿Cuáles son los plazos de la prescripción conforme la Ley?·#0",
+        "ccss-reglamento-ti·Artículo 8·#0",
+        "ley-10363·ARTÍCULO 2·#0",
+        "salarios-minimos·Artículo 1·#0",
+        "ccss-reglamento-ti·Artículo 26·#0",
+        "ccss-reglamento-ti·Artículo 2·#0",
+        "ccss-prescripcion·¿Cómo se solicita la prescripción?·#0",
+        "ccss-faq·¿Cuáles son mis Obligaciones como Trabajador Independiente?·#0",
+        "ccss-faq·¿El Trabajador Independiente está obligado a asegurarse ante la CCSS?·#0",
+        "ccss-reglamento-ti·Artículo 3·#0",
+        "ccss-faq·¿Horario de Atención?·#0",
+        "ccss-reglamento-ti·Artículo 5·#0",
+        "ccss-faq·¿Cuáles son mis beneficios o derechos como Trabajador Independiente?·#0",
+        "ccss-faq·¿Cuáles son los requisitos para solicitar la prescripción de cuotas de trabajador independiente en aplicación de lo dispuesto en la Ley N°10.363?·#0",
+        "ccss-faq·¿Tiene la CCSS facultad para asegurar de manera obligatoria a los trabajadores independientes que realizan actividades liberales?·#0",
+        "ccss-faq·¿Se realizan revisiones periódicas a los montos de aseguramiento?·#0",
+        "ccss-faq·¿Hace tiempo fui asegurado como Trabajador Independiente y quiero volver a serlo, qué tengo que hacer?·#0",
+        "ccss-reglamento-ti·Artículo 21·#0",
+        "ccss-faq·¿Cómo procedo si mis ingresos han variado?·#0",
+        "ccss-faq·¿Dónde puedo pagar mi seguro si me encuentro atrasado en mis pagos?·#0",
+        "ccss-prescripcion·¿Cuáles son los conceptos que estando pendientes de pago le aplica la prescripción en sede administrativa?·#0",
+        "ccss-faq·¿Cuáles son las razones por las que se facturan los servicios médicos y subsidios?·#0",
+        "ccss-faq·¿Con este seguro recibo orden patronal?·#0",
+        "salarios-minimos·Preámbulo·#0",
+        "ccss-reglamento-ti·Artículo 25·#0"
+      ],
+      "order": null,
+      "scores": null,
+      "failures": {
+        "condense": 0,
+        "expand": 0,
+        "embed": 0,
+        "rerank": 0
+      },
+      "rerankReadings": null,
+      "ms": {
+        "rewrite": 0,
+        "retrieve": 1117,
+        "rerank": 0
+      }
+    },
+    {
+      "id": "rb-pill-cuanto-pago-independiente",
+      "kind": "retrieval",
+      "query": "¿Cuánto pago como independiente?",
+      "condenseFailed": false,
+      "tier": 2,
+      "family": null,
+      "variant": "robustez",
+      "weak": false,
+      "expansionFailed": false,
+      "expectedCount": 4,
+      "per": {
+        "top8/capoff/pinoff": {
+          "present": 0,
+          "missing": [
+            "ccss-escala-salud/Artículo 30°, sesión 8999",
+            "ccss-escala-ivm/Artículo 4°, sesión 9570",
+            "ley-10363/ARTÍCULO 1",
+            "salarios-minimos/Artículo 1"
+          ],
+          "figures": [],
+          "size": 8,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ccss-faq·En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA?·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ccss-reglamento-ti·Preámbulo·#0"
+          ]
+        },
+        "top8/capoff/pinon": {
+          "present": 0,
+          "missing": [
+            "ccss-escala-salud/Artículo 30°, sesión 8999",
+            "ccss-escala-ivm/Artículo 4°, sesión 9570",
+            "ley-10363/ARTÍCULO 1",
+            "salarios-minimos/Artículo 1"
+          ],
+          "figures": [],
+          "size": 8,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ccss-faq·En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA?·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ccss-reglamento-ti·Preámbulo·#0"
+          ]
+        },
+        "top8/cap3/pinoff": {
+          "present": 0,
+          "missing": [
+            "ccss-escala-salud/Artículo 30°, sesión 8999",
+            "ccss-escala-ivm/Artículo 4°, sesión 9570",
+            "ley-10363/ARTÍCULO 1",
+            "salarios-minimos/Artículo 1"
+          ],
+          "figures": [],
+          "size": 8,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ccss-faq·En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA?·#0",
+            "ley-10363·ARTÍCULO 2·#0",
+            "ccss-prescripcion·¿Cuáles son los conceptos que estando pendientes de pago le aplica la prescripción en sede administrativa?·#0"
+          ]
+        },
+        "top8/cap3/pinon": {
+          "present": 0,
+          "missing": [
+            "ccss-escala-salud/Artículo 30°, sesión 8999",
+            "ccss-escala-ivm/Artículo 4°, sesión 9570",
+            "ley-10363/ARTÍCULO 1",
+            "salarios-minimos/Artículo 1"
+          ],
+          "figures": [],
+          "size": 8,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ccss-faq·En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA?·#0",
+            "ley-10363·ARTÍCULO 2·#0",
+            "ccss-prescripcion·¿Cuáles son los conceptos que estando pendientes de pago le aplica la prescripción en sede administrativa?·#0"
+          ]
+        },
+        "top8/cap2/pinoff": {
+          "present": 1,
+          "missing": [
+            "ccss-escala-salud/Artículo 30°, sesión 8999",
+            "ley-10363/ARTÍCULO 1",
+            "salarios-minimos/Artículo 1"
+          ],
+          "figures": [],
+          "size": 8,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ley-10363·ARTÍCULO 2·#0",
+            "ccss-prescripcion·¿Cuáles son los conceptos que estando pendientes de pago le aplica la prescripción en sede administrativa?·#0",
+            "ccss-prescripcion·Estoy moroso y presento una solicitud de prescripción, sin embargo, requiero recibir atención médica como trabajador independiente o la de algún beneficiario del seguro, ¿Me cobran los servicios médicos?·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0"
+          ]
+        },
+        "top8/cap2/pinon": {
+          "present": 3,
+          "missing": ["ley-10363/ARTÍCULO 1"],
+          "figures": ["bmc-ivm-2026", "bmc-sem-2026"],
+          "size": 10,
+          "pinned": [
+            "salarios-minimos·Artículo 1·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0"
+          ],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ley-10363·ARTÍCULO 2·#0",
+            "ccss-prescripcion·¿Cuáles son los conceptos que estando pendientes de pago le aplica la prescripción en sede administrativa?·#0",
+            "ccss-prescripcion·Estoy moroso y presento una solicitud de prescripción, sin embargo, requiero recibir atención médica como trabajador independiente o la de algún beneficiario del seguro, ¿Me cobran los servicios médicos?·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "salarios-minimos·Artículo 1·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0"
+          ]
+        },
+        "top10/capoff/pinoff": {
+          "present": 0,
+          "missing": [
+            "ccss-escala-salud/Artículo 30°, sesión 8999",
+            "ccss-escala-ivm/Artículo 4°, sesión 9570",
+            "ley-10363/ARTÍCULO 1",
+            "salarios-minimos/Artículo 1"
+          ],
+          "figures": [],
+          "size": 10,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ccss-faq·En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA?·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ccss-reglamento-ti·Preámbulo·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ley-10363·ARTÍCULO 2·#0"
+          ]
+        },
+        "top10/capoff/pinon": {
+          "present": 0,
+          "missing": [
+            "ccss-escala-salud/Artículo 30°, sesión 8999",
+            "ccss-escala-ivm/Artículo 4°, sesión 9570",
+            "ley-10363/ARTÍCULO 1",
+            "salarios-minimos/Artículo 1"
+          ],
+          "figures": [],
+          "size": 10,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ccss-faq·En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA?·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ccss-reglamento-ti·Preámbulo·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ley-10363·ARTÍCULO 2·#0"
+          ]
+        },
+        "top10/cap3/pinoff": {
+          "present": 1,
+          "missing": [
+            "ccss-escala-salud/Artículo 30°, sesión 8999",
+            "ley-10363/ARTÍCULO 1",
+            "salarios-minimos/Artículo 1"
+          ],
+          "figures": [],
+          "size": 10,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ccss-faq·En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA?·#0",
+            "ley-10363·ARTÍCULO 2·#0",
+            "ccss-prescripcion·¿Cuáles son los conceptos que estando pendientes de pago le aplica la prescripción en sede administrativa?·#0",
+            "ccss-prescripcion·Estoy moroso y presento una solicitud de prescripción, sin embargo, requiero recibir atención médica como trabajador independiente o la de algún beneficiario del seguro, ¿Me cobran los servicios médicos?·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0"
+          ]
+        },
+        "top10/cap3/pinon": {
+          "present": 3,
+          "missing": ["ley-10363/ARTÍCULO 1"],
+          "figures": ["bmc-ivm-2026", "bmc-sem-2026"],
+          "size": 12,
+          "pinned": [
+            "salarios-minimos·Artículo 1·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0"
+          ],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ccss-faq·En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA?·#0",
+            "ley-10363·ARTÍCULO 2·#0",
+            "ccss-prescripcion·¿Cuáles son los conceptos que estando pendientes de pago le aplica la prescripción en sede administrativa?·#0",
+            "ccss-prescripcion·Estoy moroso y presento una solicitud de prescripción, sin embargo, requiero recibir atención médica como trabajador independiente o la de algún beneficiario del seguro, ¿Me cobran los servicios médicos?·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "salarios-minimos·Artículo 1·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0"
+          ]
+        },
+        "top10/cap2/pinoff": {
+          "present": 2,
+          "missing": [
+            "ccss-escala-salud/Artículo 30°, sesión 8999",
+            "ley-10363/ARTÍCULO 1"
+          ],
+          "figures": ["bmc-ivm-2026"],
+          "size": 10,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ley-10363·ARTÍCULO 2·#0",
+            "ccss-prescripcion·¿Cuáles son los conceptos que estando pendientes de pago le aplica la prescripción en sede administrativa?·#0",
+            "ccss-prescripcion·Estoy moroso y presento una solicitud de prescripción, sin embargo, requiero recibir atención médica como trabajador independiente o la de algún beneficiario del seguro, ¿Me cobran los servicios médicos?·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "salarios-minimos·Artículo 1·#0",
+            "ley-renta·Artículo 33·#0"
+          ]
+        },
+        "top10/cap2/pinon": {
+          "present": 3,
+          "missing": ["ley-10363/ARTÍCULO 1"],
+          "figures": ["bmc-ivm-2026", "bmc-sem-2026"],
+          "size": 11,
+          "pinned": ["ccss-escala-salud·Artículo 30°, sesión 8999·#0"],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ley-10363·ARTÍCULO 2·#0",
+            "ccss-prescripcion·¿Cuáles son los conceptos que estando pendientes de pago le aplica la prescripción en sede administrativa?·#0",
+            "ccss-prescripcion·Estoy moroso y presento una solicitud de prescripción, sin embargo, requiero recibir atención médica como trabajador independiente o la de algún beneficiario del seguro, ¿Me cobran los servicios médicos?·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "salarios-minimos·Artículo 1·#0",
+            "ley-renta·Artículo 33·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0"
+          ]
+        }
+      },
+      "targetRanks": [
+        {
+          "target": "ccss-escala-salud/Artículo 30°, sesión 8999",
+          "rank": null
+        },
+        {
+          "target": "ccss-escala-ivm/Artículo 4°, sesión 9570",
+          "rank": null
+        },
+        {
+          "target": "ley-10363/ARTÍCULO 1",
+          "rank": null
+        },
+        {
+          "target": "salarios-minimos/Artículo 1",
+          "rank": null
+        }
+      ],
+      "expansion": "Las cuotas de los trabajadores independientes se fijan en la escala contributiva del seguro de salud y del seguro de invalidez, vejez y muerte, calculadas sobre la base mínima contributiva y los ingresos declarados que establezca la Caja Costarricense de Seguro Social, y el impuesto sobre la renta de las personas físicas se determina según los tramos y tarifas que fije el decreto del período fiscal vigente.",
+      "steps": "T1-F",
+      "pool": [
+        "ccss-reglamento-ti·Artículo 10·#0",
+        "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+        "ccss-reglamento-ti·Artículo 12·#0",
+        "ccss-reglamento-ti·Artículo 6·#0",
+        "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+        "ccss-faq·En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA?·#0",
+        "ccss-reglamento-ti·Artículo 1·#0",
+        "ccss-reglamento-ti·Preámbulo·#0",
+        "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+        "ley-10363·ARTÍCULO 2·#0",
+        "ccss-prescripcion·¿Cuáles son los conceptos que estando pendientes de pago le aplica la prescripción en sede administrativa?·#0",
+        "ccss-faq·¿Cuáles son los requisitos para solicitar la prescripción de cuotas de trabajador independiente en aplicación de lo dispuesto en la Ley N°10.363?·#0",
+        "ccss-reglamento-ti·Artículo 4·#0",
+        "ccss-prescripcion·Estoy moroso y presento una solicitud de prescripción, sin embargo, requiero recibir atención médica como trabajador independiente o la de algún beneficiario del seguro, ¿Me cobran los servicios médicos?·#0",
+        "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+        "salarios-minimos·Artículo 1·#0",
+        "ccss-prescripcion·¿Cuáles son los plazos de la prescripción conforme la Ley?·#0",
+        "ley-renta·Artículo 33·#0",
+        "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+        "ccss-bmc·*·#0",
+        "ccss-reglamento-ti·Artículo 7·#0",
+        "ccss-faq·¿Se realizan revisiones periódicas a los montos de aseguramiento?·#0",
+        "ccss-prescripcion·¿Cuál es el plazo de prescripción de las deudas pendientes por un Trabajador Independiente?·#0",
+        "ley-renta·ARTICULO 9·#0",
+        "ccss-faq·¿Cuáles son mis Obligaciones como Trabajador Independiente?·#0",
+        "reglamento-renta·Artículo 24·#0",
+        "ccss-faq·¿Hace tiempo fui asegurado como Trabajador Independiente y quiero volver a serlo, qué tengo que hacer?·#0",
+        "ccss-faq·¿Cómo procedo si mis ingresos han variado?·#0",
+        "ccss-faq·¿Cuáles son mis beneficios o derechos como Trabajador Independiente?·#0",
+        "ccss-reglamento-ti·Artículo 3·#0",
+        "ccss-faq·¿Horario de Atención?·#0",
+        "ccss-reglamento-ti·Artículo 29·#0",
+        "ccss-faq·¿Dónde puedo pagar mi seguro?·#0",
+        "salarios-minimos·Preámbulo·#0",
+        "ccss-faq·¿Con este seguro recibo orden patronal?·#0",
+        "ccss-faq·¿Dónde puedo pagar mi seguro si me encuentro atrasado en mis pagos?·#0",
+        "ley-renta·Artículo 15·#0",
+        "ccss-reglamento-ti·Artículo 8·#0",
+        "ley-renta·Artículo 15·#1",
+        "ley-renta·ARTICULO 2·#0"
+      ],
+      "order": null,
+      "scores": null,
+      "failures": {
+        "condense": 0,
+        "expand": 0,
+        "embed": 0,
+        "rerank": 0
+      },
+      "rerankReadings": null,
+      "ms": {
+        "rewrite": 0,
+        "retrieve": 564,
+        "rerank": 0
+      }
+    },
+    {
+      "id": "rb-seguimiento-cuanto-me-toca",
+      "kind": "retrieval",
+      "query": "¿Cuánto debe pagar como trabajador independiente a la CCSS si su ingreso neto mensual alcanza la base mínima contributiva?",
+      "condenseFailed": false,
+      "tier": 2,
+      "family": null,
+      "variant": "robustez",
+      "weak": false,
+      "expansionFailed": false,
+      "expectedCount": 4,
+      "per": {
+        "top8/capoff/pinoff": {
+          "present": 1,
+          "missing": [
+            "ccss-escala-ivm/Artículo 4°, sesión 9570",
+            "ley-10363/ARTÍCULO 1",
+            "salarios-minimos/Artículo 1"
+          ],
+          "figures": [],
+          "size": 8,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 4·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-bmc·*·#0",
+            "ccss-reglamento-ti·Artículo 7·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0"
+          ]
+        },
+        "top8/capoff/pinon": {
+          "present": 3,
+          "missing": ["ley-10363/ARTÍCULO 1"],
+          "figures": ["bmc-ivm-2026", "bmc-sem-2026"],
+          "size": 10,
+          "pinned": [
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "salarios-minimos·Artículo 1·#0"
+          ],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 4·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-bmc·*·#0",
+            "ccss-reglamento-ti·Artículo 7·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "salarios-minimos·Artículo 1·#0"
+          ]
+        },
+        "top8/cap3/pinoff": {
+          "present": 2,
+          "missing": ["ley-10363/ARTÍCULO 1", "salarios-minimos/Artículo 1"],
+          "figures": [],
+          "size": 8,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-bmc·*·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0"
+          ]
+        },
+        "top8/cap3/pinon": {
+          "present": 3,
+          "missing": ["ley-10363/ARTÍCULO 1"],
+          "figures": ["bmc-ivm-2026", "bmc-sem-2026"],
+          "size": 9,
+          "pinned": ["salarios-minimos·Artículo 1·#0"],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-bmc·*·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "salarios-minimos·Artículo 1·#0"
+          ]
+        },
+        "top8/cap2/pinoff": {
+          "present": 2,
+          "missing": ["ley-10363/ARTÍCULO 1", "salarios-minimos/Artículo 1"],
+          "figures": [],
+          "size": 8,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-bmc·*·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ccss-prescripcion·¿Cuáles son los plazos de la prescripción conforme la Ley?·#0"
+          ]
+        },
+        "top8/cap2/pinon": {
+          "present": 3,
+          "missing": ["ley-10363/ARTÍCULO 1"],
+          "figures": ["bmc-ivm-2026", "bmc-sem-2026"],
+          "size": 9,
+          "pinned": ["salarios-minimos·Artículo 1·#0"],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-bmc·*·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ccss-prescripcion·¿Cuáles son los plazos de la prescripción conforme la Ley?·#0",
+            "salarios-minimos·Artículo 1·#0"
+          ]
+        },
+        "top10/capoff/pinoff": {
+          "present": 1,
+          "missing": [
+            "ccss-escala-ivm/Artículo 4°, sesión 9570",
+            "ley-10363/ARTÍCULO 1",
+            "salarios-minimos/Artículo 1"
+          ],
+          "figures": [],
+          "size": 10,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 4·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-bmc·*·#0",
+            "ccss-reglamento-ti·Artículo 7·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ccss-reglamento-ti·Preámbulo·#0"
+          ]
+        },
+        "top10/capoff/pinon": {
+          "present": 3,
+          "missing": ["ley-10363/ARTÍCULO 1"],
+          "figures": ["bmc-ivm-2026", "bmc-sem-2026"],
+          "size": 12,
+          "pinned": [
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "salarios-minimos·Artículo 1·#0"
+          ],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-reglamento-ti·Artículo 4·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-bmc·*·#0",
+            "ccss-reglamento-ti·Artículo 7·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ccss-reglamento-ti·Preámbulo·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "salarios-minimos·Artículo 1·#0"
+          ]
+        },
+        "top10/cap3/pinoff": {
+          "present": 2,
+          "missing": ["ley-10363/ARTÍCULO 1", "salarios-minimos/Artículo 1"],
+          "figures": [],
+          "size": 10,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-bmc·*·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-prescripcion·¿Cuáles son los plazos de la prescripción conforme la Ley?·#0"
+          ]
+        },
+        "top10/cap3/pinon": {
+          "present": 3,
+          "missing": ["ley-10363/ARTÍCULO 1"],
+          "figures": ["bmc-ivm-2026", "bmc-sem-2026"],
+          "size": 11,
+          "pinned": ["salarios-minimos·Artículo 1·#0"],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-reglamento-ti·Artículo 12·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-bmc·*·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+            "ccss-prescripcion·¿Cuáles son los plazos de la prescripción conforme la Ley?·#0",
+            "salarios-minimos·Artículo 1·#0"
+          ]
+        },
+        "top10/cap2/pinoff": {
+          "present": 3,
+          "missing": ["ley-10363/ARTÍCULO 1"],
+          "figures": ["bmc-ivm-2026", "bmc-sem-2026"],
+          "size": 10,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-bmc·*·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ccss-prescripcion·¿Cuáles son los plazos de la prescripción conforme la Ley?·#0",
+            "salarios-minimos·Artículo 1·#0",
+            "ley-10363·ARTÍCULO 2·#0"
+          ]
+        },
+        "top10/cap2/pinon": {
+          "present": 3,
+          "missing": ["ley-10363/ARTÍCULO 1"],
+          "figures": ["bmc-ivm-2026", "bmc-sem-2026"],
+          "size": 10,
+          "pinned": [],
+          "set": [
+            "ccss-reglamento-ti·Artículo 10·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+            "ccss-bmc·*·#0",
+            "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+            "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+            "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+            "ccss-prescripcion·¿Cuáles son los plazos de la prescripción conforme la Ley?·#0",
+            "salarios-minimos·Artículo 1·#0",
+            "ley-10363·ARTÍCULO 2·#0"
+          ]
+        }
+      },
+      "targetRanks": [
+        {
+          "target": "ccss-escala-salud/Artículo 30°, sesión 8999",
+          "rank": null
+        },
+        {
+          "target": "ccss-escala-ivm/Artículo 4°, sesión 9570",
+          "rank": null
+        },
+        {
+          "target": "ley-10363/ARTÍCULO 1",
+          "rank": null
+        },
+        {
+          "target": "salarios-minimos/Artículo 1",
+          "rank": null
+        }
+      ],
+      "expansion": "Las cuotas del trabajador independiente a la CCSS se calculan aplicando a la base mínima contributiva las escalas contributivas vigentes del Seguro de Salud y del Seguro de Invalidez, Vejez y Muerte, conforme al Reglamento para el Aseguramiento Contributivo de los Trabajadores Independientes y a los acuerdos de la Junta Directiva que fijan la base mínima contributiva y los porcentajes de cotización.",
+      "steps": "T1-F",
+      "pool": [
+        "ccss-reglamento-ti·Artículo 10·#0",
+        "ccss-reglamento-ti·Artículo 6·#0",
+        "ccss-reglamento-ti·Artículo 12·#0",
+        "ccss-reglamento-ti·Artículo 4·#0",
+        "ccss-faq·¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?·#0",
+        "ccss-bmc·*·#0",
+        "ccss-reglamento-ti·Artículo 7·#0",
+        "ccss-escala-salud·Artículo 30°, sesión 8999·#0",
+        "ccss-reglamento-ti·Artículo 1·#0",
+        "ccss-reglamento-ti·Preámbulo·#0",
+        "ccss-escala-ivm·Artículo 4°, sesión 9570·#0",
+        "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+        "ccss-reglamento-ti·Artículo 8·#0",
+        "ccss-faq·¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?·#0",
+        "ccss-faq·En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA?·#0",
+        "ccss-reglamento-ti·Artículo 13·#0",
+        "ccss-reglamento-ti·Artículo 29·#0",
+        "ccss-prescripcion·¿Cuáles son los plazos de la prescripción conforme la Ley?·#0",
+        "ccss-faq·¿El Trabajador Independiente está obligado a asegurarse ante la CCSS?·#0",
+        "salarios-minimos·Artículo 1·#0",
+        "ccss-faq·¿Tiene la CCSS facultad para asegurar de manera obligatoria a los trabajadores independientes que realizan actividades liberales?·#0",
+        "ley-10363·ARTÍCULO 2·#0",
+        "ccss-faq·¿Cuáles son los requisitos para solicitar la prescripción de cuotas de trabajador independiente en aplicación de lo dispuesto en la Ley N°10.363?·#0",
+        "ccss-faq·¿Horario de Atención?·#0",
+        "ccss-reglamento-ti·Artículo 3·#0",
+        "ccss-prescripcion·¿Cómo se solicita la prescripción?·#0",
+        "ccss-prescripcion·¿Cuál es el plazo de prescripción de las deudas pendientes por un Trabajador Independiente?·#0",
+        "ccss-faq·¿Se realizan revisiones periódicas a los montos de aseguramiento?·#0",
+        "ccss-reglamento-ti·Artículo 5·#0",
+        "ccss-reglamento-ti·Artículo 15·#0",
+        "ccss-faq·¿Cuáles son mis Obligaciones como Trabajador Independiente?·#0",
+        "salarios-minimos·Preámbulo·#0",
+        "ccss-faq·El pensionado por Vejez que realice una actividad por cuenta propia. ¿Está obligado a asegurarse como Trabajador Independiente?·#0",
+        "ccss-faq·¿Dónde puedo solicitar la prescripción de cuotas de trabajador independiente pendientes de pago (Ley N°10.363)?·#0",
+        "ccss-prescripcion·Estoy moroso y presento una solicitud de prescripción, sin embargo, requiero recibir atención médica como trabajador independiente o la de algún beneficiario del seguro, ¿Me cobran los servicios médicos?·#0",
+        "ccss-faq·¿Cuáles cuotas de trabajador independiente pueden ser prescritas según la Ley N°10.363?·#0",
+        "ccss-prescripcion·¿Cuáles son los conceptos que estando pendientes de pago le aplica la prescripción en sede administrativa?·#0",
+        "ccss-faq·¿Debo pagar a un abogado para solicitar la prescripción de cuotas de trabajador independiente?·#0",
+        "salarios-minimos·Artículo 7·#0",
+        "ccss-faq·¿Hace tiempo fui asegurado como Trabajador Independiente y quiero volver a serlo, qué tengo que hacer?·#0"
+      ],
+      "order": null,
+      "scores": null,
+      "failures": {
+        "condense": 0,
+        "expand": 0,
+        "embed": 0,
+        "rerank": 0
+      },
+      "rerankReadings": null,
+      "ms": {
+        "rewrite": 0,
+        "retrieve": 521,
+        "rerank": 0
+      }
+    }
+  ]
+}

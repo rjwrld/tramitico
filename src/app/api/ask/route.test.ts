@@ -96,6 +96,7 @@ function retrievalResult(
     isDegraded: false,
     expansion: null,
     steps: null,
+    retriedAsTyped: false,
     ...overrides,
   };
 }
@@ -2663,6 +2664,7 @@ describe("POST /api/ask", () => {
           condense: "lt_1s",
           retrieve: "lt_1s",
           rerank: "lt_1s",
+          pin: "lt_1s",
           generate: "lt_1s",
           validate: "lt_1s",
           persist: null,
@@ -2687,6 +2689,27 @@ describe("POST /api/ask", () => {
         // RERANK=off in this file: the rerank never called Voyage.
         rerankDrops: null,
         rerank: "off",
+        // The fixture's chunks name no artículo: the append ran, found none.
+        crossReference: "none",
+        lexicalRetry: false,
+      });
+    });
+
+    it("counts retrieval's as-typed second search (#509)", async () => {
+      const capture = captureTelemetry();
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(
+        retrievalResult({ retriedAsTyped: true }),
+      );
+      mockModel("La tarifa es la del artículo [1].");
+
+      await readEvents(
+        await POST(askRequest({ question: "¿Cómo pago el tributo?" })),
+      );
+
+      expect(soleEvent(capture)).toMatchObject({
+        outcome: "ok",
+        lexicalRetry: true,
       });
     });
 
@@ -3212,9 +3235,11 @@ describe("POST /api/ask", () => {
         "abort",
         "absenceClaim",
         "citationFailure",
+        "crossReference",
         "event",
         "generations",
         "latency",
+        "lexicalRetry",
         "outcome",
         "providerError",
         "quotaHit",

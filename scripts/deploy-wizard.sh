@@ -508,7 +508,7 @@ for k in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY SUPABASE_
          RATE_LIMIT_ANON RATE_LIMIT_AUTHED RATE_LIMIT_SUBJECT_SECRET NEXT_PUBLIC_SITE_URL; do
   say "    $k"
 done
-note "Not set (empty = shipped default): ANSWER_MODEL CONDENSE_MODEL EXPAND EXPAND_MODEL RERANK STEPS STEPS_RERANK PIN_DERIVED_INPUTS."
+note "Not set (empty = shipped default): ANSWER_MODEL CONDENSE_MODEL EXPAND EXPAND_MODEL RERANK STEPS STEPS_RERANK PIN_DERIVED_INPUTS PIN_CROSS_REFERENCES."
 step "Deploy."
 pause "First deploy finished? (Enter)"
 step "Project → Settings → Domains: add tramitico.com (primary) and www.tramitico.com → redirect to apex."

@@ -42,11 +42,11 @@ import { generateText } from "ai";
 import { beforeAll, expect, it } from "vitest";
 import {
   incompletelyCitedDerivedFigures,
-  pinDerivedFigureInputs,
   quotesDerivedFigure,
   resolveDerivedFigures,
   type ResolvedDerivedFigure,
 } from "../answer/derived";
+import { pinAnswerSet } from "../answer/pins";
 import {
   ANSWER_MAX_OUTPUT_TOKENS,
   answerModelLabel,
@@ -290,7 +290,7 @@ async function answerCase(
   }
 
   let rerank: RerankReadingCount | null = null;
-  const chunks = pinDerivedFigureInputs(
+  const chunks = await pinAnswerSet(
     await rerankChunks(query, retrieval.chunks, {
       ...rerankOptionsFor(retrieval),
       onReadings: (count) => {

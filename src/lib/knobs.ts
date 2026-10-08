@@ -1,7 +1,8 @@
 /**
- * Mode knobs: the environment variables that switch one pipeline stage
- * between a closed set of modes — `RERANK`, `EXPAND`, `STEPS`, `STEPS_RERANK`,
- * `PIN_DERIVED_INPUTS` (#499).
+ * Knob readers. Mode knobs are the environment variables that switch one
+ * pipeline stage between a closed set of modes — `RERANK`, `EXPAND`,
+ * `STEPS`, `STEPS_RERANK`, `PIN_DERIVED_INPUTS` (#499),
+ * `PIN_CROSS_REFERENCES` (#508).
  *
  * Production never reranked from launch until #498, because the deploy
  * wizard wrote `RERANK=on` and the reader treated anything but `voyage` as
@@ -20,6 +21,14 @@
  * `off`, and the log line is what tells the operator the word they set was
  * not one.
  *
+ * `ANSWER_EFFORT` reads here too (#519), with no mode as its default: an
+ * unknown effort still sends nothing, the provider default, and now says so.
+ *
+ * The two numeric answer-set knobs, `ANSWER_TOP_K` and `ANSWER_DOC_CAP`, read
+ * by the same rules through `positiveIntKnob` (#519): a value that is not a
+ * positive integer — nor one of the knob's words, `off` for the cap — is the
+ * default, logged on the same prefix.
+ *
  * `EMBEDDINGS_PROVIDER` is the one mode knob that does not read through here:
  * `createEmbedder` already throws on a provider it does not know, and has to
  * (ingestion/embedder.ts) — a fallback there would quietly embed questions
@@ -31,27 +40,72 @@ export const KNOB_ERROR_PREFIX = "config: unknown knob value";
 
 /**
  * A reader for one knob. `modes` is the whole accepted set, `fallback` the
- * mode unset, empty and unknown values all read as. The reader keeps the last
- * value it reported, so a cold start logs a bad value once, not per ask.
+ * mode unset, empty and unknown values all read as — or `null` for a knob
+ * whose default is no mode at all (`ANSWER_EFFORT`, which then sends
+ * nothing), logged as `unset`. The reader keeps the last value it reported,
+ * so a cold start logs a bad value once, not per ask.
  */
-export function modeKnob<const T extends string>(
+export function modeKnob<const T extends string, const F extends T | null = T>(
   name: string,
   modes: readonly T[],
-  fallback: T,
-): () => T {
-  let reported: string | null = null;
+  fallback: F,
+): () => T | F {
+  const report = logOncePerValue(name, modes.join(" | "), fallback ?? "unset");
   return () => {
     const raw = process.env[name] || "";
     if (raw === "") return fallback;
     const mode = modes.find((m) => m === raw);
     if (mode !== undefined) return mode;
-    if (raw !== reported) {
-      reported = raw;
-      console.error(
-        `${KNOB_ERROR_PREFIX} ${name}=${shown(raw)}; accepted: ${modes.join(" | ")}, or unset; reading it as ${fallback}`,
-      );
-    }
+    report(raw);
     return fallback;
+  };
+}
+
+/**
+ * A reader for one numeric knob (#519): a positive integer, as `Number` reads
+ * it, or one of `words` — `{ off: Infinity }` for `ANSWER_DOC_CAP`. Unset,
+ * empty and anything else read as `fallback`, the last logged once per cold
+ * start exactly as `modeKnob` logs.
+ */
+export function positiveIntKnob(
+  name: string,
+  fallback: number,
+  words: Readonly<Record<string, number>> = {},
+): () => number {
+  const label = (n: number) =>
+    Object.keys(words).find((word) => words[word] === n) ?? String(n);
+  const report = logOncePerValue(
+    name,
+    ["a positive integer", ...Object.keys(words)].join(" | "),
+    label(fallback),
+  );
+  return () => {
+    const raw = process.env[name] || "";
+    if (raw === "") return fallback;
+    if (Object.hasOwn(words, raw)) return words[raw];
+    const parsed = Number(raw);
+    if (Number.isInteger(parsed) && parsed >= 1) return parsed;
+    report(raw);
+    return fallback;
+  };
+}
+
+/**
+ * Logs a knob's bad value, unless it is the one it logged last — so a cold
+ * start logs it once, not per ask, and a second, different typo still shows.
+ */
+function logOncePerValue(
+  name: string,
+  accepted: string,
+  readAs: string,
+): (raw: string) => void {
+  let reported: string | null = null;
+  return (raw) => {
+    if (raw === reported) return;
+    reported = raw;
+    console.error(
+      `${KNOB_ERROR_PREFIX} ${name}=${shown(raw)}; accepted: ${accepted}, or unset; reading it as ${readAs}`,
+    );
   };
 }
 

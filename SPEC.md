@@ -238,7 +238,10 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   misses vocabulary gaps ("clientes fuera de Costa Rica" vs "exportación de servicios"), while
   exact-term queries (tramos, CCSS, CABYS codes) reward the lexical leg. Top-k ≈ 8 fused → answer.
   The lexical leg's tsquery semantics (strict AND with a conditional OR fallback) —
-  **[ADR 0005](docs/adr/0005-lexical-and-or-fallback.md)**.
+  **[ADR 0005](docs/adr/0005-lexical-and-or-fallback.md)**. Since #509 that leg searches the
+  question without its question words («cuánto», «cuál», «cómo»…, which the `spanish` stop
+  list keeps when accented) and the auxiliaries «va» and «ser»; a weak result is searched again
+  as typed.
 - **Embedding model:** Voyage vs OpenAI `text-embedding-3-small` — **ADR during Week 2**,
   benchmarked on the eval set; the exportación vocabulary-gap question is the canary.
 - **Multi-turn via condensation (#132, amends this section):** the pipeline below assembles an
@@ -267,7 +270,9 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   dropped, not retried, and counted: `rerankDrops` in the telemetry event, the eval transcripts
   and `pnpm answer-set-probe` (#466). The full lane of 2026-10-02 lost 0 of 377 readings at
   eval pace, and production asks far slower. Drops have appeared at about 58 asks a minute and
-  not at 21 (#457, #460). Only a replayed probe runs that fast.
+  not at 21 (#457, #460). Only a replayed probe runs that fast. When every reading is lost, the
+  answer set is the fused order's top-k, step legs included: the same pools with the step legs'
+  share taken out carried 47 of 93 Tier 1 targets against 57 (#510).
 - **Step catalogue (#304, amends this section):** retrieval also searches for the _step_ a
   complete answer needs and the question never asks for — when to pay, what the sanction is,
   how to adjust a declared figure. A hand-written catalogue per Tier 1 family
@@ -282,6 +287,13 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   gate, while one pick tied the unpinned mode on groundedness and stated 83/116 Tier 1
   requirements against 71/116 —
   **[ADR 0020](docs/adr/0020-step-catalogue-legs.md)**.
+- **Cross-references (#508, amends this section):** after the cut, an artículo the answer set
+  names inside its own instrument — «la tarifa referida en el artículo 10 de la presente ley»,
+  or a reglamento's «artículo 10 de la Ley» for the law its manifest entry `regulates` — is
+  fetched and appended, one chunk — a deferred figure first («la tarifa referida en…») — ahead of the derived-figure inputs and numbered and
+  cited like any other. A reference to another instrument is not followed, and an appended
+  chunk's own references are not read. `PIN_CROSS_REFERENCES=off` is the baseline —
+  **[ADR 0024](docs/adr/0024-in-document-cross-references.md)**.
 - **Answer assembly:** Claude **Sonnet by default, model as env var** — Week 3 runs Haiku 4.5
   through the same groundedness gate as a cost/quality comparison (portfolio material either way).
   Via Vercel AI SDK, streaming. System prompt constrains

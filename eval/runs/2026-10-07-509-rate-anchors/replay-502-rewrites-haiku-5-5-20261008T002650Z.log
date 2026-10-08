@@ -1,0 +1,29 @@
+$ tsx scripts/answer-set-probe.ts eval/runs/2026-10-07-509-rate-anchors/replay-502-rewrites-haiku-5-5.json
+
+EVAL_REWRITES: 109 cases' query and expansion replayed from eval/runs/2026-10-07-502-robustness/probe-haiku-5-5.json
+........................
+retrieval cases: 24 (8 in the robustness block; 53 expected targets outside it), abstention: 0, follow-ups condensed: 4
+condensation fell back to the question: none
+rewrites: replayed from eval/runs/2026-10-07-502-robustness/probe-haiku-5-5.json
+provider calls that did not come back: none
+rerank readings lost: none of 139
+weak: none
+expansion absent: none
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   25/53      4/16         0        —
+top8/capoff/pinon    25/53      4/16         0        —
+top8/cap3/pinoff     25/53      4/16         0        —
+top8/cap3/pinon      25/53      4/16         0        —
+top8/cap2/pinoff     22/53      3/16         0        —
+top8/cap2/pinon      22/53      3/16         0        —
+top10/capoff/pinoff  30/53      6/16         0        —
+top10/capoff/pinon   30/53      6/16         0        —
+top10/cap3/pinoff    28/53      6/16         0        —
+top10/cap3/pinon     28/53      6/16         0        —
+top10/cap2/pinoff    24/53      4/16         0        —
+top10/cap2/pinon     24/53      4/16         0        —
+
+top8/capoff/pinon, robustness block (#502): 6/8
+  MISS  rb-pill-retroactivo ← ccss-cobro-retroactivo  «¿Me pueden cobrar retroactivo?»  (seed not read)
+  MISS  rb-corto-cuanto-es-iva ← iva-tarifa-general  «¿cuánto es el IVA?»  (seed hit)
