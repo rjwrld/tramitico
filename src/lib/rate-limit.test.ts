@@ -4,6 +4,7 @@ import {
   checkRateLimit,
   coarseUserAgent,
   largerSignedInLimit,
+  limitFor,
   limitForAnonIp,
   questionCount,
   quotaNetwork,
@@ -267,11 +268,83 @@ describe("limitForAnonIp (#383)", () => {
     expect(limitForAnonIp()).toBe(7);
   });
 
-  it("falls back on a garbage override", () => {
-    process.env.RATE_LIMIT_ANON_IP = "many";
-    expect(limitForAnonIp()).toBe(30);
-    process.env.RATE_LIMIT_ANON_IP = "0";
-    expect(limitForAnonIp()).toBe(30);
+  it("falls back on a garbage override, a fraction included, and says so (#532)", () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      for (const value of ["many", "0", "7.5"]) {
+        process.env.RATE_LIMIT_ANON_IP = value;
+        expect(limitForAnonIp()).toBe(30);
+      }
+      expect(errors).toHaveBeenCalledTimes(3);
+      const line = String(errors.mock.calls[2][0]);
+      expect(line).toMatch(
+        /^config: unknown knob value RATE_LIMIT_ANON_IP="7.5"/,
+      );
+      expect(line).toContain("reading it as unset");
+      // Unset is still the multiple, so a bad umbrella follows the dial too.
+      process.env.RATE_LIMIT_ANON = "4";
+      expect(limitForAnonIp()).toBe(12);
+    } finally {
+      errors.mockRestore();
+    }
+  });
+});
+
+/**
+ * #532: the quotas read through knobs.ts. A quota counts whole asks, so a
+ * fraction is a typo: it reads as the default, logged once per cold start,
+ * rather than as a limit the 429 would state as «2.5 preguntas».
+ */
+describe("limitFor (#532)", () => {
+  let errors: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    errors = vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  it("reads production's values, the deploy wizard's literals, as themselves, silently", () => {
+    vi.stubEnv("RATE_LIMIT_ANON", "10");
+    vi.stubEnv("RATE_LIMIT_AUTHED", "10");
+    expect(limitFor("anon")).toBe(10);
+    expect(limitFor("authed")).toBe(10);
+    vi.stubEnv("RATE_LIMIT_ANON", "1");
+    vi.stubEnv("RATE_LIMIT_AUTHED", "25");
+    expect(limitFor("anon")).toBe(1);
+    expect(limitFor("authed")).toBe(25);
+    expect(errors).not.toHaveBeenCalled();
+  });
+
+  it.each(["anon", "authed"] as const)(
+    "reads a bad %s quota as the default and logs it once per cold start",
+    (tier) => {
+      const name = tier === "anon" ? "RATE_LIMIT_ANON" : "RATE_LIMIT_AUTHED";
+      vi.stubEnv(name, "2.5");
+      expect(limitFor(tier)).toBe(10);
+      expect(limitFor(tier)).toBe(10);
+      expect(rateLimitReachedMessage(tier, new Date())).toContain(
+        "10 preguntas",
+      );
+      expect(errors).toHaveBeenCalledOnce();
+      const line = String(errors.mock.calls[0][0]);
+      expect(line.startsWith(`config: unknown knob value ${name}="2.5"`)).toBe(
+        true,
+      );
+      expect(line).toContain("reading it as 10");
+    },
+  );
+
+  it("never logs a value that could be a key pasted into the wrong variable", () => {
+    const pasted = "placeholder-pasted-into-the-quota";
+    vi.stubEnv("RATE_LIMIT_AUTHED", pasted);
+    expect(limitFor("authed")).toBe(10);
+    const line = String(errors.mock.calls[0][0]);
+    expect(line).not.toContain(pasted.slice(0, 8));
+    expect(line).toContain(`(${pasted.length} chars, not shown)`);
   });
 });
 
