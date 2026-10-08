@@ -299,6 +299,10 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   cited like any other. A reference to another instrument is not followed, and an appended
   chunk's own references are not read. `PIN_CROSS_REFERENCES=off` is the baseline —
   **[ADR 0024](docs/adr/0024-in-document-cross-references.md)**.
+- **Named sources (#559):** after those two appends, a question that names a source by its own
+  name — «CABYS», the one entry of `NAMED_SOURCES` (`src/lib/answer/steps.ts`), matched as a
+  whole word on the condensed question — brings that document's best pooled chunk, one chunk
+  and only when the set holds none of it. `PIN_NAMED_SOURCES=off` is the baseline.
 - **Answer assembly:** Claude **Sonnet by default, model as env var** — Week 3 runs Haiku 4.5
   through the same groundedness gate as a cost/quality comparison (portfolio material either way).
   Via Vercel AI SDK, streaming. System prompt constrains

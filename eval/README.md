@@ -3836,3 +3836,18 @@ breaks rule 3 or makes the #547 hedge.
   `factura-primera-cabys`'s CABYS opening, is an old one (9 committed runs
   back to 2026-09-16). On the lane's 72/74, `HIT_RATE_GATE` goes to 0.94
   (owner decision), and `ho-abs-iva-2027`'s assertion is armed.
+
+## A source the question names (2026-10-08, #559)
+
+`factura-primera-cabys`'s CABYS absence claim was a set miss, not a pool
+miss: `cabys-dev` is fused #3, the rerank reads it #13–#23, and `pin1`'s one
+append goes to a `reglamento-comprobantes` artículo. `pinAnswerSet` now
+appends one chunk of a source the condensed question names by its own name
+(`NAMED_SOURCES`, CABYS only; `PIN_NAMED_SOURCES`, on). An
+`answer-set-probe` off/on pair on fixed rewrites, ≈US$0.02
+([`runs/2026-10-08-559/README.md`](runs/2026-10-08-559/README.md)), puts
+`cabys-dev` in that case's set (1/2 → 2/2 targets) and leaves the two
+robustness rows that expect it unchanged: they never say CABYS and it is
+outside their pool. Hit-rate counted the case a hit throughout, since one
+expected target was enough. Whether the answer now cites the codes is the
+next full lane's read.

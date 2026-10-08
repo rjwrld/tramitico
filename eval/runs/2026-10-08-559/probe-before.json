@@ -1,0 +1,1250 @@
+{
+  "configs": [
+    {
+      "name": "top8/capoff/pinoff",
+      "topK": "8",
+      "cap": "off",
+      "pin": "off",
+      "xref": "on"
+    },
+    {
+      "name": "top8/capoff/pinon",
+      "topK": "8",
+      "cap": "off",
+      "pin": "on",
+      "xref": "on"
+    },
+    {
+      "name": "top8/cap3/pinoff",
+      "topK": "8",
+      "cap": "3",
+      "pin": "off",
+      "xref": "on"
+    },
+    {
+      "name": "top8/cap3/pinon",
+      "topK": "8",
+      "cap": "3",
+      "pin": "on",
+      "xref": "on"
+    },
+    {
+      "name": "top8/cap2/pinoff",
+      "topK": "8",
+      "cap": "2",
+      "pin": "off",
+      "xref": "on"
+    },
+    {
+      "name": "top8/cap2/pinon",
+      "topK": "8",
+      "cap": "2",
+      "pin": "on",
+      "xref": "on"
+    },
+    {
+      "name": "top10/capoff/pinoff",
+      "topK": "10",
+      "cap": "off",
+      "pin": "off",
+      "xref": "on"
+    },
+    {
+      "name": "top10/capoff/pinon",
+      "topK": "10",
+      "cap": "off",
+      "pin": "on",
+      "xref": "on"
+    },
+    {
+      "name": "top10/cap3/pinoff",
+      "topK": "10",
+      "cap": "3",
+      "pin": "off",
+      "xref": "on"
+    },
+    {
+      "name": "top10/cap3/pinon",
+      "topK": "10",
+      "cap": "3",
+      "pin": "on",
+      "xref": "on"
+    },
+    {
+      "name": "top10/cap2/pinoff",
+      "topK": "10",
+      "cap": "2",
+      "pin": "off",
+      "xref": "on"
+    },
+    {
+      "name": "top10/cap2/pinon",
+      "topK": "10",
+      "cap": "2",
+      "pin": "on",
+      "xref": "on"
+    },
+    {
+      "name": "top8/capoff/pinon/xrefoff",
+      "topK": "8",
+      "cap": "off",
+      "pin": "on",
+      "xref": "off"
+    }
+  ],
+  "reads": [
+    {
+      "id": "factura-primera-cabys",
+      "kind": "retrieval",
+      "query": "¿Cómo emito mi primera factura electrónica y qué código CABYS uso?",
+      "condenseFailed": false,
+      "tier": 2,
+      "family": null,
+      "variant": null,
+      "weak": false,
+      "expansionFailed": false,
+      "expectedCount": 2,
+      "per": {
+        "top8/capoff/pinoff": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 10,
+          "pinned": ["reglamento-comprobantes·Artículo 12·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "reglamento-comprobantes·Preámbulo·#0",
+            "reglamento-comprobantes·Artículo 18·#0",
+            "reglamento-comprobantes·Artículo 9·#0",
+            "reglamento-comprobantes·Artículo 12·#0"
+          ]
+        },
+        "top8/capoff/pinon": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 10,
+          "pinned": ["reglamento-comprobantes·Artículo 12·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "reglamento-comprobantes·Preámbulo·#0",
+            "reglamento-comprobantes·Artículo 18·#0",
+            "reglamento-comprobantes·Artículo 9·#0",
+            "reglamento-comprobantes·Artículo 12·#0"
+          ]
+        },
+        "top8/cap3/pinoff": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 10,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "disposiciones-v44·Artículo 7·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top8/cap3/pinon": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 10,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "disposiciones-v44·Artículo 7·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top8/cap2/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 10,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "reglamento-renta·Artículo 84·#0",
+            "cabys-dev·*·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top8/cap2/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 10,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "reglamento-renta·Artículo 84·#0",
+            "cabys-dev·*·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top10/capoff/pinoff": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 12,
+          "pinned": ["reglamento-comprobantes·Artículo 12·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "reglamento-comprobantes·Preámbulo·#0",
+            "reglamento-comprobantes·Artículo 18·#0",
+            "reglamento-comprobantes·Artículo 16·#0",
+            "reglamento-comprobantes·Artículo 21·#0",
+            "reglamento-comprobantes·Artículo 9·#0",
+            "reglamento-comprobantes·Artículo 12·#0"
+          ]
+        },
+        "top10/capoff/pinon": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 12,
+          "pinned": ["reglamento-comprobantes·Artículo 12·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "reglamento-comprobantes·Preámbulo·#0",
+            "reglamento-comprobantes·Artículo 18·#0",
+            "reglamento-comprobantes·Artículo 16·#0",
+            "reglamento-comprobantes·Artículo 21·#0",
+            "reglamento-comprobantes·Artículo 9·#0",
+            "reglamento-comprobantes·Artículo 12·#0"
+          ]
+        },
+        "top10/cap3/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "disposiciones-v44·Artículo 7·#0",
+            "reglamento-renta·Artículo 84·#0",
+            "cabys-dev·*·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top10/cap3/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "disposiciones-v44·Artículo 7·#0",
+            "reglamento-renta·Artículo 84·#0",
+            "cabys-dev·*·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top10/cap2/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "reglamento-renta·Artículo 84·#0",
+            "cabys-dev·*·#0",
+            "ley-iva·Artículo 11 bis·#0",
+            "reglamento-iva·Artículo 29·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top10/cap2/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "reglamento-renta·Artículo 84·#0",
+            "cabys-dev·*·#0",
+            "ley-iva·Artículo 11 bis·#0",
+            "reglamento-iva·Artículo 29·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top8/capoff/pinon/xrefoff": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 9,
+          "pinned": [],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "reglamento-comprobantes·Preámbulo·#0",
+            "reglamento-comprobantes·Artículo 18·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        }
+      },
+      "targetRanks": [
+        {
+          "target": "reglamento-comprobantes/Artículo 4",
+          "rank": 5
+        },
+        {
+          "target": "cabys-dev/*",
+          "rank": 18
+        }
+      ],
+      "expansion": "Procedimiento para la emisión del primer comprobante electrónico de un contribuyente inscrito, con la selección del código CABYS que corresponda a los bienes o servicios facturados conforme a las disposiciones técnicas de comprobantes electrónicos y al Reglamento de Comprobantes Electrónicos.",
+      "steps": "T1-C",
+      "pool": [
+        "reglamento-comprobantes·Artículo 2·#0",
+        "reglamento-comprobantes·Artículo 4·#0",
+        "cabys-dev·*·#0",
+        "reglamento-comprobantes·Artículo 13·#0",
+        "reglamento-comprobantes·Artículo 9·#0",
+        "reglamento-comprobantes·Artículo 2·#1",
+        "reglamento-comprobantes·Preámbulo·#0",
+        "reglamento-comprobantes·Artículo 20·#0",
+        "disposiciones-v44·Artículo 10·#0",
+        "reglamento-comprobantes·Artículo 16·#0",
+        "reglamento-comprobantes·Artículo 23·#0",
+        "reglamento-comprobantes·Artículo 14·#0",
+        "reglamento-rts·Artículo 7·#0",
+        "disposiciones-v44·Artículo 7·#0",
+        "reglamento-iva·Artículo 60·#0",
+        "reglamento-comprobantes·Artículo 15·#0",
+        "tribu-cr-res-0011-2025·Transitorio II·#0",
+        "reglamento-comprobantes·Artículo 21·#0",
+        "reglamento-comprobantes·Artículo 22·#0",
+        "ley-iva·Artículo 11 bis·#0",
+        "reglamento-comprobantes·Artículo 1·#0",
+        "disposiciones-v44·Artículo 11·#0",
+        "reglamento-comprobantes·Preámbulo·#1",
+        "reglamento-comprobantes·Artículo 5·#0",
+        "reglamento-comprobantes·Artículo 7·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 9·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 6·#0",
+        "reglamento-renta·Artículo 84·#0",
+        "disposiciones-v44·Artículo 8·#0",
+        "reglamento-comprobantes·Artículo 18·#0",
+        "disposiciones-v44·Artículo 5·#0",
+        "reglamento-comprobantes·Artículo 12·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 12·#0",
+        "reglamento-comprobantes·Artículo 3·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 18·#0",
+        "disposiciones-v44·Transitorio I·#0",
+        "tribu-cr-faq·Gestor Documental · 5·#0",
+        "reglamento-iva·Artículo 29·#0",
+        "ley-renta·ARTICULO 66-C·#0",
+        "disposiciones-v44·Artículo 1·#0"
+      ],
+      "order": [
+        "reglamento-comprobantes·Artículo 13·#0",
+        "reglamento-iva·Artículo 60·#0",
+        "reglamento-comprobantes·Artículo 2·#0",
+        "reglamento-comprobantes·Artículo 14·#0",
+        "reglamento-comprobantes·Artículo 4·#0",
+        "reglamento-rts·Artículo 7·#0",
+        "reglamento-comprobantes·Preámbulo·#0",
+        "reglamento-comprobantes·Artículo 18·#0",
+        "reglamento-comprobantes·Artículo 16·#0",
+        "reglamento-comprobantes·Artículo 21·#0",
+        "disposiciones-v44·Artículo 1·#0",
+        "reglamento-comprobantes·Artículo 12·#0",
+        "reglamento-comprobantes·Artículo 9·#0",
+        "reglamento-comprobantes·Artículo 2·#1",
+        "disposiciones-v44·Artículo 5·#0",
+        "disposiciones-v44·Artículo 7·#0",
+        "reglamento-renta·Artículo 84·#0",
+        "cabys-dev·*·#0",
+        "reglamento-comprobantes·Artículo 15·#0",
+        "reglamento-comprobantes·Artículo 20·#0",
+        "reglamento-comprobantes·Artículo 1·#0",
+        "reglamento-comprobantes·Artículo 5·#0",
+        "ley-iva·Artículo 11 bis·#0",
+        "reglamento-iva·Artículo 29·#0",
+        "disposiciones-v44·Transitorio I·#0",
+        "disposiciones-v44·Artículo 10·#0",
+        "reglamento-comprobantes·Artículo 22·#0",
+        "reglamento-comprobantes·Artículo 3·#0",
+        "reglamento-comprobantes·Preámbulo·#1",
+        "tribu-cr-res-0011-2025·Transitorio II·#0",
+        "disposiciones-v44·Artículo 11·#0",
+        "reglamento-comprobantes·Artículo 7·#0",
+        "reglamento-comprobantes·Artículo 23·#0",
+        "disposiciones-v44·Artículo 8·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 18·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 9·#0",
+        "tribu-cr-faq·Gestor Documental · 5·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 6·#0",
+        "ley-renta·ARTICULO 66-C·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 12·#0"
+      ],
+      "scores": [
+        0.640625, 0.61328125, 0.6015625, 0.6015625, 0.59375, 0.5703125,
+        0.55859375, 0.55859375, 0.55859375, 0.55859375, 0.55859375, 0.5546875,
+        0.546875, 0.54296875, 0.5390625, 0.53125, 0.53125, 0.5234375,
+        0.51953125, 0.51953125, 0.51953125, 0.515625, 0.498046875, 0.498046875,
+        0.490234375, 0.482421875, 0.47265625, 0.47265625, 0.462890625,
+        0.4609375, 0.458984375, 0.451171875, 0.44921875, 0.447265625, 0.4140625,
+        0.3984375, 0.37109375, 0.361328125, 0.337890625, 0.322265625
+      ],
+      "failures": {
+        "condense": 0,
+        "expand": 0,
+        "embed": 0,
+        "rerank": 0
+      },
+      "rerankReadings": {
+        "asked": 6,
+        "returned": 6,
+        "dropped": []
+      },
+      "ms": {
+        "rewrite": 0,
+        "retrieve": 2621,
+        "rerank": 601
+      }
+    },
+    {
+      "id": "rb-pill-primera-factura",
+      "kind": "retrieval",
+      "query": "¿Cómo emito mi primera factura?",
+      "condenseFailed": false,
+      "tier": 2,
+      "family": null,
+      "variant": "robustez",
+      "weak": false,
+      "expansionFailed": false,
+      "expectedCount": 2,
+      "per": {
+        "top8/capoff/pinoff": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 9,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 21·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 18·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top8/capoff/pinon": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 9,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 21·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 18·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top8/cap3/pinoff": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 9,
+          "pinned": ["reglamento-comprobantes·Artículo 4·#0"],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 21·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 7·#0",
+            "disposiciones-v44·Artículo 10·#0",
+            "disposiciones-v44·Transitorio I·#0",
+            "reglamento-comprobantes·Artículo 4·#0"
+          ]
+        },
+        "top8/cap3/pinon": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 9,
+          "pinned": ["reglamento-comprobantes·Artículo 4·#0"],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 21·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 7·#0",
+            "disposiciones-v44·Artículo 10·#0",
+            "disposiciones-v44·Transitorio I·#0",
+            "reglamento-comprobantes·Artículo 4·#0"
+          ]
+        },
+        "top8/cap2/pinoff": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 9,
+          "pinned": ["reglamento-comprobantes·Artículo 4·#0"],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 21·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 7·#0",
+            "disposiciones-v44·Artículo 10·#0",
+            "reglamento-iva·Artículo 29·#0",
+            "tribu-cr-res-0011-2025·Transitorio II·#0",
+            "reglamento-comprobantes·Artículo 4·#0"
+          ]
+        },
+        "top8/cap2/pinon": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 9,
+          "pinned": ["reglamento-comprobantes·Artículo 4·#0"],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 21·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 7·#0",
+            "disposiciones-v44·Artículo 10·#0",
+            "reglamento-iva·Artículo 29·#0",
+            "tribu-cr-res-0011-2025·Transitorio II·#0",
+            "reglamento-comprobantes·Artículo 4·#0"
+          ]
+        },
+        "top10/capoff/pinoff": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 11,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 21·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 18·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "reglamento-comprobantes·Artículo 16·#0",
+            "reglamento-comprobantes·Preámbulo·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top10/capoff/pinon": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 11,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 21·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 18·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "reglamento-comprobantes·Artículo 16·#0",
+            "reglamento-comprobantes·Preámbulo·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top10/cap3/pinoff": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 11,
+          "pinned": ["reglamento-comprobantes·Artículo 4·#0"],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 21·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 7·#0",
+            "disposiciones-v44·Artículo 10·#0",
+            "disposiciones-v44·Transitorio I·#0",
+            "reglamento-iva·Artículo 29·#0",
+            "tribu-cr-res-0011-2025·Transitorio II·#0",
+            "reglamento-comprobantes·Artículo 4·#0"
+          ]
+        },
+        "top10/cap3/pinon": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 11,
+          "pinned": ["reglamento-comprobantes·Artículo 4·#0"],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 21·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 7·#0",
+            "disposiciones-v44·Artículo 10·#0",
+            "disposiciones-v44·Transitorio I·#0",
+            "reglamento-iva·Artículo 29·#0",
+            "tribu-cr-res-0011-2025·Transitorio II·#0",
+            "reglamento-comprobantes·Artículo 4·#0"
+          ]
+        },
+        "top10/cap2/pinoff": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 11,
+          "pinned": ["reglamento-comprobantes·Artículo 4·#0"],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 21·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 7·#0",
+            "disposiciones-v44·Artículo 10·#0",
+            "reglamento-iva·Artículo 29·#0",
+            "tribu-cr-res-0011-2025·Transitorio II·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 40·#0",
+            "reglamento-comprobantes·Artículo 4·#0"
+          ]
+        },
+        "top10/cap2/pinon": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 11,
+          "pinned": ["reglamento-comprobantes·Artículo 4·#0"],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 21·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 7·#0",
+            "disposiciones-v44·Artículo 10·#0",
+            "reglamento-iva·Artículo 29·#0",
+            "tribu-cr-res-0011-2025·Transitorio II·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 40·#0",
+            "reglamento-comprobantes·Artículo 4·#0"
+          ]
+        },
+        "top8/capoff/pinon/xrefoff": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 8,
+          "pinned": [],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 21·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 18·#0",
+            "reglamento-rts·Artículo 7·#0"
+          ]
+        }
+      },
+      "targetRanks": [
+        {
+          "target": "reglamento-comprobantes/Artículo 4",
+          "rank": 6
+        },
+        {
+          "target": "cabys-dev/*",
+          "rank": null
+        }
+      ],
+      "expansion": "Procedimiento para la emisión de comprobantes electrónicos de venta por parte de contribuyentes que inician actividades, incluyendo el registro en el Ministerio de Hacienda, la obtención de credenciales y la generación, firma y envío del comprobante electrónico conforme a las disposiciones técnicas vigentes.",
+      "steps": null,
+      "pool": [
+        "reglamento-comprobantes·Artículo 13·#0",
+        "reglamento-rts·Artículo 7·#0",
+        "reglamento-comprobantes·Artículo 2·#0",
+        "ley-iva·Artículo 27·#0",
+        "reglamento-comprobantes·Artículo 4·#0",
+        "ley-iva·Artículo 40·#0",
+        "reglamento-comprobantes·Preámbulo·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 9·#0",
+        "tribu-cr-res-0011-2025·Transitorio II·#0",
+        "disposiciones-v44·Artículo 10·#0",
+        "tribu-cr-faq·Consulta de la Situación Tributaria (OVi Pública) · 6·#0",
+        "reglamento-comprobantes·Artículo 14·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 20·#0",
+        "reglamento-iva·Artículo 25·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 27·#0",
+        "reglamento-iva·Artículo 60·#0",
+        "ley-renta·Artículo 15·#1",
+        "reglamento-comprobantes·Artículo 23·#0",
+        "reglamento-iva·Artículo 29·#0",
+        "ley-iva·Artículo 7·#0",
+        "ley-iva·Artículo 20·#0",
+        "ccss-prescripcion·¿Cómo se solicita la prescripción?·#0",
+        "reglamento-comprobantes·Artículo 20·#0",
+        "ley-iva·Artículo 3·#0",
+        "reglamento-comprobantes·Artículo 7·#0",
+        "reglamento-comprobantes·Artículo 21·#0",
+        "reglamento-comprobantes·Artículo 16·#0",
+        "disposiciones-v44·Transitorio I·#0",
+        "disposiciones-v44·Artículo 7·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 10·#0",
+        "reglamento-comprobantes·Artículo 5·#0",
+        "reglamento-comprobantes·Artículo 18·#0",
+        "reglamento-iva·Artículo 40 bis·#0",
+        "reglamento-comprobantes·Artículo 2·#1",
+        "ley-renta·ARTICULO 76·#0",
+        "reglamento-iva·Artículo 23 bis·#0",
+        "tribu-cr-faq·Trámites y Requisitos · 2·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 21·#0",
+        "ley-iva·Artículo 16·#0",
+        "reglamento-comprobantes·Artículo 9·#0"
+      ],
+      "order": [
+        "reglamento-iva·Artículo 60·#0",
+        "reglamento-comprobantes·Artículo 21·#0",
+        "reglamento-comprobantes·Artículo 13·#0",
+        "reglamento-comprobantes·Artículo 14·#0",
+        "reglamento-comprobantes·Artículo 2·#0",
+        "reglamento-comprobantes·Artículo 4·#0",
+        "reglamento-comprobantes·Artículo 18·#0",
+        "reglamento-rts·Artículo 7·#0",
+        "reglamento-comprobantes·Artículo 16·#0",
+        "reglamento-comprobantes·Preámbulo·#0",
+        "reglamento-comprobantes·Artículo 20·#0",
+        "reglamento-comprobantes·Artículo 2·#1",
+        "disposiciones-v44·Artículo 7·#0",
+        "reglamento-comprobantes·Artículo 5·#0",
+        "reglamento-comprobantes·Artículo 9·#0",
+        "disposiciones-v44·Artículo 10·#0",
+        "disposiciones-v44·Transitorio I·#0",
+        "reglamento-iva·Artículo 29·#0",
+        "tribu-cr-res-0011-2025·Transitorio II·#0",
+        "reglamento-comprobantes·Artículo 23·#0",
+        "reglamento-iva·Artículo 25·#0",
+        "reglamento-comprobantes·Artículo 7·#0",
+        "reglamento-iva·Artículo 23 bis·#0",
+        "ley-iva·Artículo 3·#0",
+        "ley-iva·Artículo 40·#0",
+        "ley-iva·Artículo 7·#0",
+        "ley-iva·Artículo 27·#0",
+        "tribu-cr-faq·Trámites y Requisitos · 2·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 9·#0",
+        "reglamento-iva·Artículo 40 bis·#0",
+        "ley-renta·ARTICULO 76·#0",
+        "tribu-cr-faq·Consulta de la Situación Tributaria (OVi Pública) · 6·#0",
+        "ley-iva·Artículo 20·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 20·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 10·#0",
+        "ccss-prescripcion·¿Cómo se solicita la prescripción?·#0",
+        "ley-iva·Artículo 16·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 27·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 21·#0",
+        "ley-renta·Artículo 15·#1"
+      ],
+      "scores": [
+        0.7109375, 0.6875, 0.68359375, 0.68359375, 0.671875, 0.671875, 0.671875,
+        0.609375, 0.609375, 0.60546875, 0.6015625, 0.58984375, 0.58984375,
+        0.5703125, 0.56640625, 0.55078125, 0.5234375, 0.515625, 0.5,
+        0.490234375, 0.484375, 0.466796875, 0.45703125, 0.451171875, 0.4453125,
+        0.4453125, 0.4453125, 0.412109375, 0.40625, 0.40625, 0.39453125,
+        0.390625, 0.390625, 0.380859375, 0.375, 0.357421875, 0.345703125,
+        0.34375, 0.333984375, 0.328125
+      ],
+      "failures": {
+        "condense": 0,
+        "expand": 0,
+        "embed": 0,
+        "rerank": 0
+      },
+      "rerankReadings": {
+        "asked": 2,
+        "returned": 2,
+        "dropped": []
+      },
+      "ms": {
+        "rewrite": 0,
+        "retrieve": 1773,
+        "rerank": 423
+      }
+    },
+    {
+      "id": "rb-tilde-primera-fatura",
+      "kind": "retrieval",
+      "query": "como hago mi primera fatura electronica",
+      "condenseFailed": false,
+      "tier": 2,
+      "family": null,
+      "variant": "robustez",
+      "weak": false,
+      "expansionFailed": false,
+      "expectedCount": 2,
+      "per": {
+        "top8/capoff/pinoff": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 9,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top8/capoff/pinon": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 9,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top8/cap3/pinoff": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 9,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "disposiciones-v44·Artículo 7·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top8/cap3/pinon": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 9,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "disposiciones-v44·Artículo 7·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top8/cap2/pinoff": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 9,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "tribu-cr-res-0011-2025·Transitorio II·#0",
+            "reglamento-renta·Artículo 84·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top8/cap2/pinon": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 9,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "tribu-cr-res-0011-2025·Transitorio II·#0",
+            "reglamento-renta·Artículo 84·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top10/capoff/pinoff": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 11,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "reglamento-comprobantes·Artículo 16·#0",
+            "reglamento-comprobantes·Artículo 12·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top10/capoff/pinon": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 11,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "reglamento-comprobantes·Artículo 16·#0",
+            "reglamento-comprobantes·Artículo 12·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top10/cap3/pinoff": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 11,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "disposiciones-v44·Artículo 7·#0",
+            "tribu-cr-res-0011-2025·Transitorio II·#0",
+            "reglamento-renta·Artículo 84·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top10/cap3/pinon": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 11,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "disposiciones-v44·Artículo 7·#0",
+            "tribu-cr-res-0011-2025·Transitorio II·#0",
+            "reglamento-renta·Artículo 84·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top10/cap2/pinoff": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 11,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "tribu-cr-res-0011-2025·Transitorio II·#0",
+            "reglamento-renta·Artículo 84·#0",
+            "ccss-faq·¿Puedo pagar las cuotas de arreglo o convenios de pago utilizando medios virtuales?·#0",
+            "reglamento-iva·Artículo 29·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top10/cap2/pinon": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 11,
+          "pinned": ["reglamento-comprobantes·Artículo 9·#0"],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 5·#0",
+            "tribu-cr-res-0011-2025·Transitorio II·#0",
+            "reglamento-renta·Artículo 84·#0",
+            "ccss-faq·¿Puedo pagar las cuotas de arreglo o convenios de pago utilizando medios virtuales?·#0",
+            "reglamento-iva·Artículo 29·#0",
+            "reglamento-comprobantes·Artículo 9·#0"
+          ]
+        },
+        "top8/capoff/pinon/xrefoff": {
+          "present": 1,
+          "missing": ["cabys-dev/*"],
+          "figures": [],
+          "size": 8,
+          "pinned": [],
+          "set": [
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-comprobantes·Artículo 4·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "reglamento-comprobantes·Artículo 14·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "disposiciones-v44·Artículo 1·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "disposiciones-v44·Artículo 5·#0"
+          ]
+        }
+      },
+      "targetRanks": [
+        {
+          "target": "reglamento-comprobantes/Artículo 4",
+          "rank": 2
+        },
+        {
+          "target": "cabys-dev/*",
+          "rank": null
+        }
+      ],
+      "expansion": "Procedimiento para emitir la primera factura electrónica como contribuyente registrado ante Hacienda, con sus requisitos de identificación, credenciales de acceso al sistema de comprobantes electrónicos y el formato de emisión que establecen las disposiciones técnicas de comprobantes electrónicos.",
+      "steps": null,
+      "pool": [
+        "reglamento-comprobantes·Artículo 13·#0",
+        "reglamento-comprobantes·Preámbulo·#0",
+        "reglamento-comprobantes·Artículo 2·#0",
+        "reglamento-comprobantes·Artículo 16·#0",
+        "reglamento-iva·Artículo 60·#0",
+        "tribu-cr-res-0011-2025·Transitorio II·#0",
+        "disposiciones-v44·Artículo 10·#0",
+        "ley-iva·Artículo 27·#0",
+        "reglamento-comprobantes·Artículo 4·#0",
+        "disposiciones-v44·Artículo 1·#0",
+        "reglamento-comprobantes·Artículo 15·#0",
+        "reglamento-comprobantes·Artículo 20·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 9·#0",
+        "tribu-cr-faq·Consulta de la Situación Tributaria (OVi Pública) · 6·#0",
+        "disposiciones-v44·Artículo 7·#0",
+        "reglamento-comprobantes·Artículo 9·#0",
+        "reglamento-rts·Artículo 7·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 20·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 21·#0",
+        "reglamento-comprobantes·Artículo 5·#0",
+        "reglamento-comprobantes·Artículo 14·#0",
+        "reglamento-comprobantes·Preámbulo·#1",
+        "reglamento-comprobantes·Artículo 2·#1",
+        "reglamento-comprobantes·Artículo 7·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 10·#0",
+        "disposiciones-v44·Transitorio I·#0",
+        "disposiciones-v44·Artículo 8·#0",
+        "reglamento-comprobantes·Artículo 12·#0",
+        "ley-iva·Artículo 11 bis·#0",
+        "reglamento-comprobantes·Artículo 23·#0",
+        "reglamento-iva·Artículo 29·#0",
+        "reglamento-renta·Artículo 84·#0",
+        "disposiciones-v44·Artículo 5·#0",
+        "reglamento-comprobantes·Artículo 22·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 6·#0",
+        "ley-iva·Artículo 28·#0",
+        "disposiciones-v44·Artículo 3·#0",
+        "tribu-cr-faq·Trámites y Requisitos · 2·#0",
+        "ccss-faq·¿Puedo pagar las cuotas de arreglo o convenios de pago utilizando medios virtuales?·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 52·#0"
+      ],
+      "order": [
+        "reglamento-comprobantes·Artículo 13·#0",
+        "reglamento-comprobantes·Artículo 4·#0",
+        "reglamento-comprobantes·Artículo 2·#0",
+        "reglamento-comprobantes·Artículo 14·#0",
+        "reglamento-iva·Artículo 60·#0",
+        "disposiciones-v44·Artículo 1·#0",
+        "reglamento-rts·Artículo 7·#0",
+        "disposiciones-v44·Artículo 5·#0",
+        "reglamento-comprobantes·Artículo 16·#0",
+        "reglamento-comprobantes·Artículo 12·#0",
+        "disposiciones-v44·Artículo 7·#0",
+        "reglamento-comprobantes·Preámbulo·#0",
+        "reglamento-comprobantes·Artículo 9·#0",
+        "disposiciones-v44·Artículo 3·#0",
+        "reglamento-comprobantes·Artículo 2·#1",
+        "tribu-cr-res-0011-2025·Transitorio II·#0",
+        "disposiciones-v44·Transitorio I·#0",
+        "reglamento-comprobantes·Artículo 5·#0",
+        "reglamento-comprobantes·Artículo 15·#0",
+        "disposiciones-v44·Artículo 10·#0",
+        "reglamento-renta·Artículo 84·#0",
+        "reglamento-comprobantes·Artículo 20·#0",
+        "disposiciones-v44·Artículo 8·#0",
+        "ccss-faq·¿Puedo pagar las cuotas de arreglo o convenios de pago utilizando medios virtuales?·#0",
+        "reglamento-iva·Artículo 29·#0",
+        "reglamento-comprobantes·Artículo 22·#0",
+        "reglamento-comprobantes·Artículo 23·#0",
+        "reglamento-comprobantes·Preámbulo·#1",
+        "tribu-cr-faq·Consulta de la Situación Tributaria (OVi Pública) · 6·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 9·#0",
+        "ley-iva·Artículo 27·#0",
+        "reglamento-comprobantes·Artículo 7·#0",
+        "tribu-cr-faq·Trámites y Requisitos · 2·#0",
+        "ley-iva·Artículo 11 bis·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 20·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 10·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 21·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 52·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 6·#0",
+        "ley-iva·Artículo 28·#0"
+      ],
+      "scores": [
+        0.76171875, 0.6640625, 0.640625, 0.62109375, 0.62109375, 0.62109375,
+        0.5859375, 0.58203125, 0.578125, 0.578125, 0.578125, 0.5703125,
+        0.5546875, 0.54296875, 0.5390625, 0.5234375, 0.5234375, 0.5234375,
+        0.515625, 0.51171875, 0.51171875, 0.490234375, 0.48046875, 0.46484375,
+        0.4609375, 0.458984375, 0.447265625, 0.443359375, 0.427734375,
+        0.427734375, 0.427734375, 0.42578125, 0.423828125, 0.41015625,
+        0.3984375, 0.390625, 0.384765625, 0.37890625, 0.37109375, 0.314453125
+      ],
+      "failures": {
+        "condense": 0,
+        "expand": 0,
+        "embed": 0,
+        "rerank": 0
+      },
+      "rerankReadings": {
+        "asked": 2,
+        "returned": 2,
+        "dropped": []
+      },
+      "ms": {
+        "rewrite": 0,
+        "retrieve": 1707,
+        "rerank": 628
+      }
+    }
+  ]
+}
