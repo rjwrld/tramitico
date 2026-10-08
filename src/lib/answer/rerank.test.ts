@@ -863,11 +863,17 @@ describe("answerTopK", () => {
     expect(answerTopK()).toBe(12);
   });
 
-  it("ignores a value that is not a positive integer", () => {
+  it("reads a value that is not a positive integer as the default, and logs it (#519)", () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
     for (const value of ["0", "-3", "8.5", "muchos"]) {
       vi.stubEnv("ANSWER_TOP_K", value);
       expect(answerTopK()).toBe(ANSWER_TOP_K);
     }
+    expect(errors).toHaveBeenCalledTimes(4);
+    expect(String(errors.mock.calls[3][0])).toContain(
+      `${KNOB_ERROR_PREFIX} ANSWER_TOP_K="muchos"`,
+    );
+    errors.mockRestore();
   });
 });
 
@@ -1178,11 +1184,17 @@ describe("the per-document cap (#303)", () => {
     expect(answerDocCap()).toBe(Infinity);
   });
 
-  it("ignores a value that is not a positive integer", () => {
+  it("reads a value that is not a positive integer as the default, and logs it (#519)", () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
     for (const value of ["0", "-1", "1.5", "tres"]) {
       vi.stubEnv("ANSWER_DOC_CAP", value);
       expect(answerDocCap()).toBe(ANSWER_DOC_CAP);
     }
+    expect(errors).toHaveBeenCalledTimes(4);
+    expect(String(errors.mock.calls[3][0])).toContain(
+      `${KNOB_ERROR_PREFIX} ANSWER_DOC_CAP="tres"`,
+    );
+    errors.mockRestore();
   });
 
   it("keeps no more than n chunks per docKey in the top-k when others are available", () => {

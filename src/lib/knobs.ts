@@ -20,6 +20,11 @@
  * `off`, and the log line is what tells the operator the word they set was
  * not one.
  *
+ * The two numeric answer-set knobs, `ANSWER_TOP_K` and `ANSWER_DOC_CAP`, read
+ * by the same rules through `positiveIntKnob` (#519): a value that is not a
+ * positive integer — nor one of the knob's words, `off` for the cap — is the
+ * default, logged on the same prefix.
+ *
  * `EMBEDDINGS_PROVIDER` is the one mode knob that does not read through here:
  * `createEmbedder` already throws on a provider it does not know, and has to
  * (ingestion/embedder.ts) — a fallback there would quietly embed questions
@@ -39,19 +44,62 @@ export function modeKnob<const T extends string>(
   modes: readonly T[],
   fallback: T,
 ): () => T {
-  let reported: string | null = null;
+  const report = reporter(name, modes.join(" | "), fallback);
   return () => {
     const raw = process.env[name] || "";
     if (raw === "") return fallback;
     const mode = modes.find((m) => m === raw);
     if (mode !== undefined) return mode;
-    if (raw !== reported) {
-      reported = raw;
-      console.error(
-        `${KNOB_ERROR_PREFIX} ${name}=${shown(raw)}; accepted: ${modes.join(" | ")}, or unset; reading it as ${fallback}`,
-      );
-    }
+    report(raw);
     return fallback;
+  };
+}
+
+/**
+ * A reader for one numeric knob (#519): a positive integer, as `Number` reads
+ * it, or one of `words` — `{ off: Infinity }` for `ANSWER_DOC_CAP`. Unset,
+ * empty and anything else read as `fallback`, the last logged once per cold
+ * start exactly as `modeKnob` logs.
+ */
+export function positiveIntKnob(
+  name: string,
+  fallback: number,
+  words: Readonly<Record<string, number>> = {},
+): () => number {
+  const label = (n: number) =>
+    Object.keys(words).find((word) => words[word] === n) ?? String(n);
+  const report = reporter(
+    name,
+    ["a positive integer", ...Object.keys(words)].join(" | "),
+    label(fallback),
+  );
+  return () => {
+    const raw = process.env[name] || "";
+    if (raw === "") return fallback;
+    if (Object.hasOwn(words, raw)) return words[raw];
+    const parsed = Number(raw);
+    if (Number.isInteger(parsed) && parsed >= 1) return parsed;
+    report(raw);
+    return fallback;
+  };
+}
+
+/**
+ * Logs a knob's bad value, unless it is the one it logged last — so a cold
+ * start logs it once, not per ask, and a second, different typo still shows.
+ */
+function reporter(
+  name: string,
+  accepted: string,
+  readAs: string,
+): (raw: string) => void {
+  let reported: string | null = null;
+  return (raw) => {
+    if (raw === reported) return;
+    reported = raw;
+    console.error(
+      `${KNOB_ERROR_PREFIX} ${name}=${shown(raw)}; accepted: ${accepted}, or unset; reading it as ${readAs}`,
+    );
   };
 }
 

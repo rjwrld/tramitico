@@ -36,10 +36,11 @@ value, except for `ANSWER_EFFORT`:
 | `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites     | `src/lib/eval/rewrites.ts`   |
 
 The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`)
-accept only the values above. Anything else runs the default and logs
-`config: unknown knob value` once (#499, `src/lib/knobs.ts`), so an arm that
-misspells `off` measures production rather than the baseline: check the run's
-output for that line.
+accept only the values above, and `ANSWER_TOP_K` and `ANSWER_DOC_CAP` only a
+positive integer (or `off`, for the cap; #519). Anything else runs the default
+and logs `config: unknown knob value` once (#499, `src/lib/knobs.ts`), so an
+arm that misspells `off` measures production rather than the baseline: check
+the run's output for that line.
 
 `.env.local` is loaded by `src/lib/test-support/suite-gate.ts` and never
 overrides an exported variable. To set an arm, export its knobs; there is no

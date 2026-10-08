@@ -89,7 +89,7 @@ export const ANSWER_MAX_OUTPUT_TOKENS = 4096;
  * `ANSWER_EFFORT` sets it for a measured run or a deploy; unset, empty (what
  * `eval.yml` interpolates for an unset repository variable) and anything
  * unrecognised all mean "send nothing", which is the provider default —
- * ignored rather than trusted, the reading `answerTopK` gives its knob.
+ * ignored rather than trusted.
  */
 export const ANSWER_EFFORTS = [
   "low",
