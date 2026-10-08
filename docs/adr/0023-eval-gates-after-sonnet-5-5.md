@@ -133,10 +133,14 @@ The owner chose #474's option 2 with three changes.
   The baseline is **68/73** (this ADR's 2026-10-02 lane), the margin **4**,
   so the floor is **64**, and a lane at **63 or below** fails. A lane that
   beats the baseline raises it. #512's two final lanes re-set it. The
-  count reads each case's first answer, as the baseline was measured, over
-  the 73 cases outside the abstention tier and the robustness block. A
-  dataset change that moves that population re-sets the baseline in the
-  same change; a unit test fails otherwise.
+  count is the judges' verdict on each case's first answer, over the 73
+  cases outside the abstention tier and the robustness block. That is how
+  the 68 was measured: before #500 existed. Seven of its 68 judge passes
+  make a claim #500's detector now calls false, so counting the verdict
+  after #500's override would read the same lane as 61, under the floor.
+  A false absence claim fails its own zero gate instead. A dataset change
+  that moves the population re-sets the baseline in the same change; a
+  unit test fails otherwise.
 - **A blocking case fails only on 2 of 3 answers.** When the judges fail a
   blocking case's first answer, the lane asks the whole pipeline the same
   case twice more. Each new answer is judged the same way, with the same
@@ -144,6 +148,13 @@ The owner chose #474's option 2 with three changes.
   The owner's estimate is about US$0.50 a lane, and #511 is the first
   lane that pays it. A re-ask that takes the weak-retrieval decline
   passes, as a first answer does: the fixed text makes no claim.
+- **An answer the route would refuse counts as a failing answer** in the
+  2-of-3 reading: a marker that resolves to nothing, no marker at all
+  (#168), or a derived figure quoted without its inputs (#281). The
+  lane's zero gates for those read first answers only, so without this a
+  re-ask production would never show could be one of the two passing
+  answers that clear a case. This was the orchestrator's call in review
+  (#521), not part of the owner's decision.
 - **The judges' failures carry a label**: `contradiction` (the answer says
   something the fragments contradict or do not contain) or `inference` (a
   defensible reading the fragments do not state in those words). A second

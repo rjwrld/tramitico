@@ -417,10 +417,12 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   ([ADR 0007](docs/adr/0007-groundedness-judge-model.md)). Since #474 the count of grounded
   answers is a **tracked baseline of 68/73** (the 2026-10-02 lane), failing only a lane more than
   4 below it (**≤ 63**); a lane that beats it raises it, and #512's final lanes re-set it. It
-  reads each case's first answer, over the 73 cases outside the abstention tier and the
-  robustness block. No individually blocking case may fail, and a blocking case fails **on 2 of
-  3 answers**: when the judges fail its first answer, the lane asks the whole pipeline twice more
-  and judges each new answer the same way. Every failure the judges make carries a
+  counts the judges' verdict on each case's first answer, before #500's override (as the 68 was
+  measured), over the 73 cases outside the abstention tier and the robustness block. No
+  individually blocking case may fail, and a blocking case fails **on 2 of 3 answers**: when its
+  first answer fails, the lane asks the whole pipeline twice more and judges each new answer the
+  same way. An answer the route would refuse to ship (#168's citation invariant, #281's derived
+  figures) counts as a failing one. Every failure the judges make carries a
   `contradiction`/`inference` label from a second call to the pinned judge; it is recorded, not
   gated, until it agrees with a human read of #512's failures
   ([ADR 0023, amendment](docs/adr/0023-eval-gates-after-sonnet-5-5.md#amendment-2026-10-07-474-groundedness-and-the-blocking-gate)).

@@ -917,15 +917,22 @@ verdict stands, absorbing judge flakiness at n≈25 without loosening the gate.
 The gate started at ≥90% per #14 and ratcheted to ≥94% on the 2026 baseline
 (#267, 70/73). Since #474 ([ADR 0023's amendment](../docs/adr/0023-eval-gates-after-sonnet-5-5.md#amendment-2026-10-07-474-groundedness-and-the-blocking-gate))
 it is a **tracked baseline of 68/73, failing at ≤ 63** (`GROUNDEDNESS_BASELINE`,
-`GROUNDEDNESS_FLOOR` in `src/lib/eval/groundedness.ts`), counted on each
-case's first answer. A lane that beats the baseline raises it.
+`GROUNDEDNESS_FLOOR` in `src/lib/eval/groundedness.ts`). It counts the judges'
+verdict on each case's first answer, before #500's override, as the 68 was
+measured: seven of that lane's judge passes make a claim the detector now
+calls false, and those fail the zero gate, not the count. A lane that beats
+the baseline raises it.
 
-A blocking case fails on **2 of 3 answers**. When the judges fail its first
-answer, the lane runs the whole pipeline on it twice more and judges each new
-answer the same way (`BLOCKING_REASK_COUNT`, `blockingCaseVerdict`); the
+A blocking case fails on **2 of 3 answers**. When its first answer fails, the
+lane runs the whole pipeline on it twice more and judges each new answer the
+same way (`BLOCKING_REASK_COUNT`, `blockingCaseVerdict`). An answer the route
+would refuse — #168's citation invariant, #281's derived figures — counts as
+a failing one (`scoreAnswer`, an orchestrator call in #521's review). The
 console prints each re-ask under its case, and the transcript row carries them
 in `reasks`. A false absence claim (#500) on any of the three fails the case,
-and a first answer that makes one is not re-asked. Each answer the judges fail
+and a first answer that makes one is not re-asked. If any answer or judge call
+throws, the transcript is written before the run fails (`runThenRecord`), so
+the rows already paid for survive. Each answer the judges fail
 also gets a `contradiction`/`inference` label from a second call to the pinned
 judge (`labelFailure`), in the row's `groundedness.label` and the console's
 tally. It gates nothing until it agrees with a human read of #512's failures.
