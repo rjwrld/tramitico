@@ -392,7 +392,7 @@ describe("crossReferencedChunks", () => {
   });
 
   it("does not guess between two artículos the document labels alike", async () => {
-    // reglamento-iva carries two «Artículo 25», in Capítulos I and VIII.
+    // reglamento-iva carried two «Artículo 25», in Capítulos I and VIII, until #530.
     const twin = { ...art10, chunkId: "ley-iva-Artículo 10-twin" };
     const { lookup } = fakeLookup([art10, twin, art4]);
     expect(await crossReferencedChunks([art30], options(lookup))).toEqual([

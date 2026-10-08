@@ -70,8 +70,9 @@ appended — one chunk, ahead of the derived-figure inputs.**
 5. **The lookup.** One service-role read of `chunks` joined to `documents`, whenever the set
    names anything (no RPC, no migration — the role already reads both tables, and nothing is
    granted to anyone else). Labels match loosely in SQL (case, accent, «quáter», «8º») and
-   exactly in code. A label the document repeats (`reglamento-iva` has two «Artículo 25») is not
-   appended: which one was meant would be a guess. A source withheld by
+   exactly in code. A label the document repeats is not appended: which one was meant would be
+   a guess. (`reglamento-iva`'s two «Artículo 25» were a chunking error, fixed in #530, and the
+   corpus-index tests now fail on any repeat the source does not really carry.) A source withheld by
    [ADR 0016](0016-source-freshness-policy.md)'s fiscal-year check (#505) is not fetched. The
    read stops with the ask and after 2 s of its own; a failed or late lookup logs
    `cross-references: lookup failed` and costs the append only: the set the rerank chose is

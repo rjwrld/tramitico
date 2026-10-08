@@ -455,8 +455,9 @@ export interface CrossReferenceOptions {
  * set's own order, then each chunk's text order. Only the set the rerank cut
  * is read, never what this appends, so one reference cannot chain into the
  * next. An artículo already in the set — any part of it — is not fetched
- * again, and one whose label the document repeats (`reglamento-iva` has two
- * «Artículo 25») is not appended at all: which one was meant is a guess.
+ * again, and one whose label the document repeats is not appended at all:
+ * which one was meant is a guess. (A repeat is usually a chunking bug, so the
+ * corpus-index tests fail on any the source does not really carry, #530.)
  *
  * A lookup that fails or runs out of time costs the append and nothing else:
  * the answer set the rerank chose is still a complete one, so the failure is
