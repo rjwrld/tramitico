@@ -7,7 +7,7 @@
     "quality_profile": "showcase",
     "repository": {
       "url": "https://github.com/rjwrld/tramitico",
-      "revision": "42e135e96781641a7f842653f405fb04129ff529"
+      "revision": "49daa8b52ad4578fd2dd41d6522fbcaca4c495b3"
     }
   },
   "components": [
@@ -36,7 +36,7 @@
       "sources": [
         {
           "path": "src/app/api/ask/route.ts",
-          "line": 713,
+          "line": 747,
           "label": "POST handler"
         },
         {
@@ -58,8 +58,8 @@
       "sources": [
         {
           "path": "src/lib/rate-limit.ts",
-          "line": 389,
-          "end_line": 483,
+          "line": 409,
+          "end_line": 503,
           "label": "checkRateLimit"
         }
       ]
@@ -75,13 +75,13 @@
       "sources": [
         {
           "path": "src/lib/answer/condense.ts",
-          "line": 195,
-          "end_line": 231,
+          "line": 174,
+          "end_line": 215,
           "label": "condenseQuestion"
         },
         {
           "path": "src/lib/answer/model.ts",
-          "line": 31,
+          "line": 43,
           "label": "DEFAULT_CONDENSE_MODEL"
         }
       ]
@@ -112,12 +112,12 @@
       "sources": [
         {
           "path": "src/lib/answer/expand.ts",
-          "line": 196,
+          "line": 188,
           "label": "expandQuery"
         },
         {
           "path": "src/lib/answer/steps.ts",
-          "line": 256,
+          "line": 257,
           "label": "stepProbe"
         }
       ]
@@ -133,8 +133,8 @@
       "sources": [
         {
           "path": "src/lib/retrieval.ts",
-          "line": 550,
-          "end_line": 666,
+          "line": 582,
+          "end_line": 715,
           "label": "retrieve"
         },
         {
@@ -153,14 +153,14 @@
       "sources": [
         {
           "path": "src/lib/routing.ts",
-          "line": 383,
-          "end_line": 396,
+          "line": 414,
+          "end_line": 427,
           "label": "classifyRouting"
         },
         {
           "path": "src/lib/routing.ts",
-          "line": 448,
-          "end_line": 485,
+          "line": 483,
+          "end_line": 520,
           "label": "declineAnswer"
         }
       ]
@@ -175,19 +175,19 @@
       "sources": [
         {
           "path": "src/lib/answer/rerank.ts",
-          "line": 596,
-          "end_line": 607,
+          "line": 725,
+          "end_line": 736,
           "label": "rerankChunks"
         },
         {
           "path": "src/lib/answer/rerank.ts",
-          "line": 152,
+          "line": 159,
           "label": "RERANK_MODEL"
         },
         {
           "path": "src/lib/answer/derived.ts",
-          "line": 318,
-          "end_line": 350,
+          "line": 319,
+          "end_line": 351,
           "label": "resolveDerivedFigures"
         }
       ]
@@ -203,13 +203,13 @@
       "sources": [
         {
           "path": "src/app/api/ask/route.ts",
-          "line": 632,
-          "end_line": 685,
+          "line": 641,
+          "end_line": 696,
           "label": "generateAnswer"
         },
         {
           "path": "src/lib/answer/model.ts",
-          "line": 23,
+          "line": 25,
           "label": "DEFAULT_ANSWER_MODEL"
         }
       ]
@@ -230,7 +230,7 @@
         },
         {
           "path": "src/app/api/ask/route.ts",
-          "line": 251,
+          "line": 259,
           "label": "MAX_ANSWER_ATTEMPTS"
         }
       ]
@@ -385,7 +385,7 @@
       "title": "Models",
       "items": [
         "claude-sonnet-5-5 answers",
-        "claude-haiku-4-5 condenses follow-ups and expands the query",
+        "claude-haiku-5-5 condenses follow-ups and expands the query",
         "voyage-3 embeds; rerank-2.5-lite reranks"
       ]
     }

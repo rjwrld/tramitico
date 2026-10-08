@@ -1,7 +1,9 @@
 # ADR 0023 — What the eval gates mean after Sonnet 5.5: the Tier 1 floor, and the model
 
 Date: 2026-10-02 · Status: accepted (A); amended 2026-10-07
-([#474, below](#amendment-2026-10-07-474-groundedness-and-the-blocking-gate)) · Amends
+([#474, below](#amendment-2026-10-07-474-groundedness-and-the-blocking-gate));
+the blocking column corrected 2026-10-07
+([#504](https://github.com/rjwrld/tramitico/issues/504), note ² under the table) · Amends
 [SPEC §9](../../SPEC.md) · Context: issues
 [#449](https://github.com/rjwrld/tramitico/issues/449),
 [#451](https://github.com/rjwrld/tramitico/issues/451),
@@ -10,7 +12,7 @@ Date: 2026-10-02 · Status: accepted (A); amended 2026-10-07
 
 ## Context
 
-Production answers with `claude-sonnet-5-5` at `ANSWER_EFFORT=low` since #451.
+Production answers with `claude-sonnet-5-5` at `ANSWER_EFFORT=low` since #451.¹
 The Tier 1 floor of 80 requirements out of 116 was set (#287, #426) on a
 single Sonnet 5 `medium` lane that stated 83. Since then each attempt to
 bring 5.5 back up to 80 has cost US$7–20. Together they come to about
@@ -18,10 +20,30 @@ US$275, and none has reached the floor on a full lane:
 
 | Full lane                      | Model, effort    | Groundedness | Blocking grounded | Tier 1 / 116 | Tier 2 | Derived figures | Abstention      |
 | ------------------------------ | ---------------- | ------------ | ----------------- | ------------ | ------ | --------------- | --------------- |
-| 2026-09-25 (`pin1`)            | Sonnet 5, medium | 68/73        | red (1)           | **83**       | 13/13  | green           | 9/9, green      |
-| 2026-09-28 (#449)              | 5.5, low         | 70/73        | —                 | 74           | 10/13  | —               | —               |
-| 2026-09-29 (#451)              | 5.5, low         | 69/73        | red (1)           | 77           | 12/13  | red             | 9/9, figure red |
+| 2026-09-25 (`pin1`)            | Sonnet 5, medium | 68/73        | red (3)²          | **83**       | 13/13  | green           | 9/9, green      |
+| 2026-09-28 (#449)              | 5.5, low         | 70/73        | red (1)²          | 74           | 10/13  | —               | —               |
+| 2026-09-29 (#451)              | 5.5, low         | 69/73        | red (2)²          | 77           | 12/13  | red             | 9/9, figure red |
 | **2026-10-02 (this decision)** | 5.5, low         | **68/73**    | **red (1)**       | **70**       | 10/13  | **green**       | **9/9, green**  |
+
+¹ Owner-checked on 2026-10-08 for #504: the Vercel dashboard shows the variable
+added on #451's day and never updated. The evidence is in
+[eval/README's Quick reference](../../eval/README.md#quick-reference), note ².
+
+² Corrected 2026-10-07 ([#504](https://github.com/rjwrld/tramitico/issues/504)).
+These three cells first read red (1), — and red (1). Each committed log's
+`ungrounded blocking answers` line names more:
+
+- 2026-09-25 names three: `multa-iva-no-declarado` (the art. 79 count),
+  `ho-rebajar-25-sin-facturas` and `ho-desinscribir-debiendo-declaraciones`
+  ([`eval-…T180647Z.log`](../../eval/runs/2026-09-25-lane/)).
+- 2026-09-28's `low` arm names one: `ho-minimo-caja-independiente-2026`
+  ([`low-…T232945Z.log`](../../eval/runs/2026-09-28-sonnet-5-5/)).
+- #451 names two: `ccss-obligacion-ingreso-bajo` and
+  `ho-trabajitos-por-mi-cuenta`
+  ([`low-…T050413Z.log`](../../eval/runs/2026-09-29-451/)).
+
+So the sentence below that says the gate «is red on one case per run» is
+wrong too. The amendment's count of 0–6 cases per lane is the right one.
 
 Fixed-chunk replays of the 27 Tier 1 rows (`pnpm answer-replay`) put the
 same prompt at 70–75 from one replay to the next. Identical full lanes
