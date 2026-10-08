@@ -283,6 +283,13 @@ export interface AskEvent {
   /** The configured rerank mode (#499); see `RerankMode`. */
   rerank: RerankMode;
   /**
+   * Retrieval searched a second time with the question as typed (#509): the
+   * search without its question words came back weak. One extra database
+   * round trip, no provider call; `false` on every ask that never reached
+   * retrieval.
+   */
+  lexicalRetry: boolean;
+  /**
    * What the cross-reference append did (#508): `appended`, `none` or
    * `failed` (`CrossReferenceOutcome`); `null` when it never ran — a
    * decline, an ask that ended before it, `PIN_CROSS_REFERENCES=off`. Never
@@ -324,6 +331,7 @@ interface AskFacts {
   abort: AskAbort | null;
   routedCategory: RoutedCategory | null;
   rerankDrops: RerankDrop[] | null;
+  lexicalRetry: boolean;
   crossReference: CrossReferenceOutcome | null;
   chargeKept: boolean;
 }
@@ -415,6 +423,8 @@ export interface AskTelemetry {
    * `rerankChunks`' `onReadings`, passed straight through.
    */
   rerankReadings: (count: { dropped: readonly DroppedReading[] }) => void;
+  /** Retrieval ran its as-typed second search (#509). */
+  lexicalRetry: () => void;
   /** The cross-reference append's outcome — `pinAnswerSet`'s `onOutcome`. */
   crossReference: (outcome: CrossReferenceOutcome) => void;
   /**
@@ -448,6 +458,7 @@ export function createAskTelemetry(
     abort: null,
     routedCategory: null,
     rerankDrops: null,
+    lexicalRetry: false,
     crossReference: null,
     chargeKept: false,
   };
@@ -545,6 +556,9 @@ export function createAskTelemetry(
     rerankReadings: ({ dropped }) => {
       facts.rerankDrops = dropped.map(rerankDrop);
     },
+    lexicalRetry: () => {
+      facts.lexicalRetry = true;
+    },
     crossReference: (outcome) => {
       facts.crossReference = outcome;
     },
@@ -594,6 +608,7 @@ export function createAskTelemetry(
         routedCategory: facts.routedCategory,
         rerankDrops: facts.rerankDrops,
         rerank: rerankEnabled() ? "on" : "off",
+        lexicalRetry: facts.lexicalRetry,
         crossReference: facts.crossReference,
       });
     },

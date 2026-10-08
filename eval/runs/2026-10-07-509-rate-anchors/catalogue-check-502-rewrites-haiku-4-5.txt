@@ -1,0 +1,8 @@
+iva-clientes-fuera-cr                    T1-D  main [3,2]  branch [3,2]
+ho-cliente-espana-lleva-iva              T1-D  main [1,6,—,10,40]  branch [1,5,9,11,—]  OUT: reglamento-comprobantes/Artículo 2
+ho-iva-en-cero-sin-facturar              T1-D  main [1,7,2]  branch [1,6,2]
+ho-hasta-que-dia-tengo-iva               T1-D  main [1,3]  branch [1,3]
+ho-minimo-caja-independiente-2026        T1-F  main [9,2,11]  branch [2,1,10]
+ho-800-mil-que-porcentaje-caja           T1-F  main [15,1,13]  branch [2,1,13]
+ho-tambien-asegurado-por-patrono         T1-F  main [27,5,2]  branch [29,6,4]
+cases 35, blocking targets pushed out of the 40: 1

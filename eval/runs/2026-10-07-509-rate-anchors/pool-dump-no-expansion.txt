@@ -1,0 +1,123 @@
+catálogo (#304): T1-F
+
+=== rb-pill-cuanto-pago-independiente ===
+pregunta:  ¿Cuánto pago como independiente?
+esperado:  ccss-escala-salud/Artículo 30°, sesión 8999 | ccss-escala-ivm/Artículo 4°, sesión 9570 | ley-10363/ARTÍCULO 1 | salarios-minimos/Artículo 1
+pool rank del primer objetivo (de 40): 12
+  #   v    l   xv   xl   sv   sl   score  chunk
+  1   37   11    —    —    4    3  0.05589    ccss-reglamento-ti / Artículo 10 #0
+  2    1    6    —    —   21   46  0.04689    ccss-faq / En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA? #0
+  3   23    —    —    —    1    2  0.04457    ccss-faq / ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? #0
+  4   32    —    —    —    2    5  0.04168    ccss-reglamento-ti / Artículo 12 #0
+  5   16   14    —    —   30    —  0.03778    ccss-prescripcion / ¿Cuáles son los conceptos que estando pendientes de pago le aplica la prescripción en sede administrativa? #0
+  6   49    2    —    —   36    —  0.03572    ccss-faq / ¿Dónde puedo pagar mi seguro si me encuentro atrasado en mis pagos? #0
+  7   43   10    —    —   34    —  0.03463    ccss-reglamento-ti / Artículo 29 #0
+  8   25   21    —    —   39    —  0.03421    ley-10363 / ARTÍCULO 2 #0
+  9    8    —    —    —   10   16  0.03258    ccss-faq / ¿Quién es un Trabajador Independiente? #0
+ 10   22    —    —    —   14   12  0.03202    ccss-reglamento-ti / Artículo 4 #0
+objetivos (de 40):
+   14    —    —    —    —    6    6  ccss-escala-salud / Artículo 30°, sesión 8999
+   28    —    —    —    —    5    1  ccss-escala-ivm / Artículo 4°, sesión 9570
+  fuera del pool  ley-10363 / ARTÍCULO 1
+   12    —    —    —    —    3    4  salarios-minimos / Artículo 1
+catálogo (#304): T1-F
+
+=== rb-corto-cuanto-pago-caja ===
+pregunta:  ¿cuánto pago a la caja?
+esperado:  ccss-escala-salud/Artículo 30°, sesión 8999 | ccss-escala-ivm/Artículo 4°, sesión 9570 | ley-10363/ARTÍCULO 1 | salarios-minimos/Artículo 1
+pool rank del primer objetivo (de 40): 2
+  #   v    l   xv   xl   sv   sl   score  chunk
+  1    1    2    —    —   21   46  0.04787    ccss-faq / En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA? #0
+  2   32    —    —    —    5    1  0.03520  → ccss-escala-ivm / Artículo 4°, sesión 9570 #0
+  3    —    —    —    —    1    2  0.03252    ccss-faq / ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? #0
+  4    3    3    —    —    —    —  0.03175    ccss-faq / ¿Qué tipo de interés cobra la CAJA en caso de morosidad en el pago de las cuotas? #0
+  5    —    —    —    —    3    4  0.03150  → salarios-minimos / Artículo 1 #0
+  6    —    —    —    —    4    3  0.03150    ccss-reglamento-ti / Artículo 10 #0
+  7    2    7    —    —    —    —  0.03105    ccss-faq / Si pago en efectivo la totalidad de la deuda, ¿me hacen descuento? #0
+  8    —    —    —    —    2    5  0.03081    ccss-reglamento-ti / Artículo 12 #0
+  9    6    4    —    —    —    —  0.03078    ccss-faq / ¿Con que propósito se realizan estudios de recuperabilidad para formalizar un convenio de pago en caso de deudas en cobro judicial? #0
+ 10    —    —    —    —    6    6  0.03030  → ccss-escala-salud / Artículo 30°, sesión 8999 #0
+objetivos (de 40):
+   10    —    —    —    —    6    6  ccss-escala-salud / Artículo 30°, sesión 8999
+    2   32    —    —    —    5    1  ccss-escala-ivm / Artículo 4°, sesión 9570
+  fuera del pool  ley-10363 / ARTÍCULO 1
+    5    —    —    —    —    3    4  salarios-minimos / Artículo 1
+catálogo (#304): T1-D
+
+=== rb-corto-tasa-iva ===
+pregunta:  ¿tasa del IVA?
+esperado:  ley-iva/Artículo 10
+pool rank del primer objetivo (de 40): 1
+  #   v    l   xv   xl   sv   sl   score  chunk
+  1    7    —    —    —    2    2  0.04718  → ley-iva / Artículo 10 #0
+  2    9    —    —    —    4    5  0.04294    ley-iva / Artículo 8 #0
+  3   42    —    —    —    5    3  0.04106    ley-iva / Artículo 27 #0
+  4    1    1    —    —    —   50  0.03733    ley-iva / Artículo 11 #0
+  5   44    —    —    —    8   10  0.03265    reglamento-iva / Artículo 3 #0
+  6    —    —    —    —    1    4  0.03202    cnpt / Artículo 79 #0
+  7   12    —    —    —   27   40  0.03038    reglamento-iva / Artículo 17 #0
+  8    —    —    —    —    6    6  0.03030    cnpt / Artículo 81 #0
+  9   14    2    —    —    —    —  0.02964    ley-iva / Artículo 8 #2
+ 10    8    —    —    —   18    —  0.02753    reglamento-iva / Artículo 18 #0
+objetivos (de 40):
+    1    7    —    —    —    2    2  ley-iva / Artículo 10
+catálogo (#304): T1-D
+
+=== rb-corto-cuanto-es-iva ===
+pregunta:  ¿cuánto es el IVA?
+esperado:  ley-iva/Artículo 10
+pool rank del primer objetivo (de 40): 1
+  #   v    l   xv   xl   sv   sl   score  chunk
+  1   21    —    —    —    2    2  0.04460  → ley-iva / Artículo 10 #0
+  2    9    —    —    —    4    5  0.04294    ley-iva / Artículo 8 #0
+  3   27    —    —    —    5    3  0.04275    ley-iva / Artículo 27 #0
+  4    2    3    —    —    —   36  0.03808    reglamento-iva / Preámbulo #0
+  5   18   14    —    —   28    —  0.03770    reglamento-iva / Artículo 34 #0
+  6   13    6    —    —    —   26  0.03757    reglamento-iva / Artículo 38 #0
+  7   10    2    —    —    —   34  0.03751    reglamento-iva / Preámbulo #1
+  8   31    5    —    —   31    —  0.03736    reglamento-iva / Transitorio II #0
+  9    3   13    —    —    —   50  0.03412    ley-iva / Artículo 11 #0
+ 10    7   12    —    —    —   27  0.03360    reglamento-iva-retencion-tarjetas / Artículo 41 #0
+objetivos (de 40):
+    1   21    —    —    —    2    2  ley-iva / Artículo 10
+catálogo (#304): T1-D
+
+=== iva-tarifa-general ===
+pregunta:  ¿Cuál es la tarifa general del IVA que debo cobrar por mis servicios de desarrollo?
+esperado:  ley-iva/Artículo 10
+pool rank del primer objetivo (de 40): 2
+  #   v    l   xv   xl   sv   sl   score  chunk
+  1   11    9    —    —    4    5  0.05081    ley-iva / Artículo 8 #0
+  2   28    —    —    —    2    2  0.04362  → ley-iva / Artículo 10 #0
+  3   44    6    —    —   21    7  0.04089    reglamento-iva / Artículo 11 #0
+  4   32    5    —    —   47   15  0.03898    reglamento-iva / Artículo 11 #2
+  5   29    8    —    —   16    —  0.03490    ley-renta / Artículo 59 #0
+  6    —   33    —    —    5    3  0.03433    ley-iva / Artículo 27 #0
+  7   36    —    —    —    8   10  0.03346    reglamento-iva / Artículo 3 #0
+  8   12   36    —    —   27   40  0.03336    reglamento-iva / Artículo 17 #0
+  9   15    2    —    —    —    9  0.03221    reglamento-iva / Artículo 23 #0
+ 10    8   16    —    —    —   36  0.03206    reglamento-iva / Preámbulo #0
+objetivos (de 40):
+    2   28    —    —    —    2    2  ley-iva / Artículo 10
+catálogo (#304): T1-F
+
+=== ccss-cuanto-pago-base ===
+pregunta:  ¿Cuánto pago a la CCSS como trabajador independiente y cómo se calcula la base?
+esperado:  ccss-escala-salud/Artículo 30°, sesión 8999 | ccss-escala-ivm/Artículo 4°, sesión 9570 | ley-10363/ARTÍCULO 1 | salarios-minimos/Artículo 1
+pool rank del primer objetivo (de 40): 4
+  #   v    l   xv   xl   sv   sl   score  chunk
+  1    8    1    —    —    4    3  0.06260    ccss-reglamento-ti / Artículo 10 #0
+  2   19    —    —    —    2    5  0.04347    ccss-reglamento-ti / Artículo 12 #0
+  3   32    —    —    —    1    2  0.04339    ccss-faq / ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? #0
+  4   21    —    —    —    6    6  0.04265  → ccss-escala-salud / Artículo 30°, sesión 8999 #0
+  5   45    —    —    —    9    7  0.03487    ccss-reglamento-ti / Artículo 7 #0
+  6   42    —    —    —    5    1  0.03413  → ccss-escala-ivm / Artículo 4°, sesión 9570 #0
+  7    2    —    —    —   12   36  0.03286    ccss-faq / ¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia? #0
+  8   11    —    —    —   28   15  0.03272    ccss-reglamento-ti / Preámbulo #0
+  9    —    —    —    —    3    4  0.03150  → salarios-minimos / Artículo 1 #0
+ 10   27    —    —    —   14   12  0.03132    ccss-reglamento-ti / Artículo 4 #0
+objetivos (de 40):
+    4   21    —    —    —    6    6  ccss-escala-salud / Artículo 30°, sesión 8999
+    6   42    —    —    —    5    1  ccss-escala-ivm / Artículo 4°, sesión 9570
+  fuera del pool  ley-10363 / ARTÍCULO 1
+    9    —    —    —    —    3    4  salarios-minimos / Artículo 1

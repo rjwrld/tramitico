@@ -32,6 +32,7 @@ import {
 import {
   asRetrievalClient,
   retrieve,
+  rrfScore,
   type RetrievalRpcClient,
 } from "./retrieval";
 import type { Embedder } from "./ingestion/embedder";
@@ -89,6 +90,15 @@ const STEP_TOKEN = "quirlobante";
 const STEP_CONTENT =
   `La cuota ${STEP_TOKEN} se cancela ante la sucursal correspondiente ` +
   "dentro del plazo que fije la institución.";
+
+/**
+ * The question-word fixture (#509), the same invented-word shape: a chunk
+ * that says «cuesta» and the token but not «cuánto», so the reader's
+ * «¿Cuánto cuesta…?» reaches it by strict AND only once the question word
+ * stops being one of the terms ANDed.
+ */
+const QUESTION_TOKEN = "quornafel";
+const QUESTION_CONTENT = `El ${QUESTION_TOKEN} cuesta lo que fije el reglamento de la institución.`;
 
 /** The outage this whole path exists for: no vector, ever, in any budget. */
 function deadEmbedder(): Embedder {
@@ -153,6 +163,13 @@ describeDb("retrieval degraded fallback (integration)", () => {
         path: ["Fixture"],
         part: 0,
         content: STEP_CONTENT,
+      },
+      {
+        document_id: documentId,
+        articulo: "ARTÍCULO 4",
+        path: ["Fixture"],
+        part: 0,
+        content: QUESTION_CONTENT,
       },
     ]);
     if (inserted.error) throw new Error(inserted.error.message);
@@ -258,6 +275,24 @@ describeDb("retrieval degraded fallback (integration)", () => {
     // The catalogue is no witness: a pool it filled alone is still weak on
     // the degraded path, and the sentences' failed embeds are not counted.
     expect(degradedReasons()).toEqual(["error"]);
+  });
+
+  it("ANDs the question's subject, not its question word (#509)", async () => {
+    const result = await retrieve(`¿Cuánto cuesta el ${QUESTION_TOKEN}?`, {
+      client,
+      embedder: deadEmbedder(),
+      expander: null,
+      steps: null,
+    });
+
+    const mine = result.chunks.find((c) => c.content === QUESTION_CONTENT);
+    expect(mine).toBeDefined();
+    expect(mine!.lexicalRank).not.toBeNull();
+    // The lexical leg is the only one that ran, so the score is its RRF
+    // share alone, at full weight: the strict branch, coverage 1. With
+    // «cuánto» ANDed in, no chunk matched all three lexemes, the OR
+    // fallback ran, and the share was scaled to two thirds (ADR 0006).
+    expect(mine!.score).toBeCloseTo(rrfScore(mine!.lexicalRank!), 12);
   });
 
   it("still declines a degraded query that matches nothing", async () => {

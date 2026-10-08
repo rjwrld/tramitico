@@ -1,0 +1,23 @@
+$ tsx scripts/answer-set-probe.ts eval/runs/2026-10-07-509-rate-anchors/tier1-haiku-5-5-r2.json
+...........................
+retrieval cases: 27 (0 in the robustness block; 93 expected targets outside it), abstention: 0, follow-ups condensed: 9
+condensation fell back to the question: none
+rewrites: live
+provider calls that did not come back: none
+rerank readings lost: none of 169
+weak: none
+expansion absent: none
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   56/93      8/27         8        —
+top8/capoff/pinon    61/93      12/27        19       —
+top8/cap3/pinoff     56/93      7/27         5        —
+top8/cap3/pinon      60/93      11/27        20       —
+top8/cap2/pinoff     52/93      6/27         7        —
+top8/cap2/pinon      57/93      10/27        20       —
+top10/capoff/pinoff  61/93      8/27         8        —
+top10/capoff/pinon   65/93      12/27        19       —
+top10/cap3/pinoff    58/93      7/27         7        —
+top10/cap3/pinon     62/93      11/27        20       —
+top10/cap2/pinoff    58/93      9/27         11       —
+top10/cap2/pinon     61/93      11/27        20       —

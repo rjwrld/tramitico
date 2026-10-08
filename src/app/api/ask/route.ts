@@ -977,6 +977,7 @@ export async function POST(request: Request): Promise<Response> {
       writeDegraded(writer);
       telemetry.degraded();
     }
+    if (retrieval.retriedAsTyped) telemetry.lexicalRetry();
 
     if (retrieval.isWeak) {
       // #264: the one place the classifier runs. On the condensed question,
