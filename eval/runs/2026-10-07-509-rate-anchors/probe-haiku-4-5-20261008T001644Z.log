@@ -1,0 +1,28 @@
+$ tsx scripts/answer-set-probe.ts eval/runs/2026-10-07-509-rate-anchors/probe-haiku-4-5.json
+....................................................................................................aaaaaaaaa
+retrieval cases: 100 (27 in the robustness block; 191 expected targets outside it), abstention: 9, follow-ups condensed: 15
+condensation fell back to the question: none
+rewrites: live
+provider calls that did not come back: ho-t2-hosting-extranjero(rerank×2) ho-t2-retencion-tarjetas(rerank×1) ho-t2-compu-cara-iva(rerank×2) rb-pill-iva-exterior(rerank×4) rb-pill-retroactivo(rerank×2) rb-pill-impuesto-renta(rerank×5) rb-corto-cuanto-es-iva(rerank×3) rb-corto-tasa-iva(rerank×2) rb-corto-cuanto-pago-caja(rerank×2) rb-corto-tramos-renta(rerank×4) rb-corto-cuando-declaro-renta(rerank×3) rb-corto-cuando-declaro-iva(rerank×4) rb-corto-que-cabys(rerank×4) rb-corto-multa-tarde(rerank×1) rb-tilde-inscribirme-afuera(rerank×3) rb-spanglish-client-usa(rerank×2) rb-seguimiento-le-cobro-iva(rerank×2) rb-seguimiento-de-cuanto-multa(rerank×2) ho-abs-iva-2027(rerank×4) ho-abs-devs-exentos-renta(rerank×1) ho-abs-calculo-personalizado(rerank×1)
+rerank readings lost: 54 of 573, on 21 case(s) — ho-t2-hosting-extranjero(step:429,step:429) ho-t2-retencion-tarjetas(expansion:429) ho-t2-compu-cara-iva(step:429,step:429) rb-pill-iva-exterior(expansion:429,step:429,step:429,step:429) rb-pill-retroactivo(step:429,step:429) rb-pill-impuesto-renta(expansion:429,step:429,step:429,step:429,step:429) rb-corto-cuanto-es-iva(expansion:429,step:429,step:429) rb-corto-tasa-iva(step:429,step:429) rb-corto-cuanto-pago-caja(step:429,step:429) rb-corto-tramos-renta(expansion:429,step:429,step:429,step:429) rb-corto-cuando-declaro-renta(expansion:429,step:429,step:429) rb-corto-cuando-declaro-iva(expansion:429,step:429,step:429,step:429) rb-corto-que-cabys(step:429,step:429,step:429,step:429) rb-corto-multa-tarde(step:429) rb-tilde-inscribirme-afuera(expansion:429,step:429,step:429) rb-spanglish-client-usa(step:429,step:429) rb-seguimiento-le-cobro-iva(step:429,step:429) rb-seguimiento-de-cuanto-multa(step:429,step:429) ho-abs-iva-2027(step:429,step:429,step:429,step:429) ho-abs-devs-exentos-renta(step:429) ho-abs-calculo-personalizado(step:429)
+weak: rb-pill-primera-factura
+expansion absent: none
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   135/191    42/73        2        —
+top8/capoff/pinon    141/191    46/73        22       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top8/cap3/pinoff     128/191    38/73        2        —
+top8/cap3/pinon      134/191    42/73        21       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top8/cap2/pinoff     124/191    35/73        2        —
+top8/cap2/pinon      130/191    39/73        21       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/capoff/pinoff  146/191    45/73        2        —
+top10/capoff/pinon   152/191    49/73        22       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/cap3/pinoff    135/191    40/73        2        —
+top10/cap3/pinon     141/191    44/73        21       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+top10/cap2/pinoff    130/191    39/73        6        —
+top10/cap2/pinon     134/191    41/73        21       ho-abs-aguinaldo-freelancer(bmc-ivm-2026,bmc-sem-2026)
+
+top8/capoff/pinon, robustness block (#502): 24/27
+  MISS  rb-pill-inscribo-exterior ← inscripcion-hacienda-clientes-extranjero  «¿Me inscribo si facturo al exterior?»  (seed hit)
+  MISS  rb-pill-primera-factura ← factura-primera-cabys  «¿Cómo emito mi primera factura?»  (seed hit)
+  MISS  rb-pill-retroactivo ← ccss-cobro-retroactivo  «¿Me pueden cobrar retroactivo?»  (seed hit)

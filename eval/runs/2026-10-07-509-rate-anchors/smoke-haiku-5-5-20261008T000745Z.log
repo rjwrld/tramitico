@@ -1,0 +1,25 @@
+$ tsx scripts/answer-set-probe.ts eval/runs/2026-10-07-509-rate-anchors/smoke-haiku-5-5.json
+...................a
+retrieval cases: 19 (5 in the robustness block; 30 expected targets outside it), abstention: 1, follow-ups condensed: 0
+condensation fell back to the question: none
+rewrites: live
+provider calls that did not come back: none
+rerank readings lost: none of 92
+weak: none
+expansion absent: none
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   19/30      8/14         0        —
+top8/capoff/pinon    20/30      8/14         2        —
+top8/cap3/pinoff     16/30      7/14         0        —
+top8/cap3/pinon      17/30      7/14         2        —
+top8/cap2/pinoff     16/30      7/14         0        —
+top8/cap2/pinon      17/30      7/14         2        —
+top10/capoff/pinoff  19/30      8/14         0        —
+top10/capoff/pinon   20/30      8/14         2        —
+top10/cap3/pinoff    17/30      7/14         0        —
+top10/cap3/pinon     18/30      7/14         2        —
+top10/cap2/pinoff    17/30      7/14         0        —
+top10/cap2/pinon     18/30      7/14         2        —
+
+top8/capoff/pinon, robustness block (#502): 5/5

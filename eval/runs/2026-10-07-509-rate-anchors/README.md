@@ -1,0 +1,116 @@
+# Rate questions reach their rate sources, 2026-10-07 (#509)
+
+`pnpm answer-set-probe` reads (retrieve → rerank → cap → pin, no answer
+model, no judge) on the shared local stack carrying the 873-chunk ingest,
+with `RERANK=voyage STEPS=on STEPS_RERANK=pin1` exported, so every read is
+production's retrieval. The baseline is #502's two arms
+([`../2026-10-07-502-robustness/`](../2026-10-07-502-robustness/)), the same
+stack and knobs before this change. Every number is under the route's
+configuration, `top8/capoff/pinon`. A case **hits** when one of its
+`expected` targets is in the answer set.
+
+The change has three parts: the lexical leg drops question words and retries
+as typed when that comes back weak (`src/lib/retrieval.ts`), two catalogue
+sentences (T1-F's escalas, T1-D's `ley-iva` art. 10), and three expansion
+prompt rules (7: a future figure gets the rule in force, never a refusal;
+8: casual wording is translated to the situation a norm regulates; 9: no
+heading over a list of neighbouring topics).
+
+## Files
+
+The prompt moved during the work, so each file names the prompt it ran on.
+"Rule 9 (first)" also said «Redacte la regla misma: cada oración con sujeto y
+verbo»; the shipped rule 9 drops that clause (below).
+
+| File                             | Model     | Prompt          | What it is                                                                                                                                 |
+| -------------------------------- | --------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `smoke-haiku-5-5*`               | Haiku 5.5 | rule 9 (first)¹ | 20 cases: `ho-t2-*`, the rate cases, `ho-abs-iva-2027`                                                                                     |
+| `probe-haiku-5-5*`               | Haiku 5.5 | rule 9 (first)  | Full arm, no strip retry yet                                                                                                               |
+| `probe-haiku-4-5*`               | Haiku 4.5 | rule 9 (first)  | Full arm, no strip retry yet. **Lost 54 of 573 rerank readings to Voyage 429s on 21 cases**                                                |
+| `rerun-haiku-4-5*`               | Haiku 4.5 | rule 9 (first)  | Those 21 cases plus `rb-pill-primera-factura`, paced (`PROBE_CASE_MS=3000`), with the retry: 0 lost                                        |
+| `rerun-haiku-5-5*`               | Haiku 5.5 | rule 9 (first)  | `rb-pill-primera-factura`, with the retry                                                                                                  |
+| `replay-502-rewrites-haiku-5-5*` | —         | #502's rewrites | `EVAL_REWRITES`: #502's 5.5 expansions through the new retrieval, on the 24 cases the live arm moved. Isolates the strip and the catalogue |
+| `tier1-haiku-5-5-r2*`            | Haiku 5.5 | rule 9 (first)  | Second live read of the 27 Tier 1 cases                                                                                                    |
+| `variant-no-rule9-haiku-5-5*`    | Haiku 5.5 | no rule 9       | Nine cases                                                                                                                                 |
+| `variant-final-rule9-haiku-5-5*` | Haiku 5.5 | **shipped**     | The same nine cases                                                                                                                        |
+| `final-haiku-5-5*`               | Haiku 5.5 | **shipped**     | 50 cases: Tier 1, `ho-t2-*`, the acceptance and robustness cases this issue names                                                          |
+
+¹ Rules 7 and 8 quoted «va a ser» and «se rebaja» in the smoke, wordings of
+held-out questions; they were reworded before the full arms, which also
+discarded a first 5.5 arm stopped at 20 cases.
+
+## Acceptance, on the shipped prompt (`final-haiku-5-5`)
+
+| Case                                                                   | Rate sources in the answer set                                    |
+| ---------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `rb-pill-cuanto-pago-independiente` «¿Cuánto pago como independiente?» | `ccss-escala-salud`, `ccss-escala-ivm`, `salarios-minimos` art. 1 |
+| `rb-corto-tasa-iva` «¿tasa del IVA?»                                   | `ley-iva` art. 10                                                 |
+| `rb-corto-cuanto-pago-caja` «¿cuánto pago a la caja?»                  | both escalas and `salarios-minimos` art. 1; **no longer weak**    |
+| `rb-pill-retroactivo` «¿Me pueden cobrar retroactivo?»                 | hit (`ley-10363` art. 2)                                          |
+| `ho-abs-iva-2027`                                                      | `ley-iva` art. 10 in the set; the expansion no longer refuses     |
+
+| Read                 | Tier 1 hits | Tier 1 targets in the set | `ho-t2-*` |
+| -------------------- | ----------- | ------------------------- | --------- |
+| #502, Haiku 5.5      | 27/27       | 63                        | 9/12      |
+| #502, Haiku 4.5      | 27/27       | 61                        | 12/12     |
+| **final, Haiku 5.5** | **27/27**   | **64**                    | **10/12** |
+
+No Tier 1 case loses its hit. `ho-t2-*` misses on the final read:
+`ho-t2-credito-iva-compras` (missed on every 5.5 run, #496 included) and
+`ho-t2-payoneer`. `rb-tilde-inscribirme-afuera` missed there and hit on the
+`variant-final-rule9` read of the same prompt.
+
+## Both rewrite models, full arms (first rule 9)
+
+The full arms ran before the strip retry and the rule 9 fix. Both count the
+`rerun-*` re-read of `rb-pill-primera-factura` (weak in the arm, a hit with
+the retry), and the 4.5 arm the paced re-read of its 21 cases.
+
+| Arm       | Outside the block | Block | `ho-t2-*` | Tier 1 targets |
+| --------- | ----------------- | ----- | --------- | -------------- |
+| Haiku 5.5 | 69/73             | 26/27 | 10/12     | 59             |
+| Haiku 4.5 | 71/73             | 26/27 | 11/12     | 65             |
+
+`ho-t2-*` on Haiku 4.5 lost `ho-t2-credito-iva-compras` (below). On Haiku
+5.5, `ho-t2-autorizar-contador` and `ho-t2-payoneer` gained their hit, and
+`ho-t2-compu-cara-iva` missed with its expansion call timed out.
+
+## What each part did
+
+- **The strip and the catalogue lose nothing on their own.** With #502's own
+  5.5 expansions replayed, the 24 cases the live arm moved come back
+  identical except two gains: `iva-tarifa-general` and
+  `rb-corto-cuanto-pago-caja`. So every loss in the live arms is the
+  expansion's text.
+- **The strip's one regression, fixed by the retry.** Without «cómo»,
+  «¿Cómo emito mi primera factura?» took the strict AND branch and matched
+  one uncorroborated chunk, so the ask turned weak on both models. A weak
+  result is now searched again as typed (`retrieve`); the re-reads hit.
+- **The T1-D sentence is a trade.** Replaying #502's rewrites without it,
+  `ley-iva` art. 10 is in the answer set of none of `iva-tarifa-general`,
+  `rb-corto-cuanto-es-iva` and `ho-abs-iva-2027` on either model; with it,
+  all three. It also pushes `ley-iva` art. 21 out of the fused pool on
+  `ho-t2-credito-iva-compras` (4.5's rewrite: #30 → out), the chunk #418's
+  rejected T1-D sentence pushed out. That case is Tier 2 and not blocking,
+  and Haiku 5.5 never hit it.
+- **The first rule 9 cost a blocking case.** «Redacte la regla misma» made
+  5.5 state the conclusion («las rentas de fuente extranjera no se
+  encuentran sujetas») where `ho-hacienda-solo-cliente-eeuu` asks about
+  inscription, and its targets fell out of the set on two live reads of two;
+  #502's rewrites replayed still hit. Without rule 9 the case hits but
+  `ho-t2-autorizar-contador` and `ho-t2-payoneer` miss again. The shipped
+  rule 9 keeps the ban on lists of neighbouring topics and drops the clause.
+
+## Cost
+
+Estimated **≈US$1.36**. No console figure was read.
+
+- Voyage rerank (`rerank-2.5-lite`, US$0.02/M tokens): about 2,150 readings
+  at ≈20k tokens each (40 chunks of ≈420 tokens plus the query per chunk) ≈
+  US$0.86. The logs count 2,041; the discarded 20-case arm and the
+  single-case replays add the rest.
+- Haiku 4.5 (US$1/M in, US$5/M out): about 150 calls of ≈2k tokens in and
+  150 out ≈ US$0.39.
+- Haiku 5.5 (US$0.10/M in, US$0.50/M out): about 300 calls, including the
+  `pool-dump` diagnostics ≈ US$0.08.
+- Voyage embeddings: about US$0.01.

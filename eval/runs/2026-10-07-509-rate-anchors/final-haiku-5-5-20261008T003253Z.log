@@ -1,0 +1,26 @@
+$ tsx scripts/answer-set-probe.ts eval/runs/2026-10-07-509-rate-anchors/final-haiku-5-5.json
+.................................................a
+retrieval cases: 49 (9 in the robustness block; 119 expected targets outside it), abstention: 1, follow-ups condensed: 9
+condensation fell back to the question: none
+rewrites: live
+provider calls that did not come back: none
+rerank readings lost: none of 269
+weak: none
+expansion absent: none
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   74/119     17/40        5        —
+top8/capoff/pinon    79/119     21/40        18       —
+top8/cap3/pinoff     74/119     16/40        2        —
+top8/cap3/pinon      79/119     20/40        18       —
+top8/cap2/pinoff     70/119     13/40        2        —
+top8/cap2/pinon      75/119     17/40        18       —
+top10/capoff/pinoff  81/119     19/40        8        —
+top10/capoff/pinon   85/119     23/40        18       —
+top10/cap3/pinoff    77/119     17/40        2        —
+top10/cap3/pinon     82/119     21/40        18       —
+top10/cap2/pinoff    74/119     16/40        8        —
+top10/cap2/pinon     78/119     20/40        18       —
+
+top8/capoff/pinon, robustness block (#502): 8/9
+  MISS  rb-tilde-inscribirme-afuera ← inscripcion-hacienda-clientes-extranjero  «tengo q inscribirme en hacienda si le facturo a clientes de afuera»  (seed not read)

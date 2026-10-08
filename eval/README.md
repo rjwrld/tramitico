@@ -3490,3 +3490,49 @@ both rewrite models, route configuration):
 copied from held-out cases, against «The held-out set» rule above. The block
 does not repair that; the repair needs questions nobody on the project wrote
 (#506).
+
+## Rate questions reach their rate sources (2026-10-07, #509)
+
+#490 item 1 asked «¿Cuánto pago como independiente?» and got no rate. The
+audit behind map #497 found three causes, and #502's probe added two more
+cases with the same shape: «¿cuánto pago a la caja?», weak on both rewrite
+models, and «¿Me pueden cobrar retroactivo?», which Haiku 5.5 read as arrears
+interest. Three changes:
+
+- **The question's lexical leg drops its question words**
+  (`lexicalQueryText`, ADR 0005's amendment). The `spanish` stop list keeps
+  «cuánto», «cuál», «cómo», «dónde» when accented, so the strict AND
+  demanded them. When the stripped search is weak, `retrieve` searches once
+  more with the question as typed: without «cómo», «¿Cómo emito mi primera
+  factura?» matched one uncorroborated chunk by strict AND and turned weak.
+  The change sits in front of the RPC, so it needs no migration.
+- **Two catalogue sentences** (`eval/step-catalogue.json`): the escalas'
+  shared heading for T1-F, and `ley-iva` art. 10's own text for T1-D.
+- **Three expansion rules** (ADR 0019's amendment): a future figure gets the
+  rule in force, casual wording is translated to the situation a norm
+  regulates, and no heading over a list of neighbouring topics.
+
+**The read** ([`runs/2026-10-07-509-rate-anchors/`](runs/2026-10-07-509-rate-anchors/),
+route configuration, Haiku 5.5, shipped prompt):
+
+| Read                | Tier 1 hits | Tier 1 targets in the set | `ho-t2-*` |
+| ------------------- | ----------- | ------------------------- | --------- |
+| #502, Haiku 5.5     | 27/27       | 63                        | 9/12      |
+| **#509, Haiku 5.5** | **27/27**   | **64**                    | **10/12** |
+
+- The pill label and «¿cuánto pago a la caja?» carry both escalas and
+  `salarios-minimos` art. 1; «¿tasa del IVA?», «¿cuánto es el IVA?», its seed
+  `iva-tarifa-general` and `ho-abs-iva-2027` carry art. 10.
+  «¿Me pueden cobrar retroactivo?» hits.
+- Replaying #502's expansions through the new retrieval, the strip and the
+  catalogue lose nothing; every loss in the live arms is the expansion's text,
+  inside the ±4 band of «Where two identical runs part».
+- The T1-D sentence is a trade. It pushes `ley-iva` art. 21 out of the fused
+  pool on `ho-t2-credito-iva-compras` under Haiku 4.5's rewrite. That case is
+  Tier 2, and Haiku 5.5 missed it on every run.
+- The full arms on both models ran on a first rule 9 that cost the blocking
+  case `ho-hacienda-solo-cliente-eeuu` on 5.5, and the shipped rule 9 drops
+  the clause that did it. Haiku 4.5 was not re-read on the shipped prompt.
+  #511's baseline reads the pipeline before this change, and #512's final lanes read it after.
+
+≈US$1.36, estimated (the run's README has the breakdown).
