@@ -1,0 +1,30 @@
+..a
+retrieval cases: 2 (1 in the robustness block; 1 expected targets outside it), abstention: 1, follow-ups condensed: 0
+condensation fell back to the question: none
+rewrites: live
+provider calls that did not come back: none
+rerank readings lost: none of 15
+weak: none
+expansion absent: none
+
+config               targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff   1/1        1/1          0        —
+top8/capoff/pinon    1/1        1/1          0        —
+top8/cap3/pinoff     1/1        1/1          0        —
+top8/cap3/pinon      1/1        1/1          0        —
+top8/cap2/pinoff     1/1        1/1          0        —
+top8/cap2/pinon      1/1        1/1          0        —
+top10/capoff/pinoff  1/1        1/1          0        —
+top10/capoff/pinon   1/1        1/1          0        —
+top10/cap3/pinoff    1/1        1/1          0        —
+top10/cap3/pinon     1/1        1/1          0        —
+top10/cap2/pinoff    1/1        1/1          0        —
+top10/cap2/pinon     1/1        1/1          0        —
+top8/capoff/pinon/xrefoff 0/1        0/1          0        —
+
+cross-references (#508): targets 0 → 1, Tier 1 0 → 0
+  iva-tarifa-general: +ley-iva·Artículo 10·#0, reglamento-rts·Artículo 1·#0 (targets +1)
+  rb-corto-tasa-iva: +reglamento-iva·Artículo 65·#0, ley-iva·Artículo 28·#0
+  ho-abs-iva-2027: +ley-iva·Artículo 10·#0, ley-iva·Artículo 28·#0
+
+top8/capoff/pinon, robustness block (#502): 1/1

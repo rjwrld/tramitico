@@ -37,11 +37,9 @@
  */
 import { readFileSync } from "node:fs";
 import { beforeAll, expect, it } from "vitest";
-import {
-  pinDerivedFigureInputs,
-  pinEnabled,
-  resolveDerivedFigures,
-} from "../answer/derived";
+import { crossReferencesEnabled } from "../answer/cross-references";
+import { pinEnabled, resolveDerivedFigures } from "../answer/derived";
+import { pinAnswerSet } from "../answer/pins";
 import { expansionEnabled } from "../answer/expand";
 import { STEP_CATALOGUE, stepsEnabled } from "../answer/steps";
 import {
@@ -240,8 +238,8 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
       });
       const order = outcome?.order ?? null;
       // The route's exact sequence: rerank cut with the step picks appended
-      // (#304), then #287's derived-input pin.
-      const topK = pinDerivedFigureInputs(
+      // (#304), then the cross-references (#508) and #287's derived-input pin.
+      const topK = await pinAnswerSet(
         answerSetFromOrder(order, retrieval.chunks, outcome?.stepPicks ?? []),
         retrieval.chunks,
       );
@@ -322,7 +320,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
     console.log(
       `\nretrieval hit-rate (rerank=${rerankMode} ${process.env.RERANK_MODEL || RERANK_MODEL}, pool ${RERANK_POOL} → top ${topKSize}, ` +
         `cap=${docCap === Infinity ? "off" : docCap}/doc, expand=${expandMode}, steps=${stepsMode}, ` +
-        `pin=${pinEnabled() ? "on" : "off"}): ${hits}/${gated.length}`,
+        `pin=${pinEnabled() ? "on" : "off"}, xref=${crossReferencesEnabled() ? "on" : "off"}): ${hits}/${gated.length}`,
     );
     console.log(
       formatRobustnessLine(
