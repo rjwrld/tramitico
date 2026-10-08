@@ -152,28 +152,28 @@ The full account, including what was lost and what the gates failed to say, is i
 - Until 2026-10-07 production did not rerank, while the eval lanes behind ADR 0023's
   baselines did ([#498](https://github.com/rjwrld/tramitico/issues/498)). Production has run
   the pipeline those baselines measure only since then.
-- No full lane has passed every gate since 2026-09-24. The gates changed on 2026-10-07. The
-  first lane read under them, [#511](https://github.com/rjwrld/tramitico/issues/511)'s on
-  2026-10-08, failed four: hit-rate (68/74), one blocking case's hit, one blocking case's
-  groundedness and four false absence claims.
-- Answers are incomplete. On the baseline lane they stated 70 of the 116 required claims and
-  steps across the Tier 1 cases. In about 25 of the 46 misses, no chunk carrying the
-  requirement reached the model
-  ([#497](https://github.com/rjwrld/tramitico/issues/497)). ADR 0023 tracks the count rather
-  than paying for prompt rounds aimed at a number.
-- Some answers state what their fragments don't support. The baseline lane grounded 68 of 73.
-  A read of 18 judge failures, on the Sonnet 5.5 lanes and 2026-09-25, found about 7 real
-  errors (a contradiction, a wrong citation, a URL in no fragment), about 7 strict calls on
-  reasonable inferences, and about 4 claims that the documents don't say something, one of
-  them false.
+- The gate results vary from run to run. Of
+  [#512](https://github.com/rjwrld/tramitico/issues/512)'s two final lanes on the same code
+  (2026-10-08), one passed every gate, the first to do so since 2026-09-24. The other failed
+  one blocking case on 2 of its 3 answers.
+- Answers are incomplete. The two final lanes stated 78 and 79 of the 116 required claims and
+  steps across the Tier 1 cases, and 4 and 5 of the 27 Tier 1 questions got every one. Most
+  of what is missing is where and how: TRIBU-CR and OVi steps, CCSS channels, and how to
+  regularize ([eval/runs/2026-10-08-final](eval/runs/2026-10-08-final/)). ADR 0023 tracks the
+  count rather than paying for prompt rounds aimed at a number.
+- Some answers state what their fragments don't support. The two final lanes each grounded
+  73 of 74. The failures include a claim that's in no fragment, an assumption about the
+  reader («como usted trabaja por cuenta propia») and an answer that says the sources don't
+  settle how a fine is counted when the cited figure does.
 - The model sometimes says the documents lack an artículo or figure that the corpus holds. The
   eval now fails any answer that does ([#500](https://github.com/rjwrld/tramitico/issues/500)).
   Since [#507](https://github.com/rjwrld/tramitico/issues/507) the prompt tells the model it
-  sees only part of the documents; fixed-chunk replays took #511's four such claims to zero,
-  and [#512](https://github.com/rjwrld/tramitico/issues/512)'s final lanes are the full read.
+  sees only part of the documents. #512's two final lanes made none, where #511's lane made
+  four.
 - Short, unaccented, Spanglish and seed-pill questions are measured by a robustness block
-  outside every gate ([#502](https://github.com/rjwrld/tramitico/issues/502)). Its baseline
-  is 25 of 27 hits, set by #511's lane.
+  outside every gate ([#502](https://github.com/rjwrld/tramitico/issues/502)). Both final
+  lanes retrieved a right source for all 27, though only 23 of their 37 required claims and
+  steps reach the answer.
 - No one outside the author has used it, and the author wrote the eval set. Peer questions
   are the next dataset.
 - The corpus has annual obligations, tramos, minimum wage, contribution scales, that change

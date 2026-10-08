@@ -71,8 +71,12 @@ export const ADEQUACY_TIER2_GATE = 0.84;
  * the owner held the baseline at 70 rather than ratchet it (2026-10-08): one
  * lane, a +16 unexplained with the prompt unchanged, and a pipeline that
  * changes again before #512, whose two lanes re-set it.
+ *
+ * #512's two final lanes on one main stated 78 and 79
+ * (eval/runs/2026-10-08-final/), so the baseline is 78: the lower of the two
+ * lanes, which both reached. #511's 86 did not hold.
  */
-export const TIER1_REQUIREMENT_BASELINE = 70;
+export const TIER1_REQUIREMENT_BASELINE = 78;
 
 /** The ±4 run-to-run noise on identical pipelines (#457). */
 export const TIER1_REGRESSION_MARGIN = 4;

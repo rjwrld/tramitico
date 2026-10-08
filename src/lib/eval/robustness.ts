@@ -29,9 +29,10 @@ import { isRobustness, robustnessSeedId, type EvalCase } from "./dataset";
  * Block cases that hit, on the lane that sets it: 25 of 27 on #511's
  * baseline lane (eval/runs/2026-10-08-baseline/), missing
  * `rb-pill-retroactivo` and `rb-corto-cuanto-es-iva`. A lane that beats it
- * moves it up, as `HIT_RATE_GATE` ratchets.
+ * moves it up, as `HIT_RATE_GATE` ratchets: #512's two final lanes both hit
+ * 27 of 27 (eval/runs/2026-10-08-final/).
  */
-export const ROBUSTNESS_HIT_BASELINE: number | null = 25;
+export const ROBUSTNESS_HIT_BASELINE: number | null = 27;
 
 /**
  * How many hits a lane may lose to noise: two of 27. The two #502 probe

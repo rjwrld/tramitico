@@ -33,8 +33,12 @@ import type { AnswerChecks } from "./answer-checks";
  * the owner held the baseline at 68 rather than ratchet it (2026-10-08). It
  * was one lane, its Tier 1 +16 is unexplained with the prompt unchanged, and
  * the pipeline changes again before #512, whose two lanes re-set it.
+ *
+ * #512's two final lanes on one main both read 73 of 74
+ * (eval/runs/2026-10-08-final/), so the baseline is 73: the lower of the two
+ * lanes, which both reached.
  */
-export const GROUNDEDNESS_BASELINE = 68;
+export const GROUNDEDNESS_BASELINE = 73;
 
 /**
  * The cases the lane counts over: every non-abstention case outside the
@@ -45,7 +49,7 @@ export const GROUNDEDNESS_BASELINE = 68;
  * 74 since #503 added `t2-inscripcion-dimex`. The baseline and the floor stay
  * absolute counts of grounded answers: the 68 was read over the 73 before it,
  * and a new case can only add a pass. #511 was the first lane read over 74
- * (72). #512's final lanes re-set the baseline over the population they run.
+ * (72). #512's final lanes re-set the baseline over 74 (73).
  */
 export const GROUNDEDNESS_CASES = 74;
 
@@ -53,9 +57,8 @@ export const GROUNDEDNESS_CASES = 74;
 export const GROUNDEDNESS_REGRESSION_MARGIN = 4;
 
 /**
- * The fewest grounded answers a full lane may score: 64, so a lane at 63 or
- * below fails. A lane that beats the baseline raises it (the ratchet); #512's
- * two final lanes re-set it.
+ * The fewest grounded answers a full lane may score: 69, so a lane at 68 or
+ * below fails. A lane that beats the baseline raises it (the ratchet).
  */
 export const GROUNDEDNESS_FLOOR =
   GROUNDEDNESS_BASELINE - GROUNDEDNESS_REGRESSION_MARGIN;

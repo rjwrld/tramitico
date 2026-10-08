@@ -2,6 +2,8 @@
 
 Date: 2026-10-02 · Status: accepted (A); amended 2026-10-07
 ([#474, below](#amendment-2026-10-07-474-groundedness-and-the-blocking-gate));
+baselines re-set 2026-10-08
+([#512, below](#512s-two-final-lanes-the-baselines-re-set-2026-10-08));
 the blocking column corrected 2026-10-07
 ([#504](https://github.com/rjwrld/tramitico/issues/504), note ² under the table) · Amends
 [SPEC §9](../../SPEC.md) · Context: issues
@@ -221,3 +223,39 @@ instead, so groundedness stays at 68 (a lane fails at ≤ 63) and Tier 1 at 70
 - #512's two final lanes re-set both baselines anyway.
 
 The robustness block's baseline, which #511 had to set, is 25 of 27.
+
+## #512's two final lanes: the baselines re-set (2026-10-08)
+
+Two full lanes ran serially on main at b8d8667, after #507, #508 and #509
+([`eval/runs/2026-10-08-final/`](../../eval/runs/2026-10-08-final/)):
+
+| Gate                      | Lane 1  | Lane 2 | New baseline | A lane fails at |
+| ------------------------- | ------- | ------ | ------------ | --------------- |
+| Groundedness / 74         | 73      | 73     | **73**       | ≤ 68            |
+| Tier 1 requirements / 116 | 78      | 79     | **78**       | ≤ 73            |
+| Robustness block hits     | 27/27   | 27/27  | **27**       | ≤ 24            |
+| False absence claims      | 0       | 0      | zero gate    | ≥ 1             |
+| Blocking, 2 of 3          | red (1) | green  | unchanged    | any case        |
+
+Each baseline is **the lower of the two lanes**, which both reached. Two lanes
+were run because one can't separate a change from answer variance, so the
+lower one is the level the pipeline holds. The margins are unchanged. Lane 2
+passed every gate, the first full lane to do so since 2026-09-24. Lane 1's one
+red is `multa-iva-no-declarado` on 2 of 3 answers: each says the sources
+don't say how the artículo 79 fine counts across periods, while the derived
+figure it cites reads «por cada declaración tributaria omitida».
+
+Tier 1 at 78–79 keeps about half of #511's +16 (86). The two lanes agree
+within one requirement, so #511's lane reads as the top of the spread.
+
+The `contradiction`/`inference` label matched a human read on four of the
+five distinct failing cases. It mislabelled the artículo 79 hedge, a real
+error, as `inference`. It stays recorded, not gated.
+
+`ho-abs-iva-2027`'s requirement read 0/1 on both lanes: each answer cites
+the 13 % and names no artículo 10. Its assertion stays a todo. The hit-rate
+gate stays at 0.92: both lanes clear it, and #512 does not re-set it.
+
+In code: `GROUNDEDNESS_BASELINE` (`groundedness.ts`),
+`TIER1_REQUIREMENT_BASELINE` (`adequacy.ts`) and `ROBUSTNESS_HIT_BASELINE`
+(`robustness.ts`), each pinned by its unit test.
