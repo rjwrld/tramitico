@@ -204,6 +204,61 @@ Round 1's three clauses, plus:
   total exacto», sino «El monto exacto de su caso lo determina Hacienda».»
 - Rule 8's examples add «no la hago aquí», the fourth draw's wording.
 
+### Round 2's read
+
+From this worktree, `round2/`. Transcripts by draw: `232932` d1, `233048` d2,
+`233158` d3, `233216`/`233236`/`233258` seguimiento d1–d3, `234252` the Tier 1
+guard; `abstention-subset-…` the three scoped abstention draws. No row
+errored, no log carries `config: unknown knob value`, and the judges passed
+every target row.
+
+| Target                              | d1                                                                 | d2                                                | d3                                       | Passes             |
+| ----------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------- | ---------------------------------------- | ------------------ |
+| `multa-iva-no-declarado`            | ✗ «lo determina Hacienda; no lo sumo aquí ni lo proyecto»          | ✓ «El total por tres meses lo determina Hacienda» | ✓ «lo determina Hacienda para su caso»   | 2/3                |
+| `iva-ajuste-bien-de-capital`        | ✓                                                                  | ✓                                                 | ✓ «lo determina usted en su declaración» | 3/3                |
+| `rb-pill-cuanto-pago-independiente` | ✓ «Su monto exacto lo determina la CCSS; aquí se explica la regla» | ✓                                                 | ✓                                        | 3/3                |
+| `ho-tambien-asegurado-por-patrono`  | ✓                                                                  | ✓                                                 | ✓                                        | 3/3                |
+| `renta-plazo-followup`              | ✓                                                                  | ✓                                                 | ✓                                        | 3/3                |
+| `rb-seguimiento-de-cuanto-multa`    | ✓                                                                  | ✓                                                 | ✓                                        | 3/3                |
+| `ho-abs-calculo-personalizado`      | ✓ «El monto exacto de su caso lo determina Hacienda…»              | ✓                                                 | ✓                                        | 3/3 (declines 3/3) |
+
+The Tier 1 guard's fourth draws pass too: `multa-iva-no-declarado` and
+`ho-tambien-asegurado-por-patrono`. No answer wrote «cifra derivada»,
+«etiqueta» or «marcador». #546 held on every draw (no multiplied figure, no
+«ya llegó al tope»), and no draw wrote the #547 hedge. One close call is
+counted as a pass, the same shape as round 1's d3: `multa` d3 writes «en
+principio cada declaración mensual de IVA no presentada sería una infracción»,
+the label's count applied to the reader's months with no number or total.
+`renta-plazo-followup` wrote no «ya pasó» date slip in round 2 (control 1/3,
+round 1 1/3). `ho-abs-calculo-personalizado` d3 says «Sin esos datos no es
+posible ubicarlo en una escala», after the remit: rule 9's «diga qué dato
+falta para ubicarla», not a refusal to compute.
+
+**Tier 1 guard: 85/116** (control 84), grounded **27/27** (control 24/27, round
+1 26/27), so no new judge failure. False absence claims 0 → 0. The guard's
+leak check reads 0/27 (control 3/27).
+
+**Absence openings** (reported, not gated), the shape ADR 0023 says not to
+trade into:
+
+| Arm     | Openings | Cases                                                                                                       |
+| ------- | -------- | ----------------------------------------------------------------------------------------------------------- |
+| Control | 2        | `ho-cabys-paginas-web`, `ho-desinscribir-debiendo-declaraciones`                                            |
+| Round 1 | 5        | the two, `inscripcion-tardia-sancion`, `ho-hacienda-solo-cliente-eeuu`, `ho-minimo-caja-independiente-2026` |
+| Round 2 | 3        | the two, `ho-hacienda-solo-cliente-eeuu`                                                                    |
+
+Round 2 is one above the control and two below round 1. On main's prompt the
+recorded lane rows opened 4 times (`inscripcion-tardia-sancion`,
+`ho-cabys-paginas-web`, `ho-minimo-caja-independiente-2026`,
+`ho-desinscribir-debiendo-declaraciones`) and the control's replay of the
+same rows 2, so one draw moves this count by about 2 on its own.
+`ho-hacienda-solo-cliente-eeuu`, the one case round 2 adds, opened with an
+absence claim on #556's round 2 too («now opens with an absence claim»). The
+bar doesn't gate openings, and round 2 does not raise them past round 1.
+
+**Round 2 meets the bar**: every target passes on at least 2 of 3, the guard
+is 1 above the control, no new false absence claim, no new judge failure.
+
 ## Cost
 
 Estimated at ≈US$0.10 a row (`answer-replay`'s header), and at #556's measured
@@ -227,4 +282,14 @@ replays' output tokens, 954–1,870 a row, are in line with #556's):
 | Round 1 (a), targets ×3    | 18   | 0.80 |
 | Round 1 (b), abstention ×3 | 3    | 0.30 |
 | Round 1 (c), Tier 1 guard  | 27   | 1.15 |
-| **Total**                  |      | 4.18 |
+| Round 2 (a), targets ×3    | 18   | 0.80 |
+| Round 2 (b), abstention ×3 | 3    | 0.30 |
+| Round 2 (c), Tier 1 guard  | 27   | 1.15 |
+| **Total**                  |      | 6.43 |
+
+The transcripts embed the text of the retrieved chunks, which are excerpts of
+official public documents of the Government of Costa Rica (Hacienda, CCSS,
+SINALEVI, BCCR). Those excerpts are outside the repository's Apache-2.0
+license; see the rights table in
+[`docs/corpus-samples/README.md`](../../../docs/corpus-samples/README.md). The
+answers are model output about public law and contain no user data.
