@@ -167,10 +167,10 @@ The full account, including what was lost and what the gates failed to say, is i
   reasonable inferences, and about 4 claims that the documents don't say something, one of
   them false.
 - The model sometimes says the documents lack an artículo or figure that the corpus holds. The
-  eval now fails any answer that does ([#500](https://github.com/rjwrld/tramitico/issues/500));
-  the fix in the answer itself is open
-  ([#507](https://github.com/rjwrld/tramitico/issues/507),
-  [#508](https://github.com/rjwrld/tramitico/issues/508)).
+  eval now fails any answer that does ([#500](https://github.com/rjwrld/tramitico/issues/500)).
+  Since [#507](https://github.com/rjwrld/tramitico/issues/507) the prompt tells the model it
+  sees only part of the documents; fixed-chunk replays took #511's four such claims to zero,
+  and [#512](https://github.com/rjwrld/tramitico/issues/512)'s final lanes are the full read.
 - Short, unaccented, Spanglish and seed-pill questions are measured by a robustness block
   outside every gate ([#502](https://github.com/rjwrld/tramitico/issues/502)). Its baseline
   is 25 of 27 hits, set by #511's lane.

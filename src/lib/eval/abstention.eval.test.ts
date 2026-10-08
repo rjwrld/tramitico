@@ -29,8 +29,8 @@
  * not the whole of it. `ho-abs-iva-2027` declines a 2027 rate and still owes
  * the reader today's — 13 % and the artículo 10 that sets it, cited, and
  * never the claim that the artículo is missing from the documents (#490 item
- * 2), which the committed answers made and the judge passed. The lane scores
- * and prints it; the assertion waits for #507 and #508.
+ * 2), which the committed answers made and the judge passed. Asserted since
+ * #507 (the prompt) joined #508 (art. 30 → art. 10).
  *
  * `EVAL_CASES` scopes it as it scopes the groundedness and hit-rate lanes
  * (`./subset`): only the named abstention cases are asked, the transcript's
@@ -365,13 +365,18 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
     const claims = falseAbsenceFailures(checkedCases(results));
     expect(claims, `false absence claims: ${claims.join("; ")}`).toEqual([]);
   });
-  // #502: scored and printed above on every lane, not yet asserted. 17 of the
-  // 19 committed answers fail it, the fixes are #507 (the prompt) and #508
-  // (art. 30 → art. 10), and a gate that starts red decides nothing (#497).
-  // The absence half is gated sooner, by #500's detector.
-  it.todo(
-    "gives what an abstention case requires, and denies no artículo (#502) — armed when #507 and #508 land",
-  );
+  // #502: 17 of the 19 committed answers before #507 failed it, and a gate
+  // that starts red decides nothing (#497), so it waited for both fixes: #508
+  // puts art. 10 in front of the model, #507 stops the denial. #507's scoped
+  // run met it (eval/runs/2026-10-08-507/). The absence half is also gated
+  // by #500's detector above.
+  it("gives what an abstention case requires, and denies no artículo (#502)", () => {
+    assertFullRun();
+    const unmet = results
+      .filter((r) => r.requirements !== null && r.requirements.length > 0)
+      .map((r) => `${r.evalCase.id}: ${r.requirements!.join("; ")}`);
+    expect(unmet, `unmet requirements: ${unmet.join(" | ")}`).toEqual([]);
+  });
 
   it("invents no figure while declining", () => {
     assertFullRun();

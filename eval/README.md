@@ -101,7 +101,7 @@ label that is recorded, never gated (one more judge call per failed answer,
 cents a lane). A scoped `EVAL_CASES` run re-asks too. The robustness block
 (#502) sits outside every other gate and prints its own line in each lane. The abstention lane
 also scores `ho-abs-iva-2027`'s requirement (13 % and art. 10, cited, never
-denied); its assertion is a todo until #507 and #508. See «The robustness
+denied), and asserts it since #507 and #508. See «The robustness
 block».
 
 Since #503 the abstention set has 15 cases, so `ABSTENTION_GATE` (0.9) allows
