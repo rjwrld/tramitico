@@ -851,6 +851,7 @@ describe("answerTopK", () => {
   });
   afterEach(() => {
     vi.unstubAllEnvs();
+    vi.restoreAllMocks();
   });
 
   it("defaults to the SPEC §5 top-8", () => {
@@ -870,10 +871,9 @@ describe("answerTopK", () => {
       expect(answerTopK()).toBe(ANSWER_TOP_K);
     }
     expect(errors).toHaveBeenCalledTimes(4);
-    expect(String(errors.mock.calls[3][0])).toContain(
-      `${KNOB_ERROR_PREFIX} ANSWER_TOP_K="muchos"`,
+    expect(errors).toHaveBeenLastCalledWith(
+      expect.stringContaining(`${KNOB_ERROR_PREFIX} ANSWER_TOP_K="muchos"`),
     );
-    errors.mockRestore();
   });
 });
 
@@ -1160,6 +1160,7 @@ describe("the per-document cap (#303)", () => {
   });
   afterEach(() => {
     vi.unstubAllEnvs();
+    vi.restoreAllMocks();
   });
 
   /** A chunk of document `doc`, ranked by its position in the list. */
@@ -1191,10 +1192,9 @@ describe("the per-document cap (#303)", () => {
       expect(answerDocCap()).toBe(ANSWER_DOC_CAP);
     }
     expect(errors).toHaveBeenCalledTimes(4);
-    expect(String(errors.mock.calls[3][0])).toContain(
-      `${KNOB_ERROR_PREFIX} ANSWER_DOC_CAP="tres"`,
+    expect(errors).toHaveBeenLastCalledWith(
+      expect.stringContaining(`${KNOB_ERROR_PREFIX} ANSWER_DOC_CAP="tres"`),
     );
-    errors.mockRestore();
   });
 
   it("keeps no more than n chunks per docKey in the top-k when others are available", () => {

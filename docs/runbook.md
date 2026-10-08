@@ -151,10 +151,10 @@ stage — `RERANK`, `EXPAND`, `STEPS`, `STEPS_RERANK`, `PIN_DERIVED_INPUTS` — 
 it does not accept, or a numeric answer-set knob — `ANSWER_TOP_K`, `ANSWER_DOC_CAP` (#519)
 — set to anything but a positive integer (or `off`, for the cap). The ask carries on in the
 variable's default, the production pipeline, and the line repeats once per cold start
-until the variable is fixed in Vercel and redeployed. Only the exact word `off` (or a listed mode) opts out; `RERANK=on` kept
-production unreranked from launch to #498 because nothing said so. A value that does not
-look like a mode is reported by its length, never printed: it may be a key pasted into the
-wrong variable.
+until the variable is fixed in Vercel and redeployed. A mode knob opts out only on the
+exact word `off` (or another listed mode); `RERANK=on` kept production unreranked from
+launch to #498 because nothing said so. A value that does not look like a mode or a number
+is reported by its length, never printed: it may be a key pasted into the wrong variable.
 
 `[csp-report] violation` carries only what an unauthenticated caller cannot use as a
 channel: a directive name, the blocked load's **origin**, the document's **path**. Anything

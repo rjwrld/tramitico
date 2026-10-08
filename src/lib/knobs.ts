@@ -1,7 +1,7 @@
 /**
- * Mode knobs: the environment variables that switch one pipeline stage
- * between a closed set of modes — `RERANK`, `EXPAND`, `STEPS`, `STEPS_RERANK`,
- * `PIN_DERIVED_INPUTS` (#499).
+ * Knob readers. Mode knobs are the environment variables that switch one
+ * pipeline stage between a closed set of modes — `RERANK`, `EXPAND`,
+ * `STEPS`, `STEPS_RERANK`, `PIN_DERIVED_INPUTS` (#499).
  *
  * Production never reranked from launch until #498, because the deploy
  * wizard wrote `RERANK=on` and the reader treated anything but `voyage` as
@@ -44,7 +44,7 @@ export function modeKnob<const T extends string>(
   modes: readonly T[],
   fallback: T,
 ): () => T {
-  const report = reporter(name, modes.join(" | "), fallback);
+  const report = logOncePerValue(name, modes.join(" | "), fallback);
   return () => {
     const raw = process.env[name] || "";
     if (raw === "") return fallback;
@@ -68,7 +68,7 @@ export function positiveIntKnob(
 ): () => number {
   const label = (n: number) =>
     Object.keys(words).find((word) => words[word] === n) ?? String(n);
-  const report = reporter(
+  const report = logOncePerValue(
     name,
     ["a positive integer", ...Object.keys(words)].join(" | "),
     label(fallback),
@@ -88,7 +88,7 @@ export function positiveIntKnob(
  * Logs a knob's bad value, unless it is the one it logged last — so a cold
  * start logs it once, not per ask, and a second, different typo still shows.
  */
-function reporter(
+function logOncePerValue(
   name: string,
   accepted: string,
   readAs: string,
