@@ -216,9 +216,16 @@ describe("the held-out set is answerable by the committed corpus", () => {
  * claims. Code and tests use made-up wordings of the same shape instead; this
  * fails any `.ts`/`.tsx` file under `src/`, `scripts/` or `e2e/` that quotes a
  * held-out question or one of its follow-up turns (#543), case, accents,
- * `¿?¡!`, spacing and `"…" + "…"` splits aside.
+ * `¿?¡!`, spacing, `"…" + "…"` splits and comment line breaks aside.
+ *
+ * A quote of one clause counts: `steps.ts` quoted the first clause of
+ * `inscripcion-tardia-sancion`, wrapped across a docstring, and not its
+ * second (#543). A clause is what punctuation bounds, and it counts from
+ * `MIN_CLAUSE_WORDS` words: shorter ones («¿qué me pasa?») are how anyone
+ * writes, not a wording someone copied.
  */
 const QUOTE_ROOTS = ["src", "scripts", "e2e"];
+const MIN_CLAUSE_WORDS = 4;
 
 // Its own folding, not routing's `normaliseQuestion`: what counts as a quote
 // must not move when the classifier's normalisation does. A string split by
@@ -233,10 +240,24 @@ const quotable = (text: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
+// A comment's line break reads as a space, so a quote wrapped across
+// `/** … * …` or `// …` lines still reads as one.
+const uncommented = (text: string) =>
+  text.replace(/\n[ \t]*(?:\*(?!\/)|\/\/)/g, "\n");
+
 interface Wording {
   /** The case id, plus `#history[n]` for a follow-up turn. */
   id: string;
-  text: string;
+  /** The whole wording, then each clause of `MIN_CLAUSE_WORDS` or more. */
+  texts: string[];
+}
+
+function wording(id: string, question: string): Wording {
+  const clauses = question
+    .split(/[,.;:¿?¡!«»()]+/)
+    .map(quotable)
+    .filter((clause) => clause.split(" ").length >= MIN_CLAUSE_WORDS);
+  return { id, texts: [...new Set([quotable(question), ...clauses])] };
 }
 
 /** Every wording a held-out case asks the pipeline: its turns, then itself. */
@@ -244,11 +265,10 @@ function heldOutWordings(
   set: readonly Pick<EvalCase, "id" | "question" | "history">[],
 ): Wording[] {
   return set.flatMap((c) => [
-    { id: c.id, text: quotable(c.question) },
-    ...(c.history ?? []).map((turn, i) => ({
-      id: `${c.id}#history[${i}]`,
-      text: quotable(turn.question),
-    })),
+    wording(c.id, c.question),
+    ...(c.history ?? []).map((turn, i) =>
+      wording(`${c.id}#history[${i}]`, turn.question),
+    ),
   ]);
 }
 
@@ -264,9 +284,11 @@ function sourceFiles(base: string): string[] {
 /** `<file> quotes <wording id>`, one per quote found under `base`. */
 function heldOutQuotes(base: string, wordings: readonly Wording[]): string[] {
   return sourceFiles(base).flatMap((file) => {
-    const text = quotable(readFileSync(path.join(base, file), "utf8"));
+    const text = quotable(
+      uncommented(readFileSync(path.join(base, file), "utf8")),
+    );
     return wordings
-      .filter((w) => text.includes(w.text))
+      .filter((w) => w.texts.some((t) => text.includes(t)))
       .map((w) => `${file} quotes ${w.id}`);
   });
 }
@@ -306,7 +328,7 @@ describe("no file quotes a held-out question (#536, #543)", () => {
       expect(files).toContain(file);
     }
     expect(wordings.filter((w) => w.id.includes("#history["))).not.toEqual([]);
-    expect(wordings.every((w) => w.text.length >= 10)).toBe(true);
+    expect(wordings.every((w) => w.texts[0].length >= 10)).toBe(true);
   });
 
   it("finds none of them outside the allowlist, and no stale entry", () => {
@@ -320,7 +342,7 @@ describe("the quote guard, on a planted tree (#543)", () => {
   // Made-up wordings: a real held-out one would fail the guard above.
   const planted = {
     id: "planted",
-    question: "¿Puedo pagar el marchamo con monedas de oro?",
+    question: "Pagué el marchamo con monedas de oro, ¿me lo aceptan?",
     history: [
       {
         question: "¿Qué pasa si el perro se come la factura?",
@@ -356,7 +378,7 @@ describe("the quote guard, on a planted tree (#543)", () => {
   it("fails a quote in a non-test file's comment", () => {
     const base = plant({
       [path.join("src", "lib", "plain.ts")]:
-        "/** «¿Puedo pagar el marchamo con monedas de oro?» */\n",
+        "/** «Pagué el marchamo con monedas de oro, ¿me lo aceptan?» */\n",
     });
     expect(heldOutQuotes(base, wordings)).toEqual([
       `${path.join("src", "lib", "plain.ts")} quotes planted`,
@@ -376,15 +398,35 @@ describe("the quote guard, on a planted tree (#543)", () => {
   it("fails a quote under e2e/, in a .tsx file too", () => {
     const base = plant({
       [path.join("e2e", "flow.spec.ts")]:
-        'await ask("puedo pagar el marchamo con monedas de oro");\n',
+        'await ask("pague el marchamo con monedas de oro, me lo aceptan");\n',
       [path.join("e2e", "fixture.tsx")]:
-        "<p>¿Puedo pagar el marchamo con monedas de oro?</p>\n",
+        "<p>Pagué el marchamo con monedas de oro, ¿me lo aceptan?</p>\n",
       [path.join("e2e", "notes.md")]:
-        "¿Puedo pagar el marchamo con monedas de oro?\n",
+        "Pagué el marchamo con monedas de oro, ¿me lo aceptan?\n",
     });
     expect(heldOutQuotes(base, wordings).sort()).toEqual([
       `${path.join("e2e", "fixture.tsx")} quotes planted`,
       `${path.join("e2e", "flow.spec.ts")} quotes planted`,
     ]);
+  });
+
+  it("fails one clause of a wording, wrapped across docstring lines", () => {
+    const base = plant({
+      [path.join("src", "lib", "wrapped.ts")]:
+        "/**\n * A reader writes «Pagué el marchamo\n * con monedas de oro» and…\n */\n",
+      [path.join("src", "lib", "line.ts")]:
+        "// A reader writes «pagué el\n// marchamo con monedas de oro».\n",
+    });
+    expect(heldOutQuotes(base, wordings).sort()).toEqual([
+      `${path.join("src", "lib", "line.ts")} quotes planted`,
+      `${path.join("src", "lib", "wrapped.ts")} quotes planted`,
+    ]);
+  });
+
+  it(`passes a clause under ${MIN_CLAUSE_WORDS} words`, () => {
+    const base = plant({
+      [path.join("src", "lib", "short.ts")]: "// «¿Me lo aceptan?»\n",
+    });
+    expect(heldOutQuotes(base, wordings)).toEqual([]);
   });
 });

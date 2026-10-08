@@ -190,7 +190,7 @@ describe("classifyFamily (#304)", () => {
     ).toBe("T1-B");
     expect(
       classifyFamily(
-        "Dejé de trabajar por mi cuenta, ¿qué tengo que hacer en la Caja?",
+        "Dejé de trabajar como independiente, ¿qué tengo que hacer en la Caja?",
       ),
     ).toBe("T1-H");
     expect(
@@ -221,11 +221,15 @@ describe("classifyFamily (#304)", () => {
     expect(classifyFamily("Hice la inscripción tarde, ¿qué sigue?")).toBe(
       "T1-I",
     );
-    // The docstring's example, so the comment cannot drift from the rule:
-    // each half alone names its own family, so together they tie.
+    // The docstring's example, so the comment cannot drift from the rule.
+    // T1-I winning means T1-A ≤ T1-I; one more T1-A word flipping it means
+    // T1-I < T1-A + 1. So the two tie, and order decides.
     expect(classifyFamily("Fui a inscribirme")).toBe("T1-A");
     expect(classifyFamily("Fui dos años tarde")).toBe("T1-I");
     expect(classifyFamily("Fui a inscribirme dos años tarde")).toBe("T1-I");
+    expect(classifyFamily("Fui a inscribirme en el RUT dos años tarde")).toBe(
+      "T1-A",
+    );
   });
 
   it("lets the count win over the order", () => {

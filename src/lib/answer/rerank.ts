@@ -22,9 +22,8 @@
  * And since #286 the rerank reads the corpus-register expansion as well as
  * the question. The reranker reads the same question the fused legs read, so
  * it had the same register gap: a target moved from pool 24 to pool 5 and
- * still missed, because «desde cuánta plata al mes lo obligan a uno a pagar
- * Caja» does not look like «base mínima contributiva» to `rerank-2.5-lite`
- * either.
+ * still missed, because `ho-desde-cuanta-plata-caja`'s colloquial wording
+ * does not look like «base mínima contributiva» to `rerank-2.5-lite` either.
  *
  * #286 read both by **concatenating** them into one query string, and #296
  * measured what that costs. One string is one reading, and the reranker
@@ -176,10 +175,10 @@ export interface RerankOptions {
    * The reranker reads the same question the fused legs read, so it has the
    * same register problem, and #286 found it the hard way: putting
    * `ho-desde-cuanta-plata-caja`'s target at pool rank 5 instead of 24 did
-   * not make it a hit, because the reranker still scored «desde cuánta plata
-   * al mes lo obligan a uno a pagar Caja» against artículos that say «base
-   * mínima contributiva». Letting the reranker read the expansion too
-   * recovers that case and two more that were already being cut.
+   * not make it a hit, because the reranker still scored its colloquial
+   * question against artículos that say «base mínima contributiva». Letting
+   * the reranker read the expansion too recovers that case and two more that
+   * were already being cut.
    *
    * Both readings, never the expansion alone by choice — only when the
    * question's own call failed, which the degradation path below prefers to

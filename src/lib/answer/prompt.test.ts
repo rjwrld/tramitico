@@ -435,8 +435,8 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
   });
 
   /**
-   * #352 req. 3: `ho-abs-calculo-personalizado` («con mis ingresos y mis dos
-   * hijos, calcúleme exactamente…») declined the liquidación, gave the escala
+   * #352 req. 3: `ho-abs-calculo-personalizado` (an exact renta for the
+   * asker's own income and two hijos) declined the liquidación, gave the escala
    * with its citation — rule 9 working — and then wrote «con dos hijos … es
    * decir, ¢41.040,00 en total»: the cited ¢20.520,00 per hijo, multiplied by
    * the asker's own count. No document carries that figure, so the abstention
