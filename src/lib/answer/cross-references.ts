@@ -33,7 +33,7 @@ import type { Database } from "../database.types";
 import { modeKnob } from "../knobs";
 import { describeError } from "../log-redaction";
 import type { DocumentSource, RetrievedChunk } from "../retrieval";
-import { serviceClient } from "../supabase/service";
+import { tryServiceClient } from "../supabase/service";
 import { isWithheld, withheldSources, type WithheldSources } from "../vigencia";
 
 /**
@@ -329,12 +329,20 @@ interface ArticuloRow {
  * «art_culo 10» covers «Artículo», «ARTICULO», «ARTÍCULO», «art_culo 10_»
  * the ordinal sign, «q__t_r» the accent of «quáter» — and exactly here,
  * through `articuloKey`.
+ *
+ * Without the service-role env there is no client, and every lookup rejects
+ * with `CrossReferenceLookupError`: the append is optional, so its missing
+ * configuration fails open like any other lookup failure, never at
+ * construction (`tryServiceClient`, the policy persistence uses).
  */
 export function articuloLookup(
-  client: Pick<SupabaseClient<Database>, "from"> = serviceClient(),
+  client: Pick<SupabaseClient<Database>, "from"> | null = tryServiceClient(),
 ): ArticuloLookup {
   return async (references, signal) => {
     if (references.length === 0) return [];
+    if (client === null) {
+      throw new CrossReferenceLookupError(new Error("no service client"));
+    }
     const docKeys = [...new Set(references.map((r) => r.docKey))];
     const patterns = [
       ...new Set(
@@ -417,6 +425,14 @@ const crossReferenceKnob = modeKnob(
   "on",
 );
 
+/**
+ * What the append did on one ask, for the telemetry event (#508): `appended`
+ * a chunk, found `none` to append (nothing named, or nothing the corpus holds
+ * unambiguously), or the lookup `failed` (an error, a missing client, the
+ * timeout). Content-free: never which artículo.
+ */
+export type CrossReferenceOutcome = "appended" | "none" | "failed";
+
 /** The stable prefix of the one line a failed lookup logs (docs/runbook.md). */
 export const CROSS_REFERENCE_LOG_PREFIX = "cross-references: lookup failed";
 
@@ -428,6 +444,8 @@ export interface CrossReferenceOptions {
   withheld?: WithheldSources;
   /** The ask's own cancellation; the lookup adds `LOOKUP_TIMEOUT_MS`. */
   signal?: AbortSignal;
+  /** Called once when the append runs; not under `PIN_CROSS_REFERENCES=off`. */
+  onOutcome?: (outcome: CrossReferenceOutcome) => void;
 }
 
 /**
@@ -470,7 +488,10 @@ export async function crossReferencedChunks(
   const ranked = [...candidates.values()]
     .sort((a, b) => Number(b.figure ?? false) - Number(a.figure ?? false))
     .slice(0, CANDIDATE_LIMIT);
-  if (ranked.length === 0) return [];
+  if (ranked.length === 0) {
+    options.onOutcome?.("none");
+    return [];
+  }
 
   let fetched: RetrievedChunk[];
   try {
@@ -481,6 +502,7 @@ export async function crossReferencedChunks(
     );
   } catch (error) {
     console.warn(`${CROSS_REFERENCE_LOG_PREFIX} error=${describeError(error)}`);
+    options.onOutcome?.("failed");
     return [];
   }
 
@@ -490,5 +512,6 @@ export async function crossReferencedChunks(
     const named = fetched.filter((chunk) => namedBy(chunk, reference));
     if (named.length === 1) appended.push(named[0]);
   }
+  options.onOutcome?.(appended.length > 0 ? "appended" : "none");
   return appended;
 }

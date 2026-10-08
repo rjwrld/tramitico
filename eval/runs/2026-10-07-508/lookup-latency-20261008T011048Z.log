@@ -1,0 +1,4 @@
+answer sets 109 from eval/runs/2026-10-07-508/probe.json (0 with a chunk the corpus no longer carries), 5 runs each
+append, asks that read the database: n=465 p50 7.0 ms · p95 14.2 ms · max 18.4 ms
+lookup alone: n=465 p50 6.3 ms · p95 13.1 ms · max 17.4 ms
+asks that read the database: 93/109

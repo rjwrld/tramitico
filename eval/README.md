@@ -106,7 +106,7 @@ run's setup and deltas.
 | `pnpm answer-replay <transcript> [--tier=1] [--cases=…]` | the current prompt re-answering recorded chunks, false absence claims recorded → replayed            | ≈US$0.10 a row; `--dry-run` free |
 | `pnpm pool-dump <case…>`                                 | why a target missed the fused pool: every leg's rank                                                 | one embed per case               |
 | `pnpm answer-set-probe [out.json]`                       | retrieve → rerank → cap → pins for every case, no answer model; prints what the cross-references add | ≈US$0.15                         |
-| `pnpm cross-reference-census [--all]`                    | every cross-reference the corpus carries and whether the corpus holds its target (#508)              | free                             |
+| `pnpm cross-reference-census [--all]`                    | every cross-reference in the corpus, held or not; `--timing=<probe.json>` times the append (#508)    | free                             |
 | `pnpm answer-latency-probe`                              | answer latency per effort arm                                                                        | ≈US$1–2                          |
 
 A transcript row is `TranscriptRow` in `src/lib/eval/transcript.ts`.

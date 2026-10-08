@@ -84,6 +84,16 @@
  * abstention-clean at the shipped top 8. `PIN_DERIVED_INPUTS=off` is the
  * measured baseline.
  *
+ * Cross-references come along too (#508, ADR 0024). An artículo the cut
+ * names in its own instrument — «la tarifa referida en el artículo 10 de la
+ * presente ley», or a reglamento's «artículo 10 de la Ley» for the law its
+ * manifest entry `regulates` — is fetched (one database read, fail-open, 2 s
+ * budget) and appended, one chunk, a deferred figure first, ahead of the
+ * derived inputs. Both appends live in `pinAnswerSet` and are judged on the
+ * cut alone, so neither chains into the other; their time is the `pin`
+ * stage and the append's outcome the `crossReference` field of the event.
+ * `PIN_CROSS_REFERENCES=off` is the measured baseline.
+ *
  * Stop/retry (#74, audit F-11): `request.signal` is threaded into `streamText`
  * as `abortSignal`, so a client-side `stop()` (chat.tsx) cancels the paid
  * Anthropic call once generation has started — the issue's named target for
@@ -988,20 +998,29 @@ export async function POST(request: Request): Promise<Response> {
     // expansion, for the same reason the fused legs do — and, since #304,
     // the step catalogue's sentences when retrieval ran a probe.
     const stopRerank = telemetry.startStage("rerank");
-    let chunks;
+    let reranked;
     try {
-      chunks = await pinAnswerSet(
-        await rerankChunks(asked.query, retrieval.chunks, {
-          ...rerankOptionsFor(retrieval),
-          // #466: a lost reading changes the answer set and nothing else.
-          onReadings: telemetry.rerankReadings,
-        }),
-        retrieval.chunks,
-        // The cross-reference lookup stops with the ask (pins.ts).
-        { signal: AbortSignal.any([request.signal, deadline.signal]) },
-      );
+      reranked = await rerankChunks(asked.query, retrieval.chunks, {
+        ...rerankOptionsFor(retrieval),
+        // #466: a lost reading changes the answer set and nothing else.
+        onReadings: telemetry.rerankReadings,
+      });
     } finally {
       stopRerank();
+    }
+    // #508: the appends after the cut get their own stage — the
+    // cross-reference lookup is a database read on most asks, and inside
+    // `rerank` it could not be told apart from Voyage.
+    const stopPin = telemetry.startStage("pin");
+    let chunks;
+    try {
+      chunks = await pinAnswerSet(reranked, retrieval.chunks, {
+        // The lookup stops with the ask (pins.ts).
+        signal: AbortSignal.any([request.signal, deadline.signal]),
+        onOutcome: telemetry.crossReference,
+      });
+    } finally {
+      stopPin();
     }
     if (cutShort()) return;
     const derivedFigures = resolveDerivedFigures(chunks);

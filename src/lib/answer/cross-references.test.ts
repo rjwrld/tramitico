@@ -5,6 +5,9 @@ import type { RetrievedChunk } from "../retrieval";
 import type { WithheldSources } from "../vigencia";
 import {
   articuloKey,
+  articuloLookup,
+  CrossReferenceLookupError,
+  type CrossReferenceOutcome,
   CROSS_REFERENCE_CAP,
   CROSS_REFERENCE_LOG_PREFIX,
   crossReferencedChunks,
@@ -475,6 +478,40 @@ describe("crossReferencedChunks", () => {
     expect(warn.mock.calls[0][0]).toMatch(
       new RegExp(`^${CROSS_REFERENCE_LOG_PREFIX} error=`),
     );
+  });
+
+  it("reports what the append did, once per run (#508)", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const outcomes: CrossReferenceOutcome[] = [];
+    const onOutcome = (outcome: CrossReferenceOutcome) => {
+      outcomes.push(outcome);
+    };
+    const { lookup } = fakeLookup([art10]);
+    await crossReferencedChunks([art30], { ...options(lookup), onOutcome });
+    await crossReferencedChunks([art10], { ...options(lookup), onOutcome });
+    await crossReferencedChunks([art30], {
+      ...options(fakeLookup([]).lookup),
+      onOutcome,
+    });
+    await crossReferencedChunks([art30], {
+      ...options(async () => {
+        throw new Error("down");
+      }),
+      onOutcome,
+    });
+    vi.stubEnv("PIN_CROSS_REFERENCES", "off");
+    await crossReferencedChunks([art30], { ...options(lookup), onOutcome });
+    expect(outcomes).toEqual(["appended", "none", "none", "failed"]);
+  });
+
+  it("fails open without the service-role env, at lookup time", async () => {
+    const lookup = articuloLookup(null);
+    await expect(
+      lookup([{ docKey: "ley-iva", articulo: "10" }]),
+    ).rejects.toBeInstanceOf(CrossReferenceLookupError);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(await crossReferencedChunks([art30], options(lookup))).toEqual([]);
+    expect(warn).toHaveBeenCalledTimes(1);
   });
 
   it("asks nothing when the set names nothing", async () => {

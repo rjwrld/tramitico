@@ -75,8 +75,12 @@ appended — one chunk, ahead of the derived-figure inputs.**
    [ADR 0016](0016-source-freshness-policy.md)'s fiscal-year check (#505) is not fetched. The
    read stops with the ask and after 2 s of its own; a failed or late lookup logs
    `cross-references: lookup failed` and costs the append only: the set the rerank chose is
-   still a complete one. Its time is counted in the telemetry's `rerank` stage, where the
-   derived pin already ran.
+   still a complete one. It runs on 93 of 109 dataset answer sets, at p50 6.3 ms and p95 13.1 ms on the
+   local stack (`pnpm cross-reference-census --timing`, free; production adds the Vercel →
+   Supabase hop). Its time is the telemetry's own `pin` stage, with the derived pin's, and
+   its outcome the event's `crossReference` field (`appended` / `none` / `failed`), so
+   production can watch both. Without the service-role env it fails open like any other
+   lookup failure.
 6. **`PIN_CROSS_REFERENCES`**, a mode knob like `PIN_DERIVED_INPUTS`: unset is `on`, `off` is
    the measured baseline, and `pnpm answer-set-probe` carries an arm with it off.
 
