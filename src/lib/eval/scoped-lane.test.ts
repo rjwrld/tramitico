@@ -9,10 +9,46 @@ const CASES = retrievalCases(parseDataset(readFileSync(DATASET_PATH, "utf8")));
 const LANE_ID = CASES[0].id;
 
 /**
+ * What keeps an eval lane's suites from going through `scopedLane` or
+ * `fixtureLane`, one line per problem; empty when the wiring holds.
+ *
+ * vitest may be imported only by name, and never its `describe`: a namespace
+ * or default import (`import * as v`, `import v`) reaches `v.describe` without
+ * naming it (#543), and so does a dynamic `import("vitest")`.
+ */
+function laneWiring(text: string): string[] {
+  const problems: string[] = [];
+  const gates = text.match(/\bintegrationSuite\(/g) ?? [];
+  const wrapped =
+    text.match(/\b(?:scopedLane|fixtureLane)\(\s*integrationSuite\(/g) ?? [];
+  if (gates.length === 0) problems.push("no integrationSuite gate");
+  if (wrapped.length !== gates.length) {
+    problems.push(
+      `${gates.length - wrapped.length} integrationSuite gate(s) not wrapped`,
+    );
+  }
+  for (const [, clause] of text.matchAll(
+    /\bimport\s+([^;]*?)\s*from\s*["']vitest["']/g,
+  )) {
+    const named = /^(?:type\s+)?\{([^}]*)\}$/.exec(clause);
+    if (named === null) problems.push(`vitest imported whole: ${clause}`);
+    else if (/\bdescribe\b/.test(named[1])) {
+      problems.push("vitest's describe imported");
+    }
+  }
+  if (/\b(?:import|require)\(\s*["']vitest["']\s*\)/.test(text)) {
+    problems.push("vitest loaded dynamically");
+  }
+  // A test declared outside any suite would run under every EVAL_CASES.
+  if (/^(?:it|test)\b/m.test(text)) problems.push("a test outside any suite");
+  return problems;
+}
+
+/**
  * The guard #536's acceptance rests on: «a scoped paid run can't silently run
  * a full lane». `laneScope` (in `subset.test.ts`) decides; this pins that
  * every eval lane asks it. A new `*.eval.test.ts` that declares its suite
- * straight from `integrationSuite`, or imports vitest's `describe`, fails
+ * straight from `integrationSuite`, or reaches vitest's `describe`, fails
  * here, in the free lane, before it can spend under an `EVAL_CASES` run.
  */
 describe("every eval lane is scoped by EVAL_CASES (#536)", () => {
@@ -29,20 +65,55 @@ describe("every eval lane is scoped by EVAL_CASES (#536)", () => {
   it.each(lanes)(
     "%s builds every suite through scopedLane or fixtureLane",
     (file) => {
-      const text = readFileSync(path.join(src, file), "utf8");
-      const gates = text.match(/\bintegrationSuite\(/g) ?? [];
-      const wrapped =
-        text.match(/\b(?:scopedLane|fixtureLane)\(\s*integrationSuite\(/g) ??
-        [];
-      expect(gates.length).toBeGreaterThan(0);
-      expect(wrapped.length).toBe(gates.length);
-      const vitestImport =
-        text.match(/import\s*\{([^}]*)\}\s*from\s*"vitest"/)?.[1] ?? "";
-      expect(vitestImport).not.toMatch(/\bdescribe\b/);
-      // A test declared outside any suite would run under every EVAL_CASES.
-      expect(text).not.toMatch(/^(?:it|test)\b/m);
+      expect(laneWiring(readFileSync(path.join(src, file), "utf8"))).toEqual(
+        [],
+      );
     },
   );
+});
+
+describe("the wiring guard, on planted lanes (#543)", () => {
+  const lane = (vitestImport: string, body = "") =>
+    `${vitestImport}\n` +
+    'import { scopedLane } from "./scoped-lane";\n' +
+    'scopedLane(integrationSuite(needs), CASES, process.env)("lane", () => {\n' +
+    `  it("asks", () => {});${body}\n` +
+    "});\n";
+
+  it("passes a lane wired the way the real ones are", () => {
+    expect(
+      laneWiring(lane('import { beforeAll, expect, it } from "vitest";')),
+    ).toEqual([]);
+  });
+
+  it.each([
+    ['import * as v from "vitest";', "vitest imported whole: * as v"],
+    ['import v from "vitest";', "vitest imported whole: v"],
+    ['import v, { it } from "vitest";', "vitest imported whole: v, { it }"],
+    ['import { describe, it } from "vitest";', "vitest's describe imported"],
+    ['import { describe as d } from "vitest";', "vitest's describe imported"],
+  ])("fails %s", (vitestImport, problem) => {
+    expect(laneWiring(lane(vitestImport))).toEqual([problem]);
+  });
+
+  it("fails a dynamic import of vitest", () => {
+    const text = lane(
+      'import { it } from "vitest";',
+      '\n  const v = await import("vitest");',
+    );
+    expect(laneWiring(text)).toEqual(["vitest loaded dynamically"]);
+  });
+
+  it("fails an unwrapped gate and a test outside any suite", () => {
+    const text =
+      'import { it } from "vitest";\n' +
+      'integrationSuite(needs)("bare", () => {});\n' +
+      'it("loose", () => {});\n';
+    expect(laneWiring(text)).toEqual([
+      "1 integrationSuite gate(s) not wrapped",
+      "a test outside any suite",
+    ]);
+  });
 });
 
 describe("scopedLane", () => {
