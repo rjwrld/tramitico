@@ -132,7 +132,7 @@ One gate is new: an answer that says the documents lack something the corpus hol
 case, whatever the judges say ([#500](https://github.com/rjwrld/tramitico/issues/500)). The
 next numbers come from
 [#511](https://github.com/rjwrld/tramitico/issues/511) and
-[#512](https://github.com/rjwrld/tramitico/issues/512). A full run costs about US$7 in
+[#512](https://github.com/rjwrld/tramitico/issues/512). A full run costs about US$10 in
 provider spend.
 
 How the gates are defined, how thresholds ratchet and never lower, and every run since the
@@ -152,9 +152,10 @@ The full account, including what was lost and what the gates failed to say, is i
 - Until 2026-10-07 production did not rerank, while the eval lanes behind ADR 0023's
   baselines did ([#498](https://github.com/rjwrld/tramitico/issues/498)). Production has run
   the pipeline those baselines measure only since then.
-- No full lane has passed every gate since 2026-09-24. The gates changed on 2026-10-07, and no
-  lane has been read under them yet; [#511](https://github.com/rjwrld/tramitico/issues/511) is
-  the first.
+- No full lane has passed every gate since 2026-09-24. The gates changed on 2026-10-07. The
+  first lane read under them, [#511](https://github.com/rjwrld/tramitico/issues/511)'s on
+  2026-10-08, failed four: hit-rate (68/74), one blocking case's hit, one blocking case's
+  groundedness and four false absence claims.
 - Answers are incomplete. On the baseline lane they stated 70 of the 116 required claims and
   steps across the Tier 1 cases. In about 25 of the 46 misses, no chunk carrying the
   requirement reached the model
@@ -171,8 +172,8 @@ The full account, including what was lost and what the gates failed to say, is i
   ([#507](https://github.com/rjwrld/tramitico/issues/507),
   [#508](https://github.com/rjwrld/tramitico/issues/508)).
 - Short, unaccented, Spanglish and seed-pill questions are measured by a robustness block
-  outside every gate ([#502](https://github.com/rjwrld/tramitico/issues/502)). It has no
-  baseline yet; #511 sets it.
+  outside every gate ([#502](https://github.com/rjwrld/tramitico/issues/502)). Its baseline
+  is 25 of 27 hits, set by #511's lane.
 - No one outside the author has used it, and the author wrote the eval set. Peer questions
   are the next dataset.
 - The corpus has annual obligations, tramos, minimum wage, contribution scales, that change

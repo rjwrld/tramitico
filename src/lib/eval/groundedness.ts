@@ -28,6 +28,11 @@ import type { AnswerChecks } from "./answer-checks";
  * 73, so 69 passed and 68 failed and a run read green or red on one case.
  * Now a lane counts its grounded answers against the baseline, as Tier 1
  * does (`TIER1_REQUIREMENT_BASELINE`): 68 of 73, the 2026-10-02 lane.
+ *
+ * #511's baseline lane read 72 of 74 (eval/runs/2026-10-08-baseline/), and
+ * the owner held the baseline at 68 rather than ratchet it (2026-10-08). It
+ * was one lane, its Tier 1 +16 is unexplained with the prompt unchanged, and
+ * the pipeline changes again before #512, whose two lanes re-set it.
  */
 export const GROUNDEDNESS_BASELINE = 68;
 
@@ -39,8 +44,8 @@ export const GROUNDEDNESS_BASELINE = 68;
  *
  * 74 since #503 added `t2-inscripcion-dimex`. The baseline and the floor stay
  * absolute counts of grounded answers: the 68 was read over the 73 before it,
- * a new case can only add a pass, and #511 is the first lane read over 74.
- * #512's final lanes re-set the baseline over the population they run.
+ * and a new case can only add a pass. #511 was the first lane read over 74
+ * (72). #512's final lanes re-set the baseline over the population they run.
  */
 export const GROUNDEDNESS_CASES = 74;
 
