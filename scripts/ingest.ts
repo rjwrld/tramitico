@@ -66,6 +66,7 @@ import type { LayoutTableSpec } from "../src/lib/ingestion/layout-table";
 import { fetchPdfSource } from "../src/lib/ingestion/pdf";
 import { pdfImageNotice } from "../src/lib/ingestion/pdf-images";
 import { retireDocuments } from "../src/lib/ingestion/replace";
+import { wordJoinNotice } from "../src/lib/ingestion/word-joins";
 import type { DeepLinkKind } from "../src/lib/retrieval";
 import {
   articuloAnchors,
@@ -244,6 +245,16 @@ async function main() {
       skipped.push(doc.doc_key);
       continue;
     }
+    // Every kind, PDFs included: a join the extractor let through costs the
+    // lexical branch a match, so the count belongs in each run's report (#520).
+    const joins = wordJoinNotice(
+      doc.doc_key,
+      extracted.kind === "chunks"
+        ? extracted.value.map((c) => c.content)
+        : extracted.value,
+    );
+    if (joins.level === "warn") console.warn(`  ⚠ ${joins.message}`);
+    else console.log(`  ${joins.message}`);
     const written =
       extracted.kind === "chunks"
         ? await ingestChunks(

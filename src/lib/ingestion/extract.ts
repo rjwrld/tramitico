@@ -4,6 +4,7 @@ import { renderLabelRail } from "./label-rail";
 import { type LayoutTableSpec, renderLayoutTable } from "./layout-table";
 import { renderStackedFraction } from "./stacked-fraction";
 import { renderWrappedRow } from "./wrapped-row";
+import { repairWordJoins } from "./word-joins";
 
 /** SINALEVI navigation chrome that must never reach a chunk (SPEC §4.3). */
 const CHROME_RE =
@@ -158,9 +159,14 @@ export function cleanParagraphs(paragraphs: string[]): string[] {
 /**
  * Word-export HTML (SINALEVI payload) → cleaned paragraph list.
  * Block-level tags act as paragraph boundaries; styles/scripts are dropped whole.
+ * Words the source runs together are split where Word's spellchecker flagged
+ * them and the document vouches for both halves (#520, word-joins.ts).
  */
 export function htmlToParagraphs(html: string): string[] {
-  const withBreaks = dropNonContent(html).replace(BLOCK_TAG_RE, "\n");
+  const withBreaks = repairWordJoins(dropNonContent(html)).replace(
+    BLOCK_TAG_RE,
+    "\n",
+  );
   const text = decodeHTML(withBreaks.replace(TAG_RE, " "));
   return cleanParagraphs(text.split("\n"));
 }

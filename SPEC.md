@@ -191,7 +191,10 @@ Chunking rules ([#4](https://github.com/rjwrld/tramitico/issues/4), prototype on
    overlap; every part keeps the artículo label.
 3. **Cleaning pass (mandatory):** strip SINALEVI nav chrome (`Usted está en la última versión…`,
    `Ficha Artículo N`, version pager) and mso/Word markup. Title blocks become doc metadata,
-   never retrievable chunks. Preamble/considerandos → one chunk tagged `preambulo`.
+   never retrievable chunks. Preamble/considerandos → one chunk tagged `preambulo`. Words the
+   source runs together («dederechos») are split only where the same document vouches for both
+   halves, and every ingest reports each document's remaining suspicious joins
+   ([#520](https://github.com/rjwrld/tramitico/issues/520), `src/lib/ingestion/word-joins.ts`).
 4. **Unstructured PDFs** (tramos decree): whole-doc chunk; window only if long.
 5. **Structured FAQs:** one question/modal pair per chunk; the visible question is its citation
    label and the category is its path. These chunks are prepared by the declared HTML extractor
