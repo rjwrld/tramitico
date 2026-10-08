@@ -54,7 +54,7 @@
  * lost a case that concatenation held.
  */
 import type { RetrievalResult, RetrievedChunk } from "../retrieval";
-import { modeKnob } from "../knobs";
+import { modeKnob, positiveIntKnob } from "../knobs";
 import { isDerivedFigureInput, pinDerivedFigureInputs } from "./derived";
 
 /**
@@ -369,30 +369,19 @@ function pinsSteps(mode: StepRerankMode): boolean {
 /**
  * How many chunks reach the answer prompt. `ANSWER_TOP_K` in the environment
  * overrides the constant for a measured run (#287 option 1); anything that is
- * not a positive integer is ignored rather than trusted.
+ * not a positive integer reads as the constant, logged (#519, knobs.ts).
  */
-export function answerTopK(): number {
-  const raw = process.env.ANSWER_TOP_K;
-  if (!raw) return ANSWER_TOP_K;
-  const parsed = Number(raw);
-  if (!Number.isInteger(parsed) || parsed < 1) return ANSWER_TOP_K;
-  return parsed;
-}
+export const answerTopK = positiveIntKnob("ANSWER_TOP_K", ANSWER_TOP_K);
 
 /**
  * How many chunks of one document may reach the answer prompt. `ANSWER_DOC_CAP`
  * in the environment sets a cap for a measured run; `off`, unset and empty
  * all mean the default (no cap), and anything else that is not a positive
- * integer is ignored rather than trusted.
+ * integer reads as the default too, logged (#519, knobs.ts).
  */
-export function answerDocCap(): number {
-  const raw = process.env.ANSWER_DOC_CAP;
-  if (!raw) return ANSWER_DOC_CAP;
-  if (raw === "off") return Infinity;
-  const parsed = Number(raw);
-  if (!Number.isInteger(parsed) || parsed < 1) return ANSWER_DOC_CAP;
-  return parsed;
-}
+export const answerDocCap = positiveIntKnob("ANSWER_DOC_CAP", ANSWER_DOC_CAP, {
+  off: Infinity,
+});
 
 /**
  * The first `topK` of `order` with no more than `cap` chunks per document,

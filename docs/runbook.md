@@ -139,7 +139,7 @@ later in answer generation — this line says only that the search was the pre-e
 | `ask: expansion failed`               | `src/lib/answer/expand.ts`        | `reason=timeout\|error\|unusable`, `error=`                |
 | `rate limit: unavailable`             | `src/lib/rate-limit.ts`           | `error=`                                                   |
 | `[csp-report] violation`              | `src/app/api/csp-report/route.ts` | `directive=`, `blocked=`, `document=`                      |
-| `config: unknown knob value`          | `src/lib/knobs.ts`                | `NAME="value"`, the accepted modes, the mode it is read as |
+| `config: unknown knob value`          | `src/lib/knobs.ts`                | `NAME="value"`, the accepted values, the one it is read as |
 
 `rate limit: unavailable` is the whole diagnosis of a 503 (§1.3): the ask never reached the
 telemetry event, so this line and its `error=` token — a `PostgrestError#…`, a
@@ -147,13 +147,17 @@ telemetry event, so this line and its `error=` token — a `PostgrestError#…`,
 there is. One line per denied ask, so it also counts the blast radius.
 
 `config: unknown knob value` (#499) is an environment variable that switches a pipeline
-stage — `RERANK`, `EXPAND`, `STEPS`, `STEPS_RERANK`, `PIN_DERIVED_INPUTS` — set to a word
-it does not accept. The ask carries on in the variable's default mode, the production
-pipeline, and the line repeats once per cold start until the variable is fixed in Vercel
-and redeployed. Only the exact word `off` (or a listed mode) opts out; `RERANK=on` kept
+stage — `RERANK`, `EXPAND`, `STEPS`, `STEPS_RERANK`, `PIN_DERIVED_INPUTS` and, since #519,
+`ANSWER_EFFORT` — set to a word it does not accept, or a numeric answer-set knob —
+`ANSWER_TOP_K`, `ANSWER_DOC_CAP` (#519) — set to anything but a positive integer (or `off`,
+for the cap). The ask carries on in the variable's code default, and the line repeats once
+per cold start until the variable is fixed in Vercel and redeployed. For every knob but one
+that default is the production pipeline; `ANSWER_EFFORT`'s is to send no effort, which the
+provider reads as `high`, so a typo there costs production its `low` and its latency (#356).
+A mode knob opts out only on the exact word `off` (or another listed mode); `RERANK=on` kept
 production unreranked from launch to #498 because nothing said so. A value that does not
-look like a mode is reported by its length, never printed: it may be a key pasted into the
-wrong variable.
+look like a mode or a number is reported by its length, never printed: it may be a key
+pasted into the wrong variable.
 
 `[csp-report] violation` carries only what an unauthenticated caller cannot use as a
 channel: a directive name, the blocked load's **origin**, the document's **path**. Anything
@@ -232,7 +236,7 @@ result count over the selected timeline.
 | Q17 | Drafts the output cap cut off             | `"finishReason":"length"` — thinking and answer share `ANSWER_MAX_OUTPUT_TOKENS`; a rise after an effort or model change means the cap, not the model, is declining those asks                                                                                               |
 | Q18 | Asks that lost a rerank reading (#466)    | `"rerankDrops":["` — read the classes off the matching lines; the rate is this over `"rerankDrops":[` (asks whose rerank ran). `429` is Voyage's rate limit, the load #457 measured in eval; a steady share is the case for retrying a rejected reading (#466 requirement 3) |
 | Q19 | Rerank configured off (#499)              | `"rerank":"off"` — zero in production; any match is `RERANK=off` in the environment, deliberate or not                                                                                                                                                                       |
-| Q20 | Knob set to an unknown value (#499)       | `config: unknown knob value` — any match is a misconfigured variable, and the line names it. Fix it in Vercel and redeploy                                                                                                                                                   |
+| Q20 | Knob set to an unknown value (#499, #519) | `config: unknown knob value` — any match is a misconfigured variable, a mode knob (`ANSWER_EFFORT` included: production sets `low`) or a numeric one (`ANSWER_TOP_K`, `ANSWER_DOC_CAP`), and the line names it. Fix it in Vercel and redeploy                                |
 | Q21 | Answers with a false absence claim (#500) | `"absenceClaim":true` — the rate is this over delivered answers (`"outcome":"ok"` plus `"outcome":"degraded"`). It is the production read of what #507's prompt fix moves; a rise after a corpus or prompt change is worth a transcript read                                 |
 | Q22 | Answers with a typo run (#500)            | `"typoRun":true` — a heuristic: read a few answers before calling it a model regression                                                                                                                                                                                      |
 

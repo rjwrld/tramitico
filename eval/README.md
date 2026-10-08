@@ -58,10 +58,12 @@ Sensitive in Vercel, so it can't be read back. The dashboard shows it added on
 it, so don't read the production value from notes older than #451.
 
 The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`)
-accept only the values above. Anything else runs the default and logs
-`config: unknown knob value` once (#499, `src/lib/knobs.ts`), so an arm that
-misspells `off` measures production rather than the baseline: check the run's
-output for that line.
+accept only the values above, `ANSWER_EFFORT` only `low`, `medium`, `high`,
+`xhigh` or `max`, and `ANSWER_TOP_K` and `ANSWER_DOC_CAP` only a positive
+integer (or `off`, for the cap; #519). Anything else runs the default and logs `config: unknown knob
+value` once (#499, `src/lib/knobs.ts`), so an arm that misspells `off`
+measures production rather than the baseline, and one that misspells `low`
+measures no effort at all: check the run's output for that line.
 
 `.env.local` is loaded by `src/lib/test-support/suite-gate.ts` and never
 overrides an exported variable. To set an arm, export its knobs; there is no
