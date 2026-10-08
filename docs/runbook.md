@@ -397,6 +397,10 @@ pnpm recrawl $(node -p 'require("./corpus/manifest.json").documents.map((d) => d
 
 The same holds for `ccss-faq` once the CCSS replaces its rate image: leave it out of the list too.
 
+**A dated fact moved or vanished (#531).** A `datedFacts` artículo whose text no longer states its
+last day, or whose heading is gone, stops the run at its document the same way: `ccss-faq`
+today. Leave it out of the list above until the manifest PR of §2.4 merges.
+
 **A pinned source changed.** Two checks stop the run instead of ingesting bytes nobody has read.
 Documents ingested before the stop stay written and the corpus-index step does not run, so
 finish with a complete re-run (ingestion is idempotent per document).
@@ -427,7 +431,6 @@ other dated passages are not listed).
 | Listed                                                    | Last day   | Look for an extension at                                                                                           |
 | --------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------ |
 | `ccss-faq` · the Ley 10.232 condonación question (Cobros) | 2026-11-11 | the same question on [ccss.sa.cr/preguntas-frecuentes](https://www.ccss.sa.cr/preguntas-frecuentes), and CCSS news |
-| `tribu-cr-res-0011-2025` · Artículo 8 (EDDI-7)            | 2026-12-31 | SINALEVI ficha 104789's Transitorio I, and Hacienda's resoluciones de alcance general                              |
 
 The vigencia test (`manifest-vigencia.test.ts`, also run by `pnpm recrawl`) warns, never fails,
 from 7 days before each last day through 7 days after it.
@@ -452,8 +455,9 @@ from 7 days before each last day through 7 days after it.
    order by 1, 2;
    ```
 
-   A fact that ends while the product is live joins `datedFacts`, the inventory test and the
-   ADR's table in the same PR.
+   A window that ends while the product is live, in a chunk that says nothing of what follows it
+   and holds nothing else still current, joins `datedFacts`, the inventory test and the ADR's
+   table in the same PR. The ADR records why the others stay.
 
 ## 3. Alerts to create (#29 provisioning step)
 

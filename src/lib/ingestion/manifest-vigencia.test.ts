@@ -163,7 +163,6 @@ describe("corpus/manifest.json vigencia", () => {
       ),
     ).toEqual([
       "ccss-faq · ¿Hasta cuándo puedo solicitar la condonación de recargos, multas, intereses y facturas por servicios médicos en aplicación de la Ley N°10.232, sus ampliaciones y reglamento? · 2026-11-11",
-      "tribu-cr-res-0011-2025 · Artículo 8 · 2026-12-31",
     ]);
     for (const fact of manifest.documents.flatMap(
       (doc) => doc.datedFacts ?? [],

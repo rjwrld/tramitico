@@ -153,20 +153,20 @@ artículos that start quoting a year's figure. The per-PR test reads the corpus 
 headings and not text, so it cannot see a re-crawl that adds a figure to an artículo nobody
 listed.
 
-## Amendment (2026-10-08, issue [#531](https://github.com/rjwrld/tramitico/issues/531))
+## Amendment (2026-10-07, issue [#531](https://github.com/rjwrld/tramitico/issues/531))
 
 **An artículo stating a fact that ends on a day is dropped from the day after.** The first two
 amendments follow the fiscal year. A deadline or a transitional window ends on its own day, and
 nothing withheld it: the `ccss-faq` answer «estará disponible hasta el día 11 de noviembre del
 2026» would have gone on grounding answers that present the condonación as open. The inventory,
-read from the corpus on 2026-10-08 with the query in runbook §2.4, then for every date from 2025 on,
-numeric or spelled out («dos mil veinticinco»). The local stack and production hold the same text
-for both listed chunks:
+read from the corpus on 2026-10-07 (after the #520 re-ingest) with the query in runbook §2.4,
+then for every date from 2025 on, numeric or spelled out («dos mil veinticinco»). The local stack
+and production hold the same text for the listed chunk and for EDDI-7's:
 
 | Chunk (`doc_key` · artículo)                                         | Dated fact                                                                                                                                               | Day                         | Treatment                   |
 | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | --------------------------- |
 | `ccss-faq` · the Ley 10.232 condonación question                     | requests to forgive recargos, multas, intereses and medical-service invoices are accepted «hasta el día 11 de noviembre del 2026»                        | 2026-11-11                  | `datedFacts`                |
-| `tribu-cr-res-0011-2025` · Artículo 8                                | the chunk carries Transitorio I: EDDI-7 stays up for forms D-110-07, D-120, D-110-08 and D-121 «hasta el 31 de diciembre de 2026» (MH-DGT-RES-0003-2026) | 2026-12-31                  | `datedFacts`                |
+| `tribu-cr-res-0011-2025` · Artículo 8                                | the chunk carries Transitorio I: EDDI-7 stays up for forms D-110-07, D-120, D-110-08 and D-121 «hasta el 31 de diciembre de 2026» (MH-DGT-RES-0003-2026) | 2026-12-31                  | not listed                  |
 | `ccss-escala-ivm` · Artículo 4°, sesión 9570                         | the IVM escala, from 2026-01-01 «hasta el 31 de diciembre del 2028»                                                                                      | 2028-12-31                  | annual source (amendment 1) |
 | `reglamento-renta` · TRANSITORIO IV                                  | the stepped tarifa on Banco Popular and cooperative securities: 14 % from 2026-07-01 to 2027-06-30, 15 % after                                           | a schedule, every step      | not listed                  |
 | `reglamento-iva` · Transitorios VI, VII, VII bis, IX and X           | the IVA phase-ins of Ley 9635 and the COVID-era turismo and construction reliefs: exentos, then 4 % and 8 %, then the general rate from 2020–2023        | a schedule, every step past | not listed                  |
@@ -190,10 +190,15 @@ ampliaciones», shows the window has been extended before. «It has passed» cou
 on the day the CCSS extends it. The honest decline that a pool with nothing corroborated takes
 sends the reader to the CCSS, which knows.
 
-**Listed by what is still ahead.** The two listed facts end while the product is live, so from
-that day the corpus would carry a window that was open when it was crawled. The past ones have
-been served since launch and are not listed:
+**Listed: a window the chunk leaves open.** The condonación answer states the window and nothing
+else: not what follows it, nor anything still current. From 12 November it would be a closed
+window that reads as an open one. Every other dated passage either says what applies once its day
+has passed, or carries text that is still current, so withholding it would drop accurate text:
 
+- `tribu-cr-res-0011-2025` Artículo 8, the one other fact still ahead (EDDI-7's forms, through
+  2026-12-31), goes on to say that after that date the system «dejará de funcionar».
+  The same chunk is the resolution's vigencia and records the 2025 switch to TRIBU-CR, which is
+  current. The answer prompt carries today's date (#455), so the text reads as a closed window.
 - `ccss-reglamento-ti` Transitorio V is still the rule for those who registered in time.
 - Transitorio II of the TRIBU-CR resolution also keeps the ATV's comprobante check up «de forma
   indefinida», which is current.
