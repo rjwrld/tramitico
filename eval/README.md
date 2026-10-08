@@ -3535,4 +3535,7 @@ route configuration, Haiku 5.5, shipped prompt):
   the clause that did it. Haiku 4.5 was not re-read on the shipped prompt.
   #511's baseline reads the pipeline before this change, and #512's final lanes read it after.
 
-≈US$1.36, estimated (the run's README has the breakdown).
+≈US$1.35, estimated (the run's README has the breakdown). #418's check, on
+#502's own expansions with only the catalogue changed: no blocking target
+leaves the fused 40 on Haiku 5.5's rewrites, and one, at the pool's last
+place, on Haiku 4.5's.

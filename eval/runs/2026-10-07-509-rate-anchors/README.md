@@ -39,6 +39,37 @@ verbo»; the shipped rule 9 drops that clause (below).
 held-out questions; they were reworded before the full arms, which also
 discarded a first 5.5 arm stopped at 20 cases.
 
+Two free-text files beside them:
+
+- `pool-dump-no-expansion.txt`: `pnpm pool-dump --no-expansion` on the
+  short wordings and their seeds, after the strip and the catalogue
+  (embeddings only).
+- `catalogue-check-502-rewrites-haiku-{5-5,4-5}.txt`: #418's check, below.
+
+## #418's check: no blocking target leaves the pool
+
+Every blocking case (the 34 Tier 1 cases and the canary), on #502's own
+query and expansion for each model, retrieved to the fused 40 twice: once
+with `main`'s catalogue and once with this branch's, embeddings memoised so
+that only the catalogue sentences differ (a one-off `retrieve` script,
+embeddings only). The files list each T1-D and T1-F case's target ranks under
+both.
+
+- **Haiku 5.5's rewrites: 0 blocking targets leave the 40.**
+- **Haiku 4.5's rewrites: 1.** `ho-cliente-espana-lleva-iva`'s
+  `reglamento-comprobantes` art. 2 sat at the pool's last place, #40, and
+  falls just outside; the same case gains another target at #9.
+- The escala sentence lifts the escala target of
+  `ho-minimo-caja-independiente-2026` and `ho-800-mil-que-porcentaje-caja`
+  from #8–15 to #2 on both rewrites.
+
+The live reads below lose some blocking targets from the _answer set_ against
+#502 (on the final read `ho-cabys-paginas-web` art. 13,
+`ho-factura-electronica-o-recibo` art. 22, `desinscripcion-dejar-actividad`
+RUT·31) and gain others. With the expansion held fixed, the catalogue
+check and the replay show the strip and the catalogue removing none of them.
+They come with the expansion's text, inside #457's ±4 band.
+
 ## Acceptance, on the shipped prompt (`final-haiku-5-5`)
 
 | Case                                                                   | Rate sources in the answer set                                    |
@@ -103,7 +134,8 @@ the retry), and the 4.5 arm the paced re-read of its 21 cases.
 
 ## Cost
 
-Estimated **≈US$1.36**. No console figure was read.
+Estimated **≈US$1.35**. No console figure was read, so this is not an
+exact figure; the Anthropic and Voyage consoles have it.
 
 - Voyage rerank (`rerank-2.5-lite`, US$0.02/M tokens): about 2,150 readings
   at ≈20k tokens each (40 chunks of ≈420 tokens plus the query per chunk) ≈
@@ -113,4 +145,5 @@ Estimated **≈US$1.36**. No console figure was read.
   150 out ≈ US$0.39.
 - Haiku 5.5 (US$0.10/M in, US$0.50/M out): about 300 calls, including the
   `pool-dump` diagnostics ≈ US$0.08.
-- Voyage embeddings: about US$0.01.
+- Voyage embeddings, and the replays that isolated the T1-D sentence: about
+  US$0.02.
