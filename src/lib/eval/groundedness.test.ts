@@ -31,6 +31,8 @@ import {
   needsReask,
   parseFailureLabel,
   parseJudgeVerdict,
+  scoreAnswer,
+  type AnswerToScore,
   type JudgeVerdict,
   type ScoredAnswer,
 } from "./groundedness";
@@ -314,6 +316,80 @@ describe("blockingCaseVerdict (#474)", () => {
     expect(() => blockingCaseVerdict([answer("fail"), answer("pass")])).toThrow(
       /got 2/,
     );
+  });
+});
+
+describe("scoreAnswer (#474, #521)", () => {
+  const held = (over: Partial<AnswerToScore> = {}): AnswerToScore => ({
+    verdict: "pass",
+    reason: "ok",
+    answer: "La base es ¢324.590 [1][2].",
+    citations: { ok: true },
+    derivedFigures: [derivedFigure],
+    checks: null,
+    ...over,
+  });
+
+  it("passes an answer the judges passed and the route would ship", () => {
+    expect(scoreAnswer(held())).toEqual({
+      verdict: "pass",
+      reason: "ok",
+      falseAbsence: false,
+    });
+  });
+
+  it("keeps the judges' failure and its reason", () => {
+    expect(
+      scoreAnswer(held({ verdict: "fail", reason: "wrong rate" })),
+    ).toMatchObject({ verdict: "fail", reason: "wrong rate" });
+  });
+
+  it("fails an answer the citation invariant would refuse (#168)", () => {
+    expect(
+      scoreAnswer(
+        held({
+          answer: "La base es ¢324.590.",
+          citations: { ok: false, violation: "no_markers", unresolved: [] },
+        }),
+      ),
+    ).toEqual({
+      verdict: "fail",
+      reason: "the route would refuse it (#168): no_markers",
+      falseAbsence: false,
+    });
+  });
+
+  it("fails a derived figure quoted without its inputs (#281)", () => {
+    expect(scoreAnswer(held({ answer: "La base es ¢324.590 [1]." }))).toEqual({
+      verdict: "fail",
+      reason: "derived figures without their inputs (#281): bmc-ivm-2026",
+      falseAbsence: false,
+    });
+  });
+
+  it("passes the weak-retrieval decline, which carries no markers by design", () => {
+    expect(
+      scoreAnswer(
+        held({
+          answer: "No encuentro base oficial…",
+          citations: null,
+          derivedFigures: [],
+        }),
+      ).verdict,
+    ).toBe("pass");
+  });
+
+  it("flags a false absence claim from #500's checks", () => {
+    const checks = {
+      absence: {
+        falseClaims: [{ target: "Artículo 10" }],
+        opening: null,
+      },
+      typos: [],
+    } as unknown as NonNullable<AnswerToScore["checks"]>;
+    expect(
+      scoreAnswer(held({ verdict: "fail", reason: "absence", checks })),
+    ).toMatchObject({ verdict: "fail", falseAbsence: true });
   });
 });
 

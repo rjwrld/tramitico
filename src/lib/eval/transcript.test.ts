@@ -1,12 +1,13 @@
 import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
 import { checkAnswer } from "./answer-checks";
 import type { EvalCase } from "./dataset";
 import {
   droppedReadingsSummary,
+  runThenRecord,
   serializeTranscript,
   transcriptFilename,
   transcriptRow,
@@ -67,6 +68,66 @@ const ROW: TranscriptRow = transcriptRow({
   checks: checkAnswer("Las rentas de hasta ¢6.244.000 no están sujetas [1].", [
     chunk({}),
   ]),
+});
+
+describe("runThenRecord (#474)", () => {
+  it("runs every phase in order, then records", async () => {
+    const calls: string[] = [];
+    await runThenRecord(
+      [
+        () => Promise.resolve(void calls.push("ask")),
+        () => Promise.resolve(void calls.push("re-ask")),
+      ],
+      () => void calls.push("record"),
+    );
+    expect(calls).toEqual(["ask", "re-ask", "record"]);
+  });
+
+  it("records the rows paid for before a first-answer error, then rethrows it", async () => {
+    const rows: number[] = [];
+    let recorded: number[] = [];
+    const reask = vi.fn(() => Promise.resolve());
+    await expect(
+      runThenRecord(
+        [
+          async () => {
+            rows.push(1, 2);
+            await Promise.resolve();
+            throw new Error("judge output is malformed JSON");
+          },
+          reask,
+        ],
+        () => {
+          recorded = [...rows];
+        },
+      ),
+    ).rejects.toThrow(/malformed JSON/);
+    expect(recorded).toEqual([1, 2]);
+    // The run is red: nothing more is bought after the error.
+    expect(reask).not.toHaveBeenCalled();
+  });
+
+  it("records the first answers when a re-ask throws, then rethrows it", async () => {
+    let recorded = false;
+    await expect(
+      runThenRecord(
+        [
+          () => Promise.resolve(),
+          () => Promise.reject(new Error("529 overloaded")),
+        ],
+        () => {
+          recorded = true;
+        },
+      ),
+    ).rejects.toThrow(/529/);
+    expect(recorded).toBe(true);
+  });
+
+  it("rethrows even a falsy throw", async () => {
+    await expect(
+      runThenRecord([() => Promise.reject(undefined)], () => {}),
+    ).rejects.toBeUndefined();
+  });
 });
 
 describe("transcriptRow", () => {
@@ -146,8 +207,9 @@ describe("transcriptRow", () => {
       label: "contradiction",
       reason: "[1] says 10 %",
     });
-    expect(row.reasks).toHaveLength(1);
-    expect(Object.keys(row.reasks[0]).sort()).toEqual([
+    const reasks = row.reasks ?? [];
+    expect(reasks).toHaveLength(1);
+    expect(Object.keys(reasks[0]).sort()).toEqual([
       "answer",
       "checks",
       "chunks",
@@ -158,7 +220,7 @@ describe("transcriptRow", () => {
       "query",
       "rerank",
     ]);
-    expect(row.reasks[0]).toMatchObject({
+    expect(reasks[0]).toMatchObject({
       answer: "Segunda [1].",
       chunks: [{ marker: 1, chunkId: "c9" }],
       groundedness: {

@@ -13,8 +13,13 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { generateText, type LanguageModel } from "ai";
 import type { RetrievedChunk } from "../retrieval";
-import type { ResolvedDerivedFigure } from "../answer/derived";
+import {
+  incompletelyCitedDerivedFigures,
+  type ResolvedDerivedFigure,
+} from "../answer/derived";
+import type { CitationVerdict } from "../answer/invariant";
 import { formatChunks, formatDerivedFigures } from "../answer/prompt";
+import type { AnswerChecks } from "./answer-checks";
 
 /**
  * Groundedness is a tracked baseline, not a rate gate (#474, ADR 0023's
@@ -337,11 +342,65 @@ export const BLOCKING_REASK_COUNT = 2;
 
 /** One scored answer to a case: the lane's first, or a re-ask. */
 export interface ScoredAnswer {
-  /** After #500's absence gate: a false absence claim has already failed it. */
+  /**
+   * The judges' verdict, failed by #500's absence gate or by anything the
+   * route would refuse to ship (`scoreAnswer`).
+   */
   verdict: Verdict;
   reason: string;
   /** #500: the answer says the documents lack what the corpus carries. */
   falseAbsence: boolean;
+}
+
+/** One answer as the lane holds it: what `scoreAnswer` reads. */
+export interface AnswerToScore {
+  /** After #500's absence gate (`withAbsenceGate`). */
+  verdict: Verdict;
+  reason: string;
+  answer: string;
+  /** `null` on a weak-retrieval decline, which ships without markers. */
+  citations: CitationVerdict | null;
+  derivedFigures: readonly ResolvedDerivedFigure[];
+  /** `null` on a weak-retrieval decline, a fixed text. */
+  checks: AnswerChecks | null;
+}
+
+/**
+ * One answer as #474's blocking rule reads it. An answer the route would
+ * refuse to ship — a marker that resolves to nothing or no marker at all
+ * (#168), or a derived figure without its inputs (#281) — fails, whatever
+ * the judges said: otherwise a re-ask production would never show could be
+ * one of the two passing answers that clear a case. The lane's zero gates
+ * for both read first answers only, so this is where a re-ask meets them.
+ * (An orchestrator call on #521, beyond the owner's decision.)
+ *
+ * A weak-retrieval decline passes, as it does on a first answer: the fixed
+ * text makes no claim.
+ */
+export function scoreAnswer(scored: AnswerToScore): ScoredAnswer {
+  const falseAbsence = (scored.checks?.absence.falseClaims.length ?? 0) > 0;
+  if (scored.verdict === "fail") {
+    return { verdict: "fail", reason: scored.reason, falseAbsence };
+  }
+  if (scored.citations !== null && !scored.citations.ok) {
+    return {
+      verdict: "fail",
+      reason: `the route would refuse it (#168): ${scored.citations.violation}`,
+      falseAbsence,
+    };
+  }
+  const uncited = incompletelyCitedDerivedFigures(
+    scored.answer,
+    scored.derivedFigures,
+  );
+  if (uncited.length > 0) {
+    return {
+      verdict: "fail",
+      reason: `derived figures without their inputs (#281): ${uncited.join(", ")}`,
+      falseAbsence,
+    };
+  }
+  return { verdict: "pass", reason: scored.reason, falseAbsence };
 }
 
 /** The slice of a judged case the per-case gate reads. */
@@ -352,9 +411,9 @@ export interface BlockingCase {
 }
 
 /**
- * Whether the lane re-asks a case: blocking, and its first answer failed on
- * the judges alone. A false absence claim has already decided the case (see
- * `blockingCaseVerdict`), so asking again could buy nothing.
+ * Whether the lane re-asks a case: blocking, and its first answer failed for
+ * any reason but a false absence claim. That one has already decided the
+ * case (see `blockingCaseVerdict`), so asking again could buy nothing.
  */
 export function needsReask({ evalCase, answers }: BlockingCase): boolean {
   const [first] = answers;

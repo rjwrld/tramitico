@@ -58,12 +58,7 @@ function row(overrides: Partial<TranscriptRow>): TranscriptRow {
       },
     ],
     derivedFigures: [],
-    groundedness: {
-      verdict: "pass",
-      verdicts: ["pass"],
-      reason: "ok",
-      label: null,
-    },
+    groundedness: { verdict: "pass", verdicts: ["pass"], reason: "ok" },
     citations: { ok: true },
     adequacy: {
       verdict: "fail",
@@ -77,7 +72,6 @@ function row(overrides: Partial<TranscriptRow>): TranscriptRow {
     },
     rerank: { asked: 2, returned: 2, dropped: [] },
     checks: null,
-    reasks: [],
     ...overrides,
   };
 }

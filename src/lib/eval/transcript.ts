@@ -104,11 +104,11 @@ export interface TranscriptRow {
   checks: AnswerChecks | null;
   /**
    * The two further answers a blocking case is asked when its first fails
-   * on the judges (#474), judged and checked like the first: the case's
-   * groundedness is read on all three (`blockingCaseVerdict`). Empty on
-   * every other case; absent from transcripts written before #474.
+   * (#474), judged and checked like the first: the case's groundedness is
+   * read on all three (`blockingCaseVerdict`). Empty on every other case;
+   * absent from transcripts written before #474.
    */
-  reasks: TranscriptReask[];
+  reasks?: TranscriptReask[];
 }
 
 /** One answer's groundedness reading. */
@@ -121,7 +121,7 @@ export interface TranscriptGroundedness {
    * recorded, never gated. `null` when the judges passed the answer — one
    * failed only by #500's absence gate too. Absent before #474.
    */
-  label: FailureLabelling | null;
+  label?: FailureLabelling | null;
 }
 
 /** A derived figure the prompt carried, by id and as the answer quotes it. */
@@ -155,17 +155,12 @@ export interface TranscriptGeneration {
   today: string;
 }
 
-/** A groundedness reading as a caller hands it over; `label` defaults to `null`. */
-export type GroundednessInput = Omit<TranscriptGroundedness, "label"> & {
-  label?: FailureLabelling | null;
-};
-
 export interface ReaskInput {
   query: string;
   answer: string;
   chunks: readonly RetrievedChunk[];
   derivedFigures: readonly ResolvedDerivedFigure[];
-  groundedness: GroundednessInput;
+  groundedness: TranscriptGroundedness;
   citations: CitationVerdict | null;
   checks: AnswerChecks | null;
   generation: TranscriptGeneration | null;
@@ -178,7 +173,7 @@ export interface TranscriptInput {
   answer: string;
   chunks: readonly RetrievedChunk[];
   derivedFigures: readonly ResolvedDerivedFigure[];
-  groundedness: GroundednessInput;
+  groundedness: TranscriptGroundedness;
   citations: CitationVerdict | null;
   adequacy: { verdict: Verdict; missing: string[]; literals: string[] } | null;
   generation: TranscriptGeneration | null;
@@ -210,11 +205,36 @@ function transcriptFigures(
   }));
 }
 
+/** A row written today always carries the label, `null` when there is none. */
 function transcriptGroundedness({
   label = null,
   ...reading
-}: GroundednessInput): TranscriptGroundedness {
+}: TranscriptGroundedness): TranscriptGroundedness {
   return { ...reading, label };
+}
+
+/**
+ * Runs a paid lane's phases in order, then `record` — whatever happened. A
+ * phase that throws stops the phases after it, `record` still writes what
+ * the earlier ones produced, and the error is rethrown after it: a provider
+ * 5xx or a judge's malformed reply on case 60 must not take the 59 paid rows
+ * before it along (#474). `record` owns its own failures; see the lane's
+ * transcript write.
+ */
+export async function runThenRecord(
+  phases: readonly (() => Promise<void>)[],
+  record: () => void,
+): Promise<void> {
+  let failed = false;
+  let failure: unknown;
+  try {
+    for (const phase of phases) await phase();
+  } catch (error) {
+    failed = true;
+    failure = error;
+  }
+  record();
+  if (failed) throw failure;
 }
 
 export function transcriptRow({

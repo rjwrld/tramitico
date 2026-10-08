@@ -114,7 +114,8 @@ import {
   droppedReadingsSummary,
   transcriptRow,
   writeTranscript,
-  type GroundednessInput,
+  runThenRecord,
+  type TranscriptGroundedness,
   type TranscriptGeneration,
 } from "./transcript";
 import {
@@ -132,7 +133,7 @@ import {
   type BlockingCase,
   type FailureLabel,
   type FailureLabelling,
-  type ScoredAnswer,
+  scoreAnswer,
   type Verdict,
 } from "./groundedness";
 
@@ -159,7 +160,16 @@ interface Answered {
   /** The chunks the prompt numbered, so a transcript row can resolve `[n]`.
    * Empty on a weak-retrieval decline, which makes no model call. */
   chunks: readonly RetrievedChunk[];
+  /** After #500's absence gate: a false absence claim fails the answer. */
   verdict: Verdict;
+  /**
+   * The judges' majority alone, before #500's gate: what the baseline counts
+   * (#474). The 68/73 was measured before #500 existed, and seven of its 68
+   * judge passes make a claim today's detector calls false, so counting the
+   * gated verdict would read that same lane as 61. A false absence fails
+   * its own zero gate instead. `pass` on a weak-retrieval decline.
+   */
+  judgesVerdict: Verdict;
   /** One entry per judge call: 1 normally, 1 + REJUDGE_COUNT after a fail. */
   verdicts: Verdict[];
   reason: string;
@@ -194,16 +204,16 @@ interface CaseResult extends Answered {
   /** Absent on a case that declares no requiredClaims/requiredSteps. */
   adequacy: (AdequacyOutcome & { literals: string[] }) | null;
   /**
-   * #474: the further answers a blocking case is asked when its first fails
-   * on the judges. Every rate and count in the lane reads the first answer,
-   * as the baseline was measured; only the blocking and absence gates read
-   * these. Their citations and derived figures are recorded, not gated.
+   * #474: the further answers a blocking case is asked when its first fails.
+   * Every rate and count in the lane reads the first answer, as the baseline
+   * was measured; only the blocking and absence gates read these, and the
+   * blocking gate fails one the route would refuse (`scoreAnswer`).
    */
   reasks: Answered[];
 }
 
 /** One answer's groundedness reading, as the transcript records it. */
-function groundednessOf(answered: Answered): GroundednessInput {
+function groundednessOf(answered: Answered): TranscriptGroundedness {
   return {
     verdict: answered.verdict,
     verdicts: answered.verdicts,
@@ -212,25 +222,28 @@ function groundednessOf(answered: Answered): GroundednessInput {
   };
 }
 
-/**
- * One answer as #474's blocking rule reads it. A re-ask that takes the
- * weak-retrieval decline passes, as a first answer does: the fixed text
- * makes no claim.
- */
-function scored(answered: Answered): ScoredAnswer {
-  return {
-    verdict: answered.verdict,
-    reason: answered.reason,
-    falseAbsence: (answered.checks?.absence.falseClaims.length ?? 0) > 0,
-  };
-}
-
 /** A case and every answer it was asked, first to last. */
 function blockingCase(result: CaseResult): BlockingCase {
   return {
     evalCase: result.evalCase,
-    answers: [result, ...result.reasks].map(scored),
+    answers: [result, ...result.reasks].map(scoreAnswer),
   };
+}
+
+/**
+ * Every answer the lane scored, the re-asks included, each under the id a
+ * console line names it by: `<case>` or `<case> (re-ask n)`.
+ */
+function everyAnswer(
+  results: readonly CaseResult[],
+): { id: string; answered: Answered }[] {
+  return results.flatMap((r) => [
+    { id: r.evalCase.id, answered: r },
+    ...r.reasks.map((reask, i) => ({
+      id: `${r.evalCase.id} (re-ask ${i + 1})`,
+      answered: reask,
+    })),
+  ]);
 }
 
 /**
@@ -263,6 +276,7 @@ async function answerCase(
       weak: true,
       chunks: [],
       verdict: "pass",
+      judgesVerdict: "pass",
       verdicts: [],
       reason: "weak-retrieval fallback (no model call)",
       label: null,
@@ -324,6 +338,7 @@ async function answerCase(
     weak: false,
     chunks,
     ...withAbsenceGate(judged, checks),
+    judgesVerdict: judged.verdict,
     label,
     answer,
     derivedFigures,
@@ -382,13 +397,10 @@ function adequacyReason(result: CaseResult): string {
  * answer makes it (#474).
  */
 function checkedCases(results: readonly CaseResult[]): CheckedCase[] {
-  return results.flatMap((r) => [
-    { id: r.evalCase.id, checks: r.checks },
-    ...r.reasks.map((reask, i) => ({
-      id: `${r.evalCase.id} (re-ask ${i + 1})`,
-      checks: reask.checks,
-    })),
-  ]);
+  return everyAnswer(results).map(({ id, answered }) => ({
+    id,
+    checks: answered.checks,
+  }));
 }
 
 /** A failure's #474 label, for the console. */
@@ -442,43 +454,46 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
     const embedder = createEmbedder();
     // #457: unset, every case is rewritten live, as the route does it.
     const rewrites = rewritesFromEnv();
-    for (const evalCase of cases) {
-      const answered = await answerCase(evalCase, embedder, rewrites);
-      const declaresRequirements =
-        evalCase.requiredClaims !== undefined ||
-        evalCase.requiredSteps !== undefined;
-      results.push({
-        ...answered,
-        evalCase,
-        // A decline is never *adequate* on a case that declares required
-        // claims: the satisfiability census says the corpus can answer it, so
-        // declining is a product failure groundedness cannot see (#261 req. 2).
-        adequacy: answered.weak
-          ? requirementsOf(evalCase)
-          : declaresRequirements
-            ? {
-                ...(await judgeAdequacy(
-                  answered.query,
-                  judgedRequirements(evalCase),
-                  answered.answer,
-                )),
-                literals: literalFailures(
-                  checkLiterals(answered.answer, evalCase.requiredClaims ?? []),
-                ),
-              }
-            : null,
-        reasks: [],
-      });
+    async function askEveryCase(): Promise<void> {
+      for (const evalCase of cases) {
+        const answered = await answerCase(evalCase, embedder, rewrites);
+        const declaresRequirements =
+          evalCase.requiredClaims !== undefined ||
+          evalCase.requiredSteps !== undefined;
+        results.push({
+          ...answered,
+          evalCase,
+          // A decline is never *adequate* on a case that declares required
+          // claims: the satisfiability census says the corpus can answer it,
+          // so declining is a product failure groundedness cannot see (#261
+          // req. 2).
+          adequacy: answered.weak
+            ? requirementsOf(evalCase)
+            : declaresRequirements
+              ? {
+                  ...(await judgeAdequacy(
+                    answered.query,
+                    judgedRequirements(evalCase),
+                    answered.answer,
+                  )),
+                  literals: literalFailures(
+                    checkLiterals(
+                      answered.answer,
+                      evalCase.requiredClaims ?? [],
+                    ),
+                  ),
+                }
+              : null,
+          reasks: [],
+        });
+      }
     }
 
-    // #474: a blocking case whose first answer the judges failed is asked
-    // again, BLOCKING_REASK_COUNT times, through the whole pipeline — the
-    // variance is in the answer, not the judge. Only the gated cases: the
-    // blocking gate reads nothing else. A re-ask that throws is held until
-    // the transcript below is written, so it cannot take the paid rows with
-    // it; the run still fails on it.
-    let reaskError: unknown = null;
-    try {
+    // #474: a blocking case whose first answer failed is asked again,
+    // BLOCKING_REASK_COUNT times, through the whole pipeline — the variance
+    // is in the answer, not the judge. Only the gated cases: the blocking
+    // gate reads nothing else.
+    async function reaskFailingBlockingCases(): Promise<void> {
       for (const result of split().gated) {
         if (!needsReask(blockingCase(result))) continue;
         for (let i = 0; i < BLOCKING_REASK_COUNT; i++) {
@@ -487,8 +502,6 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
           );
         }
       }
-    } catch (error) {
-      reaskError = error;
     }
 
     // #289 req. 1: the run leaves its answers behind. The printed table says
@@ -497,54 +510,67 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
     // «the fragment was not in the top-8» from «the requirement over-specifies
     // what the corpus carries». Reporting only: nothing below reads the file,
     // and a write failure must not turn a measured run into a red one.
-    try {
-      const transcript = writeTranscript(
-        results.map((r) =>
-          transcriptRow({
-            evalCase: r.evalCase,
-            query: r.query,
-            answer: r.answer,
-            chunks: r.chunks,
-            derivedFigures: r.derivedFigures,
-            groundedness: groundednessOf(r),
-            citations: r.citations,
-            adequacy:
-              r.adequacy === null
-                ? null
-                : {
-                    verdict: r.adequacy.verdict,
-                    missing: r.adequacy.missing,
-                    literals: r.adequacy.literals,
-                  },
-            generation: r.generation,
-            rerank: r.rerank,
-            checks: r.checks,
-            reasks: r.reasks.map((reask) => ({
-              ...reask,
-              groundedness: groundednessOf(reask),
-            })),
-          }),
-        ),
-        { answerModel: answerModelId, subset: subset !== null },
-      );
-      console.log(`\ntranscript (#289): ${transcript}`);
-    } catch (error) {
-      console.log(`\ntranscript (#289): not written — ${String(error)}`);
+    function recordTranscript(): void {
+      try {
+        const transcript = writeTranscript(
+          results.map((r) =>
+            transcriptRow({
+              evalCase: r.evalCase,
+              query: r.query,
+              answer: r.answer,
+              chunks: r.chunks,
+              derivedFigures: r.derivedFigures,
+              groundedness: groundednessOf(r),
+              citations: r.citations,
+              adequacy:
+                r.adequacy === null
+                  ? null
+                  : {
+                      verdict: r.adequacy.verdict,
+                      missing: r.adequacy.missing,
+                      literals: r.adequacy.literals,
+                    },
+              generation: r.generation,
+              rerank: r.rerank,
+              checks: r.checks,
+              reasks: r.reasks.map((reask) => ({
+                ...reask,
+                groundedness: groundednessOf(reask),
+              })),
+            }),
+          ),
+          { answerModel: answerModelId, subset: subset !== null },
+        );
+        console.log(`\ntranscript (#289): ${transcript}`);
+      } catch (error) {
+        console.log(`\ntranscript (#289): not written — ${String(error)}`);
+      }
     }
-    if (reaskError !== null) throw reaskError;
+
+    // A phase that throws — a provider 5xx, a judge's malformed reply — stops
+    // the run, but only after the transcript has written every row paid for
+    // before it (#474).
+    await runThenRecord(
+      [askEveryCase, reaskFailingBlockingCases],
+      recordTranscript,
+    );
     // #466: a lost reading moves the answer set and nothing else, so the run
     // says how many it lost before any number below is read.
     console.log(
       droppedReadingsSummary(
-        results.map((r) => ({ id: r.evalCase.id, rerank: r.rerank })),
+        everyAnswer(results).map(({ id, answered }) => ({
+          id,
+          rerank: answered.rerank,
+        })),
       ),
     );
 
     const { gated, block } = split();
-    const passes = gated.filter((r) => r.verdict === "pass").length;
+    // The judges' count, as the baseline was measured (`judgesVerdict`).
+    const passes = gated.filter((r) => r.judgesVerdict === "pass").length;
     console.log(
       `\ngroundedness (answer=${answerModelId}, judge=${JUDGE_MODEL}): ` +
-        `${passes}/${gated.length} (baseline ${GROUNDEDNESS_BASELINE}, ` +
+        `${passes}/${gated.length} by the judges (baseline ${GROUNDEDNESS_BASELINE}, ` +
         `floor ${GROUNDEDNESS_FLOOR}; ADR 0023)` +
         (passes > GROUNDEDNESS_BASELINE && subset === null
           ? ` — beats the baseline: ratchet GROUNDEDNESS_BASELINE to ${passes}`
@@ -580,8 +606,8 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
               .join(", ")}`
           : ""),
     );
-    const labelled = results
-      .flatMap((r) => [r, ...r.reasks])
+    const labelled = everyAnswer(results)
+      .map(({ answered }) => answered)
       .filter((a) => a.label !== null);
     const tally = (label: FailureLabel | null) =>
       labelled.filter((a) => a.label?.label === label).length;
@@ -758,9 +784,10 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
       gated.length,
       `the baseline counts ${GROUNDEDNESS_CASES} cases; re-set it for ${gated.length}`,
     ).toBe(GROUNDEDNESS_CASES);
-    // The first answer only: the baseline was measured on one answer a case.
+    // The judges' verdict on the first answer, as the baseline was measured:
+    // one answer a case, before #500's gate (`judgesVerdict`).
     const failed = gated
-      .filter((r) => r.verdict === "fail")
+      .filter((r) => r.judgesVerdict === "fail")
       .map((r) => `${r.evalCase.id} (${r.reason})`);
     expect(
       gated.length - failed.length,
