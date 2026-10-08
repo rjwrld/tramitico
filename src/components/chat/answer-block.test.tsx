@@ -23,6 +23,7 @@ import {
   DEGRADED_PART_ID,
   DEGRADED_SEARCH_NOTE,
   MARKERS_PART_ID,
+  RERANKED_PART_ID,
   ROUTED_PART_ID,
   STATUS_PART_ID,
   type AskUIMessage,
@@ -250,6 +251,38 @@ describe("AnswerBlock degraded-search label (#127)", () => {
     render(<AnswerBlock message={degraded("")} busy />);
     expect(screen.queryByText(DEGRADED_SEARCH_NOTE)).toBeNull();
   });
+});
+
+describe("AnswerBlock and the canary's rerank part (#551)", () => {
+  /** The same answer, plus the route's `data-reranked` part. */
+  function withReranked(text: string, reranked: boolean): AskUIMessage {
+    const base = answer(text, [citation], [1]);
+    return {
+      ...base,
+      parts: [
+        { type: "data-reranked", id: RERANKED_PART_ID, data: reranked },
+        ...base.parts,
+      ],
+    };
+  }
+
+  it.each([true, false])(
+    "renders exactly what the answer renders without it (reranked: %s)",
+    (reranked) => {
+      const text = "La tarifa es 13% [1].";
+      const { container: plain } = render(
+        <AnswerBlock message={answer(text, [citation], [1])} />,
+      );
+      // Base UI mints a fresh id per mount; everything else must match.
+      const markup = (html: string) => html.replace(/base-ui-[^"]+/g, "id");
+      const expected = markup(plain.innerHTML);
+      cleanup();
+      const { container } = render(
+        <AnswerBlock message={withReranked(text, reranked)} />,
+      );
+      expect(markup(container.innerHTML)).toBe(expected);
+    },
+  );
 });
 
 describe("AnswerBlock routed decline (#264)", () => {

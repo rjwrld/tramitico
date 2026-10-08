@@ -5,6 +5,7 @@ import {
   CITATIONS_PART_ID,
   DEGRADED_PART_ID,
   MARKERS_PART_ID,
+  RERANKED_PART_ID,
   ROUTED_PART_ID,
   type AskDataParts,
   type AskUIMessage,
@@ -40,17 +41,17 @@ describe("the canary's copy of the wire", () => {
       degraded: true,
       unsaved: true,
       routed: true,
+      reranked: true,
     };
-    for (const type of Object.values(PART).filter(
-      (type) => type !== PART.reranked,
-    )) {
+    for (const type of Object.values(PART)) {
       expect(Object.keys(declared)).toContain(type.slice("data-".length));
     }
-    expect([CITATIONS_PART_ID, MARKERS_PART_ID, DEGRADED_PART_ID]).toEqual([
-      "citations",
-      "markers",
-      "degraded",
-    ]);
+    expect([
+      CITATIONS_PART_ID,
+      MARKERS_PART_ID,
+      DEGRADED_PART_ID,
+      RERANKED_PART_ID,
+    ]).toEqual(["citations", "markers", "degraded", "reranked"]);
   });
 
   const samples = [
@@ -121,18 +122,23 @@ function answerParts({
   // Chunk index → seal ordinal: chunks 1 and 2 share seal 1, chunk 3 is seal 2.
   markers = [1, 1, 2, 0, 0, 0, 0, 0],
   extra = [],
+  reranked = true,
   finish = true,
 }: {
   text?: string;
   citations?: Citation[];
   markers?: number[];
   extra?: StreamPart[];
+  reranked?: boolean | null;
   finish?: boolean;
 } = {}): StreamPart[] {
   return [
     { type: "start" },
     { type: "data-status", id: "status", data: { stage: "buscando" } },
     ...extra,
+    ...(reranked === null
+      ? []
+      : [{ type: PART.reranked, id: RERANKED_PART_ID, data: reranked }]),
     { type: "data-status", id: "status", data: { stage: "redactando" } },
     { type: "data-status", id: "status", data: { stage: "verificando" } },
     { type: "text-start", id: "answer" },
@@ -146,13 +152,17 @@ function answerParts({
   ];
 }
 
-/** The honest decline (`streamHonestDecline`): no citations, ever. */
+/**
+ * The honest decline (`streamHonestDecline`): no citations, ever. Routed on
+ * weak retrieval, before the rerank; unrouted when it fails closed (#131),
+ * after the rerank has written its part.
+ */
 function declineParts(routed: string | null): StreamPart[] {
   return [
     { type: "start" },
     { type: "data-status", id: "status", data: { stage: "buscando" } },
     ...(routed === null
-      ? []
+      ? [{ type: PART.reranked, id: RERANKED_PART_ID, data: true }]
       : [
           {
             type: "data-routed",
@@ -191,7 +201,7 @@ describe("assessStream", () => {
   it("passes a cited answer whose every marker resolves", () => {
     const verdict = assessStream(IVA, answerParts());
     expect(verdict.failures).toEqual([]);
-    expect(verdict).toMatchObject({ citations: 2, markers: 8, reranked: null });
+    expect(verdict).toMatchObject({ citations: 2, markers: 8, reranked: true });
   });
 
   it("fails an error part by its code — the refunded_error on the wire", () => {
@@ -272,20 +282,22 @@ describe("assessStream", () => {
     ]);
   });
 
-  it("fails a rerank the stream says did not run, and passes one that did", () => {
-    const off = answerParts({
-      extra: [{ type: PART.reranked, id: "reranked", data: false }],
-    });
-    const on = answerParts({
-      extra: [{ type: PART.reranked, id: "reranked", data: true }],
-    });
-    expect(assessStream(IVA, off).failures).toEqual([
-      "the rerank did not run (#498)",
-    ]);
-    expect(assessStream(IVA, on)).toMatchObject({
-      failures: [],
-      reranked: true,
-    });
+  it("fails an answer whose rerank did not run (#498)", () => {
+    expect(
+      assessStream(IVA, answerParts({ reranked: false })).failures,
+    ).toEqual(["the rerank did not run (#498)"]);
+  });
+
+  it("fails an answer that never says whether the rerank ran", () => {
+    expect(assessStream(IVA, answerParts({ reranked: null })).failures).toEqual(
+      ["no data-reranked part: the rerank never reported"],
+    );
+  });
+
+  it("does not ask the part of a routed decline, which never reaches the rerank", () => {
+    expect(assessStream(CCSS, declineParts("ccss")).failures).not.toContain(
+      "no data-reranked part: the rerank never reported",
+    );
   });
 
   it("asks a percentage of the rate question only", () => {
@@ -373,7 +385,7 @@ describe("formatVerdict", () => {
     const verdict = assessStream(CCSS, declineParts("ccss"));
     expect(formatVerdict(verdict)).toBe(
       [
-        "FAIL  ccss-cuota-independiente — citations=- markers=- reranked=not on the wire",
+        "FAIL  ccss-cuota-independiente — citations=- markers=- reranked=-",
         "      - declined: routed to ccss",
         "      answer: «No encontré base en los documentos oficiales.»",
       ].join("\n"),

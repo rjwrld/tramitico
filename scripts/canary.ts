@@ -16,7 +16,8 @@
  * - a `data-degraded` answer, which is Voyage's embeddings down (#127);
  * - a citation marker the stream's `data-markers` / `data-citations` cannot
  *   resolve, an unclosed `[n`, or an answer citing nothing;
- * - a rerank that did not run, when the stream says so (`data-reranked`);
+ * - an answer whose `data-reranked` part is `false` or missing: the rerank
+ *   did not run, so the answer set is the fused order (#498);
  * - for the question that asks for one, no percentage in the answer.
  *
  * Self-contained on purpose: Node 24 runs this file as it is (type
@@ -230,8 +231,15 @@ export function assessStream(
     for (const n of unclosedIn(text)) failures.push(`unclosed marker [${n}`);
   }
 
+  // Every ask that reached the rerank carries the part (route.ts), the
+  // fail-closed decline included; only the routed decline and an ask that
+  // errored before it do not, and both have failed above already.
   const reranked = latest(parts, PART.reranked);
   if (reranked === false) failures.push("the rerank did not run (#498)");
+  const errored = parts.some((part) => part.type === "error");
+  if (reranked === undefined && routed === undefined && !errored) {
+    failures.push("no data-reranked part: the rerank never reported");
+  }
 
   if (question.percentage && text.trim() !== "" && !PERCENTAGE.test(text)) {
     failures.push("no percentage in an answer that asks for a rate");
@@ -303,7 +311,7 @@ export async function askOnce(
 
 /** The log line for one verdict. */
 export function formatVerdict(verdict: AskVerdict): string {
-  const counts = `citations=${verdict.citations ?? "-"} markers=${verdict.markers ?? "-"} reranked=${verdict.reranked ?? "not on the wire"}`;
+  const counts = `citations=${verdict.citations ?? "-"} markers=${verdict.markers ?? "-"} reranked=${verdict.reranked ?? "-"}`;
   if (verdict.failures.length === 0) return `ok    ${verdict.id} — ${counts}`;
   return [
     `FAIL  ${verdict.id} — ${counts}`,
