@@ -3646,6 +3646,14 @@ There was no provider error and no rerank reading lost (0 of 1,090).
 - **Routed cases:** all six routed abstentions pass on the model path.
   `ho-abs-calculo-personalizado` and `ho-abs-sociedad-inactiva` pass on main.
 
-The `RERANK=off` probe arm #511 also asks for was not run: the lane's
-estimated cost (≈US$10) already passed the ticket's cap, and the arm waits
-for the owner's OK.
+**The `RERANK=off` probe arm** (≈US$0.05, run after the lane with the owner's
+OK) measures what production's fused-only order, from 2026-09-15 to #498,
+cost against this lane's rerank. It was compared under the route's
+configuration, and both sides carry their own live expansion:
+
+- Tier 1 targets in the answer set fell from 62/93 to 58/93 (9 lost, 5
+  gained, every Tier 1 case still hit).
+- Hits outside the block fell from 68/74 to 64/74. Seven Tier 2 cases lost
+  every target.
+- The robustness block fell from 25/27 to 21/27, including «¿Cuánto pago
+  como independiente?».

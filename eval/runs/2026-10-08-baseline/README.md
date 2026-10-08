@@ -203,15 +203,63 @@ There were none. 1,090 rerank readings across the three lanes came back
 whole. This is the pipeline production has run since #498 put the rerank
 back on 2026-10-07.
 
-## Not run: the `RERANK=off` probe arm
+## The `RERANK=off` probe arm: what production lost before #498
 
-#511 also asks for a retrieval-only `RERANK=off pnpm answer-set-probe` arm:
-how many Tier 1 targets production's answer sets lost while its rerank was
-off. It was not run. The estimate for the lane already exceeds the US$9 cap
-set for this ticket's paid steps, and the arm needs a fresh OK from the
-owner (about US$0.15; no Voyage rerank, since it is off). The on side of
-that delta is this lane's hit-rate read above, on the same stack and the same
-day.
+Production served the fused-only order from 2026-09-15 until #498 restored
+the rerank on 2026-10-07. This arm asks what that order cost. It ran after
+the lane, with the owner's OK: `RERANK=off pnpm answer-set-probe` over every
+retrieval and abstention case, with live rewrites, on the same stack and the
+same day. That is retrieval and rewrites only, with no answer model and no
+judge.
+
+| File                             | What it is                                                   |
+| -------------------------------- | ------------------------------------------------------------ |
+| `probe-rerank-off-…T030553Z.log` | its output: no provider call lost, no condensation fell back |
+| `probe-rerank-off.json`          | every case's pool, order and answer set                      |
+
+**The comparison.** The on side is this lane's hit-rate read, which uses
+production's route configuration (`top8/capoff/pinon`). The off side is the
+probe under the same configuration. Each side ran its own live expansion, so
+part of every delta below is expansion noise. The lane's blocking miss shows
+how much: it hits under `off`.
+
+| Under `top8/capoff/pinon`            | Rerank on (the lane) | `RERANK=off` (probe) | Δ      |
+| ------------------------------------ | -------------------- | -------------------- | ------ |
+| **Tier 1 targets in the answer set** | **62/93**            | **58/93**            | **−4** |
+| Tier 1 cases holding every target    | 12/27                | 11/27                | −1     |
+| Every target outside the block       | 135/193              | 116/193              | −19    |
+| Cases that hit, outside the block    | 68/74                | 64/74                | −4     |
+| Robustness block hits                | 25/27                | 21/27                | −4     |
+
+- **Tier 1 lost little, net.** The −4 is 9 targets lost and 5 gained across
+  12 cases, and every Tier 1 case kept at least one target.
+  - Lost: `multa-iva-no-declarado` −2, and −1 each in
+    `desinscripcion-dejar-actividad`, `ho-trabajitos-por-mi-cuenta`,
+    `ho-desde-cuanta-plata-caja`, `ho-factura-electronica-o-recibo`,
+    `ho-minimo-renta-2026`, `ho-ademas-tengo-salario` and
+    `ho-rebajar-multa-si-pago-ya`.
+  - Gained: `ho-desinscribir-debiendo-declaraciones` +2, and +1 each in
+    `ccss-pedir-prescripcion-cuotas`, `ho-hacienda-solo-cliente-eeuu` and
+    `ho-iva-en-cero-sin-facturar`.
+- **The loss was in Tier 2 and in depth.** Without the rerank, seven cases
+  that hit lost every target: `tribu-cr-declarar-pagar`,
+  `iva-credito-fiscal-compras`, `renta-bruta-que-incluye`,
+  `renta-pagos-parciales-retenciones`, `iva-facturas-en-dolares`,
+  `iva-ajuste-bien-de-capital` and `ho-t2-compu-cara-iva`, all Tier 2.
+  Three cases gained a hit: `ho-desinscribir-debiendo-declaraciones`,
+  `ccss-asalariado-followup` and `ho-t2-hosting-extranjero`. Outside the
+  block, 19 targets left the answer sets.
+- **The short wording lost most.** In the block, four cases miss off that
+  hit on:
+  - «¿Cuánto pago como independiente?», #490 item 1, as it reproduced in
+    production;
+  - «cuanto pago a la ccss como trabajador independiente»;
+  - «¿tasa del IVA?»;
+  - «como hago mi primera fatura electronica».
+
+  «¿cuánto pago a la caja?» takes the weak decline, as it did in #502's
+  probe. `rb-pill-retroactivo` goes the other way: it hits off and misses
+  on.
 
 ## Cost
 
@@ -228,6 +276,7 @@ prompt-tokens`, free), and the answers wrote 115 k output tokens.
 | Abstention lane (15 answers and judges)                       | 1.20    |
 | Conflicting sources, amending law                             | 0.15    |
 | Voyage embeddings and 1,090 rerank readings; Haiku rewrites   | 0.75    |
+| `RERANK=off` probe arm (embeddings, Haiku 5.5 rewrites)       | 0.05    |
 | **Total**                                                     | **≈10** |
 
 The robustness block and #503's cases are 34 more answered cases than the
