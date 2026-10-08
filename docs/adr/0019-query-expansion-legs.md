@@ -4,6 +4,33 @@ Date: 2026-09-05 · Status: accepted · Amends [SPEC §5](../../SPEC.md) ·
 Context: issue [#286](https://github.com/rjwrld/tramitico/issues/286), follow-up of the 2026
 baseline [#267](https://github.com/rjwrld/tramitico/issues/267)
 
+## Amendment (2026-10-07, issue [#509](https://github.com/rjwrld/tramitico/issues/509))
+
+Three rules join the expansion prompt (`EXPAND_SYSTEM_PROMPT`). The decision below is unchanged.
+
+- **Rule 7: a future figure gets the rule in force.** Asked for 2027's IVA rate, the expansion
+  wrote «los documentos disponibles… no incluyen proyecciones de cambios futuros para el año
+  2027». No document says that, so the probe searched for nothing that exists, and `ley-iva`
+  art. 10 missed the answer set. The rule tells the model to write the norm that fixes the
+  figure today and never to write that the figure does not exist.
+- **Rule 8: casual wording is translated before it is written.** The owner kept Haiku 5.5 for
+  the rewrites (map #497). On three probe pairs it missed 4, 2 and 3 colloquial `ho-t2-*` cases
+  where Haiku 4.5 missed 0, 1 and 0, and it read «¿Me pueden cobrar retroactivo?» as arrears
+  interest. The rule asks for the concrete situation a norm regulates (what is charged, paid,
+  declared or deducted, to whom, from when and until when) rather than the norm of one loose
+  word. No example in it is taken from a dataset question, because the held-out rule forbids
+  that.
+- **Rule 9: no heading over a list of neighbouring topics.** Haiku 5.5 wrote «X, con sus
+  requisitos, condiciones y procedimientos…» and padded the probe with topics nobody asked
+  about. A first version also said «redacte la regla misma». That made 5.5 state a conclusion
+  instead of a topic, and the blocking case `ho-hacienda-solo-cliente-eeuu` lost its targets
+  on two live reads of two, so the clause was dropped.
+
+Measured on Haiku 5.5 with the shipped prompt (`eval/runs/2026-10-07-509-rate-anchors/`):
+Tier 1 hits 27/27 and 64 targets in the set, against 63 for #502; `ho-t2-*` 10/12 against
+9/12; `rb-pill-retroactivo` hits. The full arms on both models ran on the first rule 9. Haiku
+4.5 is not re-read on the shipped prompt: the issue's cap ran out first.
+
 ## Amendment (2026-09-07, issue [#307](https://github.com/rjwrld/tramitico/issues/307))
 
 The corroboration paragraph below ("Corroboration needs at least one leg that ran on the

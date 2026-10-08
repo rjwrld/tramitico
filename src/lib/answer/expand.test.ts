@@ -167,6 +167,22 @@ describe("the rewrite", () => {
     expect(buildExpandPrompt(QUESTION)).toContain(QUESTION);
   });
 
+  it("asks for the rule in force when the figure asked for is future (#509)", () => {
+    // Rule 7: asked for 2027's IVA rate, the expansion wrote «no incluyen
+    // proyecciones…», a refusal no document contains, and the search for
+    // ley-iva art. 10 went with it. A refusal is never a probe.
+    expect(EXPAND_SYSTEM_PROMPT).toContain("redacte la norma vigente");
+    expect(EXPAND_SYSTEM_PROMPT).toContain("que no hay proyecciones");
+  });
+
+  it("translates casual wording into the situation a norm regulates (#509)", () => {
+    // Rules 8 and 9: Haiku 5.5 read colloquial questions word by word
+    // («retroactivo» as arrears interest) and wrote a heading over a list
+    // of neighbouring topics, where Haiku 4.5 wrote the rule (#502).
+    expect(EXPAND_SYSTEM_PROMPT).toContain("tradúzcala a la situación");
+    expect(EXPAND_SYSTEM_PROMPT).toContain("lista de asuntos vecinos");
+  });
+
   it("shows the model the corpus it is actually searching", () => {
     // The grounding, and the reason the rewrite names «Código de Normas y
     // Procedimientos Tributarios» rather than inventing a plausible term:
