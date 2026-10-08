@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import manifest from "../../../corpus/manifest.json";
 import { KNOB_ERROR_PREFIX } from "../knobs";
 import type { RetrievedChunk } from "../retrieval";
-import type { WithheldSources } from "../vigencia";
+import { noneWithheld } from "../test-support/withheld";
 import {
   articuloKey,
   articuloLookup,
@@ -303,12 +303,7 @@ function chunk(
   };
 }
 
-const NOTHING_WITHHELD: WithheldSources = {
-  outOfPeriod: new Set(),
-  yearFigures: new Map(),
-  datedFacts: new Map(),
-  retired: new Set(),
-};
+const NOTHING_WITHHELD = noneWithheld();
 
 /** A lookup over a fixed corpus, recording what it was asked. */
 function fakeLookup(corpus: RetrievedChunk[]) {
@@ -464,10 +459,9 @@ describe("crossReferencedChunks", () => {
       await crossReferencedChunks([art30], {
         lookup,
         links: LINKS,
-        withheld: {
-          ...NOTHING_WITHHELD,
+        withheld: noneWithheld({
           outOfPeriod: new Set(["ley-iva"]),
-        },
+        }),
       }),
     ).toEqual([]);
     expect(asked).toEqual([]);
@@ -479,15 +473,14 @@ describe("crossReferencedChunks", () => {
       await crossReferencedChunks([art30], {
         lookup,
         links: LINKS,
-        withheld: {
-          ...NOTHING_WITHHELD,
+        withheld: noneWithheld({
           yearFigures: new Map([
             [
-              "ley-iva\u0000Artículo 10" /* vigencia.ts articuloKey */,
+              "ley-iva\u0000Artículo 10" /* vigencia.ts listedKey */,
               { current: false, evidence: "2026" },
             ],
           ]),
-        },
+        }),
       }),
     ).toEqual([art4]);
   });
@@ -498,15 +491,14 @@ describe("crossReferencedChunks", () => {
       await crossReferencedChunks([art30], {
         lookup,
         links: LINKS,
-        withheld: {
-          ...NOTHING_WITHHELD,
+        withheld: noneWithheld({
           datedFacts: new Map([
             [
-              "ley-iva\u0000Artículo 10" /* vigencia.ts articuloKey */,
+              "ley-iva\u0000Artículo 10" /* vigencia.ts listedKey */,
               { current: false, evidence: "2026" },
             ],
           ]),
-        },
+        }),
       }),
     ).toEqual([art4]);
   });

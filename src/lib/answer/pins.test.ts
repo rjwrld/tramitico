@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
+import { noneWithheld } from "../test-support/withheld";
 import type { ArticuloLookup } from "./cross-references";
 import type { DerivedFigure } from "./derived";
 import { pinAnswerSet } from "./pins";
@@ -58,12 +59,7 @@ const lookupOf =
       ),
     );
 
-const NOTHING_WITHHELD = {
-  outOfPeriod: new Set<string>(),
-  yearFigures: new Map(),
-  datedFacts: new Map(),
-  retired: new Set<string>(),
-};
+const NOTHING_WITHHELD = noneWithheld();
 
 describe("pinAnswerSet", () => {
   beforeEach(() => {
