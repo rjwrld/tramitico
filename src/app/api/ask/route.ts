@@ -151,10 +151,10 @@ import {
 import { condenseQuestion } from "@/lib/answer/condense";
 import {
   incompletelyCitedDerivedFigures,
-  pinDerivedFigureInputs,
   resolveDerivedFigures,
   type ResolvedDerivedFigure,
 } from "@/lib/answer/derived";
+import { pinAnswerSet } from "@/lib/answer/pins";
 import { hasUnstorableText, isCrossSiteAsk } from "@/lib/answer/admission";
 import { readCappedBody } from "@/lib/http/capped-body";
 import { startAskDeadline } from "@/lib/answer/deadline";
@@ -981,14 +981,16 @@ export async function POST(request: Request): Promise<Response> {
     // #287: the rerank cut can strand a derived figure by dropping one of its
     // inputs while its sibling survives, and the figure is then unprintable.
     // Pinning the missing input back in from the pool the reranker just read
-    // is an append, so nothing the rerank chose is displaced.
+    // is an append, so nothing the rerank chose is displaced. #508: an
+    // artículo the cut names («la tarifa referida en el artículo 10») is
+    // appended the same way, ahead of those inputs (pins.ts).
     // #286: the reranker scores the question *and* its corpus-register
     // expansion, for the same reason the fused legs do — and, since #304,
     // the step catalogue's sentences when retrieval ran a probe.
     const stopRerank = telemetry.startStage("rerank");
     let chunks;
     try {
-      chunks = pinDerivedFigureInputs(
+      chunks = await pinAnswerSet(
         await rerankChunks(asked.query, retrieval.chunks, {
           ...rerankOptionsFor(retrieval),
           // #466: a lost reading changes the answer set and nothing else.

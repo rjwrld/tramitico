@@ -37,11 +37,8 @@
  */
 import { readFileSync } from "node:fs";
 import { beforeAll, expect, it } from "vitest";
-import {
-  pinDerivedFigureInputs,
-  pinEnabled,
-  resolveDerivedFigures,
-} from "../answer/derived";
+import { pinEnabled, resolveDerivedFigures } from "../answer/derived";
+import { pinAnswerSet } from "../answer/pins";
 import { expansionEnabled } from "../answer/expand";
 import { STEP_CATALOGUE, stepsEnabled } from "../answer/steps";
 import {
@@ -240,8 +237,8 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
       });
       const order = outcome?.order ?? null;
       // The route's exact sequence: rerank cut with the step picks appended
-      // (#304), then #287's derived-input pin.
-      const topK = pinDerivedFigureInputs(
+      // (#304), then the cross-references (#508) and #287's derived-input pin.
+      const topK = await pinAnswerSet(
         answerSetFromOrder(order, retrieval.chunks, outcome?.stepPicks ?? []),
         retrieval.chunks,
       );

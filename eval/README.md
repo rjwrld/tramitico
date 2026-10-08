@@ -18,24 +18,26 @@ transcript (`low/groundedness-…-20261002T184323Z.jsonl`) is the input for
 **Knobs.** Every knob is read at call time. Its code default is production's
 value, except for `ANSWER_EFFORT`:
 
-| Variable                         | Default                                       | Where                        |
-| -------------------------------- | --------------------------------------------- | ---------------------------- |
-| `ANSWER_MODEL`                   | `claude-sonnet-5-5`                           | `src/lib/answer/model.ts`    |
-| `ANSWER_EFFORT`                  | unset = no effort sent; **production: `low`** | `model.ts`, Vercel env       |
-| `CONDENSE_MODEL`, `EXPAND_MODEL` | `claude-haiku-5-5`                            | `model.ts`                   |
-| `EXPAND`                         | `on` (needs `ANTHROPIC_API_KEY`)              | `src/lib/answer/expand.ts`   |
-| `STEPS`                          | `on`                                          | `src/lib/answer/steps.ts`    |
-| `STEPS_RERANK`                   | `pin1` (`pin`, `slot`, `max`, `off`)          | `src/lib/answer/rerank.ts`   |
-| `RERANK`                         | `voyage`; `off` = the fused-only order        | `rerank.ts`                  |
-| `RERANK_MODEL`                   | `rerank-2.5-lite`                             | `rerank.ts`                  |
-| `ANSWER_TOP_K`                   | `8`                                           | `rerank.ts`                  |
-| `ANSWER_DOC_CAP`                 | `off`                                         | `rerank.ts`                  |
-| `PIN_DERIVED_INPUTS`             | `on` (since #344)                             | `src/lib/answer/derived.ts`  |
-| `EVAL_CASES`                     | every case; comma-separated ids scope a lane  | `src/lib/eval/subset.ts`     |
-| `EVAL_TRANSCRIPT_DIR`            | `eval/transcripts/`                           | `src/lib/eval/transcript.ts` |
-| `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites     | `src/lib/eval/rewrites.ts`   |
+| Variable                         | Default                                       | Where                                |
+| -------------------------------- | --------------------------------------------- | ------------------------------------ |
+| `ANSWER_MODEL`                   | `claude-sonnet-5-5`                           | `src/lib/answer/model.ts`            |
+| `ANSWER_EFFORT`                  | unset = no effort sent; **production: `low`** | `model.ts`, Vercel env               |
+| `CONDENSE_MODEL`, `EXPAND_MODEL` | `claude-haiku-5-5`                            | `model.ts`                           |
+| `EXPAND`                         | `on` (needs `ANTHROPIC_API_KEY`)              | `src/lib/answer/expand.ts`           |
+| `STEPS`                          | `on`                                          | `src/lib/answer/steps.ts`            |
+| `STEPS_RERANK`                   | `pin1` (`pin`, `slot`, `max`, `off`)          | `src/lib/answer/rerank.ts`           |
+| `RERANK`                         | `voyage`; `off` = the fused-only order        | `rerank.ts`                          |
+| `RERANK_MODEL`                   | `rerank-2.5-lite`                             | `rerank.ts`                          |
+| `ANSWER_TOP_K`                   | `8`                                           | `rerank.ts`                          |
+| `ANSWER_DOC_CAP`                 | `off`                                         | `rerank.ts`                          |
+| `PIN_DERIVED_INPUTS`             | `on` (since #344)                             | `src/lib/answer/derived.ts`          |
+| `PIN_CROSS_REFERENCES`           | `on` (since #508)                             | `src/lib/answer/cross-references.ts` |
+| `EVAL_CASES`                     | every case; comma-separated ids scope a lane  | `src/lib/eval/subset.ts`             |
+| `EVAL_TRANSCRIPT_DIR`            | `eval/transcripts/`                           | `src/lib/eval/transcript.ts`         |
+| `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites     | `src/lib/eval/rewrites.ts`           |
 
-The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`)
+The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`,
+`PIN_CROSS_REFERENCES`)
 accept only the values above. Anything else runs the default and logs
 `config: unknown knob value` once (#499, `src/lib/knobs.ts`), so an arm that
 misspells `off` measures production rather than the baseline: check the run's
@@ -95,16 +97,16 @@ run's setup and deltas.
 
 **Cheaper reads.** Each script's header documents its flags.
 
-| Command                                                  | Answers                                                                                   | Cost                             |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------- |
-| `pnpm requirement-coverage <transcript…>`                | Tier 1 requirements stated, per case, from committed transcripts                          | free                             |
-| `pnpm absence-backtest [--openings]`                     | false absence claims and typo runs in every committed answer                              | free                             |
-| `pnpm answer-set-compare a.json b.json`                  | the first stage where two probe runs part, per case                                       | free                             |
-| `pnpm prompt-tokens <transcript…>`                       | the answer prompt's input size, per case                                                  | free (count_tokens)              |
-| `pnpm answer-replay <transcript> [--tier=1] [--cases=…]` | the current prompt re-answering recorded chunks, false absence claims recorded → replayed | ≈US$0.10 a row; `--dry-run` free |
-| `pnpm pool-dump <case…>`                                 | why a target missed the fused pool: every leg's rank                                      | one embed per case               |
-| `pnpm answer-set-probe [out.json]`                       | retrieve → rerank → cap → pin for every case, no answer model                             | ≈US$0.15                         |
-| `pnpm answer-latency-probe`                              | answer latency per effort arm                                                             | ≈US$1–2                          |
+| Command                                                  | Answers                                                                                              | Cost                             |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------- |
+| `pnpm requirement-coverage <transcript…>`                | Tier 1 requirements stated, per case, from committed transcripts                                     | free                             |
+| `pnpm absence-backtest [--openings]`                     | false absence claims and typo runs in every committed answer                                         | free                             |
+| `pnpm answer-set-compare a.json b.json`                  | the first stage where two probe runs part, per case                                                  | free                             |
+| `pnpm prompt-tokens <transcript…>`                       | the answer prompt's input size, per case                                                             | free (count_tokens)              |
+| `pnpm answer-replay <transcript> [--tier=1] [--cases=…]` | the current prompt re-answering recorded chunks, false absence claims recorded → replayed            | ≈US$0.10 a row; `--dry-run` free |
+| `pnpm pool-dump <case…>`                                 | why a target missed the fused pool: every leg's rank                                                 | one embed per case               |
+| `pnpm answer-set-probe [out.json]`                       | retrieve → rerank → cap → pins for every case, no answer model; prints what the cross-references add | ≈US$0.15                         |
+| `pnpm answer-latency-probe`                              | answer latency per effort arm                                                                        | ≈US$1–2                          |
 
 A transcript row is `TranscriptRow` in `src/lib/eval/transcript.ts`.
 

@@ -130,16 +130,17 @@ the ask proceeds down the ordinary path. That path can still find little and dec
 later in answer generation — this line says only that the search was the pre-expansion one.
 `EXPAND=off` turns the call off entirely if it ever needs to be shed.
 
-| Prefix                                | From                              | Carries                                                    |
-| ------------------------------------- | --------------------------------- | ---------------------------------------------------------- |
-| `ask: citation invariant violated`    | `src/lib/answer/invariant.ts`     | `violation=`, `attempt=`, `unresolved=`                    |
-| `retrieval: degraded to lexical-only` | `src/lib/retrieval.ts`            | `reason=timeout\|error`, `error=`                          |
-| `ask: history save failed`            | `src/lib/answer/persist.ts`       | `kind=answer\|decline`, `error=`                           |
-| `ask: condensation failed`            | `src/lib/answer/condense.ts`      | `reason=timeout\|error\|unusable`, `error=`                |
-| `ask: expansion failed`               | `src/lib/answer/expand.ts`        | `reason=timeout\|error\|unusable`, `error=`                |
-| `rate limit: unavailable`             | `src/lib/rate-limit.ts`           | `error=`                                                   |
-| `[csp-report] violation`              | `src/app/api/csp-report/route.ts` | `directive=`, `blocked=`, `document=`                      |
-| `config: unknown knob value`          | `src/lib/knobs.ts`                | `NAME="value"`, the accepted modes, the mode it is read as |
+| Prefix                                | From                                 | Carries                                                    |
+| ------------------------------------- | ------------------------------------ | ---------------------------------------------------------- |
+| `ask: citation invariant violated`    | `src/lib/answer/invariant.ts`        | `violation=`, `attempt=`, `unresolved=`                    |
+| `retrieval: degraded to lexical-only` | `src/lib/retrieval.ts`               | `reason=timeout\|error`, `error=`                          |
+| `ask: history save failed`            | `src/lib/answer/persist.ts`          | `kind=answer\|decline`, `error=`                           |
+| `ask: condensation failed`            | `src/lib/answer/condense.ts`         | `reason=timeout\|error\|unusable`, `error=`                |
+| `ask: expansion failed`               | `src/lib/answer/expand.ts`           | `reason=timeout\|error\|unusable`, `error=`                |
+| `rate limit: unavailable`             | `src/lib/rate-limit.ts`              | `error=`                                                   |
+| `[csp-report] violation`              | `src/app/api/csp-report/route.ts`    | `directive=`, `blocked=`, `document=`                      |
+| `config: unknown knob value`          | `src/lib/knobs.ts`                   | `NAME="value"`, the accepted modes, the mode it is read as |
+| `cross-references: lookup failed`     | `src/lib/answer/cross-references.ts` | `error=`                                                   |
 
 `rate limit: unavailable` is the whole diagnosis of a 503 (§1.3): the ask never reached the
 telemetry event, so this line and its `error=` token — a `PostgrestError#…`, a
@@ -147,7 +148,7 @@ telemetry event, so this line and its `error=` token — a `PostgrestError#…`,
 there is. One line per denied ask, so it also counts the blast radius.
 
 `config: unknown knob value` (#499) is an environment variable that switches a pipeline
-stage — `RERANK`, `EXPAND`, `STEPS`, `STEPS_RERANK`, `PIN_DERIVED_INPUTS` — set to a word
+stage — `RERANK`, `EXPAND`, `STEPS`, `STEPS_RERANK`, `PIN_DERIVED_INPUTS`, `PIN_CROSS_REFERENCES` — set to a word
 it does not accept. The ask carries on in the variable's default mode, the production
 pipeline, and the line repeats once per cold start until the variable is fixed in Vercel
 and redeployed. Only the exact word `off` (or a listed mode) opts out; `RERANK=on` kept
