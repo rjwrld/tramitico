@@ -6,6 +6,9 @@ import {
   crFiscalYear,
   isWithheld,
   withheldSources,
+  withholdsAny,
+  yearFigureLabel,
+  yearFigureVigencia,
   type VigenciaManifest,
 } from "./vigencia";
 
@@ -132,7 +135,9 @@ describe("withheldSources", () => {
   ];
   const served = (now: Date, source: VigenciaManifest) => {
     const withheld = withheldSources(now, source);
-    return docKeys.filter((docKey) => !isWithheld(withheld, docKey));
+    return docKeys.filter(
+      (docKey) => !isWithheld(withheld, { docKey, articulo: null }),
+    );
   };
 
   it("hands each fiscal year its own annual sources and no other", () => {
@@ -152,5 +157,65 @@ describe("withheldSources", () => {
   it("withholds a retired doc_key whatever the year", () => {
     const retiring = { ...TURN_OF_YEAR, retiredDocKeys: ["ley-7092"] };
     expect(served(IN_2026, retiring)).not.toContain("ley-7092");
+  });
+});
+
+/** A source that is not annual, with one artículo stating 2026's figures. */
+const LEY_RENTA: VigenciaManifest = {
+  documents: [
+    {
+      doc_key: "ley-renta",
+      yearFigures: [
+        {
+          articulo: "ARTICULO 34",
+          fiscalYear: 2026,
+          evidence: "a partir del 01 de enero del 2026",
+        },
+      ],
+    },
+  ],
+};
+
+describe("year-figure artículos (#518)", () => {
+  const articulos = ["ARTICULO 34", "ARTICULO 35", null];
+  const served = (now: Date) => {
+    const withheld = withheldSources(now, LEY_RENTA);
+    return articulos.filter(
+      (articulo) => !isWithheld(withheld, { docKey: "ley-renta", articulo }),
+    );
+  };
+
+  it("withholds the artículo outside its fiscal year and leaves the rest of the source", () => {
+    expect(served(IN_2026)).toEqual(articulos);
+    expect(withholdsAny(withheldSources(IN_2026, LEY_RENTA))).toBe(false);
+
+    expect(served(IN_2027)).toEqual(["ARTICULO 35", null]);
+    expect(withholdsAny(withheldSources(IN_2027, LEY_RENTA))).toBe(true);
+  });
+
+  it("does not reach another source's artículo of the same name", () => {
+    const withheld = withheldSources(IN_2027, LEY_RENTA);
+    expect(
+      isWithheld(withheld, {
+        docKey: "reglamento-renta",
+        articulo: "ARTICULO 34",
+      }),
+    ).toBe(false);
+  });
+
+  it("warns from 1 December, and names what 1 January withheld", () => {
+    expect(yearFigureVigencia(LEY_RENTA, crMidnight("2026-11-30"))).toEqual({
+      withheld: [],
+      dueForNextYear: [],
+    });
+    expect(
+      yearFigureVigencia(
+        LEY_RENTA,
+        crMidnight("2026-12-01"),
+      ).dueForNextYear.map(yearFigureLabel),
+    ).toEqual(["ley-renta · ARTICULO 34 (2026)"]);
+    expect(
+      yearFigureVigencia(LEY_RENTA, IN_2027).withheld.map(yearFigureLabel),
+    ).toEqual(["ley-renta · ARTICULO 34 (2026)"]);
   });
 });

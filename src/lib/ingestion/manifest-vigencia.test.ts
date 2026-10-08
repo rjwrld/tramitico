@@ -1,7 +1,14 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { annualSeries, annualVigencia } from "../vigencia";
+import { CORPUS_INDEX_PATH, parseCorpusIndex } from "../eval/corpus-index";
+import {
+  annualSeries,
+  annualVigencia,
+  yearFigureLabel,
+  yearFigureVigencia,
+  type YearFigure,
+} from "../vigencia";
 
 interface ManifestEntry {
   doc_key: string;
@@ -9,6 +16,7 @@ interface ManifestEntry {
   carriesFigures?: boolean;
   annualChurn?: boolean;
   verifiedForFiscalYear?: number;
+  yearFigures?: YearFigure[];
   notes?: string;
 }
 
@@ -68,6 +76,7 @@ describe("corpus/manifest.json vigencia", () => {
   }) => {
     // Asserts nothing, on purpose: it can only warn.
     const { dueForNextYear, superseded } = annualVigencia(manifest);
+    const yearFigures = yearFigureVigencia(manifest);
     const warnings = [
       ...dueForNextYear.map(
         (series) =>
@@ -77,11 +86,70 @@ describe("corpus/manifest.json vigencia", () => {
         (docKey) =>
           `${docKey}: superseded and withheld from answers — owner: retire it, runbook §2.2`,
       ),
+      // #518: never a gate. The fix waits on SINALEVI or the CCSS publishing
+      // the new year, and until then retrieval keeps the old figure out.
+      ...yearFigures.dueForNextYear.map(
+        (ref) =>
+          `${yearFigureLabel(ref)}: withheld from 1 January until its source states the next fiscal year — owner: runbook §2.2 (#518)`,
+      ),
+      ...yearFigures.withheld.map(
+        (ref) =>
+          `${yearFigureLabel(ref)}: withheld from answers — owner: re-crawl once the source states this fiscal year, runbook §2.2 (#518)`,
+      ),
     ];
     for (const warning of warnings) {
       console.warn(`vigencia: ${warning}`);
       annotate(warning, "warning");
     }
+  });
+
+  /**
+   * #518, ADR 0016: the artículos of non-annual sources that state one fiscal
+   * year's figures. The list is the inventory; a source that starts or stops
+   * quoting a year's figure changes it here, on purpose.
+   */
+  it("lists the year-figure artículos of non-annual sources", () => {
+    const listed = manifest.documents.flatMap((doc) =>
+      (doc.yearFigures ?? []).map(
+        (figure) => `${doc.doc_key} · ${figure.articulo}`,
+      ),
+    );
+    expect(listed).toEqual([
+      "ley-renta · Artículo 15",
+      "ley-renta · Artículo 33",
+      "ley-renta · ARTICULO 34",
+      "ccss-faq · ¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?",
+    ]);
+    // An annual source is withheld whole; listing its artículos would be a
+    // second, weaker claim about the same text.
+    expect(
+      manifest.documents
+        .filter((doc) => doc.annualChurn && doc.yearFigures)
+        .map((doc) => doc.doc_key),
+    ).toEqual([]);
+    for (const figure of manifest.documents.flatMap(
+      (doc) => doc.yearFigures ?? [],
+    )) {
+      expect(Number.isInteger(figure.fiscalYear)).toBe(true);
+      expect(figure.evidence.trim()).not.toBe("");
+    }
+  });
+
+  it("names year-figure artículos the corpus holds, each under one heading", () => {
+    // Retrieval matches a chunk's (doc_key, artículo): a heading that is not
+    // in the corpus withholds nothing, and one that repeats under another
+    // Título would take its namesake with it.
+    const index = parseCorpusIndex(readFileSync(CORPUS_INDEX_PATH, "utf8"));
+    const triples = (docKey: string, articulo: string) =>
+      index.entries.filter(
+        (entry) => entry.docKey === docKey && entry.articulo === articulo,
+      ).length;
+    const notOne = manifest.documents.flatMap((doc) =>
+      (doc.yearFigures ?? [])
+        .filter((figure) => triples(doc.doc_key, figure.articulo) !== 1)
+        .map((figure) => `${doc.doc_key} · ${figure.articulo}`),
+    );
+    expect(notOne).toEqual([]);
   });
 
   it("records the IVM re-verification required when its current scale expires", () => {

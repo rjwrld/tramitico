@@ -10,6 +10,13 @@
  * manifest on it, and `retrieve()` withholds every chunk whose annual source
  * does not cover the year the question is asked in.
  *
+ * Some sources that are not annual still quote one year's figures — the
+ * consolidated Ley 7092 carries the year's tramos and créditos in its
+ * artículos 15, 33 and 34 — so an entry can also list, as `yearFigures`, the
+ * artículos that state one fiscal year's figures. `retrieve()` withholds
+ * those chunks outside that year, and leaves the rest of the source alone
+ * (#518).
+ *
  * Costa Rica's fiscal year is the calendar year, read in Costa Rica time
  * (`cr-time.ts`), so a source turns over at local midnight on 1 January,
  * not UTC's.
@@ -17,12 +24,33 @@
 import manifest from "../../corpus/manifest.json";
 import { crDate } from "./cr-time";
 
+/**
+ * One artículo of a source that is not annual but states one fiscal year's
+ * figures (#518). Its chunks ground answers in that year only.
+ */
+export interface YearFigure {
+  /** The chunk heading, exactly as the chunker writes it (`chunks.articulo`). */
+  articulo: string;
+  /** The fiscal year whose figures the artículo states. */
+  fiscalYear: number;
+  /**
+   * Words of the source that tie the artículo to `fiscalYear` — the decree
+   * note, the image's heading. Ingestion refuses a crawl in which no chunk of
+   * the artículo carries them, so the year cannot be advanced without the
+   * text, nor the text without the year.
+   */
+  evidence: string;
+  /** Which figures, for whoever reads the manifest. */
+  figures?: string;
+}
+
 /** The slice of a manifest entry vigencia reads. */
 export interface VigenciaEntry {
   doc_key: string;
   effective_date?: string;
   annualChurn?: boolean;
   verifiedForFiscalYear?: number;
+  yearFigures?: readonly YearFigure[];
 }
 
 export interface VigenciaManifest {
@@ -128,12 +156,72 @@ export function annualVigencia(
   };
 }
 
-/** The doc_keys whose chunks may not ground an answer at a given moment. */
+/** A manifest `yearFigures` entry, named the way a warning reads it. */
+export interface YearFigureRef {
+  docKey: string;
+  articulo: string;
+  fiscalYear: number;
+}
+
+/** `docKey · articulo (fiscalYear)`. */
+export function yearFigureLabel(ref: YearFigureRef): string {
+  return `${ref.docKey} · ${ref.articulo} (${ref.fiscalYear})`;
+}
+
+function yearFigureRefs(source: VigenciaManifest): YearFigureRef[] {
+  return source.documents.flatMap((entry) =>
+    (entry.yearFigures ?? []).map(({ articulo, fiscalYear }) => ({
+      docKey: entry.doc_key,
+      articulo,
+      fiscalYear,
+    })),
+  );
+}
+
+export interface YearFigureVigencia {
+  /**
+   * Artículos whose year is not the current one: `retrieve()` withholds them
+   * until the publisher's text moves to this year and the owner re-crawls
+   * it. A warning, not a gate — the fix waits on SINALEVI or the CCSS, and
+   * the runtime already keeps the stale figure out of answers.
+   */
+  withheld: YearFigureRef[];
+  /** From 1 December only: artículos that 1 January will withhold. */
+  dueForNextYear: YearFigureRef[];
+}
+
+/** The manifest's `yearFigures`, read against the fiscal year of `now`. */
+export function yearFigureVigencia(
+  source: VigenciaManifest = MANIFEST,
+  now = new Date(),
+): YearFigureVigencia {
+  const year = crFiscalYear(now);
+  const refs = yearFigureRefs(source);
+  const isDecember = crDate(now).slice(5, 7) === "12";
+  return {
+    withheld: refs.filter((ref) => ref.fiscalYear !== year),
+    dueForNextYear: isDecember
+      ? refs.filter((ref) => ref.fiscalYear !== year + 1)
+      : [],
+  };
+}
+
+/** What may not ground an answer at a given moment. */
 export interface WithheldSources {
   /** `annualChurn` entries that do not cover the current fiscal year. */
   outOfPeriod: ReadonlySet<string>;
+  /**
+   * `yearFigures` artículos stating another fiscal year's figures, keyed by
+   * `yearFigureKey` (#518).
+   */
+  outOfPeriodArticulos: ReadonlySet<string>;
   /** The manifest's `retiredDocKeys`. */
   retired: ReadonlySet<string>;
+}
+
+/** The chunk identity `outOfPeriodArticulos` is keyed by. */
+function yearFigureKey(docKey: string, articulo: string | null): string {
+  return `${docKey}\u0000${articulo ?? ""}`;
 }
 
 /**
@@ -148,9 +236,10 @@ export interface WithheldSources {
  * including a doc_key the manifest does not list — a test fixture, or a
  * document ingested by a newer manifest than the one deployed.
  *
- * The drop is by source. A source that is not annual but quotes a year's
- * figure (Ley 7092 as SINALEVI consolidates it) is not caught here; runbook
- * §2.2 has the owner check those by hand.
+ * A source that is not annual but quotes a year's figures is withheld by
+ * artículo instead: each `yearFigures` artículo is dropped in every fiscal
+ * year but its own, for the same reason and with the same guarantee (#518).
+ * The rest of the source still grounds answers.
  */
 export function withheldSources(
   now = new Date(),
@@ -163,10 +252,31 @@ export function withheldSources(
         .filter((entry) => entry.annualChurn && !coversFiscalYear(entry, year))
         .map((entry) => entry.doc_key),
     ),
+    outOfPeriodArticulos: new Set(
+      yearFigureRefs(source)
+        .filter((ref) => ref.fiscalYear !== year)
+        .map((ref) => yearFigureKey(ref.docKey, ref.articulo)),
+    ),
     retired: new Set(source.retiredDocKeys ?? []),
   };
 }
 
-export function isWithheld(withheld: WithheldSources, docKey: string): boolean {
-  return withheld.outOfPeriod.has(docKey) || withheld.retired.has(docKey);
+/** Whether anything is withheld for being out of period. */
+export function withholdsAny(withheld: WithheldSources): boolean {
+  return (
+    withheld.outOfPeriod.size > 0 || withheld.outOfPeriodArticulos.size > 0
+  );
+}
+
+export function isWithheld(
+  withheld: WithheldSources,
+  chunk: { docKey: string; articulo: string | null },
+): boolean {
+  return (
+    withheld.outOfPeriod.has(chunk.docKey) ||
+    withheld.retired.has(chunk.docKey) ||
+    withheld.outOfPeriodArticulos.has(
+      yearFigureKey(chunk.docKey, chunk.articulo),
+    )
+  );
 }

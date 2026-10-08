@@ -712,6 +712,95 @@ describe("retrieve", () => {
     ).toEqual([]);
   });
 
+  /**
+   * #518: the same claim for sources that are not annual but state one
+   * year's figures — the consolidated Ley 7092's tramos and créditos, the
+   * CCSS FAQ's rate image. Every `yearFigures` artículo in the deployed
+   * manifest is offered beside an artículo of the same source that states
+   * none; on a 2027 clock only the 2027 ones and the neutral ones get
+   * through, and in its own year each listed artículo does.
+   */
+  it("lets no year-figure artículo from another fiscal year through in 2027", async () => {
+    const listed = manifestDocs.flatMap((doc) =>
+      (doc.yearFigures ?? []).map(({ articulo, fiscalYear }) => ({
+        docKey: doc.doc_key,
+        articulo,
+        fiscalYear,
+      })),
+    );
+    const neutral = [...new Set(listed.map(({ docKey }) => docKey))].map(
+      (docKey) => ({ docKey, articulo: "Artículo sin cifras", fiscalYear: 0 }),
+    );
+    const rows = [...listed, ...neutral].map(
+      ({ docKey, articulo }, index): SearchChunksRow => ({
+        ...ROW,
+        chunk_id: `00000000-0000-0000-0000-${String(index).padStart(12, "0")}`,
+        doc_key: docKey,
+        articulo,
+      }),
+    );
+    const served = async (now: Date) =>
+      (
+        await retrieve("¿cuánto pago de renta?", {
+          client: fakeClient(rows),
+          embedder: fakeEmbedder(),
+          matchCount: rows.length,
+          now,
+        })
+      ).chunks.map((chunk) => `${chunk.docKey} · ${chunk.articulo}`);
+    const label = ({
+      docKey,
+      articulo,
+    }: {
+      docKey: string;
+      articulo: string;
+    }) => `${docKey} · ${articulo}`;
+
+    expect(await served(IN_2027)).toEqual([
+      ...listed.filter((ref) => ref.fiscalYear === 2027).map(label),
+      ...neutral.map(label),
+    ]);
+    for (const ref of listed) {
+      const inItsYear = new Date(`${ref.fiscalYear}-06-15T06:00:00Z`);
+      expect(await served(inItsYear)).toContain(label(ref));
+    }
+  });
+
+  it("asks for twice the rows while only a year-figure artículo is out of period", async () => {
+    let seen: Record<string, unknown> | undefined;
+    const result = await retrieve("créditos por hijo", {
+      client: fakeClient(
+        [
+          { ...ROW, doc_key: "ley-renta", articulo: "ARTICULO 34" },
+          { ...ROW, chunk_id: "99999999-9999-9999-9999-999999999999" },
+        ],
+        (args) => {
+          seen = args;
+        },
+      ),
+      embedder: fakeEmbedder(),
+      matchCount: 1,
+      now: IN_2027,
+      vigencia: {
+        documents: [
+          {
+            doc_key: "ley-renta",
+            yearFigures: [
+              {
+                articulo: "ARTICULO 34",
+                fiscalYear: 2026,
+                evidence: "a partir del 01 de enero del 2026",
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(seen?.match_count).toBe(2);
+    expect(result.chunks.map((c) => c.docKey)).toEqual(["ley-10363"]);
+  });
+
   it("asks for twice the rows while a source is out of period, and refills the count", async () => {
     const december: VigenciaManifest = {
       documents: [
