@@ -17,7 +17,7 @@ claims (red, #507's starting point; #507's prompt replays them to 0, see
 (`low/groundedness-…-20261008T022706Z.jsonl`, also copied to the main
 checkout's `eval/transcripts/2026-10-08-baseline-511/`) stays the record of
 #511's numbers but is no longer `answer-replay`'s input. 45 of its 100 rows
-with chunks cite `reglamento-iva`, whose chunk ids #530's re-ingest re-minted
+with chunks carry `reglamento-iva` chunks, whose ids #530's re-ingest re-minted
 (local 05:10 UTC, production 05:21 UTC, 2026-10-08), and `replayChunks` in
 `src/lib/eval/replay.ts` throws on a chunk id the corpus no longer carries
 (the other 55 rows still resolve on the local stack, 2026-10-08).
