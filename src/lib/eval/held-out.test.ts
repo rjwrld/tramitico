@@ -281,17 +281,29 @@ function sourceFiles(base: string): string[] {
   );
 }
 
-/** `<file> quotes <wording id>`, one per quote found under `base`. */
-function heldOutQuotes(base: string, wordings: readonly Wording[]): string[] {
+interface Quote {
+  /** `<file> quotes <wording id>`: what the allowlist names. */
+  key: string;
+  /** The folded text that matched, so a failure says what to reword. */
+  clause: string;
+}
+
+/** One per wording quoted in a file under `base`. */
+function heldOutQuotes(base: string, wordings: readonly Wording[]): Quote[] {
   return sourceFiles(base).flatMap((file) => {
     const text = quotable(
       uncommented(readFileSync(path.join(base, file), "utf8")),
     );
-    return wordings
-      .filter((w) => w.texts.some((t) => text.includes(t)))
-      .map((w) => `${file} quotes ${w.id}`);
+    return wordings.flatMap((w) => {
+      const clause = w.texts.find((t) => text.includes(t));
+      return clause === undefined
+        ? []
+        : [{ key: `${file} quotes ${w.id}`, clause }];
+    });
   });
 }
+
+const keys = (quotes: readonly Quote[]) => quotes.map((q) => q.key).sort();
 
 /**
  * Quotes that must stay verbatim, each with its reason. A stale entry fails
@@ -333,8 +345,14 @@ describe("no file quotes a held-out question (#536, #543)", () => {
 
   it("finds none of them outside the allowlist, and no stale entry", () => {
     const quoted = heldOutQuotes(process.cwd(), wordings);
-    expect(quoted.filter((q) => !ALLOWED_QUOTES.includes(q))).toEqual([]);
-    expect(ALLOWED_QUOTES.filter((q) => !quoted.includes(q))).toEqual([]);
+    const unallowed = quoted
+      .filter((q) => !ALLOWED_QUOTES.includes(q.key))
+      .map((q) => `${q.key}: «${q.clause}»`);
+    expect(unallowed).toEqual([]);
+    const stale = ALLOWED_QUOTES.filter(
+      (entry) => !keys(quoted).includes(entry),
+    );
+    expect(stale).toEqual([]);
   });
 });
 
@@ -380,7 +398,7 @@ describe("the quote guard, on a planted tree (#543)", () => {
       [path.join("src", "lib", "plain.ts")]:
         "/** «Pagué el marchamo con monedas de oro, ¿me lo aceptan?» */\n",
     });
-    expect(heldOutQuotes(base, wordings)).toEqual([
+    expect(keys(heldOutQuotes(base, wordings))).toEqual([
       `${path.join("src", "lib", "plain.ts")} quotes planted`,
     ]);
   });
@@ -390,7 +408,7 @@ describe("the quote guard, on a planted tree (#543)", () => {
       [path.join("scripts", "probe.ts")]:
         'const q = "Que pasa si el perro " +\n  "se come la FACTURA";\n',
     });
-    expect(heldOutQuotes(base, wordings)).toEqual([
+    expect(keys(heldOutQuotes(base, wordings))).toEqual([
       `${path.join("scripts", "probe.ts")} quotes planted#history[0]`,
     ]);
   });
@@ -404,7 +422,7 @@ describe("the quote guard, on a planted tree (#543)", () => {
       [path.join("e2e", "notes.md")]:
         "Pagué el marchamo con monedas de oro, ¿me lo aceptan?\n",
     });
-    expect(heldOutQuotes(base, wordings).sort()).toEqual([
+    expect(keys(heldOutQuotes(base, wordings))).toEqual([
       `${path.join("e2e", "fixture.tsx")} quotes planted`,
       `${path.join("e2e", "flow.spec.ts")} quotes planted`,
     ]);
@@ -417,9 +435,15 @@ describe("the quote guard, on a planted tree (#543)", () => {
       [path.join("src", "lib", "line.ts")]:
         "// A reader writes «pagué el\n// marchamo con monedas de oro».\n",
     });
-    expect(heldOutQuotes(base, wordings).sort()).toEqual([
+    const quoted = heldOutQuotes(base, wordings);
+    expect(keys(quoted)).toEqual([
       `${path.join("src", "lib", "line.ts")} quotes planted`,
       `${path.join("src", "lib", "wrapped.ts")} quotes planted`,
+    ]);
+    // The failure names the clause that matched, not just the case.
+    expect(quoted.map((q) => q.clause)).toEqual([
+      "pague el marchamo con monedas de oro",
+      "pague el marchamo con monedas de oro",
     ]);
   });
 
@@ -427,6 +451,6 @@ describe("the quote guard, on a planted tree (#543)", () => {
     const base = plant({
       [path.join("src", "lib", "short.ts")]: "// «¿Me lo aceptan?»\n",
     });
-    expect(heldOutQuotes(base, wordings)).toEqual([]);
+    expect(keys(heldOutQuotes(base, wordings))).toEqual([]);
   });
 });
