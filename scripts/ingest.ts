@@ -66,6 +66,11 @@ import type { LayoutTableSpec } from "../src/lib/ingestion/layout-table";
 import { fetchPdfSource } from "../src/lib/ingestion/pdf";
 import { pdfImageNotice } from "../src/lib/ingestion/pdf-images";
 import { retireDocuments } from "../src/lib/ingestion/replace";
+import {
+  type WordRepair,
+  wordJoinNotice,
+  wordRepairNotice,
+} from "../src/lib/ingestion/word-joins";
 import type { DeepLinkKind } from "../src/lib/retrieval";
 import type { YearFigure } from "../src/lib/vigencia";
 import {
@@ -252,6 +257,24 @@ async function main() {
       skipped.push(doc.doc_key);
       continue;
     }
+    // Every split the repair made is printed, so a wrong one on a future
+    // recrawl is traceable to the run that made it (#520). Then, for every
+    // kind, PDFs included: a join the extractor let through costs the lexical
+    // branch a match, so what got through belongs in each run's report too.
+    for (const notice of [
+      ...(extracted.repairs
+        ? [wordRepairNotice(doc.doc_key, extracted.repairs)]
+        : []),
+      wordJoinNotice(
+        doc.doc_key,
+        extracted.kind === "chunks"
+          ? extracted.value.map((c) => c.content)
+          : extracted.value,
+      ),
+    ]) {
+      if (notice.level === "warn") console.warn(`  ⚠ ${notice.message}`);
+      else console.log(`  ${notice.message}`);
+    }
     const written =
       extracted.kind === "chunks"
         ? await ingestChunks(
@@ -390,8 +413,12 @@ function reportPdfHash(
   else console.log(`  ${notice.message}`);
 }
 
-type ExtractedContent =
-  { kind: "paragraphs"; value: string[] } | { kind: "chunks"; value: Chunk[] };
+type ExtractedContent = (
+  { kind: "paragraphs"; value: string[] } | { kind: "chunks"; value: Chunk[] }
+) & {
+  /** What the SINALEVI word-join repair changed in the payload (#520). */
+  repairs?: WordRepair[];
+};
 
 async function extract(
   doc: ManifestDoc,
@@ -444,6 +471,7 @@ async function extract(
         ...doc.source,
         ...{ idVersionNorma: norma.idVersionNorma, articulos },
       };
+      const repairs: WordRepair[] = [];
       if (doc.source.keepArticulos) {
         if (doc.source.excerpt) {
           throw new Error(
@@ -459,15 +487,20 @@ async function extract(
             chunkDocument(
               doc.doc_key,
               doc.title,
-              htmlToParagraphs(norma.html),
+              htmlToParagraphs(norma.html, repairs),
               doc.chunking ?? {},
             ),
             keep,
           ),
+          repairs,
         };
       }
       if (!doc.source.excerpt) {
-        return { kind: "paragraphs", value: htmlToParagraphs(norma.html) };
+        return {
+          kind: "paragraphs",
+          value: htmlToParagraphs(norma.html, repairs),
+          repairs,
+        };
       }
       const slices = excerptSlices(doc.source.excerpt);
       console.log(
@@ -476,7 +509,12 @@ async function extract(
       try {
         return {
           kind: "paragraphs",
-          value: htmlExcerptToParagraphs(norma.html, doc.source.excerpt),
+          value: htmlExcerptToParagraphs(
+            norma.html,
+            doc.source.excerpt,
+            repairs,
+          ),
+          repairs,
         };
       } catch (cause) {
         throw new Error(`${doc.doc_key}: ${(cause as Error).message}`, {
