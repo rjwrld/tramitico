@@ -1075,6 +1075,47 @@ describe("retrieve", () => {
     expect(result.chunks.map((c) => c.docKey)).toEqual(["ley-10363"]);
   });
 
+  it("asks for one more row per dated fact past its last day, and refills the count (#531)", async () => {
+    let seen: Record<string, unknown> | undefined;
+    const result = await retrieve("¿hasta cuándo la condonación?", {
+      client: fakeClient(
+        [
+          {
+            ...ROW,
+            chunk_id: "33333333-3333-3333-3333-333333333333",
+            doc_key: "ccss-faq",
+            articulo: "¿Hasta cuándo puedo solicitar la condonación?",
+            content: "… hasta el día 11 de noviembre del 2026.",
+          },
+          ROW,
+        ],
+        (args) => {
+          seen = args;
+        },
+      ),
+      embedder: fakeEmbedder(),
+      matchCount: 1,
+      now: crMidnight("2026-11-12"),
+      vigencia: {
+        documents: [
+          {
+            doc_key: "ccss-faq",
+            datedFacts: [
+              {
+                articulo: "¿Hasta cuándo puedo solicitar la condonación?",
+                lastDay: "2026-11-11",
+                evidence: "11 de noviembre del 2026",
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(seen?.match_count).toBe(2);
+    expect(result.chunks.map((c) => c.docKey)).toEqual(["ley-10363"]);
+  });
+
   it("asks for twice the rows while a source is out of period, and refills the count", async () => {
     const december: VigenciaManifest = {
       documents: [
@@ -1478,6 +1519,8 @@ describe("retrieve", () => {
           seen = args;
         }),
         embedder: failingEmbedder(embedFailure),
+        // The wire as it is with nothing withheld, whatever today's date.
+        vigencia: NO_ANNUAL,
       });
       expect(seen).toEqual({
         query_text: "¿me cobran retroactivo?",

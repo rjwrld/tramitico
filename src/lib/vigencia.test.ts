@@ -8,6 +8,7 @@ import {
   datedFactLabel,
   datedFactVigencia,
   isWithheld,
+  searchCount,
   withheldSources,
   withholdsAny,
   yearFigureLabel,
@@ -333,8 +334,22 @@ describe("dated facts (#531)", () => {
     expect(served(IN_2026, condonacion("11 de mayo del 2027"))).toBe(false);
   });
 
-  it("does not double the pool for one expired fact", () => {
-    expect(withholdsAny(withheldSources(IN_2027, CCSS_FAQ))).toBe(false);
+  it("asks for one more row per fact past its last day, not twice the count", () => {
+    expect(
+      searchCount(withheldSources(crMidnight("2026-11-11"), CCSS_FAQ), 8),
+    ).toBe(8);
+    const after = withheldSources(crMidnight("2026-11-12"), CCSS_FAQ);
+    expect(withholdsAny(after)).toBe(false);
+    expect(searchCount(after, 8)).toBe(9);
+    // Beside an out-of-period year figure, the doubling and the extra row add.
+    expect(
+      searchCount(
+        withheldSources(IN_2027, {
+          documents: [...CCSS_FAQ.documents, ...LEY_RENTA.documents],
+        }),
+        8,
+      ),
+    ).toBe(17);
   });
 
   it(`warns ${DATED_FACT_NOTICE_DAYS} days either side of the last day, then goes quiet`, () => {

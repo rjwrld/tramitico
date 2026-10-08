@@ -180,8 +180,10 @@ and production hold the same text for the listed chunk and for EDDI-7's:
 fact holds (Costa Rica time) and an `evidence` phrase from the text that states it («11 de
 noviembre del 2026»). `retrieve()` drops their chunks from the next day, and drops one whose
 text no longer carries the evidence, in the same pass and for the same reasons as a
-`yearFigures` artículo. Ingestion refuses a crawl in which a listed artículo is gone or lacks
-its evidence. The declaration deploys with the code; no row changes, here or in production.
+`yearFigures` artículo. For each fact past its day, `retrieve()` asks `search_chunks` for one
+more row and refills the count after the drop. Doubling is for the near-identical years of a
+series, and a dated fact is one chunk. Ingestion refuses a crawl in which a listed artículo is
+gone or lacks its evidence. The declaration deploys with the code; no row changes, here or in production.
 
 **Drop rather than tag**, as in the first two amendments, and for one more reason. A tag would
 ask the model to say the date has passed. But the condonación answer holds nothing except the

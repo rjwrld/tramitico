@@ -337,7 +337,7 @@ export interface WithheldSources {
   /** `annualChurn` entries that do not cover the current fiscal year. */
   outOfPeriod: ReadonlySet<string>;
   /**
-   * Every `yearFigures` artículo, keyed by `articuloKey`: whether its
+   * Every `yearFigures` artículo, keyed by `listedKey`: whether its
    * declared year is the current one, and the evidence a chunk of it must
    * carry to be served (#518).
    */
@@ -362,7 +362,7 @@ export interface ArticuloVigencia {
 }
 
 /** The chunk identity `yearFigures` and `datedFacts` are keyed by. */
-function articuloKey(docKey: string, articulo: string | null): string {
+function listedKey(docKey: string, articulo: string | null): string {
   return `${docKey}\u0000${articulo ?? ""}`;
 }
 
@@ -408,13 +408,13 @@ export function withheldSources(
     ),
     yearFigures: new Map(
       yearFigureRefs(source).map((ref) => [
-        articuloKey(ref.docKey, ref.articulo),
+        listedKey(ref.docKey, ref.articulo),
         { current: isCurrentYear(ref, year), evidence: ref.evidence },
       ]),
     ),
     datedFacts: new Map(
       datedFactRefs(source).map((ref) => [
-        articuloKey(ref.docKey, ref.articulo),
+        listedKey(ref.docKey, ref.articulo),
         { current: holdsOn(ref, now), evidence: ref.evidence },
       ]),
     ),
@@ -426,13 +426,31 @@ export function withheldSources(
  * Whether anything is withheld for being out of period. A listed artículo
  * whose text and declaration disagree is not counted: that is the brief
  * window around a re-crawl, and it costs at most a few of the pool's places.
- * Nor is a past dated fact (#531): it is one chunk with no successor beside
- * it in the corpus to take its place, so it costs at most one.
  */
 export function withholdsAny(withheld: WithheldSources): boolean {
   return (
     withheld.outOfPeriod.size > 0 ||
     [...withheld.yearFigures.values()].some((figure) => !figure.current)
+  );
+}
+
+/**
+ * How many rows `retrieve()` asks `search_chunks` for, so that `matchCount`
+ * are still there once the withheld ones leave. Twice the count while
+ * anything is out of period (#505, #518): two years of one series are
+ * near-identical text and would trade places. Plus one row per dated fact
+ * past its last day (#531): each is a single chunk, so it can take at most
+ * one place, and one extra row refills it.
+ */
+export function searchCount(
+  withheld: WithheldSources,
+  matchCount: number,
+): number {
+  const pastDatedFacts = [...withheld.datedFacts.values()].filter(
+    (fact) => !fact.current,
+  ).length;
+  return (
+    (withholdsAny(withheld) ? 2 * matchCount : matchCount) + pastDatedFacts
   );
 }
 
@@ -451,7 +469,7 @@ export function isWithheld(
   ) {
     return true;
   }
-  const key = articuloKey(chunk.docKey, chunk.articulo);
+  const key = listedKey(chunk.docKey, chunk.articulo);
   return [withheld.yearFigures.get(key), withheld.datedFacts.get(key)].some(
     (declared) =>
       declared !== undefined &&
