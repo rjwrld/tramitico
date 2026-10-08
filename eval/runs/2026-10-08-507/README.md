@@ -7,7 +7,12 @@ it cannot see goes to rule 9's closing referral («confírmelo con Hacienda»).
 This directory measures that change with fixed-chunk replays (`pnpm
 answer-replay`) of #511's groundedness transcript,
 [`2026-10-08-baseline/low/groundedness-…-20261008T022706Z.jsonl`](../2026-10-08-baseline/low/),
-recorded after #520's re-ingest, so its chunk ids match the local stack.
+recorded after #520's re-ingest, so its chunk ids matched the local stack
+when these replays ran. They no longer do: #530's re-ingest of `reglamento-iva`
+(local 05:10 UTC, production 05:21 UTC, 2026-10-08) re-minted that document's
+chunk ids, which 45 of the transcript's rows cite, and `answer-replay` throws
+on a chunk id the corpus no longer carries. Neither that transcript nor this
+directory's can be replayed in full again; #512's fresh lanes are the next input.
 
 Setup: `claude-sonnet-5-5` at `ANSWER_EFFORT=low`, the adequacy judge
 `claude-sonnet-4-5`, and `--no-groundedness` on every replay (the acceptance
