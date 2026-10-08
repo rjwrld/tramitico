@@ -11,7 +11,8 @@ recorded after #520's re-ingest, so its chunk ids matched the local stack
 when these replays ran. They no longer do: #530's re-ingest of `reglamento-iva`
 (local 05:10 UTC, production 05:21 UTC, 2026-10-08) re-minted that document's
 chunk ids, which 45 of the transcript's rows cite, and `answer-replay` throws
-on a chunk id the corpus no longer carries. Neither that transcript nor this
+on a chunk id the corpus no longer carries (`replayChunks`,
+`src/lib/eval/replay.ts`). Neither that transcript nor this
 directory's can be replayed in full again; #512's fresh lanes are the next input.
 
 Setup: `claude-sonnet-5-5` at `ANSWER_EFFORT=low`, the adequacy judge
