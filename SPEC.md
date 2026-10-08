@@ -426,8 +426,20 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   which reports its weak cases on its own line).
 - **Groundedness:** every material claim must be supported by a retrieved chunk. The pinned
   temperature-0 judge uses a majority of three for flagged answers
-  ([ADR 0007](docs/adr/0007-groundedness-judge-model.md)). The global gate is **≥94%** (ratcheted
-  from 90% by the 2026 baseline, #267: 70/73), and no individually blocking Tier 1 case may fail.
+  ([ADR 0007](docs/adr/0007-groundedness-judge-model.md)). Since #474 the count of grounded
+  answers is a **tracked baseline of 68/73** (the 2026-10-02 lane), failing only a lane more than
+  4 below it (**≤ 63**); a lane that beats it raises it, and #512's final lanes re-set it. It
+  counts the judges' verdict on each case's first answer, before #500's override (as the 68 was
+  measured), over the 74 cases outside the abstention tier and the robustness block (73 when
+  the 68 was measured; #503 added `t2-inscripcion-dimex`, and the counts stay absolute until
+  #512 re-sets them, #511 being the first read over 74). No
+  individually blocking case may fail, and a blocking case fails **on 2 of 3 answers**: when its
+  first answer fails, the lane asks the whole pipeline twice more and judges each new answer the
+  same way. An answer the route would refuse to ship (#168's citation invariant, #281's derived
+  figures) counts as a failing one. Every failure the judges make carries a
+  `contradiction`/`inference` label from a second call to the pinned judge; it is recorded, not
+  gated, until it agrees with a human read of #512's failures
+  ([ADR 0023, amendment](docs/adr/0023-eval-gates-after-sonnet-5-5.md#amendment-2026-10-07-474-groundedness-and-the-blocking-gate)).
 - **Adequacy:** an eligible answer must contain every required claim and required procedural step;
   numeric and date claims also get deterministic checks against the official input. Every Tier 1
   case must pass individually. Tier 2 uses the same evidence standard but is not part of the
@@ -440,7 +452,9 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   listed figure that `eval/corpus-index.json` covers. The judges read only the fragments the model
   saw, so none of them can catch it; a deterministic detector (`src/lib/eval/absence.ts`) does,
   and such a case fails in the groundedness and abstention lanes whatever the judge said. Zero are
-  tolerated. Answers that open with an absence claim, and typo runs, are reported, not gated.
+  tolerated, on every scored answer: it wins over the 2-of-3 blocking rule, so a blocking case
+  fails on whichever of its answers makes the claim, and a passing re-ask does not clear it.
+  Answers that open with an absence claim, and typo runs, are reported, not gated.
 - **Freshness:** a source carrying a figure or deadline must have `effective_date`; a source marked
   `annualChurn` must be current for the fiscal period. All other sources must be inside the
   quarterly verification window. See [ADR 0016](docs/adr/0016-source-freshness-policy.md).
@@ -457,11 +471,12 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   to make a regression pass ([ADR 0015](docs/adr/0015-coverage-tiers-and-required-claims.md)). The
   ratchet rule: a gate is the measured pass rate minus one case, rounded down, never below its
   previous value. Current gates (closing run, 2026-09-11): hit-rate ≥92% (measured 95.9%, held
-  at 0.92 by #296 requirement 4), groundedness ≥94% (measured 95.9%), Tier 1 requirements stated
-  tracked against a baseline of 70/116, failing only on a lane more than 4 below it (≤ 65;
-  [ADR 0023](docs/adr/0023-eval-gates-after-sonnet-5-5.md), the one relaxation the ratchet
-  rule has had, recorded there), Tier 2 adequacy ≥84% (measured
-  12/13), abstention ≥90% (measured 9/9), citation invariant zero violations on every case
+  at 0.92 by #296 requirement 4), groundedness tracked against a baseline of 68 grounded answers
+  (measured over 73, read over 74 since #503), failing at ≤ 63 (ADR 0023's #474 amendment; ≥94% from the closing run until then), Tier 1 requirements
+  stated tracked against a baseline of 70/116, failing only on a lane more than 4 below it
+  (≤ 65; [ADR 0023](docs/adr/0023-eval-gates-after-sonnet-5-5.md); it and the groundedness
+  baseline are the relaxations the ratchet rule has had, both recorded there), Tier 2 adequacy
+  ≥84% (measured 12/13), abstention ≥90% (measured 9/9), citation invariant zero violations on every case
   (measured 0/73).
 - **Adequacy gate (#130/#261):** groundedness passes a supported-but-incomplete answer, so a
   second, independent question is asked of every case that declares them — are all

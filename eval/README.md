@@ -31,9 +31,15 @@ value, except for `ANSWER_EFFORT`:
 | `ANSWER_TOP_K`                   | `8`                                           | `rerank.ts`                  |
 | `ANSWER_DOC_CAP`                 | `off`                                         | `rerank.ts`                  |
 | `PIN_DERIVED_INPUTS`             | `on` (since #344)                             | `src/lib/answer/derived.ts`  |
-| `EVAL_CASES`                     | every case; comma-separated ids scope a lane  | `src/lib/eval/subset.ts`     |
+| `EVAL_CASES`                     | every case; comma-separated ids scope a lane¹ | `src/lib/eval/subset.ts`     |
 | `EVAL_TRANSCRIPT_DIR`            | `eval/transcripts/`                           | `src/lib/eval/transcript.ts` |
 | `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites     | `src/lib/eval/rewrites.ts`   |
+
+¹ The groundedness, hit-rate and abstention lanes read it; the others ignore it.
+Each lane scopes to its own cases, and an id it does not run throws before
+the first paid call. Abstention ids therefore go to `abstention.eval.test.ts`
+alone, the rest to the other two: one `EVAL_CASES` mixing both fails every
+lane it is run with.
 
 The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`)
 accept only the values above. Anything else runs the default and logs
@@ -56,12 +62,19 @@ arm sets it, or the arm measures a configuration production doesn't run.
   `src/lib/retrieval.eval.test.ts` suites.
 - Database read only: dataset-satisfiability.
 
-The gate constants are `GROUNDEDNESS_GATE` (`groundedness.ts`), `HIT_RATE_GATE`
+The gate constants are `GROUNDEDNESS_BASELINE` (`groundedness.ts`), `HIT_RATE_GATE`
 (`retrieval-hitrate.eval.test.ts`), `ABSTENTION_GATE`
 (`abstention.eval.test.ts`), `ADEQUACY_TIER2_GATE` with
 `TIER1_REQUIREMENT_BASELINE` (`adequacy.ts`), and `ROBUSTNESS_HIT_BASELINE`
-(`robustness.ts`, unset until #511). The robustness block (#502) sits outside
-every other gate and prints its own line in each lane. The abstention lane
+(`robustness.ts`, unset until #511). Groundedness and Tier 1 are tracked
+baselines: a lane fails only more than 4 below one (groundedness 68 grounded
+answers, so ≤ 63, read over 74 cases since #503), and a lane that beats one
+raises it. A blocking case fails groundedness
+on 2 of 3 answers: the lane re-asks a failing one twice (#474, about US$0.50 a
+lane), and each failure the judges make carries a `contradiction`/`inference`
+label that is recorded, never gated (one more judge call per failed answer,
+cents a lane). A scoped `EVAL_CASES` run re-asks too. The robustness block
+(#502) sits outside every other gate and prints its own line in each lane. The abstention lane
 also scores `ho-abs-iva-2027`'s requirement (13 % and art. 10, cited, never
 denied); its assertion is a todo until #507 and #508. See «The robustness
 block».
@@ -75,7 +88,8 @@ Two gates are zero, with no constant. One is the citation invariant. The other,
 since #500, is false corpus-absence claims: an answer that says the documents
 lack an artículo or a listed figure that `corpus-index.json` covers
 (`src/lib/eval/absence.ts`). In the groundedness and abstention lanes, such a
-case fails whatever the judge said, and the lane lists it. Each lane also
+case fails whatever the judge said, and the lane lists it. It wins over the
+2-of-3 rule: a re-asked answer that makes one fails its case too. Each lane also
 reports, without gating, the answers that open with an absence claim and any
 typo runs (`src/lib/eval/answer-checks.ts`). The detector's precision read is on
 #500: 66 of 67 hits on the committed runs were true.
@@ -912,9 +926,31 @@ model (`ANSWER_MODEL`, default Sonnet) with the production system prompt —
 and asks an LLM judge at temperature 0: _is this answer supported by the
 retrieved chunks?_ A failed item is re-judged twice more and the majority
 verdict stands, absorbing judge flakiness at n≈25 without loosening the gate.
-**Blocking gate: ≥94% pass** (`GROUNDEDNESS_GATE` in
-`src/lib/eval/groundedness.ts`) — started at 90% per #14, ratcheted by the 2026
-baseline (#267, 70/73); ratchet up, never down.
+The gate started at ≥90% per #14 and ratcheted to ≥94% on the 2026 baseline
+(#267, 70/73). Since #474 ([ADR 0023's amendment](../docs/adr/0023-eval-gates-after-sonnet-5-5.md#amendment-2026-10-07-474-groundedness-and-the-blocking-gate))
+it is a **tracked baseline of 68/73, failing at ≤ 63** (`GROUNDEDNESS_BASELINE`,
+`GROUNDEDNESS_FLOOR` in `src/lib/eval/groundedness.ts`). It counts the judges'
+verdict on each case's first answer, before #500's override, as the 68 was
+measured: seven of that lane's judge passes make a claim the detector now
+calls false, and those fail the zero gate, not the count. A lane that beats
+the baseline raises it. The 68 was read over 73 cases; #503 added
+`t2-inscripcion-dimex`, so the lane counts over 74 (`GROUNDEDNESS_CASES`) and
+the baseline and floor stay absolute counts. #511 is the first read over 74,
+and #512 re-sets the baseline.
+
+A blocking case fails on **2 of 3 answers**. When its first answer fails, the
+lane runs the whole pipeline on it twice more and judges each new answer the
+same way (`BLOCKING_REASK_COUNT`, `blockingCaseVerdict`). An answer the route
+would refuse — #168's citation invariant, #281's derived figures — counts as
+a failing one (`scoreAnswer`, an orchestrator call in #521's review). The
+console prints each re-ask under its case, and the transcript row carries them
+in `reasks`. A false absence claim (#500) on any of the three fails the case,
+and a first answer that makes one is not re-asked. If any answer or judge call
+throws, the transcript is written before the run fails (`runThenRecord`), so
+the rows already paid for survive. Each answer the judges fail
+also gets a `contradiction`/`inference` label from a second call to the pinned
+judge (`labelFailure`), in the row's `groundedness.label` and the console's
+tally. It gates nothing until it agrees with a human read of #512's failures.
 
 The judge is pinned (`JUDGE_MODEL`, Sonnet 4.5 — it accepts temperature 0,
 which Sonnet 5 rejects; [ADR 0007](../docs/adr/0007-groundedness-judge-model.md))
@@ -1301,7 +1337,11 @@ worse than no number. Two things prevent it, both loud:
 
 An id that matches no case throws **before the first paid call**: a typo that
 silently selected zero cases would print an empty table and spend the money
-anyway.
+anyway. Each lane checks against its own cases, so an abstention id fails the
+groundedness and hit-rate lanes, and any other id fails the abstention lane.
+Since #521 the abstention lane honours `EVAL_CASES` the same way (its
+transcript becomes `abstention-subset-<instant>.jsonl`); before, it ignored
+the variable, and #508 paid for all nine cases to read one.
 
 ### The six-case read, and what it corrected (#289)
 

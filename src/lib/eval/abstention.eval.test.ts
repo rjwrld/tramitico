@@ -32,6 +32,11 @@
  * 2), which the committed answers made and the judge passed. The lane scores
  * and prints it; the assertion waits for #507 and #508.
  *
+ * `EVAL_CASES` scopes it as it scopes the groundedness and hit-rate lanes
+ * (`./subset`): only the named abstention cases are asked, the transcript's
+ * name carries `subset`, and every gate fails, naming the scope. #508 paid for
+ * all nine cases to read one before it did.
+ *
  * Env-gated exactly like the groundedness gate; it runs in the same lane:
  *
  *   ANTHROPIC_API_KEY=<key> SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… \
@@ -80,6 +85,12 @@ import {
 import { abstentionCases, DATASET_PATH, parseDataset } from "./dataset";
 import { rewriteCase, rewritesFromEnv } from "./rewrites";
 import {
+  selectCases,
+  subsetGateFailure,
+  subsetSpec,
+  SUBSET_ENV,
+} from "./subset";
+import {
   DEFAULT_TRANSCRIPT_DIR,
   droppedReadingsSummary,
   type TranscriptGeneration,
@@ -111,11 +122,15 @@ const describeEval = integrationSuite({
  * every time it answers these nine questions. Gitignored like the rest; in a
  * worktree the directory links to the main checkout's (CLAUDE.md, Worktrees).
  */
-function writeAbstentionTranscript(results: readonly CaseResult[]): string {
+function writeAbstentionTranscript(
+  results: readonly CaseResult[],
+  { subset }: { subset: boolean },
+): string {
   const dir = process.env.EVAL_TRANSCRIPT_DIR ?? DEFAULT_TRANSCRIPT_DIR;
   mkdirSync(dir, { recursive: true });
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const path = join(dir, `abstention-${stamp}.jsonl`);
+  // A scoped run's file must not read later as the full run beside it (#289).
+  const path = join(dir, `abstention${subset ? "-subset" : ""}-${stamp}.jsonl`);
   writeFileSync(
     path,
     results
@@ -182,12 +197,27 @@ function checkedCases(results: readonly CaseResult[]): CheckedCase[] {
 }
 
 describeEval("abstention set (eval/dataset.jsonl)", () => {
-  const cases = abstentionCases(
+  const allCases = abstentionCases(
     parseDataset(readFileSync(DATASET_PATH, "utf8")),
   );
+  const subset = subsetSpec();
   const results: CaseResult[] = [];
 
+  /** The first line of every gate: a scoped run measures no rate (#129). */
+  function assertFullRun(): void {
+    if (subset !== null) throw new Error(subsetGateFailure(subset));
+  }
+
   beforeAll(async () => {
+    // Before any paid call: an id that names no abstention case throws.
+    const cases = selectCases(allCases, subset);
+    if (subset !== null) {
+      console.log(
+        `\n${SUBSET_ENV}: ${cases.length}/${allCases.length} case(s) — ` +
+          `${cases.map((c) => c.id).join(", ")}. Gates will fail: a subset ` +
+          `run is a transcript read, not a measurement.`,
+      );
+    }
     // Constructed here, not in the describe body: `describe.skip` still runs
     // its callback (#129/#211).
     const embedder = createEmbedder();
@@ -287,7 +317,9 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
 
     const passes = results.filter((r) => r.verdict === "pass").length;
     console.log(`\nabstention: ${passes}/${results.length}`);
-    console.log(`  transcript: ${writeAbstentionTranscript(results)}`);
+    console.log(
+      `  transcript: ${writeAbstentionTranscript(results, { subset: subset !== null })}`,
+    );
     console.log(
       `  ${droppedReadingsSummary(
         results.map((r) => ({ id: r.evalCase.id, rerank: r.rerank })),
@@ -317,6 +349,7 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
   }, 2_700_000);
 
   it(`declines and routes on at least ${ABSTENTION_GATE * 100}% of the abstention set`, () => {
+    assertFullRun();
     const failed = results
       .filter((r) => r.verdict === "fail")
       .map((r) => `${r.evalCase.id} (${r.reason})`);
@@ -330,6 +363,7 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
   });
 
   it("claims nothing absent that the corpus carries (#500)", () => {
+    assertFullRun();
     const claims = falseAbsenceFailures(checkedCases(results));
     expect(claims, `false absence claims: ${claims.join("; ")}`).toEqual([]);
   });
@@ -342,6 +376,7 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
   );
 
   it("invents no figure while declining", () => {
+    assertFullRun();
     const invented = results
       .filter((r) => r.figures.length > 0)
       .map((r) => `${r.evalCase.id}: ${r.figures.join(", ")}`);
