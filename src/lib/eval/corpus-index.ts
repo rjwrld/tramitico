@@ -20,6 +20,7 @@
  * which also compares the two) is the backstop for the uncommon one.
  */
 import path from "node:path";
+import { articuloKey, fold } from "../articulo-key";
 import type { MatchableChunk } from "./dataset";
 
 export const CORPUS_INDEX_PATH = path.join(
@@ -76,14 +77,18 @@ export function collidingEntries(index: CorpusIndex): CorpusIndexEntry[] {
   return index.entries.filter((entry) => entry.chunks !== entry.parts);
 }
 
+/** One citable label of one document, whatever its path. */
+export interface RepeatedLabel {
+  docKey: string;
+  articulo: string;
+}
+
 /**
  * A label a document carries under two paths, where the source really does
  * (#530). Each needs its reason: the guard below exists because a repeated
  * label is usually a chunking bug, not a quirk of the source.
  */
-export interface AllowedRepeatedLabel {
-  docKey: string;
-  articulo: string;
+export interface AllowedRepeatedLabel extends RepeatedLabel {
   reason: string;
 }
 
@@ -109,36 +114,63 @@ export const ALLOWED_REPEATED_LABELS: readonly AllowedRepeatedLabel[] = [
   },
 ];
 
-/** Lowercase, unaccented, single-spaced: «quáter» and «quater» are one label. */
-function foldLabel(label: string): string {
-  return label
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim();
+/** A label rendered for an assertion message. */
+export function describeLabel({ docKey, articulo }: RepeatedLabel): string {
+  return `${docKey} · ${articulo}`;
 }
 
 /**
- * The `(docKey, articulo)` labels carried under more than one path, in index
- * order (#530). A citation names a label, not a path, and #508's
- * cross-reference resolver refuses a label two artículos share, so one
- * mislabelled chunk costs every reference to the real artículo. Labels are
- * compared folded, the way the resolver's lookup matches them; unlabelled
- * entries and an artículo's parts are not repeats.
+ * Two labels are one when #508's resolver would take them for one artículo
+ * (`articuloKey`: «Artículo 4», «ARTICULO 04»); any other label, a
+ * transitorio or an FAQ question, when it folds the same.
  */
-export function repeatedLabels(
-  index: CorpusIndex,
-): { docKey: string; articulo: string }[] {
-  const seen = new Map<string, { docKey: string; articulo: string }>();
-  const repeated = new Map<string, { docKey: string; articulo: string }>();
+function labelIdentity({ docKey, articulo }: RepeatedLabel): string {
+  return JSON.stringify([
+    docKey,
+    articuloKey(articulo) ?? fold(articulo).trim(),
+  ]);
+}
+
+/**
+ * The labels carried under more than one path, in index order (#530). A
+ * citation names a label, not a path, and the resolver refuses a label two
+ * artículos share, so one mislabelled chunk costs every reference to the real
+ * artículo. Unlabelled entries and an artículo's parts are not repeats.
+ */
+export function repeatedLabels(index: CorpusIndex): RepeatedLabel[] {
+  const seen = new Map<string, RepeatedLabel>();
+  const repeated = new Map<string, RepeatedLabel>();
   for (const { docKey, articulo } of index.entries) {
     if (articulo === null) continue;
-    const key = JSON.stringify([docKey, foldLabel(articulo)]);
-    if (seen.has(key)) repeated.set(key, seen.get(key)!);
-    else seen.set(key, { docKey, articulo });
+    const label = { docKey, articulo };
+    const identity = labelIdentity(label);
+    const first = seen.get(identity);
+    if (first) repeated.set(identity, first);
+    else seen.set(identity, label);
   }
   return [...repeated.values()];
+}
+
+/**
+ * The index's repeats against `ALLOWED_REPEATED_LABELS`: those no entry
+ * allows, and entries no repeat needs any more (the #530 re-dump retires
+ * reglamento-iva's).
+ */
+export function auditRepeatedLabels(index: CorpusIndex): {
+  unallowed: RepeatedLabel[];
+  stale: AllowedRepeatedLabel[];
+} {
+  const repeated = repeatedLabels(index);
+  const repeatedIds = new Set(repeated.map(labelIdentity));
+  const allowedIds = new Set(ALLOWED_REPEATED_LABELS.map(labelIdentity));
+  return {
+    unallowed: repeated.filter(
+      (label) => !allowedIds.has(labelIdentity(label)),
+    ),
+    stale: ALLOWED_REPEATED_LABELS.filter(
+      (allowed) => !repeatedIds.has(labelIdentity(allowed)),
+    ),
+  };
 }
 
 /** Distinct triples in a deterministic order, so a re-dump of an unchanged

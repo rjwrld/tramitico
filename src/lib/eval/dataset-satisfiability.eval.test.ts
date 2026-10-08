@@ -20,15 +20,15 @@ import { beforeAll, expect, it } from "vitest";
 import { serviceClient } from "../supabase/service";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import {
-  ALLOWED_REPEATED_LABELS,
+  auditRepeatedLabels,
   buildCorpusIndex,
   type CensusChunk,
   collidingEntries,
   CORPUS_INDEX_PATH,
   describeEntry,
+  describeLabel,
   fetchCorpusChunks,
   parseCorpusIndex,
-  repeatedLabels,
 } from "./corpus-index";
 import { DATASET_PATH, parseDataset } from "./dataset";
 import {
@@ -74,16 +74,15 @@ describeEval("eval dataset targets are satisfiable by the corpus", () => {
     ).toEqual([]);
   });
 
-  // The table-level twin of the per-PR repeated-label check (#530).
+  // The table-level twin of the per-PR repeated-label check (#530). Only
+  // the unallowed half: between the owner's re-ingest and the re-dump PR a
+  // stale allowlist entry is expected, and the per-PR check retires it.
   it("carries no label under two paths unless the source does", () => {
-    const allowed = new Set(
-      ALLOWED_REPEATED_LABELS.map((a) => `${a.docKey} · ${a.articulo}`),
-    );
-    const repeated = repeatedLabels(
+    const { unallowed } = auditRepeatedLabels(
       buildCorpusIndex(chunks, new Date().toISOString()),
-    ).map(({ docKey, articulo }) => `${docKey} · ${articulo}`);
+    );
     expect(
-      repeated.filter((label) => !allowed.has(label)),
+      unallowed.map(describeLabel),
       "labels carried under two paths and not in ALLOWED_REPEATED_LABELS",
     ).toEqual([]);
   });

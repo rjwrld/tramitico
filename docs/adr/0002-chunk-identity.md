@@ -51,7 +51,7 @@ Ley IVA: 25 → 52 chunks, 4 → 47 labeled artículos, 18 → 1 unlabeled. Othe
 most a few chunks. Residual unlabeled chunks (notably ~40 in Ley 9635) are mostly legitimate
 capítulo intro text; a follow-up audit belongs to eval work (#25), not this fix.
 
-## Amendment 2026-10-08: a paragraph-start heading needs its delimiter (#530)
+## Amendment 2026-10-07: a paragraph-start heading needs its delimiter (#530)
 
 The false positive this ADR's consequences called absent turned up. SINALEVI's Word export
 wraps sentences at source line breaks, and `htmlToParagraphs` turns each line into a paragraph,
@@ -64,10 +64,14 @@ real artículo 25 resolved to nothing.
 The paragraph-start regex now takes the inline split's rule: a delimiter follows the número
 («.-», «-», «.—», «°.-», «º-», after any ordinal or letter suffix), or the label ends its
 paragraph, which is how fragmented headings arrive before they are rejoined. #237 had already
-put transitorios under the same rule. Over the cached corpus the change moves one label: the
-reglamento's Artículo 1 regains its 6 parts and Artículo 25 is its Capítulo VIII chunk alone.
+put transitorios under the same rule. Over the cached corpus the change moves one label: once
+the reglamento is re-ingested, its Artículo 1 has 6 parts and Artículo 25 is the Capítulo VIII
+chunk alone.
 
 Duplicate labels are no longer accepted silently. A unit test over `eval/corpus-index.json`
 fails on any `(doc_key, artículo)` pair carried under two paths unless `ALLOWED_REPEATED_LABELS`
-(`src/lib/eval/corpus-index.ts`) names it with the source's reason. Today that is two CCSS FAQ
-questions published under two sections with different answers.
+(`src/lib/eval/corpus-index.ts`) names it with the source's reason, and on any entry no repeat
+needs. Labels compare by the resolver's own `articuloKey`, so the test calls two labels one
+exactly when the resolver would. The source-real entries are two CCSS FAQ questions published
+under two sections with different answers; reglamento-iva's Artículo 25 stays listed until the
+corpus-index re-dump that follows its re-ingest removes it.

@@ -3,8 +3,8 @@ import manifest from "../../../corpus/manifest.json";
 import { KNOB_ERROR_PREFIX } from "../knobs";
 import type { RetrievedChunk } from "../retrieval";
 import { noneWithheld } from "../test-support/withheld";
+import { articuloKey } from "../articulo-key";
 import {
-  articuloKey,
   articuloLookup,
   CrossReferenceLookupError,
   type CrossReferenceOutcome,
