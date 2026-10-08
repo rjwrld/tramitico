@@ -1,0 +1,1771 @@
+$ vitest run --project eval --disableConsoleIntercept
+ Vitest  The "unit" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "integration" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "eval" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+
+ RUN  v5.0.3 <worktree>
+
+
+dataset target census (873 chunks): 278/278 targets satisfiable
+  ok      1 chunk(s)  inscripcion-hacienda-clientes-extranjero  →  ley-iva · Artículo 5
+  ok      1 chunk(s)  inscripcion-hacienda-clientes-extranjero  →  ley-iva · Artículo 4
+  ok      2 chunk(s)  inscripcion-hacienda-clientes-extranjero  →  ley-renta · ARTICULO 2
+  ok      1 chunk(s)  inscripcion-hacienda-clientes-extranjero  →  reglamento-renta · Artículo 27
+  ok      5 chunk(s)  iva-clientes-fuera-cr  →  reglamento-iva · Artículo 11
+  ok      3 chunk(s)  iva-clientes-fuera-cr  →  ley-iva · Artículo 8
+  ok      1 chunk(s)  cabys-desarrollo-software  →  cabys-dev
+  ok      1 chunk(s)  ccss-cuanto-pago-base  →  ccss-escala-salud · Artículo 30°, sesión 8999
+  ok      1 chunk(s)  ccss-cuanto-pago-base  →  ccss-escala-ivm · Artículo 4°, sesión 9570
+  ok      1 chunk(s)  ccss-cuanto-pago-base  →  ley-10363 · ARTÍCULO 1
+  ok      1 chunk(s)  ccss-cuanto-pago-base  →  salarios-minimos · Artículo 1
+  ok      1 chunk(s)  ccss-cobro-retroactivo  →  ley-10363 · ARTÍCULO 2
+  ok      1 chunk(s)  ccss-cobro-retroactivo  →  ley-10363 · TRANSITORIO II
+  ok      1 chunk(s)  ccss-pedir-prescripcion-cuotas  →  ccss-prescripcion · ¿Cómo se solicita la prescripción? · @Guía
+  ok      1 chunk(s)  ccss-pedir-prescripcion-cuotas  →  ccss-prescripcion · ¿Dónde presento la solicitud? · @Guía
+  ok      1 chunk(s)  ccss-pedir-prescripcion-cuotas  →  ccss-prescripcion · ¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración? · @Preguntas frecuentes
+  ok      1 chunk(s)  ccss-ventana-prescripcion-24-meses  →  ccss-prescripcion · ¿Cuáles son los plazos de la prescripción conforme la Ley? · @Guía
+  ok      1 chunk(s)  ccss-ventana-prescripcion-24-meses  →  ley-10363 · TRANSITORIO II
+  ok      1 chunk(s)  ccss-ventana-prescripcion-24-meses  →  ccss-reglamento-ti · TRANSITORIO V
+  ok      1 chunk(s)  ccss-obligacion-ingreso-bajo  →  ccss-reglamento-ti · Artículo 1
+  ok      1 chunk(s)  ccss-obligacion-ingreso-bajo  →  ccss-faq · ¿El Trabajador Independiente está obligado a asegurarse ante la CCSS? · @Trabajador Independiente
+  ok      1 chunk(s)  ccss-obligacion-ingreso-bajo  →  ccss-escala-salud
+  ok      1 chunk(s)  ccss-obligacion-ingreso-bajo  →  salarios-minimos · Artículo 1
+  ok      1 chunk(s)  ccss-asalariado-y-freelance  →  ccss-reglamento-ti · Artículo 2
+  ok      1 chunk(s)  ccss-asalariado-y-freelance  →  ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? · @Trabajador Independiente
+  ok      1 chunk(s)  ccss-cese-actividad  →  ccss-faq · ¿Qué debo hacer si dejo de trabajar de forma Independiente? · @Trabajador Independiente
+  ok      1 chunk(s)  ccss-cese-actividad  →  ccss-faq · ¿Se puede suspender el seguro de trabajador independiente? · @Trabajador Independiente
+  ok      1 chunk(s)  ccss-arreglo-pago  →  ccss-faq · En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA? · @Cobros
+  ok      1 chunk(s)  ccss-suspension-seguro-ti  →  ccss-faq · ¿Se puede suspender el seguro de trabajador independiente? · @Trabajador Independiente
+  ok      1 chunk(s)  ccss-suspension-seguro-ti  →  ccss-faq · ¿Por qué cuando el Trabajador Independiente ingresa a laborar con una empresa, la suspensión del seguro no es automática? · @Cobros
+  ok     16 chunk(s)  factura-electronica-v44  →  disposiciones-v44
+  ok      1 chunk(s)  factura-electronica-v44  →  reglamento-comprobantes · Artículo 4
+  ok      1 chunk(s)  desinscripcion-dejar-actividad  →  tribu-cr-faq · Declaraciones del RUT · 31
+  ok      1 chunk(s)  desinscripcion-dejar-actividad  →  tribu-cr-faq · Declaraciones del RUT · 35
+  ok      1 chunk(s)  desinscripcion-dejar-actividad  →  tribu-cr-faq · Declaraciones del RUT · 37
+  ok      1 chunk(s)  desinscripcion-dejar-actividad  →  tribu-cr-faq · Declaraciones del RUT · 38
+  ok      1 chunk(s)  desinscripcion-dejar-actividad  →  tribu-cr-faq · Declaraciones del RUT · 43
+  ok      1 chunk(s)  desinscripcion-dejar-actividad  →  tribu-cr-faq · Declaraciones del RUT · 46
+  ok      1 chunk(s)  desinscripcion-dejar-actividad  →  reglamento-iva · Artículo 67
+  ok      1 chunk(s)  desinscripcion-dejar-actividad  →  ley-iva · Artículo 27
+  ok      1 chunk(s)  desinscripcion-dejar-actividad  →  reglamento-renta · Artículo 27
+  ok      4 chunk(s)  renta-persona-fisica-deduccion  →  ley-renta · ARTICULO 8
+  ok      1 chunk(s)  renta-persona-fisica-deduccion  →  reglamento-renta · Artículo 16
+  ok      2 chunk(s)  renta-persona-fisica-deduccion  →  reglamento-renta · Artículo 17
+  ok      2 chunk(s)  renta-persona-fisica-deduccion  →  ley-renta · Artículo 15
+  ok      1 chunk(s)  regimen-simplificado-programador  →  reglamento-rts · Artículo 1
+  ok      1 chunk(s)  regimen-simplificado-programador  →  reglamento-rts · Artículo 2
+  ok      1 chunk(s)  regimen-simplificado-programador  →  ley-iva · Artículo 36
+  ok      1 chunk(s)  tribu-cr-declarar-pagar  →  tribu-cr-res-0011-2025 · Artículo 1
+  ok      1 chunk(s)  tribu-cr-declarar-pagar  →  tribu-cr-res-0011-2025 · Artículo 2
+  ok      1 chunk(s)  tribu-cr-declarar-pagar  →  tribu-cr-res-0011-2025 · Artículo 3
+  ok      1 chunk(s)  tribu-cr-declarar-pagar  →  tribu-cr-res-0011-2025 · Transitorio II
+  ok      1 chunk(s)  iva-servicios-extranjero-comprados  →  ley-iva · Artículo 30
+  ok      1 chunk(s)  iva-servicios-extranjero-comprados  →  reglamento-iva · Artículo 46
+  ok      1 chunk(s)  iva-servicios-extranjero-comprados  →  reglamento-iva · Artículo 47
+  ok      1 chunk(s)  iva-credito-fiscal-compras  →  ley-iva · Artículo 21
+  ok      1 chunk(s)  iva-credito-fiscal-compras  →  ley-iva · Artículo 17
+  ok      1 chunk(s)  iva-declaracion-mensual  →  ley-iva · Artículo 27
+  ok      1 chunk(s)  iva-declaracion-mensual  →  reglamento-iva · Artículo 40
+  ok      1 chunk(s)  iva-tarifa-general  →  ley-iva · Artículo 10
+  ok      2 chunk(s)  iva-tarifas-reducidas  →  ley-iva · Artículo 11
+  ok      1 chunk(s)  iva-momento-hecho-generador  →  ley-iva · Artículo 3
+  ok      1 chunk(s)  renta-bruta-que-incluye  →  ley-renta · Artículo 5
+  ok      1 chunk(s)  renta-bruta-que-incluye  →  reglamento-renta · Artículo 13
+  ok      1 chunk(s)  renta-tramos-2026  →  tramos-renta-2026
+  ok      2 chunk(s)  renta-tramos-2026  →  ley-renta · Artículo 15
+  ok      1 chunk(s)  renta-declaracion-plazo  →  reglamento-renta · Artículo 28
+  ok      1 chunk(s)  renta-pagos-parciales-retenciones  →  reglamento-renta · Artículo 26
+  ok      1 chunk(s)  renta-pagos-parciales-retenciones  →  ley-renta · Artículo 24
+  ok      2 chunk(s)  renta-salario-y-actividad  →  ley-renta · Artículo 15
+  ok      1 chunk(s)  renta-salario-y-actividad  →  ley-renta · Artículo 33
+  ok      1 chunk(s)  renta-salario-y-actividad  →  reglamento-renta · Artículo 56
+  ok      1 chunk(s)  renta-salario-y-actividad  →  reglamento-renta · Artículo 57
+  ok      1 chunk(s)  renta-salario-y-actividad  →  tramos-renta-2026
+  ok      1 chunk(s)  comprobantes-plazo-conservacion  →  reglamento-comprobantes · Artículo 22
+  ok      1 chunk(s)  comprobantes-plazo-conservacion  →  reglamento-comprobantes · Artículo 4
+  ok      2 chunk(s)  comprobantes-factura-vs-tiquete  →  reglamento-comprobantes · Artículo 2
+  ok      2 chunk(s)  exportacion-servicios-comprobante  →  reglamento-comprobantes · Artículo 2
+  ok      5 chunk(s)  exportacion-servicios-comprobante  →  reglamento-iva · Artículo 11
+  ok      1 chunk(s)  iva-facturas-en-dolares  →  ley-iva · Artículo 15
+  ok      1 chunk(s)  ccss-asalariado-followup  →  ccss-escala-salud · Artículo 30°, sesión 8999
+  ok      1 chunk(s)  ccss-asalariado-followup  →  ccss-escala-ivm · Artículo 4°, sesión 9570
+  ok      1 chunk(s)  ccss-asalariado-followup  →  ley-10363 · ARTÍCULO 1
+  ok      2 chunk(s)  exportacion-comprobante-followup  →  reglamento-comprobantes · Artículo 2
+  ok      5 chunk(s)  exportacion-comprobante-followup  →  reglamento-iva · Artículo 11
+  ok      1 chunk(s)  renta-plazo-followup  →  reglamento-renta · Artículo 28
+  ok      1 chunk(s)  iva-ajuste-bien-de-capital  →  reglamento-iva-bienes-capital · Artículo 31
+  ok      2 chunk(s)  iva-retencion-tarjetas-porcentaje  →  reglamento-iva-retencion-tarjetas · Artículo 41
+  ok      1 chunk(s)  inscripcion-tribu-cr  →  tribu-cr-faq · Registro Único Tributario (RUT) · 1
+  ok      1 chunk(s)  inscripcion-tribu-cr  →  tribu-cr-faq · Registro Único Tributario (RUT) · 2
+  ok      1 chunk(s)  inscripcion-tribu-cr  →  tribu-cr-faq · Declaraciones del RUT · 1
+  ok      1 chunk(s)  inscripcion-tribu-cr  →  tribu-cr-faq · Declaraciones del RUT · 2
+  ok      1 chunk(s)  multa-iva-no-declarado  →  cnpt · Artículo 79
+  ok      1 chunk(s)  multa-iva-no-declarado  →  salario-base-2026
+  ok      1 chunk(s)  multa-iva-no-declarado  →  cnpt · Artículo 80 bis
+  ok      1 chunk(s)  multa-iva-no-declarado  →  cnpt · Artículo 57
+  ok      1 chunk(s)  multa-iva-no-declarado  →  cnpt · Artículo 88
+  ok      1 chunk(s)  inscripcion-tardia-sancion  →  cnpt · Artículo 78
+  ok      1 chunk(s)  inscripcion-tardia-sancion  →  salario-base-2026
+  ok      1 chunk(s)  inscripcion-tardia-sancion  →  cnpt · Artículo 88
+  ok      1 chunk(s)  factura-primera-cabys  →  reglamento-comprobantes · Artículo 4
+  ok      1 chunk(s)  factura-primera-cabys  →  cabys-dev
+  ok      1 chunk(s)  ho-hacienda-solo-cliente-eeuu  →  ley-iva · Artículo 5
+  ok      1 chunk(s)  ho-hacienda-solo-cliente-eeuu  →  ley-iva · Artículo 4
+  ok      2 chunk(s)  ho-hacienda-solo-cliente-eeuu  →  ley-renta · ARTICULO 2
+  ok      1 chunk(s)  ho-hacienda-solo-cliente-eeuu  →  reglamento-renta · Artículo 27
+  ok      1 chunk(s)  ho-hacienda-solo-cliente-eeuu  →  cnpt · Artículo 78
+  ok      1 chunk(s)  ho-trabajitos-por-mi-cuenta  →  ley-iva · Artículo 5
+  ok      2 chunk(s)  ho-trabajitos-por-mi-cuenta  →  ley-renta · ARTICULO 2
+  ok      1 chunk(s)  ho-trabajitos-por-mi-cuenta  →  reglamento-renta · Artículo 27
+  ok      1 chunk(s)  ho-trabajitos-por-mi-cuenta  →  ccss-reglamento-ti · Artículo 1
+  ok      1 chunk(s)  ho-donde-inscribo-ya-no-atv  →  tribu-cr-faq · Registro Único Tributario (RUT) · 1
+  ok      1 chunk(s)  ho-donde-inscribo-ya-no-atv  →  tribu-cr-faq · Registro Único Tributario (RUT) · 2
+  ok      1 chunk(s)  ho-donde-inscribo-ya-no-atv  →  tribu-cr-faq · Ingreso a la Oficina Virtual (OVI) · 1
+  ok      1 chunk(s)  ho-donde-inscribo-ya-no-atv  →  tribu-cr-res-0011-2025 · Artículo 1
+  ok      1 chunk(s)  ho-desde-cuanta-plata-caja  →  ccss-reglamento-ti · Artículo 1
+  ok      1 chunk(s)  ho-desde-cuanta-plata-caja  →  ccss-escala-salud
+  ok      1 chunk(s)  ho-desde-cuanta-plata-caja  →  ccss-escala-ivm
+  ok      1 chunk(s)  ho-desde-cuanta-plata-caja  →  salarios-minimos · Artículo 1
+  ok      1 chunk(s)  ho-donde-me-afilio-caja  →  ccss-faq · ¿Dónde me corresponde realizar el trámite de afiliación? · @Trabajador Independiente
+  ok      1 chunk(s)  ho-donde-me-afilio-caja  →  ccss-faq · ¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente? · @Trabajador Independiente
+  ok      1 chunk(s)  ho-tiquete-en-vez-de-factura  →  reglamento-comprobantes · Artículo 9
+  ok      1 chunk(s)  ho-tiquete-en-vez-de-factura  →  reglamento-comprobantes · Artículo 4
+  ok      2 chunk(s)  ho-tiquete-en-vez-de-factura  →  reglamento-comprobantes · Artículo 2
+  ok      1 chunk(s)  ho-factura-electronica-o-recibo  →  reglamento-comprobantes · Artículo 4
+  ok      1 chunk(s)  ho-factura-electronica-o-recibo  →  reglamento-comprobantes · Artículo 8
+  ok      1 chunk(s)  ho-factura-electronica-o-recibo  →  reglamento-comprobantes · Artículo 22
+  ok      1 chunk(s)  ho-cabys-paginas-web  →  cabys-dev
+  ok      1 chunk(s)  ho-cabys-paginas-web  →  reglamento-comprobantes · Artículo 13
+  ok      3 chunk(s)  ho-cliente-espana-lleva-iva  →  ley-iva · Artículo 8
+  ok      5 chunk(s)  ho-cliente-espana-lleva-iva  →  reglamento-iva · Artículo 11
+  ok      1 chunk(s)  ho-cliente-espana-lleva-iva  →  ley-iva · Artículo 10
+  ok      1 chunk(s)  ho-cliente-espana-lleva-iva  →  ley-iva · Artículo 3
+  ok      2 chunk(s)  ho-cliente-espana-lleva-iva  →  reglamento-comprobantes · Artículo 2
+  ok      1 chunk(s)  ho-iva-en-cero-sin-facturar  →  ley-iva · Artículo 27
+  ok      1 chunk(s)  ho-iva-en-cero-sin-facturar  →  reglamento-iva · Artículo 40
+  ok      1 chunk(s)  ho-iva-en-cero-sin-facturar  →  cnpt · Artículo 79
+  ok      1 chunk(s)  ho-hasta-que-dia-tengo-iva  →  ley-iva · Artículo 27
+  ok      1 chunk(s)  ho-hasta-que-dia-tengo-iva  →  reglamento-iva · Artículo 40
+  ok      4 chunk(s)  ho-rebajar-25-sin-facturas  →  ley-renta · ARTICULO 8
+  ok      1 chunk(s)  ho-rebajar-25-sin-facturas  →  ley-renta · ARTICULO 7
+  ok      1 chunk(s)  ho-rebajar-25-sin-facturas  →  tribu-cr-res-0011-2025 · Artículo 2
+  ok      1 chunk(s)  ho-minimo-renta-2026  →  tramos-renta-2026
+  ok      2 chunk(s)  ho-minimo-renta-2026  →  ley-renta · Artículo 15
+  ok      2 chunk(s)  ho-ademas-tengo-salario  →  ley-renta · Artículo 15
+  ok      1 chunk(s)  ho-ademas-tengo-salario  →  tramos-renta-2026
+  ok      1 chunk(s)  ho-ademas-tengo-salario  →  reglamento-renta · Artículo 28
+  ok      1 chunk(s)  ho-ademas-tengo-salario  →  ley-renta · ARTICULO 22
+  ok      1 chunk(s)  ho-minimo-caja-independiente-2026  →  ccss-escala-salud
+  ok      1 chunk(s)  ho-minimo-caja-independiente-2026  →  ccss-escala-ivm
+  ok      1 chunk(s)  ho-minimo-caja-independiente-2026  →  salarios-minimos · Artículo 1
+  ok      1 chunk(s)  ho-800-mil-que-porcentaje-caja  →  ccss-escala-salud
+  ok      1 chunk(s)  ho-800-mil-que-porcentaje-caja  →  ccss-escala-ivm
+  ok      1 chunk(s)  ho-800-mil-que-porcentaje-caja  →  salarios-minimos · Artículo 1
+  ok      1 chunk(s)  ho-tambien-asegurado-por-patrono  →  ccss-reglamento-ti · Artículo 2
+  ok      1 chunk(s)  ho-tambien-asegurado-por-patrono  →  ccss-reglamento-ti · Artículo 1
+  ok      1 chunk(s)  ho-tambien-asegurado-por-patrono  →  ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? · @Trabajador Independiente
+  ok      1 chunk(s)  ho-cobrar-8-anos-atras-caja  →  ley-10363 · ARTÍCULO 2
+  ok      1 chunk(s)  ho-cobrar-8-anos-atras-caja  →  ccss-prescripcion · ¿Cuáles son los plazos de la prescripción conforme la Ley? · @Guía
+  ok      1 chunk(s)  ho-desinscribir-debiendo-declaraciones  →  reglamento-renta · Artículo 27
+  ok      1 chunk(s)  ho-desinscribir-debiendo-declaraciones  →  reglamento-iva · Artículo 67
+  ok      1 chunk(s)  ho-desinscribir-debiendo-declaraciones  →  cnpt · Artículo 79
+  ok      1 chunk(s)  ho-desinscribir-debiendo-declaraciones  →  tribu-cr-faq · Declaraciones del RUT · 43
+  ok      1 chunk(s)  ho-desinscribir-debiendo-declaraciones  →  tribu-cr-faq · Declaraciones del RUT · 35
+  ok      1 chunk(s)  ho-rebajar-multa-si-pago-ya  →  cnpt · Artículo 88
+  ok      1 chunk(s)  ho-rebajar-multa-si-pago-ya  →  cnpt · Artículo 79
+  ok      1 chunk(s)  ho-t2-credito-iva-compras  →  ley-iva · Artículo 21
+  ok      1 chunk(s)  ho-t2-credito-iva-compras  →  ley-iva · Artículo 17
+  ok      1 chunk(s)  ho-t2-hosting-extranjero  →  ley-iva · Artículo 30
+  ok      1 chunk(s)  ho-t2-hosting-extranjero  →  reglamento-iva · Artículo 46
+  ok      1 chunk(s)  ho-t2-hosting-extranjero  →  reglamento-iva · Artículo 47
+  ok      2 chunk(s)  ho-t2-retencion-tarjetas  →  reglamento-iva-retencion-tarjetas · Artículo 41
+  ok      1 chunk(s)  ho-t2-compu-cara-iva  →  reglamento-iva-bienes-capital · Artículo 31
+  ok      1 chunk(s)  ho-t2-tipo-de-cambio  →  ley-iva · Artículo 15
+  ok      1 chunk(s)  ho-t2-panaderia-simplificado  →  reglamento-rts · Artículo 1
+  ok      1 chunk(s)  ho-t2-panaderia-simplificado  →  reglamento-rts · Artículo 2
+  ok      1 chunk(s)  ho-t2-panaderia-simplificado  →  ley-iva · Artículo 36
+  ok      1 chunk(s)  ho-t2-arreglo-pago-caja  →  ccss-faq · En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA? · @Cobros
+  ok      1 chunk(s)  ho-t2-salir-del-pais-seguro  →  ccss-faq · ¿Qué hago si voy a salir del país por un periodo de tiempo mayor a tres meses? · @Trabajador Independiente
+  ok      1 chunk(s)  ho-t2-salir-del-pais-seguro  →  ccss-faq · ¿Se puede suspender el seguro de trabajador independiente? · @Trabajador Independiente
+  ok      1 chunk(s)  ho-t2-pensionado-con-actividad  →  ccss-faq · El pensionado por Vejez que realice una actividad por cuenta propia. ¿Está obligado a asegurarse como Trabajador Independiente? · @Trabajador Independiente
+  ok      1 chunk(s)  ho-t2-autorizar-contador  →  tribu-cr-faq · Ingreso a la Oficina Virtual (OVI) · 22
+  ok      1 chunk(s)  ho-t2-autorizar-contador  →  tribu-cr-faq · Declaraciones del RUT · 54
+  ok      1 chunk(s)  ho-t2-autorizar-contador  →  tribu-cr-faq · Declaraciones del RUT · 61
+  ok      1 chunk(s)  ho-t2-autorizar-contador  →  tribu-cr-faq · Declaraciones del RUT · 64
+  ok      1 chunk(s)  ho-t2-constancia-al-dia  →  tribu-cr-faq · Consulta de la Situación Tributaria (OVi Pública) · 1
+  ok      1 chunk(s)  ho-t2-constancia-al-dia  →  tribu-cr-faq · Consulta de la Situación Tributaria (OVi Pública) · 2
+  ok      1 chunk(s)  ho-t2-constancia-al-dia  →  tribu-cr-faq · Consulta de la Situación Tributaria (OVi Pública) · 7
+  ok      1 chunk(s)  ho-t2-payoneer  →  ley-renta · Artículo 1
+  ok      2 chunk(s)  ho-t2-payoneer  →  ley-renta · ARTICULO 2
+  ok      1 chunk(s)  ho-t2-payoneer  →  reglamento-comprobantes · Artículo 9
+  ok      1 chunk(s)  t2-inscripcion-dimex  →  tribu-cr-faq · Registro Único Tributario (RUT) · 1
+  ok      1 chunk(s)  t2-inscripcion-dimex  →  tribu-cr-faq · Registro Único Tributario (RUT) · 3
+  ok      1 chunk(s)  rb-pill-inscribo-exterior  →  ley-iva · Artículo 5
+  ok      1 chunk(s)  rb-pill-inscribo-exterior  →  ley-iva · Artículo 4
+  ok      2 chunk(s)  rb-pill-inscribo-exterior  →  ley-renta · ARTICULO 2
+  ok      1 chunk(s)  rb-pill-inscribo-exterior  →  reglamento-renta · Artículo 27
+  ok      1 chunk(s)  rb-pill-cuanto-pago-independiente  →  ccss-escala-salud · Artículo 30°, sesión 8999
+  ok      1 chunk(s)  rb-pill-cuanto-pago-independiente  →  ccss-escala-ivm · Artículo 4°, sesión 9570
+  ok      1 chunk(s)  rb-pill-cuanto-pago-independiente  →  ley-10363 · ARTÍCULO 1
+  ok      1 chunk(s)  rb-pill-cuanto-pago-independiente  →  salarios-minimos · Artículo 1
+  ok      1 chunk(s)  rb-pill-primera-factura  →  reglamento-comprobantes · Artículo 4
+  ok      1 chunk(s)  rb-pill-primera-factura  →  cabys-dev
+  ok      1 chunk(s)  rb-pill-asegurarme-gano-poco  →  ccss-reglamento-ti · Artículo 1
+  ok      1 chunk(s)  rb-pill-asegurarme-gano-poco  →  ccss-faq · ¿El Trabajador Independiente está obligado a asegurarse ante la CCSS? · @Trabajador Independiente
+  ok      1 chunk(s)  rb-pill-asegurarme-gano-poco  →  ccss-escala-salud
+  ok      1 chunk(s)  rb-pill-asegurarme-gano-poco  →  salarios-minimos · Artículo 1
+  ok      5 chunk(s)  rb-pill-iva-exterior  →  reglamento-iva · Artículo 11
+  ok      3 chunk(s)  rb-pill-iva-exterior  →  ley-iva · Artículo 8
+  ok      1 chunk(s)  rb-pill-retroactivo  →  ley-10363 · ARTÍCULO 2
+  ok      1 chunk(s)  rb-pill-retroactivo  →  ley-10363 · TRANSITORIO II
+  ok      4 chunk(s)  rb-pill-impuesto-renta  →  ley-renta · ARTICULO 8
+  ok      1 chunk(s)  rb-pill-impuesto-renta  →  reglamento-renta · Artículo 16
+  ok      2 chunk(s)  rb-pill-impuesto-renta  →  reglamento-renta · Artículo 17
+  ok      2 chunk(s)  rb-pill-impuesto-renta  →  ley-renta · Artículo 15
+  ok      1 chunk(s)  rb-pill-me-salgo  →  tribu-cr-faq · Declaraciones del RUT · 31
+  ok      1 chunk(s)  rb-pill-me-salgo  →  tribu-cr-faq · Declaraciones del RUT · 35
+  ok      1 chunk(s)  rb-pill-me-salgo  →  tribu-cr-faq · Declaraciones del RUT · 37
+  ok      1 chunk(s)  rb-pill-me-salgo  →  tribu-cr-faq · Declaraciones del RUT · 38
+  ok      1 chunk(s)  rb-pill-me-salgo  →  tribu-cr-faq · Declaraciones del RUT · 43
+  ok      1 chunk(s)  rb-pill-me-salgo  →  tribu-cr-faq · Declaraciones del RUT · 46
+  ok      1 chunk(s)  rb-pill-me-salgo  →  reglamento-iva · Artículo 67
+  ok      1 chunk(s)  rb-pill-me-salgo  →  ley-iva · Artículo 27
+  ok      1 chunk(s)  rb-pill-me-salgo  →  reglamento-renta · Artículo 27
+  ok      1 chunk(s)  rb-pill-inscribi-tarde  →  cnpt · Artículo 78
+  ok      1 chunk(s)  rb-pill-inscribi-tarde  →  salario-base-2026
+  ok      1 chunk(s)  rb-pill-inscribi-tarde  →  cnpt · Artículo 88
+  ok      1 chunk(s)  rb-corto-cuanto-es-iva  →  ley-iva · Artículo 10
+  ok      1 chunk(s)  rb-corto-tasa-iva  →  ley-iva · Artículo 10
+  ok      1 chunk(s)  rb-corto-cuanto-pago-caja  →  ccss-escala-salud · Artículo 30°, sesión 8999
+  ok      1 chunk(s)  rb-corto-cuanto-pago-caja  →  ccss-escala-ivm · Artículo 4°, sesión 9570
+  ok      1 chunk(s)  rb-corto-cuanto-pago-caja  →  ley-10363 · ARTÍCULO 1
+  ok      1 chunk(s)  rb-corto-cuanto-pago-caja  →  salarios-minimos · Artículo 1
+  ok      1 chunk(s)  rb-corto-tramos-renta  →  tramos-renta-2026
+  ok      2 chunk(s)  rb-corto-tramos-renta  →  ley-renta · Artículo 15
+  ok      1 chunk(s)  rb-corto-cuando-declaro-renta  →  reglamento-renta · Artículo 28
+  ok      1 chunk(s)  rb-corto-cuando-declaro-iva  →  ley-iva · Artículo 27
+  ok      1 chunk(s)  rb-corto-cuando-declaro-iva  →  reglamento-iva · Artículo 40
+  ok      1 chunk(s)  rb-corto-que-cabys  →  cabys-dev
+  ok      1 chunk(s)  rb-corto-multa-tarde  →  cnpt · Artículo 78
+  ok      1 chunk(s)  rb-corto-multa-tarde  →  salario-base-2026
+  ok      1 chunk(s)  rb-corto-multa-tarde  →  cnpt · Artículo 88
+  ok      1 chunk(s)  rb-tilde-inscribirme-afuera  →  ley-iva · Artículo 5
+  ok      1 chunk(s)  rb-tilde-inscribirme-afuera  →  ley-iva · Artículo 4
+  ok      2 chunk(s)  rb-tilde-inscribirme-afuera  →  ley-renta · ARTICULO 2
+  ok      1 chunk(s)  rb-tilde-inscribirme-afuera  →  reglamento-renta · Artículo 27
+  ok      1 chunk(s)  rb-tilde-cuanto-pago-ccss  →  ccss-escala-salud · Artículo 30°, sesión 8999
+  ok      1 chunk(s)  rb-tilde-cuanto-pago-ccss  →  ccss-escala-ivm · Artículo 4°, sesión 9570
+  ok      1 chunk(s)  rb-tilde-cuanto-pago-ccss  →  ley-10363 · ARTÍCULO 1
+  ok      1 chunk(s)  rb-tilde-cuanto-pago-ccss  →  salarios-minimos · Artículo 1
+  ok      1 chunk(s)  rb-tilde-asegurarme-poquito  →  ccss-reglamento-ti · Artículo 1
+  ok      1 chunk(s)  rb-tilde-asegurarme-poquito  →  ccss-faq · ¿El Trabajador Independiente está obligado a asegurarse ante la CCSS? · @Trabajador Independiente
+  ok      1 chunk(s)  rb-tilde-asegurarme-poquito  →  ccss-escala-salud
+  ok      1 chunk(s)  rb-tilde-asegurarme-poquito  →  salarios-minimos · Artículo 1
+  ok      1 chunk(s)  rb-tilde-primera-fatura  →  reglamento-comprobantes · Artículo 4
+  ok      1 chunk(s)  rb-tilde-primera-fatura  →  cabys-dev
+  ok      1 chunk(s)  rb-tilde-deje-de-trabajr  →  tribu-cr-faq · Declaraciones del RUT · 31
+  ok      1 chunk(s)  rb-tilde-deje-de-trabajr  →  tribu-cr-faq · Declaraciones del RUT · 35
+  ok      1 chunk(s)  rb-tilde-deje-de-trabajr  →  tribu-cr-faq · Declaraciones del RUT · 37
+  ok      1 chunk(s)  rb-tilde-deje-de-trabajr  →  tribu-cr-faq · Declaraciones del RUT · 38
+  ok      1 chunk(s)  rb-tilde-deje-de-trabajr  →  tribu-cr-faq · Declaraciones del RUT · 43
+  ok      1 chunk(s)  rb-tilde-deje-de-trabajr  →  tribu-cr-faq · Declaraciones del RUT · 46
+  ok      1 chunk(s)  rb-tilde-deje-de-trabajr  →  reglamento-iva · Artículo 67
+  ok      1 chunk(s)  rb-tilde-deje-de-trabajr  →  ley-iva · Artículo 27
+  ok      1 chunk(s)  rb-tilde-deje-de-trabajr  →  reglamento-renta · Artículo 27
+  ok      5 chunk(s)  rb-spanglish-client-usa  →  reglamento-iva · Artículo 11
+  ok      3 chunk(s)  rb-spanglish-client-usa  →  ley-iva · Artículo 8
+  ok      2 chunk(s)  rb-spanglish-invoice  →  reglamento-comprobantes · Artículo 2
+  ok      5 chunk(s)  rb-spanglish-invoice  →  reglamento-iva · Artículo 11
+  ok      1 chunk(s)  rb-seguimiento-cuanto-me-toca  →  ccss-escala-salud · Artículo 30°, sesión 8999
+  ok      1 chunk(s)  rb-seguimiento-cuanto-me-toca  →  ccss-escala-ivm · Artículo 4°, sesión 9570
+  ok      1 chunk(s)  rb-seguimiento-cuanto-me-toca  →  ley-10363 · ARTÍCULO 1
+  ok      1 chunk(s)  rb-seguimiento-cuanto-me-toca  →  salarios-minimos · Artículo 1
+  ok      5 chunk(s)  rb-seguimiento-le-cobro-iva  →  reglamento-iva · Artículo 11
+  ok      3 chunk(s)  rb-seguimiento-le-cobro-iva  →  ley-iva · Artículo 8
+  ok      1 chunk(s)  rb-seguimiento-de-cuanto-multa  →  cnpt · Artículo 78
+  ok      1 chunk(s)  rb-seguimiento-de-cuanto-multa  →  salario-base-2026
+  ok      1 chunk(s)  rb-seguimiento-de-cuanto-multa  →  cnpt · Artículo 88
+
+conflicting sources (answer=claude-sonnet-5-5-effort-low, judge=claude-sonnet-4-5): pass
+Las fuentes discrepan según el año de cada decreto, y los documentos no dicen que uno sustituya al otro, así que le presento el dato de cada uno:
+
+- El Decreto de tramos del impuesto sobre la renta 2026 (Decreto Ejecutivo 44000) establece que las rentas de las personas físicas con actividad lucrativa están exentas hasta un monto anual de ¢4.094.000 [1].
+- El Decreto de tramos del impuesto sobre la renta 2025 (Decreto Ejecutivo 43500) establece que esas rentas están exentas hasta un monto anual de ¢3.947.000 [2].
+
+En ambos decretos, el exceso sobre el monto exento se grava según los tramos que cada decreto trae a continuación [1][2]. Los documentos que tengo no reproducen esos tramos, así que no puedo indicarle la tarifa que corresponde a su exceso.
+
+Como las dos cifras difieren, conviene verificar con el Ministerio de Hacienda cuál rige para el período que usted va a declarar: https://www.hacienda.go.cr. Ahí también puede confirmar los tramos aplicables al exceso.
+
+
+consolidated vs reform (answer=claude-sonnet-5-5-effort-low, judge=claude-sonnet-4-5): pass
+Según los documentos oficiales, el artículo 11 de la Ley del IVA establece cuatro tarifas reducidas. Se aplica el texto consolidado de la Ley del IVA, porque ya incorpora las reformas posteriores a la redacción original de la Ley 9635 [1].
+
+**4%**
+- La compra de boletos o pasajes aéreos cuyo origen o destino sea el territorio nacional, para cualquier clase de viaje [1].
+- Los servicios de salud privados prestados por centros de salud autorizados o por profesionales en ciencias de la salud autorizados [1].
+
+**2%**
+- Los medicamentos, las materias primas, los insumos, la maquinaria, el equipo y los reactivos necesarios para su producción, autorizados por el Ministerio de Hacienda [1].
+- Los servicios de educación privada, con excepción de los exentos según el inciso 31 del artículo 8 de la Ley 6826 [1].
+- Las primas de seguros personales [1].
+
+**1%**
+- Las ventas, importaciones o internaciones de los bienes agropecuarios incluidos en la canasta básica [1].
+- Las ventas, importaciones o internaciones de los artículos definidos en la canasta básica [1].
+
+**0,5%**
+- La venta de productos agropecuarios o agroindustriales orgánicos que estén registrados y certificados ante la entidad correspondiente [1].
+
+La excepción en educación privada proviene de una reforma de 2024, y la tarifa del 0,5% fue adicionada en 2022. Por eso la redacción original de la Ley 9635 no las trae [1].
+
+Si usted vende o presta alguno de estos bienes o servicios, para saber cómo aplicar la tarifa en su facturación y su declaración, confirme el caso con el Ministerio de Hacienda en https://www.hacienda.go.cr.
+
+ask: expansion failed — reason=timeout error=DOMException.TimeoutError#23
+
+abstention: 14/15
+  transcript: eval/runs/2026-10-08-baseline/low/abstention-2026-10-08T01-59-10-600Z.jsonl
+  rerank readings lost: none of 41
+false absence claims (#500): 0
+opens with an absence claim (reported): 11/15 — ho-abs-cuanto-cobro-la-hora, ho-abs-iva-2027, ho-abs-devs-exentos-renta, ho-abs-patente-municipal, ho-abs-calculo-personalizado, ho-abs-recomendar-contador, abs-dimex-sacar, abs-residencia-permanente, abs-ins-riesgos-trabajo, abs-licencia-conducir, abs-patente-comercial
+typo runs (reported): 0
+  pass  model     ho-abs-cuanto-cobro-la-hora
+  pass  model     ho-abs-me-conviene-sociedad
+  pass  model     ho-abs-aguinaldo-freelancer
+  FAIL [fail/fail/fail]  model     ho-abs-iva-2027  — The assistant provided the current IVA rates in detail instead of refusing to answer about 2027, only adding a disclaimer at the beginning and end.
+  pass  model     ho-abs-devs-exentos-renta
+  pass  model     ho-abs-patente-municipal
+  pass  model     ho-abs-calculo-personalizado
+  pass  model     ho-abs-sociedad-inactiva
+  pass  model     ho-abs-recomendar-contador
+  pass  model     abs-pasaporte-renovar
+  pass  model     abs-dimex-sacar
+  pass  model     abs-residencia-permanente
+  pass  model     abs-ins-riesgos-trabajo
+  pass  model     abs-licencia-conducir
+  pass  model     abs-patente-comercial
+abstention requirements (#502): 0/1
+  FAIL  ho-abs-iva-2027
+        Atribuye esa tarifa al artículo 10 de la Ley del IVA, con cita, y no dice que ese artículo falte en los documentos. (artículo 10 | art. 10: absent)
+
+retrieval hit-rate (rerank=voyage rerank-2.5-lite, pool 40 → top 8, cap=off/doc, expand=on, steps=on(pin1), pin=on): 68/74
+hit-rate, robustness block (#502): 25/27
+  MISS  rb-pill-retroactivo ← ccss-cobro-retroactivo  «¿Me pueden cobrar retroactivo?»  pool#8
+  MISS  rb-corto-cuanto-es-iva ← iva-tarifa-general  «¿cuánto es el IVA?»  pool#31
+  rerank readings lost: none of 527
+  hit   pool#6  top=0.0585  inscripcion-hacienda-clientes-extranjero
+        ⤳ La inscripción de las personas físicas como contribuyentes ante la Administración Tributaria, sus obligaciones formales y la emisión de comprobantes electrónicos por actividades económicas, así como la inscripción en la Caja Costarricense de Seguro Social de los trabajadores independientes y el tratamiento de las exportaciones de servicios y su exención del Impuesto sobre el Valor Agregado, establecen las condiciones y el procedimiento que debe cumplir quien realiza ventas o prestaciones de servicios a clientes del exterior.
+        ⊕ steps=T1-A
+          pool#10 rr#10 cut    ley-iva · Artículo 5
+          pool#25 rr#3  top    ley-iva · Artículo 4
+          pool#7  rr#19 cut    ley-renta · ARTICULO 2
+          pool#6  rr#12 cut    reglamento-renta · Artículo 27
+          pool#1  rr#15 pinned tribu-cr-faq · Registro Único Tributario (RUT) · 1 (catálogo)
+          pool#—  rr#—  cut    tribu-cr-faq · Registro Único Tributario (RUT) · 2 (catálogo)
+          pool#16 rr#26 cut    ccss-reglamento-ti · Artículo 1 (catálogo)
+          pool#5  rr#38 cut    cnpt · Artículo 78 (catálogo)
+          pool#14 rr#31 cut    tribu-cr-faq · Declaraciones del RUT · 2 (catálogo)
+  hit   pool#1  top=0.0651  iva-clientes-fuera-cr
+        ⤳ Exportación de servicios y bienes a clientes no domiciliados en el territorio nacional: exención o tarifa cero del impuesto al valor agregado, condiciones de aplicación y requisitos de documentación establecidos en la ley y su reglamento.
+        ⊕ steps=T1-D
+          pool#4  rr#1  top    reglamento-iva · Artículo 11
+          pool#1  rr#2  top    ley-iva · Artículo 8
+          pool#2  rr#38 pinned ley-iva · Artículo 27 (catálogo)
+          pool#33 rr#37 cut    reglamento-iva · Artículo 40 (catálogo)
+          pool#20 rr#40 cut    cnpt · Artículo 79 (catálogo)
+          pool#4  rr#1  top    reglamento-iva · Artículo 11 (catálogo)
+  hit   pool#1  top=0.0855  cabys-desarrollo-software
+        ⤳ El código CABYS aplicable a la prestación de servicios de desarrollo de software y de tecnologías de la información se establece en el subconjunto de códigos CABYS vinculados a servicios de programación, análisis y desarrollo de sistemas informáticos, indicando la clasificación del servicio prestado conforme a la descripción oficial del catálogo de bienes y servicios para la facturación electrónica.
+        ⊕ steps=T1-C
+          pool#1  rr#1  top    cabys-dev · *
+          pool#9  rr#8  top    reglamento-comprobantes · Artículo 4 (catálogo)
+          pool#15 rr#9  pinned reglamento-comprobantes · Artículo 9 (catálogo)
+          pool#1  rr#1  top    cabys-dev · * (catálogo)
+          pool#16 rr#21 cut    reglamento-comprobantes · Artículo 22 (catálogo)
+  hit   pool#7  top=0.0795  ccss-cuanto-pago-base
+        ⤳ El régimen contributivo de los trabajadores independientes establece la base mínima contributiva y las cuotas de los seguros de Invalidez, Vejez y Muerte y de Salud, cuyo monto se determina aplicando al ingreso declarado por el trabajador el porcentaje de contribución que fije la escala vigente de la Caja Costarricense de Seguro Social para cada seguro.
+        ⊕ steps=T1-F · figures=bmc-ivm-2026,bmc-sem-2026
+          pool#8  rr#2  top    ccss-escala-salud · Artículo 30°, sesión 8999
+          pool#7  rr#6  top    ccss-escala-ivm · Artículo 4°, sesión 9570
+          pool#—  rr#—  cut    ley-10363 · ARTÍCULO 1
+          pool#18 rr#38 pinned salarios-minimos · Artículo 1
+          pool#1  rr#5  top    ccss-reglamento-ti · Artículo 10 (catálogo)
+          pool#2  rr#12 pinned ccss-reglamento-ti · Artículo 12 (catálogo)
+          pool#10 rr#18 cut    ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? (catálogo)
+          pool#18 rr#38 pinned salarios-minimos · Artículo 1 (catálogo)
+          pool#7  rr#6  top    ccss-escala-ivm · Artículo 4°, sesión 9570 (carrier)
+          pool#18 rr#38 pinned salarios-minimos · Artículo 1 (carrier)
+  hit   pool#2  top=0.0638  ccss-cobro-retroactivo
+        ⤳ Obligación de pago retroactivo de cuotas al régimen contributivo de la Caja Costarricense de Seguro Social por parte de la persona trabajadora independiente que no se inscribió oportunamente; cómputo de las cuotas adeudadas desde la fecha en que nació la obligación de asegurarse, con intereses y recargos moratorios, y prescripción del derecho de cobro conforme al Reglamento para el Aseguramiento Contributivo de los Trabajadores Independientes.
+        ⊕ steps=T1-G
+          pool#6  rr#2  top    ley-10363 · ARTÍCULO 2
+          pool#2  rr#1  top    ley-10363 · TRANSITORIO II
+          pool#7  rr#22 cut    ccss-prescripcion · ¿Dónde presento la solicitud? (catálogo)
+          pool#23 rr#32 cut    ccss-prescripcion · ¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración? (catálogo)
+          pool#13 rr#34 cut    ccss-prescripcion · ¿En qué momento puedo solicitar la prescripción de las deudas? (catálogo)
+          pool#1  rr#18 cut    ccss-faq · ¿Dónde puedo solicitar la prescripción de cuotas de trabajador independiente pendientes de pago (Ley N°10.363)? (catálogo)
+          pool#5  rr#12 pinned ccss-reglamento-ti · TRANSITORIO V (catálogo)
+  hit   pool#2  top=0.0613  ccss-pedir-prescripcion-cuotas
+        ⤳ El procedimiento para solicitar la prescripción de deudas por cuotas atrasadas de la seguridad social para trabajadores independientes, conforme a la Ley del Trabajador Independiente y al Reglamento para el Aseguramiento Contributivo de los Trabajadores Independientes, establece los requisitos y el trámite ante la CCSS para declarar prescritas las cuotas no pagadas, así como las deudas tributarias ante la Administración Tributaria por impuestos atrasados según el Código de Normas y Procedimientos Tributarios.
+        ⊕ steps=T1-G (dataset T1-G)
+          pool#2  rr#3  top    ccss-prescripcion · ¿Cómo se solicita la prescripción?
+          pool#5  rr#8  top    ccss-prescripcion · ¿Dónde presento la solicitud?
+          pool#4  rr#17 cut    ccss-prescripcion · ¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración?
+          pool#5  rr#8  top    ccss-prescripcion · ¿Dónde presento la solicitud? (catálogo)
+          pool#4  rr#17 cut    ccss-prescripcion · ¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración? (catálogo)
+          pool#3  rr#24 cut    ccss-prescripcion · ¿En qué momento puedo solicitar la prescripción de las deudas? (catálogo)
+          pool#1  rr#11 pinned ccss-faq · ¿Dónde puedo solicitar la prescripción de cuotas de trabajador independiente pendientes de pago (Ley N°10.363)? (catálogo)
+          pool#16 rr#32 cut    ccss-reglamento-ti · TRANSITORIO V (catálogo)
+          pool#2  rr#3  top    ccss-prescripcion · ¿Cómo se solicita la prescripción? (carrier)
+          pool#5  rr#8  top    ccss-prescripcion · ¿Dónde presento la solicitud? (carrier)
+          pool#1  rr#11 pinned ccss-faq · ¿Dónde puedo solicitar la prescripción de cuotas de trabajador independiente pendientes de pago (Ley N°10.363)? (carrier)
+  hit   pool#1  top=0.0636  ccss-ventana-prescripcion-24-meses
+        ↳ ¿Todavía aplica la ventana de los 24 meses para inscribirse en la CCSS como trabajador independiente sin cobro retroactivo de cuotas?
+        ⤳ La inscripción de trabajadores independientes en el régimen de la Caja Costarricense de Seguro Social regula la fecha de afiliación, el cómputo de las cuotas no pagadas y la prescripción de las deudas por omisión de la inscripción, así como los requisitos y plazos para acogerse a un régimen de aseguramiento sin cobro retroactivo de las cuotas.
+        ⊕ steps=T1-G (dataset T1-G)
+          pool#1  rr#1  top    ccss-prescripcion · ¿Cuáles son los plazos de la prescripción conforme la Ley?
+          pool#2  rr#3  top    ley-10363 · TRANSITORIO II
+          pool#4  rr#10 pinned ccss-reglamento-ti · TRANSITORIO V
+          pool#8  rr#17 cut    ccss-prescripcion · ¿Dónde presento la solicitud? (catálogo)
+          pool#31 rr#26 cut    ccss-prescripcion · ¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración? (catálogo)
+          pool#7  rr#28 cut    ccss-prescripcion · ¿En qué momento puedo solicitar la prescripción de las deudas? (catálogo)
+          pool#5  rr#16 cut    ccss-faq · ¿Dónde puedo solicitar la prescripción de cuotas de trabajador independiente pendientes de pago (Ley N°10.363)? (catálogo)
+          pool#4  rr#10 pinned ccss-reglamento-ti · TRANSITORIO V (catálogo)
+  hit   pool#4  top=0.0560  ccss-obligacion-ingreso-bajo
+        ⤳ El aseguramiento contributivo de los trabajadores independientes ante la CCSS se rige por el Reglamento para el Aseguramiento Contributivo de los Trabajadores Independientes, que establece la obligación de inscripción, la base mínima contributiva y las escalas de cuotas del Seguro de Salud y del Seguro de Invalidez, Vejez y Muerte, así como las condiciones para la exoneración o reducción de cuotas por insuficiencia de ingresos.
+        ⊕ steps=T1-B (dataset T1-B) · figures=bmc-ivm-2026,bmc-sem-2026
+          pool#4  rr#2  top    ccss-reglamento-ti · Artículo 1
+          pool#5  rr#6  top    ccss-faq · ¿El Trabajador Independiente está obligado a asegurarse ante la CCSS?
+          pool#22 rr#7  top    ccss-escala-salud · *
+          pool#7  rr#40 pinned salarios-minimos · Artículo 1
+          pool#16 rr#37 cut    ccss-faq · ¿Dónde me corresponde realizar el trámite de afiliación? (catálogo)
+          pool#15 rr#30 pinned ccss-faq · ¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente? (catálogo)
+          pool#2  rr#5  top    ccss-reglamento-ti · Artículo 10 (catálogo)
+          pool#7  rr#40 pinned salarios-minimos · Artículo 1 (catálogo)
+          pool#16 rr#37 cut    ccss-faq · ¿Dónde me corresponde realizar el trámite de afiliación? (carrier)
+  hit   pool#2  top=0.0468  ccss-asalariado-y-freelance
+        ⤳ El régimen de seguridad social aplicable a la persona que percibe salario en relación de dependencia y, además, ingresos por trabajo independiente, y la obligación de cotización a la CCSS sobre cada una de esas fuentes de ingreso, según el Reglamento para el Aseguramiento Contributivo de los Trabajadores Independientes y la escala contributiva que fije la Junta Directiva.
+        ⊕ steps=T1-E
+          pool#—  rr#—  cut    ccss-reglamento-ti · Artículo 2
+          pool#2  rr#2  top    ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?
+          pool#10 rr#25 pinned reglamento-renta · Artículo 28 (catálogo)
+          pool#7  rr#30 cut    ley-renta · ARTICULO 22 (catálogo)
+          pool#9  rr#28 cut    ley-renta · ARTICULO 8 (catálogo)
+          pool#6  rr#40 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+  hit   pool#4  top=0.0625  ccss-cese-actividad
+        ↳ ¿Qué debo hacer en la CCSS para dejar de pagar cuotas como trabajador independiente después de cesar mi actividad?
+        ⤳ La Caja Costarricense de Seguro Social regula la suspensión o exclusión del aseguramiento contributivo de los trabajadores independientes que cesan su actividad, el trámite de solicitud de baja o desafiliación ante la institución, la actualización de la condición de aseguramiento y las obligaciones de pago de cuotas pendientes o prescritas conforme al Reglamento para el Aseguramiento Contributivo de los Trabajadores Independientes y la Ley del Trabajador Independiente.
+        ⊕ steps=T1-H (dataset T1-H)
+          pool#4  rr#1  top    ccss-faq · ¿Qué debo hacer si dejo de trabajar de forma Independiente?
+          pool#5  rr#3  top    ccss-faq · ¿Se puede suspender el seguro de trabajador independiente?
+          pool#32 rr#36 cut    tribu-cr-faq · Declaraciones del RUT · 31 (catálogo)
+          pool#29 rr#35 pinned tribu-cr-faq · Declaraciones del RUT · 43 (catálogo)
+          pool#17 rr#40 cut    cnpt · Artículo 79 (catálogo)
+          pool#4  rr#1  top    ccss-faq · ¿Qué debo hacer si dejo de trabajar de forma Independiente? (catálogo)
+          pool#5  rr#3  top    ccss-faq · ¿Se puede suspender el seguro de trabajador independiente? (catálogo)
+          pool#11 rr#37 cut    ley-iva · Artículo 27 (catálogo)
+  hit   pool#1  top=0.0492  ccss-arreglo-pago
+        ⤳ El arreglo de pago de cuotas atrasadas ante la CCSS para trabajadores independientes se formaliza mediante el convenio o plan de pago que establece el Reglamento para el Aseguramiento Contributivo de los Trabajadores Independientes, en el que se fijan la cuota inicial, el número de cuotas, los intereses moratorios aplicables y la base mínima contributiva vigente para el cálculo de las cuotas adeudadas.
+        ⊕ steps=—
+          pool#1  rr#1  top    ccss-faq · En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA?
+  hit   pool#2  top=0.0406  ccss-suspension-seguro-ti
+        ⤳ El procedimiento de suspensión o retiro del aseguramiento de trabajadores independientes ante la Caja Costarricense de Seguro Social, y la obligación de comunicar la cesación de la actividad que da origen a la cuota de la Ley del Trabajador Independiente, establecidos en el Reglamento para el Aseguramiento Contributivo de los Trabajadores Independientes, así como la regulación de las cuotas y la prescripción de deudas de la CCSS y las obligaciones tributarias de inscripción y cese ante el Ministerio de Hacienda.
+        ⊕ steps=—
+          pool#2  rr#1  top    ccss-faq · ¿Se puede suspender el seguro de trabajador independiente?
+          pool#10 rr#4  top    ccss-faq · ¿Por qué cuando el Trabajador Independiente ingresa a laborar con una empresa, la suspensión del seguro no es automática?
+  hit   pool#1  top=0.0818  factura-electronica-v44
+        ⤳ Las disposiciones técnicas de comprobantes electrónicos v4.4 y el Reglamento de Comprobantes Electrónicos regulan la emisión de la factura electrónica, sus requisitos de contenido, su envío a la Administración Tributaria y los cambios técnicos introducidos por la versión 4.4 de las disposiciones técnicas.
+        ⊕ steps=T1-C
+          pool#6  rr#1  top    disposiciones-v44 · *
+          pool#1  rr#8  top    reglamento-comprobantes · Artículo 4
+          pool#1  rr#8  top    reglamento-comprobantes · Artículo 4 (catálogo)
+          pool#3  rr#18 pinned reglamento-comprobantes · Artículo 9 (catálogo)
+          pool#32 rr#40 cut    cabys-dev · * (catálogo)
+          pool#4  rr#33 cut    reglamento-comprobantes · Artículo 22 (catálogo)
+  hit   pool#2  top=0.0495  desinscripcion-dejar-actividad
+        ⤳ El procedimiento de cancelación de la inscripción de un contribuyente ante la Administración Tributaria por cese de actividades, con la presentación de la declaración final y el pago de las obligaciones pendientes; y el procedimiento de baja del trabajador independiente ante la Caja Costarricense de Seguro Social, con la cancelación de la inscripción en el régimen contributivo y el pago de las cuotas adeudadas hasta la fecha de cese.
+        ⊕ steps=T1-H (dataset T1-H)
+          pool#8  rr#8  top    tribu-cr-faq · Declaraciones del RUT · 31
+          pool#5  rr#17 cut    tribu-cr-faq · Declaraciones del RUT · 35
+          pool#—  rr#—  cut    tribu-cr-faq · Declaraciones del RUT · 37
+          pool#12 rr#18 cut    tribu-cr-faq · Declaraciones del RUT · 38
+          pool#7  rr#21 pinned tribu-cr-faq · Declaraciones del RUT · 43
+          pool#22 rr#11 cut    tribu-cr-faq · Declaraciones del RUT · 46
+          pool#25 rr#6  top    reglamento-iva · Artículo 67
+          pool#2  rr#32 cut    ley-iva · Artículo 27
+          pool#17 rr#3  top    reglamento-renta · Artículo 27
+          pool#8  rr#8  top    tribu-cr-faq · Declaraciones del RUT · 31 (catálogo)
+          pool#7  rr#21 pinned tribu-cr-faq · Declaraciones del RUT · 43 (catálogo)
+          pool#11 rr#40 cut    cnpt · Artículo 79 (catálogo)
+          pool#3  rr#1  top    ccss-faq · ¿Qué debo hacer si dejo de trabajar de forma Independiente? (catálogo)
+          pool#14 rr#14 cut    ccss-faq · ¿Se puede suspender el seguro de trabajador independiente? (catálogo)
+          pool#2  rr#32 cut    ley-iva · Artículo 27 (catálogo)
+          pool#2  rr#32 cut    ley-iva · Artículo 27 (carrier)
+          pool#11 rr#40 cut    cnpt · Artículo 79 (carrier)
+          pool#25 rr#6  top    reglamento-iva · Artículo 67 (carrier)
+  hit   pool#1  top=0.0689  renta-persona-fisica-deduccion
+        ⤳ La Ley del Impuesto sobre la Renta establece la determinación de la renta neta de personas físicas con actividades lucrativas, mediante la deducción de los gastos necesarios para producir la renta gravable, según los tramos de tarifa progresiva fijados para el período fiscal vigente en el Decreto Ejecutivo correspondiente.
+        ⊕ steps=T1-E
+          pool#2  rr#3  top    ley-renta · ARTICULO 8
+          pool#—  rr#—  cut    reglamento-renta · Artículo 16
+          pool#6  rr#1  top    reglamento-renta · Artículo 17
+          pool#1  rr#6  top    ley-renta · Artículo 15
+          pool#9  rr#36 cut    reglamento-renta · Artículo 28 (catálogo)
+          pool#32 rr#35 cut    ley-renta · ARTICULO 22 (catálogo)
+          pool#2  rr#3  top    ley-renta · ARTICULO 8 (catálogo)
+          pool#30 rr#40 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+  hit   pool#7  top=0.0459  regimen-simplificado-programador
+        ⤳ El Régimen de Tributación Simplificada regula la inscripción, los requisitos y las obligaciones de las personas físicas con actividades económicas de ingresos limitados, y establece qué actividades pueden acogerse a él y cuáles deben tributar bajo el régimen general de impuesto sobre la renta.
+        ⊕ steps=—
+          pool#9  rr#1  top    reglamento-rts · Artículo 1
+          pool#7  rr#3  top    reglamento-rts · Artículo 2
+          pool#12 rr#9  cut    ley-iva · Artículo 36
+  hit   pool#27  top=0.0483  tribu-cr-declarar-pagar
+        ⤳ El procedimiento para presentar declaraciones y efectuar pagos de los tributos administrados por la Dirección General de Tributación se realiza a través de la plataforma TRIBU-CR, que sustituye a las plataformas tributarias anteriores según lo dispuesto para su implementación y deshabilitación.
+        ⊕ steps=—
+          pool#34 rr#4  top    tribu-cr-res-0011-2025 · Artículo 1
+          pool#32 rr#1  top    tribu-cr-res-0011-2025 · Artículo 2
+          pool#33 rr#6  top    tribu-cr-res-0011-2025 · Artículo 3
+          pool#27 rr#7  top    tribu-cr-res-0011-2025 · Transitorio II
+  hit   pool#4  top=0.0664  iva-servicios-extranjero-comprados
+        ⤳ El impuesto sobre el valor agregado aplicable a la importación de servicios digitales prestados por proveedores no domiciliados en el territorio nacional, incluyendo alojamiento web y servicios de computación en la nube, con indicación de la base imponible, la tarifa vigente y la obligación de autoliquidación o retención por parte del adquirente residente.
+        ⊕ steps=T1-D
+          pool#4  rr#8  top    ley-iva · Artículo 30
+          pool#20 rr#1  top    reglamento-iva · Artículo 46
+          pool#7  rr#3  top    reglamento-iva · Artículo 47
+          pool#3  rr#26 cut    ley-iva · Artículo 27 (catálogo)
+          pool#38 rr#28 cut    reglamento-iva · Artículo 40 (catálogo)
+          pool#28 rr#39 cut    cnpt · Artículo 79 (catálogo)
+          pool#6  rr#20 pinned reglamento-iva · Artículo 11 (catálogo)
+  hit   pool#12  top=0.0637  iva-credito-fiscal-compras
+        ⤳ El crédito fiscal del impuesto al valor agregado soportado en la adquisición de bienes y servicios afectos a la actividad gravada, y su procedencia según la naturaleza del bien de capital o del gasto, así como las condiciones y el plazo para su aplicación frente al débito fiscal.
+        ⊕ steps=T1-D
+          pool#12 rr#1  top    ley-iva · Artículo 21
+          pool#32 rr#4  top    ley-iva · Artículo 17
+          pool#1  rr#21 pinned ley-iva · Artículo 27 (catálogo)
+          pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+          pool#18 rr#40 cut    cnpt · Artículo 79 (catálogo)
+          pool#17 rr#29 cut    reglamento-iva · Artículo 11 (catálogo)
+  hit   pool#1  top=0.0740  iva-declaracion-mensual
+        ⤳ El Reglamento de la Ley del Impuesto sobre el Valor Agregado establece la presentación de la declaración mensual del impuesto, el plazo para hacerlo, el medio electrónico de presentación a través de la plataforma tributaria vigente y el pago del impuesto resultante dentro de los plazos que fije la administración tributaria.
+        ⊕ steps=T1-D
+          pool#1  rr#2  top    ley-iva · Artículo 27
+          pool#2  rr#1  top    reglamento-iva · Artículo 40
+          pool#1  rr#2  top    ley-iva · Artículo 27 (catálogo)
+          pool#2  rr#1  top    reglamento-iva · Artículo 40 (catálogo)
+          pool#23 rr#33 cut    cnpt · Artículo 79 (catálogo)
+          pool#31 rr#32 pinned reglamento-iva · Artículo 11 (catálogo)
+  MISS  pool#—  top=0.0568  iva-tarifa-general
+        ⤳ La Ley del Impuesto sobre el Valor Agregado establece la tarifa general aplicable a la prestación de servicios profesionales de desarrollo de software, incluidos los servicios de tecnologías de la información, según su clasificación en el catálogo CABYS; el contribuyente que presta estos servicios debe trasladar el impuesto al precio y declararlo en los plazos que fije el Reglamento de la Ley del IVA.
+        ⊕ steps=T1-D
+          pool#—  rr#—  cut    ley-iva · Artículo 10
+          pool#6  rr#5  top    ley-iva · Artículo 27 (catálogo)
+          pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+          pool#23 rr#40 cut    cnpt · Artículo 79 (catálogo)
+          pool#5  rr#31 pinned reglamento-iva · Artículo 11 (catálogo)
+  hit   pool#6  top=0.0683  iva-tarifas-reducidas
+        ⤳ El impuesto sobre el valor agregado establece tarifas reducidas aplicables a determinados bienes y servicios de la canasta básica, medicamentos, productos agropecuarios y otros bienes y servicios que la ley enumera expresamente, fijando el porcentaje de la tarifa diferenciada para cada uno y los supuestos de aplicación.
+        ⊕ steps=T1-D
+          pool#6  rr#1  top    ley-iva · Artículo 11
+          pool#21 rr#37 cut    ley-iva · Artículo 27 (catálogo)
+          pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+          pool#26 rr#40 cut    cnpt · Artículo 79 (catálogo)
+          pool#4  rr#7  top    reglamento-iva · Artículo 11 (catálogo)
+  hit   pool#1  top=0.0715  iva-momento-hecho-generador
+        ⤳ El momento de causación del impuesto al valor agregado sobre la prestación de servicios se determina según la fecha de emisión del comprobante o de la factura, o según la fecha del cobro o del pago, lo que ocurra primero, conforme a la Ley del Impuesto sobre el Valor Agregado y su reglamento.
+        ⊕ steps=T1-D
+          pool#1  rr#1  top    ley-iva · Artículo 3
+          pool#2  rr#7  top    ley-iva · Artículo 27 (catálogo)
+          pool#30 rr#25 cut    reglamento-iva · Artículo 40 (catálogo)
+          pool#21 rr#40 cut    cnpt · Artículo 79 (catálogo)
+          pool#10 rr#26 pinned reglamento-iva · Artículo 11 (catálogo)
+  hit   pool#11  top=0.0629  renta-bruta-que-incluye
+        ⤳ La renta bruta de las actividades lucrativas comprende la totalidad de los ingresos devengados o percibidos en dinero o en especie provenientes de la actividad, tales como los ingresos por ventas de bienes, prestación de servicios, comisiones, honorarios y demás retribuciones derivadas del ejercicio de la actividad, conforme a lo que establece la Ley del Impuesto sobre la Renta y su reglamento.
+        ⊕ steps=T1-E
+          pool#11 rr#2  top    ley-renta · Artículo 5
+          pool#21 rr#1  top    reglamento-renta · Artículo 13
+          pool#7  rr#29 cut    reglamento-renta · Artículo 28 (catálogo)
+          pool#22 rr#38 cut    ley-renta · ARTICULO 22 (catálogo)
+          pool#5  rr#7  top    ley-renta · ARTICULO 8 (catálogo)
+          pool#19 rr#40 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+  hit   pool#1  top=0.0774  renta-tramos-2026
+        ⤳ Los tramos del Impuesto sobre la Renta aplicables a personas físicas con actividad lucrativa para el período fiscal 2026 son fijados por el Decreto Ejecutivo 45333-H, que establece las escalas de tributación progresiva sobre la renta neta gravable, indicando para cada tramo el rango de ingresos anuales y la tarifa marginal correspondiente.
+        ⊕ steps=T1-E
+          pool#10 rr#1  top    tramos-renta-2026 · *
+          pool#1  rr#2  top    ley-renta · Artículo 15
+          pool#3  rr#21 cut    reglamento-renta · Artículo 28 (catálogo)
+          pool#19 rr#26 cut    ley-renta · ARTICULO 22 (catálogo)
+          pool#22 rr#14 pinned ley-renta · ARTICULO 8 (catálogo)
+          pool#18 rr#39 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+  hit   pool#1  top=0.0773  renta-declaracion-plazo
+        ⤳ El plazo para presentar la declaración del impuesto sobre la renta y efectuar su pago es el que fije la Ley del Impuesto sobre la Renta y su reglamento para el período fiscal correspondiente, y la Dirección General de Tributación establece las fechas de vencimiento según el tipo de contribuyente y el último dígito de su cédula, a través de la plataforma de declaración electrónica del Ministerio de Hacienda.
+        ⊕ steps=T1-E
+          pool#1  rr#1  top    reglamento-renta · Artículo 28
+          pool#1  rr#1  top    reglamento-renta · Artículo 28 (catálogo)
+          pool#2  rr#18 pinned ley-renta · ARTICULO 22 (catálogo)
+          pool#24 rr#39 cut    ley-renta · ARTICULO 8 (catálogo)
+          pool#23 rr#36 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+  hit   pool#9  top=0.0751  renta-pagos-parciales-retenciones
+        ⤳ El pago a cuenta y la retención del impuesto sobre la renta, practicados durante el período fiscal, se acreditan contra el impuesto determinado en la declaración anual del contribuyente, y el saldo a favor o en contra se liquida conforme a la Ley del Impuesto sobre la Renta, su reglamento y los tramos vigentes para el período fiscal correspondiente.
+        ⊕ steps=T1-E
+          pool#11 rr#2  top    reglamento-renta · Artículo 26
+          pool#9  rr#1  top    ley-renta · Artículo 24
+          pool#3  rr#22 pinned reglamento-renta · Artículo 28 (catálogo)
+          pool#1  rr#3  top    ley-renta · ARTICULO 22 (catálogo)
+          pool#13 rr#33 cut    ley-renta · ARTICULO 8 (catálogo)
+          pool#26 rr#40 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+  hit   pool#3  top=0.0568  renta-salario-y-actividad
+        ⤳ El salario percibido por una relación de dependencia se grava en el Impuesto sobre la Renta conforme a los tramos de la tarifa progresiva vigente para el período fiscal, mediante retención en la fuente que el empleador practica sobre las rentas del trabajo en relación de dependencia, sin perjuicio de las rentas de trabajo independiente que se declaren por separado.
+        ⊕ steps=T1-E
+          pool#8  rr#8  top    ley-renta · Artículo 15
+          pool#3  rr#6  top    ley-renta · Artículo 33
+          pool#31 rr#5  top    reglamento-renta · Artículo 56
+          pool#7  rr#4  top    reglamento-renta · Artículo 57
+          pool#—  rr#—  cut    tramos-renta-2026 · *
+          pool#14 rr#15 pinned reglamento-renta · Artículo 28 (catálogo)
+          pool#13 rr#26 cut    ley-renta · ARTICULO 22 (catálogo)
+          pool#28 rr#7  top    ley-renta · ARTICULO 8 (catálogo)
+          pool#20 rr#40 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+  hit   pool#1  top=0.0883  comprobantes-plazo-conservacion
+        ⤳ El Reglamento de Comprobantes Electrónicos y las Disposiciones técnicas de comprobantes electrónicos establecen la obligación de conservar los comprobantes electrónicos emitidos y recibidos, junto con sus respaldos en formato electrónico, durante el plazo que fije la normativa tributaria vigente para la conservación de documentos y registros contables.
+        ⊕ steps=T1-C
+          pool#2  rr#1  top    reglamento-comprobantes · Artículo 22
+          pool#1  rr#2  top    reglamento-comprobantes · Artículo 4
+          pool#1  rr#2  top    reglamento-comprobantes · Artículo 4 (catálogo)
+          pool#4  rr#21 pinned reglamento-comprobantes · Artículo 9 (catálogo)
+          pool#34 rr#40 cut    cabys-dev · * (catálogo)
+          pool#2  rr#1  top    reglamento-comprobantes · Artículo 22 (catálogo)
+  hit   pool#1  top=0.0846  comprobantes-factura-vs-tiquete
+        ⤳ Los comprobantes electrónicos que regula el Reglamento de Comprobantes Electrónicos comprenden la factura electrónica, que documenta operaciones con identificación del adquirente y genera derecho a crédito fiscal, y el tiquete electrónico, que documenta operaciones de menor cuantía o a consumidores finales sin identificación del receptor, según los tipos de documento y las condiciones que fije la normativa de comprobantes electrónicos.
+        ⊕ steps=T1-C
+          pool#1  rr#1  top    reglamento-comprobantes · Artículo 2
+          pool#3  rr#10 pinned reglamento-comprobantes · Artículo 4 (catálogo)
+          pool#2  rr#2  top    reglamento-comprobantes · Artículo 9 (catálogo)
+          pool#22 rr#40 cut    cabys-dev · * (catálogo)
+          pool#10 rr#23 cut    reglamento-comprobantes · Artículo 22 (catálogo)
+  hit   pool#1  top=0.0760  exportacion-servicios-comprobante
+        ⤳ La emisión de comprobantes electrónicos por servicios exportados exentos de IVA se rige por el Reglamento de Comprobantes Electrónicos y las disposiciones técnicas de comprobantes electrónicos, que establecen la obligación de emitir el comprobante electrónico por toda operación de venta de bienes o prestación de servicios, con independencia de que la operación esté gravada, exenta o no sujeta al impuesto sobre el valor agregado, así como el tratamiento de la exportación de servicios como operación exenta conforme a la Ley del Impuesto sobre el Valor Agregado y su reglamento.
+        ⊕ steps=T1-D
+          pool#4  rr#4  top    reglamento-comprobantes · Artículo 2
+          pool#1  rr#2  top    reglamento-iva · Artículo 11
+          pool#9  rr#30 pinned ley-iva · Artículo 27 (catálogo)
+          pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+          pool#21 rr#39 cut    cnpt · Artículo 79 (catálogo)
+          pool#1  rr#2  top    reglamento-iva · Artículo 11 (catálogo)
+  hit   pool#14  top=0.0640  iva-facturas-en-dolares
+        ⤳ El tipo de cambio aplicable para expresar en colones el monto de las operaciones facturadas en moneda extranjera, para la determinación del impuesto sobre el valor agregado, es el que fije el Banco Central de Costa Rica para la fecha de emisión del comprobante electrónico o de la operación gravada, conforme a lo establecido en la Ley del Impuesto sobre el Valor Agregado y su Reglamento y en las disposiciones técnicas de comprobantes electrónicos.
+        ⊕ steps=T1-D
+          pool#14 rr#1  top    ley-iva · Artículo 15
+          pool#2  rr#21 pinned ley-iva · Artículo 27 (catálogo)
+          pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+          pool#15 rr#40 cut    cnpt · Artículo 79 (catálogo)
+          pool#20 rr#29 cut    reglamento-iva · Artículo 11 (catálogo)
+  MISS  pool#27  top=0.0323  ccss-asalariado-followup
+        ↳ ¿Cómo se calculan las cotizaciones a la CCSS cuando una persona es trabajador independiente y también asalariado al mismo tiempo?
+        ⊕ steps=T1-E
+          pool#27 rr#9  cut    ccss-escala-salud · Artículo 30°, sesión 8999
+          pool#34 rr#14 cut    ccss-escala-ivm · Artículo 4°, sesión 9570
+          pool#—  rr#—  cut    ley-10363 · ARTÍCULO 1
+          pool#4  rr#25 pinned reglamento-renta · Artículo 28 (catálogo)
+          pool#2  rr#26 cut    ley-renta · ARTICULO 22 (catálogo)
+          pool#6  rr#28 cut    ley-renta · ARTICULO 8 (catálogo)
+          pool#1  rr#39 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+  hit   pool#3  top=0.0736  exportacion-comprobante-followup
+        ↳ ¿Para las facturas a clientes fuera de Costa Rica por servicios exportados, también debo emitir el comprobante electrónico aunque no se cobre IVA?
+        ⤳ La exportación de servicios no está gravada con el impuesto sobre el valor agregado y debe documentarse mediante comprobante electrónico conforme al reglamento de comprobantes electrónicos, que fija la obligación de emisión y las condiciones en que aplica la tasa cero o la no sujeción según la clasificación del servicio exportado.
+        ⊕ steps=T1-D
+          pool#5  rr#5  top    reglamento-comprobantes · Artículo 2
+          pool#3  rr#1  top    reglamento-iva · Artículo 11
+          pool#2  rr#27 pinned ley-iva · Artículo 27 (catálogo)
+          pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+          pool#22 rr#40 cut    cnpt · Artículo 79 (catálogo)
+          pool#3  rr#1  top    reglamento-iva · Artículo 11 (catálogo)
+  hit   pool#1  top=0.0837  renta-plazo-followup
+        ↳ ¿Cuál es el plazo para presentar la declaración del impuesto sobre la renta de la actividad lucrativa en el período fiscal 2026?
+        ⤳ El plazo para presentar la declaración jurada del impuesto sobre la renta de las personas físicas con actividad lucrativa, correspondiente al período fiscal 2026, es el que fije la Ley del Impuesto sobre la Renta y su reglamento, así como el calendario de vencimientos que establezca la Administración Tributaria mediante resolución general.
+        ⊕ steps=T1-E
+          pool#1  rr#1  top    reglamento-renta · Artículo 28
+          pool#1  rr#1  top    reglamento-renta · Artículo 28 (catálogo)
+          pool#3  rr#13 pinned ley-renta · ARTICULO 22 (catálogo)
+          pool#28 rr#33 cut    ley-renta · ARTICULO 8 (catálogo)
+          pool#31 rr#40 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+  hit   pool#7  top=0.0533  iva-ajuste-bien-de-capital
+        ⤳ El crédito fiscal del impuesto sobre el valor agregado aplicable a bienes de capital se ajusta anualmente conforme al procedimiento que establece el reglamento de la ley, según el tiempo de uso del bien, su vida útil y el período fiscal en que se adquirió, y la proporción del crédito que corresponde a cada año se determina según el porcentaje que fije la ley.
+        ⊕ steps=T1-D
+          pool#7  rr#2  top    reglamento-iva-bienes-capital · Artículo 31
+          pool#6  rr#21 pinned ley-iva · Artículo 27 (catálogo)
+          pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+          pool#15 rr#40 cut    cnpt · Artículo 79 (catálogo)
+          pool#24 rr#32 cut    reglamento-iva · Artículo 11 (catálogo)
+  hit   pool#1  top=0.0644  iva-retencion-tarjetas-porcentaje
+        ⤳ El porcentaje de retención del impuesto al valor agregado que aplican los procesadores de tarjetas, indicado como %RT en el reglamento del IVA, se establece según la condición del contribuyente y la actividad a la que pertenece el pago, conforme a lo que fije el reglamento respecto de los pagos a cuenta y de las retenciones del impuesto sobre el valor agregado.
+        ⊕ steps=T1-F
+          pool#1  rr#1  top    reglamento-iva-retencion-tarjetas · Artículo 41
+          pool#15 rr#33 pinned ccss-reglamento-ti · Artículo 10 (catálogo)
+          pool#16 rr#34 cut    ccss-reglamento-ti · Artículo 12 (catálogo)
+          pool#12 rr#40 cut    ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? (catálogo)
+          pool#14 rr#36 cut    salarios-minimos · Artículo 1 (catálogo)
+  hit   pool#1  top=0.0676  inscripcion-tribu-cr
+        ⤳ El procedimiento de inscripción en el Sistema TRIBU-CR para la obtención de credenciales de acceso y la habilitación de la actividad económica ante la Administración Tributaria y la Caja Costarricense de Seguro Social, conforme a la resolución que establece la deshabilitación de plataformas tributarias y la implementación de TRIBU-CR.
+        ⊕ steps=T1-A
+          pool#1  rr#1  top    tribu-cr-faq · Registro Único Tributario (RUT) · 1
+          pool#12 rr#3  top    tribu-cr-faq · Registro Único Tributario (RUT) · 2
+          pool#9  rr#22 cut    tribu-cr-faq · Declaraciones del RUT · 1
+          pool#3  rr#2  top    tribu-cr-faq · Declaraciones del RUT · 2
+          pool#1  rr#1  top    tribu-cr-faq · Registro Único Tributario (RUT) · 1 (catálogo)
+          pool#12 rr#3  top    tribu-cr-faq · Registro Único Tributario (RUT) · 2 (catálogo)
+          pool#21 rr#39 cut    ccss-reglamento-ti · Artículo 1 (catálogo)
+          pool#15 rr#36 pinned cnpt · Artículo 78 (catálogo)
+          pool#3  rr#2  top    tribu-cr-faq · Declaraciones del RUT · 2 (catálogo)
+  hit   pool#4  top=0.0805  multa-iva-no-declarado
+        ⤳ La omisión de presentación de declaraciones del Impuesto sobre el Valor Agregado durante varios períodos fiscales constituye una infracción tributaria sancionada conforme al Código de Normas y Procedimientos Tributarios, mediante multa calculada sobre el salario base establecido para multas y penas, en los términos y porcentajes que fije la ley.
+        ⊕ steps=T1-I (dataset T1-I) · figures=cnpt-articulo-78-multa-mensual-2026,cnpt-articulo-78-tope-2026,cnpt-articulo-79-multa-declaracion-2026
+          pool#4  rr#1  top    cnpt · Artículo 79
+          pool#20 rr#16 pinned salario-base-2026 · *
+          pool#7  rr#6  top    cnpt · Artículo 80 bis
+          pool#—  rr#—  cut    cnpt · Artículo 57
+          pool#23 rr#12 pinned cnpt · Artículo 88
+          pool#23 rr#12 pinned cnpt · Artículo 88 (catálogo)
+          pool#3  rr#3  top    cnpt · Artículo 78 (catálogo)
+          pool#4  rr#1  top    cnpt · Artículo 79 (catálogo)
+          pool#21 rr#39 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+          pool#20 rr#16 pinned salario-base-2026 · Circular 246-2025 (catálogo)
+          pool#—  rr#—  cut    cnpt · Artículo 57 (carrier)
+          pool#23 rr#12 pinned cnpt · Artículo 88 (carrier)
+          pool#20 rr#16 pinned salario-base-2026 · Circular 246-2025 (carrier)
+  hit   pool#4  top=0.0464  inscripcion-tardia-sancion
+        ⤳ El presente trámite de inscripción tardía en el régimen de trabajadores independientes y en el registro tributario genera la obligación de pagar las cuotas o impuestos omitidos con sus intereses y recargos, y puede dar lugar a las multas y sanciones que establezca la ley por la presentación extemporánea de la inscripción.
+        ⊕ steps=T1-I (dataset T1-I) · figures=cnpt-articulo-78-multa-mensual-2026,cnpt-articulo-78-tope-2026
+          pool#4  rr#1  top    cnpt · Artículo 78
+          pool#11 rr#39 pinned salario-base-2026 · *
+          pool#14 rr#22 pinned cnpt · Artículo 88
+          pool#14 rr#22 pinned cnpt · Artículo 88 (catálogo)
+          pool#4  rr#1  top    cnpt · Artículo 78 (catálogo)
+          pool#20 rr#9  cut    cnpt · Artículo 79 (catálogo)
+          pool#13 rr#37 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+          pool#11 rr#39 pinned salario-base-2026 · Circular 246-2025 (catálogo)
+          pool#14 rr#22 pinned cnpt · Artículo 88 (carrier)
+          pool#—  rr#—  cut    tribu-cr-faq · Declaraciones del RUT · 2 (carrier)
+          pool#11 rr#39 pinned salario-base-2026 · Circular 246-2025 (carrier)
+  hit   pool#2  top=0.0809  factura-primera-cabys
+        ⤳ Emisión de comprobantes electrónicos por el contribuyente, incluyendo la inscripción previa en el Ministerio de Hacienda y la forma de consignar en cada comprobante el código CABYS correspondiente al bien o servicio vendido, conforme a las disposiciones técnicas de comprobantes electrónicos y al Reglamento de Comprobantes Electrónicos.
+        ⊕ steps=T1-C
+          pool#2  rr#3  top    reglamento-comprobantes · Artículo 4
+          pool#5  rr#30 cut    cabys-dev · *
+          pool#2  rr#3  top    reglamento-comprobantes · Artículo 4 (catálogo)
+          pool#4  rr#13 pinned reglamento-comprobantes · Artículo 9 (catálogo)
+          pool#5  rr#30 cut    cabys-dev · * (catálogo)
+          pool#13 rr#22 cut    reglamento-comprobantes · Artículo 22 (catálogo)
+  hit   pool#4  top=0.0502  ho-hacienda-solo-cliente-eeuu
+        ⤳ Las personas físicas que prestan servicios profesionales o de software a empresas en el extranjero deben inscribirse como contribuyentes ante la Administración Tributaria, en el régimen y con las obligaciones que establezca la ley, y emitir comprobantes electrónicos por las operaciones que realicen, según la ley del IVA y la del Impuesto sobre la Renta; la exención de exportación de servicios y la inscripción en la CCSS como trabajador independiente se rigen por sus propias disposiciones.
+        ⊕ steps=T1-A (dataset T1-A)
+          pool#22 rr#7  top    ley-iva · Artículo 5
+          pool#—  rr#—  cut    ley-iva · Artículo 4
+          pool#4  rr#9  cut    ley-renta · ARTICULO 2
+          pool#5  rr#10 cut    reglamento-renta · Artículo 27
+          pool#10 rr#34 cut    cnpt · Artículo 78
+          pool#8  rr#16 pinned tribu-cr-faq · Registro Único Tributario (RUT) · 1 (catálogo)
+          pool#—  rr#—  cut    tribu-cr-faq · Registro Único Tributario (RUT) · 2 (catálogo)
+          pool#3  rr#27 cut    ccss-reglamento-ti · Artículo 1 (catálogo)
+          pool#10 rr#34 cut    cnpt · Artículo 78 (catálogo)
+          pool#9  rr#33 cut    tribu-cr-faq · Declaraciones del RUT · 2 (catálogo)
+          pool#9  rr#33 cut    tribu-cr-faq · Declaraciones del RUT · 2 (carrier)
+          pool#10 rr#34 cut    cnpt · Artículo 78 (carrier)
+  hit   pool#1  top=0.0576  ho-trabajitos-por-mi-cuenta
+        ⤳ La inscripción de personas que ejercen una actividad económica por cuenta propia como trabajadores independientes ante la Administración Tributaria y ante la Caja Costarricense de Seguro Social, con sus obligaciones de registro, declaración y cotización, y el régimen tributario aplicable a los ingresos derivados de servicios de desarrollo de software.
+        ⊕ steps=T1-A (dataset T1-A)
+          pool#9  rr#3  top    ley-iva · Artículo 5
+          pool#37 rr#24 cut    ley-renta · ARTICULO 2
+          pool#7  rr#4  top    reglamento-renta · Artículo 27
+          pool#1  rr#9  pinned ccss-reglamento-ti · Artículo 1
+          pool#2  rr#26 cut    tribu-cr-faq · Registro Único Tributario (RUT) · 1 (catálogo)
+          pool#—  rr#—  cut    tribu-cr-faq · Registro Único Tributario (RUT) · 2 (catálogo)
+          pool#1  rr#9  pinned ccss-reglamento-ti · Artículo 1 (catálogo)
+          pool#16 rr#34 cut    cnpt · Artículo 78 (catálogo)
+          pool#6  rr#33 cut    tribu-cr-faq · Declaraciones del RUT · 2 (catálogo)
+          pool#6  rr#33 cut    tribu-cr-faq · Declaraciones del RUT · 2 (carrier)
+  hit   pool#2  top=0.0611  ho-donde-inscribo-ya-no-atv
+        ↳ ¿Dónde puedo realizar la inscripción en Hacienda como contribuyente, ahora que ya no existe el ATV?
+        ⤳ La inscripción de contribuyentes ante la Administración Tributaria se realiza a través de la plataforma TRIBU-CR, que sustituye a los sistemas anteriores tras la deshabilitación de las plataformas tributarias previas, con la obligación de registro del sujeto pasivo, la actualización de su condición tributaria y los trámites ante la Dirección General de Tributación.
+        ⊕ steps=T1-A (dataset T1-A)
+          pool#2  rr#11 pinned tribu-cr-faq · Registro Único Tributario (RUT) · 1
+          pool#4  rr#13 cut    tribu-cr-faq · Registro Único Tributario (RUT) · 2
+          pool#—  rr#—  cut    tribu-cr-faq · Ingreso a la Oficina Virtual (OVI) · 1
+          pool#—  rr#—  cut    tribu-cr-res-0011-2025 · Artículo 1
+          pool#2  rr#11 pinned tribu-cr-faq · Registro Único Tributario (RUT) · 1 (catálogo)
+          pool#4  rr#13 cut    tribu-cr-faq · Registro Único Tributario (RUT) · 2 (catálogo)
+          pool#16 rr#38 cut    ccss-reglamento-ti · Artículo 1 (catálogo)
+          pool#15 rr#32 cut    cnpt · Artículo 78 (catálogo)
+          pool#1  rr#7  top    tribu-cr-faq · Declaraciones del RUT · 2 (catálogo)
+          pool#—  rr#—  cut    tribu-cr-faq · Ingreso a la Oficina Virtual (OVI) · 1 (carrier)
+          pool#—  rr#—  cut    tribu-cr-faq · Declaraciones del RUT · 10 (carrier)
+          pool#—  rr#—  cut    tribu-cr-faq · Declaraciones del RUT · 13 (carrier)
+          pool#—  rr#—  cut    tribu-cr-faq · Declaraciones del RUT · 14 (carrier)
+  hit   pool#4  top=0.0542  ho-desde-cuanta-plata-caja
+        ⤳ La base mínima contributiva que fija la CCSS para trabajadores independientes y asegurados voluntarios, y la escala de cuotas del Seguro de Salud y del Seguro de IVM según el ingreso mensual declarado, con el monto mínimo de cotización que establezca el decreto vigente.
+        ⊕ steps=T1-B (dataset T1-B) · figures=bmc-ivm-2026,bmc-sem-2026
+          pool#31 rr#5  top    ccss-reglamento-ti · Artículo 1
+          pool#21 rr#2  top    ccss-escala-salud · *
+          pool#15 rr#6  top    ccss-escala-ivm · *
+          pool#4  rr#21 pinned salarios-minimos · Artículo 1
+          pool#2  rr#30 cut    ccss-faq · ¿Dónde me corresponde realizar el trámite de afiliación? (catálogo)
+          pool#5  rr#27 pinned ccss-faq · ¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente? (catálogo)
+          pool#1  rr#7  top    ccss-reglamento-ti · Artículo 10 (catálogo)
+          pool#4  rr#21 pinned salarios-minimos · Artículo 1 (catálogo)
+          pool#13 rr#18 cut    ccss-reglamento-ti · Artículo 7 (carrier)
+          pool#1  rr#7  top    ccss-reglamento-ti · Artículo 10 (carrier)
+          pool#—  rr#—  cut    ccss-faq · ¿Dónde puedo pagar mi seguro? (carrier)
+  hit   pool#1  top=0.0765  ho-donde-me-afilio-caja
+        ↳ ¿Dónde puede afiliarse un trabajador independiente a la CCSS en Costa Rica?
+        ⤳ La afiliación del trabajador independiente al Seguro de Salud y al Seguro de Invalidez, Vejez y Muerte de la Caja Costarricense de Seguro Social se tramita ante las oficinas de la institución, mediante la inscripción como asegurado por cuenta propia conforme al Reglamento para el Aseguramiento Contributivo de los Trabajadores Independientes, y la base contributiva y la escala de cuotas que establezca la Junta Directiva.
+        ⊕ steps=T1-B (dataset T1-B)
+          pool#1  rr#1  top    ccss-faq · ¿Dónde me corresponde realizar el trámite de afiliación?
+          pool#26 rr#38 cut    ccss-faq · ¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente?
+          pool#1  rr#1  top    ccss-faq · ¿Dónde me corresponde realizar el trámite de afiliación? (catálogo)
+          pool#26 rr#38 cut    ccss-faq · ¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente? (catálogo)
+          pool#2  rr#16 pinned ccss-reglamento-ti · Artículo 10 (catálogo)
+          pool#25 rr#40 cut    salarios-minimos · Artículo 1 (catálogo)
+          pool#26 rr#38 cut    ccss-faq · ¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente? (carrier)
+  hit   pool#1  top=0.0829  ho-tiquete-en-vez-de-factura
+        ⤳ El Reglamento de Comprobantes Electrónicos establece los tipos de comprobante que pueden emitir los contribuyentes, y las Disposiciones técnicas de comprobantes electrónicos regulan cuándo corresponde la tiquete electrónico frente a la factura electrónica según la condición del adquirente y el monto de la operación.
+        ⊕ steps=T1-C (dataset T1-C)
+          pool#3  rr#2  top    reglamento-comprobantes · Artículo 9
+          pool#4  rr#8  top    reglamento-comprobantes · Artículo 4
+          pool#1  rr#1  top    reglamento-comprobantes · Artículo 2
+          pool#4  rr#8  top    reglamento-comprobantes · Artículo 4 (catálogo)
+          pool#3  rr#2  top    reglamento-comprobantes · Artículo 9 (catálogo)
+          pool#14 rr#40 cut    cabys-dev · * (catálogo)
+          pool#9  rr#29 pinned reglamento-comprobantes · Artículo 22 (catálogo)
+          pool#4  rr#8  top    reglamento-comprobantes · Artículo 4 (carrier)
+  hit   pool#2  top=0.0817  ho-factura-electronica-o-recibo
+        ⤳ El Reglamento de Comprobantes Electrónicos establece las obligaciones de emisión de comprobantes electrónicos y de tiquete electrónico según la actividad y el tipo de contribuyente, y las disposiciones técnicas regulan los requisitos de su emisión; el recibo o documento distinto del comprobante electrónico queda limitado a los supuestos que la normativa tributaria expresamente autorice.
+        ⊕ steps=T1-C (dataset T1-C)
+          pool#2  rr#4  top    reglamento-comprobantes · Artículo 4
+          pool#31 rr#20 cut    reglamento-comprobantes · Artículo 8
+          pool#8  rr#28 pinned reglamento-comprobantes · Artículo 22
+          pool#2  rr#4  top    reglamento-comprobantes · Artículo 4 (catálogo)
+          pool#3  rr#1  top    reglamento-comprobantes · Artículo 9 (catálogo)
+          pool#25 rr#40 cut    cabys-dev · * (catálogo)
+          pool#8  rr#28 pinned reglamento-comprobantes · Artículo 22 (catálogo)
+          pool#6  rr#9  cut    reglamento-comprobantes · Artículo 16 (carrier)
+          pool#8  rr#28 pinned reglamento-comprobantes · Artículo 22 (carrier)
+  hit   pool#1  top=0.0731  ho-cabys-paginas-web
+        ↳ ¿Qué código de actividad económica debo registrar ante Hacienda si me dedico a hacer páginas web?
+        ⤳ El registro de la actividad económica ante la Administración Tributaria exige indicar el código CABYS correspondiente al servicio prestado, conforme a la clasificación de bienes y servicios vigente para el desarrollo de software y servicios de tecnologías de la información, así como la obligación del contribuyente de inscribir sus actividades y declarar el impuesto sobre el valor agregado y el impuesto sobre la renta según el régimen aplicable.
+        ⊕ steps=T1-C (dataset T1-C)
+          pool#1  rr#1  top    cabys-dev · *
+          pool#—  rr#—  cut    reglamento-comprobantes · Artículo 13
+          pool#5  rr#32 pinned reglamento-comprobantes · Artículo 4 (catálogo)
+          pool#9  rr#39 cut    reglamento-comprobantes · Artículo 9 (catálogo)
+          pool#1  rr#1  top    cabys-dev · * (catálogo)
+          pool#10 rr#40 cut    reglamento-comprobantes · Artículo 22 (catálogo)
+  hit   pool#1  top=0.0661  ho-cliente-espana-lleva-iva
+        ⤳ Las prestaciones de servicios a clientes no domiciliados en el país, cuando el servicio se aprovecha en el extranjero, se regulan como exportación de servicios, y el tratamiento en el impuesto sobre el valor agregado depende de la localización del beneficiario y de los requisitos que fije el reglamento para acreditar dicha exportación.
+        ⊕ steps=T1-D (dataset T1-D)
+          pool#1  rr#6  top    ley-iva · Artículo 8
+          pool#3  rr#2  top    reglamento-iva · Artículo 11
+          pool#—  rr#—  cut    ley-iva · Artículo 10
+          pool#6  rr#10 cut    ley-iva · Artículo 3
+          pool#—  rr#—  cut    reglamento-comprobantes · Artículo 2
+          pool#2  rr#33 pinned ley-iva · Artículo 27 (catálogo)
+          pool#32 rr#31 cut    reglamento-iva · Artículo 40 (catálogo)
+          pool#21 rr#40 cut    cnpt · Artículo 79 (catálogo)
+          pool#3  rr#2  top    reglamento-iva · Artículo 11 (catálogo)
+          pool#1  rr#6  top    ley-iva · Artículo 8 (carrier)
+          pool#3  rr#2  top    reglamento-iva · Artículo 11 (carrier)
+          pool#—  rr#—  cut    reglamento-comprobantes · Artículo 2 (carrier)
+          pool#—  rr#—  cut    ley-iva · Artículo 10 (carrier)
+  hit   pool#1  top=0.0800  ho-iva-en-cero-sin-facturar
+        ⤳ El contribuyente registrado en el impuesto sobre el valor agregado debe presentar la declaración mensual del impuesto aun cuando no haya realizado operaciones gravadas en el período, consignando el monto del impuesto a pagar en cero, conforme a los plazos y medios que fije la administración tributaria.
+        ⊕ steps=T1-D (dataset T1-D)
+          pool#1  rr#2  top    ley-iva · Artículo 27
+          pool#5  rr#1  top    reglamento-iva · Artículo 40
+          pool#7  rr#33 cut    cnpt · Artículo 79
+          pool#1  rr#2  top    ley-iva · Artículo 27 (catálogo)
+          pool#5  rr#1  top    reglamento-iva · Artículo 40 (catálogo)
+          pool#7  rr#33 cut    cnpt · Artículo 79 (catálogo)
+          pool#21 rr#29 pinned reglamento-iva · Artículo 11 (catálogo)
+          pool#—  rr#—  cut    tribu-cr-res-0011-2025 · Artículo 2 (carrier)
+          pool#7  rr#33 cut    cnpt · Artículo 79 (carrier)
+          pool#—  rr#—  cut    cnpt · Artículo 88 (carrier)
+  hit   pool#1  top=0.0830  ho-hasta-que-dia-tengo-iva
+        ↳ ¿Hasta qué día del mes debo presentar la declaración mensual del IVA en cero?
+        ⤳ El Reglamento de la Ley del Impuesto sobre el Valor Agregado establece el plazo en que el contribuyente debe presentar la declaración mensual del impuesto, incluso cuando no existan operaciones gravadas ni saldo a pagar, y la forma y medios electrónicos para cumplirla ante la Administración Tributaria.
+        ⊕ steps=T1-D (dataset T1-D)
+          pool#1  rr#1  top    ley-iva · Artículo 27
+          pool#2  rr#2  top    reglamento-iva · Artículo 40
+          pool#1  rr#1  top    ley-iva · Artículo 27 (catálogo)
+          pool#2  rr#2  top    reglamento-iva · Artículo 40 (catálogo)
+          pool#12 rr#39 cut    cnpt · Artículo 79 (catálogo)
+          pool#33 rr#32 pinned reglamento-iva · Artículo 11 (catálogo)
+  hit   pool#5  top=0.0563  ho-rebajar-25-sin-facturas
+        ⤳ El Impuesto sobre la Renta permite deducir gastos de la renta bruta solo cuando estén respaldados por comprobantes válidos, y regula el porcentaje de rebaja sobre ingresos de trabajadores independientes y el régimen de tributación aplicable a cada contribuyente según lo que fije la ley, el reglamento y el período fiscal correspondiente.
+        ⊕ steps=T1-E (dataset T1-E)
+          pool#5  rr#4  top    ley-renta · ARTICULO 8
+          pool#—  rr#—  cut    ley-renta · ARTICULO 7
+          pool#21 rr#40 cut    tribu-cr-res-0011-2025 · Artículo 2
+          pool#2  rr#34 cut    reglamento-renta · Artículo 28 (catálogo)
+          pool#6  rr#33 cut    ley-renta · ARTICULO 22 (catálogo)
+          pool#5  rr#4  top    ley-renta · ARTICULO 8 (catálogo)
+          pool#21 rr#40 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+          pool#21 rr#40 cut    tribu-cr-res-0011-2025 · Artículo 2 (carrier)
+  hit   pool#1  top=0.0683  ho-minimo-renta-2026
+        ⤳ El Reglamento de la Ley del Impuesto sobre la Renta, en el capítulo de tramos del Impuesto sobre la Renta del período fiscal 2026, establece el monto de renta bruta anual exento o no sujeto al pago del impuesto, equivalente al límite inferior del primer tramo de la escala progresiva fijada por el Decreto Ejecutivo 45333-H.
+        ⊕ steps=T1-E (dataset T1-E)
+          pool#15 rr#1  top    tramos-renta-2026 · *
+          pool#1  rr#3  top    ley-renta · Artículo 15
+          pool#5  rr#36 cut    reglamento-renta · Artículo 28 (catálogo)
+          pool#2  rr#25 pinned ley-renta · ARTICULO 22 (catálogo)
+          pool#27 rr#18 cut    ley-renta · ARTICULO 8 (catálogo)
+          pool#25 rr#40 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+          pool#31 rr#29 cut    ley-renta · Artículo 4 (carrier)
+  hit   pool#1  top=0.0684  ho-ademas-tengo-salario
+        ↳ ¿Cómo se suma el salario a las rentas de actividad lucrativa para el mínimo de renta no sujeta al impuesto en 2026?
+        ⤳ El texto del Reglamento de la Ley del Impuesto sobre la Renta y del Decreto de tramos para el período fiscal 2026 establece que las rentas del trabajo en relación de dependencia y las rentas de actividades lucrativas se acumulan en una sola base gravable anual, a la que se aplica la escala de tramos del impuesto sobre la renta vigente, quedando exenta la fracción que no supere el límite de renta no sujeta fijado para el período.
+        ⊕ steps=T1-E (dataset T1-E)
+          pool#1  rr#2  top    ley-renta · Artículo 15
+          pool#9  rr#1  top    tramos-renta-2026 · *
+          pool#7  rr#25 pinned reglamento-renta · Artículo 28
+          pool#26 rr#35 cut    ley-renta · ARTICULO 22
+          pool#7  rr#25 pinned reglamento-renta · Artículo 28 (catálogo)
+          pool#26 rr#35 cut    ley-renta · ARTICULO 22 (catálogo)
+          pool#24 rr#31 cut    ley-renta · ARTICULO 8 (catálogo)
+          pool#25 rr#40 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+          pool#26 rr#35 cut    ley-renta · ARTICULO 22 (carrier)
+          pool#—  rr#—  cut    ley-renta · Artículo 24 (carrier)
+          pool#31 rr#34 cut    reglamento-renta · Artículo 26 (carrier)
+          pool#7  rr#25 pinned reglamento-renta · Artículo 28 (carrier)
+          pool#3  rr#7  top    reglamento-renta · Artículo 30 (carrier)
+  hit   pool#1  top=0.0673  ho-minimo-caja-independiente-2026
+        ⤳ La Base Mínima Contributiva y la escala contributiva de los trabajadores independientes y asegurados voluntarios, Seguro de Salud y Seguro de IVM, que fijan la cuota mínima mensual que debe pagar el trabajador independiente a la Caja Costarricense de Seguro Social para el período 2026.
+        ⊕ steps=T1-F (dataset T1-F) · figures=bmc-ivm-2026,bmc-sem-2026
+          pool#9  rr#4  top    ccss-escala-salud · *
+          pool#1  rr#3  top    ccss-escala-ivm · *
+          pool#6  rr#7  top    salarios-minimos · Artículo 1
+          pool#3  rr#9  pinned ccss-reglamento-ti · Artículo 10 (catálogo)
+          pool#15 rr#14 cut    ccss-reglamento-ti · Artículo 12 (catálogo)
+          pool#24 rr#16 cut    ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? (catálogo)
+          pool#6  rr#7  top    salarios-minimos · Artículo 1 (catálogo)
+  hit   pool#1  top=0.0587  ho-800-mil-que-porcentaje-caja
+        ⤳ Escala contributiva de trabajadores independientes y asegurados voluntarios: porcentaje de cuota aplicable a los ingresos mensuales del trabajador independiente según la base mínima contributiva y la escala por tramo de ingreso que fije la CCSS para los seguros de Salud y de Invalidez, Vejez y Muerte.
+        ⊕ steps=T1-F (dataset T1-F) · figures=bmc-ivm-2026,bmc-sem-2026
+          pool#16 rr#1  top    ccss-escala-salud · *
+          pool#1  rr#4  top    ccss-escala-ivm · *
+          pool#14 rr#38 pinned salarios-minimos · Artículo 1
+          pool#2  rr#10 pinned ccss-reglamento-ti · Artículo 10 (catálogo)
+          pool#6  rr#12 cut    ccss-reglamento-ti · Artículo 12 (catálogo)
+          pool#7  rr#19 cut    ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? (catálogo)
+          pool#14 rr#38 pinned salarios-minimos · Artículo 1 (catálogo)
+          pool#31 rr#29 cut    ccss-faq · ¿Cómo procedo si mis ingresos han variado? (carrier)
+  hit   pool#1  top=0.0630  ho-tambien-asegurado-por-patrono
+        ↳ ¿Si gano ₡800.000 al mes y también estoy asegurado por mi patrono, qué porcentaje me cobra la CCSS?
+        ⤳ Las cuotas de la CCSS para trabajadores asalariados se calculan sobre el salario declarado por el patrono y se distribuyen entre patrono y trabajador según los porcentajes que fije la ley para cada seguro, sin que el trabajador asegurado por cuenta de un patrono deba pagar un porcentaje adicional por su propio aseguramiento en el Seguro de Salud y el Seguro de IVM.
+        ⊕ steps=T1-F (dataset T1-F) · figures=bmc-ivm-2026,bmc-sem-2026
+          pool#—  rr#—  cut    ccss-reglamento-ti · Artículo 2
+          pool#7  rr#5  top    ccss-reglamento-ti · Artículo 1
+          pool#1  rr#8  top    ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?
+          pool#2  rr#10 pinned ccss-reglamento-ti · Artículo 10 (catálogo)
+          pool#9  rr#13 cut    ccss-reglamento-ti · Artículo 12 (catálogo)
+          pool#1  rr#8  top    ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? (catálogo)
+          pool#17 rr#30 pinned salarios-minimos · Artículo 1 (catálogo)
+  hit   pool#2  top=0.0646  ho-cobrar-8-anos-atras-caja
+        ⤳ Obligaciones de inscripción y pago de cuotas del trabajador independiente ante la Caja Costarricense de Seguro Social, incluyendo el cobro retroactivo de cuotas no pagadas y el régimen de prescripción de deudas por omisión de aseguramiento.
+        ⊕ steps=T1-G (dataset T1-G)
+          pool#2  rr#1  top    ley-10363 · ARTÍCULO 2
+          pool#3  rr#2  top    ccss-prescripcion · ¿Cuáles son los plazos de la prescripción conforme la Ley?
+          pool#6  rr#12 cut    ccss-prescripcion · ¿Dónde presento la solicitud? (catálogo)
+          pool#22 rr#21 cut    ccss-prescripcion · ¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración? (catálogo)
+          pool#9  rr#24 cut    ccss-prescripcion · ¿En qué momento puedo solicitar la prescripción de las deudas? (catálogo)
+          pool#4  rr#9  pinned ccss-faq · ¿Dónde puedo solicitar la prescripción de cuotas de trabajador independiente pendientes de pago (Ley N°10.363)? (catálogo)
+          pool#15 rr#19 cut    ccss-reglamento-ti · TRANSITORIO V (catálogo)
+  MISS  pool#8  top=0.0454  ho-desinscribir-debiendo-declaraciones
+        ⤳ El procedimiento para dejar de estar inscrito como contribuyente ante la Administración Tributaria exige que el obligado esté al día en la presentación de sus declaraciones y en el pago de los impuestos, y la cancelación de la inscripción en la CCSS como trabajador independiente se rige por los requisitos de prescripción y estado de cuenta que establezca la normativa de aseguramiento contributivo.
+        ⊕ steps=T1-H (dataset T1-H)
+          pool#—  rr#—  cut    reglamento-renta · Artículo 27
+          pool#—  rr#—  cut    reglamento-iva · Artículo 67
+          pool#10 rr#37 cut    cnpt · Artículo 79
+          pool#8  rr#23 cut    tribu-cr-faq · Declaraciones del RUT · 43
+          pool#9  rr#12 cut    tribu-cr-faq · Declaraciones del RUT · 35
+          pool#6  rr#1  top    tribu-cr-faq · Declaraciones del RUT · 31 (catálogo)
+          pool#8  rr#23 cut    tribu-cr-faq · Declaraciones del RUT · 43 (catálogo)
+          pool#10 rr#37 cut    cnpt · Artículo 79 (catálogo)
+          pool#21 rr#30 cut    ccss-faq · ¿Qué debo hacer si dejo de trabajar de forma Independiente? (catálogo)
+          pool#—  rr#—  cut    ccss-faq · ¿Se puede suspender el seguro de trabajador independiente? (catálogo)
+          pool#7  rr#17 pinned ley-iva · Artículo 27 (catálogo)
+          pool#7  rr#17 pinned ley-iva · Artículo 27 (carrier)
+          pool#10 rr#37 cut    cnpt · Artículo 79 (carrier)
+  hit   pool#2  top=0.0759  ho-rebajar-multa-si-pago-ya
+        ↳ ¿Se puede rebajar la multa por no declarar el IVA durante tres meses si se paga de inmediato?
+        ⤳ El Código de Normas y Procedimientos Tributarios regula las infracciones y sanciones por omisión en la presentación de declaraciones del impuesto sobre el valor agregado, la reducción o condonación de multas por pago voluntario y oportuno de la obligación tributaria, y los intereses moratorios que se generan por el atraso en el pago del tributo.
+        ⊕ steps=T1-I (dataset T1-I) · figures=cnpt-articulo-78-multa-mensual-2026,cnpt-articulo-78-tope-2026,cnpt-articulo-79-multa-declaracion-2026
+          pool#2  rr#3  top    cnpt · Artículo 88
+          pool#8  rr#2  top    cnpt · Artículo 79
+          pool#2  rr#3  top    cnpt · Artículo 88 (catálogo)
+          pool#5  rr#8  top    cnpt · Artículo 78 (catálogo)
+          pool#8  rr#2  top    cnpt · Artículo 79 (catálogo)
+          pool#21 rr#36 pinned tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+          pool#20 rr#40 pinned salario-base-2026 · Circular 246-2025 (catálogo)
+          pool#21 rr#36 pinned tribu-cr-res-0011-2025 · Artículo 2 (carrier)
+  MISS  pool#13  top=0.0623  ho-t2-credito-iva-compras
+        ⤳ El impuesto general sobre las ventas adquiridas por el contribuyente en la adquisición de bienes y servicios vinculados a su actividad gravada podrá acreditarse contra el impuesto a cargo en el período fiscal correspondiente, conforme a los requisitos y el procedimiento de crédito fiscal que establezca la ley y su reglamento.
+        ⊕ steps=T1-D
+          pool#13 rr#11 cut    ley-iva · Artículo 21
+          pool#—  rr#—  cut    ley-iva · Artículo 17
+          pool#1  rr#10 pinned ley-iva · Artículo 27 (catálogo)
+          pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+          pool#16 rr#40 cut    cnpt · Artículo 79 (catálogo)
+          pool#9  rr#20 cut    reglamento-iva · Artículo 11 (catálogo)
+  MISS  pool#12  top=0.0710  ho-t2-hosting-extranjero
+        ⤳ La importación de servicios prestados desde el exterior por proveedores no domiciliados y el pago de estos a cuenta del impuesto sobre el valor agregado, con la retención que fije el reglamento sobre el monto pagado al proveedor extranjero; el crédito fiscal aplicable y la base de cálculo del impuesto sobre los servicios utilizados en la actividad del contribuyente.
+        ⊕ steps=T1-D
+          pool#12 rr#16 cut    ley-iva · Artículo 30
+          pool#—  rr#—  cut    reglamento-iva · Artículo 46
+          pool#16 rr#11 cut    reglamento-iva · Artículo 47
+          pool#2  rr#31 cut    ley-iva · Artículo 27 (catálogo)
+          pool#26 rr#29 cut    reglamento-iva · Artículo 40 (catálogo)
+          pool#24 rr#39 cut    cnpt · Artículo 79 (catálogo)
+          pool#3  rr#13 pinned reglamento-iva · Artículo 11 (catálogo)
+  hit   pool#2  top=0.0511  ho-t2-retencion-tarjetas
+        ⤳ La retención del dos por ciento sobre pagos efectuados con tarjeta constituye un pago a cuenta del impuesto sobre la renta o del impuesto al valor agregado, que el adquirente o la entidad procesadora de pagos retiene al contribuyente conforme al porcentaje de retención (%RT) que fije el reglamento de la ley.
+        ⊕ steps=—
+          pool#2  rr#1  top    reglamento-iva-retencion-tarjetas · Artículo 41
+  hit   pool#20  top=0.0610  ho-t2-compu-cara-iva
+        ⤳ El crédito fiscal aplicable a bienes de capital adquiridos por contribuyentes del impuesto sobre el valor agregado se sujeta a los requisitos, plazos y forma de cómputo que establecen el reglamento de la ley y el régimen de pagos a cuenta, sin que proceda necesariamente su devolución inmediata.
+        ⊕ steps=T1-D
+          pool#20 rr#3  top    reglamento-iva-bienes-capital · Artículo 31
+          pool#1  rr#10 pinned ley-iva · Artículo 27 (catálogo)
+          pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+          pool#16 rr#40 cut    cnpt · Artículo 79 (catálogo)
+          pool#3  rr#32 cut    reglamento-iva · Artículo 11 (catálogo)
+  hit   pool#4  top=0.0468  ho-t2-tipo-de-cambio
+        ⤳ El tipo de cambio de referencia que debe aplicarse para convertir a colones las operaciones facturadas en moneda extranjera es el que fije el Banco Central de Costa Rica para la fecha de emisión del comprobante electrónico, según la forma y el momento de pago que establezcan las disposiciones técnicas de comprobantes electrónicos y el reglamento de la Ley del Impuesto sobre el Valor Agregado.
+        ⊕ steps=—
+          pool#4  rr#2  top    ley-iva · Artículo 15
+  hit   pool#1  top=0.0547  ho-t2-panaderia-simplificado
+        ⤳ El Régimen de Tributación Simplificada establece los requisitos de ingreso bruto anual, la actividad económica permitida y la cuota de pago que deben cumplir los contribuyentes personas físicas con actividades comerciales o de servicios para acogerse a este régimen, así como las obligaciones de facturación electrónica y de declaración que le corresponden.
+        ⊕ steps=—
+          pool#6  rr#2  top    reglamento-rts · Artículo 1
+          pool#1  rr#3  top    reglamento-rts · Artículo 2
+          pool#12 rr#4  top    ley-iva · Artículo 36
+  hit   pool#2  top=0.0412  ho-t2-arreglo-pago-caja
+        ⤳ Reglamento para el Aseguramiento Contributivo de los Trabajadores Independientes: la CCSS establece el procedimiento para el arreglo de pago o convenio de pago de las cuotas adeudadas por el trabajador independiente, con sus condiciones, plazos y requisitos.
+        ⊕ steps=—
+          pool#2  rr#1  top    ccss-faq · En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA?
+  hit   pool#1  top=0.0577  ho-t2-salir-del-pais-seguro
+        ⤳ Suspensión voluntaria del aseguramiento contributivo por ausencia temporal del país del trabajador independiente o asegurado voluntario, con sus efectos sobre el Seguro de Salud y el Seguro de IVM, y las obligaciones de pago de las cuotas durante el período de suspensión.
+        ⊕ steps=T1-H
+          pool#1  rr#1  top    ccss-faq · ¿Qué hago si voy a salir del país por un periodo de tiempo mayor a tres meses?
+          pool#4  rr#4  top    ccss-faq · ¿Se puede suspender el seguro de trabajador independiente?
+          pool#33 rr#36 cut    tribu-cr-faq · Declaraciones del RUT · 31 (catálogo)
+          pool#28 rr#38 cut    tribu-cr-faq · Declaraciones del RUT · 43 (catálogo)
+          pool#16 rr#40 cut    cnpt · Artículo 79 (catálogo)
+          pool#7  rr#20 pinned ccss-faq · ¿Qué debo hacer si dejo de trabajar de forma Independiente? (catálogo)
+          pool#4  rr#4  top    ccss-faq · ¿Se puede suspender el seguro de trabajador independiente? (catálogo)
+          pool#12 rr#37 cut    ley-iva · Artículo 27 (catálogo)
+  hit   pool#5  top=0.0399  ho-t2-pensionado-con-actividad
+        ⤳ La condición de pensionado que realiza actividades por cuenta propia puede obligar a inscribirse como trabajador independiente ante la CCSS y a pagar las cuotas del seguro de salud y del seguro de IVM que correspondan según la escala contributiva vigente, así como el impuesto sobre la renta de actividades lucrativas que la ley establezca para ese tipo de ingreso.
+        ⊕ steps=—
+          pool#5  rr#1  top    ccss-faq · El pensionado por Vejez que realice una actividad por cuenta propia. ¿Está obligado a asegurarse como Trabajador Independiente?
+  hit   pool#2  top=0.0403  ho-t2-autorizar-contador
+        ⤳ El Ministerio de Hacienda regula en las Preguntas y respuestas de TRIBU-CR y la OVi el trámite de autorización de un tercero, como un contador o representante, para actuar en nombre de un contribuyente, con la delegación o autorización de acceso que disponga la Administración Tributaria en la plataforma TRIBU-CR.
+        ⊕ steps=—
+          pool#3  rr#7  top    tribu-cr-faq · Ingreso a la Oficina Virtual (OVI) · 22
+          pool#—  rr#—  cut    tribu-cr-faq · Declaraciones del RUT · 54
+          pool#—  rr#—  cut    tribu-cr-faq · Declaraciones del RUT · 61
+          pool#2  rr#13 cut    tribu-cr-faq · Declaraciones del RUT · 64
+  hit   pool#5  top=0.0363  ho-t2-constancia-al-dia
+        ⤳ La constancia de situación tributaria al día que emite la Administración Tributaria certifica el cumplimiento de las obligaciones fiscales del contribuyente, y se obtiene mediante el trámite de solicitud en la plataforma electrónica de la Dirección General de Tributación, según el procedimiento que establezca la normativa vigente.
+        ⊕ steps=—
+          pool#—  rr#—  cut    tribu-cr-faq · Consulta de la Situación Tributaria (OVi Pública) · 1
+          pool#—  rr#—  cut    tribu-cr-faq · Consulta de la Situación Tributaria (OVi Pública) · 2
+          pool#5  rr#3  top    tribu-cr-faq · Consulta de la Situación Tributaria (OVi Pública) · 7
+  MISS  pool#11  top=0.0444  ho-t2-payoneer
+        ⤳ Los ingresos del trabajador independiente percibidos desde el exterior por medio de plataformas de pago electrónico, sujetos al impuesto sobre la renta de fuente costarricense o a la obligación de emitir comprobantes electrónicos de venta de servicios prestados al exterior, y el registro de tales operaciones ante la Administración Tributaria y la Caja Costarricense de Seguro Social según lo establezca la normativa vigente.
+        ⊕ steps=—
+          pool#11 rr#11 cut    ley-renta · Artículo 1
+          pool#—  rr#—  cut    ley-renta · ARTICULO 2
+          pool#—  rr#—  cut    reglamento-comprobantes · Artículo 9
+  hit   pool#1  top=0.0753  t2-inscripcion-dimex
+        ⤳ El régimen de inscripción de personas físicas extranjeras con documento de identidad migratoria para extranjeros (DIMEX) ante la Administración Tributaria, con su número de identificación tributaria, y los requisitos y obligaciones que la ley establece para su inscripción como contribuyente en el Impuesto sobre la Renta y en el Impuesto sobre el Valor Agregado; y, por otra parte, el trámite de inscripción ante la Caja Costarricense de Seguro Social para trabajadores independientes, con los requisitos de identificación que fije el reglamento.
+        ⊕ steps=T1-A
+          pool#1  rr#1  top    tribu-cr-faq · Registro Único Tributario (RUT) · 1
+          pool#2  rr#2  top    tribu-cr-faq · Registro Único Tributario (RUT) · 3
+          pool#1  rr#1  top    tribu-cr-faq · Registro Único Tributario (RUT) · 1 (catálogo)
+          pool#14 rr#8  top    tribu-cr-faq · Registro Único Tributario (RUT) · 2 (catálogo)
+          pool#6  rr#13 pinned ccss-reglamento-ti · Artículo 1 (catálogo)
+          pool#12 rr#35 cut    cnpt · Artículo 78 (catálogo)
+          pool#4  rr#19 cut    tribu-cr-faq · Declaraciones del RUT · 2 (catálogo)
+  hit   pool#6  top=0.0502  rb-pill-inscribo-exterior
+        ⤳ La inscripción de quien presta servicios a clientes en el exterior se rige por la obligación de inscribirse en el Registro de Contribuyentes ante la Administración Tributaria y en el régimen de aseguramiento de trabajadores independientes ante la Caja Costarricense de Seguro Social, según el tipo de actividad y la exención o no de los servicios exportados del Impuesto al Valor Agregado.
+        ⊕ steps=T1-A
+          pool#24 rr#7  top    ley-iva · Artículo 5
+          pool#—  rr#—  cut    ley-iva · Artículo 4
+          pool#22 rr#17 cut    ley-renta · ARTICULO 2
+          pool#6  rr#15 cut    reglamento-renta · Artículo 27
+          pool#2  rr#9  pinned tribu-cr-faq · Registro Único Tributario (RUT) · 1 (catálogo)
+          pool#—  rr#—  cut    tribu-cr-faq · Registro Único Tributario (RUT) · 2 (catálogo)
+          pool#5  rr#12 cut    ccss-reglamento-ti · Artículo 1 (catálogo)
+          pool#11 rr#33 cut    cnpt · Artículo 78 (catálogo)
+          pool#4  rr#32 cut    tribu-cr-faq · Declaraciones del RUT · 2 (catálogo)
+  hit   pool#20  top=0.0635  rb-pill-cuanto-pago-independiente
+        ⤳ El monto que paga un trabajador independiente se determina según la escala contributiva de la CCSS para el Seguro de Salud y para el Seguro de Invalidez, Vejez y Muerte (IVM), calculada sobre la base mínima contributiva o los ingresos declarados, conforme a la Ley del Trabajador Independiente y el Reglamento para el Aseguramiento Contributivo de los Trabajadores Independientes; y el impuesto sobre la renta que le corresponda según los tramos fijados en la Ley del Impuesto sobre la Renta, así como las obligaciones del Régimen de Tributación Simplificada o del IVA, según el caso, en el Ministerio de Hacienda.
+        ⊕ steps=T1-F · figures=bmc-ivm-2026,bmc-sem-2026
+          pool#25 rr#3  top    ccss-escala-salud · Artículo 30°, sesión 8999
+          pool#23 rr#7  top    ccss-escala-ivm · Artículo 4°, sesión 9570
+          pool#—  rr#—  cut    ley-10363 · ARTÍCULO 1
+          pool#20 rr#30 pinned salarios-minimos · Artículo 1
+          pool#1  rr#4  top    ccss-reglamento-ti · Artículo 10 (catálogo)
+          pool#3  rr#8  top    ccss-reglamento-ti · Artículo 12 (catálogo)
+          pool#2  rr#18 pinned ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? (catálogo)
+          pool#20 rr#30 pinned salarios-minimos · Artículo 1 (catálogo)
+  hit   pool#4  top=0.0463  rb-pill-primera-factura
+        ⤳ El Reglamento de Comprobantes Electrónicos establece el procedimiento para la emisión de la factura electrónica por parte del contribuyente, incluyendo la inscripción previa en el sistema de facturación electrónica de Hacienda, la generación del comprobante conforme a las disposiciones técnicas vigentes y su envío para validación y aceptación por la Dirección General de Tributación.
+        ⊕ steps=—
+          pool#4  rr#2  top    reglamento-comprobantes · Artículo 4
+          pool#—  rr#—  cut    cabys-dev · *
+  hit   pool#3  top=0.0637  rb-pill-asegurarme-gano-poco
+        ⤳ Ambiguo entre CCSS (aseguramiento contributivo de trabajadores independientes, con su base mínima contributiva y su escala según el seguro de IVM o de salud) y Hacienda (impuesto sobre la renta y su tramo de exención). Dos oraciones: el aseguramiento obligatorio de los trabajadores independientes y la base mínima contributiva que fije la CCSS según sus ingresos; y el impuesto sobre la renta, con los tramos de ingreso gravable y la exención que establezca la ley para el período fiscal vigente.
+        ⊕ steps=T1-B (dataset T1-B) · figures=bmc-ivm-2026,bmc-sem-2026
+          pool#15 rr#4  top    ccss-reglamento-ti · Artículo 1
+          pool#3  rr#3  top    ccss-faq · ¿El Trabajador Independiente está obligado a asegurarse ante la CCSS?
+          pool#9  rr#5  top    ccss-escala-salud · *
+          pool#6  rr#40 pinned salarios-minimos · Artículo 1
+          pool#4  rr#27 pinned ccss-faq · ¿Dónde me corresponde realizar el trámite de afiliación? (catálogo)
+          pool#13 rr#28 cut    ccss-faq · ¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente? (catálogo)
+          pool#1  rr#6  top    ccss-reglamento-ti · Artículo 10 (catálogo)
+          pool#6  rr#40 pinned salarios-minimos · Artículo 1 (catálogo)
+  hit   pool#1  top=0.0702  rb-pill-iva-exterior
+        ⤳ El tratamiento del impuesto sobre el valor agregado en las prestaciones de servicios y ventas de bienes a clientes no domiciliados en el territorio nacional, con indicación de los supuestos de exportación de servicios y de bienes exentos o gravados con tarifa cero, y de los requisitos que deben cumplirse para acreditar la condición de exportación ante la Administración Tributaria.
+        ⊕ steps=T1-D
+          pool#1  rr#1  top    reglamento-iva · Artículo 11
+          pool#2  rr#2  top    ley-iva · Artículo 8
+          pool#3  rr#32 pinned ley-iva · Artículo 27 (catálogo)
+          pool#38 rr#34 cut    reglamento-iva · Artículo 40 (catálogo)
+          pool#22 rr#40 cut    cnpt · Artículo 79 (catálogo)
+          pool#1  rr#1  top    reglamento-iva · Artículo 11 (catálogo)
+  MISS  pool#8  top=0.0692  rb-pill-retroactivo
+        ⤳ Cuando la persona no especifica ante qué institución ni por qué concepto, el asunto puede corresponder tanto a la Administración Tributaria como a la CCSS: se establece el cobro retroactivo de obligaciones tributarias o de cuotas contributivas no pagadas en su momento, con sus intereses, recargos y multas que correspondan conforme al Código de Normas y Procedimientos Tributarios y al reglamento de aseguramiento contributivo de los trabajadores independientes.
+        ⊕ steps=T1-G
+          pool#8  rr#14 cut    ley-10363 · ARTÍCULO 2
+          pool#28 rr#12 cut    ley-10363 · TRANSITORIO II
+          pool#3  rr#13 cut    ccss-prescripcion · ¿Dónde presento la solicitud? (catálogo)
+          pool#14 rr#24 cut    ccss-prescripcion · ¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración? (catálogo)
+          pool#5  rr#31 cut    ccss-prescripcion · ¿En qué momento puedo solicitar la prescripción de las deudas? (catálogo)
+          pool#2  rr#9  pinned ccss-faq · ¿Dónde puedo solicitar la prescripción de cuotas de trabajador independiente pendientes de pago (Ley N°10.363)? (catálogo)
+          pool#4  rr#34 cut    ccss-reglamento-ti · TRANSITORIO V (catálogo)
+  hit   pool#1  top=0.0599  rb-pill-impuesto-renta
+        ⤳ La Ley del Impuesto sobre la Renta establece la base imponible, las tarifas progresivas por tramos según el período fiscal, las deducciones y exenciones admitidas, y el procedimiento de determinación y pago del impuesto sobre los ingresos gravables de personas físicas y jurídicas.
+        ⊕ steps=T1-E
+          pool#13 rr#11 cut    ley-renta · ARTICULO 8
+          pool#—  rr#—  cut    reglamento-renta · Artículo 16
+          pool#25 rr#8  top    reglamento-renta · Artículo 17
+          pool#1  rr#3  top    ley-renta · Artículo 15
+          pool#26 rr#37 cut    reglamento-renta · Artículo 28 (catálogo)
+          pool#2  rr#13 pinned ley-renta · ARTICULO 22 (catálogo)
+          pool#13 rr#11 cut    ley-renta · ARTICULO 8 (catálogo)
+          pool#19 rr#40 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+  hit   pool#9  top=0.0479  rb-pill-me-salgo
+        ⤳ Procedimiento de cese o baja de la actividad del trabajador independiente ante la Caja Costarricense de Seguro Social y ante la Administración Tributaria, con indicación de las cuotas, impuestos y obligaciones pendientes que deban cancelarse o regularizarse para la suspensión del aseguramiento y la inscripción de la actividad.
+        ⊕ steps=T1-H (dataset T1-H)
+          pool#22 rr#11 cut    tribu-cr-faq · Declaraciones del RUT · 31
+          pool#9  rr#24 cut    tribu-cr-faq · Declaraciones del RUT · 35
+          pool#—  rr#—  cut    tribu-cr-faq · Declaraciones del RUT · 37
+          pool#35 rr#22 cut    tribu-cr-faq · Declaraciones del RUT · 38
+          pool#21 rr#23 pinned tribu-cr-faq · Declaraciones del RUT · 43
+          pool#—  rr#—  cut    tribu-cr-faq · Declaraciones del RUT · 46
+          pool#—  rr#—  cut    reglamento-iva · Artículo 67
+          pool#11 rr#35 cut    ley-iva · Artículo 27
+          pool#40 rr#5  top    reglamento-renta · Artículo 27
+          pool#22 rr#11 cut    tribu-cr-faq · Declaraciones del RUT · 31 (catálogo)
+          pool#21 rr#23 pinned tribu-cr-faq · Declaraciones del RUT · 43 (catálogo)
+          pool#10 rr#40 cut    cnpt · Artículo 79 (catálogo)
+          pool#1  rr#4  top    ccss-faq · ¿Qué debo hacer si dejo de trabajar de forma Independiente? (catálogo)
+          pool#4  rr#2  top    ccss-faq · ¿Se puede suspender el seguro de trabajador independiente? (catálogo)
+          pool#11 rr#35 cut    ley-iva · Artículo 27 (catálogo)
+  hit   pool#2  top=0.0471  rb-pill-inscribi-tarde
+        ⤳ La inscripción tardía de un trabajador independiente en el régimen de la Caja Costarricense de Seguro Social da lugar al cobro de las cuotas atrasadas desde la fecha en que debió inscribirse, junto con los intereses y recargos moratorios que establezca el reglamento, sin perjuicio de las sanciones que correspondan por la omisión del plazo de inscripción conforme a la normativa tributaria y del Seguro Social.
+        ⊕ steps=T1-I (dataset T1-I) · figures=cnpt-articulo-78-multa-mensual-2026,cnpt-articulo-78-tope-2026
+          pool#2  rr#4  top    cnpt · Artículo 78
+          pool#6  rr#40 pinned salario-base-2026 · *
+          pool#7  rr#32 pinned cnpt · Artículo 88
+          pool#7  rr#32 pinned cnpt · Artículo 88 (catálogo)
+          pool#2  rr#4  top    cnpt · Artículo 78 (catálogo)
+          pool#—  rr#—  cut    cnpt · Artículo 79 (catálogo)
+          pool#8  rr#39 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+          pool#6  rr#40 pinned salario-base-2026 · Circular 246-2025 (catálogo)
+  MISS  pool#31  top=0.0671  rb-corto-cuanto-es-iva
+        ⤳ El Impuesto sobre el Valor Agregado (IVA) grava la venta de bienes, la prestación de servicios y la importación de bienes en el territorio nacional, y la ley fija la tarifa general aplicable a cada operación, así como las tarifas diferenciadas o exentas que correspondan según el tipo de bien o servicio.
+        ⊕ steps=T1-D
+          pool#31 rr#9  cut    ley-iva · Artículo 10
+          pool#10 rr#35 cut    ley-iva · Artículo 27 (catálogo)
+          pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+          pool#24 rr#39 cut    cnpt · Artículo 79 (catálogo)
+          pool#4  rr#14 pinned reglamento-iva · Artículo 11 (catálogo)
+  hit   pool#25  top=0.0674  rb-corto-tasa-iva
+        ⤳ La tarifa general del impuesto sobre el valor agregado, su tarifa diferenciada y las exenciones que fije la ley para los bienes y servicios gravados en el territorio nacional.
+        ⊕ steps=T1-D
+          pool#25 rr#1  top    ley-iva · Artículo 10
+          pool#10 rr#35 cut    ley-iva · Artículo 27 (catálogo)
+          pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+          pool#21 rr#39 cut    cnpt · Artículo 79 (catálogo)
+          pool#4  rr#9  pinned reglamento-iva · Artículo 11 (catálogo)
+  hit   pool#3  top=0.0544  rb-corto-cuanto-pago-caja
+        ⤳ Las cuotas de la CCSS para trabajadores independientes y asegurados voluntarios se calculan sobre la base mínima contributiva vigente y aplican según las escalas contributivas fijadas para el Seguro de Salud y el Seguro de Invalidez, Vejez y Muerte (IVM).
+        ⊕ steps=T1-F · figures=bmc-ivm-2026,bmc-sem-2026
+          pool#14 rr#3  top    ccss-escala-salud · Artículo 30°, sesión 8999
+          pool#3  rr#4  top    ccss-escala-ivm · Artículo 4°, sesión 9570
+          pool#—  rr#—  cut    ley-10363 · ARTÍCULO 1
+          pool#15 rr#30 pinned salarios-minimos · Artículo 1
+          pool#1  rr#8  top    ccss-reglamento-ti · Artículo 10 (catálogo)
+          pool#5  rr#10 pinned ccss-reglamento-ti · Artículo 12 (catálogo)
+          pool#16 rr#15 cut    ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? (catálogo)
+          pool#15 rr#30 pinned salarios-minimos · Artículo 1 (catálogo)
+  hit   pool#1  top=0.0752  rb-corto-tramos-renta
+        ⤳ Los tramos del Impuesto sobre la Renta para el período fiscal 2026 se fijan en el decreto que establece la escala de tarifas progresivas aplicable a las rentas de las personas físicas, según el salario base vigente y los límites de exención que determine la ley.
+        ⊕ steps=T1-E
+          pool#5  rr#1  top    tramos-renta-2026 · *
+          pool#1  rr#3  top    ley-renta · Artículo 15
+          pool#18 rr#36 cut    reglamento-renta · Artículo 28 (catálogo)
+          pool#16 rr#26 pinned ley-renta · ARTICULO 22 (catálogo)
+          pool#23 rr#27 cut    ley-renta · ARTICULO 8 (catálogo)
+          pool#15 rr#39 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+  hit   pool#1  top=0.0678  rb-corto-cuando-declaro-renta
+        ⤳ El Impuesto sobre la Renta se declara anualmente por período fiscal, y el plazo de presentación de la declaración jurada, así como las fechas de pago y las formas de cumplimiento que fije la Administración Tributaria, se establecen en la ley y su reglamento.
+        ⊕ steps=T1-E
+          pool#1  rr#1  top    reglamento-renta · Artículo 28
+          pool#1  rr#1  top    reglamento-renta · Artículo 28 (catálogo)
+          pool#2  rr#7  top    ley-renta · ARTICULO 22 (catálogo)
+          pool#21 rr#36 pinned ley-renta · ARTICULO 8 (catálogo)
+          pool#22 rr#40 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+  hit   pool#1  top=0.0771  rb-corto-cuando-declaro-iva
+        ⤳ El régimen de declaración y pago del impuesto sobre el valor agregado establece la obligación de presentar la declaración mensual del impuesto, junto con el pago de su saldo, dentro de los plazos fijados por la administración tributaria para cada período fiscal, con sus formularios y medios electrónicos que disponga el Ministerio de Hacienda.
+        ⊕ steps=T1-D
+          pool#1  rr#1  top    ley-iva · Artículo 27
+          pool#3  rr#2  top    reglamento-iva · Artículo 40
+          pool#1  rr#1  top    ley-iva · Artículo 27 (catálogo)
+          pool#3  rr#2  top    reglamento-iva · Artículo 40 (catálogo)
+          pool#18 rr#39 cut    cnpt · Artículo 79 (catálogo)
+          pool#26 rr#35 pinned reglamento-iva · Artículo 11 (catálogo)
+  hit   pool#1  top=0.0875  rb-corto-que-cabys
+        ⤳ El Código CABYS aplicable a la actividad debe corresponder a la clasificación de bienes y servicios vigente que describe el servicio prestado o el bien vendido, y su uso en la factura electrónica se rige por las disposiciones técnicas de comprobantes electrónicos y por el subconjunto curado de códigos CABYS para desarrollo de software y TI.
+        ⊕ steps=T1-C
+          pool#1  rr#1  top    cabys-dev · *
+          pool#3  rr#11 pinned reglamento-comprobantes · Artículo 4 (catálogo)
+          pool#4  rr#13 cut    reglamento-comprobantes · Artículo 9 (catálogo)
+          pool#1  rr#1  top    cabys-dev · * (catálogo)
+          pool#12 rr#21 cut    reglamento-comprobantes · Artículo 22 (catálogo)
+  hit   pool#1  top=0.0573  rb-corto-multa-tarde
+        ⤳ Sanción por inscripción tardía fuera del plazo establecido en el Código de Normas y Procedimientos Tributarios y en el Reglamento para el Aseguramiento Contributivo de los Trabajadores Independientes, que fija la multa aplicable al sujeto que se inscribe como contribuyente o asegurado después del término legal, con la correspondiente aplicación de intereses y recargos según el monto que establezca la ley.
+        ⊕ steps=T1-I (dataset T1-I) · figures=cnpt-articulo-78-multa-mensual-2026,cnpt-articulo-78-tope-2026,cnpt-articulo-79-multa-declaracion-2026
+          pool#1  rr#1  top    cnpt · Artículo 78
+          pool#7  rr#31 pinned salario-base-2026 · *
+          pool#13 rr#17 pinned cnpt · Artículo 88
+          pool#13 rr#17 pinned cnpt · Artículo 88 (catálogo)
+          pool#1  rr#1  top    cnpt · Artículo 78 (catálogo)
+          pool#16 rr#5  top    cnpt · Artículo 79 (catálogo)
+          pool#11 rr#38 cut    tribu-cr-res-0011-2025 · Artículo 2 (catálogo)
+          pool#7  rr#31 pinned salario-base-2026 · Circular 246-2025 (catálogo)
+  hit   pool#4  top=0.0458  rb-tilde-inscribirme-afuera
+        ⤳ La inscripción de personas físicas en el Registro Tributario ante la Administración Tributaria para el ejercicio de actividades económicas, con la obligación de emitir comprobantes electrónicos y de declarar el impuesto sobre la renta y el impuesto al valor agregado sobre los ingresos percibidos por servicios prestados a clientes del exterior, conforme a los supuestos de sujeción y de exención o no sujeción que establezca la ley.
+        ⊕ steps=T1-A
+          pool#7  rr#8  top    ley-iva · Artículo 5
+          pool#—  rr#—  cut    ley-iva · Artículo 4
+          pool#36 rr#21 cut    ley-renta · ARTICULO 2
+          pool#4  rr#4  top    reglamento-renta · Artículo 27
+          pool#1  rr#5  top    tribu-cr-faq · Registro Único Tributario (RUT) · 1 (catálogo)
+          pool#—  rr#—  cut    tribu-cr-faq · Registro Único Tributario (RUT) · 2 (catálogo)
+          pool#13 rr#38 cut    ccss-reglamento-ti · Artículo 1 (catálogo)
+          pool#11 rr#32 cut    cnpt · Artículo 78 (catálogo)
+          pool#9  rr#30 pinned tribu-cr-faq · Declaraciones del RUT · 2 (catálogo)
+  hit   pool#9  top=0.0630  rb-tilde-cuanto-pago-ccss
+        ⤳ Las cuotas del Seguro de Salud y del Seguro de Invalidez, Vejez y Muerte que debe pagar el trabajador independiente se fijan según la escala contributiva establecida por la Junta Directiva de la Caja Costarricense de Seguro Social, con base en el ingreso declarado y la base mínima contributiva vigente.
+        ⊕ steps=T1-F · figures=bmc-ivm-2026,bmc-sem-2026
+          pool#18 rr#1  top    ccss-escala-salud · Artículo 30°, sesión 8999
+          pool#9  rr#5  top    ccss-escala-ivm · Artículo 4°, sesión 9570
+          pool#—  rr#—  cut    ley-10363 · ARTÍCULO 1
+          pool#16 rr#40 pinned salarios-minimos · Artículo 1
+          pool#1  rr#7  top    ccss-reglamento-ti · Artículo 10 (catálogo)
+          pool#4  rr#16 cut    ccss-reglamento-ti · Artículo 12 (catálogo)
+          pool#3  rr#13 pinned ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? (catálogo)
+          pool#16 rr#40 pinned salarios-minimos · Artículo 1 (catálogo)
+  hit   pool#4  top=0.0544  rb-tilde-asegurarme-poquito
+        ⤳ Un trabajador independiente que percibe ingresos por debajo del mínimo establecido por la CCSS está obligado a inscribirse y pagar las cuotas del seguro de salud y de IVM, o a dejar constancia de la excepción que corresponda según el Reglamento para el Aseguramiento Contributivo de los Trabajadores Independientes y la escala contributiva vigente.
+        ⊕ steps=T1-B (dataset T1-B) · figures=bmc-ivm-2026,bmc-sem-2026
+          pool#10 rr#2  top    ccss-reglamento-ti · Artículo 1
+          pool#9  rr#6  top    ccss-faq · ¿El Trabajador Independiente está obligado a asegurarse ante la CCSS?
+          pool#21 rr#7  top    ccss-escala-salud · *
+          pool#4  rr#40 pinned salarios-minimos · Artículo 1
+          pool#7  rr#36 cut    ccss-faq · ¿Dónde me corresponde realizar el trámite de afiliación? (catálogo)
+          pool#15 rr#22 cut    ccss-faq · ¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente? (catálogo)
+          pool#2  rr#9  pinned ccss-reglamento-ti · Artículo 10 (catálogo)
+          pool#4  rr#40 pinned salarios-minimos · Artículo 1 (catálogo)
+  hit   pool#10  top=0.0436  rb-tilde-primera-fatura
+        ⤳ Procedimiento para la emisión del primer comprobante electrónico de factura por parte de un contribuyente inscrito ante la Administración Tributaria, con las obligaciones de registro, certificación de la clave criptográfica, codificación de bienes y servicios mediante CABYS y envío del documento electrónico conforme a las disposiciones técnicas vigentes de comprobantes electrónicos.
+        ⊕ steps=—
+          pool#10 rr#2  top    reglamento-comprobantes · Artículo 4
+          pool#—  rr#—  cut    cabys-dev · *
+  hit   pool#2  top=0.0498  rb-tilde-deje-de-trabajr
+        ⤳ Procedimiento para dar de baja la inscripción de un contribuyente o trabajador independiente ante la Administración Tributaria y la CCSS, con cese de la actividad económica, cancelación de la inscripción en el registro de contribuyentes y declaración final de impuestos pendientes.
+        ⊕ steps=T1-H (dataset T1-H)
+          pool#11 rr#16 cut    tribu-cr-faq · Declaraciones del RUT · 31
+          pool#4  rr#6  top    tribu-cr-faq · Declaraciones del RUT · 35
+          pool#—  rr#—  cut    tribu-cr-faq · Declaraciones del RUT · 37
+          pool#8  rr#12 cut    tribu-cr-faq · Declaraciones del RUT · 38
+          pool#23 rr#7  top    tribu-cr-faq · Declaraciones del RUT · 43
+          pool#32 rr#11 cut    tribu-cr-faq · Declaraciones del RUT · 46
+          pool#—  rr#—  cut    reglamento-iva · Artículo 67
+          pool#2  rr#23 pinned ley-iva · Artículo 27
+          pool#35 rr#3  top    reglamento-renta · Artículo 27
+          pool#11 rr#16 cut    tribu-cr-faq · Declaraciones del RUT · 31 (catálogo)
+          pool#23 rr#7  top    tribu-cr-faq · Declaraciones del RUT · 43 (catálogo)
+          pool#13 rr#39 cut    cnpt · Artículo 79 (catálogo)
+          pool#3  rr#1  top    ccss-faq · ¿Qué debo hacer si dejo de trabajar de forma Independiente? (catálogo)
+          pool#15 rr#10 cut    ccss-faq · ¿Se puede suspender el seguro de trabajador independiente? (catálogo)
+          pool#2  rr#23 pinned ley-iva · Artículo 27 (catálogo)
+  hit   pool#1  top=0.0687  rb-spanglish-client-usa
+        ⤳ La exportación de servicios a clientes en el extranjero y el tratamiento del impuesto sobre el valor agregado en operaciones de exportación de servicios, con la determinación de la no sujeción o exención que fije la ley para los servicios prestados a no residentes y el cumplimiento de los requisitos de documentación y comprobantes electrónicos que establezca el reglamento.
+        ⊕ steps=T1-D
+          pool#5  rr#1  top    reglamento-iva · Artículo 11
+          pool#1  rr#2  top    ley-iva · Artículo 8
+          pool#2  rr#31 pinned ley-iva · Artículo 27 (catálogo)
+          pool#27 rr#37 cut    reglamento-iva · Artículo 40 (catálogo)
+          pool#22 rr#40 cut    cnpt · Artículo 79 (catálogo)
+          pool#5  rr#1  top    reglamento-iva · Artículo 11 (catálogo)
+  hit   pool#2  top=0.0487  rb-spanglish-invoice
+        ⤳ El comprobante electrónico para operaciones de exportación de servicios a clientes del exterior se regula en el Reglamento de Comprobantes Electrónicos y en las Disposiciones técnicas de comprobantes electrónicos, que establecen la obligación de emitir la factura electrónica de exportación, con sus requisitos y tratamiento en el Impuesto al Valor Agregado de las operaciones con destino al extranjero.
+        ⊕ steps=—
+          pool#2  rr#2  top    reglamento-comprobantes · Artículo 2
+          pool#23 rr#18 cut    reglamento-iva · Artículo 11
+  hit   pool#6  top=0.0772  rb-seguimiento-cuanto-me-toca
+        ↳ ¿Cuánto debe pagar mensualmente un trabajador independiente en Costa Rica a la CCSS cuando su ingreso neto mensual alcanza la base mínima contributiva?
+        ⤳ El trabajador independiente que declara ingresos iguales a la base mínima contributiva cotiza mensualmente a la CCSS, por los seguros de Invalidez, Vejez y Muerte y de Salud, el porcentaje que fije la escala contributiva vigente para trabajadores independientes y asegurados voluntarios, aplicado sobre la base mínima contributiva establecida por decreto.
+        ⊕ steps=T1-F · figures=bmc-ivm-2026,bmc-sem-2026
+          pool#6  rr#3  top    ccss-escala-salud · Artículo 30°, sesión 8999
+          pool#8  rr#4  top    ccss-escala-ivm · Artículo 4°, sesión 9570
+          pool#—  rr#—  cut    ley-10363 · ARTÍCULO 1
+          pool#19 rr#31 pinned salarios-minimos · Artículo 1
+          pool#1  rr#8  top    ccss-reglamento-ti · Artículo 10 (catálogo)
+          pool#2  rr#11 pinned ccss-reglamento-ti · Artículo 12 (catálogo)
+          pool#12 rr#13 cut    ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente? (catálogo)
+          pool#19 rr#31 pinned salarios-minimos · Artículo 1 (catálogo)
+  hit   pool#1  top=0.0703  rb-seguimiento-le-cobro-iva
+        ↳ ¿Debe cobrar IVA una persona inscrita en el Registro Único Tributario de Costa Rica que presta servicios de programación a un cliente en Canadá, emitiendo factura electrónica de exportación?
+        ⤳ Las exportaciones de servicios prestados a clientes en el exterior se encuentran exentas o tratadas con tasa cero del Impuesto sobre el Valor Agregado, siempre que el servicio sea utilizado o aprovechado fuera del territorio nacional y se documente mediante comprobante electrónico de exportación conforme al Reglamento de Comprobantes Electrónicos y a las disposiciones técnicas vigentes, sin que el prestador de servicios de programación inscrito en el Registro Único Tributario deba trasladar el impuesto al cliente extranjero.
+        ⊕ steps=T1-D
+          pool#3  rr#1  top    reglamento-iva · Artículo 11
+          pool#1  rr#2  top    ley-iva · Artículo 8
+          pool#4  rr#11 pinned ley-iva · Artículo 27 (catálogo)
+          pool#—  rr#—  cut    reglamento-iva · Artículo 40 (catálogo)
+          pool#19 rr#40 cut    cnpt · Artículo 79 (catálogo)
+          pool#3  rr#1  top    reglamento-iva · Artículo 11 (catálogo)
+  hit   pool#1  top=0.0643  rb-seguimiento-de-cuanto-multa
+        ↳ ¿De cuánto es la multa por no inscribirse en Hacienda habiendo trabajado un año sin registro en el Registro Único Tributario?
+        ⤳ La inscripción en el Registro Único Tributario y la omisión de inscribirse ante la Administración Tributaria constituyen una infracción tributaria, cuya sanción se gradúa conforme al Código de Normas y Procedimientos Tributarios según el salario base vigente para multas y penas y las circunstancias del hecho ilícito tributario, sin perjuicio de los intereses, recargos y demás obligaciones de regularización que correspondan al contribuyente que ejerció actividades económicas sin estar inscrito.
+        ⊕ steps=T1-A (dataset T1-I)
+          pool#1  rr#1  top    cnpt · Artículo 78
+          pool#—  rr#—  cut    salario-base-2026 · *
+          pool#—  rr#—  cut    cnpt · Artículo 88
+          pool#2  rr#15 pinned tribu-cr-faq · Registro Único Tributario (RUT) · 1 (catálogo)
+          pool#8  rr#13 cut    tribu-cr-faq · Registro Único Tributario (RUT) · 2 (catálogo)
+          pool#16 rr#38 cut    ccss-reglamento-ti · Artículo 1 (catálogo)
+          pool#1  rr#1  top    cnpt · Artículo 78 (catálogo)
+          pool#7  rr#22 cut    tribu-cr-faq · Declaraciones del RUT · 2 (catálogo)
+
+  cut between pool and top-8: ccss-asalariado-followup
+    target reranked #9 (pool #27), displaced by ccss-reglamento-ti · Artículo 4 (score 0.6445)
+    #1 ccss-reglamento-ti · Artículo 1
+    #2 ccss-faq · ¿Sí un trabajador es asegurado por su patrono y además realiza actividad económica por cuenta propia que le genera ingresos, dicho trabajador está obligado a cotizar como trabajador independiente?
+    #3 ccss-faq · ¿Quién es un Trabajador Independiente?
+    #4 ccss-reglamento-ti · Artículo 12
+    #5 ccss-reglamento-ti · Artículo 10
+    #6 ccss-faq · ¿Cuál es el porcentaje de cotización para el seguro voluntario o trabajador independiente y cómo se determina el ingreso de referencia?
+    #7 ccss-faq · ¿Por qué cuando el Trabajador Independiente ingresa a laborar con una empresa, la suspensión del seguro no es automática?
+    #8 ccss-reglamento-ti · Artículo 4
+    pinned reglamento-renta · Artículo 28
+
+  cut between pool and top-8: ho-desinscribir-debiendo-declaraciones
+    target reranked #12 (pool #8), displaced by tribu-cr-faq · Declaraciones del RUT · 30 (score 0.6328)
+    #1 tribu-cr-faq · Declaraciones del RUT · 31
+    #2 tribu-cr-faq · Consulta Integral Hacendaria (CIH) vista OVi · 24
+    #3 tribu-cr-faq · Declaraciones del RUT · 47
+    #4 ccss-prescripcion · ¿Cuáles son los plazos de la prescripción conforme la Ley?
+    #5 ley-10363 · ARTÍCULO 2
+    #6 tribu-cr-faq · Declaraciones del RUT · 46
+    #7 tribu-cr-faq · Declaraciones del RUT · 37
+    #8 tribu-cr-faq · Declaraciones del RUT · 30
+    pinned ley-iva · Artículo 27
+
+  cut between pool and top-8: ho-t2-credito-iva-compras
+    target reranked #11 (pool #13), displaced by reglamento-iva · Artículo 34 (score 0.6172)
+    #1 reglamento-iva · Artículo 32
+    #2 reglamento-iva · Artículo 25
+    #3 reglamento-iva · Artículo 30
+    #4 ley-iva · Artículo 16
+    #5 reglamento-iva · Artículo 29
+    #6 ley-iva · Artículo 20
+    #7 reglamento-iva · Artículo 40 bis
+    #8 reglamento-iva · Artículo 34
+    pinned ley-iva · Artículo 27
+
+  cut between pool and top-8: ho-t2-hosting-extranjero
+    target reranked #11 (pool #12), displaced by reglamento-iva · Artículo 1 (score 0.5977)
+    #1 ley-iva · Artículo 4
+    #2 reglamento-iva · Artículo 30
+    #3 reglamento-iva · Artículo 10
+    #4 ley-iva · Artículo 14
+    #5 reglamento-iva · Artículo 32
+    #6 reglamento-iva · Artículo 25
+    #7 reglamento-iva · Artículo 29
+    #8 reglamento-iva · Artículo 1
+    pinned reglamento-iva · Artículo 11
+
+  cut between pool and top-8: ho-t2-payoneer
+    target reranked #11 (pool #11), displaced by reglamento-iva · Artículo 47 (score 0.5273)
+    #1 ley-renta · ARTICULO 55
+    #2 reglamento-renta · Artículo 68
+    #3 ley-renta · ARTICULO 54
+    #4 reglamento-renta · Artículo 70
+    #5 reglamento-comprobantes · Artículo 13
+    #6 reglamento-iva · Artículo 50
+    #7 ley-renta · Artículo 59
+    #8 reglamento-iva · Artículo 47
+
+  cut between pool and top-8: rb-pill-retroactivo
+    target reranked #12 (pool #8), displaced by ccss-prescripcion · ¿Cuáles son los conceptos que estando pendientes de pago le aplica la prescripción en sede administrativa? (score 0.5313)
+    #1 ccss-prescripcion · ¿Cómo se solicita la prescripción?
+    #2 ccss-reglamento-ti · Artículo 27
+    #3 ccss-reglamento-ti · Artículo 14
+    #4 ccss-reglamento-ti · Artículo 25
+    #5 ccss-reglamento-ti · Artículo 29
+    #6 ccss-prescripcion · ¿Cuáles son los requisitos para presentar una solicitud de prescripción en sede administrativa?
+    #7 ccss-prescripcion · ¿Cuáles son los plazos de la prescripción conforme la Ley?
+    #8 ccss-prescripcion · ¿Cuáles son los conceptos que estando pendientes de pago le aplica la prescripción en sede administrativa?
+    pinned ccss-faq · ¿Dónde puedo solicitar la prescripción de cuotas de trabajador independiente pendientes de pago (Ley N°10.363)?
+
+  cut between pool and top-8: rb-corto-cuanto-es-iva
+    target reranked #9 (pool #31), displaced by reglamento-iva · Artículo 32 (score 0.7539)
+    #1 ley-iva · Artículo 1
+    #2 reglamento-iva · Artículo 3
+    #3 ley-iva · Artículo 11
+    #4 ley-iva · Artículo 8
+    #5 ley-iva · Artículo 3
+    #6 ley-iva · Artículo 2
+    #7 reglamento-iva · Artículo 23
+    #8 reglamento-iva · Artículo 32
+    pinned reglamento-iva · Artículo 11
+
+carrying chunks (#287, eval/tier1-carriers.json): 19/47 in the answer set, 16 in the pool and cut, 12 not in the pool
+  2/2  ccss-cuanto-pago-base  figures=bmc-ivm-2026,bmc-sem-2026
+  3/3  ccss-pedir-prescripcion-cuotas
+  0/1  ccss-obligacion-ingreso-bajo  figures=bmc-ivm-2026,bmc-sem-2026
+  1/3  desinscripcion-dejar-actividad
+  2/3  multa-iva-no-declarado  figures=cnpt-articulo-78-multa-mensual-2026,cnpt-articulo-78-tope-2026,cnpt-articulo-79-multa-declaracion-2026
+  2/3  inscripcion-tardia-sancion  figures=cnpt-articulo-78-multa-mensual-2026,cnpt-articulo-78-tope-2026
+  0/2  ho-hacienda-solo-cliente-eeuu
+  0/1  ho-trabajitos-por-mi-cuenta
+  0/4  ho-donde-inscribo-ya-no-atv
+  1/3  ho-desde-cuanta-plata-caja  figures=bmc-ivm-2026,bmc-sem-2026
+  0/1  ho-donde-me-afilio-caja
+  1/1  ho-tiquete-en-vez-de-factura
+  1/2  ho-factura-electronica-o-recibo
+  2/4  ho-cliente-espana-lleva-iva
+  0/3  ho-iva-en-cero-sin-facturar
+  0/1  ho-rebajar-25-sin-facturas
+  0/1  ho-minimo-renta-2026
+  2/5  ho-ademas-tengo-salario
+  0/1  ho-800-mil-que-porcentaje-caja  figures=bmc-ivm-2026,bmc-sem-2026
+  1/2  ho-desinscribir-debiendo-declaraciones
+  1/1  ho-rebajar-multa-si-pago-ya  figures=cnpt-articulo-78-multa-mensual-2026,cnpt-articulo-78-tope-2026,cnpt-articulo-79-multa-declaracion-2026
+hit-rate by exposure (#267):
+  first-exposure  28/32
+  promoted        7/7
+  corpus-derived  33/35
+ ❯ |eval| src/lib/eval/retrieval-hitrate.eval.test.ts (4 tests | 2 failed | 1 todo) 263370ms
+   ❯ retrieval hit-rate (eval/dataset.jsonl) (4)
+     × finds every blocking case's artículo in the answer top-k 10ms
+     × hits at least 92% of expected artículos in the answer top-k 1ms
+ask: condensation failed — reason=timeout error=DOMException.TimeoutError#23
+
+transcript (#289): eval/runs/2026-10-08-baseline/low/groundedness-claude-sonnet-5-5-effort-low-20261008T022706Z.jsonl
+rerank readings lost: none of 522
+
+groundedness (answer=claude-sonnet-5-5-effort-low, judge=claude-sonnet-4-5): 72/74 by the judges (baseline 68, floor 64; ADR 0023) — beats the baseline: ratchet GROUNDEDNESS_BASELINE to 72
+  pass  inscripcion-hacienda-clientes-extranjero
+  pass  iva-clientes-fuera-cr
+  FAIL [fail/fail/fail]  cabys-desarrollo-software {contradiction}  — El código CABYS 8314300000000 citado en la respuesta no aparece en el fragmento [1]; el fragmento solo menciona ese código sin los ceros finales.
+  pass  ccss-cuanto-pago-base
+  pass  ccss-cobro-retroactivo
+  pass  ccss-pedir-prescripcion-cuotas
+  pass  ccss-ventana-prescripcion-24-meses
+  pass  ccss-obligacion-ingreso-bajo
+  pass  ccss-asalariado-y-freelance
+  pass  ccss-cese-actividad
+  pass  ccss-arreglo-pago
+  pass  ccss-suspension-seguro-ti
+  pass  factura-electronica-v44
+  pass  desinscripcion-dejar-actividad
+  pass  renta-persona-fisica-deduccion
+  pass  regimen-simplificado-programador
+  pass  tribu-cr-declarar-pagar
+  pass  iva-servicios-extranjero-comprados
+  pass  iva-credito-fiscal-compras
+  pass  iva-declaracion-mensual
+  pass  iva-tarifa-general
+  pass  iva-tarifas-reducidas
+  pass  iva-momento-hecho-generador
+  pass  renta-bruta-que-incluye
+  pass  renta-tramos-2026
+  pass  renta-declaracion-plazo
+  pass  renta-pagos-parciales-retenciones
+  pass  renta-salario-y-actividad
+  pass  comprobantes-plazo-conservacion
+  pass  comprobantes-factura-vs-tiquete
+  pass  exportacion-servicios-comprobante
+  pass  iva-facturas-en-dolares
+  FAIL [fail/fail/fail]  ccss-asalariado-followup {inference}  — The answer states that the exemption from filing a tax return applies only to those with exclusively dependent work income and does not extend to those with independent income, but the fragments do not explicitly confirm or deny this extension.
+  pass  exportacion-comprobante-followup
+  pass  renta-plazo-followup
+  FAIL  iva-ajuste-bien-de-capital  — false corpus-absence claim (#500): salario base
+  pass  iva-retencion-tarjetas-porcentaje
+  pass  inscripcion-tribu-cr
+  pass  multa-iva-no-declarado
+  pass  inscripcion-tardia-sancion
+  pass  factura-primera-cabys
+  pass  ho-hacienda-solo-cliente-eeuu
+  FAIL  ho-trabajitos-por-mi-cuenta  — false corpus-absence claim (#500): BMC
+  pass  ho-donde-inscribo-ya-no-atv
+  pass  ho-desde-cuanta-plata-caja
+  pass  ho-donde-me-afilio-caja
+  pass  ho-tiquete-en-vez-de-factura
+  pass  ho-factura-electronica-o-recibo
+  pass  ho-cabys-paginas-web
+  pass  ho-cliente-espana-lleva-iva
+  pass  ho-iva-en-cero-sin-facturar
+  pass  ho-hasta-que-dia-tengo-iva
+  pass  ho-rebajar-25-sin-facturas
+  pass  ho-minimo-renta-2026
+  pass  ho-ademas-tengo-salario
+  pass  ho-minimo-caja-independiente-2026
+  pass  ho-800-mil-que-porcentaje-caja
+  pass  ho-tambien-asegurado-por-patrono
+  pass  ho-cobrar-8-anos-atras-caja
+  pass  ho-desinscribir-debiendo-declaraciones
+  pass  ho-rebajar-multa-si-pago-ya
+  pass  ho-t2-credito-iva-compras
+  pass  ho-t2-hosting-extranjero
+  pass  ho-t2-retencion-tarjetas
+  pass  ho-t2-compu-cara-iva
+  pass  ho-t2-tipo-de-cambio
+  FAIL  ho-t2-panaderia-simplificado  — false corpus-absence claim (#500): salario base
+  pass  ho-t2-arreglo-pago-caja
+  pass  ho-t2-salir-del-pais-seguro
+  pass  ho-t2-pensionado-con-actividad
+  pass  ho-t2-autorizar-contador
+  pass  ho-t2-constancia-al-dia
+  pass  ho-t2-payoneer
+  pass  t2-inscripcion-dimex
+  pass  rb-pill-inscribo-exterior
+  pass  rb-pill-cuanto-pago-independiente
+  pass  rb-pill-primera-factura
+  pass  rb-pill-asegurarme-gano-poco
+  pass  rb-pill-iva-exterior
+  pass  rb-pill-retroactivo
+  pass  rb-pill-impuesto-renta
+  pass  rb-pill-me-salgo
+  pass  rb-pill-inscribi-tarde
+  FAIL [fail/pass/fail]  rb-corto-cuanto-es-iva {inference}  — The answer states 'Los documentos oficiales no traen una tarifa única del IVA' and 'Los documentos no dicen qué bienes o servicios corresponden a cada una', but the user asked only '¿cuánto es el IVA?' which is answered by the general rate of 13% found in fragment [3]; the additional disclaimers about what the documents do not contain are unsupported negative claims.
+  pass  rb-corto-tasa-iva
+  pass  rb-corto-cuanto-pago-caja
+  pass  rb-corto-tramos-renta
+  pass  rb-corto-cuando-declaro-renta
+  pass  rb-corto-cuando-declaro-iva
+  pass  rb-corto-que-cabys
+  pass  rb-corto-multa-tarde
+  pass  rb-tilde-inscribirme-afuera
+  pass  rb-tilde-cuanto-pago-ccss
+  pass  rb-tilde-asegurarme-poquito
+  pass  rb-tilde-primera-fatura
+  pass  rb-tilde-deje-de-trabajr
+  pass  rb-spanglish-client-usa
+  pass  rb-spanglish-invoice
+  pass  rb-seguimiento-cuanto-me-toca
+  pass  rb-seguimiento-le-cobro-iva
+  FAIL  rb-seguimiento-de-cuanto-multa  — false corpus-absence claim (#500): salario base
+
+blocking cases re-asked (#474, fail on 2 of 3): 0
+failure labels (#474, recorded, not gated): contradiction 1, inference 2
+groundedness, robustness block (#502): 25/27
+  MISS  rb-corto-cuanto-es-iva ← iva-tarifa-general  «¿cuánto es el IVA?»  — The answer states 'Los documentos oficiales no traen una tarifa única del IVA' and 'Los documentos no dicen qué bienes o servicios corresponden a cada una', but the user asked only '¿cuánto es el IVA?' which is answered by the general rate of 13% found in fragment [3]; the additional disclaimers about what the documents do not contain are unsupported negative claims.
+  MISS  rb-seguimiento-de-cuanto-multa ← inscripcion-tardia-sancion  «¿Y de cuánto es la multa?»  — false corpus-absence claim (#500): salario base
+groundedness by exposure (#267):
+  first-exposure  30/32
+  promoted        7/7
+  corpus-derived  32/35
+
+adequacy (#130): 19/41
+  FAIL  tier 1  T1-G  ccss-pedir-prescripcion-cuotas  — missing: En cobro, la Administración dispone de 20 días hábiles desde el siguiente día hábil a la recepción para resolver; en verificación, la solicitud se atiende dentro del informe o de la resolución del recurso, según la fase.
+  pass  tier 1  T1-G  ccss-ventana-prescripcion-24-meses
+  FAIL  tier 1  T1-B  ccss-obligacion-ingreso-bajo  — missing: Dónde se hace la afiliación y qué se declara: el ingreso de referencia, en la sucursal de la CCSS que corresponda a la zona de adscripción.
+  pass  tier 1  T1-H  ccss-cese-actividad
+  FAIL  tier 1  T1-H  desinscripcion-dejar-actividad  — missing: Al cesar la actividad económica hay que desinscribirse del Registro de Contribuyentes; no basta con dejar de facturar.; Mientras la persona siga inscrita conserva sus obligaciones de declarar, y omitir una declaración se sanciona aunque no haya habido ingresos.
+  pass  tier 2  —  tribu-cr-declarar-pagar
+  FAIL  tier 1  T1-I  multa-iva-no-declarado  — missing: Cómo regularizar: presentar las declaraciones omitidas y pagar en TRIBU-CR, y que hacerlo antes de cualquier actuación de la Administración rebaja la sanción.
+  FAIL  tier 1  T1-I  inscripcion-tardia-sancion  — missing: Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.
+  FAIL  tier 1  T1-A  ho-hacienda-solo-cliente-eeuu  — missing: Facturar sólo a clientes del exterior no exime de inscribirse: aunque el servicio llegue a calificar como exportación exenta —lo que depende de que se consuma fuera de Costa Rica—, estar exento no es lo mismo que no ser contribuyente.; La inscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, como declaración de inscripción del Registro Único Tributario.; Omitir la declaración de inscripción se sanciona con el cincuenta por ciento (50 %) de un salario base por cada mes o fracción de atraso. (50 % | 50% | cincuenta por ciento: absent)
+  FAIL  tier 1  T1-A  ho-trabajitos-por-mi-cuenta  — missing: Los dos trámites que siguen: la declaración de inscripción del RUT en la Oficina Virtual de TRIBU-CR y la afiliación como trabajador independiente en la CCSS.
+  FAIL  tier 1  T1-A  ho-donde-inscribo-ya-no-atv  — missing: El camino dentro de la OVi hasta la declaración de inscripción y qué datos pide (actividad, fecha de inicio, domicilio).
+  FAIL  tier 1  T1-B  ho-desde-cuanta-plata-caja  — missing: Cómo se declara el ingreso de referencia y dónde se paga la cuota.
+  FAIL  tier 1  T1-B  ho-donde-me-afilio-caja  — missing: La cuota se paga mensualmente, dentro de la fecha que corresponde según la primera letra del primer apellido.
+  FAIL  tier 1  T1-C  ho-tiquete-en-vez-de-factura  — missing: Quien emite comprobantes electrónicos debe estar inscrito en el Registro Único Tributario y tener registrado un correo electrónico válido ante la Administración Tributaria.
+  FAIL  tier 1  T1-C  ho-factura-electronica-o-recibo  — missing: Las excepciones a la obligación de emitir comprobantes electrónicos son las del artículo 8 y no alcanzan a una persona física que vende bienes o presta servicios gravados con IVA.
+  pass  tier 1  T1-C  ho-cabys-paginas-web
+  FAIL  tier 1  T1-D  ho-cliente-espana-lleva-iva  — missing: La operación exenta se documenta igual, con el comprobante electrónico que corresponda.; El hecho generador ocurre al facturar o al prestar el servicio, el acto que se realice primero, no cuando el cliente paga.; La operación se documenta con factura electrónica de exportación.; Si el servicio se consume en Costa Rica, la tarifa general del impuesto es del 13 %. (13 % | 13% | trece por ciento: absent)
+  FAIL  tier 1  T1-D  ho-iva-en-cero-sin-facturar  — missing: Dónde se presenta la declaración hoy y qué pasa si ya venció el plazo.
+  pass  tier 1  T1-D  ho-hasta-que-dia-tengo-iva
+  FAIL  tier 1  T1-E  ho-rebajar-25-sin-facturas  — missing: La declaración anual se presenta en TRIBU-CR, la plataforma tributaria.
+  FAIL  tier 1  T1-E  ho-minimo-renta-2026  — missing: El período del impuesto va del 1 de enero al 31 de diciembre.; Los tramos se actualizan cada año por decreto ejecutivo; los de 2026 son del decreto N° 45333.
+  FAIL  tier 1  T1-E  ho-ademas-tengo-salario  — missing: El salario y la actividad lucrativa tributan por escalas distintas: el salario por la escala mensual de rentas del trabajo y la actividad por la escala anual de personas físicas con actividad lucrativa.; Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.; Qué se declara en la declaración anual cuando hay salario y actividad, y cómo se tratan las retenciones ya soportadas.; Los pagos parciales: cuándo se pagan y que puede pedirse su rebaja cuando la renta del período va a ser menor.
+  pass  tier 1  T1-F  ho-minimo-caja-independiente-2026
+  pass  tier 1  T1-F  ho-800-mil-que-porcentaje-caja
+  FAIL  tier 1  T1-F  ho-tambien-asegurado-por-patrono  — missing: Qué hay que hacer ante la CCSS para quedar registrado en las dos condiciones.
+  pass  tier 1  T1-G  ho-cobrar-8-anos-atras-caja
+  FAIL  tier 1  T1-H  ho-desinscribir-debiendo-declaraciones  — missing: Omitir una declaración dentro del plazo legal se sanciona con el cincuenta por ciento (50 %) de un salario base. (50 % | 50% | cincuenta por ciento: absent)
+  FAIL  tier 1  T1-I  ho-rebajar-multa-si-pago-ya  — missing: Cómo se regulariza: presentar lo omitido y pagar en TRIBU-CR antes de cualquier actuación de la Administración.
+  pass  tier 2  —  ho-t2-credito-iva-compras
+  pass  tier 2  —  ho-t2-hosting-extranjero
+  pass  tier 2  —  ho-t2-retencion-tarjetas
+  pass  tier 2  —  ho-t2-compu-cara-iva
+  pass  tier 2  —  ho-t2-tipo-de-cambio
+  pass  tier 2  —  ho-t2-panaderia-simplificado
+  pass  tier 2  —  ho-t2-arreglo-pago-caja
+  pass  tier 2  —  ho-t2-salir-del-pais-seguro
+  pass  tier 2  —  ho-t2-pensionado-con-actividad
+  pass  tier 2  —  ho-t2-autorizar-contador
+  FAIL  tier 2  —  ho-t2-constancia-al-dia  — missing: La situación tributaria se consulta en la OVi pública de TRIBU-CR, sin necesidad de usuario.
+  FAIL  tier 2  —  ho-t2-payoneer  — missing: El medio por el que se recibe el pago no cambia la regla: lo que decide es si la renta es de fuente costarricense y si la persona es contribuyente.
+  pass  tier 2  —  t2-inscripcion-dimex
+  FAIL  tier 1  T1-B  rb-pill-asegurarme-gano-poco  — missing: La obligatoriedad está en la Ley Constitutiva de la CCSS y en el Reglamento para el aseguramiento de los trabajadores independientes, no en una decisión voluntaria de la persona.; Dónde se hace la afiliación y qué se declara: el ingreso de referencia, en la sucursal de la CCSS que corresponda a la zona de adscripción.
+  FAIL  tier 1  T1-H  rb-pill-me-salgo  — missing: Mientras la persona siga inscrita conserva sus obligaciones de declarar, y omitir una declaración se sanciona aunque no haya habido ingresos.; La desinscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, en «Mis datos» → «Solicitar desinscripción», indicando motivo y fecha de cese; el antiguo formulario D-140 ya no existe.; Los pasos en la OVi: dónde está la solicitud, qué campos son obligatorios y cuál es el efecto (estado «Desinscrito», con posibilidad de reinscribirse).
+  FAIL  tier 1  T1-I  rb-pill-inscribi-tarde  — missing: Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.
+  FAIL  tier 1  T1-I  rb-corto-multa-tarde  — missing: Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.
+  FAIL  tier 1  T1-B  rb-tilde-asegurarme-poquito  — missing: La obligatoriedad está en la Ley Constitutiva de la CCSS y en el Reglamento para el aseguramiento de los trabajadores independientes, no en una decisión voluntaria de la persona.; Quien tiene muy escasa capacidad contributiva se ubica en la categoría 1 de la escala, que es exclusiva de trabajadores independientes y asegurados voluntarios.
+  FAIL  tier 1  T1-H  rb-tilde-deje-de-trabajr  — missing: Mientras la persona siga inscrita conserva sus obligaciones de declarar, y omitir una declaración se sanciona aunque no haya habido ingresos.
+  FAIL  tier 1  T1-I  rb-seguimiento-de-cuanto-multa  — missing: Subsanar de forma espontánea, antes de cualquier actuación de la Administración, rebaja la sanción en un setenta y cinco por ciento (75 %), u ochenta por ciento (80 %) si se autoliquida y paga en ese momento (CNPT artículo 88).; Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.; El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent)
+tier 1 requirements stated (#287): 86/116
+adequacy, robustness block (#502): 0/7
+  MISS  rb-pill-asegurarme-gano-poco ← ccss-obligacion-ingreso-bajo  «¿Debo asegurarme si gano poco?»  — missing: La obligatoriedad está en la Ley Constitutiva de la CCSS y en el Reglamento para el aseguramiento de los trabajadores independientes, no en una decisión voluntaria de la persona.; Dónde se hace la afiliación y qué se declara: el ingreso de referencia, en la sucursal de la CCSS que corresponda a la zona de adscripción.
+  MISS  rb-pill-me-salgo ← desinscripcion-dejar-actividad  «Dejé de trabajar, ¿cómo me salgo?»  — missing: Mientras la persona siga inscrita conserva sus obligaciones de declarar, y omitir una declaración se sanciona aunque no haya habido ingresos.; La desinscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, en «Mis datos» → «Solicitar desinscripción», indicando motivo y fecha de cese; el antiguo formulario D-140 ya no existe.; Los pasos en la OVi: dónde está la solicitud, qué campos son obligatorios y cuál es el efecto (estado «Desinscrito», con posibilidad de reinscribirse).
+  MISS  rb-pill-inscribi-tarde ← inscripcion-tardia-sancion  «Me inscribí tarde, ¿qué me pasa?»  — missing: Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.
+  MISS  rb-corto-multa-tarde ← inscripcion-tardia-sancion  «¿multa por inscribirme tarde?»  — missing: Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.
+  MISS  rb-tilde-asegurarme-poquito ← ccss-obligacion-ingreso-bajo  «tengo q asegurarme en la caja si gano poquito»  — missing: La obligatoriedad está en la Ley Constitutiva de la CCSS y en el Reglamento para el aseguramiento de los trabajadores independientes, no en una decisión voluntaria de la persona.; Quien tiene muy escasa capacidad contributiva se ubica en la categoría 1 de la escala, que es exclusiva de trabajadores independientes y asegurados voluntarios.
+  MISS  rb-tilde-deje-de-trabajr ← desinscripcion-dejar-actividad  «deje de trabajr por mi cuenta como me salgo de hacienda»  — missing: Mientras la persona siga inscrita conserva sus obligaciones de declarar, y omitir una declaración se sanciona aunque no haya habido ingresos.
+  MISS  rb-seguimiento-de-cuanto-multa ← inscripcion-tardia-sancion  «¿Y de cuánto es la multa?»  — missing: Subsanar de forma espontánea, antes de cualquier actuación de la Administración, rebaja la sanción en un setenta y cinco por ciento (75 %), u ochenta por ciento (80 %) si se autoliquida y paga en ese momento (CNPT artículo 88).; Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.; El salario base vigente en 2026 es de ¢462.200 (Circular 246-2025 de la Secretaría General de la Corte). (¢462.200 | 462.200: absent)
+  requirements stated: 24/37
+adequacy by exposure (#267):
+  first-exposure  15/32
+  promoted        2/7
+  corpus-derived  2/2
+
+false absence claims (#500): 4
+  iva-ajuste-bien-de-capital: salario base — «Los documentos no traen el monto del salario base, así que debe confirmarlo con Hacienda.»
+  ho-trabajitos-por-mi-cuenta: BMC — «Los documentos oficiales no traen el valor actual de la BMC, ni el portal o formulario específico para inscribirse en Hacienda.»
+  ho-t2-panaderia-simplificado: salario base — «Los documentos oficiales no traen el valor de un salario base en colones, ni el procedimiento para solicitar la inscripción en el régimen, ni el canal para hacerlo.»
+  rb-seguimiento-de-cuanto-multa: salario base — «Los documentos no traen el monto del salario base ni dicen cuántos meses cuenta la omisión en su caso.»
+opens with an absence claim (reported): 9/100 — factura-electronica-v44, factura-primera-cabys, ho-cabys-paginas-web, ho-minimo-caja-independiente-2026, ho-desinscribir-debiendo-declaraciones, ho-t2-constancia-al-dia, rb-pill-primera-factura, rb-corto-cuanto-es-iva, rb-tilde-primera-fatura
+typo runs (reported): 0
+
+citation invariant (#168): 0 violation(s)
+ ❯ |eval| src/lib/eval/groundedness.eval.test.ts (8 tests | 2 failed) 1831627ms
+   ❯ groundedness (eval/dataset.jsonl) (8)
+     × claims nothing absent that the corpus carries, in any answer (#500, #474) 4ms
+     × no blocking case fails on 2 of its 3 answers (#474) 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > claims nothing absent that the corpus carries, in any answer (#500, #474)
+AssertionError: false absence claims: iva-ajuste-bien-de-capital: salario base — «Los documentos no traen el monto del salario base, así que debe confirmarlo con Hacienda.»; ho-trabajitos-por-mi-cuenta: BMC — «Los documentos oficiales no traen el valor actual de la BMC, ni el portal o formulario específico para inscribirse en Hacienda.»; ho-t2-panaderia-simplificado: salario base — «Los documentos oficiales no traen el valor de un salario base en colones, ni el procedimiento para solicitar la inscripción en el régimen, ni el canal para hacerlo.»; rb-seguimiento-de-cuanto-multa: salario base — «Los documentos no traen el monto del salario base ni dicen cuántos meses cuenta la omisión en su caso.»: expected [ …(4) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "iva-ajuste-bien-de-capital: salario base — «Los documentos no traen el monto del salario base, así que debe confirmarlo con Hacienda.»",
++   "ho-trabajitos-por-mi-cuenta: BMC — «Los documentos oficiales no traen el valor actual de la BMC, ni el portal o formulario específico para inscribirse en Hacienda.»",
++   "ho-t2-panaderia-simplificado: salario base — «Los documentos oficiales no traen el valor de un salario base en colones, ni el procedimiento para solicitar la inscripción en el régimen, ni el canal para hacerlo.»",
++   "rb-seguimiento-de-cuanto-multa: salario base — «Los documentos no traen el monto del salario base ni dicen cuántos meses cuenta la omisión en su caso.»",
++ ]
+
+ ❯ src/lib/eval/groundedness.eval.test.ts:760:66
+    758|     assertFullRun();
+    759|     const claims = falseAbsenceFailures(checkedCases(results));
+    760|     expect(claims, `false absence claims: ${claims.join("; ")}`).toEqu…
+       |                                                                  ^
+    761|   });
+    762|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > no blocking case fails on 2 of its 3 answers (#474)
+AssertionError: ungrounded blocking answers: ho-trabajitos-por-mi-cuenta (answer 1: false corpus-absence claim (#500): BMC): expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "ho-trabajitos-por-mi-cuenta (answer 1: false corpus-absence claim (#500): BMC)",
++ ]
+
+ ❯ src/lib/eval/groundedness.eval.test.ts:773:73
+    771|       split().gated.map(blockingCase),
+    772|     );
+    773|     expect(failed, `ungrounded blocking answers: ${failed.join("; ")}`…
+       |                                                                         ^
+    774|       [],
+    775|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  |eval| src/lib/eval/retrieval-hitrate.eval.test.ts > retrieval hit-rate (eval/dataset.jsonl) > finds every blocking case's artículo in the answer top-k
+AssertionError: blocking eval cases missed: ho-desinscribir-debiendo-declaraciones: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "ho-desinscribir-debiendo-declaraciones",
++ ]
+
+ ❯ src/lib/eval/retrieval-hitrate.eval.test.ts:429:72
+    427|       .gated.filter((r) => r.evalCase.blocking && !r.hit)
+    428|       .map((r) => r.evalCase.id);
+    429|     expect(failed, `blocking eval cases missed: ${failed.join(", ")}`)…
+       |                                                                        ^
+    430|       [],
+    431|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  |eval| src/lib/eval/retrieval-hitrate.eval.test.ts > retrieval hit-rate (eval/dataset.jsonl) > hits at least 92% of expected artículos in the answer top-k
+AssertionError: expected 0.918918918918919 to be greater than or equal to 0.92
+ ❯ src/lib/eval/retrieval-hitrate.eval.test.ts:438:33
+    436|     const { gated } = split();
+    437|     const hits = gated.filter((r) => r.hit).length;
+    438|     expect(hits / gated.length).toBeGreaterThanOrEqual(HIT_RATE_GATE);
+       |                                 ^
+    439|   });
+    440|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  2 failed | 6 passed (8)
+      Tests  4 failed | 33 passed | 1 skipped | 2 todo (40)
+   Start at  19:56:34
+   Duration  1831.99s (tests 100%)
+
+[ELIFECYCLE] Command failed with exit code 1.
