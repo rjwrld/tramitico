@@ -1,0 +1,74 @@
+ Vitest  The "eval" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "unit" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "integration" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+
+ RUN  v5.0.3 <worktree>
+
+
+EVAL_CASES: 1/15 case(s) — ho-abs-iva-2027. Gates will fail: a subset run is a transcript read, not a measurement.
+
+abstention: 0/1
+  transcript: <worktree>/eval/runs/2026-10-08-546-547-550/round2/abstention-subset-2026-10-08T17-34-56-621Z.jsonl
+  rerank readings lost: none of 6
+false absence claims (#500): 0
+opens with an absence claim (reported): 1/1 — ho-abs-iva-2027
+typo runs (reported): 0
+  FAIL [fail/fail/fail]  model     ho-abs-iva-2027  — The assistant provided the current IVA rates in detail instead of simply declining to answer about 2027.
+abstention requirements (#502): 1/1
+  pass  ho-abs-iva-2027
+ ❯ |eval| src/lib/eval/abstention.eval.test.ts (4 tests | 3 failed | 1 todo) 14061ms
+   ❯ abstention set (eval/dataset.jsonl) (4)
+     × declines and routes on at least 90% of the abstention set 5ms
+     × claims nothing absent that the corpus carries (#500) 0ms
+     × invents no figure while declining 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |eval| src/lib/eval/abstention.eval.test.ts > abstention set (eval/dataset.jsonl) > declines and routes on at least 90% of the abstention set
+Error: EVAL_CASES selected 1 case(s) — ho-abs-iva-2027. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/abstention.eval.test.ts:210:32
+    208|   /** The first line of every gate: a scoped run measures no rate (#12…
+    209|   function assertFullRun(): void {
+    210|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    211|   }
+    212|
+ ❯ src/lib/eval/abstention.eval.test.ts:354:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  |eval| src/lib/eval/abstention.eval.test.ts > abstention set (eval/dataset.jsonl) > claims nothing absent that the corpus carries (#500)
+Error: EVAL_CASES selected 1 case(s) — ho-abs-iva-2027. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/abstention.eval.test.ts:210:32
+    208|   /** The first line of every gate: a scoped run measures no rate (#12…
+    209|   function assertFullRun(): void {
+    210|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    211|   }
+    212|
+ ❯ src/lib/eval/abstention.eval.test.ts:368:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  |eval| src/lib/eval/abstention.eval.test.ts > abstention set (eval/dataset.jsonl) > invents no figure while declining
+Error: EVAL_CASES selected 1 case(s) — ho-abs-iva-2027. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/abstention.eval.test.ts:210:32
+    208|   /** The first line of every gate: a scoped run measures no rate (#12…
+    209|   function assertFullRun(): void {
+    210|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    211|   }
+    212|
+ ❯ src/lib/eval/abstention.eval.test.ts:386:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 1 todo (4)
+   Start at  11:34:42
+   Duration  14.36s (tests 98%, transform 1%, import 1%)
+

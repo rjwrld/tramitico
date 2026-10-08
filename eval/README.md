@@ -23,7 +23,8 @@ the main checkout's `eval/transcripts/2026-10-08-final-512/`) are the next
 86/116, and its transcripts no longer replay: #530's re-ingest re-minted the
 `reglamento-iva` chunk ids they carry, and `replayChunks` in
 `src/lib/eval/replay.ts` throws on a chunk id the corpus no longer holds.
-Two identical full lanes differ by ±4 Tier 1 requirements (#457), and
+`HIT_RATE_GATE` is 0.94 since #546/#547/#550's lane read 72/74 (owner,
+2026-10-08); #512 held it at 0.92. Two identical full lanes differ by ±4 Tier 1 requirements (#457), and
 fixed-chunk replays of one prompt read 70–75 on the 2026-10-02 chunks.
 
 **Knobs.** Every knob is read at call time. Its code default is production's
@@ -101,8 +102,8 @@ label that is recorded, never gated (one more judge call per failed answer,
 cents a lane). A scoped `EVAL_CASES` run re-asks too. The robustness block
 (#502) sits outside every other gate and prints its own line in each lane. The abstention lane
 also scores `ho-abs-iva-2027`'s requirement (13 % and art. 10, cited, never
-denied); its assertion stays a todo, since #512's two lanes both read it 0/1. See «The robustness
-block».
+denied), and since #550 it asserts it: #512's two lanes read it 0/1, and #550's
+lane read it 1/1 on the claim itself. See «The robustness block».
 
 Since #503 the abstention set has 15 cases, so `ABSTENTION_GATE` (0.9) allows
 one miss, and there are 74 answerable cases outside the block (the new one is
@@ -3803,3 +3804,34 @@ replays of #511's transcript, one round, ≈US$3
 
 `answer-replay` now prints the absence openings, recorded → replayed, next to
 the false claims.
+
+## Three prompt fixes on #512's transcripts (2026-10-08, #546, #547, #550)
+
+Fixed-chunk replays of #512's lanes, a control on main's prompt and two
+rounds, ≈US$4.20
+([`runs/2026-10-08-546-547-550/README.md`](runs/2026-10-08-546-547-550/README.md)).
+The target verdicts are a human read: the judges pass every answer that
+breaks rule 3 or makes the #547 hedge.
+
+- **#546, rule 3.** It now names the two moves `rb-seguimiento-de-cuanto-multa`
+  made: multiplying a monthly fine by the reader's months, and saying whether
+  the reader's case reached a tope. Control 1/3, both rounds 3/3.
+- **#547, rules 7 and 9 and the derived-figure block.** Rule 7's widening
+  alone (round 1) moved the hedge to the sentence after the label's count:
+  1/3. Round 2 adds rule 9's «sin agregar que los documentos no dicen cómo se
+  cuenta» and tells the block that a label's count is part of what the
+  sources say: 2/3, against the control's 0/3.
+- **#550, rule 3.** A stated figure names the artículo its document gives.
+  `ho-abs-iva-2027` names art. 10 in the 13 % sentence on 3/3 (control 1/3 on
+  the claim), and `iva-tarifa-general` does on 6/6 round draws (control 0/3).
+- **Tier 1 guard** on lane 2's 27 rows: 84 → 81, no false absence claim. One
+  new first-verdict judge failure (`ho-800-mil-que-porcentaje-caja`, a rule 4
+  reading of the IVM escala no change touches) passed both re-asks.
+- **One full lane on round 2's prompt** (owner OK), which a network failure
+  (`read ETIMEDOUT` on a judge call, after 3 retries) cut inside the
+  robustness block: the 74 gated rows read groundedness 73/74, Tier 1
+  83/116 (reported, not ratcheted), hit-rate 72/74, abstention 15/15 and
+  `ho-abs-iva-2027` 1/1 on the claim. One false absence claim,
+  `factura-primera-cabys`'s CABYS opening, is an old one (9 committed runs
+  back to 2026-09-16). On the lane's 72/74, `HIT_RATE_GATE` goes to 0.94
+  (owner decision), and `ho-abs-iva-2027`'s assertion is armed.

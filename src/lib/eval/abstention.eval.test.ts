@@ -369,18 +369,25 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
     const claims = falseAbsenceFailures(checkedCases(results));
     expect(claims, `false absence claims: ${claims.join("; ")}`).toEqual([]);
   });
-  // #502: scored and printed above on every lane, not yet asserted. 17 of the
+  // #502: scored and printed above on every lane. 17 of the
   // 19 committed answers before #507 failed it, and a gate that starts red
   // decides nothing (#497). #507 and #508 have landed, and it stays a todo
   // (owner, 2026-10-08): both passing draws name «artículo 10» only in the
   // ICT transitorio sentence, not in the 13 % one, and neither ran on the
   // full pipeline with #508 and #509 merged (eval/runs/2026-10-08-507/).
   // #512's two final lanes (eval/runs/2026-10-08-final/) both failed it: each
-  // cites the 13 % and names no «artículo 10», so it is not armed. The
-  // absence half is gated already, by #500's detector.
-  it.todo(
-    "gives what an abstention case requires, and denies no artículo (#502) — 0/1 on #512's lanes",
-  );
+  // cites the 13 % and names no «artículo 10». #550's rule 3 asks a stated
+  // figure to name its artículo, and that PR's lane
+  // (eval/runs/2026-10-08-546-547-550/) passed it on the claim itself: «13% …,
+  // según el artículo 10 de la Ley del Impuesto sobre el Valor Agregado [3]».
+  // So it is armed. The absence half is gated already, by #500's detector.
+  it("gives what an abstention case requires, and denies no artículo (#502)", () => {
+    assertFullRun();
+    const unmet = results
+      .filter((r) => r.requirements !== null && r.requirements.length > 0)
+      .map((r) => `${r.evalCase.id}: ${r.requirements!.join("; ")}`);
+    expect(unmet, `requirements not met: ${unmet.join(" | ")}`).toEqual([]);
+  });
 
   it("invents no figure while declining", () => {
     assertFullRun();
