@@ -619,14 +619,19 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
    * the first person — «no calculo su caso», «no le calculo un total». Rule
    * 7 keeps the block's words out and says what to write in their place;
    * rule 8, where the voice is set, turns what the answer does not do into
-   * rule 6's remit.
+   * rule 6's remit; rule 6c says its «dígalo» is that remit too.
    */
   it("keeps the derived-figure block's words and a first-person refusal out (#557)", () => {
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
       /7\. [^\n]*Tampoco escriba las palabras con que se le entregan las cifras calculadas —«cifra derivada», «etiqueta», «marcador»—: diga la cifra, cómo se cuenta y de qué artículo sale/,
     );
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
-      /8\. [^\n]*no lo diga en primera persona \(«no calculo su caso», «no le calculo un total»\): diga quién la hace, como una remisión de la regla 6/,
+      /8\. [^\n]*no lo diga en primera persona \(«no calculo su caso», «no le calculo un total», «no la hago aquí»\): diga quién la hace, como una remisión de la regla 6/,
+    );
+    // 6c's «corríjala o dígalo» opened `ho-abs-calculo-personalizado` with
+    // «No puedo darle un total exacto» on every round 1 draw.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /6c\. [^\n]*Ese «dígalo» es la remisión misma, no una negativa en primera persona \(regla 8\): no «No puedo darle un total exacto», sino «El monto exacto de su caso lo determina Hacienda»/,
     );
     // The example carries no amount: the system prompt outlives a year's
     // salario base (#505).
