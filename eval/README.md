@@ -9,31 +9,53 @@ updates this block in the same change.
 
 **Production and the baseline** ([ADR 0023](../docs/adr/0023-eval-gates-after-sonnet-5-5.md)):
 `claude-sonnet-5-5` at `ANSWER_EFFORT=low`. The baseline run is
-[`runs/2026-10-02-full-lane/`](runs/2026-10-02-full-lane/) on main at
-3615566: groundedness 68/73, Tier 1 70/116, Tier 2 10/13. Its groundedness
-transcript (`low/groundedness-…-20261002T184323Z.jsonl`) is the input for
-`answer-replay`. Two identical full lanes differ by ±4 Tier 1 requirements
-(#457), and fixed-chunk replays of one prompt read 70–75.
+[`runs/2026-10-08-baseline/`](runs/2026-10-08-baseline/) on main at
+66a2cf9 (#511): groundedness 72/74, Tier 1 86/116, Tier 2 12/14, abstention
+14/15, hit-rate 68/74 (red), robustness block 25/27 hits, 4 false absence
+claims (red, #507's starting point). Its groundedness transcript
+(`low/groundedness-…-20261008T022706Z.jsonl`, also copied to the main
+checkout's `eval/transcripts/2026-10-08-baseline-511/`) is the input for
+`answer-replay`. The tracked baselines are still those of the previous
+run, [`runs/2026-10-02-full-lane/`](runs/2026-10-02-full-lane/): groundedness
+68/73 and Tier 1 70/116. That run was read before the robustness block,
+#503's cases and #520's re-ingest. The owner held both baselines rather
+than ratchet them to #511's 72 and 86 (2026-10-08). It was one lane, Tier 1's
++16 is unexplained with the prompt unchanged, the pipeline changes again
+before #512, and #512's two lanes re-set both.
+Two identical full lanes differ by ±4 Tier 1 requirements (#457), and
+fixed-chunk replays of one prompt read 70–75 on the 2026-10-02 chunks.
 
 **Knobs.** Every knob is read at call time. Its code default is production's
 value, except for `ANSWER_EFFORT`:
 
-| Variable                         | Default                                       | Where                        |
-| -------------------------------- | --------------------------------------------- | ---------------------------- |
-| `ANSWER_MODEL`                   | `claude-sonnet-5-5`                           | `src/lib/answer/model.ts`    |
-| `ANSWER_EFFORT`                  | unset = no effort sent; **production: `low`** | `model.ts`, Vercel env       |
-| `CONDENSE_MODEL`, `EXPAND_MODEL` | `claude-haiku-5-5`                            | `model.ts`                   |
-| `EXPAND`                         | `on` (needs `ANTHROPIC_API_KEY`)              | `src/lib/answer/expand.ts`   |
-| `STEPS`                          | `on`                                          | `src/lib/answer/steps.ts`    |
-| `STEPS_RERANK`                   | `pin1` (`pin`, `slot`, `max`, `off`)          | `src/lib/answer/rerank.ts`   |
-| `RERANK`                         | `voyage`; `off` = the fused-only order        | `rerank.ts`                  |
-| `RERANK_MODEL`                   | `rerank-2.5-lite`                             | `rerank.ts`                  |
-| `ANSWER_TOP_K`                   | `8`                                           | `rerank.ts`                  |
-| `ANSWER_DOC_CAP`                 | `off`                                         | `rerank.ts`                  |
-| `PIN_DERIVED_INPUTS`             | `on` (since #344)                             | `src/lib/answer/derived.ts`  |
-| `EVAL_CASES`                     | every case; comma-separated ids scope a lane  | `src/lib/eval/subset.ts`     |
-| `EVAL_TRANSCRIPT_DIR`            | `eval/transcripts/`                           | `src/lib/eval/transcript.ts` |
-| `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites     | `src/lib/eval/rewrites.ts`   |
+| Variable                         | Default                                        | Where                        |
+| -------------------------------- | ---------------------------------------------- | ---------------------------- |
+| `ANSWER_MODEL`                   | `claude-sonnet-5-5`                            | `src/lib/answer/model.ts`    |
+| `ANSWER_EFFORT`                  | unset = no effort sent; **production: `low`**² | `model.ts`, Vercel env       |
+| `CONDENSE_MODEL`, `EXPAND_MODEL` | `claude-haiku-5-5`                             | `model.ts`                   |
+| `EXPAND`                         | `on` (needs `ANTHROPIC_API_KEY`)               | `src/lib/answer/expand.ts`   |
+| `STEPS`                          | `on`                                           | `src/lib/answer/steps.ts`    |
+| `STEPS_RERANK`                   | `pin1` (`pin`, `slot`, `max`, `off`)           | `src/lib/answer/rerank.ts`   |
+| `RERANK`                         | `voyage`; `off` = the fused-only order         | `rerank.ts`                  |
+| `RERANK_MODEL`                   | `rerank-2.5-lite`                              | `rerank.ts`                  |
+| `ANSWER_TOP_K`                   | `8`                                            | `rerank.ts`                  |
+| `ANSWER_DOC_CAP`                 | `off`                                          | `rerank.ts`                  |
+| `PIN_DERIVED_INPUTS`             | `on` (since #344)                              | `src/lib/answer/derived.ts`  |
+| `EVAL_CASES`                     | every case; comma-separated ids scope a lane¹  | `src/lib/eval/subset.ts`     |
+| `EVAL_TRANSCRIPT_DIR`            | `eval/transcripts/`                            | `src/lib/eval/transcript.ts` |
+| `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites      | `src/lib/eval/rewrites.ts`   |
+
+¹ The groundedness, hit-rate and abstention lanes read it; the others ignore it.
+Each lane scopes to its own cases, and an id it does not run throws before
+the first paid call. Abstention ids therefore go to `abstention.eval.test.ts`
+alone, the rest to the other two: one `EVAL_CASES` mixing both fails every
+lane it is run with.
+
+² Checked by the owner on 2026-10-08 (#504). The Production value is marked
+Sensitive in Vercel, so it can't be read back. The dashboard shows it added on
+2026-09-29 and never updated since. That is the day #451 ran
+`printf low | vercel env add ANSWER_EFFORT production`. #402's `medium` predates
+it, so don't read the production value from notes older than #451.
 
 The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`)
 accept only the values above, `ANSWER_EFFORT` only `low`, `medium`, `high`,
@@ -51,28 +73,45 @@ arm sets it, or the arm measures a configuration production doesn't run.
 **What each suite spends.**
 
 - Answer model plus judges (`JUDGE_MODEL` in `src/lib/eval/groundedness.ts`):
-  groundedness (the bulk of a run), abstention, conflicting-sources and
+  groundedness (the bulk of a run, and where adequacy and Tier 1/Tier 2 are
+  judged, on the lane's own answers), abstention, conflicting-sources and
   amending-law.
-- Judges only, on fixed fixtures: adequacy.
+- Judges only, on fixed fixtures: the adequacy calibration suite
+  (`adequacy.eval.test.ts`), which pins the judges on one hand-written answer
+  pair. It gates no live answer.
 - Embeddings, rerank and expansion only: the retrieval-hitrate and
   `src/lib/retrieval.eval.test.ts` suites.
 - Database read only: dataset-satisfiability.
 
-The gate constants are `GROUNDEDNESS_GATE` (`groundedness.ts`), `HIT_RATE_GATE`
+The gate constants are `GROUNDEDNESS_BASELINE` (`groundedness.ts`), `HIT_RATE_GATE`
 (`retrieval-hitrate.eval.test.ts`), `ABSTENTION_GATE`
 (`abstention.eval.test.ts`), `ADEQUACY_TIER2_GATE` with
 `TIER1_REQUIREMENT_BASELINE` (`adequacy.ts`), and `ROBUSTNESS_HIT_BASELINE`
-(`robustness.ts`, unset until #511). The robustness block (#502) sits outside
-every other gate and prints its own line in each lane. The abstention lane
+(`robustness.ts`, 25 since #511). Groundedness and Tier 1 are tracked
+baselines: a lane fails only more than 4 below one (groundedness 68 grounded
+answers, so ≤ 63, read over 74 cases since #503; Tier 1 70, so ≤ 65), and a
+lane that beats one raises it, unless the owner holds it, as for #511's
+lane. A blocking case fails groundedness
+on 2 of 3 answers: the lane re-asks a failing one twice (#474, about US$0.50 a
+lane), and each failure the judges make carries a `contradiction`/`inference`
+label that is recorded, never gated (one more judge call per failed answer,
+cents a lane). A scoped `EVAL_CASES` run re-asks too. The robustness block
+(#502) sits outside every other gate and prints its own line in each lane. The abstention lane
 also scores `ho-abs-iva-2027`'s requirement (13 % and art. 10, cited, never
 denied); its assertion is a todo until #507 and #508. See «The robustness
 block».
+
+Since #503 the abstention set has 15 cases, so `ABSTENTION_GATE` (0.9) allows
+one miss, and there are 74 answerable cases outside the block (the new one is
+Tier 2, so Tier 2 reads out of 14). `src/lib/eval/routing-dataset.test.ts` runs `classifyRouting`
+over every case in the unit lane, for free. See «Routed cases».
 
 Two gates are zero, with no constant. One is the citation invariant. The other,
 since #500, is false corpus-absence claims: an answer that says the documents
 lack an artículo or a listed figure that `corpus-index.json` covers
 (`src/lib/eval/absence.ts`). In the groundedness and abstention lanes, such a
-case fails whatever the judge said, and the lane lists it. Each lane also
+case fails whatever the judge said, and the lane lists it. It wins over the
+2-of-3 rule: a re-asked answer that makes one fails its case too. Each lane also
 reports, without gating, the answers that open with an absence claim and any
 typo runs (`src/lib/eval/answer-checks.ts`). The detector's precision read is on
 #500: 66 of 67 hits on the committed runs were true.
@@ -84,7 +123,7 @@ arm at a time, and smoke three cases before a full lane:
 # smoke, cents
 ANSWER_EFFORT=low EVAL_CASES=<a>,<b>,<c> EVAL_TRANSCRIPT_DIR=eval/runs/<date>-<topic>/smoke \
   pnpm vitest run --project eval --disableConsoleIntercept src/lib/eval/groundedness.eval.test.ts
-# full lane, ≈US$7: every eval suite
+# full lane, ≈US$10 since the robustness block (#511): every eval suite
 ANSWER_EFFORT=low EVAL_TRANSCRIPT_DIR=eval/runs/<date>-<topic>/<arm> \
   nohup pnpm test:eval --disableConsoleIntercept > eval/runs/<date>-<topic>/<arm>-$(date -u +%Y%m%dT%H%M%SZ).log 2>&1 &
 ```
@@ -909,9 +948,31 @@ model (`ANSWER_MODEL`, default Sonnet) with the production system prompt —
 and asks an LLM judge at temperature 0: _is this answer supported by the
 retrieved chunks?_ A failed item is re-judged twice more and the majority
 verdict stands, absorbing judge flakiness at n≈25 without loosening the gate.
-**Blocking gate: ≥94% pass** (`GROUNDEDNESS_GATE` in
-`src/lib/eval/groundedness.ts`) — started at 90% per #14, ratcheted by the 2026
-baseline (#267, 70/73); ratchet up, never down.
+The gate started at ≥90% per #14 and ratcheted to ≥94% on the 2026 baseline
+(#267, 70/73). Since #474 ([ADR 0023's amendment](../docs/adr/0023-eval-gates-after-sonnet-5-5.md#amendment-2026-10-07-474-groundedness-and-the-blocking-gate))
+it is a **tracked baseline of 68/73, failing at ≤ 63** (`GROUNDEDNESS_BASELINE`,
+`GROUNDEDNESS_FLOOR` in `src/lib/eval/groundedness.ts`). It counts the judges'
+verdict on each case's first answer, before #500's override, as the 68 was
+measured: seven of that lane's judge passes make a claim the detector now
+calls false, and those fail the zero gate, not the count. A lane that beats
+the baseline raises it. The 68 was read over 73 cases; #503 added
+`t2-inscripcion-dimex`, so the lane counts over 74 (`GROUNDEDNESS_CASES`) and
+the baseline and floor stay absolute counts. #511 was the first read over 74.
+It read 72, and the owner held the baseline at 68 until #512 re-sets it.
+
+A blocking case fails on **2 of 3 answers**. When its first answer fails, the
+lane runs the whole pipeline on it twice more and judges each new answer the
+same way (`BLOCKING_REASK_COUNT`, `blockingCaseVerdict`). An answer the route
+would refuse — #168's citation invariant, #281's derived figures — counts as
+a failing one (`scoreAnswer`, an orchestrator call in #521's review). The
+console prints each re-ask under its case, and the transcript row carries them
+in `reasks`. A false absence claim (#500) on any of the three fails the case,
+and a first answer that makes one is not re-asked. If any answer or judge call
+throws, the transcript is written before the run fails (`runThenRecord`), so
+the rows already paid for survive. Each answer the judges fail
+also gets a `contradiction`/`inference` label from a second call to the pinned
+judge (`labelFailure`), in the row's `groundedness.label` and the console's
+tally. It gates nothing until it agrees with a human read of #512's failures.
 
 The judge is pinned (`JUDGE_MODEL`, Sonnet 4.5 — it accepts temperature 0,
 which Sonnet 5 rejects; [ADR 0007](../docs/adr/0007-groundedness-judge-model.md))
@@ -1055,6 +1116,9 @@ case also carries its place in the coverage contract of the #254 map:
 - `routeTo` — the institution or professional an abstention must name. Also
   **required on an abstention case**: the verdict has two halves, and without a
   named destination there is nothing to check the routing against.
+- `routedCategory` — what `classifyRouting` must make of an abstention case:
+  the category the deterministic decline links on weak retrieval (#503).
+  **Required on an abstention case** and refused on any other.
 - `freshness` — docKeys whose figures the answer depends on: the ones a decree
   cycle invalidates.
 - `heldOut` — membership in the held-out set of #261 part B, and `variant` —
@@ -1089,11 +1153,19 @@ decline on a case that declares required claims is an adequacy failure**
 without the rule the honest fallback would be a way to score full marks on a
 question the product promised to answer.
 
-Thresholds: **tier 1 is per-case blocking** (100 %, no rate — a strong average
-must never hide a red Tier 1 case), tier 2 is an aggregate
-`ADEQUACY_TIER2_GATE` of 0.8. Both run inside `groundedness.eval.test.ts`,
-which already has the answers, so the gate costs judge calls rather than a
-second pass of the whole pipeline.
+Thresholds, as #130 first set them: **tier 1 per-case blocking** (100 %, no
+rate — a strong average must never hide a red Tier 1 case), tier 2 an aggregate
+`ADEQUACY_TIER2_GATE` of 0.8. Neither holds today:
+
+- **Tier 2:** the closing run ratcheted `ADEQUACY_TIER2_GATE` to **0.84**
+  (`adequacy.ts`; see «The closing run»).
+- **Tier 1:** since [ADR 0023](../docs/adr/0023-eval-gates-after-sonnet-5-5.md),
+  Tier 1 is a tracked baseline of requirements stated, not of cases fully
+  adequate (`TIER1_REQUIREMENT_BASELINE`, `TIER1_REQUIREMENT_FLOOR`; today's
+  values are in the Quick reference). The 27/27 count is reported, not gated.
+
+Both run inside `groundedness.eval.test.ts`, which already has the answers, so
+the gate costs judge calls rather than a second pass of the whole pipeline.
 
 `src/lib/eval/adequacy.eval.test.ts` is the fixture that pins the behavior:
 a hand-written CCSS answer, supported by its fragments and missing the rate,
@@ -1103,7 +1175,7 @@ visible. It needs no database and no embeddings:
 
 ```sh
 ANTHROPIC_API_KEY=<key> \
-pnpm vitest run --disableConsoleIntercept src/lib/eval/adequacy.eval.test.ts
+pnpm vitest run --project eval --disableConsoleIntercept src/lib/eval/adequacy.eval.test.ts
 ```
 
 ### The abstention lane (#261)
@@ -1111,8 +1183,9 @@ pnpm vitest run --disableConsoleIntercept src/lib/eval/adequacy.eval.test.ts
 `src/lib/eval/abstention.eval.test.ts` runs the `"abstain"` cases through the
 same production path and asks the binary question: did it decline, **and** did
 it name where to go? Both routes are measured — the deterministic
-weak-retrieval fallback and, when a question's vocabulary retrieves well
-anyway, rule 6 of the answer prompt. Gate: correct abstention ≥ 90 %
+weak-retrieval fallback, routed by `classifyRouting` as the route routes it
+(#503; it streamed the general decline before), and, when a question's
+vocabulary retrieves well anyway, rule 6 of the answer prompt. Gate: correct abstention ≥ 90 %
 (`ABSTENTION_GATE`), and **zero invented figures** (`figureMentions`), since an
 answer with no fragments behind it that prints a colón amount or a percentage
 made it up.
@@ -1294,7 +1367,11 @@ worse than no number. Two things prevent it, both loud:
 
 An id that matches no case throws **before the first paid call**: a typo that
 silently selected zero cases would print an empty table and spend the money
-anyway.
+anyway. Each lane checks against its own cases, so an abstention id fails the
+groundedness and hit-rate lanes, and any other id fails the abstention lane.
+Since #521 the abstention lane honours `EVAL_CASES` the same way (its
+transcript becomes `abstention-subset-<instant>.jsonl`); before, it ignored
+the variable, and #508 paid for all nine cases to read one.
 
 ### The six-case read, and what it corrected (#289)
 
@@ -3443,9 +3520,9 @@ A hard gate that starts red decides nothing, which is #474's complaint about
 the gates we already have. So the block is gated like Tier 1 since ADR 0023:
 the count of block cases that hit must not fall more than
 `ROBUSTNESS_REGRESSION_MARGIN` (2) below `ROBUSTNESS_HIT_BASELINE`
-(`src/lib/eval/robustness.ts`). #511's full lane sets the baseline, and a
-lane that beats it moves it up. Until then the hit-rate lane prints the line
-and shows the gate as a todo. The block's requirement count prints in the
+(`src/lib/eval/robustness.ts`). #511's full lane set the baseline at 25 of
+27, and a lane that beats it moves it up. Before it, the hit-rate lane
+printed the line and showed the gate as a todo. The block's requirement count prints in the
 groundedness lane and is not gated.
 
 **`ho-abs-iva-2027` gains a requirement.** It still declines a 2027 rate. Now
@@ -3492,3 +3569,124 @@ both rewrite models, route configuration):
 copied from held-out cases, against «The held-out set» rule above. The block
 does not repair that; the repair needs questions nobody on the project wrote
 (#506).
+
+## Routed cases (2026-10-07, #503)
+
+Routing runs only on weak retrieval (`route.ts`), and all 126 abstention rows on
+record took the model path. So no lane had exercised the deterministic decline,
+and the nine abstention cases named no Migración, INS or COSEVI destination.
+
+**Decision (owner, on #503): no early decline.** A keyword decline before
+generation would turn away answerable questions, because an out-of-scope hit
+outranks Hacienda vocabulary. ADR 0017's amendment records it.
+
+**The cases.** Six routed abstentions and one answerable case, all with
+`seed: "routing"`. They were written after the #267 baseline, so they are neither
+held out nor part of the corpus-derived band.
+
+| Case                        | Question                                                                    | `routedCategory`   |
+| --------------------------- | --------------------------------------------------------------------------- | ------------------ |
+| `abs-pasaporte-renovar`     | ¿Cómo renuevo mi pasaporte?                                                 | `migracion`        |
+| `abs-dimex-sacar`           | ¿Cómo saco el DIMEX?                                                        | `migracion`        |
+| `abs-residencia-permanente` | ¿Qué requisitos piden para la residencia permanente?                        | `migracion`        |
+| `abs-ins-riesgos-trabajo`   | ¿Tengo que sacar el seguro de riesgos del trabajo si trabajo por mi cuenta? | `ins`              |
+| `abs-licencia-conducir`     | ¿Cómo renuevo la licencia de conducir?                                      | `cosevi` (new)     |
+| `abs-patente-comercial`     | ¿Dónde saco la patente comercial para mi negocio?                           | `municipal`        |
+| `t2-inscripcion-dimex`      | ¿Puedo inscribirme en Hacienda con mi DIMEX?                                | answerable, Tier 2 |
+
+`t2-inscripcion-dimex` is the case that must not route. `tribu-cr-faq`
+answers it (RUT · 1 and · 3), and `classifyRouting` reads it as `migracion`.
+`abs-patente-comercial` sits beside `ho-abs-patente-municipal` because it says
+«patente» without «municipal». The table had no destination for licences, so
+`cosevi` (Consejo de Seguridad Vial) joined it, with phrases only.
+
+**The gate.** `ABSTENTION_GATE` stays 0.9, now over 15 cases, so one miss is
+allowed. A real routing bug would show in more than one case.
+
+**The free test.** `src/lib/eval/routing-dataset.test.ts` asserts that every
+abstention case classifies to its `routedCategory`. It also prints, without
+failing, the answerable cases the classifier reads as out of scope (pass
+`--silent=false` to see the line). Today that is `t2-inscripcion-dimex` →
+`migracion` and `ho-t2-autorizar-contador` → `contadores`, both harmless while
+routing waits for weak retrieval.
+
+**A lane fix.** On weak retrieval the abstention lane streamed
+`WEAK_RETRIEVAL_ANSWER`, the general decline, where production streams
+`declineAnswer(classifyRouting(query))`. A pasaporte case that came back weak
+would have been judged on a decline that sends the reader to Hacienda. The lane
+now streams the route's text.
+
+No paid run: the routed cases first run in the next authorized lane (#511).
+
+## The total-loss fallback keeps the fused order (2026-10-07, #510)
+
+> Two `pnpm answer-set-probe` arms under `RERANK=off`, the fallback path a
+> total loss takes, on #502's replayed rewrites, so both cut identical pools.
+> Voyage embeddings only, well under US$0.01. Rows in
+> [`runs/2026-10-07-510/`](runs/2026-10-07-510/).
+
+When every rerank reading is lost, the answer set is the top 8 of the fused
+pool, where the step catalogue's legs weigh as much as the question's and the
+expansion's. #510 measured a fallback with the step legs taken out. Under the
+route's configuration, outside the robustness block:
+
+| Fallback order      | Tier 1 targets | Tier 2 targets | Cases hit |
+| ------------------- | -------------- | -------------- | --------- |
+| Fused (kept)        | **57/93**      | 61/98          | 63/73     |
+| Step legs taken out | 47/93          | 62/98          | 65/73     |
+
+- Tier 1 loses 16 targets and gains 6. The losses are step chunks, among
+  them `cnpt` 78 and 88 and the salario base on `inscripcion-tardia-sancion`,
+  the `ccss-prescripcion` entries and `reglamento-comprobantes` 4 and 9. On a
+  total loss there is no `pin1` pick, so the step legs are a step chunk's
+  only way into the set.
+- `search_chunks` does not return the coverage that scales a lexical leg, so
+  the exact step-free sum cannot be rebuilt in code. In the run README's
+  offline reads, every variant that keeps the coverage weighting lands at
+  39–42 Tier 1 targets before the pin, against 49.
+- #490 item 1, «¿Cuánto pago como independiente?», misses on both orders. Its
+  fused head is all step-leg chunks, and taking them out brings
+  `ccss-prescripcion` entries, not the escalas. The rerank and #509 are its
+  fixes.
+
+## The baseline lane (2026-10-08, #511)
+
+The first full lane since #496 moved the rewrites to Haiku 5.5, and the
+first over the robustness block, #503's routed cases and #520's re-ingest.
+It ran on main at 66a2cf9 with production's configuration
+(`ANSWER_EFFORT=low`, every other knob at its default). The setup, every
+gate and the per-case reads are in
+[`runs/2026-10-08-baseline/README.md`](runs/2026-10-08-baseline/README.md).
+There was no provider error and no rerank reading lost (0 of 1,090).
+
+- **Groundedness 72/74** by the judges' first verdict.
+- **Tier 1 86/116**, +16 on the 2026-10-02 lane with the answer prompt
+  unchanged. `requirement-coverage` reads the old transcript at 70 still, so
+  the gain is in the answers.
+- **No ratchet** (owner, 2026-10-08). Both baselines stay at 68 and 70: it
+  was one lane, the +16 is unexplained, the pipeline changes again before
+  #512 (Track 2 and #507), and #512's two lanes re-set both.
+- **Tier 2 12/14, abstention 14/15**, citation invariant 0, derived figures
+  green.
+- **False absence claims: 4**, one in a blocking case
+  (`ho-trabajitos-por-mi-cuenta`), and that claim is the blocking gate's only
+  red. This is #507's starting point, not a regression.
+- **Hit-rate 68/74 (91.9%), red** by a fraction of one case. Its blocking
+  miss, `ho-desinscribir-debiendo-declaraciones`, hit in the groundedness
+  lane's own retrieval of the same case, so it is expansion variance.
+- **Robustness block: 25/27 hits**, which becomes `ROBUSTNESS_HIT_BASELINE`
+  (floor 23).
+- **Routed cases:** all six routed abstentions pass on the model path.
+  `ho-abs-calculo-personalizado` and `ho-abs-sociedad-inactiva` pass on main.
+
+**The `RERANK=off` probe arm** (≈US$0.05, run after the lane with the owner's
+OK) measures what production's fused-only order, from 2026-09-15 to #498,
+cost against this lane's rerank. It was compared under the route's
+configuration, and both sides carry their own live expansion:
+
+- Tier 1 targets in the answer set fell from 62/93 to 58/93 (9 lost, 5
+  gained, every Tier 1 case still hit).
+- Hits outside the block fell from 68/74 to 64/74. Seven Tier 2 cases lost
+  every target.
+- The robustness block fell from 25/27 to 21/27, including «¿Cuánto pago
+  como independiente?».

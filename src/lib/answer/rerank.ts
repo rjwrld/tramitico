@@ -8,7 +8,8 @@
  * knobs.ts): production ran unreranked from launch to #498 because the
  * wizard wrote `RERANK=on` and this module read it as off without a word.
  * Any rerank failure — missing key, HTTP error, timeout — falls back to the
- * fused order. Reranking must never fail the ask.
+ * fused order, step legs included (#510, `answerSetFromOrder`). Reranking
+ * must never fail the ask.
  *
  * Since #287 the Voyage call asks for the *whole* pool in rank order rather
  * than only its top 8, and the cut to the answer set happens here. Voyage
@@ -647,6 +648,15 @@ export async function rerankOrder(
  * was already adding, and the step target it displaced (`cnpt` 88) was lost
  * (eval/runs/2026-10-02-460/). Under `slot` (#287) the picks take the cut's
  * last places instead (`slotSteps`), and the set keeps its size.
+ *
+ * The fused order is cut as retrieval returned it, with the step catalogue's
+ * legs (#304) weighing as much as the question's and the expansion's. That
+ * can make the set step-shaped (#490 item 1), and #510 measured the
+ * alternative: the same pools re-sorted with the step legs' share taken out
+ * carried 47 of 93 Tier 1 targets against the fused order's 57. A total loss
+ * has no step picks either, so the step legs are the only way the steps the
+ * catalogue exists to carry reach the set (eval/runs/2026-10-07-510/). The
+ * fallback stays the fused order.
  */
 export function answerSetFromOrder(
   order: readonly RerankedChunk[] | null,

@@ -16,6 +16,7 @@ import {
   type Chunk,
   type ChunkOptions,
 } from "./chunker";
+import type { YearFigure } from "../vigencia";
 import {
   persistDocument,
   type DocumentRowClient,
@@ -30,6 +31,8 @@ export interface IngestableDocument {
   source: unknown;
   effective_date?: string | null;
   chunking?: ChunkOptions;
+  /** Artículos stating one fiscal year's figures (#518). */
+  yearFigures?: readonly YearFigure[];
 }
 
 /** The slice of `Embedder` a document ingest uses — the batched one. */
@@ -82,6 +85,7 @@ export async function ingestChunks(
   chunks: Chunk[],
 ): Promise<number> {
   assertChunksCarryContent(doc.doc_key, chunks);
+  assertYearFigureEvidence(doc.doc_key, chunks, doc.yearFigures ?? []);
 
   const embeddings: number[][] = [];
   for (let i = 0; i < chunks.length; i += EMBED_BATCH) {
@@ -111,4 +115,37 @@ export async function ingestChunks(
   );
 
   return chunks.length;
+}
+
+/**
+ * Throws — before anything is embedded or written — unless every
+ * `yearFigures` artículo is still in the crawl and each of its chunks carries
+ * its evidence (#518). Retrieval matches a listed artículo by its heading, so
+ * a heading the publisher renamed would let the figure through unlisted; and
+ * it serves only chunks carrying the evidence, so a crawl that moved to a new
+ * year under the old declaration would ingest text withheld for good. Either
+ * way the manifest and the text have parted, and the owner re-reads the
+ * source before the run can go on (runbook §2.2).
+ */
+export function assertYearFigureEvidence(
+  docKey: string,
+  chunks: readonly Chunk[],
+  yearFigures: readonly YearFigure[],
+): void {
+  for (const figure of yearFigures) {
+    const own = chunks.filter((chunk) => chunk.articulo === figure.articulo);
+    if (own.length === 0) {
+      throw new Error(
+        `${docKey}: yearFigures lists «${figure.articulo}», but the crawl has no chunk with that heading — re-read the source and update the manifest (#518)`,
+      );
+    }
+    const lacking = own.filter(
+      (chunk) => !chunk.content.includes(figure.evidence),
+    );
+    if (lacking.length > 0) {
+      throw new Error(
+        `${docKey}: «${figure.articulo}» part(s) ${lacking.map((chunk) => chunk.part).join(", ")} no longer carry «${figure.evidence}», the evidence for its ${figure.fiscalYear} figures — if the source moved to a new year, set fiscalYear and evidence to match it (#518, runbook §2.2)`,
+      );
+    }
+  }
 }

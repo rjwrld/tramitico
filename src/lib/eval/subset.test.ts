@@ -1,5 +1,11 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import type { EvalCase } from "./dataset";
+import {
+  abstentionCases,
+  DATASET_PATH,
+  parseDataset,
+  type EvalCase,
+} from "./dataset";
 import {
   SUBSET_ENV,
   selectCases,
@@ -51,6 +57,24 @@ describe("selectCases", () => {
 
   it("collapses a repeated id", () => {
     expect(selectCases(CASES, ["b", "b"]).map((c) => c.id)).toEqual(["b"]);
+  });
+
+  it("selects an abstention case from the abstention lane's population", () => {
+    const abstention = abstentionCases(
+      parseDataset(readFileSync(DATASET_PATH, "utf8")),
+    );
+    expect(
+      selectCases(abstention, ["ho-abs-iva-2027"]).map((c) => c.id),
+    ).toEqual(["ho-abs-iva-2027"]);
+  });
+
+  it("throws on an id another lane runs, saying it may be one", () => {
+    const abstention = abstentionCases(
+      parseDataset(readFileSync(DATASET_PATH, "utf8")),
+    );
+    expect(() => selectCases(abstention, ["ccss-cuanto-pago-base"])).toThrow(
+      /ccss-cuanto-pago-base — a typo, or a case another lane runs/,
+    );
   });
 
   it("throws on an id no case carries, naming it", () => {
