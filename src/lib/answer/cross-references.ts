@@ -39,10 +39,12 @@ import { isWithheld, withheldSources, type WithheldSources } from "../vigencia";
 /**
  * At most this many chunks are appended. Each fragment the model reads is one
  * more it can cite wrongly: #304's `pin` appended up to three and groundedness
- * fell 71 → 67 on fragments cited in the wrong place (ADR 0020). Two covers
- * art. 30's two siblings (arts. 4 and 10), the widest the measured cases need.
+ * fell 71 → 67 on fragments cited in the wrong place (ADR 0020). #508 allowed
+ * two; the probe measured one (eval/runs/2026-10-07-508/): a second slot
+ * filled on 71 of 109 answer sets and brought no expected target any case
+ * lacked.
  */
-export const CROSS_REFERENCE_CAP = 2;
+export const CROSS_REFERENCE_CAP = 1;
 
 /**
  * Candidates read from the answer set before the database is asked: a bound
@@ -56,6 +58,12 @@ export interface ArticuloReference {
   docKey: string;
   /** «10», «11 BIS» — `articuloKey` of the label it should match. */
   articulo: string;
+  /**
+   * The clause defers a figure to it — «la tarifa referida en el artículo
+   * 10». Those are read first: a figure the model cannot see is the false
+   * «not in the documents» claim #490 found.
+   */
+  figure?: boolean;
 }
 
 /** What `crossReferences` needs to know about the corpus's documents. */
@@ -139,6 +147,13 @@ const SEPARATOR = /^(?: ?, ?(?:y |e )?| y | e )/;
 const SUBDIVISION =
   /^,? ?(?:ambos|inciso|incisos|apartado|apartados|aparte|denominado|parrafo|parrafos|numeral|numerales|subinciso|subincisos|literal)\b(?:[^.;:]|\.(?=\d)){0,80}?(?= del? )/;
 
+// The words before a reference that say it defers a figure: «la tarifa
+// referida en el artículo 10», «el porcentaje a que se refiere el artículo
+// 29». Read on the clause before the reference, up to the last sentence or
+// clause break.
+const FIGURE_WORDS =
+  /\b(?:tarifa|tarifas|tasa|tasas|porcentaje|porcentajes|monto|montos|cuota|cuotas|escala|tramo|tramos|base imponible|base minima)\b[^.;:]{0,80}$/;
+
 // SINALEVI's editorial marks, «el artículo 46 (*) de esta Ley».
 const EDITORIAL_MARK = /^ ?\(\*+\)/;
 const DEFINED_TERM =
@@ -221,8 +236,7 @@ export function crossReferences(
   const body = chunk.content.replace(/^\[[^\]]*\]\s*/, "");
   const folded = fold(body);
 
-  const found: ArticuloReference[] = [];
-  const seen = new Set<string>();
+  const found = new Map<string, ArticuloReference>();
   for (const match of folded.matchAll(/\barticulos? /g)) {
     let at = match.index + match[0].length;
     const numbers: string[] = [];
@@ -246,15 +260,25 @@ export function crossReferences(
     const target = classifyTail(folded.slice(at), regulated);
     if (target === "none") continue;
     const docKey = target === "self" ? chunk.docKey : lawKey;
+    const clause = folded.slice(Math.max(0, match.index - 120), match.index);
+    const figure = FIGURE_WORDS.test(clause);
     for (const articulo of numbers) {
       if (docKey === chunk.docKey && articulo === own) continue;
       const key = `${docKey}\u0000${articulo}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      found.push({ docKey, articulo });
+      const earlier = found.get(key);
+      // Named twice, once deferring a figure: it keeps its first place and
+      // the figure's precedence.
+      if (earlier !== undefined) {
+        if (figure) earlier.figure = true;
+        continue;
+      }
+      found.set(
+        key,
+        figure ? { docKey, articulo, figure } : { docKey, articulo },
+      );
     }
   }
-  return found;
+  return [...found.values()];
 }
 
 /**
@@ -378,8 +402,9 @@ export interface CrossReferenceOptions {
 
 /**
  * The chunks the answer set's references bring, at most
- * `CROSS_REFERENCE_CAP`, in the order the set names them: the set's own
- * order, then each chunk's text order. Only the set the rerank cut is read,
+ * `CROSS_REFERENCE_CAP`: a reference that defers a figure first («la tarifa
+ * referida en el artículo 10»), then the order the set names them — the
+ * set's own order, then each chunk's text order. Only the set the rerank cut is read,
  * never what this appends, so one reference cannot chain into the next. An
  * artículo already in the set — any part of it — is not fetched again. The
  * pool the reranker read is tried first; the database only for the rest.
@@ -400,16 +425,21 @@ export async function crossReferencedChunks(
       (chunk) => `${chunk.docKey}\u0000${articuloKey(chunk.articulo)}`,
     ),
   );
-  const candidates: ArticuloReference[] = [];
+  const candidates = new Map<string, ArticuloReference>();
   for (const chunk of answerSet) {
     for (const reference of crossReferences(chunk, options.links)) {
       const key = `${reference.docKey}\u0000${reference.articulo}`;
       if (present.has(key) || isWithheld(withheld, reference.docKey)) continue;
-      present.add(key);
-      candidates.push(reference);
+      const earlier = candidates.get(key);
+      if (earlier === undefined) candidates.set(key, { ...reference });
+      else if (reference.figure) earlier.figure = true;
     }
   }
-  const bounded = candidates.slice(0, CANDIDATE_LIMIT);
+  // A reference that defers a figure first, then the set's order (a stable
+  // sort keeps it within each group).
+  const bounded = [...candidates.values()]
+    .sort((a, b) => Number(b.figure ?? false) - Number(a.figure ?? false))
+    .slice(0, CANDIDATE_LIMIT);
   if (bounded.length === 0) return [];
 
   const matches = (chunk: RetrievedChunk, reference: ArticuloReference) =>

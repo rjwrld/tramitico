@@ -7,7 +7,7 @@
  * never against each other's output, so neither can chain into the other:
  *
  * 1. In-document cross-references (#508, ADR 0024): an artículo the set
- *    names, «la tarifa referida en el artículo 10», at most two.
+ *    names, «la tarifa referida en el artículo 10», at most one.
  * 2. Derived-figure inputs (#287, ADR 0018): the sibling of a figure input
  *    that survived the cut.
  *

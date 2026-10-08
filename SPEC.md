@@ -275,6 +275,13 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   gate, while one pick tied the unpinned mode on groundedness and stated 83/116 Tier 1
   requirements against 71/116 —
   **[ADR 0020](docs/adr/0020-step-catalogue-legs.md)**.
+- **Cross-references (#508, amends this section):** after the cut, an artículo the answer set
+  names inside its own instrument — «la tarifa referida en el artículo 10 de la presente ley»,
+  or a reglamento's «artículo 10 de la Ley» for the law its manifest entry `regulates` — is
+  fetched and appended, one chunk — a deferred figure first («la tarifa referida en…») — ahead of the derived-figure inputs and numbered and
+  cited like any other. A reference to another instrument is not followed, and an appended
+  chunk's own references are not read. `PIN_CROSS_REFERENCES=off` is the baseline —
+  **[ADR 0024](docs/adr/0024-in-document-cross-references.md)**.
 - **Answer assembly:** Claude **Sonnet by default, model as env var** — Week 3 runs Haiku 4.5
   through the same groundedness gate as a cost/quality comparison (portfolio material either way).
   Via Vercel AI SDK, streaming. System prompt constrains

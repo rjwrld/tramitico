@@ -37,7 +37,7 @@ const LINKS: ReadonlyMap<string, DocumentLink> = new Map([
 ]);
 
 /** `crossReferences` on one sentence of a chunk's body. */
-function refs(
+function referencesIn(
   sentence: string,
   docKey = "ley-iva",
   articulo: string | null = "Artículo 30",
@@ -51,6 +51,10 @@ function refs(
     LINKS,
   );
 }
+
+/** Which artículos a sentence names, without the figure flag. */
+const refs = (...args: Parameters<typeof referencesIn>) =>
+  referencesIn(...args).map(({ docKey, articulo }) => ({ docKey, articulo }));
 
 const iva = (...articulos: string[]) =>
   articulos.map((articulo) => ({ docKey: "ley-iva", articulo }));
@@ -154,6 +158,22 @@ describe("crossReferences", () => {
       [],
     );
     expect(refs("Artículo 31- Otra cosa. ARTÍCULO 32.- Más.")).toEqual([]);
+  });
+
+  it("marks a reference whose clause defers a figure to it (#490)", () => {
+    expect(
+      referencesIn(
+        "Según el artículo 4 de esta ley. La percepción será conforme a la tarifa referida en el artículo 10 de la presente ley.",
+      ),
+    ).toEqual([
+      { docKey: "ley-iva", articulo: "4" },
+      { docKey: "ley-iva", articulo: "10", figure: true },
+    ]);
+    expect(
+      referencesIn(
+        "Según el artículo 10 de esta ley. Se aplica la tarifa establecida en el artículo 10 de esta ley.",
+      ),
+    ).toEqual([{ docKey: "ley-iva", articulo: "10", figure: true }]);
   });
 
   it("never names the chunk's own artículo, and each artículo once", () => {
@@ -337,27 +357,42 @@ describe("crossReferencedChunks", () => {
     expect(
       await crossReferencedChunks(answerSet, answerSet, options(lookup)),
     ).toEqual([art10]);
-    expect(asked).toEqual([iva("10")]);
+    expect(asked).toEqual([
+      [{ docKey: "ley-iva", articulo: "10", figure: true }],
+    ]);
   });
 
-  it(`appends at most ${CROSS_REFERENCE_CAP}, in the order the set names them`, async () => {
+  it(`appends at most ${CROSS_REFERENCE_CAP}, a deferred figure first`, async () => {
+    // Art. 30 names art. 4 first; the tarifa it defers to art. 10 wins.
     const { lookup } = fakeLookup([art4, art10, art8]);
     expect(
       await crossReferencedChunks([art30], [art30], options(lookup)),
-    ).toEqual([art4, art10]);
+    ).toEqual([art10]);
+  });
+
+  it("otherwise keeps the set's order, then the text's", async () => {
+    const plain = chunk(
+      "ley-iva",
+      "Artículo 2",
+      "Por contribuyentes del artículo 4 de esta ley y del artículo 8 de esta ley.",
+    );
+    const { lookup } = fakeLookup([art4, art8]);
+    expect(
+      await crossReferencedChunks([plain], [plain], options(lookup)),
+    ).toEqual([art4]);
   });
 
   it("does not fetch an artículo the set already holds, in any part", async () => {
-    const art4Part1 = chunk("ley-iva", "Artículo 4", "Sigue.", 1);
+    const art10Part1 = chunk("ley-iva", "Artículo 10", "Sigue.", 1);
     const { lookup, asked } = fakeLookup([art4, art10, art8]);
     expect(
       await crossReferencedChunks(
-        [art30, art4Part1],
-        [art30, art4Part1],
+        [art30, art10Part1],
+        [art30, art10Part1],
         options(lookup),
       ),
-    ).toEqual([art10, art8]);
-    expect(asked[0].map((r) => r.articulo)).not.toContain("4");
+    ).toEqual([art4]);
+    expect(asked[0].map((r) => r.articulo)).toEqual(["4", "8", "9"]);
   });
 
   it("takes a referenced artículo from the pool before asking the database", async () => {
@@ -368,7 +403,7 @@ describe("crossReferencedChunks", () => {
         [art30, art10, art4],
         options(lookup),
       ),
-    ).toEqual([art4, art10]);
+    ).toEqual([art10]);
     expect(asked[0].map((r) => r.articulo)).toEqual(["8", "9"]);
   });
 
@@ -389,10 +424,10 @@ describe("crossReferencedChunks", () => {
   });
 
   it("skips a reference the corpus does not hold, and fills the cap past it", async () => {
-    const { lookup } = fakeLookup([art10, art8]);
+    const { lookup } = fakeLookup([art4, art8]);
     expect(
       await crossReferencedChunks([art30], [art30], options(lookup)),
-    ).toEqual([art10, art8]);
+    ).toEqual([art4]);
   });
 
   it("does not fetch from a withheld source (#505)", async () => {
