@@ -232,8 +232,12 @@ async function main(): Promise<void> {
   }
   // #500, and #507's measurement: the recorded side is re-checked here, free,
   // since rows written before #500 carry no `checks`.
-  const recordedClaims = plan.flatMap(({ row }) =>
-    checkAnswer(row.answer, row.chunks).absence.falseClaims.map(() => row.id),
+  const recordedChecks = plan.map(({ row }) => ({
+    id: row.id,
+    absence: checkAnswer(row.answer, row.chunks).absence,
+  }));
+  const recordedClaims = recordedChecks.flatMap(({ id, absence }) =>
+    absence.falseClaims.map(() => id),
   );
   const replayedClaims = replayed.flatMap((r) =>
     (r.checks?.absence.falseClaims ?? []).map(() => r.id),
@@ -245,8 +249,8 @@ async function main(): Promise<void> {
   );
   // Rule 9's «no la anuncie al principio» (#507): answers that open with an
   // absence claim, true or false. Reported, as in the lanes, never gated.
-  const recordedOpenings = plan.filter(
-    ({ row }) => checkAnswer(row.answer, row.chunks).absence.opening !== null,
+  const recordedOpenings = recordedChecks.filter(
+    ({ absence }) => absence.opening !== null,
   );
   const replayedOpenings = replayed.filter(
     (r) => (r.checks?.absence.opening ?? null) !== null,

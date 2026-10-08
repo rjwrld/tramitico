@@ -181,8 +181,8 @@ export function formatDerivedFigures(
     "Cuenta cada mención, también la que repite una cifra ya dada, la que va " +
     "entre paréntesis, la que la compara con otra y la que dice lo que debe " +
     "confirmar con la institución sobre ella. Dé el monto una vez, con sus " +
-    "marcadores; para volver a " +
-    `referirse a la cifra, nómbrela por su etiqueta («${figures[0]?.label}») ` +
+    "marcadores; para volver a referirse a la cifra, nómbrela por su " +
+    `etiqueta («${figures[0]?.label}») ` +
     "sin repetir el monto. Si repite el monto, esa oración lleva otra vez " +
     "todos sus marcadores.\n" +
     lines.join("\n")

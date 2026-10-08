@@ -3751,9 +3751,9 @@ place, on Haiku 4.5's.
 The prompt used to call the eight chunks «los documentos oficiales», so a gap
 among them read as a gap in the corpus. Rule 7 now tells the model it sees
 only some parts of the documents, never the whole collection, and never to
-write that a document, artículo, rate or figure is missing. Rules 3 and 9 send
-a datum it cannot see to the closing referral («confírmelo con la
-institución») instead of «los documentos no…». Measured with fixed-chunk
+write that a document, artículo, rate or figure is missing; a datum it cannot
+see goes to rule 9's closing referral. Rules 3 and 9 trade their «los
+documentos no…» wordings for «confírmelo con la institución». Measured with fixed-chunk
 replays of #511's transcript, one round, ≈US$3
 ([`runs/2026-10-08-507/README.md`](runs/2026-10-08-507/README.md)):
 

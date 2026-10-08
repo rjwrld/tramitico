@@ -13,7 +13,9 @@ Setup: `claude-sonnet-5-5` at `ANSWER_EFFORT=low`, the adequacy judge
 `claude-sonnet-4-5`, and `--no-groundedness` on every replay (the acceptance
 reads the detector and Tier 1, and the groundedness judge would double the
 cost). The control ran from the main checkout on main at 66a2cf9, whose prompt
-is origin/main's. Round 1 ran from this branch at 83075d8.
+is origin/main's. Round 1 ran from this branch at 83075d8. The merge of #508–#510 and #519
+that followed changed retrieval, not the answer prompt, and replays hold the
+chunks fixed.
 
 | File                                       | What it is                                                                         |
 | ------------------------------------------ | ---------------------------------------------------------------------------------- |
@@ -47,7 +49,7 @@ One round was enough, so there is no round 2.
 | **Total**                                   | **4**       | **4**          | **0**   |
 
 The control replay reproduces the claims on the same chunks with main's
-prompt (4 claims in 3 of the 4 rows), so the zero is the prompt, not sampling.
+prompt (4 claims in 3 of the 4 rows), so the zero is not a replay artefact.
 In the control, the BMC and salario base claims read as before: «Los
 documentos oficiales no traen el monto en colones del salario base, así que no
 puedo darle la cifra final.» In round 1 the same rows give the figure's rule
@@ -63,14 +65,21 @@ asks them not to; it is a repetition, not an absence claim.
 ninguna fuente oficial puede dar una cifra futura, y los documentos oficiales
 solo dicen lo que rige hoy», followed by «La tarifa general del impuesto es
 del trece por ciento (13%) [2].» The lane failed it 3/3 and read the
-requirement 0/1. Its retrieval was live, so this is one draw, and #508 owns
-the cross-reference that puts art. 10 in front of the model.
+requirement 0/1. Its retrieval was live, so this is one draw with no control,
+and #508 owns the cross-reference that puts art. 10 in front of the model.
+
+**What the zero does not show.** Rule 7's example of the right sentence is
+the salario base, which three of the four flagged rows named, so part of the
+4 → 0 is the prompt fixing the sentence it quotes. The BMC row
+(`ho-trabajitos-por-mi-cuenta`) and `ho-abs-iva-2027` (art. 10) have no
+example of their own and made no claim either. #512's final lanes read the
+whole set on live retrieval.
 
 ## Openings (rule 9, reported, not gated)
 
 | Rows                     | Lane (#511) | Control replay | Round 1 |
 | ------------------------ | ----------- | -------------- | ------- |
-| 27 Tier 1                | 3           | 4              | 2       |
+| 27 Tier 1                | 3           | 4¹             | 2       |
 | 9 trust and opening rows | 6           | —              | 3       |
 | `ho-abs-iva-2027`        | 1           | —              | 1       |
 
@@ -80,9 +89,17 @@ artículo or a listed figure, so the detector does not count them as false:
 (whether Hacienda allows it), `factura-electronica-v44` and
 `factura-primera-cabys` (a step-by-step for the portal), and
 `ho-t2-constancia-al-dia` (a procedure by that name). `ho-abs-iva-2027`'s
-opening is the honest decline of a future figure that rule 6c asks for.
+opening is the honest decline of a future figure that rule 6c asks for. The
+6 → 3 on the non-Tier 1 rows is read against the lane, not a control replay.
 
-## Tier 1: held
+¹ Main's `answer-replay` has no openings line, so the control's figure is
+read off its transcripts' `checks.absence.opening`.
+
+The remaining openings are absence claims in rule 7's spirit, outside its
+list and the detector's: a step-by-step for the portal is a procedure, and the
+corpus may truly lack one. They are left for a follow-up, not a second round.
+
+## Tier 1: no regression detected
 
 | Reading                         | Tier 1 requirements stated |
 | ------------------------------- | -------------------------- |
@@ -97,12 +114,13 @@ and +1 each in `ccss-pedir-prescripcion-cuotas`, `ccss-obligacion-ingreso-bajo`,
 `ho-hasta-que-dia-tengo-iva`. That is the direction a regression check does not
 fail on, and it is no target either (ADR 0023): the tracked baseline stays 70.
 The control's own 78, eight below the lane on the same chunks and the same
-prompt, says that one replay of this transcript moves more than ±2, so the +7
+prompt, says that one replay of this transcript moves more than ±2, so this
+check cannot resolve ±2 with one replay a side, and the +7
 is read as noise, not as a gain.
 
 ## Cost
 
-There is no console figure. 66 answers wrote 56.6 k output tokens, on prompts
+There is no console figure. 66 answers wrote 71.5 k output tokens, on prompts
 of about 15 k input tokens each with the system prompt cached.
 
 | Step                                              | ≈US$     |
