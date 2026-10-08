@@ -17,6 +17,12 @@
  * those chunks outside that year, and leaves the rest of the source alone
  * (#518).
  *
+ * A few artículos state a fact that ends on a day rather than with a fiscal
+ * year — the CCSS FAQ's condonación window, «disponible hasta el día 11 de
+ * noviembre del 2026». An entry lists them as `datedFacts`, each with the
+ * last day it holds, and `retrieve()` withholds them from the day after, the
+ * same way and with the same evidence check (#531).
+ *
  * Costa Rica's fiscal year is the calendar year, read in Costa Rica time
  * (`cr-time.ts`), so a source turns over at local midnight on 1 January,
  * not UTC's.
@@ -45,6 +51,27 @@ export interface YearFigure {
   figures?: string;
 }
 
+/**
+ * One artículo whose fact holds until a stated day and not after it — a
+ * deadline, a transitional window (#531). Its chunks ground answers through
+ * `lastDay` and are withheld from the next day on.
+ */
+export interface DatedFact {
+  /** The chunk heading, exactly as the chunker writes it (`chunks.articulo`). */
+  articulo: string;
+  /** The last day the fact holds, Costa Rica time, as `YYYY-MM-DD`. */
+  lastDay: string;
+  /**
+   * Words of the source that state `lastDay` («11 de noviembre del 2026»).
+   * Every chunk of the artículo must carry them, as for a `YearFigure`: an
+   * extended deadline changes the text, and until the manifest moves with it
+   * the chunk is withheld rather than served under the old date.
+   */
+  evidence: string;
+  /** Which fact, for whoever reads the manifest. */
+  fact?: string;
+}
+
 /** The slice of a manifest entry vigencia reads. */
 export interface VigenciaEntry {
   doc_key: string;
@@ -52,6 +79,7 @@ export interface VigenciaEntry {
   annualChurn?: boolean;
   verifiedForFiscalYear?: number;
   yearFigures?: readonly YearFigure[];
+  datedFacts?: readonly DatedFact[];
 }
 
 export interface VigenciaManifest {
@@ -220,22 +248,121 @@ export function yearFigureVigencia(
   };
 }
 
+/** A manifest `datedFacts` entry, named the way a warning reads it. */
+export interface DatedFactRef {
+  docKey: string;
+  articulo: string;
+  lastDay: string;
+  evidence: string;
+}
+
+/** `docKey · articulo (hasta lastDay)`. */
+export function datedFactLabel(ref: DatedFactRef): string {
+  return `${ref.docKey} · ${ref.articulo} (hasta ${ref.lastDay})`;
+}
+
+/** Every `datedFacts` artículo in a manifest, with its source's doc_key. */
+export function datedFactRefs(source: VigenciaManifest): DatedFactRef[] {
+  return source.documents.flatMap((entry) =>
+    (entry.datedFacts ?? []).map(({ articulo, lastDay, evidence }) => ({
+      docKey: entry.doc_key,
+      articulo,
+      lastDay,
+      evidence,
+    })),
+  );
+}
+
+/** Whether a dated fact still holds on `now`'s Costa Rican day. */
+function holdsOn(ref: DatedFactRef, now: Date): boolean {
+  return crDate(now) <= ref.lastDay;
+}
+
+/**
+ * Days on either side of a `lastDay` in which the vigencia test warns about
+ * it: a week to look for an extension before the runtime withholds the fact,
+ * and a week after to catch one published on the day.
+ */
+export const DATED_FACT_NOTICE_DAYS = 7;
+
+/** `day` (`YYYY-MM-DD`) moved by `days` calendar days. */
+function shiftDay(day: string, days: number): string {
+  const date = new Date(`${day}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+export interface DatedFactVigencia {
+  /**
+   * Facts within `DATED_FACT_NOTICE_DAYS` of their last day, which they still
+   * hold: the owner checks whether the publisher extended the date before
+   * the runtime withholds them.
+   */
+  endingSoon: DatedFactRef[];
+  /**
+   * Facts past their last day by at most `DATED_FACT_NOTICE_DAYS`:
+   * `retrieve()` withholds them, and the owner looks once more for an
+   * extension. Later the list is quiet on purpose, unlike a past year's
+   * figures: no publisher will ever move a closed window, so a warning that
+   * outlived the week would never end. The entry stays in the manifest while
+   * the corpus holds the text, and is retired when a re-crawl finds it gone
+   * (runbook §2.4).
+   */
+  justEnded: DatedFactRef[];
+}
+
+/** The manifest's `datedFacts`, read against `now`'s Costa Rican day. */
+export function datedFactVigencia(
+  source: VigenciaManifest = MANIFEST,
+  now = new Date(),
+): DatedFactVigencia {
+  const today = crDate(now);
+  const refs = datedFactRefs(source);
+  return {
+    endingSoon: refs.filter(
+      (ref) =>
+        holdsOn(ref, now) &&
+        today >= shiftDay(ref.lastDay, -DATED_FACT_NOTICE_DAYS),
+    ),
+    justEnded: refs.filter(
+      (ref) =>
+        !holdsOn(ref, now) &&
+        today <= shiftDay(ref.lastDay, DATED_FACT_NOTICE_DAYS),
+    ),
+  };
+}
+
 /** What may not ground an answer at a given moment. */
 export interface WithheldSources {
   /** `annualChurn` entries that do not cover the current fiscal year. */
   outOfPeriod: ReadonlySet<string>;
   /**
-   * Every `yearFigures` artículo, keyed by `yearFigureKey`: whether its
+   * Every `yearFigures` artículo, keyed by `listedKey`: whether its
    * declared year is the current one, and the evidence a chunk of it must
    * carry to be served (#518).
    */
-  yearFigures: ReadonlyMap<string, { current: boolean; evidence: string }>;
+  yearFigures: ReadonlyMap<string, ArticuloVigencia>;
+  /**
+   * Every `datedFacts` artículo, keyed the same way: whether its last day is
+   * still ahead, and the evidence a chunk of it must carry (#531).
+   */
+  datedFacts: ReadonlyMap<string, ArticuloVigencia>;
   /** The manifest's `retiredDocKeys`. */
   retired: ReadonlySet<string>;
 }
 
-/** The chunk identity `yearFigures` is keyed by. */
-function yearFigureKey(docKey: string, articulo: string | null): string {
+/**
+ * An artículo declared in the manifest and checked against the clock and its
+ * own text: `current` says whether the declaration holds now, and a chunk is
+ * served only while it does and the chunk carries `evidence`.
+ */
+export interface ArticuloVigencia {
+  current: boolean;
+  evidence: string;
+}
+
+/** The chunk identity `yearFigures` and `datedFacts` are keyed by. */
+function listedKey(docKey: string, articulo: string | null): string {
   return `${docKey}\u0000${articulo ?? ""}`;
 }
 
@@ -263,6 +390,10 @@ function yearFigureKey(docKey: string, articulo: string | null): string {
  * re-crawl can land a new year's text before the bump. So a chunk is served
  * only while its declared year is current **and** its own text carries the
  * declared evidence: in either window the two disagree, and it is withheld.
+ *
+ * A `datedFacts` artículo — a deadline, a transitional window — is withheld
+ * the same way from the day after its last day, Costa Rica time, and
+ * whenever its text no longer states that day (#531).
  */
 export function withheldSources(
   now = new Date(),
@@ -277,8 +408,14 @@ export function withheldSources(
     ),
     yearFigures: new Map(
       yearFigureRefs(source).map((ref) => [
-        yearFigureKey(ref.docKey, ref.articulo),
+        listedKey(ref.docKey, ref.articulo),
         { current: isCurrentYear(ref, year), evidence: ref.evidence },
+      ]),
+    ),
+    datedFacts: new Map(
+      datedFactRefs(source).map((ref) => [
+        listedKey(ref.docKey, ref.articulo),
+        { current: holdsOn(ref, now), evidence: ref.evidence },
       ]),
     ),
     retired: new Set(source.retiredDocKeys ?? []),
@@ -298,8 +435,29 @@ export function withholdsAny(withheld: WithheldSources): boolean {
 }
 
 /**
+ * How many rows `retrieve()` asks `search_chunks` for, so that `matchCount`
+ * are still there once the withheld ones leave. Twice the count while
+ * anything is out of period (#505, #518): two years of one series are
+ * near-identical text and would trade places. Plus one row per dated fact
+ * past its last day (#531): each is a single chunk, so it can take at most
+ * one place, and one extra row refills it.
+ */
+export function searchCount(
+  withheld: WithheldSources,
+  matchCount: number,
+): number {
+  const pastDatedFacts = [...withheld.datedFacts.values()].filter(
+    (fact) => !fact.current,
+  ).length;
+  return (
+    (withholdsAny(withheld) ? 2 * matchCount : matchCount) + pastDatedFacts
+  );
+}
+
+/**
  * Whether a chunk may not ground an answer: by source, or — for a
- * `yearFigures` artículo — by its declared year and its own text.
+ * `yearFigures` or `datedFacts` artículo — by its declaration and its own
+ * text.
  */
 export function isWithheld(
   withheld: WithheldSources,
@@ -311,11 +469,10 @@ export function isWithheld(
   ) {
     return true;
   }
-  const figure = withheld.yearFigures.get(
-    yearFigureKey(chunk.docKey, chunk.articulo),
-  );
-  return (
-    figure !== undefined &&
-    (!figure.current || !chunk.content.includes(figure.evidence))
+  const key = listedKey(chunk.docKey, chunk.articulo);
+  return [withheld.yearFigures.get(key), withheld.datedFacts.get(key)].some(
+    (declared) =>
+      declared !== undefined &&
+      (!declared.current || !chunk.content.includes(declared.evidence)),
   );
 }
