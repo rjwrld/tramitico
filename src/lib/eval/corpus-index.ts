@@ -106,12 +106,6 @@ export const ALLOWED_REPEATED_LABELS: readonly AllowedRepeatedLabel[] = [
     reason:
       "CCSS asks it under «Seguro voluntario» and «Trabajador Independiente» and answers it differently in each (identical answers are deduped, #301)",
   },
-  {
-    docKey: "reglamento-iva",
-    articulo: "Artículo 25",
-    reason:
-      "TEMPORARY until the #530 re-ingest: the chunker read a wrapped reference in Artículo 1 inciso 30 as a heading. The source numbers one Artículo 25; the corpus-index re-dump PR deletes this entry",
-  },
 ];
 
 /** A label rendered for an assertion message. */
@@ -153,8 +147,8 @@ export function repeatedLabels(index: CorpusIndex): RepeatedLabel[] {
 
 /**
  * The index's repeats against `ALLOWED_REPEATED_LABELS`: those no entry
- * allows, and entries no repeat needs any more (the #530 re-dump retires
- * reglamento-iva's).
+ * allows, and entries no repeat needs any more (a fixed chunker's re-dump
+ * retires the entry that tided it over, as #530's did).
  */
 export function auditRepeatedLabels(index: CorpusIndex): {
   unallowed: RepeatedLabel[];

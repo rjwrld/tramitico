@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-08T01:45:04.474Z",
+  "generatedAt": "2026-10-08T05:10:02.797Z",
   "chunkCount": 873,
   "entries": [
     {
@@ -3234,8 +3234,8 @@
       "docKey": "reglamento-iva",
       "articulo": "Artículo 1",
       "path": ["CAPÍTULO I DEFINICIONES"],
-      "chunks": 3,
-      "parts": 3
+      "chunks": 6,
+      "parts": 6
     },
     {
       "docKey": "reglamento-iva",
@@ -3355,13 +3355,6 @@
       "path": ["CAPÍTULO VII DEL PERÍODO FISCAL DEL IMPUESTO"],
       "chunks": 1,
       "parts": 1
-    },
-    {
-      "docKey": "reglamento-iva",
-      "articulo": "Artículo 25",
-      "path": ["CAPÍTULO I DEFINICIONES"],
-      "chunks": 3,
-      "parts": 3
     },
     {
       "docKey": "reglamento-iva",
