@@ -344,6 +344,69 @@ export function isCorroborated(chunk: {
   return bySimilarity && byTheReadersWords;
 }
 
+/**
+ * Question words, folded (lower case, no diacritics), that the question's
+ * lexical leg does not search for (#509).
+ *
+ * `search_chunks` ANDs every lexeme of `query_text` (ADR 0005), and the
+ * `spanish` stop list only knows the unaccented forms: «cuando», «donde»,
+ * «como» are dropped, but «cuánto», «cuál», «cómo», «dónde» survive as
+ * `cuant`, `cual`, `com`, `dond`. So «¿Cuánto pago como independiente?»
+ * demanded `cuant` beside `pag` and `independient`, and the strict branch
+ * took the four chunks that happen to say «cuanto» — none of them a rate —
+ * instead of the 72 that say «pago» and «independiente». «¿cuánto pago a la
+ * caja?» did the same with four Hacienda chunks, none of which any
+ * similarity leg corroborated, so the ask took the honest decline. «va» and
+ * «ser» are the auxiliaries of «¿cuál va a ser…?», which the stop list keeps
+ * too. A document answers the question's subject, never its question word.
+ *
+ * Unaccented forms are listed as well: «cuanto pago a la ccss» is how the
+ * question arrives from a phone, and the forms the stop list already drops
+ * cost nothing to drop twice.
+ */
+export const LEXICAL_QUESTION_WORDS: ReadonlySet<string> = new Set([
+  "que",
+  "cual",
+  "cuales",
+  "cuanto",
+  "cuanta",
+  "cuantos",
+  "cuantas",
+  "como",
+  "cuando",
+  "donde",
+  "adonde",
+  "quien",
+  "quienes",
+  "va",
+  "ser",
+]);
+
+function fold(word: string): string {
+  return word.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+
+/**
+ * The text the question's lexical leg searches: the question without its
+ * question words (#509). Everything else — punctuation, quotes, the rest of
+ * the words — passes through untouched, so `websearch_to_tsquery` reads the
+ * same syntax it always read.
+ *
+ * Only this leg changes. The question's embedding is of the question as
+ * typed, and the expansion and the catalogue are corpus-register text with
+ * no question in them. A question that is nothing *but* question words
+ * («¿Cómo?») is left with no words to search; `retrieve` then finds it weak
+ * and asks again as typed, as it does for any weak result.
+ */
+export function lexicalQueryText(question: string): string {
+  return question
+    .replace(/[\p{L}\p{N}]+/gu, (word) =>
+      LEXICAL_QUESTION_WORDS.has(fold(word)) ? "" : word,
+    )
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /** Score one leg contributes to an id ranked `rank` (1-based). */
 export function rrfScore(rank: number, k = RRF_K): number {
   if (!Number.isFinite(rank) || rank < 1) {
@@ -644,33 +707,74 @@ export async function retrieve(
   const expansionEmbedding =
     expansion === null ? null : await embedOrNull(embedder, expansion, false);
 
-  const { data, error } = await client.rpc("search_chunks", {
-    query_text: trimmed,
-    query_embedding: embedding === null ? null : JSON.stringify(embedding),
-    match_count: withheld.outOfPeriod.size > 0 ? 2 * matchCount : matchCount,
-    expansion_text: expansion,
-    expansion_embedding:
-      expansionEmbedding === null ? null : JSON.stringify(expansionEmbedding),
-    step_texts: steps === null ? null : steps.sentences,
-    step_embeddings:
-      stepEmbeddings === null
-        ? null
-        : stepEmbeddings.map((vector) =>
-            vector === null ? null : JSON.stringify(vector),
-          ),
-  });
-  if (error) {
-    throw new SearchChunksError(error);
-  }
+  // One fused search for a given lexical text. Everything but `query_text`
+  // is fixed by now, so a second call costs one database round trip and no
+  // provider.
+  const search = async (
+    queryText: string,
+  ): Promise<{ chunks: RetrievedChunk[]; isWeak: boolean }> => {
+    const { data, error } = await client.rpc("search_chunks", {
+      query_text: queryText,
+      query_embedding: embedding === null ? null : JSON.stringify(embedding),
+      match_count: withheld.outOfPeriod.size > 0 ? 2 * matchCount : matchCount,
+      expansion_text: expansion,
+      expansion_embedding:
+        expansionEmbedding === null ? null : JSON.stringify(expansionEmbedding),
+      step_texts: steps === null ? null : steps.sentences,
+      step_embeddings:
+        stepEmbeddings === null
+          ? null
+          : stepEmbeddings.map((vector) =>
+              vector === null ? null : JSON.stringify(vector),
+            ),
+    });
+    if (error) {
+      throw new SearchChunksError(error);
+    }
 
-  // They leave before anything downstream reads the pool: the citations,
-  // `isWeak` (a pool left with nothing corroborated takes the honest
-  // decline), the rerank, and the derived-figure pin, which can only append
-  // from this pool.
-  const chunks = (data ?? [])
-    .map(toChunk)
-    .filter((chunk) => !isWithheld(withheld, chunk.docKey))
-    .slice(0, matchCount);
+    // They leave before anything downstream reads the pool: the citations,
+    // `isWeak` (a pool left with nothing corroborated takes the honest
+    // decline), the rerank, and the derived-figure pin, which can only append
+    // from this pool.
+    const chunks = (data ?? [])
+      .map(toChunk)
+      .filter((chunk) => !isWithheld(withheld, chunk.docKey))
+      .slice(0, matchCount);
+    return {
+      chunks,
+      // Corroboration needs two legs, so on the degraded path it is not a
+      // signal that is available to us — the question's `vectorRank` is null
+      // on every chunk and the structural test would decline every single
+      // degraded ask, turning the fallback #127 asks for into a dead end.
+      // Weakness there is the only honest thing lexical-only can still say:
+      // **the reader's own words** matched nothing at all. Since #286 that
+      // has to be said in those terms rather than as `chunks.length === 0`:
+      // the expansion's legs can fill a pool on a degraded ask all by
+      // themselves — its embed is a separate call and may well have
+      // succeeded — and a pool made only of chunks a model-written passage
+      // found is exactly what must not clear the honest decline.
+      isWeak: isDegraded
+        ? !chunks.some((chunk) => chunk.lexicalRank !== null)
+        : !chunks.some(isCorroborated),
+    };
+  };
+
+  // #509: the lexical leg searches the question without its question words.
+  // Dropping a word can also *narrow* the strict AND branch: «¿Cómo emito mi
+  // primera factura?» took the OR fallback while «cómo» was a term no chunk
+  // shared, and without it the AND matched one chunk no similarity leg
+  // corroborated. So a weak result is asked once more with the question as
+  // typed, and the honest decline fires only when neither reading of the
+  // reader's words is corroborated. The strip can lift an ask out of the
+  // decline; it cannot put one in.
+  const lexicalText = lexicalQueryText(trimmed);
+  let found = await search(lexicalText);
+  if (found.isWeak && lexicalText !== trimmed) {
+    const asTyped = await search(trimmed);
+    if (!asTyped.isWeak) found = asTyped;
+  }
+  const { chunks, isWeak } = found;
+
   const seen = new Set<string>();
   const citations: Citation[] = [];
   for (const chunk of chunks) {
@@ -686,20 +790,7 @@ export async function retrieve(
     chunks,
     citations,
     topScore,
-    // Corroboration needs two legs, so on the degraded path it is not a
-    // signal that is available to us — the question's `vectorRank` is null on
-    // every chunk and the structural test would decline every single degraded
-    // ask, turning the fallback #127 asks for into a dead end. Weakness there
-    // is the only honest thing lexical-only can still say: **the reader's own
-    // words** matched nothing at all. Since #286 that has to be said in those
-    // terms rather than as `chunks.length === 0`: the expansion's legs can
-    // fill a pool on a degraded ask all by themselves — its embed is a
-    // separate call and may well have succeeded — and a pool made only of
-    // chunks a model-written passage found is exactly what must not clear the
-    // honest decline.
-    isWeak: isDegraded
-      ? !chunks.some((chunk) => chunk.lexicalRank !== null)
-      : !chunks.some(isCorroborated),
+    isWeak,
     isDegraded,
     expansion,
     steps,
