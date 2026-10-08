@@ -8,10 +8,12 @@ import {
   datedFactLabel,
   datedFactRefs,
   datedFactVigencia,
+  overriddenFigureRefs,
   yearFigureLabel,
   yearFigureRefs,
   yearFigureVigencia,
   type DatedFact,
+  type OverriddenFigure,
   type YearFigure,
 } from "../vigencia";
 
@@ -23,6 +25,7 @@ interface ManifestEntry {
   verifiedForFiscalYear?: number;
   yearFigures?: YearFigure[];
   datedFacts?: DatedFact[];
+  overriddenFigures?: OverriddenFigure[];
   notes?: string;
 }
 
@@ -175,7 +178,32 @@ describe("corpus/manifest.json vigencia", () => {
     }
   });
 
-  it("names year-figure and dated-fact artículos the corpus holds, each under one heading", () => {
+  /**
+   * #529, ADR 0016 fourth amendment: the artículos whose figures a later law
+   * has overridden. The amendment's inventory says how each was confirmed.
+   */
+  it("lists the overridden figures, each naming what overrode it", () => {
+    expect(
+      overriddenFigureRefs(manifest).map(
+        ({ docKey, articulo, evidence }) =>
+          `${docKey} · ${articulo} · ${evidence}`,
+      ),
+    ).toEqual([
+      "ley-renta · ARTICULO 38 · setenta y dos mil colones (¢72.000)",
+      "reglamento-renta · Artículo 23 · ¢106.000.000",
+      "reglamento-renta · Artículo 23 · en un 100% de su impuesto determinado",
+      "reglamento-renta · Artículo 23 · en un 75% de su impuesto determinado",
+      "reglamento-renta · Artículo 23 · en un 50% de su impuesto determinado",
+    ]);
+    for (const figure of manifest.documents.flatMap(
+      (doc) => doc.overriddenFigures ?? [],
+    )) {
+      expect(figure.evidence.trim()).not.toBe("");
+      expect(figure.overriddenBy.trim()).not.toBe("");
+    }
+  });
+
+  it("names year-figure, dated-fact and overridden artículos the corpus holds, each under one heading", () => {
     // Retrieval matches a chunk's (doc_key, artículo): a heading that is not
     // in the corpus withholds nothing, and one that repeats under another
     // Título would take its namesake with it.
@@ -185,7 +213,11 @@ describe("corpus/manifest.json vigencia", () => {
         (entry) => entry.docKey === docKey && entry.articulo === articulo,
       ).length;
     const notOne = manifest.documents.flatMap((doc) =>
-      [...(doc.yearFigures ?? []), ...(doc.datedFacts ?? [])]
+      [
+        ...(doc.yearFigures ?? []),
+        ...(doc.datedFacts ?? []),
+        ...(doc.overriddenFigures ?? []),
+      ]
         .filter((listed) => triples(doc.doc_key, listed.articulo) !== 1)
         .map((listed) => `${doc.doc_key} · ${listed.articulo}`),
     );

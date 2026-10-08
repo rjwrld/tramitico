@@ -375,3 +375,70 @@ describe("dated facts (#531)", () => {
     expect(served(crMidnight("2026-11-19"))).toBe(false);
   });
 });
+
+/** A source with one artículo whose figure a later law has overridden. */
+const REGLAMENTO_RENTA: VigenciaManifest = {
+  documents: [
+    {
+      doc_key: "reglamento-renta",
+      overriddenFigures: [
+        {
+          articulo: "Artículo 23",
+          evidence: "¢106.000.000",
+          overriddenBy: "Ley 10392",
+        },
+        {
+          articulo: "Artículo 23",
+          evidence: "en un 100% de su impuesto determinado",
+          overriddenBy: "Ley 10392",
+        },
+      ],
+    },
+  ],
+};
+const art23 = (content: string) => ({
+  docKey: "reglamento-renta",
+  articulo: "Artículo 23",
+  content: `Artículo 23.- Tarifa del impuesto. ${content}`,
+});
+
+describe("overridden figures (#529)", () => {
+  const withheld = withheldSources(IN_2026, REGLAMENTO_RENTA);
+
+  it("withholds a chunk carrying any of the artículo's overridden words, on every clock", () => {
+    for (const now of [IN_2026, IN_2027]) {
+      const onClock = withheldSources(now, REGLAMENTO_RENTA);
+      expect(isWithheld(onClock, art23("renta bruta de ¢106.000.000"))).toBe(
+        true,
+      );
+      expect(
+        isWithheld(
+          onClock,
+          art23("Durante el primer año, en un 100% de su impuesto determinado"),
+        ),
+      ).toBe(true);
+    }
+  });
+
+  it("serves the artículo's chunks that carry none of them", () => {
+    // The second part of a long artículo, or a text the publisher brought in
+    // line with the later law.
+    expect(
+      isWithheld(withheld, art23("El Ministerio de Hacienda actualizará …")),
+    ).toBe(false);
+  });
+
+  it("leaves other artículos and other sources alone, whatever they say", () => {
+    const chunk = art23("¢106.000.000");
+    expect(isWithheld(withheld, { ...chunk, articulo: "Artículo 24" })).toBe(
+      false,
+    );
+    expect(isWithheld(withheld, { ...chunk, docKey: "ley-renta" })).toBe(false);
+  });
+
+  it("asks for one more row per overridden phrase, and never doubles for them", () => {
+    expect(withholdsAny(withheld)).toBe(false);
+    expect(searchCount(withheld, 8)).toBe(10);
+    expect(searchCount(withheldSources(IN_2026, { documents: [] }), 8)).toBe(8);
+  });
+});

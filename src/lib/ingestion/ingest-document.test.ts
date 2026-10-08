@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   assertDatedFactEvidence,
+  assertOverriddenFigureEvidence,
   assertYearFigureEvidence,
   ingestChunks,
   ingestDocument,
@@ -343,5 +344,71 @@ describe("assertDatedFactEvidence (#531)", () => {
     ).toThrow(
       /no chunk with that heading — if its day \(2026-11-11\) has passed/,
     );
+  });
+});
+
+describe("assertOverriddenFigureEvidence (#529)", () => {
+  const overriddenFigures = [
+    {
+      articulo: "Artículo 23",
+      evidence: "¢106.000.000",
+      overriddenBy: "Ley 10392",
+    },
+  ];
+  const chunk = (articulo: string, part: number, content: string) => ({
+    docKey: "reglamento-renta",
+    articulo,
+    path: ["CAPÍTULO IX"],
+    part,
+    content,
+  });
+
+  it("refuses before anything is embedded or written", async () => {
+    const { client, calls } = fakeClient();
+    const embedder = fakeEmbedder();
+
+    await expect(
+      ingestChunks(
+        { client, embedder },
+        { ...doc, doc_key: "reglamento-renta", overriddenFigures },
+        [chunk("Artículo 23", 0, "renta bruta de ¢119.174.000")],
+      ),
+    ).rejects.toThrow(/no longer carries «¢106.000.000»/);
+
+    expect(calls).toEqual([]);
+    expect(embedder.embed).not.toHaveBeenCalled();
+  });
+
+  it("passes a crawl in which one part of the artículo still carries the words", () => {
+    expect(() =>
+      assertOverriddenFigureEvidence(
+        "reglamento-renta",
+        [
+          chunk("Artículo 23", 0, "renta bruta de ¢106.000.000"),
+          chunk("Artículo 23", 1, "El Ministerio de Hacienda actualizará"),
+        ],
+        overriddenFigures,
+      ),
+    ).not.toThrow();
+  });
+
+  it("refuses a crawl that dropped the words, and says when to retire the entry", () => {
+    expect(() =>
+      assertOverriddenFigureEvidence(
+        "reglamento-renta",
+        [chunk("Artículo 23", 0, "renta bruta de ¢119.174.000")],
+        overriddenFigures,
+      ),
+    ).toThrow(/brought it in line with the later law, retire the entry/);
+  });
+
+  it("refuses a crawl in which the listed artículo is gone", () => {
+    expect(() =>
+      assertOverriddenFigureEvidence(
+        "reglamento-renta",
+        [chunk("Artículo 23 bis", 0, "¢106.000.000")],
+        overriddenFigures,
+      ),
+    ).toThrow(/no chunk with that heading/);
   });
 });

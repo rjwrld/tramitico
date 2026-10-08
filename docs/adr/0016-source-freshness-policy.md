@@ -77,15 +77,15 @@ that year.** The first amendment drops whole sources, so it cannot see a source 
 annual but quotes a year's figures in a few artículos. The inventory, read from the corpus on
 2026-10-07 (local stack and production agree; `ley-renta` fetched 2026-10-02):
 
-| Chunk (`doc_key` · artículo)                | Figures                                                                                                                                       | Year                                    | Treatment     |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ------------- |
-| `ley-renta` · Artículo 15 (parts 0 and 1)   | personas jurídicas: renta bruta ceiling and tramos; personas físicas con actividades lucrativas: escala; annual créditos por hijo and cónyuge | 2026, DE 45333-H                        | `yearFigures` |
-| `ley-renta` · Artículo 33                   | monthly salario tramos                                                                                                                        | 2026, DE 45333-H                        | `yearFigures` |
-| `ley-renta` · ARTICULO 34                   | monthly créditos por hijo (¢1.710) and cónyuge (¢2.590)                                                                                       | 2026, DE 45333-H                        | `yearFigures` |
-| `ccss-faq` · the contribution-rate question | the transcribed `av_tv_2026` image: Salud and IVM escalas for TI and AV, with colón bounds                                                    | January 2026                            | `yearFigures` |
-| `reglamento-renta` · Artículo 23 (part 0)   | ¢106.000.000 renta bruta ceiling for personas jurídicas                                                                                       | an earlier year's, undated              | not listed    |
-| `ley-renta` · ARTICULO 38                   | ¢72.000 cuota libre                                                                                                                           | pre-1995 text                           | not listed    |
-| `ley-renta` · Artículo 59                   | Fonade's ¢15.000.000.000 a year, adjusted by the IPC                                                                                          | none: a 2008 sum the law indexes itself | not listed    |
+| Chunk (`doc_key` · artículo)                | Figures                                                                                                                                       | Year                                    | Treatment                               |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | --------------------------------------- |
+| `ley-renta` · Artículo 15 (parts 0 and 1)   | personas jurídicas: renta bruta ceiling and tramos; personas físicas con actividades lucrativas: escala; annual créditos por hijo and cónyuge | 2026, DE 45333-H                        | `yearFigures`                           |
+| `ley-renta` · Artículo 33                   | monthly salario tramos                                                                                                                        | 2026, DE 45333-H                        | `yearFigures`                           |
+| `ley-renta` · ARTICULO 34                   | monthly créditos por hijo (¢1.710) and cónyuge (¢2.590)                                                                                       | 2026, DE 45333-H                        | `yearFigures`                           |
+| `ccss-faq` · the contribution-rate question | the transcribed `av_tv_2026` image: Salud and IVM escalas for TI and AV, with colón bounds                                                    | January 2026                            | `yearFigures`                           |
+| `reglamento-renta` · Artículo 23 (part 0)   | ¢106.000.000 renta bruta ceiling for personas jurídicas                                                                                       | an earlier year's, undated              | not listed → `overriddenFigures` (#529) |
+| `ley-renta` · ARTICULO 38                   | ¢72.000 cuota libre                                                                                                                           | pre-1995 text                           | not listed → `overriddenFigures` (#529) |
+| `ley-renta` · Artículo 59                   | Fonade's ¢15.000.000.000 a year, adjusted by the IPC                                                                                          | none: a 2008 sum the law indexes itself | not listed                              |
 
 The salario base, the salarios mínimos and the BMC appear in non-annual sources only by name (the
 CNPT multas as multiples of the salario base, the TI reglamento's art. 6 on the BMC), never as an
@@ -145,7 +145,8 @@ stale today, not on a fiscal year's clock: the reglamento's ¢106.000.000 ceilin
 100/75/50 Mipymes reduction) predates the law's current art. 15, and art. 38's ¢72.000 predates
 art. 33's tramos. Art. 59's Fonade transfer is a sum the law states once and indexes itself; it
 names no fiscal year to follow. Declaring a fiscal year for them would be false, and withholding them changes
-today's answers, which is a corpus decision outside this amendment.
+today's answers, which is a corpus decision outside this amendment. The fourth amendment below
+makes that decision for art. 23 and art. 38 (#529).
 
 **The manual check.** Runbook §2.2 no longer asks the owner to check these four artículos by
 hand: the test and the runtime cover them. It keeps one manual step, with a query: looking for
@@ -221,3 +222,70 @@ PR that sets `lastDay` and `evidence` to the new day, then a re-crawl. Until bot
 and the declaration disagree and the chunk is withheld. A listed answer the publisher takes down
 fails the next crawl of its source, and its entry is retired then. The steps are in
 [runbook §2.4](../runbook.md#24-dated-facts-531).
+
+## Amendment (2026-10-07, issue [#529](https://github.com/rjwrld/tramitico/issues/529))
+
+**Words a later law has overridden are dropped wherever a chunk still carries them, on any
+day.** The second amendment left two artículos alone because their figures are stale now, not on
+a fiscal year's clock. Checked against the current law, as SINALEVI consolidates it and the
+corpus holds it (`ley-renta` fetched 2026-10-02; the local stack and production hold the same
+text for all three chunks):
+
+| Chunk (`doc_key` · artículo · part)  | What it states                                                                                                                                                                            | What the law says now                                                                                                                                                                                                                                                                                                                                                   | Treatment                         |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| `reglamento-renta` · Artículo 23 · 0 | personas jurídicas on the reduced escala up to a renta bruta of ¢106.000.000; new MEIC/MAG micro and small businesses reduce their tax by 100 %, 75 % and 50 % in their first three years | `ley-renta` art. 15. The ceiling is the inciso b) amount Hacienda indexes each year by decree (¢119.174.000 for 2026, DE 45333-H); Ley 10392 did not change it. The reduction is Ley 10392's (2023-11-14): new Mipymes pay 0 % of the tax in years one to three, 25 % in years four and five and 50 % in year six, and those of personas físicas qualify too (inciso c) | `overriddenFigures`, four phrases |
+| `reglamento-renta` · Artículo 23 · 1 | the tail of inciso d) (bonos temáticos) and the decree's duty to update art. 15's amounts                                                                                                 | the same                                                                                                                                                                                                                                                                                                                                                                | served                            |
+| `ley-renta` · ARTICULO 38 · 0        | the ¢72.000 cuota libre is one only, so a contributor paid by several employers tells them, and they withhold on the total                                                                | art. 33's tramos, set each year by decree, state the non-taxable amount; the ¢72.000 is pre-1995 text. The one-exemption rule stands, and `reglamento-renta` art. 61 states it too                                                                                                                                                                                      | `overriddenFigures`, one phrase   |
+
+A sweep of every chunk for the old amounts and the 100/75 wording found no other copy. Hits
+for «setenta y dos mil colones» inside «ochocientos setenta y dos mil colones» (art. 15 and
+`tramos-renta-2026`) are why art. 38's phrase carries its «(¢72.000)». No case in
+`eval/dataset.jsonl` targets either artículo, and the step catalogue names neither.
+
+**Decision.** Each manifest entry lists the overridden words as `overriddenFigures`: the
+artículo, an `evidence` phrase that is the stale text itself, the law that overrode it
+(`overriddenBy`), and the figures in prose. `retrieve()` drops every chunk of the artículo that
+carries any of its phrases, in the same pass as the first three amendments and before anything
+reads the pool. `crossReferencedChunks` goes through the same check. Art. 23 lists the ceiling and
+each year of the reduction as its own phrase, so a re-crawl whose chunk boundary splits the list
+still withholds every part that states one. Each phrase costs one more
+row from `search_chunks`, as a past dated fact does: an upper bound, since art. 23's four
+phrases share one chunk today, and five rows on every ask cost nothing in ranking (the RPC's
+`match_count` only caps the fused output). The rows are matched on
+`(doc_key, articulo)` and the declaration deploys with the code, so nothing changes in the
+database, here or in production.
+
+The evidence is read the other way round from the first three lists. A `yearFigures` or
+`datedFacts` chunk must carry its evidence to be served. An overridden chunk is served only
+while it does not. Two things follow:
+
+- **The rest of the artículo is kept.** Art. 23's second part states nothing overridden, so it
+  goes on grounding answers. Withholding by heading would have dropped it too.
+- **A corrected text comes back by itself.** If Hacienda reforms the reglamento to match
+  Ley 10392, the old words leave the chunk and it is served again, with no manifest change on
+  the day. Ingestion still refuses that crawl, «no longer carries», so the owner reads the new
+  text before the entry is retired: a figure reworded but still stale would also pass the
+  check. It refuses a crawl that lost the heading for the same reason as the other lists, since
+  a renamed artículo would let the figure through unlisted (runbook §2.5).
+
+The three options in #529 were weighed as the earlier amendments weighed theirs:
+
+- **Drop rather than tag.** A tag such as «superseded by Ley 10392» is an instruction the model
+  may not follow, and only paid replays could check it (ADR 0023). A dropped chunk is a
+  guarantee, tested for free against the real manifest. The current figures are in the corpus,
+  in `ley-renta` art. 15 and 33 and `tramos-renta-2026`, so the drop takes away no answer the
+  product promises.
+- **Drop rather than rely on the prompt.** The prompt carries today's date (#455), but nothing
+  in a chunk says a later law replaced it, and the reglamento reads as current. Before this
+  change, a question about a new small business's rate could retrieve art. 23 next to art. 15
+  and present two reductions, or only the old one.
+- **Drop rather than re-chunk.** Isolating the overridden sentences would keep the rest of
+  art. 23 part 0, which the drop takes with it: the 30 % rate, MEIC/MAG registration, the
+  anti-fragmentation power, inciso c) (personas físicas on art. 15's escala) and the start of
+  inciso d) (the bonos temáticos credit). But each of those is stated in `ley-renta` art. 15 as
+  well, and re-chunking needs a source-specific
+  splitter and a re-ingest on both stacks. Art. 38 is one sentence of rule around the figure,
+  and art. 61 of the reglamento states the rule without it.
+
+Art. 59's Fonade transfer stays unlisted, as the second amendment says: the law states the sum
+once and indexes it itself, so it is not overridden.

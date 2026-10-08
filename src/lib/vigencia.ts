@@ -23,6 +23,12 @@
  * last day it holds, and `retrieve()` withholds them from the day after, the
  * same way and with the same evidence check (#531).
  *
+ * And a few artículos state figures a later law has overridden — the
+ * reglamento de renta's art. 23 still quotes the Mipymes reduction that
+ * Ley 10392 rewrote into the law's art. 15. An entry lists the overridden
+ * words as `overriddenFigures`, and `retrieve()` withholds every chunk of the
+ * artículo that still carries them, on any clock (#529).
+ *
  * Costa Rica's fiscal year is the calendar year, read in Costa Rica time
  * (`cr-time.ts`), so a source turns over at local midnight on 1 January,
  * not UTC's.
@@ -72,6 +78,27 @@ export interface DatedFact {
   fact?: string;
 }
 
+/**
+ * Words of an artículo that a later law has overridden (#529): the source is
+ * what its publisher still prints, but the figure in it is no longer the law.
+ * A chunk of the artículo carrying them never grounds an answer.
+ */
+export interface OverriddenFigure {
+  /** The chunk heading, exactly as the chunker writes it (`chunks.articulo`). */
+  articulo: string;
+  /**
+   * The overridden words themselves («¢106.000.000»). Unlike a `YearFigure`'s
+   * evidence, which a chunk must carry to be served, a chunk carrying these is
+   * withheld; one that does not — the rest of a long artículo, or a text the
+   * publisher has since brought in line with the law — is served.
+   */
+  evidence: string;
+  /** The later law, and where the corpus states what applies now. */
+  overriddenBy: string;
+  /** Which figures, for whoever reads the manifest. */
+  figures?: string;
+}
+
 /** The slice of a manifest entry vigencia reads. */
 export interface VigenciaEntry {
   doc_key: string;
@@ -80,6 +107,7 @@ export interface VigenciaEntry {
   verifiedForFiscalYear?: number;
   yearFigures?: readonly YearFigure[];
   datedFacts?: readonly DatedFact[];
+  overriddenFigures?: readonly OverriddenFigure[];
 }
 
 export interface VigenciaManifest {
@@ -332,6 +360,26 @@ export function datedFactVigencia(
   };
 }
 
+/** A manifest `overriddenFigures` entry, with its source's doc_key. */
+export interface OverriddenFigureRef {
+  docKey: string;
+  articulo: string;
+  evidence: string;
+}
+
+/** Every `overriddenFigures` entry in a manifest, with its source's doc_key. */
+export function overriddenFigureRefs(
+  source: VigenciaManifest,
+): OverriddenFigureRef[] {
+  return source.documents.flatMap((entry) =>
+    (entry.overriddenFigures ?? []).map(({ articulo, evidence }) => ({
+      docKey: entry.doc_key,
+      articulo,
+      evidence,
+    })),
+  );
+}
+
 /** What may not ground an answer at a given moment. */
 export interface WithheldSources {
   /** `annualChurn` entries that do not cover the current fiscal year. */
@@ -347,6 +395,11 @@ export interface WithheldSources {
    * still ahead, and the evidence a chunk of it must carry (#531).
    */
   datedFacts: ReadonlyMap<string, ArticuloVigencia>;
+  /**
+   * Every `overriddenFigures` artículo, keyed the same way: the overridden
+   * words a chunk of it may not carry (#529). No clock reads them.
+   */
+  overriddenFigures: ReadonlyMap<string, readonly string[]>;
   /** The manifest's `retiredDocKeys`. */
   retired: ReadonlySet<string>;
 }
@@ -361,7 +414,7 @@ export interface ArticuloVigencia {
   evidence: string;
 }
 
-/** The chunk identity `yearFigures` and `datedFacts` are keyed by. */
+/** The chunk identity `yearFigures`, `datedFacts` and `overriddenFigures` are keyed by. */
 function listedKey(docKey: string, articulo: string | null): string {
   return `${docKey}\u0000${articulo ?? ""}`;
 }
@@ -394,6 +447,11 @@ function listedKey(docKey: string, articulo: string | null): string {
  * A `datedFacts` artículo — a deadline, a transitional window — is withheld
  * the same way from the day after its last day, Costa Rica time, and
  * whenever its text no longer states that day (#531).
+ *
+ * An `overriddenFigures` artículo is withheld on every clock, but only in the
+ * chunks that still carry the overridden words (#529): the declaration says
+ * what the text may not say, so the rest of the artículo, and a later crawl
+ * in which the publisher brought it in line with the law, ground answers.
  */
 export function withheldSources(
   now = new Date(),
@@ -418,6 +476,10 @@ export function withheldSources(
         { current: holdsOn(ref, now), evidence: ref.evidence },
       ]),
     ),
+    overriddenFigures: overriddenFigureRefs(source).reduce((byKey, ref) => {
+      const key = listedKey(ref.docKey, ref.articulo);
+      return byKey.set(key, [...(byKey.get(key) ?? []), ref.evidence]);
+    }, new Map<string, readonly string[]>()),
     retired: new Set(source.retiredDocKeys ?? []),
   };
 }
@@ -440,7 +502,10 @@ export function withholdsAny(withheld: WithheldSources): boolean {
  * anything is out of period (#505, #518): two years of one series are
  * near-identical text and would trade places. Plus one row per dated fact
  * past its last day (#531): each is a single chunk, so it can take at most
- * one place, and one extra row refills it.
+ * one place, and one extra row refills it. Plus one row per overridden
+ * phrase (#529): a phrase sits in one chunk, so it takes at most one place.
+ * Two phrases of one artículo may share a chunk (art. 23's do), which makes
+ * this an upper bound, never a shortfall.
  */
 export function searchCount(
   withheld: WithheldSources,
@@ -449,15 +514,19 @@ export function searchCount(
   const pastDatedFacts = [...withheld.datedFacts.values()].filter(
     (fact) => !fact.current,
   ).length;
+  const overriddenPhrases = [...withheld.overriddenFigures.values()].flat()
+    .length;
   return (
-    (withholdsAny(withheld) ? 2 * matchCount : matchCount) + pastDatedFacts
+    (withholdsAny(withheld) ? 2 * matchCount : matchCount) +
+    pastDatedFacts +
+    overriddenPhrases
   );
 }
 
 /**
  * Whether a chunk may not ground an answer: by source, or — for a
- * `yearFigures` or `datedFacts` artículo — by its declaration and its own
- * text.
+ * `yearFigures`, `datedFacts` or `overriddenFigures` artículo — by its
+ * declaration and its own text.
  */
 export function isWithheld(
   withheld: WithheldSources,
@@ -470,6 +539,13 @@ export function isWithheld(
     return true;
   }
   const key = listedKey(chunk.docKey, chunk.articulo);
+  if (
+    withheld.overriddenFigures
+      .get(key)
+      ?.some((words) => chunk.content.includes(words))
+  ) {
+    return true;
+  }
   return [withheld.yearFigures.get(key), withheld.datedFacts.get(key)].some(
     (declared) =>
       declared !== undefined &&
