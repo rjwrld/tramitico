@@ -2,8 +2,8 @@
  * The cross-reference lookup against a real database (#508): what the unit
  * suite's fake cannot show is that the PostgREST read — `chunks` joined to
  * `documents`, a loose `ilike` per label, part 0 only — returns the chunk a
- * reference names, whatever spelling the chunker gave its label, and nothing
- * from another document.
+ * reference names, whatever spelling the chunker gave its label — case,
+ * accent, «quáter», «8º» — and nothing from another document.
  *
  * The fixture documents carry doc_keys no real document has, so the assertions
  * hold on CI's empty stack and on the corpus-carrying stack worktrees share
@@ -43,6 +43,8 @@ describeDb("cross-reference lookup (integration)", () => {
           { articulo: "ARTICULO 12", part: 1, content: "Segunda parte." },
           { articulo: "Artículo 11 bis", part: 0, content: "Tarifa reducida." },
           { articulo: "Artículo 100", part: 0, content: "No es el 10." },
+          { articulo: "Artículo 28 quáter", part: 0, content: "Con tilde." },
+          { articulo: "Artículo 8º", part: 0, content: "Con ordinal." },
         ],
       ],
       [OTHER, [{ articulo: "Artículo 10", part: 0, content: "Otra ley." }]],
@@ -105,6 +107,17 @@ describeDb("cross-reference lookup (integration)", () => {
       vectorRank: null,
       lexicalRank: null,
     });
+  });
+
+  it("matches a suffix with its accent and a number with its ordinal sign", async () => {
+    const found = await articuloLookup(db)([
+      { docKey: LAW, articulo: "28 QUATER" },
+      { docKey: LAW, articulo: "8" },
+    ]);
+    expect(found.map((chunk) => chunk.articulo).sort()).toEqual([
+      "Artículo 28 quáter",
+      "Artículo 8º",
+    ]);
   });
 
   it("returns nothing for an artículo the document does not hold", async () => {

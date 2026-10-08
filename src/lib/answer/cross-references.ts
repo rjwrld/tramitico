@@ -48,10 +48,17 @@ export const CROSS_REFERENCE_CAP = 1;
 
 /**
  * Candidates read from the answer set before the database is asked: a bound
- * on the one query, not on what is appended. A set of eight artículos names
- * fewer than this in practice.
+ * on the one query, not on what is appended — a candidate the corpus does
+ * not hold gives its place to the next. A set of eight artículos names fewer
+ * than this in practice.
  */
 const CANDIDATE_LIMIT = 12;
+
+/**
+ * The lookup's own budget. It is one indexed read, and the append is
+ * optional: past this the ask goes on without it, rather than wait.
+ */
+export const LOOKUP_TIMEOUT_MS = 2_000;
 
 /** One referenced artículo: its document and its normalized number. */
 export interface ArticuloReference {
@@ -94,6 +101,11 @@ export const DOCUMENT_LINKS: ReadonlyMap<string, DocumentLink> = new Map(
     },
   ]),
 );
+
+/** One artículo of one document, as the dedupe and the lookup compare them. */
+function referenceKey(docKey: string, articulo: string | null): string {
+  return `${docKey}\u0000${articulo ?? ""}`;
+}
 
 /** Lowercase, unaccented, single-spaced: how titles and markers compare. */
 function fold(text: string): string {
@@ -221,7 +233,8 @@ function lawNumber(norma: string | null): string | null {
  * does «el presente artículo» prose that happens to carry the number.
  */
 export function crossReferences(
-  chunk: Pick<RetrievedChunk, "docKey" | "articulo" | "content">,
+  chunk: Pick<RetrievedChunk, "docKey" | "articulo" | "content"> &
+    Partial<Pick<RetrievedChunk, "part">>,
   links: ReadonlyMap<string, DocumentLink> = DOCUMENT_LINKS,
 ): ArticuloReference[] {
   const regulates = links.get(chunk.docKey)?.regulates;
@@ -255,8 +268,9 @@ export function crossReferences(
       at += separator[0].length;
     }
     if (numbers.length === 0) continue;
-    // A body that opens on its own artículo heading names nothing.
-    if (match.index === 0) continue;
+    // A first part that opens on its own artículo heading names nothing; a
+    // later part opening on «artículo 4 de esta ley…» does.
+    if (match.index === 0 && (chunk.part ?? 0) === 0) continue;
     const target = classifyTail(folded.slice(at), regulated);
     if (target === "none") continue;
     const docKey = target === "self" ? chunk.docKey : lawKey;
@@ -264,7 +278,7 @@ export function crossReferences(
     const figure = FIGURE_WORDS.test(clause);
     for (const articulo of numbers) {
       if (docKey === chunk.docKey && articulo === own) continue;
-      const key = `${docKey}\u0000${articulo}`;
+      const key = referenceKey(docKey, articulo);
       const earlier = found.get(key);
       // Named twice, once deferring a figure: it keeps its first place and
       // the figure's precedence.
@@ -282,12 +296,13 @@ export function crossReferences(
 }
 
 /**
- * Looks referenced artículos up in the corpus: for each, its first part — the
- * one that carries the heading and the rule's opening — or nothing when the
- * corpus does not hold that artículo. A seam so tests need no database.
+ * Looks referenced artículos up in the corpus: the first part of each — the
+ * one that carries the heading and the rule's opening — that it holds. A
+ * seam so tests need no database.
  */
 export type ArticuloLookup = (
   references: readonly ArticuloReference[],
+  signal?: AbortSignal,
 ) => Promise<RetrievedChunk[]>;
 
 /** The `chunks` ⋈ `documents` row the lookup selects. */
@@ -310,40 +325,44 @@ interface ArticuloRow {
 /**
  * The production lookup: one service-role read of `chunks` joined to
  * `documents`, no RPC — the role already reads both tables (least privilege,
- * #123, grants nothing to anyone else). Labels are matched loosely in SQL
- * («art_culo 10» covers «Artículo», «ARTICULO», «ARTÍCULO») and exactly here,
+ * #123, grants nothing to anyone else). Labels are matched loosely in SQL —
+ * «art_culo 10» covers «Artículo», «ARTICULO», «ARTÍCULO», «art_culo 10_»
+ * the ordinal sign, «q__t_r» the accent of «quáter» — and exactly here,
  * through `articuloKey`.
  */
 export function articuloLookup(
   client: Pick<SupabaseClient<Database>, "from"> = serviceClient(),
 ): ArticuloLookup {
-  return async (references) => {
+  return async (references, signal) => {
     if (references.length === 0) return [];
     const docKeys = [...new Set(references.map((r) => r.docKey))];
-    const labels = [...new Set(references.map((r) => r.articulo))];
-    const { data, error } = await client
+    const patterns = [
+      ...new Set(
+        references.flatMap(({ articulo }) => {
+          const [number, suffix] = articulo.toLowerCase().split(" ");
+          return suffix === undefined
+            ? [`art_culo ${number}`, `art_culo ${number}_`]
+            : [`art_culo ${number} ${suffix.replace(/[aeiou]/g, "_")}`];
+        }),
+      ),
+    ];
+    let query = client
       .from("chunks")
       .select(
         "id, articulo, path, part, content, documents!inner(doc_key, title, norma, source, effective_date, fetched_at)",
       )
       .in("documents.doc_key", docKeys)
       .eq("part", 0)
-      .or(
-        labels
-          .map((label) => `articulo.ilike."art_culo ${label.toLowerCase()}"`)
-          .join(","),
-      );
+      .or(patterns.map((pattern) => `articulo.ilike."${pattern}"`).join(","));
+    if (signal !== undefined) query = query.abortSignal(signal);
+    const { data, error } = await query;
     if (error) throw new CrossReferenceLookupError(error);
     const rows = (data ?? []) as unknown as ArticuloRow[];
     return rows
-      .filter((row) =>
-        references.some(
-          (r) =>
-            r.docKey === row.documents.doc_key &&
-            r.articulo === articuloKey(row.articulo),
-        ),
-      )
-      .map(toChunk);
+      .map(toChunk)
+      .filter((chunk) =>
+        references.some((reference) => namedBy(chunk, reference)),
+      );
   };
 }
 
@@ -353,6 +372,15 @@ export class CrossReferenceLookupError extends Error {
     super("cross-reference lookup failed", { cause });
     this.name = "CrossReferenceLookupError";
   }
+}
+
+/** Whether a chunk is the first part of the artículo a reference names. */
+function namedBy(chunk: RetrievedChunk, reference: ArticuloReference): boolean {
+  return (
+    chunk.part === 0 &&
+    chunk.docKey === reference.docKey &&
+    articuloKey(chunk.articulo) === reference.articulo
+  );
 }
 
 function toChunk(row: ArticuloRow): RetrievedChunk {
@@ -398,37 +426,39 @@ export interface CrossReferenceOptions {
   links?: ReadonlyMap<string, DocumentLink>;
   /** Defaults to what `retrieve()` withholds now (#505). */
   withheld?: WithheldSources;
+  /** The ask's own cancellation; the lookup adds `LOOKUP_TIMEOUT_MS`. */
+  signal?: AbortSignal;
 }
 
 /**
  * The chunks the answer set's references bring, at most
  * `CROSS_REFERENCE_CAP`: a reference that defers a figure first («la tarifa
  * referida en el artículo 10»), then the order the set names them — the
- * set's own order, then each chunk's text order. Only the set the rerank cut is read,
- * never what this appends, so one reference cannot chain into the next. An
- * artículo already in the set — any part of it — is not fetched again. The
- * pool the reranker read is tried first; the database only for the rest.
+ * set's own order, then each chunk's text order. Only the set the rerank cut
+ * is read, never what this appends, so one reference cannot chain into the
+ * next. An artículo already in the set — any part of it — is not fetched
+ * again, and one whose label the document repeats (`reglamento-iva` has two
+ * «Artículo 25») is not appended at all: which one was meant is a guess.
  *
- * A lookup that fails costs the append and nothing else: the answer set the
- * rerank chose is still a complete one, so the failure is logged, never
- * thrown.
+ * A lookup that fails or runs out of time costs the append and nothing else:
+ * the answer set the rerank chose is still a complete one, so the failure is
+ * logged, never thrown.
  */
 export async function crossReferencedChunks(
   answerSet: readonly RetrievedChunk[],
-  pool: readonly RetrievedChunk[],
   options: CrossReferenceOptions = {},
 ): Promise<RetrievedChunk[]> {
   if (!crossReferencesEnabled()) return [];
   const withheld = options.withheld ?? withheldSources();
   const present = new Set(
-    answerSet.map(
-      (chunk) => `${chunk.docKey}\u0000${articuloKey(chunk.articulo)}`,
+    answerSet.map((chunk) =>
+      referenceKey(chunk.docKey, articuloKey(chunk.articulo)),
     ),
   );
   const candidates = new Map<string, ArticuloReference>();
   for (const chunk of answerSet) {
     for (const reference of crossReferences(chunk, options.links)) {
-      const key = `${reference.docKey}\u0000${reference.articulo}`;
+      const key = referenceKey(reference.docKey, reference.articulo);
       if (present.has(key) || isWithheld(withheld, reference.docKey)) continue;
       const earlier = candidates.get(key);
       if (earlier === undefined) candidates.set(key, { ...reference });
@@ -437,36 +467,28 @@ export async function crossReferencedChunks(
   }
   // A reference that defers a figure first, then the set's order (a stable
   // sort keeps it within each group).
-  const bounded = [...candidates.values()]
+  const ranked = [...candidates.values()]
     .sort((a, b) => Number(b.figure ?? false) - Number(a.figure ?? false))
     .slice(0, CANDIDATE_LIMIT);
-  if (bounded.length === 0) return [];
+  if (ranked.length === 0) return [];
 
-  const matches = (chunk: RetrievedChunk, reference: ArticuloReference) =>
-    chunk.part === 0 &&
-    chunk.docKey === reference.docKey &&
-    articuloKey(chunk.articulo) === reference.articulo;
-  const unresolved = bounded.filter(
-    (reference) => !pool.some((chunk) => matches(chunk, reference)),
-  );
-  let fetched: RetrievedChunk[] = [];
-  if (unresolved.length > 0) {
-    try {
-      fetched = await (options.lookup ?? articuloLookup())(unresolved);
-    } catch (error) {
-      console.warn(
-        `${CROSS_REFERENCE_LOG_PREFIX} error=${describeError(error)}`,
-      );
-    }
+  let fetched: RetrievedChunk[];
+  try {
+    const timeout = AbortSignal.timeout(LOOKUP_TIMEOUT_MS);
+    fetched = await (options.lookup ?? articuloLookup())(
+      ranked,
+      options.signal ? AbortSignal.any([options.signal, timeout]) : timeout,
+    );
+  } catch (error) {
+    console.warn(`${CROSS_REFERENCE_LOG_PREFIX} error=${describeError(error)}`);
+    return [];
   }
 
   const appended: RetrievedChunk[] = [];
-  for (const reference of bounded) {
+  for (const reference of ranked) {
     if (appended.length === CROSS_REFERENCE_CAP) break;
-    const chunk =
-      pool.find((c) => matches(c, reference)) ??
-      fetched.find((c) => matches(c, reference));
-    if (chunk !== undefined) appended.push(chunk);
+    const named = fetched.filter((chunk) => namedBy(chunk, reference));
+    if (named.length === 1) appended.push(named[0]);
   }
   return appended;
 }

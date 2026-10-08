@@ -7,7 +7,7 @@
  * not ingest (harmless, the lookup finds nothing), a wrong `✓` is a chunk the
  * pin would append for nothing.
  *
- *   pnpm tsx scripts/cross-reference-census.ts [--all]
+ *   pnpm cross-reference-census [--all]
  *
  * Prints the totals, then the `✗` lines; `--all` prints every reference.
  * Reads `.env.local` like `ingest.ts`.

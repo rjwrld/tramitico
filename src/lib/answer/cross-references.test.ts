@@ -354,9 +354,9 @@ describe("crossReferencedChunks", () => {
       ),
     ];
     const { lookup, asked } = fakeLookup([art10]);
-    expect(
-      await crossReferencedChunks(answerSet, answerSet, options(lookup)),
-    ).toEqual([art10]);
+    expect(await crossReferencedChunks(answerSet, options(lookup))).toEqual([
+      art10,
+    ]);
     expect(asked).toEqual([
       [{ docKey: "ley-iva", articulo: "10", figure: true }],
     ]);
@@ -365,9 +365,9 @@ describe("crossReferencedChunks", () => {
   it(`appends at most ${CROSS_REFERENCE_CAP}, a deferred figure first`, async () => {
     // Art. 30 names art. 4 first; the tarifa it defers to art. 10 wins.
     const { lookup } = fakeLookup([art4, art10, art8]);
-    expect(
-      await crossReferencedChunks([art30], [art30], options(lookup)),
-    ).toEqual([art10]);
+    expect(await crossReferencedChunks([art30], options(lookup))).toEqual([
+      art10,
+    ]);
   });
 
   it("otherwise keeps the set's order, then the text's", async () => {
@@ -377,34 +377,43 @@ describe("crossReferencedChunks", () => {
       "Por contribuyentes del artículo 4 de esta ley y del artículo 8 de esta ley.",
     );
     const { lookup } = fakeLookup([art4, art8]);
-    expect(
-      await crossReferencedChunks([plain], [plain], options(lookup)),
-    ).toEqual([art4]);
+    expect(await crossReferencedChunks([plain], options(lookup))).toEqual([
+      art4,
+    ]);
   });
 
   it("does not fetch an artículo the set already holds, in any part", async () => {
     const art10Part1 = chunk("ley-iva", "Artículo 10", "Sigue.", 1);
     const { lookup, asked } = fakeLookup([art4, art10, art8]);
     expect(
-      await crossReferencedChunks(
-        [art30, art10Part1],
-        [art30, art10Part1],
-        options(lookup),
-      ),
+      await crossReferencedChunks([art30, art10Part1], options(lookup)),
     ).toEqual([art4]);
     expect(asked[0].map((r) => r.articulo)).toEqual(["4", "8", "9"]);
   });
 
-  it("takes a referenced artículo from the pool before asking the database", async () => {
-    const { lookup, asked } = fakeLookup([]);
-    expect(
-      await crossReferencedChunks(
-        [art30],
-        [art30, art10, art4],
-        options(lookup),
-      ),
-    ).toEqual([art10]);
-    expect(asked[0].map((r) => r.articulo)).toEqual(["8", "9"]);
+  it("does not guess between two artículos the document labels alike", async () => {
+    // reglamento-iva carries two «Artículo 25», in Capítulos I and VIII.
+    const twin = { ...art10, chunkId: "ley-iva-Artículo 10-twin" };
+    const { lookup } = fakeLookup([art10, twin, art4]);
+    expect(await crossReferencedChunks([art30], options(lookup))).toEqual([
+      art4,
+    ]);
+  });
+
+  it("gives the lookup the ask's signal, bounded by its own timeout", async () => {
+    let seen: AbortSignal | undefined;
+    const lookup: ArticuloLookup = async (_references, signal) => {
+      seen = signal;
+      return [art10];
+    };
+    const ask = new AbortController();
+    await crossReferencedChunks([art30], {
+      ...options(lookup),
+      signal: ask.signal,
+    });
+    expect(seen?.aborted).toBe(false);
+    ask.abort();
+    expect(seen?.aborted).toBe(true);
   });
 
   it("never follows a reference an appended chunk makes", async () => {
@@ -418,22 +427,36 @@ describe("crossReferencedChunks", () => {
       chunk("reglamento-iva", "Artículo 22", "Ver el artículo 10 de la Ley."),
     ];
     const { lookup } = fakeLookup([art10Naming1, art1]);
+    expect(await crossReferencedChunks(answerSet, options(lookup))).toEqual([
+      art10Naming1,
+    ]);
+  });
+
+  it("reads a reference at the start of a later part", () => {
     expect(
-      await crossReferencedChunks(answerSet, answerSet, options(lookup)),
-    ).toEqual([art10Naming1]);
+      crossReferences(
+        {
+          docKey: "ley-iva",
+          articulo: "Artículo 30",
+          part: 1,
+          content: "[t] artículo 10 de esta ley, la tarifa.",
+        },
+        LINKS,
+      ).map((r) => r.articulo),
+    ).toEqual(["10"]);
   });
 
   it("skips a reference the corpus does not hold, and fills the cap past it", async () => {
     const { lookup } = fakeLookup([art4, art8]);
-    expect(
-      await crossReferencedChunks([art30], [art30], options(lookup)),
-    ).toEqual([art4]);
+    expect(await crossReferencedChunks([art30], options(lookup))).toEqual([
+      art4,
+    ]);
   });
 
   it("does not fetch from a withheld source (#505)", async () => {
     const { lookup, asked } = fakeLookup([art10]);
     expect(
-      await crossReferencedChunks([art30], [art30], {
+      await crossReferencedChunks([art30], {
         lookup,
         links: LINKS,
         withheld: { outOfPeriod: new Set(["ley-iva"]), retired: new Set() },
@@ -447,9 +470,7 @@ describe("crossReferencedChunks", () => {
     const failing: ArticuloLookup = async () => {
       throw new Error("PostgREST down");
     };
-    expect(
-      await crossReferencedChunks([art30], [art30], options(failing)),
-    ).toEqual([]);
+    expect(await crossReferencedChunks([art30], options(failing))).toEqual([]);
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn.mock.calls[0][0]).toMatch(
       new RegExp(`^${CROSS_REFERENCE_LOG_PREFIX} error=`),
@@ -458,18 +479,14 @@ describe("crossReferencedChunks", () => {
 
   it("asks nothing when the set names nothing", async () => {
     const { lookup, asked } = fakeLookup([art10]);
-    expect(
-      await crossReferencedChunks([art10], [art10], options(lookup)),
-    ).toEqual([]);
+    expect(await crossReferencedChunks([art10], options(lookup))).toEqual([]);
     expect(asked).toEqual([]);
   });
 
   it("is off under PIN_CROSS_REFERENCES=off, the measured baseline", async () => {
     vi.stubEnv("PIN_CROSS_REFERENCES", "off");
     const { lookup, asked } = fakeLookup([art10]);
-    expect(
-      await crossReferencedChunks([art30], [art30], options(lookup)),
-    ).toEqual([]);
+    expect(await crossReferencedChunks([art30], options(lookup))).toEqual([]);
     expect(asked).toEqual([]);
   });
 

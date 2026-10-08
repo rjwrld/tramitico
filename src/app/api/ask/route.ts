@@ -997,6 +997,8 @@ export async function POST(request: Request): Promise<Response> {
           onReadings: telemetry.rerankReadings,
         }),
         retrieval.chunks,
+        // The cross-reference lookup stops with the ask (pins.ts).
+        { signal: AbortSignal.any([request.signal, deadline.signal]) },
       );
     } finally {
       stopRerank();

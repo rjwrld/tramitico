@@ -67,12 +67,16 @@ appended — one chunk, ahead of the derived-figure inputs.**
    whose inputs a reference completed still resolves: resolution reads the final set. Both append
    and never replace, so the citation markers of the cut are unchanged, and an appended chunk is
    numbered and cited like any other.
-5. **The lookup.** The pool the reranker read is tried first; the rest is one service-role read
-   of `chunks` joined to `documents` (no RPC, no migration — the role already reads both
-   tables, and nothing is granted to anyone else). A source withheld by
-   [ADR 0016](0016-source-freshness-policy.md)'s fiscal-year check (#505) is not fetched. A
-   failed lookup logs `cross-references: lookup failed` and costs the append only: the set the
-   rerank chose is still a complete one.
+5. **The lookup.** One service-role read of `chunks` joined to `documents`, whenever the set
+   names anything (no RPC, no migration — the role already reads both tables, and nothing is
+   granted to anyone else). Labels match loosely in SQL (case, accent, «quáter», «8º») and
+   exactly in code. A label the document repeats (`reglamento-iva` has two «Artículo 25») is not
+   appended: which one was meant would be a guess. A source withheld by
+   [ADR 0016](0016-source-freshness-policy.md)'s fiscal-year check (#505) is not fetched. The
+   read stops with the ask and after 2 s of its own; a failed or late lookup logs
+   `cross-references: lookup failed` and costs the append only: the set the rerank chose is
+   still a complete one. Its time is counted in the telemetry's `rerank` stage, where the
+   derived pin already ran.
 6. **`PIN_CROSS_REFERENCES`**, a mode knob like `PIN_DERIVED_INPUTS`: unset is `on`, `off` is
    the measured baseline, and `pnpm answer-set-probe` carries an arm with it off.
 
@@ -100,10 +104,16 @@ appended — one chunk, ahead of the derived-figure inputs.**
 
 - A chunk the rerank never scored can reach the model. It is there because a chunk the rerank
   chose names it, and the model reads it under the same rules and citation invariant as the
-  rest; the cost is at most one more fragment per answer and one database read when the pool
-  does not already hold them.
-- The patterns are Spanish legal drafting, read without a parser. `scripts/cross-reference-census.ts`
+  rest; the cost is at most one more fragment per answer and one database read.
+- The patterns are Spanish legal drafting, read without a parser. `pnpm cross-reference-census`
   (free) prints every reference the corpus carries and whether the corpus holds its target;
   run it after a change to the patterns or to the corpus.
 - A reference to another instrument is not followed, even when the corpus holds it (the
   `cnpt`, `ley-10363`). Following one needs a declared link like `regulates`, written per pair.
+- Known limits, each a miss rather than a wrong append:
+  - The one slot goes to the first clause that names a figure, not to the right one: a live
+    `ho-cliente-espana-lleva-iva` cut held art. 30 («la tarifa referida en el artículo 10») 8th
+    and `reglamento-iva` art. 1 («tarifas … artículo 11») 6th, and art. 11 took the slot.
+  - Only an artículo's first part is appended; a figure in a later part is not.
+  - In the two IVA reglamento excerpts, a bare «artículo N» reads as the excerpt itself, which
+    holds one artículo, rather than as `reglamento-iva`.

@@ -35,12 +35,12 @@ export async function pinAnswerSet(
   pool: readonly RetrievedChunk[],
   options: PinOptions = {},
 ): Promise<RetrievedChunk[]> {
-  const referenced = await crossReferencedChunks(answerSet, pool, options);
+  const referenced = await crossReferencedChunks(answerSet, options);
   const derived = pinDerivedFigureInputs(
     answerSet,
     pool,
     options.figures ?? DERIVED_FIGURES,
-  ).slice(answerSet.length);
+  ).filter((chunk) => !answerSet.includes(chunk));
   const pinned = [...answerSet];
   for (const chunk of [...referenced, ...derived]) {
     // A reference can name a figure's input: it goes in once.
