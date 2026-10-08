@@ -29,6 +29,7 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import manifest from "../../../corpus/manifest.json";
+import { articuloKey, fold } from "../articulo-key";
 import type { Database } from "../database.types";
 import { modeKnob } from "../knobs";
 import { describeError } from "../log-redaction";
@@ -107,15 +108,6 @@ function referenceKey(docKey: string, articulo: string | null): string {
   return `${docKey}\u0000${articulo ?? ""}`;
 }
 
-/** Lowercase, unaccented, single-spaced: how titles and markers compare. */
-function fold(text: string): string {
-  return text
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .toLowerCase()
-    .replace(/\s+/g, " ");
-}
-
 const ORDINALS: Record<string, number> = {
   primero: 1,
   segundo: 2,
@@ -131,21 +123,6 @@ const ORDINALS: Record<string, number> = {
 };
 
 const SUFFIXES = ["bis", "ter", "quater", "quinquies"] as const;
-
-/**
- * An artículo label as the chunker wrote it → the number a reference names:
- * «Artículo 10» and «ARTICULO 10» → «10», «Artículo 11 bis» → «11 BIS».
- * Null for a label that is not one numbered artículo — a transitorio, a
- * preámbulo, an acta's «Artículo 4°, sesión 9570», an FAQ question.
- */
-export function articuloKey(label: string | null | undefined): string | null {
-  if (!label) return null;
-  const m = fold(label.trim()).match(
-    /^articulo (\d+) ?(?:\.?[°º])?(?: (bis|ter|quater|quinquies))?$/,
-  );
-  if (!m) return null;
-  return m[2] ? `${Number(m[1])} ${m[2].toUpperCase()}` : String(Number(m[1]));
-}
 
 // One item of a reference list, on folded text: «10», «4°», «1.º», «10 bis»,
 // «primero».
@@ -455,8 +432,9 @@ export interface CrossReferenceOptions {
  * set's own order, then each chunk's text order. Only the set the rerank cut
  * is read, never what this appends, so one reference cannot chain into the
  * next. An artículo already in the set — any part of it — is not fetched
- * again, and one whose label the document repeats (`reglamento-iva` has two
- * «Artículo 25») is not appended at all: which one was meant is a guess.
+ * again, and one whose label the document repeats is not appended at all:
+ * which one was meant is a guess. (A repeat is usually a chunking bug, so the
+ * corpus-index tests fail on any the source does not really carry, #530.)
  *
  * A lookup that fails or runs out of time costs the append and nothing else:
  * the answer set the rerank chose is still a complete one, so the failure is

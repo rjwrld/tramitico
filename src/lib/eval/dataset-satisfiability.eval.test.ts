@@ -21,11 +21,13 @@ import { serviceClient } from "../supabase/service";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import { fixtureLane } from "./scoped-lane";
 import {
+  auditRepeatedLabels,
   buildCorpusIndex,
   type CensusChunk,
   collidingEntries,
   CORPUS_INDEX_PATH,
   describeEntry,
+  describeLabel,
   fetchCorpusChunks,
   parseCorpusIndex,
 } from "./corpus-index";
@@ -72,6 +74,19 @@ describeEval("eval dataset targets are satisfiable by the corpus", () => {
     expect(
       collisions.map(describeEntry),
       "chunks sharing one (docKey, articulo, path, part) citation",
+    ).toEqual([]);
+  });
+
+  // The table-level twin of the per-PR repeated-label check (#530). Only
+  // the unallowed half: between the owner's re-ingest and the re-dump PR a
+  // stale allowlist entry is expected, and the per-PR check retires it.
+  it("carries no label under two paths unless the source does", () => {
+    const { unallowed } = auditRepeatedLabels(
+      buildCorpusIndex(chunks, new Date().toISOString()),
+    );
+    expect(
+      unallowed.map(describeLabel),
+      "labels carried under two paths and not in ALLOWED_REPEATED_LABELS",
     ).toEqual([]);
   });
 

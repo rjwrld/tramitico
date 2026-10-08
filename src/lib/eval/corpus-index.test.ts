@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import {
+  ALLOWED_REPEATED_LABELS,
+  auditRepeatedLabels,
   buildCorpusIndex,
   collidingEntries,
   CORPUS_INDEX_PATH,
   describeEntry,
+  describeLabel,
   formatCorpusIndex,
   parseCorpusIndex,
+  repeatedLabels,
   sameCoverage,
   serializeCorpusIndex,
 } from "./corpus-index";
@@ -195,6 +199,73 @@ describe("the committed document set (#256)", () => {
   it("keeps the two excerpted documents", () => {
     expect(docKeys.has("ccss-bmc")).toBe(true);
     expect(docKeys.has("disposiciones-v44")).toBe(true);
+  });
+});
+
+describe("repeated artículo labels (#530)", () => {
+  it("flags a label one document carries under two paths", () => {
+    const index = buildCorpusIndex(
+      [
+        chunk("reglamento-iva", "Artículo 1", ["CAPÍTULO I"]),
+        chunk("reglamento-iva", "Artículo 25", ["CAPÍTULO I"]),
+        chunk("reglamento-iva", "Artículo 25", ["CAPÍTULO VIII"]),
+        chunk("ley-iva", "Artículo 25"),
+      ],
+      "2026-01-01T00:00:00.000Z",
+    );
+    expect(repeatedLabels(index)).toEqual([
+      { docKey: "reglamento-iva", articulo: "Artículo 25" },
+    ]);
+  });
+
+  it("calls two labels one when the resolver would", () => {
+    const index = buildCorpusIndex(
+      [
+        chunk("reglamento-renta", "Artículo 38 quáter", ["CAPÍTULO V"]),
+        chunk("reglamento-renta", "ARTICULO 38  quater", ["CAPÍTULO IX"]),
+        chunk("ley-renta", "Artículo 4", ["TÍTULO I"]),
+        chunk("ley-renta", "Artículo 04", ["TÍTULO II"]),
+        chunk("ley-renta", "Transitorio II", ["TÍTULO I"]),
+        chunk("ley-renta", "TRANSITORIO II", ["TÍTULO II"]),
+      ],
+      "2026-01-01T00:00:00.000Z",
+    );
+    expect(repeatedLabels(index)).toHaveLength(3);
+  });
+
+  it("does not flag parts, unlabelled entries or one label per path", () => {
+    const index = buildCorpusIndex(
+      [
+        chunk("ley-renta", "Artículo 31", [], 0),
+        chunk("ley-renta", "Artículo 31", [], 1),
+        chunk("cabys-dev", null, ["A"]),
+        chunk("cabys-dev", null, ["B"]),
+      ],
+      "2026-01-01T00:00:00.000Z",
+    );
+    expect(repeatedLabels(index)).toEqual([]);
+  });
+
+  // Exactly the allowlist, both ways: a new repeat must be fixed or allowed
+  // with a reason, and an entry the corpus no longer needs must go (the
+  // #530 re-dump removes reglamento-iva's).
+  it("holds over the committed corpus, allowlist included", () => {
+    const committed = parseCorpusIndex(readFileSync(CORPUS_INDEX_PATH, "utf8"));
+    const { unallowed, stale } = auditRepeatedLabels(committed);
+    expect(
+      unallowed.map(describeLabel),
+      "labels carried under two paths — fix the chunker, or add the pair to ALLOWED_REPEATED_LABELS with the source's reason",
+    ).toEqual([]);
+    expect(
+      stale.map(describeLabel),
+      "ALLOWED_REPEATED_LABELS entries the corpus no longer repeats — delete them",
+    ).toEqual([]);
+  });
+
+  it("gives every allowlisted label a reason", () => {
+    for (const allowed of ALLOWED_REPEATED_LABELS) {
+      expect(allowed.reason.trim(), describeLabel(allowed)).not.toBe("");
+    }
   });
 });
 

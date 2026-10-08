@@ -33,19 +33,25 @@ const artNumber = (ordinals: string) =>
 // paragraph ("...según el artículo 304 del decreto...") are not — the first
 // ingestion run showed those create false boundaries if matched.
 //
-// For TRANSITORIO case is not enough — the #237 lesson, which that issue only
-// applied to TÍTULO/CAPÍTULO/SECCIÓN. Extraction wraps sentences, so prose can
-// open a line with a capitalized reference ("Transitorio IX de la Ley No.
-// 9635. Para estos efectos…") and open a false boundary. A real heading is
-// structural: the ordinal is followed by a delimiter. Artículos keep the
-// looser rule — their número is a digit run, which prose does not open a line
-// with the way a roman numeral reference does.
+// Case is not enough either — the #237 lesson, which that issue only applied
+// to TÍTULO/CAPÍTULO/SECCIÓN. Extraction wraps sentences, so prose can open a
+// line with a capitalized reference ("Transitorio IX de la Ley No. 9635. Para
+// estos efectos…", "Artículo 25 del presente Reglamento." in reglamento-iva's
+// definitions, #530) and open a false boundary — one that labels the rest of
+// the artículo with a número the document gives to a different one. A real
+// heading is structural: the ordinal is followed by a delimiter (the corpus
+// writes «.-», «-», «.—», «°.-» and «º-»). An artículo label may also end its
+// paragraph: the markup fragments headings ("Artículo 64" / "bis.—…"), and
+// normalizeFragments rejoins those by matching the bare label. That `$`
+// branch still opens a false boundary on a wrapped line that is exactly
+// «Artículo N», its prose on the next paragraph; none exists in the corpus.
 const TRANSITORIO_DELIMITER = "(?=[ .°\\-–—]*[.°\\-–—])";
+const ARTICULO_DELIMITER = "(?=[ .°º\\-–—]*(?:[.°º\\-–—]|$))";
 const ART_RE = new RegExp(
   "^(" +
     [
-      `ART[ÍI]CULO${artNumber(ORDINAL_UPPER)}`,
-      `Art[íi]culo${artNumber(ORDINAL_LOWER)}`,
+      `ART[ÍI]CULO${artNumber(ORDINAL_UPPER)}${ARTICULO_DELIMITER}`,
+      `Art[íi]culo${artNumber(ORDINAL_LOWER)}${ARTICULO_DELIMITER}`,
       `TRANSITORIO\\s+[IVXLCDM\\d]+(?:\\s+(?:${ORDINAL_UPPER}))?${TRANSITORIO_DELIMITER}`,
       `Transitorio\\s+[IVXLCDM\\d]+(?:\\s+(?:${ORDINAL_LOWER}))?${TRANSITORIO_DELIMITER}`,
     ].join("|") +

@@ -20,6 +20,7 @@
  * which also compares the two) is the backstop for the uncommon one.
  */
 import path from "node:path";
+import { articuloKey, fold } from "../articulo-key";
 import type { MatchableChunk } from "./dataset";
 
 export const CORPUS_INDEX_PATH = path.join(
@@ -74,6 +75,102 @@ export function describeEntry(entry: MatchableChunk): string {
  */
 export function collidingEntries(index: CorpusIndex): CorpusIndexEntry[] {
   return index.entries.filter((entry) => entry.chunks !== entry.parts);
+}
+
+/** One citable label of one document, whatever its path. */
+export interface RepeatedLabel {
+  docKey: string;
+  articulo: string;
+}
+
+/**
+ * A label a document carries under two paths, where the source really does
+ * (#530). Each needs its reason: the guard below exists because a repeated
+ * label is usually a chunking bug, not a quirk of the source.
+ */
+export interface AllowedRepeatedLabel extends RepeatedLabel {
+  reason: string;
+}
+
+export const ALLOWED_REPEATED_LABELS: readonly AllowedRepeatedLabel[] = [
+  {
+    docKey: "ccss-faq",
+    articulo:
+      "¿Qué hago si voy a salir del país por un periodo de tiempo mayor a tres meses?",
+    reason:
+      "CCSS asks it under «Seguro voluntario» and «Trabajador Independiente» and answers it differently in each (identical answers are deduped, #301); dataset targets pick one with pathIncludes",
+  },
+  {
+    docKey: "ccss-faq",
+    articulo: "¿Si me atraso en el pago debo pagar intereses?",
+    reason:
+      "CCSS asks it under «Seguro voluntario» and «Trabajador Independiente» and answers it differently in each (identical answers are deduped, #301)",
+  },
+  {
+    docKey: "reglamento-iva",
+    articulo: "Artículo 25",
+    reason:
+      "TEMPORARY until the #530 re-ingest: the chunker read a wrapped reference in Artículo 1 inciso 30 as a heading. The source numbers one Artículo 25; the corpus-index re-dump PR deletes this entry",
+  },
+];
+
+/** A label rendered for an assertion message. */
+export function describeLabel({ docKey, articulo }: RepeatedLabel): string {
+  return `${docKey} · ${articulo}`;
+}
+
+/**
+ * Two labels are one when #508's resolver would take them for one artículo
+ * (`articuloKey`: «Artículo 4», «ARTICULO 04»); any other label, a
+ * transitorio or an FAQ question, when it folds the same.
+ */
+function labelIdentity({ docKey, articulo }: RepeatedLabel): string {
+  return JSON.stringify([
+    docKey,
+    articuloKey(articulo) ?? fold(articulo).trim(),
+  ]);
+}
+
+/**
+ * The labels carried under more than one path, in index order (#530). A
+ * citation names a label, not a path, and the resolver refuses a label two
+ * artículos share, so one mislabelled chunk costs every reference to the real
+ * artículo. Unlabelled entries and an artículo's parts are not repeats.
+ */
+export function repeatedLabels(index: CorpusIndex): RepeatedLabel[] {
+  const seen = new Map<string, RepeatedLabel>();
+  const repeated = new Map<string, RepeatedLabel>();
+  for (const { docKey, articulo } of index.entries) {
+    if (articulo === null) continue;
+    const label = { docKey, articulo };
+    const identity = labelIdentity(label);
+    const first = seen.get(identity);
+    if (first) repeated.set(identity, first);
+    else seen.set(identity, label);
+  }
+  return [...repeated.values()];
+}
+
+/**
+ * The index's repeats against `ALLOWED_REPEATED_LABELS`: those no entry
+ * allows, and entries no repeat needs any more (the #530 re-dump retires
+ * reglamento-iva's).
+ */
+export function auditRepeatedLabels(index: CorpusIndex): {
+  unallowed: RepeatedLabel[];
+  stale: AllowedRepeatedLabel[];
+} {
+  const repeated = repeatedLabels(index);
+  const repeatedIds = new Set(repeated.map(labelIdentity));
+  const allowedIds = new Set(ALLOWED_REPEATED_LABELS.map(labelIdentity));
+  return {
+    unallowed: repeated.filter(
+      (label) => !allowedIds.has(labelIdentity(label)),
+    ),
+    stale: ALLOWED_REPEATED_LABELS.filter(
+      (allowed) => !repeatedIds.has(labelIdentity(allowed)),
+    ),
+  };
 }
 
 /** Distinct triples in a deterministic order, so a re-dump of an unchanged

@@ -25,8 +25,8 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { articuloKey } from "../src/lib/articulo-key";
 import {
-  articuloKey,
   articuloLookup,
   crossReferencedChunks,
   crossReferences,

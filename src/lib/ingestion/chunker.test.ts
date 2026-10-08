@@ -262,6 +262,36 @@ describe("chunkDocument — Reglamento IVA (71 artículos, 1.5MB)", () => {
       ),
     ).toBe(false);
   });
+
+  // #530: inciso 30 of Artículo 1 wraps so a source line opens «Artículo 25
+  // del presente Reglamento.» — a reference, which used to open a second
+  // «Artículo 25» under Capítulo I and carry the rest of the definitions.
+  it("labels the one Artículo 25 the reglamento numbers, under Capítulo VIII", () => {
+    const art25 = chunks.filter((c) => c.articulo === "Artículo 25");
+    expect(art25).toHaveLength(1);
+    expect(art25[0].path[0]).toMatch(/^CAPÍTULO VIII/);
+    expect(art25[0].content).toMatch(
+      /Artículo 25\.- Determinación del impuesto/,
+    );
+    const art1 = chunks
+      .filter((c) => c.articulo === "Artículo 1")
+      .map((c) => c.content)
+      .join(" ");
+    expect(art1).toMatch(/aplicar lo dispuesto en el Artículo 25 del presente/);
+    expect(art1).toMatch(/31\) Juego de azar/);
+  });
+
+  it("never gives one artículo label two paths", () => {
+    const paths = new Map<string, Set<string>>();
+    for (const c of chunks) {
+      if (c.articulo === null) continue;
+      const seen = paths.get(c.articulo) ?? new Set<string>();
+      seen.add(JSON.stringify(c.path));
+      paths.set(c.articulo, seen);
+    }
+    const ambiguous = [...paths].filter(([, p]) => p.size > 1);
+    expect(ambiguous.map(([label]) => label)).toEqual([]);
+  });
 });
 
 describe("chunkDocument — inline artículo headings (Ley IVA shape, ADR 0002 amendment)", () => {
@@ -600,6 +630,53 @@ describe("chunkDocument — artículo suffixes (#274)", () => {
     expect(chunks.map((c) => c.articulo)).toEqual([
       "Artículo 64 bis",
       "Artículo 65 ter",
+    ]);
+  });
+
+  // #530, the #237 lesson for ARTÍCULO: SINALEVI's markup wraps sentences, so
+  // a line can open with a capitalized artículo reference. A heading carries
+  // a delimiter after its número; a reference runs straight on into prose.
+  it("does not open a chunk on wrapped prose naming an artículo", () => {
+    const chunks = chunkDocument("x", "X", [
+      "Artículo 1.- Definiciones. 30) Inversión del sujeto pasivo, debiendo",
+      "el contribuyente aplicar lo dispuesto en el",
+      "Artículo 25 del presente Reglamento.",
+      "ARTÍCULO 8 de esta ley, y el",
+      "Artículo 12, inciso a), según corresponda.",
+      "31) Juego de azar.",
+      "Artículo 25.- Determinación del impuesto.",
+    ]);
+    expect(chunks.map((c) => c.articulo)).toEqual([
+      "Artículo 1",
+      "Artículo 25",
+    ]);
+    expect(chunks[0].content).toMatch(/31\) Juego de azar/);
+  });
+
+  it("keeps recognising the artículo delimiter shapes the corpus carries", () => {
+    const chunks = chunkDocument("x", "X", [
+      "ARTICULO 2º.-",
+      "Son contribuyentes.",
+      "Artículo 3º-Acceso a la protección.",
+      "Artículo 7°.- Renta bruta.",
+      "Articulo 38 quater .",
+      "Artículo 40 bis .- Determinación , liquidación",
+      "Artículo 61 bis.— (Derogado).",
+      "ARTÍCULO 9 -Gastos no deducibles.",
+      "ARTICULO 66-B .-(ANULADO por Resolución de la Sala Constitucional).",
+      "Artículo 10",
+      "Hecho generador.",
+    ]);
+    expect(chunks.map((c) => c.articulo)).toEqual([
+      "ARTICULO 2",
+      "Artículo 3",
+      "Artículo 7",
+      "Articulo 38 quater",
+      "Artículo 40 bis",
+      "Artículo 61 bis",
+      "ARTÍCULO 9",
+      "ARTICULO 66-B",
+      "Artículo 10",
     ]);
   });
 
