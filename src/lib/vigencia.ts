@@ -65,6 +65,11 @@ export function crFiscalYear(now = new Date()): number {
   return Number(crDate(now).slice(0, 4));
 }
 
+/** Whether `now` falls in December, Costa Rica time: the warning month. */
+function isDecember(now: Date): boolean {
+  return crDate(now).slice(5, 7) === "12";
+}
+
 /** The year an entry's figure took effect; `null` when it names none. */
 function firstFiscalYear(entry: VigenciaEntry): number | null {
   const year = Number(entry.effective_date?.slice(0, 4));
@@ -141,11 +146,10 @@ export function annualVigencia(
     );
   const current = coveredIn(year);
   const next = coveredIn(year + 1);
-  const isDecember = crDate(now).slice(5, 7) === "12";
 
   return {
     uncovered: series.filter((s) => !current.has(s)),
-    dueForNextYear: isDecember ? series.filter((s) => !next.has(s)) : [],
+    dueForNextYear: isDecember(now) ? series.filter((s) => !next.has(s)) : [],
     superseded: annual
       .filter(
         (entry) =>
@@ -168,7 +172,8 @@ export function yearFigureLabel(ref: YearFigureRef): string {
   return `${ref.docKey} · ${ref.articulo} (${ref.fiscalYear})`;
 }
 
-function yearFigureRefs(source: VigenciaManifest): YearFigureRef[] {
+/** Every `yearFigures` artículo in a manifest, with its source's doc_key. */
+export function yearFigureRefs(source: VigenciaManifest): YearFigureRef[] {
   return source.documents.flatMap((entry) =>
     (entry.yearFigures ?? []).map(({ articulo, fiscalYear }) => ({
       docKey: entry.doc_key,
@@ -178,12 +183,19 @@ function yearFigureRefs(source: VigenciaManifest): YearFigureRef[] {
   );
 }
 
+/** Whether an artículo's figures are the current fiscal year's. */
+function isCurrentYear(ref: YearFigureRef, year: number): boolean {
+  return ref.fiscalYear === year;
+}
+
 export interface YearFigureVigencia {
   /**
-   * Artículos whose year is not the current one: `retrieve()` withholds them
+   * Artículos still on a past year's figures: `retrieve()` withholds them
    * until the publisher's text moves to this year and the owner re-crawls
    * it. A warning, not a gate — the fix waits on SINALEVI or the CCSS, and
-   * the runtime already keeps the stale figure out of answers.
+   * the runtime already keeps the stale figure out of answers. One already
+   * on next year's figures is withheld too, but only until 1 January, and
+   * asks nothing of anyone, so it is not listed.
    */
   withheld: YearFigureRef[];
   /** From 1 December only: artículos that 1 January will withhold. */
@@ -197,11 +209,10 @@ export function yearFigureVigencia(
 ): YearFigureVigencia {
   const year = crFiscalYear(now);
   const refs = yearFigureRefs(source);
-  const isDecember = crDate(now).slice(5, 7) === "12";
   return {
-    withheld: refs.filter((ref) => ref.fiscalYear !== year),
-    dueForNextYear: isDecember
-      ? refs.filter((ref) => ref.fiscalYear !== year + 1)
+    withheld: refs.filter((ref) => ref.fiscalYear < year),
+    dueForNextYear: isDecember(now)
+      ? refs.filter((ref) => !isCurrentYear(ref, year + 1))
       : [],
   };
 }
@@ -254,7 +265,7 @@ export function withheldSources(
     ),
     outOfPeriodArticulos: new Set(
       yearFigureRefs(source)
-        .filter((ref) => ref.fiscalYear !== year)
+        .filter((ref) => !isCurrentYear(ref, year))
         .map((ref) => yearFigureKey(ref.docKey, ref.articulo)),
     ),
     retired: new Set(source.retiredDocKeys ?? []),
@@ -268,6 +279,7 @@ export function withholdsAny(withheld: WithheldSources): boolean {
   );
 }
 
+/** Whether a chunk may not ground an answer: by source, or by artículo. */
 export function isWithheld(
   withheld: WithheldSources,
   chunk: { docKey: string; articulo: string | null },

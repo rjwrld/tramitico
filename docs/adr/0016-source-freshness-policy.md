@@ -77,14 +77,15 @@ that year.** The first amendment drops whole sources, so it cannot see a source 
 annual but quotes a year's figures in a few artículos. The inventory, read from the corpus on
 2026-10-07 (local stack and production agree; `ley-renta` fetched 2026-10-02):
 
-| Chunk (`doc_key` · artículo)                | Figures                                                                                                                                       | Year                       | Treatment     |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | ------------- |
-| `ley-renta` · Artículo 15 (parts 0 and 1)   | personas jurídicas: renta bruta ceiling and tramos; personas físicas con actividades lucrativas: escala; annual créditos por hijo and cónyuge | 2026, DE 45333-H           | `yearFigures` |
-| `ley-renta` · Artículo 33                   | monthly salario tramos                                                                                                                        | 2026, DE 45333-H           | `yearFigures` |
-| `ley-renta` · ARTICULO 34                   | monthly créditos por hijo (¢1.710) and cónyuge (¢2.590)                                                                                       | 2026, DE 45333-H           | `yearFigures` |
-| `ccss-faq` · the contribution-rate question | the transcribed `av_tv_2026` image: Salud and IVM escalas for TI and AV, with colón bounds                                                    | January 2026               | `yearFigures` |
-| `reglamento-renta` · Artículo 23 (part 0)   | ¢106.000.000 renta bruta ceiling for personas jurídicas                                                                                       | an earlier year's, undated | not listed    |
-| `ley-renta` · ARTICULO 38                   | ¢72.000 cuota libre                                                                                                                           | pre-1995 text              | not listed    |
+| Chunk (`doc_key` · artículo)                | Figures                                                                                                                                       | Year                                    | Treatment     |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ------------- |
+| `ley-renta` · Artículo 15 (parts 0 and 1)   | personas jurídicas: renta bruta ceiling and tramos; personas físicas con actividades lucrativas: escala; annual créditos por hijo and cónyuge | 2026, DE 45333-H                        | `yearFigures` |
+| `ley-renta` · Artículo 33                   | monthly salario tramos                                                                                                                        | 2026, DE 45333-H                        | `yearFigures` |
+| `ley-renta` · ARTICULO 34                   | monthly créditos por hijo (¢1.710) and cónyuge (¢2.590)                                                                                       | 2026, DE 45333-H                        | `yearFigures` |
+| `ccss-faq` · the contribution-rate question | the transcribed `av_tv_2026` image: Salud and IVM escalas for TI and AV, with colón bounds                                                    | January 2026                            | `yearFigures` |
+| `reglamento-renta` · Artículo 23 (part 0)   | ¢106.000.000 renta bruta ceiling for personas jurídicas                                                                                       | an earlier year's, undated              | not listed    |
+| `ley-renta` · ARTICULO 38                   | ¢72.000 cuota libre                                                                                                                           | pre-1995 text                           | not listed    |
+| `ley-renta` · Artículo 59                   | Fonade's ¢15.000.000.000 a year, adjusted by the IPC                                                                                          | none: a 2008 sum the law indexes itself | not listed    |
 
 The salario base, the salarios mínimos and the BMC appear in non-annual sources only by name (the
 CNPT multas as multiples of the salario base, the TI reglamento's art. 6 on the BMC), never as an
@@ -133,7 +134,8 @@ the credit.
 **Not listed, and why.** `reglamento-renta` art. 23 and `ley-renta` art. 38 quote figures that are
 stale today, not on a fiscal year's clock: the reglamento's ¢106.000.000 ceiling (and its
 100/75/50 Mipymes reduction) predates the law's current art. 15, and art. 38's ¢72.000 predates
-art. 33's tramos. Declaring a fiscal year for them would be false, and withholding them changes
+art. 33's tramos. Art. 59's Fonade transfer is a sum the law states once and indexes itself; it
+names no fiscal year to follow. Declaring a fiscal year for them would be false, and withholding them changes
 today's answers, which is a corpus decision outside this amendment.
 
 **The manual check.** Runbook §2.2 no longer asks the owner to check these four artículos by

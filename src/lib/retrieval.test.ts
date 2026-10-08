@@ -19,7 +19,11 @@ import {
 import type { Embedder } from "./ingestion/embedder";
 import { describeError } from "./log-redaction";
 import { DERIVED_FIGURES, resolveDerivedFigures } from "./answer/derived";
-import { coversFiscalYear, type VigenciaManifest } from "./vigencia";
+import {
+  coversFiscalYear,
+  yearFigureRefs,
+  type VigenciaManifest,
+} from "./vigencia";
 import manifest from "../../corpus/manifest.json";
 
 /** The deployed manifest, as the slice vigencia reads. */
@@ -721,13 +725,7 @@ describe("retrieve", () => {
    * through, and in its own year each listed artículo does.
    */
   it("lets no year-figure artículo from another fiscal year through in 2027", async () => {
-    const listed = manifestDocs.flatMap((doc) =>
-      (doc.yearFigures ?? []).map(({ articulo, fiscalYear }) => ({
-        docKey: doc.doc_key,
-        articulo,
-        fiscalYear,
-      })),
-    );
+    const listed = yearFigureRefs({ documents: manifestDocs });
     const neutral = [...new Set(listed.map(({ docKey }) => docKey))].map(
       (docKey) => ({ docKey, articulo: "Artículo sin cifras", fiscalYear: 0 }),
     );

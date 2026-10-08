@@ -217,5 +217,27 @@ describe("year-figure artículos (#518)", () => {
     expect(
       yearFigureVigencia(LEY_RENTA, IN_2027).withheld.map(yearFigureLabel),
     ).toEqual(["ley-renta · ARTICULO 34 (2026)"]);
+    // Moved to next year's figures in December: withheld until 1 January,
+    // which is right, and nothing to warn about.
+    const early: VigenciaManifest = {
+      documents: [
+        {
+          doc_key: "ley-renta",
+          yearFigures: [
+            { articulo: "ARTICULO 34", fiscalYear: 2027, evidence: "2027" },
+          ],
+        },
+      ],
+    };
+    expect(yearFigureVigencia(early, crMidnight("2026-12-15"))).toEqual({
+      withheld: [],
+      dueForNextYear: [],
+    });
+    expect(
+      isWithheld(withheldSources(crMidnight("2026-12-15"), early), {
+        docKey: "ley-renta",
+        articulo: "ARTICULO 34",
+      }),
+    ).toBe(true);
   });
 });

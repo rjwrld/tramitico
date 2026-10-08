@@ -6,6 +6,7 @@ import {
   annualSeries,
   annualVigencia,
   yearFigureLabel,
+  yearFigureRefs,
   yearFigureVigencia,
   type YearFigure,
 } from "../vigencia";
@@ -109,10 +110,8 @@ describe("corpus/manifest.json vigencia", () => {
    * quoting a year's figure changes it here, on purpose.
    */
   it("lists the year-figure artículos of non-annual sources", () => {
-    const listed = manifest.documents.flatMap((doc) =>
-      (doc.yearFigures ?? []).map(
-        (figure) => `${doc.doc_key} · ${figure.articulo}`,
-      ),
+    const listed = yearFigureRefs(manifest).map(
+      ({ docKey, articulo }) => `${docKey} · ${articulo}`,
     );
     expect(listed).toEqual([
       "ley-renta · Artículo 15",

@@ -317,13 +317,16 @@ evidence, so the year cannot move without the text, nor the text without the yea
 6. Query `documents` for the annual keys and check their `effective_date` and `fetched_at`. Open
    one live answer and one history answer to confirm both sello dates render.
 7. **Year figures, once the publishers move (#518).** When SINALEVI has consolidated the new tramos
-   decree into Ley 7092, run `pnpm recrawl ley-renta`. It fails on each listed artículo whose text
-   now names the new year: read the new figures against the decree, set that artículo's
-   `fiscalYear` and `evidence` to the new year (the decree note's «a partir del 01 de enero del
-   2027»), and re-run. A text that still names the old year ingests and stays withheld; wait and
-   re-crawl. When the CCSS publishes the new rate image, the `ccss-faq` re-crawl fails first on the
-   `imageTranscriptions` hash: transcribe the new image (#301, #407), then move the FAQ entry's
-   `fiscalYear` and `evidence` («ENERO 2027») with it. Commit `eval/corpus-index.json` if it changed.
+   decree into Ley 7092, run `pnpm recrawl ley-renta`. It fails on each listed artículo that no
+   longer carries its `evidence`, which is what happens when the decree note is replaced: read the
+   new figures against the decree, set that artículo's `fiscalYear` and `evidence` to the new year
+   (the decree note's «a partir del 01 de enero del 2027»), and re-run. A text that still carries
+   the old phrase ingests and stays withheld, and the vigencia test keeps naming it: either it
+   still lags (wait and re-crawl), or SINALEVI kept the old note beside the new one (read it, and
+   move `fiscalYear` and `evidence` as above). When the CCSS publishes the new rate image, the
+   `ccss-faq` re-crawl fails first on the `imageTranscriptions` hash: transcribe the new image
+   (#301, #407), then move the FAQ entry's `fiscalYear` and `evidence` («ENERO 2027») with it.
+   Commit `eval/corpus-index.json` if it changed.
 8. **Look for new year figures.** Still by hand, because the per-PR test reads the committed
    corpus index, which holds headings but not text: a re-crawl that adds a year's figure to an
    artículo nobody listed is invisible to it. On the shared local stack, after the re-crawl:
