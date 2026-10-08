@@ -139,6 +139,8 @@ const SEPARATOR = /^(?: ?, ?(?:y |e )?| y | e )/;
 const SUBDIVISION =
   /^,? ?(?:ambos|inciso|incisos|apartado|apartados|aparte|denominado|parrafo|parrafos|numeral|numerales|subinciso|subincisos|literal)\b(?:[^.;:]|\.(?=\d)){0,80}?(?= del? )/;
 
+// SINALEVI's editorial marks, «el artículo 46 (*) de esta Ley».
+const EDITORIAL_MARK = /^ ?\(\*+\)/;
 const DEFINED_TERM =
   /^de la ley(?:$|[^\p{L}\d ]| (?:y|e|o|u|que|se|en|a|al|el|la|los|las|con|como|cuando|segun|citada|antes|mencionada|indicada|vigente)\b)/u;
 
@@ -152,7 +154,7 @@ function classifyTail(
   tail: string,
   regulated: DocumentLink | undefined,
 ): "self" | "law" | "none" {
-  const skipped = tail.match(SUBDIVISION);
+  const skipped = tail.match(SUBDIVISION) ?? tail.match(EDITORIAL_MARK);
   if (skipped) return classifyTail(tail.slice(skipped[0].length), regulated);
   // A dash after the number is a heading, «Artículo 5º—Este Decreto…», that
   // a chunk carried over from the next artículo; not a reference.

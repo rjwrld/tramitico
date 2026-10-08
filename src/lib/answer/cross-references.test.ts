@@ -139,6 +139,13 @@ describe("crossReferences", () => {
     }
   });
 
+  it("reads past SINALEVI's editorial mark to the instrument", () => {
+    expect(
+      refs("Según el párrafo segundo del artículo 46 (*) de esta Ley."),
+    ).toEqual(iva("46"));
+    expect(refs("(Nota: Según el artículo 19(*) de Ley Nº 7200)")).toEqual([]);
+  });
+
   it("does not read a range, a renumbering note or a carried-over heading", () => {
     expect(refs("Lo previsto en los artículos 5 al 9 de esta ley.")).toEqual(
       [],

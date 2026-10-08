@@ -433,7 +433,7 @@ async function main(): Promise<void> {
     }`,
   );
   console.log(
-    `\n${"config".padEnd(20)} ${"targets".padEnd(10)} ${"cases w/ all".padEnd(12)} figures  abs-figures`,
+    `\n${"config".padEnd(26)} ${"targets".padEnd(10)} ${"cases w/ all".padEnd(12)} figures  abs-figures`,
   );
   for (const c of CONFIGS) {
     const present = retrievalReads.reduce(
@@ -453,7 +453,7 @@ async function main(): Promise<void> {
       )
       .map((r) => `${r.id}(${r.per[c.name].figures.join(",")})`);
     console.log(
-      `${c.name.padEnd(20)} ${`${present}/${totalTargets}`.padEnd(10)} ${`${full}/${retrievalReads.length}`.padEnd(12)} ${String(figures).padEnd(8)} ${absFigures.join(" ") || "—"}`,
+      `${c.name.padEnd(26)} ${`${present}/${totalTargets}`.padEnd(10)} ${`${full}/${retrievalReads.length}`.padEnd(12)} ${String(figures).padEnd(8)} ${absFigures.join(" ") || "—"}`,
     );
   }
 
