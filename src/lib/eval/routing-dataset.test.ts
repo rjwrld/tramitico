@@ -8,8 +8,8 @@
  * the classifier instead, in two halves:
  *
  * - Every abstention case classifies to its `routedCategory`. That is the
- *   decline the route streams if the case comes back weak, and `routeTo`
- *   names the same destination for the judge.
+ *   decline the route streams if the case comes back weak. `routeTo` is the
+ *   judge's prose for the destination, and may name more than the one link.
  * - The answerable cases the classifier would send out of scope, if it ever
  *   ran before retrieval, are listed and never failed. Today they reach the
  *   model, which answers them; the list is the standing evidence against an
