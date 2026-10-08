@@ -223,7 +223,7 @@ and the declaration disagree and the chunk is withheld. A listed answer the publ
 fails the next crawl of its source, and its entry is retired then. The steps are in
 [runbook §2.4](../runbook.md#24-dated-facts-531).
 
-## Amendment (2026-10-08, issue [#529](https://github.com/rjwrld/tramitico/issues/529))
+## Amendment (2026-10-07, issue [#529](https://github.com/rjwrld/tramitico/issues/529))
 
 **Words a later law has overridden are dropped wherever a chunk still carries them, on any
 day.** The second amendment left two artículos alone because their figures are stale now, not on
@@ -231,11 +231,11 @@ a fiscal year's clock. Checked against the current law, as SINALEVI consolidates
 corpus holds it (`ley-renta` fetched 2026-10-02; the local stack and production hold the same
 text for all three chunks):
 
-| Chunk (`doc_key` · artículo · part)  | What it states                                                                                                                                                                            | What the law says now                                                                                                                                                                                                                                                                                                     | Treatment                        |
-| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| `reglamento-renta` · Artículo 23 · 0 | personas jurídicas on the reduced escala up to a renta bruta of ¢106.000.000; new MEIC/MAG micro and small businesses reduce their tax by 100 %, 75 % and 50 % in their first three years | `ley-renta` art. 15 as Ley 10392 (2023-11-14) rewrote it: the ceiling is the inciso b) amount the decree sets each year (¢119.174.000 for 2026, DE 45333-H); new Mipymes pay 0 % of the tax in years one to three, 25 % in years four and five and 50 % in year six, and those of personas físicas qualify too (inciso c) | `overriddenFigures`, two phrases |
-| `reglamento-renta` · Artículo 23 · 1 | the tail of inciso d) (bonos temáticos) and the decree's duty to update art. 15's amounts                                                                                                 | the same                                                                                                                                                                                                                                                                                                                  | served                           |
-| `ley-renta` · ARTICULO 38 · 0        | the ¢72.000 cuota libre is one only, so a contributor paid by several employers tells them, and they withhold on the total                                                                | art. 33's tramos, set each year by decree, state the non-taxable amount; the ¢72.000 is pre-1995 text. The one-exemption rule stands, and `reglamento-renta` art. 61 states it too                                                                                                                                        | `overriddenFigures`, one phrase  |
+| Chunk (`doc_key` · artículo · part)  | What it states                                                                                                                                                                            | What the law says now                                                                                                                                                                                                                                                                                                     | Treatment                         |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| `reglamento-renta` · Artículo 23 · 0 | personas jurídicas on the reduced escala up to a renta bruta of ¢106.000.000; new MEIC/MAG micro and small businesses reduce their tax by 100 %, 75 % and 50 % in their first three years | `ley-renta` art. 15 as Ley 10392 (2023-11-14) rewrote it: the ceiling is the inciso b) amount the decree sets each year (¢119.174.000 for 2026, DE 45333-H); new Mipymes pay 0 % of the tax in years one to three, 25 % in years four and five and 50 % in year six, and those of personas físicas qualify too (inciso c) | `overriddenFigures`, four phrases |
+| `reglamento-renta` · Artículo 23 · 1 | the tail of inciso d) (bonos temáticos) and the decree's duty to update art. 15's amounts                                                                                                 | the same                                                                                                                                                                                                                                                                                                                  | served                            |
+| `ley-renta` · ARTICULO 38 · 0        | the ¢72.000 cuota libre is one only, so a contributor paid by several employers tells them, and they withhold on the total                                                                | art. 33's tramos, set each year by decree, state the non-taxable amount; the ¢72.000 is pre-1995 text. The one-exemption rule stands, and `reglamento-renta` art. 61 states it too                                                                                                                                        | `overriddenFigures`, one phrase   |
 
 A sweep of every chunk for the old amounts and the 100/75 wording found no other copy. Hits
 for «setenta y dos mil colones» inside «ochocientos setenta y dos mil colones» (art. 15 and
@@ -246,8 +246,12 @@ for «setenta y dos mil colones» inside «ochocientos setenta y dos mil colones
 artículo, an `evidence` phrase that is the stale text itself, the law that overrode it
 (`overriddenBy`), and the figures in prose. `retrieve()` drops every chunk of the artículo that
 carries any of its phrases, in the same pass as the first three amendments and before anything
-reads the pool. `crossReferencedChunks` goes through the same check. Each phrase costs one more
-row from `search_chunks`, as a past dated fact does. The rows are matched on
+reads the pool. `crossReferencedChunks` goes through the same check. Art. 23 lists the ceiling and
+each year of the reduction as its own phrase, so a re-crawl whose chunk boundary splits the list
+still withholds every part that states one. Each phrase costs one more
+row from `search_chunks`, as a past dated fact does: an upper bound, since art. 23's four
+phrases share one chunk today, and five rows on every ask cost nothing in ranking (the RPC's
+`match_count` only caps the fused output). The rows are matched on
 `(doc_key, articulo)` and the declaration deploys with the code, so nothing changes in the
 database, here or in production.
 

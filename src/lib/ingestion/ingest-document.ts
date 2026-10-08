@@ -187,12 +187,12 @@ export function assertOverriddenFigureEvidence(
   overriddenFigures: readonly OverriddenFigure[],
 ): void {
   for (const { articulo, evidence } of overriddenFigures) {
-    const own = chunks.filter((chunk) => chunk.articulo === articulo);
-    if (own.length === 0) {
-      throw new Error(
-        `${docKey}: overriddenFigures lists «${articulo}», but the crawl has no chunk with that heading — re-read the source and update the manifest (#529, runbook §2.5)`,
-      );
-    }
+    const own = articuloChunks(
+      docKey,
+      chunks,
+      articulo,
+      `overriddenFigures lists «${articulo}», but the crawl has no chunk with that heading — re-read the source and update the manifest (#529, runbook §2.5)`,
+    );
     if (!own.some((chunk) => chunk.content.includes(evidence))) {
       throw new Error(
         `${docKey}: «${articulo}» no longer carries «${evidence}» — if the publisher brought it in line with the later law, retire the entry; if it reworded the figure, set evidence to the new words (#529, runbook §2.5)`,
@@ -208,14 +208,25 @@ function assertArticuloCarries(
   { articulo, evidence }: { articulo: string; evidence: string },
   messages: { missing: string; lacking: string },
 ): void {
-  const own = chunks.filter((chunk) => chunk.articulo === articulo);
-  if (own.length === 0) {
-    throw new Error(`${docKey}: ${messages.missing}`);
-  }
+  const own = articuloChunks(docKey, chunks, articulo, messages.missing);
   const lacking = own.filter((chunk) => !chunk.content.includes(evidence));
   if (lacking.length > 0) {
     throw new Error(
       `${docKey}: «${articulo}» part(s) ${lacking.map((chunk) => chunk.part).join(", ")} no longer carry «${evidence}», ${messages.lacking}`,
     );
   }
+}
+
+/** The crawl's chunks under `articulo`; throws `missing` when there are none. */
+function articuloChunks(
+  docKey: string,
+  chunks: readonly Chunk[],
+  articulo: string,
+  missing: string,
+): Chunk[] {
+  const own = chunks.filter((chunk) => chunk.articulo === articulo);
+  if (own.length === 0) {
+    throw new Error(`${docKey}: ${missing}`);
+  }
+  return own;
 }

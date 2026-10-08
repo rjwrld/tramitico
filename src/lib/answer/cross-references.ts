@@ -478,7 +478,8 @@ export async function crossReferencedChunks(
     for (const reference of crossReferences(chunk, options.links)) {
       const key = referenceKey(reference.docKey, reference.articulo);
       // A source withheld whole (#505) is not even asked for; a single
-      // withheld artículo (#518's `yearFigures`) is judged on its chunk below.
+      // withheld artículo (`yearFigures`, `datedFacts`, `overriddenFigures`:
+      // #518, #531, #529) is judged on its chunk below.
       if (
         present.has(key) ||
         withheld.outOfPeriod.has(reference.docKey) ||

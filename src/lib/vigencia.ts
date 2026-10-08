@@ -399,7 +399,7 @@ export interface WithheldSources {
    * Every `overriddenFigures` artículo, keyed the same way: the overridden
    * words a chunk of it may not carry (#529). No clock reads them.
    */
-  overridden: ReadonlyMap<string, readonly string[]>;
+  overriddenFigures: ReadonlyMap<string, readonly string[]>;
   /** The manifest's `retiredDocKeys`. */
   retired: ReadonlySet<string>;
 }
@@ -414,7 +414,7 @@ export interface ArticuloVigencia {
   evidence: string;
 }
 
-/** The chunk identity `yearFigures` and `datedFacts` are keyed by. */
+/** The chunk identity `yearFigures`, `datedFacts` and `overriddenFigures` are keyed by. */
 function listedKey(docKey: string, articulo: string | null): string {
   return `${docKey}\u0000${articulo ?? ""}`;
 }
@@ -476,7 +476,7 @@ export function withheldSources(
         { current: holdsOn(ref, now), evidence: ref.evidence },
       ]),
     ),
-    overridden: overriddenFigureRefs(source).reduce((byKey, ref) => {
+    overriddenFigures: overriddenFigureRefs(source).reduce((byKey, ref) => {
       const key = listedKey(ref.docKey, ref.articulo);
       return byKey.set(key, [...(byKey.get(key) ?? []), ref.evidence]);
     }, new Map<string, readonly string[]>()),
@@ -503,7 +503,9 @@ export function withholdsAny(withheld: WithheldSources): boolean {
  * near-identical text and would trade places. Plus one row per dated fact
  * past its last day (#531): each is a single chunk, so it can take at most
  * one place, and one extra row refills it. Plus one row per overridden
- * phrase (#529), for the same reason: each sits in one chunk.
+ * phrase (#529): a phrase sits in one chunk, so it takes at most one place.
+ * Two phrases of one artículo may share a chunk (art. 23's do), which makes
+ * this an upper bound, never a shortfall.
  */
 export function searchCount(
   withheld: WithheldSources,
@@ -512,7 +514,8 @@ export function searchCount(
   const pastDatedFacts = [...withheld.datedFacts.values()].filter(
     (fact) => !fact.current,
   ).length;
-  const overriddenPhrases = [...withheld.overridden.values()].flat().length;
+  const overriddenPhrases = [...withheld.overriddenFigures.values()].flat()
+    .length;
   return (
     (withholdsAny(withheld) ? 2 * matchCount : matchCount) +
     pastDatedFacts +
@@ -537,7 +540,9 @@ export function isWithheld(
   }
   const key = listedKey(chunk.docKey, chunk.articulo);
   if (
-    withheld.overridden.get(key)?.some((words) => chunk.content.includes(words))
+    withheld.overriddenFigures
+      .get(key)
+      ?.some((words) => chunk.content.includes(words))
   ) {
     return true;
   }

@@ -192,6 +192,8 @@ describe("corpus/manifest.json vigencia", () => {
       "ley-renta · ARTICULO 38 · setenta y dos mil colones (¢72.000)",
       "reglamento-renta · Artículo 23 · ¢106.000.000",
       "reglamento-renta · Artículo 23 · en un 100% de su impuesto determinado",
+      "reglamento-renta · Artículo 23 · en un 75% de su impuesto determinado",
+      "reglamento-renta · Artículo 23 · en un 50% de su impuesto determinado",
     ]);
     for (const figure of manifest.documents.flatMap(
       (doc) => doc.overriddenFigures ?? [],

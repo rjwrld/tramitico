@@ -153,7 +153,19 @@
           "articulo": "Artículo 23",
           "evidence": "en un 100% de su impuesto determinado",
           "overriddenBy": "Ley 10392 (2023-11-14) rewrote ley-renta Artículo 15: new Mipymes pay 0 % of the tax in years one to three, 25 % in years four and five and 50 % in year six, and personas físicas qualify too",
-          "figures": "the 100/75/50 reduction for new micro and small businesses over their first three years"
+          "figures": "the 100/75/50 reduction for new micro and small businesses over their first three years: its first year"
+        },
+        {
+          "articulo": "Artículo 23",
+          "evidence": "en un 75% de su impuesto determinado",
+          "overriddenBy": "Ley 10392 (2023-11-14) rewrote ley-renta Artículo 15, as above",
+          "figures": "the same reduction: its second year, listed apart so a chunk boundary that splits the list cannot serve it"
+        },
+        {
+          "articulo": "Artículo 23",
+          "evidence": "en un 50% de su impuesto determinado",
+          "overriddenBy": "Ley 10392 (2023-11-14) rewrote ley-renta Artículo 15, as above",
+          "figures": "the same reduction: its third year"
         }
       ]
     },

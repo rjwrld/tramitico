@@ -475,10 +475,10 @@ withholds every chunk of the artículo that still carries those words, on any da
 the artículo's other chunks
 ([ADR 0016 fourth amendment](adr/0016-source-freshness-policy.md)).
 
-| Listed                           | Overridden words                                                 | By                                       |
-| -------------------------------- | ---------------------------------------------------------------- | ---------------------------------------- |
-| `reglamento-renta` · Artículo 23 | «¢106.000.000», «en un 100% de su impuesto determinado» (part 0) | Ley 10392 → `ley-renta` Artículo 15      |
-| `ley-renta` · ARTICULO 38        | «setenta y dos mil colones (¢72.000)»                            | the yearly tramos of `ley-renta` art. 33 |
+| Listed                           | Overridden words                                                             | By                                       |
+| -------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------- |
+| `reglamento-renta` · Artículo 23 | «¢106.000.000», «en un 100% / 75% / 50% de su impuesto determinado» (part 0) | Ley 10392 → `ley-renta` Artículo 15      |
+| `ley-renta` · ARTICULO 38        | «setenta y dos mil colones (¢72.000)»                                        | the yearly tramos of `ley-renta` art. 33 |
 
 Nothing warns on a clock: the figures are stale today and stay stale. A re-crawl is what can
 change them.
