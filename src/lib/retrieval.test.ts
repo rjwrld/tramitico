@@ -629,6 +629,50 @@ describe("retrieve", () => {
       expect(result.chunks).toHaveLength(1);
     });
 
+    it("withholds a dated fact from the as-typed search too (#531)", async () => {
+      const condonacion: SearchChunksRow = {
+        ...ROW,
+        chunk_id: "33333333-3333-3333-3333-333333333333",
+        doc_key: "ccss-faq",
+        articulo: "¿Hasta cuándo puedo solicitar la condonación?",
+        content: "… estará disponible hasta el día 11 de noviembre del 2026.",
+      };
+      const vigencia: VigenciaManifest = {
+        documents: [
+          {
+            doc_key: "ccss-faq",
+            datedFacts: [
+              {
+                articulo: condonacion.articulo ?? "",
+                lastDay: "2026-11-11",
+                evidence: "11 de noviembre del 2026",
+              },
+            ],
+          },
+        ],
+      };
+      const served = async (now: Date) => {
+        const { client, asked } = byQueryText({
+          "¿ pido la condonación?": [UNCORROBORATED],
+          "¿Cómo pido la condonación?": [condonacion, ROW],
+        });
+        const result = await retrieve("¿Cómo pido la condonación?", {
+          client,
+          embedder: fakeEmbedder(),
+          now,
+          vigencia,
+        });
+        expect(asked).toHaveLength(2);
+        return result.chunks.map((c) => c.docKey);
+      };
+
+      expect(await served(crMidnight("2026-11-11"))).toEqual([
+        "ccss-faq",
+        "ley-10363",
+      ]);
+      expect(await served(crMidnight("2026-11-12"))).toEqual(["ley-10363"]);
+    });
+
     it("asks once when the question has no question word to drop", async () => {
       const { client, asked } = byQueryText({});
       const result = await retrieve("¿me cobran retroactivo?", {
