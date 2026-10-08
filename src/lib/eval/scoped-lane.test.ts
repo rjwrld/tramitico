@@ -39,6 +39,8 @@ describe("every eval lane is scoped by EVAL_CASES (#536)", () => {
       const vitestImport =
         text.match(/import\s*\{([^}]*)\}\s*from\s*"vitest"/)?.[1] ?? "";
       expect(vitestImport).not.toMatch(/\bdescribe\b/);
+      // A test declared outside any suite would run under every EVAL_CASES.
+      expect(text).not.toMatch(/^(?:it|test)\b/m);
     },
   );
 });
@@ -57,12 +59,21 @@ describe("scopedLane", () => {
     });
   });
   scopedLane(gate, [], { [SUBSET_ENV]: "" })("blank", () => {});
+  // The typo branch declares one failing test; a skipped parent keeps it from
+  // running here while still showing the gate is never reached.
+  describe.skip("an unknown id", () => {
+    scopedLane(gate, CASES, { [SUBSET_ENV]: `${LANE_ID},typo` })(
+      "a typo",
+      () => {},
+    );
+  });
 
   it("hands the lane to its gate when unset, blank or naming its cases", () => {
     expect(calls).toEqual(["unset", "named", "blank"]);
   });
 
-  it("does not hand a lane none of whose cases are named to its gate", () => {
+  it("never hands a skipped or mistyped lane to its gate", () => {
     expect(calls).not.toContain("a fixture lane");
+    expect(calls).not.toContain("a typo");
   });
 });

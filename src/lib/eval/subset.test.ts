@@ -86,7 +86,7 @@ describe("selectCases", () => {
     const dataset = parseDataset(readFileSync(DATASET_PATH, "utf8"));
     expect(() =>
       selectCases(abstentionCases(dataset), ["ho-abs-typo"], dataset),
-    ).toThrow(/no case in the dataset has id ho-abs-typo — a typo/);
+    ).toThrow(/no case has id ho-abs-typo — a typo/);
   });
 
   it("without a dataset, throws on an id outside the cases given", () => {

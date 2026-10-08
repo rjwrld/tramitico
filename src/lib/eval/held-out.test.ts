@@ -21,7 +21,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { normaliseQuestion } from "../routing";
 import { figureMentions } from "./adequacy";
 import { CORPUS_INDEX_PATH, parseCorpusIndex } from "./corpus-index";
 import {
@@ -207,11 +206,22 @@ describe("the held-out set is answerable by the committed corpus", () => {
  * written with that exact wording in front of it, and the held-out number
  * then measures less than it claims. Tests use made-up wordings of the same
  * shape instead; this fails a test file under `src/` or `scripts/` that
- * quotes one, case, accents, `¿?¡!` and spacing aside.
+ * quotes one, case, accents, `¿?¡!`, spacing and `"…" + "…"` splits aside.
  */
 describe("no test quotes a held-out question (#536)", () => {
+  // Its own folding, not routing's `normaliseQuestion`: what counts as a
+  // quote must not move when the classifier's normalisation does. A string
+  // split by `"…" + "…"` is joined first, so a wrapped quote still reads as
+  // one.
   const quotable = (text: string) =>
-    normaliseQuestion(text.replace(/[¿?¡!]/g, " "));
+    text
+      .replace(/["'`]\s*\+\s*["'`]/g, "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[¿?¡!]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
   const questions = heldOut.map((c) => ({
     id: c.id,
     text: quotable(c.question),

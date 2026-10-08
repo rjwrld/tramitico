@@ -76,8 +76,7 @@ export function selectCases(
   );
   if (unknown.length > 0) {
     throw new Error(
-      `${SUBSET_ENV}: no case ${dataset === cases ? "this run covers" : "in the dataset"} ` +
-        `has id ${unknown.join(", ")} — a typo`,
+      `${SUBSET_ENV}: no case has id ${unknown.join(", ")} — a typo`,
     );
   }
   const wanted = new Set(ids);

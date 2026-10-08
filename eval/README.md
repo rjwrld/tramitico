@@ -1349,7 +1349,7 @@ comma-separated list of case ids and scopes the run to them:
 
 ```
 EVAL_CASES=ho-donde-me-afilio-caja,ho-hasta-que-dia-tengo-iva \
-  pnpm vitest run --disableConsoleIntercept src/lib/eval/groundedness.eval.test.ts
+  pnpm vitest run --project eval --disableConsoleIntercept src/lib/eval/groundedness.eval.test.ts
 ```
 
 Same production answer path, same judges, same transcript — for cents instead
