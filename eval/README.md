@@ -3490,3 +3490,32 @@ both rewrite models, route configuration):
 copied from held-out cases, against «The held-out set» rule above. The block
 does not repair that; the repair needs questions nobody on the project wrote
 (#506).
+
+## The total-loss fallback keeps the fused order (2026-10-07, #510)
+
+> Two `pnpm answer-set-probe` arms under `RERANK=off`, the fallback path a
+> total loss takes, on #502's replayed rewrites, so both cut identical pools.
+> Voyage embeddings only, well under US$0.01. Rows in
+> [`runs/2026-10-07-510/`](runs/2026-10-07-510/).
+
+When every rerank reading is lost, the answer set is the top 8 of the fused
+pool, where the step catalogue's legs weigh as much as the question's and the
+expansion's. #510 measured a fallback with the step legs taken out. Under the
+route's configuration, outside the robustness block:
+
+| Fallback order      | Tier 1 targets | Tier 2 targets | Cases hit |
+| ------------------- | -------------- | -------------- | --------- |
+| Fused (kept)        | **57/93**      | 61/98          | 63/73     |
+| Step legs taken out | 47/93          | 62/98          | 65/73     |
+
+- Tier 1 loses 12 targets and gains 2. The losses are step chunks: `cnpt`
+  78 and 88 and the salario base on `inscripcion-tardia-sancion`, the
+  `ccss-prescripcion` entries, `reglamento-comprobantes` 4 and 9.
+- `search_chunks` does not return the coverage that scales a lexical leg, so
+  the exact step-free sum cannot be rebuilt in code. The run README brackets
+  it offline: the variants that keep the coverage land at 39–42 Tier 1
+  targets before the pin, against 49.
+- #490 item 1, «¿Cuánto pago como independiente?», misses on both orders. Its
+  fused head is all step-leg chunks, and taking them out brings
+  `ccss-prescripcion` entries, not the escalas. The rerank and #509 are its
+  fixes.
