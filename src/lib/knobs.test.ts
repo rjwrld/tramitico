@@ -153,4 +153,19 @@ describe("positiveIntKnob (#519)", () => {
     expect(line).not.toContain(pasted.slice(0, 8));
     expect(line).toContain(`(${pasted.length} chars, not shown)`);
   });
+
+  it("reads as null with a null fallback, and logs a bad value as read unset (#532)", () => {
+    const read = positiveIntKnob("TEST_KNOB", null);
+    vi.stubEnv("TEST_KNOB", "");
+    expect(read()).toBeNull();
+    vi.stubEnv("TEST_KNOB", "7");
+    expect(read()).toBe(7);
+    expect(errors).not.toHaveBeenCalled();
+    vi.stubEnv("TEST_KNOB", "7.5");
+    expect(read()).toBeNull();
+    expect(errors).toHaveBeenCalledOnce();
+    const line = String(errors.mock.calls[0][0]);
+    expect(line.startsWith(`${KNOB_ERROR_PREFIX} TEST_KNOB="7.5"`)).toBe(true);
+    expect(line).toContain("reading it as unset");
+  });
 });

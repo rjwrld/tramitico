@@ -25,6 +25,7 @@ import { createHmac } from "node:crypto";
 import { isIPv4, isIPv6 } from "node:net";
 import type { Database } from "./database.types";
 import { CR_TIME_ZONE, CR_UTC_OFFSET_MS, crDate } from "./cr-time";
+import { positiveIntKnob } from "./knobs";
 import { describeError } from "./log-redaction";
 import { serviceClient } from "./supabase/service";
 
@@ -121,16 +122,22 @@ const RETENTION_DAYS = 2;
 const DEFAULT_LIMITS: Record<RateLimitTier, number> = { anon: 10, authed: 10 };
 
 /**
- * The daily quota for a tier: the env override when set, else the SPEC §7
- * default. Exported so `/terminos` states the number that is enforced rather
+ * `RATE_LIMIT_ANON` and `RATE_LIMIT_AUTHED`: a positive integer, since a quota
+ * counts whole asks and the copy states it as «N preguntas» (#532). Anything
+ * else reads as the SPEC §7 default, logged once per cold start (knobs.ts).
+ */
+const limitKnobs: Record<RateLimitTier, () => number> = {
+  anon: positiveIntKnob("RATE_LIMIT_ANON", DEFAULT_LIMITS.anon),
+  authed: positiveIntKnob("RATE_LIMIT_AUTHED", DEFAULT_LIMITS.authed),
+};
+
+/**
+ * The daily quota for a tier: the env override when it is a positive
+ * integer, else the SPEC §7 default — a bad override logged (#532). Exported so `/terminos` states the number that is enforced rather
  * than a copy of it.
  */
 export function limitFor(tier: RateLimitTier): number {
-  const env = tier === "anon" ? "RATE_LIMIT_ANON" : "RATE_LIMIT_AUTHED";
-  const raw = process.env[env];
-  if (!raw) return DEFAULT_LIMITS[tier];
-  const n = Number(raw);
-  return Number.isFinite(n) && n > 0 ? n : DEFAULT_LIMITS[tier];
+  return limitKnobs[tier]();
 }
 
 /**
@@ -154,6 +161,9 @@ export function largerSignedInLimit(): number | null {
 
 const ANON_IP_MULTIPLIER = 3;
 
+/** `RATE_LIMIT_ANON_IP`, read as unset — the multiple — unless a positive integer (#532). */
+const anonIpKnob = positiveIntKnob("RATE_LIMIT_ANON_IP", null);
+
 /**
  * The daily ceiling one IP's anonymous asks share across every browser family
  * (#383): `RATE_LIMIT_ANON_IP` when set, else three times the anonymous
@@ -161,11 +171,7 @@ const ANON_IP_MULTIPLIER = 3;
  * same-day dial on the per-subject quota moves the umbrella with it.
  */
 export function limitForAnonIp(): number {
-  const raw = process.env.RATE_LIMIT_ANON_IP;
-  const fallback = limitFor("anon") * ANON_IP_MULTIPLIER;
-  if (!raw) return fallback;
-  const n = Number(raw);
-  return Number.isFinite(n) && n > 0 ? n : fallback;
+  return anonIpKnob() ?? limitFor("anon") * ANON_IP_MULTIPLIER;
 }
 
 /**
