@@ -89,7 +89,7 @@ corpus, the question history and the quota, all behind row-level security.
 
 ## The numbers
 
-The corpus is 23 official documents in 876 chunks. The eval set those runs read is 73
+The corpus is 23 official documents in 873 chunks. The eval set those runs read is 73
 hand-written cases, each with the artículo the answer must cite and, for the 40 that carry
 them, the claims a complete answer must make. Every case is run through the production
 pipeline and judged by a second model at temperature 0. The table carries the three full
