@@ -65,9 +65,10 @@ export const ADEQUACY_TIER2_GATE = 0.84;
  * moved it less than the noise. The baseline is the first full lane on 5.5
  * as shipped (70/116, eval/runs/2026-10-02-full-lane/). A lane more than
  * `TIER1_REGRESSION_MARGIN` below it is a regression and fails. A lane that
- * beats it moves the baseline up, the way `HIT_RATE_GATE` ratchets.
+ * beats it moves the baseline up, the way `HIT_RATE_GATE` ratchets: #511's
+ * baseline lane stated 86/116 (eval/runs/2026-10-08-baseline/), so 86.
  */
-export const TIER1_REQUIREMENT_BASELINE = 70;
+export const TIER1_REQUIREMENT_BASELINE = 86;
 
 /** The ±4 run-to-run noise on identical pipelines (#457). */
 export const TIER1_REGRESSION_MARGIN = 4;

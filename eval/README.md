@@ -9,11 +9,17 @@ updates this block in the same change.
 
 **Production and the baseline** ([ADR 0023](../docs/adr/0023-eval-gates-after-sonnet-5-5.md)):
 `claude-sonnet-5-5` at `ANSWER_EFFORT=low`. The baseline run is
-[`runs/2026-10-02-full-lane/`](runs/2026-10-02-full-lane/) on main at
-3615566: groundedness 68/73, Tier 1 70/116, Tier 2 10/13. Its groundedness
-transcript (`low/groundedness-…-20261002T184323Z.jsonl`) is the input for
-`answer-replay`. Two identical full lanes differ by ±4 Tier 1 requirements
-(#457), and fixed-chunk replays of one prompt read 70–75.
+[`runs/2026-10-08-baseline/`](runs/2026-10-08-baseline/) on main at
+66a2cf9 (#511): groundedness 72/74, Tier 1 86/116, Tier 2 12/14, abstention
+14/15, hit-rate 68/74 (red), robustness block 25/27 hits, 4 false absence
+claims (red, #507's starting point). Its groundedness transcript
+(`low/groundedness-…-20261008T022706Z.jsonl`, also copied to the main
+checkout's `eval/transcripts/2026-10-08-baseline-511/`) is the input for
+`answer-replay`. The previous baseline,
+[`runs/2026-10-02-full-lane/`](runs/2026-10-02-full-lane/) (68/73, 70/116),
+was read before the robustness block, #503's cases and #520's re-ingest.
+Two identical full lanes differ by ±4 Tier 1 requirements (#457), and
+fixed-chunk replays of one prompt read 70–75 on the 2026-10-02 chunks.
 
 **Knobs.** Every knob is read at call time. Its code default is production's
 value, except for `ANSWER_EFFORT`:
@@ -66,10 +72,10 @@ The gate constants are `GROUNDEDNESS_BASELINE` (`groundedness.ts`), `HIT_RATE_GA
 (`retrieval-hitrate.eval.test.ts`), `ABSTENTION_GATE`
 (`abstention.eval.test.ts`), `ADEQUACY_TIER2_GATE` with
 `TIER1_REQUIREMENT_BASELINE` (`adequacy.ts`), and `ROBUSTNESS_HIT_BASELINE`
-(`robustness.ts`, unset until #511). Groundedness and Tier 1 are tracked
-baselines: a lane fails only more than 4 below one (groundedness 68 grounded
-answers, so ≤ 63, read over 74 cases since #503), and a lane that beats one
-raises it. A blocking case fails groundedness
+(`robustness.ts`, 25 since #511). Groundedness and Tier 1 are tracked
+baselines: a lane fails only more than 4 below one (groundedness 72 grounded
+answers of 74, so ≤ 67; Tier 1 86 requirements, so ≤ 81; both ratcheted by
+#511's lane), and a lane that beats one raises it. A blocking case fails groundedness
 on 2 of 3 answers: the lane re-asks a failing one twice (#474, about US$0.50 a
 lane), and each failure the judges make carries a `contradiction`/`inference`
 label that is recorded, never gated (one more judge call per failed answer,
@@ -80,8 +86,8 @@ denied); its assertion is a todo until #507 and #508. See «The robustness
 block».
 
 Since #503 the abstention set has 15 cases, so `ABSTENTION_GATE` (0.9) allows
-one miss, and there are 74 answerable cases outside the block (the baseline
-above read 73; the new one is Tier 2, so Tier 2 reads out of 14). `src/lib/eval/routing-dataset.test.ts` runs `classifyRouting`
+one miss, and there are 74 answerable cases outside the block (the new one is
+Tier 2, so Tier 2 reads out of 14). `src/lib/eval/routing-dataset.test.ts` runs `classifyRouting`
 over every case in the unit lane, for free. See «Routed cases».
 
 Two gates are zero, with no constant. One is the citation invariant. The other,
@@ -101,7 +107,7 @@ arm at a time, and smoke three cases before a full lane:
 # smoke, cents
 ANSWER_EFFORT=low EVAL_CASES=<a>,<b>,<c> EVAL_TRANSCRIPT_DIR=eval/runs/<date>-<topic>/smoke \
   pnpm vitest run --project eval --disableConsoleIntercept src/lib/eval/groundedness.eval.test.ts
-# full lane, ≈US$7: every eval suite
+# full lane, ≈US$10 since the robustness block (#511): every eval suite
 ANSWER_EFFORT=low EVAL_TRANSCRIPT_DIR=eval/runs/<date>-<topic>/<arm> \
   nohup pnpm test:eval --disableConsoleIntercept > eval/runs/<date>-<topic>/<arm>-$(date -u +%Y%m%dT%H%M%SZ).log 2>&1 &
 ```
@@ -3490,9 +3496,9 @@ A hard gate that starts red decides nothing, which is #474's complaint about
 the gates we already have. So the block is gated like Tier 1 since ADR 0023:
 the count of block cases that hit must not fall more than
 `ROBUSTNESS_REGRESSION_MARGIN` (2) below `ROBUSTNESS_HIT_BASELINE`
-(`src/lib/eval/robustness.ts`). #511's full lane sets the baseline, and a
-lane that beats it moves it up. Until then the hit-rate lane prints the line
-and shows the gate as a todo. The block's requirement count prints in the
+(`src/lib/eval/robustness.ts`). #511's full lane set the baseline at 25 of
+27, and a lane that beats it moves it up. Before it, the hit-rate lane
+printed the line and showed the gate as a todo. The block's requirement count prints in the
 groundedness lane and is not gated.
 
 **`ho-abs-iva-2027` gains a requirement.** It still declines a 2027 rate. Now
@@ -3587,3 +3593,35 @@ would have been judged on a decline that sends the reader to Hacienda. The lane
 now streams the route's text.
 
 No paid run: the routed cases first run in the next authorized lane (#511).
+
+## The baseline lane (2026-10-08, #511)
+
+The first full lane since #496 moved the rewrites to Haiku 5.5, and the
+first over the robustness block, #503's routed cases and #520's re-ingest.
+It ran on main at 66a2cf9 with production's configuration
+(`ANSWER_EFFORT=low`, every other knob at its default). The setup, every
+gate and the per-case reads are in
+[`runs/2026-10-08-baseline/README.md`](runs/2026-10-08-baseline/README.md).
+There was no provider error and no rerank reading lost (0 of 1,090).
+
+- **Groundedness 72/74** by the judges' first verdict, so the baseline
+  ratchets from 68 to 72 (floor 68).
+- **Tier 1 86/116**, +16 on the 2026-10-02 lane with the answer prompt
+  unchanged. `requirement-coverage` reads the old transcript at 70 still, so
+  the gain is in the answers. The baseline ratchets to 86 (floor 82).
+- **Tier 2 12/14, abstention 14/15**, citation invariant 0, derived figures
+  green.
+- **False absence claims: 4**, one in a blocking case
+  (`ho-trabajitos-por-mi-cuenta`), and that claim is the blocking gate's only
+  red. This is #507's starting point, not a regression.
+- **Hit-rate 68/74 (91.9%), red** by a fraction of one case. Its blocking
+  miss, `ho-desinscribir-debiendo-declaraciones`, hit in the groundedness
+  lane's own retrieval of the same case, so it is expansion variance.
+- **Robustness block: 25/27 hits**, which becomes `ROBUSTNESS_HIT_BASELINE`
+  (floor 23).
+- **Routed cases:** all six routed abstentions pass on the model path.
+  `ho-abs-calculo-personalizado` and `ho-abs-sociedad-inactiva` pass on main.
+
+The `RERANK=off` probe arm #511 also asks for was not run: the lane's
+estimated cost (≈US$10) already passed the ticket's cap, and the arm waits
+for the owner's OK.
