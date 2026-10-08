@@ -86,7 +86,7 @@ describe("rewriteCase", () => {
   it("replays a follow-up's condensation as the query it ran on", async () => {
     const followUp = evalCase({
       id: "ho-ademas-tengo-salario",
-      question: "Además tengo salario, ¿eso cómo cuenta?",
+      question: "También recibo un salario, ¿cambia algo?",
       history: [{ question: "¿Cuánto es el mínimo exento?", answer: "…" }],
     });
     const frozen = new Map([

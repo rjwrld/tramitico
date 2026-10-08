@@ -18,8 +18,10 @@
  * individually blocking" mean something different for that family than for
  * the other eight — so that grid is the one number that may not drift.
  */
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { normaliseQuestion } from "../routing";
 import { figureMentions } from "./adequacy";
 import { CORPUS_INDEX_PATH, parseCorpusIndex } from "./corpus-index";
 import {
@@ -196,5 +198,49 @@ describe("the held-out set is answerable by the committed corpus", () => {
     for (const c of [...tier1, ...tier2]) {
       expect(c.expected.length, c.id).toBeGreaterThan(0);
     }
+  });
+});
+
+/**
+ * A held-out question is one nothing was tuned against (#536). A unit test
+ * that quotes one verbatim is a keyword table, a classifier tie or a fixture
+ * written with that exact wording in front of it, and the held-out number
+ * then measures less than it claims. Tests use made-up wordings of the same
+ * shape instead; this fails a test file under `src/` or `scripts/` that
+ * quotes one, case, accents, `¿?¡!` and spacing aside.
+ */
+describe("no test quotes a held-out question (#536)", () => {
+  const quotable = (text: string) =>
+    normaliseQuestion(text.replace(/[¿?¡!]/g, " "));
+  const questions = heldOut.map((c) => ({
+    id: c.id,
+    text: quotable(c.question),
+  }));
+  const testFiles = ["src", "scripts"].flatMap((root) =>
+    readdirSync(path.join(process.cwd(), root), {
+      recursive: true,
+      encoding: "utf8",
+    })
+      .filter((file) => /\.test\.tsx?$/.test(file))
+      .map((file) => path.join(root, file)),
+  );
+
+  it("reads the test files and the questions", () => {
+    // Vacuity guard: an empty glob or set would pass the check below.
+    expect(testFiles.length).toBeGreaterThan(100);
+    expect(testFiles).toContain(path.join("src", "lib", "retrieval.test.ts"));
+    expect(questions.every((q) => q.text.length >= 10)).toBe(true);
+  });
+
+  it("finds none of them in any test file", () => {
+    const quoted = testFiles.flatMap((file) => {
+      const text = quotable(
+        readFileSync(path.join(process.cwd(), file), "utf8"),
+      );
+      return questions
+        .filter((q) => text.includes(q.text))
+        .map((q) => `${file} quotes ${q.id}`);
+    });
+    expect(quoted).toEqual([]);
   });
 });

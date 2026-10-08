@@ -1234,7 +1234,10 @@ Two rules the set follows that are not visible in a case:
 - **Held out means held out.** Nobody consults these cases while tuning
   retrieval, chunking or the prompt, until the #267 baseline is published.
   That is why the flag exists at all: a set nobody can enumerate is a set
-  nobody can hold out.
+  nobody can hold out. A unit test that needs a question of the same shape
+  uses a made-up wording: since #536, `held-out.test.ts` fails any test file
+  under `src/` or `scripts/` that quotes a held-out question, ignoring case,
+  accents, `¿?¡!` and spacing.
 - **A claim the corpus cannot support is not a claim.** Where §B4 asks for
   something the ingested excerpt does not carry — the crédito-fiscal effect of
   a tiquete, whether a pending debt blocks desinscripción — the edge is
