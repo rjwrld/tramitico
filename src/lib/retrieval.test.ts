@@ -21,6 +21,7 @@ import { describeError } from "./log-redaction";
 import { DERIVED_FIGURES, resolveDerivedFigures } from "./answer/derived";
 import {
   coversFiscalYear,
+  datedFactRefs,
   yearFigureRefs,
   type VigenciaManifest,
 } from "./vigencia";
@@ -770,6 +771,67 @@ describe("retrieve", () => {
     for (const ref of listed) {
       const inItsYear = crMidnight(`${ref.fiscalYear}-06-15`);
       expect(await served(inItsYear)).toContain(label(ref));
+    }
+  });
+
+  /**
+   * #531's acceptance: on a clock after 2026-11-11, no answer set presents
+   * the condonación deadline as open. Every answer set is cut from this pool
+   * — the rerank, the pins and the route read nothing else — so the claim is
+   * that the chunk never reaches it. The row is the production text, word for
+   * word.
+   */
+  it("keeps the CCSS condonación deadline out of the pool after 2026-11-11", async () => {
+    const row: SearchChunksRow = {
+      ...ROW,
+      doc_key: "ccss-faq",
+      articulo:
+        "¿Hasta cuándo puedo solicitar la condonación de recargos, multas, intereses y facturas por servicios médicos en aplicación de la Ley N°10.232, sus ampliaciones y reglamento?",
+      content:
+        "[CCSS — Preguntas frecuentes — Cobros — ¿Hasta cuándo puedo solicitar la condonación de recargos, multas, intereses y facturas por servicios médicos en aplicación de la Ley N°10.232, sus ampliaciones y reglamento?] La posibilidad de solicitar la condonación de recargos, multas, intereses y facturas por servicios médicos estará disponible hasta el día 11 de noviembre del 2026.",
+    };
+    const served = async (now: Date) =>
+      (
+        await retrieve("¿hasta cuándo puedo pedir la condonación de la CCSS?", {
+          client: fakeClient([row, ROW]),
+          embedder: fakeEmbedder(),
+          now,
+        })
+      ).chunks.map((chunk) => chunk.docKey);
+
+    expect(await served(new Date("2026-11-12T05:59:59Z"))).toEqual([
+      "ccss-faq",
+      "ley-10363",
+    ]);
+    expect(await served(crMidnight("2026-11-12"))).toEqual(["ley-10363"]);
+  });
+
+  /**
+   * The same claim for every `datedFacts` artículo in the deployed manifest,
+   * its text carrying the declared evidence as the real chunks do: served on
+   * its last day, withheld on the next.
+   */
+  it("lets no dated fact through after its last day", async () => {
+    for (const ref of datedFactRefs({ documents: manifestDocs })) {
+      const row: SearchChunksRow = {
+        ...ROW,
+        doc_key: ref.docKey,
+        articulo: ref.articulo,
+        content: `${ROW.content} ${ref.evidence}`,
+      };
+      const served = async (now: Date) =>
+        (
+          await retrieve("¿hasta cuándo?", {
+            client: fakeClient([row]),
+            embedder: fakeEmbedder(),
+            now,
+          })
+        ).chunks.length;
+      const next = new Date(`${ref.lastDay}T06:00:00Z`);
+      next.setUTCDate(next.getUTCDate() + 1);
+
+      expect(await served(crMidnight(ref.lastDay))).toBe(1);
+      expect(await served(next)).toBe(0);
     }
   });
 

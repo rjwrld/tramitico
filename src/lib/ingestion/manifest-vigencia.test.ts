@@ -5,9 +5,13 @@ import { CORPUS_INDEX_PATH, parseCorpusIndex } from "../eval/corpus-index";
 import {
   annualSeries,
   annualVigencia,
+  datedFactLabel,
+  datedFactRefs,
+  datedFactVigencia,
   yearFigureLabel,
   yearFigureRefs,
   yearFigureVigencia,
+  type DatedFact,
   type YearFigure,
 } from "../vigencia";
 
@@ -18,6 +22,7 @@ interface ManifestEntry {
   annualChurn?: boolean;
   verifiedForFiscalYear?: number;
   yearFigures?: YearFigure[];
+  datedFacts?: DatedFact[];
   notes?: string;
 }
 
@@ -78,6 +83,7 @@ describe("corpus/manifest.json vigencia", () => {
     // Asserts nothing, on purpose: it can only warn.
     const { dueForNextYear, superseded } = annualVigencia(manifest);
     const yearFigures = yearFigureVigencia(manifest);
+    const datedFacts = datedFactVigencia(manifest);
     const warnings = [
       ...dueForNextYear.map(
         (series) =>
@@ -96,6 +102,16 @@ describe("corpus/manifest.json vigencia", () => {
       ...yearFigures.withheld.map(
         (ref) =>
           `${yearFigureLabel(ref)}: withheld from answers — owner: re-crawl once the source states this fiscal year, runbook §2.2 (#518)`,
+      ),
+      // #531: a week either side of a deadline the runtime withholds after
+      // its day, to catch an extension the publisher announces late.
+      ...datedFacts.endingSoon.map(
+        (ref) =>
+          `${datedFactLabel(ref)}: withheld from answers after its last day — owner: check whether the publisher extended it, runbook §2.4 (#531)`,
+      ),
+      ...datedFacts.justEnded.map(
+        (ref) =>
+          `${datedFactLabel(ref)}: past its last day, withheld from answers — owner: check once more for an extension, runbook §2.4 (#531)`,
       ),
     ];
     for (const warning of warnings) {
@@ -134,7 +150,33 @@ describe("corpus/manifest.json vigencia", () => {
     }
   });
 
-  it("names year-figure artículos the corpus holds, each under one heading", () => {
+  /**
+   * #531, ADR 0016 third amendment: the artículos that state a fact ending
+   * on a day. The amendment's inventory says why each other dated passage
+   * is not listed.
+   */
+  it("lists the dated facts, each with a real last day and its evidence", () => {
+    expect(
+      datedFactRefs(manifest).map(
+        ({ docKey, articulo, lastDay }) =>
+          `${docKey} · ${articulo} · ${lastDay}`,
+      ),
+    ).toEqual([
+      "ccss-faq · ¿Hasta cuándo puedo solicitar la condonación de recargos, multas, intereses y facturas por servicios médicos en aplicación de la Ley N°10.232, sus ampliaciones y reglamento? · 2026-11-11",
+      "tribu-cr-res-0011-2025 · Artículo 8 · 2026-12-31",
+    ]);
+    for (const fact of manifest.documents.flatMap(
+      (doc) => doc.datedFacts ?? [],
+    )) {
+      // A calendar day: `new Date` would roll 2026-02-30 into March.
+      expect(new Date(`${fact.lastDay}T00:00:00Z`).toISOString()).toBe(
+        `${fact.lastDay}T00:00:00.000Z`,
+      );
+      expect(fact.evidence.trim()).not.toBe("");
+    }
+  });
+
+  it("names year-figure and dated-fact artículos the corpus holds, each under one heading", () => {
     // Retrieval matches a chunk's (doc_key, artículo): a heading that is not
     // in the corpus withholds nothing, and one that repeats under another
     // Título would take its namesake with it.
@@ -144,9 +186,9 @@ describe("corpus/manifest.json vigencia", () => {
         (entry) => entry.docKey === docKey && entry.articulo === articulo,
       ).length;
     const notOne = manifest.documents.flatMap((doc) =>
-      (doc.yearFigures ?? [])
-        .filter((figure) => triples(doc.doc_key, figure.articulo) !== 1)
-        .map((figure) => `${doc.doc_key} · ${figure.articulo}`),
+      [...(doc.yearFigures ?? []), ...(doc.datedFacts ?? [])]
+        .filter((listed) => triples(doc.doc_key, listed.articulo) !== 1)
+        .map((listed) => `${doc.doc_key} · ${listed.articulo}`),
     );
     expect(notOne).toEqual([]);
   });
