@@ -65,7 +65,8 @@ baselines: a lane fails only more than 4 below one (groundedness 68/73, so
 ≤ 63), and a lane that beats one raises it. A blocking case fails groundedness
 on 2 of 3 answers: the lane re-asks a failing one twice (#474, about US$0.50 a
 lane), and each failure the judges make carries a `contradiction`/`inference`
-label that is recorded, never gated. The robustness block (#502) sits outside
+label that is recorded, never gated (one more judge call per failed answer,
+cents a lane). A scoped `EVAL_CASES` run re-asks too. The robustness block (#502) sits outside
 every other gate and prints its own line in each lane. The abstention lane
 also scores `ho-abs-iva-2027`'s requirement (13 % and art. 10, cited, never
 denied); its assertion is a todo until #507 and #508. See «The robustness

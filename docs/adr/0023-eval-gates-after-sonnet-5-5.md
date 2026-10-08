@@ -141,8 +141,9 @@ The owner chose #474's option 2 with three changes.
   blocking case's first answer, the lane asks the whole pipeline the same
   case twice more. Each new answer is judged the same way, with the same
   majority of three. The case fails when two of its three answers fail.
-  That costs about US$0.50 a lane, and #511 is the first lane that pays
-  it.
+  The owner's estimate is about US$0.50 a lane, and #511 is the first
+  lane that pays it. A re-ask that takes the weak-retrieval decline
+  passes, as a first answer does: the fixed text makes no claim.
 - **The judges' failures carry a label**: `contradiction` (the answer says
   something the fragments contradict or do not contain) or `inference` (a
   defensible reading the fragments do not state in those words). A second

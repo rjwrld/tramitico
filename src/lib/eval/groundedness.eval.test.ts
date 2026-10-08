@@ -114,6 +114,7 @@ import {
   droppedReadingsSummary,
   transcriptRow,
   writeTranscript,
+  type GroundednessInput,
   type TranscriptGeneration,
 } from "./transcript";
 import {
@@ -129,6 +130,7 @@ import {
   labelFailure,
   needsReask,
   type BlockingCase,
+  type FailureLabel,
   type FailureLabelling,
   type ScoredAnswer,
   type Verdict,
@@ -193,14 +195,28 @@ interface CaseResult extends Answered {
   adequacy: (AdequacyOutcome & { literals: string[] }) | null;
   /**
    * #474: the further answers a blocking case is asked when its first fails
-   * on the judges, scored for groundedness and #500's absence check alone.
-   * Every rate and count in the lane reads the first answer, as the baseline
-   * was measured; only the blocking and absence gates read these.
+   * on the judges. Every rate and count in the lane reads the first answer,
+   * as the baseline was measured; only the blocking and absence gates read
+   * these. Their citations and derived figures are recorded, not gated.
    */
   reasks: Answered[];
 }
 
-/** One answer as #474's blocking rule reads it. */
+/** One answer's groundedness reading, as the transcript records it. */
+function groundednessOf(answered: Answered): GroundednessInput {
+  return {
+    verdict: answered.verdict,
+    verdicts: answered.verdicts,
+    reason: answered.reason,
+    label: answered.label,
+  };
+}
+
+/**
+ * One answer as #474's blocking rule reads it. A re-ask that takes the
+ * weak-retrieval decline passes, as a first answer does: the fixed text
+ * makes no claim.
+ */
 function scored(answered: Answered): ScoredAnswer {
   return {
     verdict: answered.verdict,
@@ -457,14 +473,22 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
 
     // #474: a blocking case whose first answer the judges failed is asked
     // again, BLOCKING_REASK_COUNT times, through the whole pipeline — the
-    // variance is in the answer, not the judge.
-    for (const result of results) {
-      if (!needsReask(blockingCase(result))) continue;
-      for (let i = 0; i < BLOCKING_REASK_COUNT; i++) {
-        result.reasks.push(
-          await answerCase(result.evalCase, embedder, rewrites),
-        );
+    // variance is in the answer, not the judge. Only the gated cases: the
+    // blocking gate reads nothing else. A re-ask that throws is held until
+    // the transcript below is written, so it cannot take the paid rows with
+    // it; the run still fails on it.
+    let reaskError: unknown = null;
+    try {
+      for (const result of split().gated) {
+        if (!needsReask(blockingCase(result))) continue;
+        for (let i = 0; i < BLOCKING_REASK_COUNT; i++) {
+          result.reasks.push(
+            await answerCase(result.evalCase, embedder, rewrites),
+          );
+        }
       }
+    } catch (error) {
+      reaskError = error;
     }
 
     // #289 req. 1: the run leaves its answers behind. The printed table says
@@ -482,12 +506,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
             answer: r.answer,
             chunks: r.chunks,
             derivedFigures: r.derivedFigures,
-            groundedness: {
-              verdict: r.verdict,
-              verdicts: r.verdicts,
-              reason: r.reason,
-              label: r.label,
-            },
+            groundedness: groundednessOf(r),
             citations: r.citations,
             adequacy:
               r.adequacy === null
@@ -502,12 +521,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
             checks: r.checks,
             reasks: r.reasks.map((reask) => ({
               ...reask,
-              groundedness: {
-                verdict: reask.verdict,
-                verdicts: reask.verdicts,
-                reason: reask.reason,
-                label: reask.label,
-              },
+              groundedness: groundednessOf(reask),
             })),
           }),
         ),
@@ -517,6 +531,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
     } catch (error) {
       console.log(`\ntranscript (#289): not written — ${String(error)}`);
     }
+    if (reaskError !== null) throw reaskError;
     // #466: a lost reading moves the answer set and nothing else, so the run
     // says how many it lost before any number below is read.
     console.log(
@@ -568,7 +583,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
     const labelled = results
       .flatMap((r) => [r, ...r.reasks])
       .filter((a) => a.label !== null);
-    const tally = (label: string | null) =>
+    const tally = (label: FailureLabel | null) =>
       labelled.filter((a) => a.label?.label === label).length;
     console.log(
       `failure labels (#474, recorded, not gated): ` +

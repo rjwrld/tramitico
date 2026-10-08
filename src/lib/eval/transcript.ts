@@ -69,7 +69,7 @@ export interface TranscriptRow {
   query: string;
   answer: string;
   chunks: TranscriptChunk[];
-  derivedFigures: { id: string; formattedValue: string }[];
+  derivedFigures: TranscriptFigure[];
   groundedness: TranscriptGroundedness;
   /** `null` on a weak-retrieval decline, which ships without markers. */
   citations: CitationVerdict | null;
@@ -104,9 +104,9 @@ export interface TranscriptRow {
   checks: AnswerChecks | null;
   /**
    * The two further answers a blocking case is asked when its first fails
-   * on the judges (#474), each scored like the first: the case's verdict is
-   * read on all three (`blockingCaseVerdict`). Empty on every other case;
-   * absent from transcripts written before #474.
+   * on the judges (#474), judged and checked like the first: the case's
+   * groundedness is read on all three (`blockingCaseVerdict`). Empty on
+   * every other case; absent from transcripts written before #474.
    */
   reasks: TranscriptReask[];
 }
@@ -124,13 +124,20 @@ export interface TranscriptGroundedness {
   label: FailureLabelling | null;
 }
 
+/** A derived figure the prompt carried, by id and as the answer quotes it. */
+export interface TranscriptFigure {
+  id: string;
+  formattedValue: string;
+}
+
 /** A re-asked answer (#474): the parts of a row that belong to one answer. */
 export interface TranscriptReask {
   query: string;
   answer: string;
   chunks: TranscriptChunk[];
-  derivedFigures: { id: string; formattedValue: string }[];
+  derivedFigures: TranscriptFigure[];
   groundedness: TranscriptGroundedness;
+  citations: CitationVerdict | null;
   checks: AnswerChecks | null;
   generation: TranscriptGeneration | null;
   rerank: RerankReadingCount | null;
@@ -159,6 +166,7 @@ export interface ReaskInput {
   chunks: readonly RetrievedChunk[];
   derivedFigures: readonly ResolvedDerivedFigure[];
   groundedness: GroundednessInput;
+  citations: CitationVerdict | null;
   checks: AnswerChecks | null;
   generation: TranscriptGeneration | null;
   rerank: RerankReadingCount | null;
@@ -195,7 +203,7 @@ function transcriptChunks(
 
 function transcriptFigures(
   derivedFigures: readonly ResolvedDerivedFigure[],
-): { id: string; formattedValue: string }[] {
+): TranscriptFigure[] {
   return derivedFigures.map((figure) => ({
     id: figure.id,
     formattedValue: figure.formattedValue,
@@ -248,6 +256,7 @@ export function transcriptRow({
       chunks: transcriptChunks(reask.chunks),
       derivedFigures: transcriptFigures(reask.derivedFigures),
       groundedness: transcriptGroundedness(reask.groundedness),
+      citations: reask.citations,
       checks: reask.checks,
       generation: reask.generation,
       rerank: reask.rerank,
