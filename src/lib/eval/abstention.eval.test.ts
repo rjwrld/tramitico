@@ -284,7 +284,7 @@ describeEval("abstention set (eval/dataset.jsonl)", () => {
         ];
         // #500: a decline that says the corpus lacks what it carries — Ley
         // IVA art. 10 under «¿cuál será el IVA en 2027?» — is a hard zero.
-        checks = checkAnswer(answer, chunks);
+        checks = checkAnswer(answer, chunks, query);
       }
 
       const judged = withAbsenceGate(

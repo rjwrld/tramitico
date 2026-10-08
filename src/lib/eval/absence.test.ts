@@ -20,7 +20,7 @@ const coverage = corpusCoverage(
 
 function falseTargets(
   answer: string,
-  cited: { docKey: string }[] = [],
+  cited: { docKey: string; articulo?: string }[] = [],
 ): string[] {
   return detectAbsenceClaims(answer, { cited, coverage }).falseClaims.map(
     (claim) => claim.target,
@@ -212,7 +212,8 @@ describe("detectAbsenceClaims: honest abstentions", () => {
     "Los documentos oficiales no traen el texto del artículo 51 del Código de Normas y Procedimientos Tributarios.",
     // A codification the corpus does not carry.
     "Los documentos oficiales no traen el código de actividad económica (CIIU 4) que corresponde a hacer páginas web.",
-    // Something about an artículo, not the artículo itself.
+    // Something about an artículo, not the artículo itself — and, with no
+    // counted figure cited, no #547 hedge either.
     "Los documentos no precisan cómo se cuenta la sanción del artículo 79 del Código de Normas y Procedimientos Tributarios cuando se omiten varios períodos.",
     "Los documentos no indican el formulario ni el canal para autoliquidar esta sanción del artículo 78 del Código de Normas y Procedimientos Tributarios.",
     // A rate the corpus does not set: there is no reduced rate for software.
@@ -255,6 +256,101 @@ describe("detectAbsenceClaims: openings", () => {
     );
     expect(report.opening).toBeNull();
     expect(report.falseClaims.map((claim) => claim.target)).toEqual(["BMC"]);
+  });
+});
+
+describe("detectAbsenceClaims: the count hedge (#547)", () => {
+  // multa-iva-no-declarado's cited pair: CNPT art. 79 and the salario base,
+  // the inputs of «Multa por cada declaración tributaria omitida (artículo 79)».
+  const art79 = [
+    { docKey: "cnpt", articulo: "Artículo 79" },
+    { docKey: "salario-base-2026", articulo: "Circular 246-2025" },
+  ];
+  // rb-seguimiento-de-cuanto-multa's: «Multa por mes o fracción por omitir la
+  // inscripción (artículo 78)».
+  const art78 = [
+    { docKey: "cnpt", articulo: "Artículo 78" },
+    { docKey: "salario-base-2026", articulo: "Circular 246-2025" },
+  ];
+
+  it.each([
+    // #556's control, d1–d3: the judges passed all three.
+    "Las fuentes no dicen cuántas veces se aplica esa multa si se omiten varias declaraciones.",
+    "Las fuentes no dicen cómo se cuenta la multa cuando se omiten varias declaraciones, así que no puedo darle un total para los tres meses; eso debe confirmarlo con Hacienda.",
+    "El Código habla de una multa por omitir la presentación de las declaraciones de autoliquidación dentro del plazo legal [1], pero no dice si se aplica una vez por cada declaración o por cada período.",
+    // #556's round 1, d3: the hedge moved to rule 9's branch.
+    "Los documentos no dicen si esa multa se cobra una vez por cada declaración omitida o de otra forma.",
+    // #556's control, ho-rebajar-multa-si-pago-ya.
+    "El artículo 79 no dice si la multa se aplica por cada declaración o una sola vez; cómo se cuenta en su caso, con tres meses omitidos, debe confirmarlo con Hacienda.",
+    // 2026-09-28's low arm.
+    "Los documentos oficiales no precisan cómo se cuenta la sanción cuando se omiten varias declaraciones, así que no puedo afirmar un total.",
+  ])("flags, under the art. 79 figure: %s", (sentence) => {
+    const report = detectAbsenceClaims(
+      `La multa es de ¢231.100 [1][2]. ${sentence}`,
+      {
+        cited: art79,
+        coverage,
+      },
+    );
+    expect(report.falseClaims).toEqual([
+      {
+        sentence,
+        target:
+          "«Multa por cada declaración tributaria omitida (artículo 79)» says how it is counted",
+        kind: "count",
+      },
+    ]);
+  });
+
+  it("flags under the art. 78 «por mes» figure (#512's lane 2)", () => {
+    expect(
+      falseTargets(
+        "La multa es de ¢231.100 por mes [1][2]. Los documentos no dicen cómo se cuenta la sanción del artículo 78 si el atraso fue de un año completo.",
+        art78,
+      ),
+    ).toEqual([
+      "«Multa por mes o fracción por omitir la inscripción (artículo 78)» says how it is counted",
+    ]);
+  });
+
+  it.each([
+    // #556's round 2, d2: softer — it no longer denies the label's count.
+    "Las fuentes no dicen más sobre cómo se cuenta la multa cuando se omiten varias declaraciones seguidas.",
+    // round 2's Tier 1 guard: the absence is the portal; the count is a referral.
+    "Los documentos no indican el portal ni el formulario concretos; confirme con Hacienda en https://www.hacienda.go.cr cómo se cuenta la multa para sus tres períodos y por cuál medio presentar las declaraciones atrasadas.",
+    // round 2, d1: the label's count, stated.
+    "La etiqueta de la cifra dice que la multa es «por cada declaración tributaria omitida», así que en principio se aplica por cada declaración omitida [1][2].",
+    // A deadline, not a count (2026-09-29's replay).
+    "Si su inscripción fue después de esa fecha, los documentos no dicen cómo se aplica el plazo a su caso.",
+    // The reader's own months (#511's lane): rule 3 leaves them to the reader.
+    "Los documentos no precisan cómo se cuentan los meses de atraso en su caso, ni el trámite de pago de la sanción.",
+    // First person, not a claim about the sources.
+    "No puedo decirle si se aplica una vez por cada mes ni calcularle un total.",
+  ])("leaves alone, under the art. 79 figure: %s", (sentence) => {
+    expect(
+      falseTargets(`La multa es de ¢231.100 [1][2]. ${sentence}`, art79),
+    ).toEqual([]);
+  });
+
+  it("needs every input of a counted figure cited", () => {
+    // ho-iva-en-cero-sin-facturar (#511's lane) cites art. 79 alone, whose
+    // text gives the 50 % but not the count: the hedge is honest there.
+    const answer =
+      "La multa es del 50% del salario base [1]. Los documentos no precisan cómo se cuenta esa multa si se omiten varios períodos.";
+    expect(falseTargets(answer, art79.slice(0, 1))).toEqual([]);
+    expect(falseTargets(answer, art79)).toHaveLength(1);
+  });
+
+  it("ignores a cited figure whose label carries no count", () => {
+    expect(
+      falseTargets(
+        "La base es de ¢324.590 [1][2]. Las fuentes no dicen cómo se cuenta cuando son varios meses.",
+        [
+          { docKey: "ccss-escala-ivm", articulo: "Artículo 4°, sesión 9570" },
+          { docKey: "salarios-minimos", articulo: "Artículo 1" },
+        ],
+      ),
+    ).toEqual([]);
   });
 });
 
