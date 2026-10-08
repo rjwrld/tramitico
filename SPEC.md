@@ -366,10 +366,15 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
 - **Honest decline, routed by institution (#264, #254 Q1–Q3):** when retrieval is weak, a
   deterministic keyword classifier (`src/lib/routing.ts`, no model call) reads the condensed
   question and the decline names the institution it belongs to and its official URL — Hacienda,
-  CCSS, INS, municipalidad, Registro Nacional, colegio profesional, banco, MEIC, migración, MTSS,
-  y (#285) un profesional en contabilidad para lo que ninguna fuente oficial fija — from one table the prompt's rule 6 also lists and the quarterly re-crawl verifies. The
+  CCSS, INS, municipalidad, Registro Nacional, colegio profesional, banco, MEIC, migración,
+  COSEVI (#503), MTSS, y (#285) un profesional en contabilidad para lo que ninguna fuente oficial
+  fija — from one table the prompt's rule 6 also lists and the quarterly re-crawl verifies. The
   category rides on the per-ask telemetry event as `routedCategory`, the content-free counter
-  Tier 2 promotion is decided against; the question never does.
+  Tier 2 promotion is decided against; the question never does. Only weak retrieval takes this
+  path. An out-of-scope question that retrieves well («¿Cómo renuevo mi pasaporte?») goes to the
+  model, a paid call, and rule 6 routes it from the same table. There is no early keyword decline
+  (#503): the classifier reads «¿Puedo inscribirme en Hacienda con mi DIMEX?», which the corpus
+  answers, as migración.
 - **Components: shadcn/ui; chat scaffolding from Vercel AI Elements** (shadcn-based registry —
   streaming message list + sources primitives that become the citation chips). Owned code, themeable.
 - **Visual identity comes from DESIGN.md** (authored pre-build); the Week-2 UI prototype session
@@ -462,8 +467,9 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   (100%)**, Tier 2 gates on ≥ 80% — a strong average must never hide a red Tier 1 case. A
   weak-retrieval decline on a case that declares required claims is an adequacy failure.
 - **Coverage contract in the dataset:** each case carries `tier` (1 / 2 / `abstain`), `family`
-  (T1-A…T1-I on tier 1), `requiredClaims` (≤5), `requiredSteps`, `abstainIf`, `routeTo` and
-  `freshness`. Tier 1 cases are `blocking` by construction, outside the robustness block. Abstention cases carry no `expected`
+  (T1-A…T1-I on tier 1), `requiredClaims` (≤5), `requiredSteps`, `abstainIf`, `routeTo`,
+  `routedCategory` (#503: what `classifyRouting` must make of an abstention case, checked by a
+  free unit test) and `freshness`. Tier 1 cases are `blocking` by construction, outside the robustness block. Abstention cases carry no `expected`
   targets — no correct source exists — and are judged on whether they declined and routed to the
   right institution, with no invented figure.
 - **Citation invariant at eval time (#168):** the harness runs the runtime `validateCitations`
@@ -511,9 +517,11 @@ MCP server (phase-2) · peer question collection (post-launch) · Renta Global D
 
 Societies, employers/patronos, customs/imports, free-zone matters, employee labor rights,
 municipalities/patentes, INS, Registro Nacional, professional associations, banks, MEIC, and
-immigration are not beta coverage. They are **routed, not covered**: the deterministic decline
-names the appropriate institution and official URL, while the corpus and prompt encode none of
-that institution's substantive rules. Promotion to Tier 2 requires both direct-user demand and a
+immigration (and, since #503, driver's licences) are not beta coverage. They are **routed, not
+covered**: the decline names the appropriate institution and official URL, while the corpus and
+prompt encode none of that institution's substantive rules. On weak retrieval the decline is
+deterministic, with no model call; otherwise the model declines under rule 6, from the same table
+(§8). Promotion to Tier 2 requires both direct-user demand and a
 content-free routing-category signal; see [ADR 0017](docs/adr/0017-other-institutions-are-routed.md).
 
 ---
