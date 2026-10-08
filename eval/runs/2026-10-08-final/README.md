@@ -107,7 +107,7 @@ The judges failed one of 74 answers in each lane:
   («Las fuentes no dicen cómo se cuenta esa multa cuando se omiten varios
   períodos seguidos») and the judges passed it. It is the 2026-09-25 lane's
   «art. 79 count» again. #500's detector does not catch it, since it's about a
-  rule, not an artículo or a listed figure.
+  rule, not an artículo or a listed figure. It is #547.
 - Lane 2: `exportacion-servicios-comprobante`, fail/pass/fail, `inference`.
   It's a strict call on the export invoice's use, which the fragment defines
   but doesn't spell out for exempt exports.
@@ -162,7 +162,7 @@ the answer set. The robustness block hits 27/27 in both lanes, up from 25.
 usted habla de un año sin registrarse, la multa mensual llegaría al tope antes
 de completar los doce meses» (lane 1), «En su caso, trabajando un año sin
 inscribirse, la sanción por mes o fracción de mes ya habría llegado al tope»
-(lane 2). Both judges passed it. It has its own issue.
+(lane 2). Both judges passed it. It is #546.
 
 ## Cost
 
