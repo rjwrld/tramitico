@@ -72,7 +72,11 @@ import {
   wordRepairNotice,
 } from "../src/lib/ingestion/word-joins";
 import type { DeepLinkKind } from "../src/lib/retrieval";
-import type { DatedFact, YearFigure } from "../src/lib/vigencia";
+import type {
+  DatedFact,
+  OverriddenFigure,
+  YearFigure,
+} from "../src/lib/vigencia";
 import {
   articuloAnchors,
   fetchNorma,
@@ -157,6 +161,12 @@ interface ManifestDoc {
    * which one is missing or no longer states that day.
    */
   datedFacts?: DatedFact[];
+  /**
+   * Artículos stating figures a later law has overridden (#529): retrieval
+   * withholds every chunk still carrying them, and `ingestChunks` refuses a
+   * crawl in which the artículo is missing or no chunk of it carries them.
+   */
+  overriddenFigures?: OverriddenFigure[];
   /** Source-gated arithmetic made available to answer assembly (#263). */
   derivedFigures?: DerivedFigure[];
   /** Chunking overrides for documents with no artículo structure of their own. */

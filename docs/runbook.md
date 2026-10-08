@@ -466,6 +466,43 @@ from 7 days before each last day through 7 days after it.
    and holds nothing else still current, joins `datedFacts`, the inventory test and the ADR's
    table in the same PR. The ADR records why the others stay.
 
+### 2.5 Overridden figures (#529)
+
+A few artículos still state a figure that a later law has replaced. The publisher keeps printing
+the text, and only the figure has gone stale. The manifest lists the overridden words as
+`overriddenFigures`, each with the law that overrode them (`overriddenBy`). `retrieve()`
+withholds every chunk of the artículo that still carries those words, on any day, and serves
+the artículo's other chunks
+([ADR 0016 fourth amendment](adr/0016-source-freshness-policy.md)).
+
+| Listed                           | Overridden words                                                 | By                                       |
+| -------------------------------- | ---------------------------------------------------------------- | ---------------------------------------- |
+| `reglamento-renta` · Artículo 23 | «¢106.000.000», «en un 100% de su impuesto determinado» (part 0) | Ley 10392 → `ley-renta` Artículo 15      |
+| `ley-renta` · ARTICULO 38        | «setenta y dos mil colones (¢72.000)»                            | the yearly tramos of `ley-renta` art. 33 |
+
+Nothing warns on a clock: the figures are stale today and stay stale. A re-crawl is what can
+change them.
+
+1. **A re-crawl fails with «no longer carries».** The publisher changed the text. Read the
+   artículo on SINALEVI. If it now agrees with the later law, delete its `overriddenFigures`
+   entry and its line in the inventory test in `manifest-vigencia.test.ts`, then re-crawl. If it
+   reworded the old figure, set `evidence` to the new words instead.
+2. **A re-crawl fails with «no chunk with that heading».** The artículo was renamed or removed.
+   A renamed heading would let the figure through unlisted: set `articulo` to the new heading,
+   or retire the entry if the artículo is gone.
+3. **A new overridden figure.** When a reform rewrites a law's figure, search the reglamento and
+   the rest of the corpus for the old amount on the shared local stack:
+
+   ```sql
+   select d.doc_key, c.articulo, c.part
+   from chunks c join documents d on d.id = c.document_id
+   where c.content like '%¢106.000.000%'  -- the old amount, as the text writes it
+   order by 1, 2, 3;
+   ```
+
+   An artículo that states the old figure as the rule joins `overriddenFigures`, the inventory
+   test and the ADR's table in the same PR. The declaration deploys with the code: no re-ingest.
+
 ## 3. Alerts to create (#29 provisioning step)
 
 Two alerts must reach the owner. Neither can be created from the repo — both are Vercel

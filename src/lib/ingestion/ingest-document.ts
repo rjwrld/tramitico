@@ -16,7 +16,7 @@ import {
   type Chunk,
   type ChunkOptions,
 } from "./chunker";
-import type { DatedFact, YearFigure } from "../vigencia";
+import type { DatedFact, OverriddenFigure, YearFigure } from "../vigencia";
 import {
   persistDocument,
   type DocumentRowClient,
@@ -35,6 +35,8 @@ export interface IngestableDocument {
   yearFigures?: readonly YearFigure[];
   /** Artículos stating a fact that ends on a given day (#531). */
   datedFacts?: readonly DatedFact[];
+  /** Artículos stating figures a later law has overridden (#529). */
+  overriddenFigures?: readonly OverriddenFigure[];
 }
 
 /** The slice of `Embedder` a document ingest uses — the batched one. */
@@ -89,6 +91,11 @@ export async function ingestChunks(
   assertChunksCarryContent(doc.doc_key, chunks);
   assertYearFigureEvidence(doc.doc_key, chunks, doc.yearFigures ?? []);
   assertDatedFactEvidence(doc.doc_key, chunks, doc.datedFacts ?? []);
+  assertOverriddenFigureEvidence(
+    doc.doc_key,
+    chunks,
+    doc.overriddenFigures ?? [],
+  );
 
   const embeddings: number[][] = [];
   for (let i = 0; i < chunks.length; i += EMBED_BATCH) {
@@ -161,6 +168,36 @@ export function assertDatedFactEvidence(
       missing: `datedFacts lists «${fact.articulo}», but the crawl has no chunk with that heading — if its day (${fact.lastDay}) has passed and the source dropped it, retire the entry; otherwise re-read the source and update the manifest (#531, runbook §2.4)`,
       lacking: `the evidence for its last day, ${fact.lastDay} — if the source moved the date, set lastDay and evidence to match it (#531, runbook §2.4)`,
     });
+  }
+}
+
+/**
+ * The same refusal for `overriddenFigures` (#529), with the evidence read the
+ * other way: retrieval withholds the chunks that carry the overridden words,
+ * so the crawl must still have the artículo, and at least one of its chunks
+ * must still carry them. A heading the publisher renamed would let the
+ * overridden figure through unlisted. A text that dropped the words has
+ * most often been brought in line with the later law, and the entry is
+ * retired — but the owner reads it first, since a reworded figure would also
+ * pass (runbook §2.5).
+ */
+export function assertOverriddenFigureEvidence(
+  docKey: string,
+  chunks: readonly Chunk[],
+  overriddenFigures: readonly OverriddenFigure[],
+): void {
+  for (const { articulo, evidence } of overriddenFigures) {
+    const own = chunks.filter((chunk) => chunk.articulo === articulo);
+    if (own.length === 0) {
+      throw new Error(
+        `${docKey}: overriddenFigures lists «${articulo}», but the crawl has no chunk with that heading — re-read the source and update the manifest (#529, runbook §2.5)`,
+      );
+    }
+    if (!own.some((chunk) => chunk.content.includes(evidence))) {
+      throw new Error(
+        `${docKey}: «${articulo}» no longer carries «${evidence}» — if the publisher brought it in line with the later law, retire the entry; if it reworded the figure, set evidence to the new words (#529, runbook §2.5)`,
+      );
+    }
   }
 }
 
