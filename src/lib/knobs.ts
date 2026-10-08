@@ -20,6 +20,9 @@
  * `off`, and the log line is what tells the operator the word they set was
  * not one.
  *
+ * `ANSWER_EFFORT` reads here too (#519), with no mode as its default: an
+ * unknown effort still sends nothing, the provider default, and now says so.
+ *
  * The two numeric answer-set knobs, `ANSWER_TOP_K` and `ANSWER_DOC_CAP`, read
  * by the same rules through `positiveIntKnob` (#519): a value that is not a
  * positive integer — nor one of the knob's words, `off` for the cap — is the
@@ -36,15 +39,17 @@ export const KNOB_ERROR_PREFIX = "config: unknown knob value";
 
 /**
  * A reader for one knob. `modes` is the whole accepted set, `fallback` the
- * mode unset, empty and unknown values all read as. The reader keeps the last
- * value it reported, so a cold start logs a bad value once, not per ask.
+ * mode unset, empty and unknown values all read as — or `null` for a knob
+ * whose default is no mode at all (`ANSWER_EFFORT`, which then sends
+ * nothing), logged as `unset`. The reader keeps the last value it reported,
+ * so a cold start logs a bad value once, not per ask.
  */
-export function modeKnob<const T extends string>(
+export function modeKnob<const T extends string, const F extends T | null = T>(
   name: string,
   modes: readonly T[],
-  fallback: T,
-): () => T {
-  const report = logOncePerValue(name, modes.join(" | "), fallback);
+  fallback: F,
+): () => T | F {
+  const report = logOncePerValue(name, modes.join(" | "), fallback ?? "unset");
   return () => {
     const raw = process.env[name] || "";
     if (raw === "") return fallback;

@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { KNOB_ERROR_PREFIX } from "../knobs";
 import { condenseQuestion, CONDENSE_MAX_OUTPUT_TOKENS } from "./condense";
 import { expandQuery, EXPAND_MAX_OUTPUT_TOKENS } from "./expand";
 import {
@@ -28,9 +29,26 @@ describe("answer effort (#356)", () => {
     expect(answerProviderOptions()).toBeUndefined();
   });
 
-  it("ignores an unrecognised value rather than sending it to the provider", () => {
+  it("ignores an unrecognised value rather than sending it to the provider, and logs it once (#519)", () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.stubEnv("ANSWER_MODEL", "");
     vi.stubEnv("ANSWER_EFFORT", "Medium");
+    expect(answerEffort()).toBeNull();
     expect(answerProviderOptions()).toBeUndefined();
+    expect(answerModelLabel()).toBe(DEFAULT_ANSWER_MODEL);
+    expect(errors).toHaveBeenCalledOnce();
+    expect(errors).toHaveBeenCalledWith(
+      `${KNOB_ERROR_PREFIX} ANSWER_EFFORT="Medium"; accepted: low | medium | high | xhigh | max, or unset; reading it as unset`,
+    );
+  });
+
+  it("reads unset, empty and every accepted effort without a word", () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    for (const value of [undefined, "", ...ANSWER_EFFORTS]) {
+      vi.stubEnv("ANSWER_EFFORT", value);
+      answerEffort();
+    }
+    expect(errors).not.toHaveBeenCalled();
   });
 
   it.each(ANSWER_EFFORTS)(
