@@ -30,7 +30,10 @@ import { typoRuns } from "./typo";
 export interface AnswerChecks {
   absence: AbsenceReport;
   typos: string[];
-  /** #546: the reader's own case worked out. Absent on rows before #558. */
+  /**
+   * #546: the reader's own case worked out. Absent when the check had no
+   * question to read (the route) and on rows before #558.
+   */
   readerCase?: ReaderCaseSlip[];
 }
 

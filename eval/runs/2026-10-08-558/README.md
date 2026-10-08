@@ -89,9 +89,9 @@ next to «si los tres meses …». So the rule now needs the tope reached
   gives the 50 % but not the count, so the hedge is honest about the
   fragments it had.
 - **A product the answer doesn't write**, or one built from a count the
-  condensed question doesn't carry. The route and `answer-replay` pass no
-  question, so `readerCase` is absent from their checks. Only the two lanes
-  and this backtest run it.
+  condensed question doesn't carry. The route passes no question, so
+  `readerCase` is absent from its checks. The two lanes, `answer-replay` and
+  this backtest run it.
 
 ## Why one gates and the other reports
 
