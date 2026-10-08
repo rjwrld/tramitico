@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  assertYearFigureEvidence,
   ingestDocument,
   type DocumentEmbedder,
   type IngestableDocument,
@@ -191,5 +192,89 @@ describe("ingestDocument", () => {
     ).toEqual([64, 64, 22]);
     expect(rpcArgs[0].p_chunks).toHaveLength(150);
     expect(rpcArgs[0].p_chunks[149].content).toContain("Texto 150.");
+  });
+});
+
+describe("assertYearFigureEvidence (#518)", () => {
+  const ley = {
+    ...doc,
+    doc_key: "ley-renta",
+    source: { kind: "sinalevi" },
+    chunking: undefined,
+    yearFigures: [
+      {
+        articulo: "ARTICULO 34",
+        fiscalYear: 2026,
+        evidence: "a partir del 01 de enero del 2026",
+      },
+    ],
+  } satisfies IngestableDocument;
+  const paragraphs = (note: string) => [
+    `ARTICULO 34.- Por cada hijo, la suma de mil setecientos diez colones (¢1.710,00) (Así modificado por el decreto ejecutivo N° 45333, a partir del 01 de enero del ${note})`,
+    "ARTICULO 35.- Texto sin cifras.",
+  ];
+
+  it("ingests an artículo whose text still names its declared year", async () => {
+    const { client, calls } = fakeClient();
+
+    await ingestDocument(
+      { client, embedder: fakeEmbedder() },
+      ley,
+      paragraphs("2026"),
+    );
+
+    expect(calls).toEqual(["identity", "replace_chunks", "stamp"]);
+  });
+
+  it("refuses a crawl that moved to another year under the old declaration, writing nothing", async () => {
+    const { client, calls } = fakeClient();
+    const embedder = fakeEmbedder();
+
+    await expect(
+      ingestDocument({ client, embedder }, ley, paragraphs("2027")),
+    ).rejects.toThrow(
+      /«ARTICULO 34» part\(s\) 0 no longer carry .* 2026 figures/,
+    );
+
+    expect(calls).toEqual([]);
+    expect(embedder.embed).not.toHaveBeenCalled();
+  });
+
+  it("refuses a crawl in which one part of the artículo lacks the evidence", () => {
+    const part = (n: number, content: string) => ({
+      docKey: "ley-renta",
+      articulo: "ARTICULO 34",
+      path: [],
+      part: n,
+      content,
+    });
+    expect(() =>
+      assertYearFigureEvidence(
+        "ley-renta",
+        [
+          part(0, "… a partir del 01 de enero del 2026"),
+          part(1, "… a partir del 01 de enero del 2027"),
+        ],
+        ley.yearFigures,
+      ),
+    ).toThrow(/part\(s\) 1 no longer carry/);
+  });
+
+  it("refuses a crawl in which the listed heading is gone", () => {
+    expect(() =>
+      assertYearFigureEvidence(
+        "ley-renta",
+        [
+          {
+            docKey: "ley-renta",
+            articulo: "Artículo 34",
+            path: [],
+            part: 0,
+            content: "a partir del 01 de enero del 2026",
+          },
+        ],
+        ley.yearFigures,
+      ),
+    ).toThrow(/no chunk with that heading/);
   });
 });

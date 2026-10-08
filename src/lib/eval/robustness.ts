@@ -20,17 +20,18 @@
  * the count of block cases whose answer set holds one of the seed's targets
  * — the hit-rate lane's own metric — must not fall more than
  * `ROBUSTNESS_REGRESSION_MARGIN` below `ROBUSTNESS_HIT_BASELINE`. #511's full
- * lane sets the baseline; until it does, the lane prints the line and the
+ * lane set the baseline; with no baseline, the lane prints the line and the
  * gate shows as a todo rather than passing on nothing.
  */
 import { isRobustness, robustnessSeedId, type EvalCase } from "./dataset";
 
 /**
- * Block cases that hit, on the lane that sets it. `null` until #511's
- * baseline lane runs; then a lane that beats it moves it up, as
- * `HIT_RATE_GATE` ratchets.
+ * Block cases that hit, on the lane that sets it: 25 of 27 on #511's
+ * baseline lane (eval/runs/2026-10-08-baseline/), missing
+ * `rb-pill-retroactivo` and `rb-corto-cuanto-es-iva`. A lane that beats it
+ * moves it up, as `HIT_RATE_GATE` ratchets.
  */
-export const ROBUSTNESS_HIT_BASELINE: number | null = null;
+export const ROBUSTNESS_HIT_BASELINE: number | null = 25;
 
 /**
  * How many hits a lane may lose to noise: two of 27. The two #502 probe

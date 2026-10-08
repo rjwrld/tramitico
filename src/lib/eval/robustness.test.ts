@@ -20,6 +20,7 @@ import {
 } from "./dataset";
 import {
   formatRobustnessLine,
+  ROBUSTNESS_HIT_BASELINE,
   robustnessHitFloor,
   ROBUSTNESS_REGRESSION_MARGIN,
   splitRobustness,
@@ -137,6 +138,11 @@ describe("robustnessHitFloor", () => {
 
   it("sits the margin below a baseline", () => {
     expect(robustnessHitFloor(24)).toBe(24 - ROBUSTNESS_REGRESSION_MARGIN);
+  });
+
+  it("is armed at 25 of 27 hits, #511's lane, failing a lane at 22 or below", () => {
+    expect(ROBUSTNESS_HIT_BASELINE).toBe(25);
+    expect(robustnessHitFloor()).toBe(23);
   });
 });
 

@@ -28,13 +28,13 @@ Status is `accepted` unless a later record says otherwise.
 | 0014 | [HTML FAQs own their question boundaries](0014-html-faq-question-chunks.md)                                                                     | 2026-09-03 | accepted                     | SPEC §3, §4            | #258             |
 | 0015 | [Coverage tiers and the required-claim contract](0015-coverage-tiers-and-required-claims.md)                                                    | 2026-09-04 | accepted                     | SPEC §1, §9            | #254, #265       |
 | 0016 | [Source freshness policy](0016-source-freshness-policy.md)                                                                                      | 2026-09-04 | accepted                     | SPEC §3, §9            | #254, #262, #265 |
-| 0017 | [Other institutions are routed, not covered](0017-other-institutions-are-routed.md)                                                             | 2026-09-04 | accepted                     | SPEC §13               | #254, #264, #265 |
+| 0017 | [Other institutions are routed, not covered](0017-other-institutions-are-routed.md)                                                             | 2026-09-04 | accepted, amended 2026-10-07 | SPEC §13               | #254, #264, #265 |
 | 0018 | [Derived figures are computed by code](0018-derived-figures-by-code.md)                                                                         | 2026-09-04 | accepted                     | SPEC §5                | #263             |
 | 0019 | [The question is asked twice: expansion legs, not a different search](0019-query-expansion-legs.md)                                             | 2026-09-05 | accepted                     | SPEC §5                | #286, #267       |
 | 0020 | [The step the reader did not ask for: a hand-written catalogue per family](0020-step-catalogue-legs.md)                                         | 2026-09-07 | accepted                     | SPEC §5                | #304, #303       |
 | 0021 | [The app chrome is Spanish, everywhere](0021-spanish-chrome.md)                                                                                 | 2026-08-28 | accepted                     | SPEC §1, §8; DESIGN §9 | #215             |
 | 0022 | [Identity linking is delegated to GoTrue and the provider](0022-identity-linking-trust-boundary.md)                                             | 2026-09-21 | accepted                     | SPEC §7 (records)      | #381, #84        |
-| 0023 | [What the eval gates mean after Sonnet 5.5: the Tier 1 floor, and the model](0023-eval-gates-after-sonnet-5-5.md)                               | 2026-10-02 | accepted                     | SPEC §9                | #449, #451, #287 |
+| 0023 | [What the eval gates mean after Sonnet 5.5: the Tier 1 floor, and the model](0023-eval-gates-after-sonnet-5-5.md)                               | 2026-10-02 | accepted; amended by #474    | SPEC §9                | #449, #451, #287 |
 
 0021 was written on 2026-08-28 as a second "0013" and renumbered on 2026-09-14 (#28); its
 date is the original one. `0008-answer-markdown-rendering/` holds the screenshots that

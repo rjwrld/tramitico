@@ -29,7 +29,7 @@ import type { RetrievedChunk } from "../retrieval";
 import type { GenerationFinishReason } from "../telemetry";
 import type { AnswerChecks } from "./answer-checks";
 import type { EvalCase, Family, Tier, Variant } from "./dataset";
-import type { Verdict } from "./groundedness";
+import type { FailureLabelling, Verdict } from "./groundedness";
 
 /** Where a run writes its transcript unless `EVAL_TRANSCRIPT_DIR` says otherwise. */
 export const DEFAULT_TRANSCRIPT_DIR = "eval/transcripts";
@@ -69,8 +69,8 @@ export interface TranscriptRow {
   query: string;
   answer: string;
   chunks: TranscriptChunk[];
-  derivedFigures: { id: string; formattedValue: string }[];
-  groundedness: { verdict: Verdict; verdicts: Verdict[]; reason: string };
+  derivedFigures: TranscriptFigure[];
+  groundedness: TranscriptGroundedness;
   /** `null` on a weak-retrieval decline, which ships without markers. */
   citations: CitationVerdict | null;
   /** `null` on a case that declares no requirements. */
@@ -102,6 +102,45 @@ export interface TranscriptRow {
    * fixed text. Absent from transcripts written before #500.
    */
   checks: AnswerChecks | null;
+  /**
+   * The two further answers a blocking case is asked when its first fails
+   * (#474), judged and checked like the first: the case's groundedness is
+   * read on all three (`blockingCaseVerdict`). Empty on every other case;
+   * absent from transcripts written before #474.
+   */
+  reasks?: TranscriptReask[];
+}
+
+/** One answer's groundedness reading. */
+export interface TranscriptGroundedness {
+  verdict: Verdict;
+  verdicts: Verdict[];
+  reason: string;
+  /**
+   * The label a separate judge call gave a failure the judges made (#474):
+   * recorded, never gated. `null` when the judges passed the answer — one
+   * failed only by #500's absence gate too. Absent before #474.
+   */
+  label?: FailureLabelling | null;
+}
+
+/** A derived figure the prompt carried, by id and as the answer quotes it. */
+export interface TranscriptFigure {
+  id: string;
+  formattedValue: string;
+}
+
+/** A re-asked answer (#474): the parts of a row that belong to one answer. */
+export interface TranscriptReask {
+  query: string;
+  answer: string;
+  chunks: TranscriptChunk[];
+  derivedFigures: TranscriptFigure[];
+  groundedness: TranscriptGroundedness;
+  citations: CitationVerdict | null;
+  checks: AnswerChecks | null;
+  generation: TranscriptGeneration | null;
+  rerank: RerankReadingCount | null;
 }
 
 export interface TranscriptGeneration {
@@ -116,18 +155,86 @@ export interface TranscriptGeneration {
   today: string;
 }
 
+export interface ReaskInput {
+  query: string;
+  answer: string;
+  chunks: readonly RetrievedChunk[];
+  derivedFigures: readonly ResolvedDerivedFigure[];
+  groundedness: TranscriptGroundedness;
+  citations: CitationVerdict | null;
+  checks: AnswerChecks | null;
+  generation: TranscriptGeneration | null;
+  rerank: RerankReadingCount | null;
+}
+
 export interface TranscriptInput {
   evalCase: EvalCase;
   query: string;
   answer: string;
   chunks: readonly RetrievedChunk[];
   derivedFigures: readonly ResolvedDerivedFigure[];
-  groundedness: { verdict: Verdict; verdicts: Verdict[]; reason: string };
+  groundedness: TranscriptGroundedness;
   citations: CitationVerdict | null;
   adequacy: { verdict: Verdict; missing: string[]; literals: string[] } | null;
   generation: TranscriptGeneration | null;
   rerank: RerankReadingCount | null;
   checks: AnswerChecks | null;
+  /** #474's re-asks; none unless the lane asked them. */
+  reasks?: readonly ReaskInput[];
+}
+
+/** The chunk list as the prompt numbered it. */
+function transcriptChunks(
+  chunks: readonly RetrievedChunk[],
+): TranscriptChunk[] {
+  return chunks.map((chunk, i) => ({
+    marker: i + 1,
+    chunkId: chunk.chunkId,
+    docKey: chunk.docKey,
+    articulo: chunk.articulo,
+    content: chunk.content,
+  }));
+}
+
+function transcriptFigures(
+  derivedFigures: readonly ResolvedDerivedFigure[],
+): TranscriptFigure[] {
+  return derivedFigures.map((figure) => ({
+    id: figure.id,
+    formattedValue: figure.formattedValue,
+  }));
+}
+
+/** A row written today always carries the label, `null` when there is none. */
+function transcriptGroundedness({
+  label = null,
+  ...reading
+}: TranscriptGroundedness): TranscriptGroundedness {
+  return { ...reading, label };
+}
+
+/**
+ * Runs a paid lane's phases in order, then `record` — whatever happened. A
+ * phase that throws stops the phases after it, `record` still writes what
+ * the earlier ones produced, and the error is rethrown after it: a provider
+ * 5xx or a judge's malformed reply on case 60 must not take the 59 paid rows
+ * before it along (#474). `record` owns its own failures; see the lane's
+ * transcript write.
+ */
+export async function runThenRecord(
+  phases: readonly (() => Promise<void>)[],
+  record: () => void,
+): Promise<void> {
+  let failed = false;
+  let failure: unknown;
+  try {
+    for (const phase of phases) await phase();
+  } catch (error) {
+    failed = true;
+    failure = error;
+  }
+  record();
+  if (failed) throw failure;
 }
 
 export function transcriptRow({
@@ -142,6 +249,7 @@ export function transcriptRow({
   generation,
   rerank,
   checks,
+  reasks = [],
 }: TranscriptInput): TranscriptRow {
   return {
     id: evalCase.id,
@@ -153,23 +261,26 @@ export function transcriptRow({
     question: evalCase.question,
     query,
     answer,
-    chunks: chunks.map((chunk, i) => ({
-      marker: i + 1,
-      chunkId: chunk.chunkId,
-      docKey: chunk.docKey,
-      articulo: chunk.articulo,
-      content: chunk.content,
-    })),
-    derivedFigures: derivedFigures.map((figure) => ({
-      id: figure.id,
-      formattedValue: figure.formattedValue,
-    })),
-    groundedness,
+    chunks: transcriptChunks(chunks),
+    derivedFigures: transcriptFigures(derivedFigures),
+    groundedness: transcriptGroundedness(groundedness),
     citations,
     adequacy,
     generation,
     rerank,
     checks,
+    // Field by field: a caller may hand over a wider object than a re-ask.
+    reasks: reasks.map((reask) => ({
+      query: reask.query,
+      answer: reask.answer,
+      chunks: transcriptChunks(reask.chunks),
+      derivedFigures: transcriptFigures(reask.derivedFigures),
+      groundedness: transcriptGroundedness(reask.groundedness),
+      citations: reask.citations,
+      checks: reask.checks,
+      generation: reask.generation,
+      rerank: reask.rerank,
+    })),
   };
 }
 
