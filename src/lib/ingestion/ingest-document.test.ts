@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  assertDatedFactEvidence,
   assertYearFigureEvidence,
+  ingestChunks,
   ingestDocument,
   type DocumentEmbedder,
   type IngestableDocument,
@@ -276,5 +278,70 @@ describe("assertYearFigureEvidence (#518)", () => {
         ley.yearFigures,
       ),
     ).toThrow(/no chunk with that heading/);
+  });
+});
+
+describe("assertDatedFactEvidence (#531)", () => {
+  const datedFacts = [
+    {
+      articulo: "¿Hasta cuándo puedo solicitar la condonación?",
+      lastDay: "2026-11-11",
+      evidence: "11 de noviembre del 2026",
+    },
+  ];
+  const chunk = (articulo: string, day: string) => ({
+    docKey: "ccss-faq",
+    articulo,
+    path: ["Cobros"],
+    part: 0,
+    content: `La condonación estará disponible hasta el día ${day}.`,
+  });
+
+  it("refuses before anything is embedded or written", async () => {
+    const { client, calls } = fakeClient();
+    const embedder = fakeEmbedder();
+
+    await expect(
+      ingestChunks(
+        { client, embedder },
+        { ...doc, doc_key: "ccss-faq", datedFacts },
+        [chunk(datedFacts[0].articulo, "11 de mayo del 2027")],
+      ),
+    ).rejects.toThrow(/2026-11-11/);
+
+    expect(calls).toEqual([]);
+    expect(embedder.embed).not.toHaveBeenCalled();
+  });
+
+  it("passes a crawl whose answer still states the listed day", () => {
+    expect(() =>
+      assertDatedFactEvidence(
+        "ccss-faq",
+        [chunk(datedFacts[0].articulo, "11 de noviembre del 2026")],
+        datedFacts,
+      ),
+    ).not.toThrow();
+  });
+
+  it("refuses a crawl that moved the date under the old declaration", () => {
+    expect(() =>
+      assertDatedFactEvidence(
+        "ccss-faq",
+        [chunk(datedFacts[0].articulo, "11 de mayo del 2027")],
+        datedFacts,
+      ),
+    ).toThrow(/no longer carry .* last day, 2026-11-11 .* set lastDay/);
+  });
+
+  it("refuses a crawl in which the listed question is gone, and says when to retire it", () => {
+    expect(() =>
+      assertDatedFactEvidence(
+        "ccss-faq",
+        [chunk("¿Otra pregunta?", "11 de noviembre del 2026")],
+        datedFacts,
+      ),
+    ).toThrow(
+      /no chunk with that heading — if its day \(2026-11-11\) has passed/,
+    );
   });
 });

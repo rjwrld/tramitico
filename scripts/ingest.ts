@@ -72,7 +72,7 @@ import {
   wordRepairNotice,
 } from "../src/lib/ingestion/word-joins";
 import type { DeepLinkKind } from "../src/lib/retrieval";
-import type { YearFigure } from "../src/lib/vigencia";
+import type { DatedFact, YearFigure } from "../src/lib/vigencia";
 import {
   articuloAnchors,
   fetchNorma,
@@ -151,6 +151,12 @@ interface ManifestDoc {
    * carries its evidence.
    */
   yearFigures?: YearFigure[];
+  /**
+   * Artículos stating a fact that ends on a given day (#531): retrieval
+   * withholds them from the day after, and `ingestChunks` refuses a crawl in
+   * which one is missing or no longer states that day.
+   */
+  datedFacts?: DatedFact[];
   /** Source-gated arithmetic made available to answer assembly (#263). */
   derivedFigures?: DerivedFigure[];
   /** Chunking overrides for documents with no artículo structure of their own. */
