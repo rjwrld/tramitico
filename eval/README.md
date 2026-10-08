@@ -18,27 +18,27 @@ transcript (`low/groundedness-…-20261002T184323Z.jsonl`) is the input for
 **Knobs.** Every knob is read at call time. Its code default is production's
 value, except for `ANSWER_EFFORT`:
 
-| Variable                         | Default                                      | Where                        |
-| -------------------------------- | -------------------------------------------- | ---------------------------- |
-| `ANSWER_MODEL`                   | `claude-sonnet-5-5`                          | `src/lib/answer/model.ts`    |
-| `ANSWER_EFFORT`                  | `low`…`max`; unset = none; **prod: `low`**   | `model.ts`, Vercel env       |
-| `CONDENSE_MODEL`, `EXPAND_MODEL` | `claude-haiku-5-5`                           | `model.ts`                   |
-| `EXPAND`                         | `on` (needs `ANTHROPIC_API_KEY`)             | `src/lib/answer/expand.ts`   |
-| `STEPS`                          | `on`                                         | `src/lib/answer/steps.ts`    |
-| `STEPS_RERANK`                   | `pin1` (`pin`, `slot`, `max`, `off`)         | `src/lib/answer/rerank.ts`   |
-| `RERANK`                         | `voyage`; `off` = the fused-only order       | `rerank.ts`                  |
-| `RERANK_MODEL`                   | `rerank-2.5-lite`                            | `rerank.ts`                  |
-| `ANSWER_TOP_K`                   | `8`                                          | `rerank.ts`                  |
-| `ANSWER_DOC_CAP`                 | `off`                                        | `rerank.ts`                  |
-| `PIN_DERIVED_INPUTS`             | `on` (since #344)                            | `src/lib/answer/derived.ts`  |
-| `EVAL_CASES`                     | every case; comma-separated ids scope a lane | `src/lib/eval/subset.ts`     |
-| `EVAL_TRANSCRIPT_DIR`            | `eval/transcripts/`                          | `src/lib/eval/transcript.ts` |
-| `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites    | `src/lib/eval/rewrites.ts`   |
+| Variable                         | Default                                       | Where                        |
+| -------------------------------- | --------------------------------------------- | ---------------------------- |
+| `ANSWER_MODEL`                   | `claude-sonnet-5-5`                           | `src/lib/answer/model.ts`    |
+| `ANSWER_EFFORT`                  | unset = no effort sent; **production: `low`** | `model.ts`, Vercel env       |
+| `CONDENSE_MODEL`, `EXPAND_MODEL` | `claude-haiku-5-5`                            | `model.ts`                   |
+| `EXPAND`                         | `on` (needs `ANTHROPIC_API_KEY`)              | `src/lib/answer/expand.ts`   |
+| `STEPS`                          | `on`                                          | `src/lib/answer/steps.ts`    |
+| `STEPS_RERANK`                   | `pin1` (`pin`, `slot`, `max`, `off`)          | `src/lib/answer/rerank.ts`   |
+| `RERANK`                         | `voyage`; `off` = the fused-only order        | `rerank.ts`                  |
+| `RERANK_MODEL`                   | `rerank-2.5-lite`                             | `rerank.ts`                  |
+| `ANSWER_TOP_K`                   | `8`                                           | `rerank.ts`                  |
+| `ANSWER_DOC_CAP`                 | `off`                                         | `rerank.ts`                  |
+| `PIN_DERIVED_INPUTS`             | `on` (since #344)                             | `src/lib/answer/derived.ts`  |
+| `EVAL_CASES`                     | every case; comma-separated ids scope a lane  | `src/lib/eval/subset.ts`     |
+| `EVAL_TRANSCRIPT_DIR`            | `eval/transcripts/`                           | `src/lib/eval/transcript.ts` |
+| `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites     | `src/lib/eval/rewrites.ts`   |
 
-The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`,
-and `ANSWER_EFFORT`'s `low` to `max`) accept only the values above, and
-`ANSWER_TOP_K` and `ANSWER_DOC_CAP` only a positive integer (or `off`, for the
-cap; #519). Anything else runs the default and logs `config: unknown knob
+The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`)
+accept only the values above, `ANSWER_EFFORT` only `low`, `medium`, `high`,
+`xhigh` or `max`, and `ANSWER_TOP_K` and `ANSWER_DOC_CAP` only a positive
+integer (or `off`, for the cap; #519). Anything else runs the default and logs `config: unknown knob
 value` once (#499, `src/lib/knobs.ts`), so an arm that misspells `off`
 measures production rather than the baseline, and one that misspells `low`
 measures no effort at all: check the run's output for that line.
