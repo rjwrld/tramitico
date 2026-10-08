@@ -152,3 +152,65 @@ hand: the test and the runtime cover them. It keeps one manual step, with a quer
 artículos that start quoting a year's figure. The per-PR test reads the corpus index, which holds
 headings and not text, so it cannot see a re-crawl that adds a figure to an artículo nobody
 listed.
+
+## Amendment (2026-10-08, issue [#531](https://github.com/rjwrld/tramitico/issues/531))
+
+**An artículo stating a fact that ends on a day is dropped from the day after.** The first two
+amendments follow the fiscal year. A deadline or a transitional window ends on its own day, and
+nothing withheld it: the `ccss-faq` answer «estará disponible hasta el día 11 de noviembre del
+2026» would have gone on grounding answers that present the condonación as open. The inventory,
+read from the corpus on 2026-10-08 with the query in runbook §2.4, then for every date from 2025 on,
+numeric or spelled out («dos mil veinticinco»). The local stack and production hold the same text
+for both listed chunks:
+
+| Chunk (`doc_key` · artículo)                                         | Dated fact                                                                                                                                               | Day                         | Treatment                   |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | --------------------------- |
+| `ccss-faq` · the Ley 10.232 condonación question                     | requests to forgive recargos, multas, intereses and medical-service invoices are accepted «hasta el día 11 de noviembre del 2026»                        | 2026-11-11                  | `datedFacts`                |
+| `tribu-cr-res-0011-2025` · Artículo 8                                | the chunk carries Transitorio I: EDDI-7 stays up for forms D-110-07, D-120, D-110-08 and D-121 «hasta el 31 de diciembre de 2026» (MH-DGT-RES-0003-2026) | 2026-12-31                  | `datedFacts`                |
+| `ccss-escala-ivm` · Artículo 4°, sesión 9570                         | the IVM escala, from 2026-01-01 «hasta el 31 de diciembre del 2028»                                                                                      | 2028-12-31                  | annual source (amendment 1) |
+| `reglamento-renta` · TRANSITORIO IV                                  | the stepped tarifa on Banco Popular and cooperative securities: 14 % from 2026-07-01 to 2027-06-30, 15 % after                                           | a schedule, every step      | not listed                  |
+| `reglamento-iva` · Transitorios VI, VII, VII bis, IX and X           | the IVA phase-ins of Ley 9635 and the COVID-era turismo and construction reliefs: exentos, then 4 % and 8 %, then the general rate from 2020–2023        | a schedule, every step past | not listed                  |
+| `reglamento-renta` · TRANSITORIO I                                   | the transitional renta period from the Ley 9635 reform «hasta el 31 de diciembre de 2020»                                                                | 2020-12-31, past            | not listed                  |
+| `ccss-reglamento-ti` · TRANSITORIO V                                 | the 4-year prescripción for independientes who registered by 2025-05-08                                                                                  | 2025-05-08, past            | not listed                  |
+| `disposiciones-v44` · Transitorios I and II                          | nine months from 2024-12-01 to adopt v4.4, extensible to 2025-10-06 at most; v4.3's medicine fields from 2025-01-01 until then                           | 2025, past                  | not listed                  |
+| `tribu-cr-res-0011-2025` · Preámbulo, Artículo 4, Transitorios II–IV | ATV and EDDI-7 off at 23:45 on 2025-09-25, TRIBU-CR on at 09:00 on 2025-10-06, pagos parciales through ATV until 2025-09-30                              | 2025, past                  | not listed                  |
+| `tribu-cr-faq` · Ingreso a la Oficina Virtual (OVI) · 2              | applies to cédulas «con fecha de vencimiento anterior a septiembre de 2026»                                                                              | a condition, not an expiry  | not listed                  |
+
+**Decision.** Each manifest entry lists such artículos as `datedFacts`, with the `lastDay` the
+fact holds (Costa Rica time) and an `evidence` phrase from the text that states it («11 de
+noviembre del 2026»). `retrieve()` drops their chunks from the next day, and drops one whose
+text no longer carries the evidence, in the same pass and for the same reasons as a
+`yearFigures` artículo. Ingestion refuses a crawl in which a listed artículo is gone or lacks
+its evidence. The declaration deploys with the code; no row changes, here or in production.
+
+**Drop rather than tag**, as in the first two amendments, and for one more reason. A tag would
+ask the model to say the date has passed. But the condonación answer holds nothing except the
+deadline, and the corpus cannot say what happens after it: the question's own wording, «sus
+ampliaciones», shows the window has been extended before. «It has passed» could itself be false
+on the day the CCSS extends it. The honest decline that a pool with nothing corroborated takes
+sends the reader to the CCSS, which knows.
+
+**Listed by what is still ahead.** The two listed facts end while the product is live, so from
+that day the corpus would carry a window that was open when it was crawled. The past ones have
+been served since launch and are not listed:
+
+- `ccss-reglamento-ti` Transitorio V is still the rule for those who registered in time.
+- Transitorio II of the TRIBU-CR resolution also keeps the ATV's comprobante check up «de forma
+  indefinida», which is current.
+- The rest record a completed switch whose result the same chunk states: v4.4 in force, TRIBU-CR
+  active.
+
+Withholding them would change today's answers, a corpus decision outside this amendment, as in
+the second. If a live answer presents one as open, listing it is a manifest line, with no code.
+`reglamento-renta` Transitorio IV and `reglamento-iva`'s phase-ins state every step of their
+schedules, and what applies after the last, so no day makes them false. The
+IVM escala is an annual source and already follows the fiscal year.
+
+**Warnings.** The vigencia unit test warns, never fails, from 7 days before each `lastDay`
+through 7 days after it: before, to look for an extension while there is time; after, to catch
+one published on the day. Then it goes quiet. Unlike a past year's figures, a closed window is
+never fixed upstream, so a warning that did not stop would never end. An extension is a manifest
+PR that sets `lastDay` and `evidence` to the new day, then a re-crawl. Until both land, the text
+and the declaration disagree and the chunk is withheld. A listed answer the publisher takes down
+fails the next crawl of its source, and its entry is retired then. The steps are in
+[runbook §2.4](../runbook.md#24-dated-facts-531).

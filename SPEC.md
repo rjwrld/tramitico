@@ -179,7 +179,9 @@ Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3))
   beside this year's and takes over on 1 January (ADR 0016 amendment, #505). A source that is
   not annual but states one year's figures in some artículos (the consolidated Ley 7092's
   tramos, the CCSS FAQ's rate image) lists them as `yearFigures`, and retrieval drops those
-  chunks in every other fiscal year (ADR 0016 second amendment, #518).
+  chunks in every other fiscal year (ADR 0016 second amendment, #518). An artículo stating a
+  fact that ends on a day (the CCSS FAQ's condonación deadline) is listed as `datedFacts` with
+  its last day, and retrieval drops it from the day after (ADR 0016 third amendment, #531).
 
 ## 4. Ingestion & chunking
 
