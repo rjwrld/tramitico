@@ -82,6 +82,8 @@ describe("classifyRouting", () => {
     ["¿Cómo me registro como PYME en el MEIC?", "meic"],
     ["¿Puedo trabajar como nómada digital con visa de turista?", "migracion"],
     ["¿Necesito DIMEX para inscribirme?", "migracion"],
+    ["¿Cómo renuevo la licencia de conducir?", "cosevi"],
+    ["¿Dónde saco la licencia de manejo?", "cosevi"],
     ["¿Tengo aguinaldo como freelancer?", "mtss"],
     ["¿Me toca cesantía si me despiden?", "mtss"],
     ["¿Cuánto debería cobrar por hora como programador?", "contadores"],
@@ -140,6 +142,10 @@ describe("classifyRouting", () => {
     expect(
       classifyRouting("¿Tengo que llevar contabilidad de mi actividad?"),
     ).toBe("general");
+    // #503's list is phrase-only: a software licence is not COSEVI's.
+    expect(
+      classifyRouting("¿Cobro IVA si vendo una licencia de software?"),
+    ).toBe("hacienda");
   });
 });
 

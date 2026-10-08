@@ -4,8 +4,8 @@
  *
  * The beta covers Hacienda and the CCSS for personas físicas independientes.
  * Everything else — INS, municipalidades, Registro Nacional, colegios
- * profesionales, bancos, MEIC, migración, MTSS — is out of scope *with
- * routing*: when retrieval has nothing to say, the decline names the
+ * profesionales, bancos, MEIC, migración, COSEVI, MTSS — is out of scope
+ * *with routing*: when retrieval has nothing to say, the decline names the
  * institution the question belongs to and its official URL, instead of
  * pointing everyone at hacienda.go.cr. No corpus, no encoded facts: the one
  * thing this module knows about another institution is where its front door
@@ -21,7 +21,11 @@
  *   question. No model call: it runs only when retrieval is already weak,
  *   and a decline must stay the one path that costs nothing and cannot
  *   guess. The default is what the decline was before #264: Hacienda and
- *   the CCSS, both.
+ *   the CCSS, both. A question whose retrieval is *not* weak never reaches
+ *   it, however out of scope: it takes the model path, and rule 6 of the
+ *   answer prompt routes it from this same table (#503 kept it that way —
+ *   the classifier reads «DIMEX» in «¿Puedo inscribirme en Hacienda con mi
+ *   DIMEX?», which the corpus answers).
  * - `declineAnswer`, the text the route streams for a category.
  *
  * The category is also the one new field on the per-ask telemetry event
@@ -42,6 +46,7 @@ export const ROUTING_CATEGORIES = [
   "bancos",
   "meic",
   "migracion",
+  "cosevi",
   "mtss",
   "contadores",
 ] as const;
@@ -116,6 +121,13 @@ export const ROUTING: readonly RoutingEntry[] = [
     category: "migracion",
     institution: "Dirección General de Migración y Extranjería",
     url: "https://www.migracion.go.cr",
+  },
+  {
+    // #503. Driver's licences: a trámite an independent worker meets, with
+    // no Hacienda or CCSS side to it.
+    category: "cosevi",
+    institution: "Consejo de Seguridad Vial (COSEVI)",
+    url: "https://www.csv.go.cr",
   },
   {
     category: "mtss",
@@ -293,6 +305,16 @@ const KEYWORDS: Record<RoutingCategory, readonly string[]> = {
     "categoria migratoria",
     "visa",
     "pasaporte",
+  ],
+  // Phrases only: a bare «licencia» is a software licence as often as a
+  // driver's one.
+  cosevi: [
+    "cosevi",
+    "consejo de seguridad vial",
+    "licencia de conducir",
+    "licencias de conducir",
+    "licencia de manejo",
+    "licencia de manejar",
   ],
   mtss: [
     "mtss",

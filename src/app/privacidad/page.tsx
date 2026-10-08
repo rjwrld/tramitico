@@ -132,8 +132,8 @@ export default function PrivacyPage() {
           tipo de error y su código. Cuando no se encontró base oficial para
           responder, se registra también a qué institución se le remitió (una
           categoría de una lista fija: Hacienda, CCSS, INS, municipalidad,
-          Registro Nacional, colegio profesional, banco, MEIC, migración o
-          MTSS). De cada respuesta se registra además, como un sí o un no, el
+          Registro Nacional, colegio profesional, banco, MEIC, migración, COSEVI
+          o MTSS). De cada respuesta se registra además, como un sí o un no, el
           resultado de dos revisiones automáticas: si dijo que un dato no está
           en los documentos cuando sí está, y si traía una palabra con letras
           repetidas por error. Nunca el texto de la pregunta ni el de la
