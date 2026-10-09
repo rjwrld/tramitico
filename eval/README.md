@@ -4025,7 +4025,37 @@ rewrites), production configuration, before → after:
 **Not read here: groundedness.** `pin` (every pick) cost it in #311. The
 wave's final full lane is the check, and `STEP_PINS=1` is the rollback.
 Cost ≈US$0.32 (one step-pick read, two probe arms).
-||||||| cdef9d6
+
+## A figure's sentence carries its own marker; a date compared is the plazo asked (2026-10-09, #572)
+
+Wave D's one red was a true, sourced figure written one sentence before its
+marker: `ho-abs-devs-exentos-renta`'s «…con IVA de 13%.», with `cabys-dev`
+cited [1] in the example after it. The same lane wrote «la sanción se rebaja
+en un 75%.» before its [8]. `renta-plazo-followup`, asked when to file the
+annual declaración, said the pagos parciales' «setiembre de 2026 ya pasó»: a
+year the documents don't write («de cada año»), on an obligation the question
+did not ask about, which rule 3 already forbade. Fixed-chunk replays of Wave
+D's lane, a control on main's prompt and one round, ≈US$4.05
+([`runs/2026-10-09-572/README.md`](runs/2026-10-09-572/README.md));
+`runs/2026-10-09-572/marker-check.sh` (jq, free) lists both slips in any
+transcript, reading every mention of a figure where `figureMentions` reads
+any one.
+
+- **Rule 2**: a sentence that gives a figure carries its own marker even when
+  the next one cites the same document with an example, the rule's other half
+  or the list it introduces. **Rule 3**: the comparison with today is for the
+  plazo asked about; no other obligation's date «ya pasó», and no current year
+  on a date the documents give for each year.
+- Target passes by hand read, control → round 1: `renta-plazo-followup` 1/3 →
+  3/3, `rb-seguimiento-de-cuanto-multa` 2/3 → 3/3, `ho-abs-devs-exentos-renta`
+  2/3 → 3/3 (declines 3/3); `ho-t2-tipo-de-cambio` and `rb-corto-que-cabys`
+  3/3 on both.
+- **Tier 1 guard** on Wave D's lane: 92 → 89/116, false absence claims 0 → 0,
+  absence openings (reported) 2 → 3. `ho-tambien-asegurado-por-patrono`
+  failed the judges once on the IVM 11.66 % reading #556 recorded and passed
+  both re-asks, so no new judge failure.
+- Found: the groundedness judge is never given today's date, so a comparison
+  rule 3 allows («hoy es 8 de octubre de 2026») can fail as unsupported.
 
 ## Step-catalogue sentences for #554's unreached carriers (2026-10-09, #562)
 
