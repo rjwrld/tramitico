@@ -237,7 +237,9 @@ the corpus it measures is exactly the corpus production answers from. The
 per-PR lanes (`test:integration`, pgTAP, `test:e2e:local`) keep CI's throwaway
 `supabase start` stack and never see production. The Anthropic key the lane
 uses comes from a workspace separate from production's capped one (runbook
-§7), so an authorized run is never blocked by the US$10 cap.
+§7), so an authorized run is never blocked by the US$10 cap. It does spend
+the org-wide credit balance production answers on (#552), so the pre-run
+balance check covers the run's hard stop plus ~US$15.
 
 Run locally (`.env.local` supplies the keys; an exported variable wins):
 
