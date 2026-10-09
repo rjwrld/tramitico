@@ -28,6 +28,7 @@
     "ingest": "tsx scripts/ingest.ts",
     "recrawl": "bash scripts/recrawl.sh",
     "check:routing": "tsx scripts/check-routing-urls.ts",
+    "canary": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/canary.ts",
     "pool-dump": "tsx scripts/pool-dump.ts",
     "answer-set-probe": "tsx scripts/answer-set-probe.ts",
     "cross-reference-census": "tsx scripts/cross-reference-census.ts",

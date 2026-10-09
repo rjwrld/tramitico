@@ -19,7 +19,9 @@
  *   `data-unsaved` marks a delivered answer that never reached the signed-in
  *   caller's history (#139). `data-routed` names the institution an honest
  *   decline was routed to (#264), so the client can render the link from
- *   the routing table rather than from the text.
+ *   the routing table rather than from the text. `data-reranked` says
+ *   whether an answer's sources were reordered by the rerank (#551), for the
+ *   production canary; the chat ignores it.
  * - Non-OK responses carry a JSON body `{ error, message }` where `message`
  *   is user-facing Spanish (the 429 carries the rate-limit nudge from #24).
  *   The AI SDK transport throws the raw body text; `askErrorMessage`
@@ -162,6 +164,21 @@ export type AskDataParts = {
    * ever derived from model text" true of the decline too.
    */
   routed: { category: RoutedCategory };
+  /**
+   * Whether the rerank reordered this answer's sources (#551): `true` when
+   * at least one rerank reading came back, `false` when the answer set is
+   * the fused order — the rerank opted out, unkeyed, or every reading lost.
+   * Written once, after the rerank and before `redactando`, and only on the
+   * answer path: a weak-retrieval decline never reaches the rerank.
+   *
+   * For the daily canary (`scripts/canary.ts`), which is how production
+   * running unreranked for three weeks (#498) would now surface in a day.
+   * One boolean and nothing else — no provider, no scores, no chunk ids —
+   * so it tells a reader no more than `degraded` already does about the
+   * other provider. The chat reads no part it does not know, so it never
+   * renders this one.
+   */
+  reranked: boolean;
 };
 
 export type AskUIMessage = UIMessage<never, AskDataParts>;
@@ -180,6 +197,9 @@ export const UNSAVED_PART_ID = "unsaved";
 
 /** Stable `data-routed` part id — written at most once per decline (#264). */
 export const ROUTED_PART_ID = "routed";
+
+/** Stable `data-reranked` part id — written at most once per ask (#551). */
+export const RERANKED_PART_ID = "reranked";
 
 /**
  * Stable `data-status` part id. Same idempotency bargain ADR 0004 struck for

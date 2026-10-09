@@ -138,6 +138,7 @@ import {
   DEGRADED_PART_ID,
   MARKERS_PART_ID,
   MAX_QUESTION_LENGTH,
+  RERANKED_PART_ID,
   RETRIEVAL_FAILED_MESSAGE,
   ROUTED_PART_ID,
   STATUS_PART_ID,
@@ -1001,15 +1002,28 @@ export async function POST(request: Request): Promise<Response> {
     // the step catalogue's sentences when retrieval ran a probe.
     const stopRerank = telemetry.startStage("rerank");
     let reranked;
+    // #551: whether any reading came back, which is whether the answer set
+    // is Voyage's order or the fused fallback. Never called when the rerank
+    // is off or unkeyed, so `false` covers those too.
+    let rerankRan = false;
     try {
       reranked = await rerankChunks(asked.query, retrieval.chunks, {
         ...rerankOptionsFor(retrieval),
         // #466: a lost reading changes the answer set and nothing else.
-        onReadings: telemetry.rerankReadings,
+        onReadings: (count) => {
+          telemetry.rerankReadings(count);
+          rerankRan = count.returned > 0;
+        },
       });
     } finally {
       stopRerank();
     }
+    // One boolean for the production canary (contract.ts), before any text.
+    writer.write({
+      type: "data-reranked",
+      id: RERANKED_PART_ID,
+      data: rerankRan,
+    });
     // #508: the appends after the cut get their own stage — the
     // cross-reference lookup is a database read on most asks, and inside
     // `rerank` it could not be told apart from Voyage.
