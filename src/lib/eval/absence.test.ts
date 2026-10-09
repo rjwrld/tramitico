@@ -191,6 +191,14 @@ describe("detectAbsenceClaims: other false claims", () => {
     ).toEqual(["ley-iva · Artículo 11"]);
   });
 
+  it("reads a figure named in parentheses after its head noun (#570)", () => {
+    expect(
+      falseTargets(
+        "Los documentos oficiales no traen el código (CABYS) que corresponde a hacer páginas web.",
+      ),
+    ).toEqual(["CABYS"]);
+  });
+
   it("does not let a conjunction inside the target split it", () => {
     expect(
       falseTargets(
@@ -210,8 +218,12 @@ describe("detectAbsenceClaims: honest abstentions", () => {
     "Para ubicarse en la escala, los documentos no traen sus ingresos netos como independiente, así que ese es el dato que falta.",
     // An artículo the corpus does not carry (CNPT art. 51).
     "Los documentos oficiales no traen el texto del artículo 51 del Código de Normas y Procedimientos Tributarios.",
-    // A codification the corpus does not carry.
+    // A codification the corpus does not carry (#570): tribu-cr-faq says the
+    // activity codes moved to CIIU 4 and lists none of them.
     "Los documentos oficiales no traen el código de actividad económica (CIIU 4) que corresponde a hacer páginas web.",
+    "Los documentos oficiales no traen el código (CIIU 4) que corresponde a hacer páginas web.",
+    // A parenthesis that cites rather than names (#570).
+    "Los documentos no traen el monto (artículo 10 de la Ley del IVA).",
     // Something about an artículo, not the artículo itself — and, with no
     // counted figure cited, no #547 hedge either.
     "Los documentos no precisan cómo se cuenta la sanción del artículo 79 del Código de Normas y Procedimientos Tributarios cuando se omiten varios períodos.",
