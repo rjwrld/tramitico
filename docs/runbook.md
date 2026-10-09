@@ -150,7 +150,7 @@ telemetry event, so this line and its `error=` token — a `PostgrestError#…`,
 there is. One line per denied ask, so it also counts the blast radius.
 
 `config: unknown knob value` (#499) is an environment variable that switches a pipeline
-stage — `RERANK`, `EXPAND`, `STEPS`, `STEPS_RERANK`, `PIN_DERIVED_INPUTS`, `PIN_CROSS_REFERENCES` (#508) and, since #519,
+stage — `RERANK`, `EXPAND`, `STEPS`, `STEPS_RERANK`, `PIN_DERIVED_INPUTS`, `PIN_CROSS_REFERENCES` (#508), `PIN_NAMED_SOURCES` (#559) and, since #519,
 `ANSWER_EFFORT` — set to a word it does not accept, or a numeric knob — `ANSWER_TOP_K`,
 `ANSWER_DOC_CAP` (#519), and the daily quotas `RATE_LIMIT_ANON`, `RATE_LIMIT_AUTHED`,
 `RATE_LIMIT_ANON_IP` (#532) — set to anything but a positive integer (or `off`, for the cap).

@@ -1,0 +1,31 @@
+$ tsx scripts/answer-set-probe.ts eval/runs/2026-10-08-559/probe-before.json
+...
+retrieval cases: 3 (2 in the robustness block; 2 expected targets outside it), abstention: 0, follow-ups condensed: 0
+condensation fell back to the question: none
+rewrites: live
+provider calls that did not come back: none
+rerank readings lost: none of 10
+weak: none
+expansion absent: none
+
+config                     targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff         1/2        0/1          0        —
+top8/capoff/pinon          1/2        0/1          0        —
+top8/cap3/pinoff           1/2        0/1          0        —
+top8/cap3/pinon            1/2        0/1          0        —
+top8/cap2/pinoff           2/2        1/1          0        —
+top8/cap2/pinon            2/2        1/1          0        —
+top10/capoff/pinoff        1/2        0/1          0        —
+top10/capoff/pinon         1/2        0/1          0        —
+top10/cap3/pinoff          2/2        1/1          0        —
+top10/cap3/pinon           2/2        1/1          0        —
+top10/cap2/pinoff          2/2        1/1          0        —
+top10/cap2/pinon           2/2        1/1          0        —
+top8/capoff/pinon/xrefoff  1/2        0/1          0        —
+
+cross-references (#508): targets 1 → 1, Tier 1 0 → 0
+  factura-primera-cabys: +reglamento-comprobantes·Artículo 12·#0
+  rb-pill-primera-factura: +reglamento-comprobantes·Artículo 9·#0
+  rb-tilde-primera-fatura: +reglamento-comprobantes·Artículo 9·#0
+
+top8/capoff/pinon, robustness block (#502): 2/2

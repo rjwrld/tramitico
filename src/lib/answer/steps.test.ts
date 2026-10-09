@@ -8,6 +8,8 @@ import { parseCorpusIndex, CORPUS_INDEX_PATH } from "../eval/corpus-index";
 import { DATASET_PATH, FAMILIES, parseDataset } from "../eval/dataset";
 import {
   classifyFamily,
+  NAMED_SOURCES,
+  namedSources,
   STEP_CATALOGUE,
   stepProbe,
   stepsEnabled,
@@ -280,5 +282,35 @@ describe("stepsEnabled", () => {
     expect(errors).toHaveBeenCalledWith(
       expect.stringContaining(`${KNOB_ERROR_PREFIX} STEPS="no"`),
     );
+  });
+});
+
+describe("namedSources (#559)", () => {
+  it("names cabys-dev for a question that says CABYS, in any case or accent", () => {
+    for (const question of [
+      "¿Cómo emito mi primera factura electrónica y qué código CABYS uso?",
+      "que codigo cabys uso para paginas web",
+      "¿El Cábys de consultoría?",
+    ]) {
+      expect(namedSources(question), question).toEqual(["cabys-dev"]);
+    }
+  });
+
+  it("names nothing without the whole word", () => {
+    expect(namedSources("¿Cómo emito mi primera factura?")).toEqual([]);
+    expect(namedSources("¿Qué es un cabysario?")).toEqual([]);
+  });
+
+  it("names only documents the committed corpus holds", () => {
+    const held = new Set(corpusIndex.entries.map((entry) => entry.docKey));
+    for (const docKey of Object.values(NAMED_SOURCES)) {
+      expect(held.has(docKey), docKey).toBe(true);
+    }
+  });
+
+  it("covers the dataset's CABYS question", () => {
+    const evalCase = dataset.find((c) => c.id === "factura-primera-cabys");
+    expect(evalCase).toBeDefined();
+    expect(namedSources(evalCase?.question ?? "")).toEqual(["cabys-dev"]);
   });
 });
