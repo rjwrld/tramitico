@@ -2,7 +2,8 @@
  * Knob readers. Mode knobs are the environment variables that switch one
  * pipeline stage between a closed set of modes — `RERANK`, `EXPAND`,
  * `STEPS`, `STEPS_RERANK`, `PIN_DERIVED_INPUTS` (#499),
- * `PIN_CROSS_REFERENCES` (#508), `PIN_NAMED_SOURCES` (#559).
+ * `PIN_CROSS_REFERENCES` (#508), `PIN_NAMED_SOURCES` (#559),
+ * `PIN_SALARIO_BASE` (#579).
  *
  * Production never reranked from launch until #498, because the deploy
  * wizard wrote `RERANK=on` and the reader treated anything but `voyage` as

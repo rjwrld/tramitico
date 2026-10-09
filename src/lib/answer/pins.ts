@@ -3,23 +3,28 @@
  * route, the eval lanes and the probes call this and nothing else, so they
  * cannot drift apart on what the model reads.
  *
- * Three appends, in this order. The first two are judged against the set the
- * rerank cut and never against each other's output, so neither can chain
- * into the other:
+ * Four appends, in this order. The first three are judged against the set the
+ * rerank cut and never against each other's output, so none can chain into
+ * another:
  *
  * 1. In-document cross-references (#508, ADR 0024): an artículo the set
  *    names, «la tarifa referida en el artículo 10», at most one.
  * 2. Derived-figure inputs (#287, ADR 0018): the sibling of a figure input
  *    that survived the cut.
- * 3. A source the question names (#559, `NAMED_SOURCES` in steps.ts): «qué
+ * 3. The salario base in force (#579, `salario-base.ts`): a multa the set
+ *    states in salarios base brings the year's circular, at most one.
+ * 4. A source the question names (#559, `NAMED_SOURCES` in steps.ts): «qué
  *    código CABYS uso» brings `cabys-dev`'s best pooled chunk, at most one,
  *    when the set holds none of that document. It is read from the question
  *    retrieval and the rerank ran on (the condensed one), and from the pool,
  *    so it costs no lookup; a source the pool lacks is not appended.
  *
- * All three append and never replace, so the citation markers the cut's chunks
+ * All four append and never replace, so the citation markers the cut's chunks
  * carry are the ones they would carry without them, and each appended chunk
  * is numbered and cited like any other.
+ *
+ * Which append brought each chunk is told to `onPins`, for the transcript:
+ * #579's cause stayed «likely» because a row could not say.
  */
 import { modeKnob } from "../knobs";
 import type { RetrievedChunk } from "../retrieval";
@@ -32,10 +37,20 @@ import {
   pinDerivedFigureInputs,
   type DerivedFigure,
 } from "./derived";
+import { salarioBaseChunks, type SalarioBaseOptions } from "./salario-base";
 import { namedSources } from "./steps";
 
-export interface PinOptions extends CrossReferenceOptions {
+/**
+ * What put a chunk past the cut: a step pick (`answerSetFromOrder`, #561),
+ * or one of the four appends here.
+ */
+export type PinName =
+  "step" | "crossReference" | "derivedInput" | "salarioBase" | "namedSource";
+
+export interface PinOptions extends CrossReferenceOptions, SalarioBaseOptions {
   figures?: readonly DerivedFigure[];
+  /** Told, once, which append brought each chunk it added, by chunk id. */
+  onPins?: (pins: ReadonlyMap<string, PinName>) => void;
 }
 
 /** At most this many chunks are appended for the sources a question names. */
@@ -78,21 +93,30 @@ export async function pinAnswerSet(
   question: string,
   options: PinOptions = {},
 ): Promise<RetrievedChunk[]> {
-  const referenced = await crossReferencedChunks(answerSet, options);
+  // The two lookups are independent reads of the cut: one wait, not two.
+  const [referenced, salarioBase] = await Promise.all([
+    crossReferencedChunks(answerSet, options),
+    salarioBaseChunks(answerSet, pool, options),
+  ]);
   const derived = pinDerivedFigureInputs(
     answerSet,
     pool,
     options.figures ?? DERIVED_FIGURES,
   ).filter((chunk) => !answerSet.includes(chunk));
   const pinned = [...answerSet];
-  for (const chunk of [...referenced, ...derived]) {
-    // A reference can name a figure's input: it goes in once.
-    if (!pinned.some((held) => held.chunkId === chunk.chunkId)) {
+  const pins = new Map<string, PinName>();
+  const append = (chunks: readonly RetrievedChunk[], pin: PinName) => {
+    for (const chunk of chunks) {
+      // A reference can name a figure's input: it goes in once.
+      if (pinned.some((held) => held.chunkId === chunk.chunkId)) continue;
       pinned.push(chunk);
+      pins.set(chunk.chunkId, pin);
     }
-  }
-  for (const chunk of namedSourceChunks(question, pinned, pool)) {
-    pinned.push(chunk);
-  }
+  };
+  append(referenced, "crossReference");
+  append(derived, "derivedInput");
+  append(salarioBase, "salarioBase");
+  append(namedSourceChunks(question, pinned, pool), "namedSource");
+  options.onPins?.(pins);
   return pinned;
 }

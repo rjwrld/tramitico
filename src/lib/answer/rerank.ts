@@ -237,6 +237,12 @@ export interface RerankOptions {
    * lanes in their transcripts.
    */
   onReadings?: (count: RerankReadingCount) => void;
+  /**
+   * Told the chunk ids of the step picks `answerSetFromOrder` put in the set
+   * (#579): a transcript row can then say which chunk a step pin brought.
+   * Only `rerankChunks` calls it, and always, `[]` included.
+   */
+  onStepPins?: (chunkIds: readonly string[]) => void;
 }
 
 /**
@@ -677,19 +683,36 @@ export async function rerankOrder(
  * has no step picks either, so the step legs are the only way the steps the
  * catalogue exists to carry reach the set (eval/runs/2026-10-07-510/). The
  * fallback stays the fused order.
+ *
+ * `onStepPins` hears which picks made it into the set, for the transcript.
  */
 export function answerSetFromOrder(
   order: readonly RerankedChunk[] | null,
   fused: readonly RetrievedChunk[],
   stepPicks: readonly RerankedChunk[] = [],
+  onStepPins?: (chunkIds: readonly string[]) => void,
 ): RetrievedChunk[] {
+  const { set, fresh } = cutWithSteps(order, fused, stepPicks);
+  onStepPins?.(set.map((chunk) => chunk.chunkId).filter((id) => fresh.has(id)));
+  return set;
+}
+
+/** The set, and the ids of the picks the cut did not already take. */
+function cutWithSteps(
+  order: readonly RerankedChunk[] | null,
+  fused: readonly RetrievedChunk[],
+  stepPicks: readonly RerankedChunk[],
+): { set: RetrievedChunk[]; fresh: ReadonlySet<string> } {
   const topK = answerTopK();
   const cap = answerDocCap();
   const ranked = order ?? fused.map((chunk) => ({ chunk }));
   const cut = capPerDocument(ranked, topK, cap).map(({ chunk }) => chunk);
   const taken = new Set(cut.map((chunk) => chunk.chunkId));
   const fresh = stepPicks.filter(({ chunk }) => !taken.has(chunk.chunkId));
-  if (stepRerankMode() === "slot") return slotSteps(cut, fresh);
+  const freshIds = new Set(fresh.map(({ chunk }) => chunk.chunkId));
+  if (stepRerankMode() === "slot") {
+    return { set: slotSteps(cut, fresh), fresh: freshIds };
+  }
   let appended = fresh;
   if (stepRerankMode() === "pin1") {
     const pinnedAnyway = new Set(
@@ -706,7 +729,7 @@ export function answerSetFromOrder(
     taken.add(chunk.chunkId);
     cut.push(chunk);
   }
-  return cut;
+  return { set: cut, fresh: freshIds };
 }
 
 /**
@@ -751,5 +774,6 @@ export async function rerankChunks(
     outcome?.order ?? null,
     chunks,
     outcome?.stepPicks ?? [],
+    options.onStepPins,
   );
 }
