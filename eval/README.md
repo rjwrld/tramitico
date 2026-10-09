@@ -4056,3 +4056,38 @@ any one.
   both re-asks, so no new judge failure.
 - Found: the groundedness judge is never given today's date, so a comparison
   rule 3 allows («hoy es 8 de octubre de 2026») can fail as unsupported.
+
+## Step-catalogue sentences for #554's unreached carriers (2026-10-09, #562)
+
+#554 found 7 cause-2 Tier 1 rows whose carrier no sentence in the family's
+catalogue reaches. Two now have one, each the family's fifth sentence. Both are
+written in their chunk's words and rank that chunk first on the lexical leg's
+strict branch:
+
+- T1-I: the Oficina Virtual inscription line, for `inscripcion-tardia-sancion`
+- T1-D: `ley-iva` art. 3 for services, an expected target of
+  `ho-cliente-espana-lleva-iva`
+
+Probed with `pnpm answer-set-probe`, replaying #561's rewrites on top of
+`STEP_PINS=2`:
+
+- Both carriers enter their case's answer set (fused pool #2 each).
+- No case's hit changes.
+- No case loses an expected target to either sentence.
+
+Two more drafts were dropped rather than tuned. Neither brought its carrier
+into the set:
+
+- T1-B's payment-points sentence reached fused #6 and took an expected target
+  from `ho-donde-me-afilio-caja`.
+- T1-E's `reglamento-renta` art. 12 sentence reached fused #24.
+
+The three uncertain carriers (row 8's «cómo se declara», rows 17 and 26) were
+not written: under `STEP_PINS`, a partial carrier would take a pinned slot from
+a whole one. Row 16, the TRIBU-CR channel for T1-D, stays open for the
+trade-off the catalogue's `$comment` already records.
+
+Found, not fixed: 8 of the 38 sentences committed before this change miss the
+strict branch and run on the OR fallback. The record, the per-case
+displacements and the noise floor are in
+[`runs/2026-10-09-562/README.md`](runs/2026-10-09-562/README.md). Cost ≈US$0.15.
