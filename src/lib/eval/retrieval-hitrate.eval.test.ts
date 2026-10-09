@@ -34,6 +34,9 @@
  * #502's robustness block runs with every other case and is gated apart: the
  * three gates below read the cases they read before it, and the block's line
  * and its tracked baseline follow them (`./robustness`).
+ *
+ * #570 prints, beside the gated line, how many cases reached *every* expected
+ * target rather than one (`./all-targets`): reported, never gated.
  */
 import { readFileSync } from "node:fs";
 import { beforeAll, expect, it } from "vitest";
@@ -70,6 +73,7 @@ import {
 import { rewriteCase, rewritesFromEnv } from "./rewrites";
 import { CARRIERS_PATH, parseCarriers, parseChunkRef } from "./carriers";
 import { formatExposureTally, tallyByExposure } from "./exposure";
+import { allTargetsReached, formatAllTargetsLine } from "./all-targets";
 import {
   formatRobustnessLine,
   ROBUSTNESS_HIT_BASELINE,
@@ -145,6 +149,8 @@ function describeChunk(chunk: RetrievedChunk): string {
 interface CaseResult {
   evalCase: EvalCase;
   hit: boolean;
+  /** Every expected target in the answer set, not just one (#570, reported). */
+  allReached: boolean;
   /** 1-based rank of the first expected chunk in the fused pool; null = not in pool. */
   poolRank: number | null;
   /** Same, in the reranked order; null when nothing reranked (RERANK=off, no key). */
@@ -310,6 +316,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
       results.push({
         evalCase,
         hit: caseHit(topK, evalCase.expected),
+        allReached: allTargetsReached(topK, evalCase.expected),
         poolRank: poolIndex === -1 ? null : poolIndex + 1,
         rerankRank: rerankIndex === -1 ? null : rerankIndex + 1,
         answerSet: topK,
@@ -331,6 +338,17 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
       `\nretrieval hit-rate (rerank=${rerankMode} ${process.env.RERANK_MODEL || RERANK_MODEL}, pool ${RERANK_POOL} → top ${topKSize}, ` +
         `cap=${docCap === Infinity ? "off" : docCap}/doc, expand=${expandMode}, steps=${stepsMode}, ` +
         `pin=${pinEnabled() ? "on" : "off"}, xref=${crossReferencesEnabled() ? "on" : "off"}): ${hits}/${gated.length}`,
+    );
+    // #570: the same answer sets, read for every expected target. Reported,
+    // never gated; `pnpm hitrate-all-targets` reads it back from a log.
+    const reading = (r: CaseResult) => ({
+      id: r.evalCase.id,
+      hit: r.hit,
+      allReached: r.allReached,
+    });
+    console.log(`  ${formatAllTargetsLine(gated.map(reading))}`);
+    console.log(
+      `  robustness block: ${formatAllTargetsLine(block.map(reading))}`,
     );
     console.log(
       formatRobustnessLine(

@@ -120,7 +120,9 @@ runs on create (deps, Playwright, symlinked `.env.local`, `.claude/settings.loca
 If `node_modules` or those links are missing, run `bash scripts/worktree-setup.sh` (safe to
 re-run). T3 creates worktrees; `EnterWorktree` and a raw `git worktree add` stay unused.
 The linked env carries real keys — `pnpm test:eval` spends real API money, so default to
-`test:unit` and `test:integration`. The local Supabase stack is **shared across worktrees**:
+`test:unit` and `test:integration`. That money is the org-wide Anthropic balance production
+answers on (no auto-reload, #552): a paid wave's pre-launch balance check must cover its hard
+stop plus ~US$15 (runbook §7). The local Supabase stack is **shared across worktrees**:
 `supabase start`/`stop` belong to the main checkout only, and a migration added on a branch
 reaches the shared db via `supabase migration up` — a deliberate step, not part of setup.
 
