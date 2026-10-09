@@ -256,6 +256,12 @@ same rows 2, so one draw moves this count by about 2 on its own.
 absence claim on #556's round 2 too («now opens with an absence claim»). The
 bar doesn't gate openings, and round 2 does not raise them past round 1.
 
+#563's detectors (`pnpm absence-backtest`, merged after these reads, free)
+agree with the hand read: over this directory's transcripts, one `COUNT` (#547)
+hit, round 1 d2's `multa-iva-no-declarado` («Las fuentes no dicen cómo se
+cuenta…», already a miss above), and no `FALSE`, `COUNT` or `READER` (#546)
+hit on the control or round 2.
+
 **Round 2 meets the bar**: every target passes on at least 2 of 3, the guard
 is 1 above the control, no new false absence claim, no new judge failure.
 
