@@ -735,9 +735,11 @@ function writeAnswer(
 /**
  * #500's two checks on the answer about to be delivered — a false absence
  * claim against the committed corpus index, a typo run — as telemetry flags.
- * Reporting only: the answer ships either way, the eval lanes are where a
- * false absence claim fails, and a check that throws must not cost the reader
- * an answer that already passed the citation invariant.
+ * The absence flag runs the same checks as the eval lanes' false-absence zero
+ * (#500), including #547's count hedges since #563. Reporting only: the answer
+ * ships either way, the eval lanes are where a false absence claim fails, and a
+ * check that throws must not cost the reader an answer that already passed the
+ * citation invariant.
  */
 function recordAnswerChecks(
   answer: string,

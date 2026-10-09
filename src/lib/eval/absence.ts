@@ -569,8 +569,30 @@ function antecedentTarget(
   return null;
 }
 
+/**
+ * «el código (CABYS)»: a parenthesis right after a head noun that names a
+ * listed figure is the figure's name, not an aside, and is read as if it
+ * stood bare (#570). Anything else in parentheses still ends the object — «el
+ * monto (artículo 10 de la ley)» cites, and «el código de actividad económica
+ * (CIIU 4)» names a codification the corpus does not carry: tribu-cr-faq says
+ * the activity codes moved from CIIU 3 to CIIU 4 and lists none of them, so
+ * that claim is true.
+ */
+const NAMING_PARENTHESIS = new RegExp(
+  String.raw`\b(${HEAD_NOUN}(?:\s+${ADJECTIVE})*)\s*\(([^()]{1,40})\)`,
+  "g",
+);
+
+function unwrapNamingParenthesis(object: string): string {
+  return object.replace(NAMING_PARENTHESIS, (match, head, inner) =>
+    figureAt(inner.trim()) === null ? match : `${head} ${inner.trim()}`,
+  );
+}
+
 function objectAfter(sentence: string, end: number): string {
-  const object = sentence.slice(end).trim().replace(LOCATIVE, "");
+  const object = unwrapNamingParenthesis(
+    sentence.slice(end).trim().replace(LOCATIVE, ""),
+  );
   return object.split(OBJECT_END)[0].trim();
 }
 

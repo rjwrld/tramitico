@@ -45,12 +45,12 @@ jobs:
           fi
 
           cat > body.md <<EOF
-          The quarterly re-crawl ([SPEC §3](../blob/main/SPEC.md), [ADR 0010](../blob/main/docs/adr/0010-cli-ingestion-authoritative.md)) is due **$due**. It is owner-run: GitHub-hosted runners cannot reach \`www.ccss.sa.cr\` or \`www.hacienda.go.cr\` (#405).
+          The quarterly re-crawl ([SPEC §3](https://github.com/rjwrld/tramitico/blob/main/SPEC.md), [ADR 0010](https://github.com/rjwrld/tramitico/blob/main/docs/adr/0010-cli-ingestion-authoritative.md)) is due **$due**. It is owner-run: GitHub-hosted runners cannot reach \`www.ccss.sa.cr\` or \`www.hacienda.go.cr\` (#405).
 
           - [ ] From the main checkout on \`main\`, with the deploy wizard's env file beside it: \`pnpm recrawl\`. It checks the routing front doors, the manifest vigencia, ingests into production with Voyage embeddings, and compares \`eval/corpus-index.json\` by content.
           - [ ] If it says the corpus changed: commit \`eval/corpus-index.json\` on a branch and open a PR (#163).
           - [ ] If a routing URL failed: open it in a browser before editing \`src/lib/routing.ts\` — a Cloudflare 403 or an incomplete certificate chain is a warning, not a dead page.
-          - [ ] Between November and January, the annual churn pass comes first ([runbook §2.2](../blob/main/docs/runbook.md)).
+          - [ ] Between November and January, the annual churn pass comes first ([runbook §2.2](https://github.com/rjwrld/tramitico/blob/main/docs/runbook.md#22-annual-corpus-churn-novemberjanuary)).
           - [ ] Close this issue with a one-line note: documents ingested, corpus changed or not.
           EOF
           gh issue create --title "$title" --label ready-for-human --body-file body.md

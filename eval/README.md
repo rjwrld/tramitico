@@ -24,7 +24,10 @@ the main checkout's `eval/transcripts/2026-10-08-final-512/`) are the next
 `reglamento-iva` chunk ids they carry, and `replayChunks` in
 `src/lib/eval/replay.ts` throws on a chunk id the corpus no longer holds.
 `HIT_RATE_GATE` is 0.94 since #546/#547/#550's lane read 72/74 (owner,
-2026-10-08); #512 held it at 0.92. Two identical full lanes differ by ±4 Tier 1 requirements (#457), and
+2026-10-08); #512 held it at 0.92. Beside it the lane reports, never gates,
+the cases whose answer set reached _every_ expected target rather than one
+(#570): Wave D 48/74, #512's lanes 48/74 and 47/74 (`pnpm hitrate-all-targets
+<log>` reads it from a committed lane log). Two identical full lanes differ by ±4 Tier 1 requirements (#457), and
 fixed-chunk replays of one prompt read 70–75 on the 2026-10-02 chunks.
 
 **Knobs.** Every knob is read at call time. Its code default is production's
@@ -38,6 +41,7 @@ value, except for `ANSWER_EFFORT`:
 | `EXPAND`                         | `on` (needs `ANTHROPIC_API_KEY`)               | `src/lib/answer/expand.ts`           |
 | `STEPS`                          | `on`                                           | `src/lib/answer/steps.ts`            |
 | `STEPS_RERANK`                   | `pin1` (`pin`, `slot`, `max`, `off`)           | `src/lib/answer/rerank.ts`           |
+| `STEP_PINS`                      | `2`; how many step picks `pin1` appends (#561) | `rerank.ts`                          |
 | `RERANK`                         | `voyage`; `off` = the fused-only order         | `rerank.ts`                          |
 | `RERANK_MODEL`                   | `rerank-2.5-lite`                              | `rerank.ts`                          |
 | `ANSWER_TOP_K`                   | `8`                                            | `rerank.ts`                          |
@@ -65,7 +69,7 @@ it, so don't read the production value from notes older than #451.
 The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`,
 `PIN_CROSS_REFERENCES`, `PIN_NAMED_SOURCES`)
 accept only the values above, `ANSWER_EFFORT` only `low`, `medium`, `high`,
-`xhigh` or `max`, and `ANSWER_TOP_K` and `ANSWER_DOC_CAP` only a positive
+`xhigh` or `max`, and `ANSWER_TOP_K`, `ANSWER_DOC_CAP` and `STEP_PINS` only a positive
 integer (or `off`, for the cap; #519). Anything else runs the default and logs `config: unknown knob
 value` once (#499, `src/lib/knobs.ts`), so an arm that misspells `off`
 measures production rather than the baseline, and one that misspells `low`
@@ -116,7 +120,10 @@ since #500, is false corpus-absence claims: an answer that says the documents
 lack an artículo or a listed figure that `corpus-index.json` covers
 (`src/lib/eval/absence.ts`). Since #558 it also holds #547's count hedge: «las
 fuentes no dicen cuántas veces se aplica esa multa» in an answer that cites a
-derived figure whose label says it («por cada …», «por mes …»). In the
+derived figure whose label says it («por cada …», «por mes …»). Since #570 a
+listed figure named in parentheses after its head noun («no traen el código
+(CABYS)») counts as named; «no traen el código de actividad económica (CIIU
+4)» is a true absence, since the corpus lists no CIIU code. In the
 groundedness and abstention lanes, such a case fails whatever the judge said,
 and the lane lists it. It wins over the 2-of-3 rule: a re-asked answer that
 makes one fails its case too. Each lane also reports, without gating, the
@@ -152,6 +159,7 @@ run's setup and deltas.
 | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------- |
 | `pnpm requirement-coverage <transcript…>`                | Tier 1 requirements stated, per case, from committed transcripts                                     | free                             |
 | `pnpm absence-backtest [--openings]`                     | false absence claims and count hedges, reader's-case slips and typo runs in every committed answer   | free                             |
+| `pnpm hitrate-all-targets <lane.log…>`                   | hit-rate beside «all expected targets reached» (#570), from committed lane logs                      | free                             |
 | `pnpm answer-set-compare a.json b.json`                  | the first stage where two probe runs part, per case                                                  | free                             |
 | `pnpm prompt-tokens <transcript…>`                       | the answer prompt's input size, per case                                                             | free (count_tokens)              |
 | `pnpm answer-replay <transcript> [--tier=1] [--cases=…]` | the current prompt re-answering recorded chunks, false absence claims recorded → replayed            | ≈US$0.10 a row; `--dry-run` free |
@@ -230,7 +238,9 @@ the corpus it measures is exactly the corpus production answers from. The
 per-PR lanes (`test:integration`, pgTAP, `test:e2e:local`) keep CI's throwaway
 `supabase start` stack and never see production. The Anthropic key the lane
 uses comes from a workspace separate from production's capped one (runbook
-§7), so an authorized run is never blocked by the US$10 cap.
+§7), so an authorized run is never blocked by the US$10 cap. It does spend
+the org-wide credit balance production answers on (#552), so the pre-run
+balance check covers the run's hard stop plus ~US$15.
 
 Run locally (`.env.local` supplies the keys; an exported variable wins):
 
@@ -3924,6 +3934,99 @@ No gate constant moved.
   lane flags a sourced figure cited one sentence away again, it is a pattern
   and gets an issue.
 
+## Detector and dataset follow-ups (2026-10-09, #570)
+
+Three items from Wave D's lane, all free: no provider call, every reading
+from committed files.
+
+**«no traen el código (CIIU 4)» is a true absence.** `ho-cabys-paginas-web`
+names CIIU 4 in 35 of its 37 committed answers. The corpus carries the CIIU 3
+→ CIIU 4 change (`tribu-cr-faq`, «Declaraciones del RUT · 12») and lists no
+activity code, so nothing contradicts the claim. A search of the local
+stack's chunks for «CIIU» found only that FAQ answer.
+`corpus-index.json` could not have said otherwise: it carries labels, not
+codes. What the shape did expose is a blind spot. The object ended at the
+parenthesis, so «no traen el código (CABYS)» was missed although `cabys-dev`
+is covered. `absence.ts` now reads a parenthesis right after a head noun as
+the noun's name when it starts with a listed figure; any other parenthesis
+still ends the object («el monto (artículo 10 …)» cites). `pnpm
+absence-backtest` over the 2409 committed answers reads the same before and
+after: 135 false claims (59 count hedges) in 125 answers, no new hit to read.
+Production's `absenceClaim` telemetry (`route.ts` sets it from
+`checkAnswer`) can only gain a `true` on that parenthetical shape, which no
+committed answer writes.
+
+**«All expected targets reached», reported.** `caseHit` counts a case when
+any one target is in the answer set. The hit-rate lane now prints beside its
+gated line how many reached every target, and names the cases that hit with
+a target cut (`src/lib/eval/all-targets.ts`). `pnpm hitrate-all-targets`
+recomputes it from a lane's committed log, whose per-target lines (#304)
+carry each target's place; a pinned target counts as reached, as it does for
+the hit.
+
+| Lane                                           | Hit (gated) | All targets (gated) | Hit (block) | All targets (block) |
+| ---------------------------------------------- | ----------- | ------------------- | ----------- | ------------------- |
+| Wave D, `runs/2026-10-09-497-wave-d/`          | 72/74       | **48/74**           | 26/27       | 14/27               |
+| #512 lane 1, `runs/2026-10-08-final/`          | 72/74       | **48/74**           | 27/27       | 14/27               |
+| #512 lane 2, `runs/2026-10-08-final/`          | 73/74       | **47/74**           | 27/27       | 14/27               |
+| #546/#547/#550, `runs/2026-10-08-546-547-550/` | 72/74       | 46/74               | 27/27       | 14/27               |
+| #511, `runs/2026-10-08-baseline/`              | 68/74       | 44/74               | 25/27       | 12/27               |
+
+Of Wave D's 24 gated cases that hit with a target cut, 13 are Tier 1, among
+them `multa-iva-no-declarado`, `ho-factura-electronica-o-recibo` and
+`ho-cabys-paginas-web`. The count is not a gate: much of `expected` was
+written as alternatives, either of which answers the question, and a case
+that lists two can be complete with one. It is the place to look first when
+an adequacy requirement is missing on a case that hit.
+
+**`rb-pill-primera-factura` and `rb-tilde-primera-fatura` keep `cabys-dev`.**
+Neither question names CABYS («¿Cómo emito mi primera factura?», «como hago
+mi primera fatura electronica»), and the corpus does not tie the «código de
+producto» of `reglamento-comprobantes` art. 13 to CABYS, so a first-invoice
+answer does not need `cabys-dev`, and #559's named-source pin rightly leaves
+it out: in all five lanes above, `cabys-dev` never reached either case's
+pool. The expectation stays anyway. The block re-asks its seed,
+`factura-primera-cabys`, and carries the seed's targets verbatim
+(`robustness.test.ts`), so a block miss is a wording miss; and the hit reads
+the targets as alternatives, so art. 4 alone has hit both cases on every
+lane. The cut `cabys-dev` shows only in the block's all-targets count, which
+lists both cases among those that hit with a target cut, and should. The two
+dataset lines' `notes` record this; no target moved, so the census is
+unchanged.
+
+## Two step picks past the cut (2026-10-09, #561)
+
+#554's 12 catalogue-reached carriers that missed both #512 answer sets are
+each **their own sentence's pick**: rank 1 in that sentence's rerank
+reading. Every one is pooled (fused #1–#31). `pin1` appends one pick, the
+fresh pick the question ranks best (#460). The step a reader needs is the
+one the question didn't ask, so it ranks low against the question, and with
+four or five sentences per family the one place went elsewhere. The
+catalogue was right, and the single append was the bottleneck. Record:
+[`runs/2026-10-09-561/README.md`](runs/2026-10-09-561/README.md).
+
+**Change.** `STEP_PINS` (rerank.ts, default **2**): `pin1` appends the best
+two fresh picks, in the same order. `STEP_PINS=1` is the pre-#561 pipeline.
+
+**Probe** (`answer-set-probe`, every case, the after arm on the before arm's
+rewrites), production configuration, before → after:
+
+- Expected targets in the set: 143 → 149/193. Tier 1: 63 → 69/93. Cases
+  holding every target: 48 → 49/74. Hit-rate 72/74 and robustness 27/27 on
+  both.
+- #561's rows in the set: 1 and 3 → 1, 3, 4 (`ley-iva` 27), 6, 7, 9, 11, 12.
+  Still out: 4 (`cnpt` 79), 18, 23–25, 27, whose carrier ranks third or lower
+  among the fresh picks.
+- Nothing leaves: no case loses a target or a hit. The two sets that lose a
+  chunk differ in the question's own reranked order. One of them classifies
+  to no family.
+- 86 of 116 sets grow by one fragment, typically 10 → 11. 8 go 9 → 10.
+
+**Not read here: groundedness.** `pin` (every pick) cost it in #311. The
+wave's final full lane is the check, and `STEP_PINS=1` is the rollback.
+Cost ≈US$0.32 (one step-pick read, two probe arms).
+||||||| cdef9d6
+
 ## Step-catalogue sentences for #554's unreached carriers (2026-10-09, #562)
 
 #554 found 7 cause-2 Tier 1 rows whose carrier no sentence in the family's
@@ -3946,3 +4049,4 @@ already records.
 Found, not fixed: 8 of the 38 sentences committed before this change miss the
 strict branch and run on the OR fallback. The record and the probe are in
 [`runs/2026-10-09-562/README.md`](runs/2026-10-09-562/README.md).
+||||||| cdef9d6

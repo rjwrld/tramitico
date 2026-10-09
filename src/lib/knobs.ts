@@ -27,7 +27,8 @@
  * The two numeric answer-set knobs, `ANSWER_TOP_K` and `ANSWER_DOC_CAP`, read
  * by the same rules through `positiveIntKnob` (#519): a value that is not a
  * positive integer — nor one of the knob's words, `off` for the cap — is the
- * default, logged on the same prefix.
+ * default, logged on the same prefix. `STEP_PINS`, how many step picks
+ * `pin1` appends (#561), reads the same way.
  *
  * The three daily quotas, `RATE_LIMIT_ANON`, `RATE_LIMIT_AUTHED` and
  * `RATE_LIMIT_ANON_IP`, read through `positiveIntKnob` too (#532): a quota is
