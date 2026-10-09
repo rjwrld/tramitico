@@ -20,24 +20,6 @@
     },
     {
       "case": "ccss-obligacion-ingreso-bajo",
-      "requirement": "Dónde se hace la afiliación y qué se declara: el ingreso de referencia, en la sucursal de la CCSS que corresponda a la zona de adscripción.",
-      "parts": [
-        {
-          "what": "where: the branch for the zona de adscripción",
-          "carriers": [
-            {
-              "chunkId": "9d024946-7c64-4261-abd8-b10dd734a365",
-              "docKey": "ccss-faq",
-              "articulo": "¿Dónde me corresponde realizar el trámite de afiliación?",
-              "quote": "El trámite de afiliación como trabajador independiente lo debe realizar en la sucursal de la CCSS más cercana o bien en el Edificio El Hierro en Calle 7 y 9 avenida segunda, esto acorde a la zona de adscripción"
-            }
-          ]
-        }
-      ],
-      "note": "Both answers state the income duty (veraz, on ingreso neto) from ccss-reglamento-ti Artículo 4 in their sets; the «where» half is the one neither lane states."
-    },
-    {
-      "case": "ccss-obligacion-ingreso-bajo",
       "requirement": "La obligatoriedad está en la Ley Constitutiva de la CCSS y en el Reglamento para el aseguramiento de los trabajadores independientes, no en una decisión voluntaria de la persona.",
       "parts": [
         {
@@ -53,6 +35,24 @@
         }
       ],
       "note": "Both answers cite this fragment for «está obligado» and drop the laws it names."
+    },
+    {
+      "case": "ccss-obligacion-ingreso-bajo",
+      "requirement": "Dónde se hace la afiliación y qué se declara: el ingreso de referencia, en la sucursal de la CCSS que corresponda a la zona de adscripción.",
+      "parts": [
+        {
+          "what": "where: the branch for the zona de adscripción",
+          "carriers": [
+            {
+              "chunkId": "9d024946-7c64-4261-abd8-b10dd734a365",
+              "docKey": "ccss-faq",
+              "articulo": "¿Dónde me corresponde realizar el trámite de afiliación?",
+              "quote": "El trámite de afiliación como trabajador independiente lo debe realizar en la sucursal de la CCSS más cercana o bien en el Edificio El Hierro en Calle 7 y 9 avenida segunda, esto acorde a la zona de adscripción"
+            }
+          ]
+        }
+      ],
+      "note": "Both answers state the income duty (veraz, on ingreso neto) from ccss-reglamento-ti Artículo 4 in their sets; the «where» half is the one neither lane states."
     },
     {
       "case": "desinscripcion-dejar-actividad",
@@ -400,6 +400,23 @@
     },
     {
       "case": "ho-minimo-renta-2026",
+      "requirement": "Los tramos son anuales y se aplican sobre la renta neta, no sobre los ingresos brutos.",
+      "parts": [
+        {
+          "what": "annual, on renta neta",
+          "carriers": [
+            {
+              "chunkId": "aa0f56d3-7b7b-4e20-83d2-35fe30be84c3",
+              "docKey": "ley-renta",
+              "articulo": "Artículo 15",
+              "quote": "de renta neta anual"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ho-minimo-renta-2026",
       "requirement": "El período del impuesto va del 1 de enero al 31 de diciembre.",
       "parts": [
         {
@@ -439,23 +456,6 @@
       ]
     },
     {
-      "case": "ho-minimo-renta-2026",
-      "requirement": "Los tramos son anuales y se aplican sobre la renta neta, no sobre los ingresos brutos.",
-      "parts": [
-        {
-          "what": "annual, on renta neta",
-          "carriers": [
-            {
-              "chunkId": "aa0f56d3-7b7b-4e20-83d2-35fe30be84c3",
-              "docKey": "ley-renta",
-              "articulo": "Artículo 15",
-              "quote": "de renta neta anual"
-            }
-          ]
-        }
-      ]
-    },
-    {
       "case": "ho-ademas-tengo-salario",
       "requirement": "El salario y la actividad lucrativa tributan por escalas distintas: el salario por la escala mensual de rentas del trabajo y la actividad por la escala anual de personas físicas con actividad lucrativa.",
       "parts": [
@@ -481,27 +481,26 @@
     },
     {
       "case": "ho-ademas-tengo-salario",
-      "requirement": "La declaración anual y el pago vencen dentro de los dos meses y quince días naturales siguientes al cierre del período.",
+      "requirement": "Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.",
       "parts": [
         {
-          "what": "two months and fifteen days",
+          "what": "payments on account, deducted",
           "carriers": [
             {
               "chunkId": "93a75e50-9f99-435f-a138-bc73c81bd65f",
               "docKey": "ley-renta",
               "articulo": "ARTICULO 22",
-              "quote": "El saldo resultante deberá pagarse dentro de los dos meses y quince días naturales siguientes al término del período fiscal respectivo."
+              "quote": "están obligados a efectuar pagos parciales a cuenta del impuesto de cada período fiscal"
             },
             {
-              "chunkId": "b337b365-0faf-41de-8c6d-f1db701b2831",
+              "chunkId": "93a75e50-9f99-435f-a138-bc73c81bd65f",
               "docKey": "ley-renta",
-              "articulo": "ARTICULO 20",
-              "quote": "dentro de los dos meses y quince días naturales siguientes al término del período fiscal"
+              "articulo": "ARTICULO 22",
+              "quote": "Del impuesto total que se liquide al presentar la declaración jurada, deberán deducirse los pagos parciales que correspondan a ese período fiscal."
             }
           ]
         }
-      ],
-      "note": "ley-renta ARTICULO 22 is one of the case's expected targets."
+      ]
     },
     {
       "case": "ho-ademas-tengo-salario",
@@ -528,26 +527,27 @@
     },
     {
       "case": "ho-ademas-tengo-salario",
-      "requirement": "Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.",
+      "requirement": "La declaración anual y el pago vencen dentro de los dos meses y quince días naturales siguientes al cierre del período.",
       "parts": [
         {
-          "what": "payments on account, deducted",
+          "what": "two months and fifteen days",
           "carriers": [
             {
               "chunkId": "93a75e50-9f99-435f-a138-bc73c81bd65f",
               "docKey": "ley-renta",
               "articulo": "ARTICULO 22",
-              "quote": "están obligados a efectuar pagos parciales a cuenta del impuesto de cada período fiscal"
+              "quote": "El saldo resultante deberá pagarse dentro de los dos meses y quince días naturales siguientes al término del período fiscal respectivo."
             },
             {
-              "chunkId": "93a75e50-9f99-435f-a138-bc73c81bd65f",
+              "chunkId": "b337b365-0faf-41de-8c6d-f1db701b2831",
               "docKey": "ley-renta",
-              "articulo": "ARTICULO 22",
-              "quote": "Del impuesto total que se liquide al presentar la declaración jurada, deberán deducirse los pagos parciales que correspondan a ese período fiscal."
+              "articulo": "ARTICULO 20",
+              "quote": "dentro de los dos meses y quince días naturales siguientes al término del período fiscal"
             }
           ]
         }
-      ]
+      ],
+      "note": "ley-renta ARTICULO 22 is one of the case's expected targets."
     },
     {
       "case": "ho-tambien-asegurado-por-patrono",
