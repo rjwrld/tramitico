@@ -4049,4 +4049,3 @@ already records.
 Found, not fixed: 8 of the 38 sentences committed before this change miss the
 strict branch and run on the OR fallback. The record and the probe are in
 [`runs/2026-10-09-562/README.md`](runs/2026-10-09-562/README.md).
-||||||| cdef9d6
