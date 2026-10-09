@@ -3898,3 +3898,25 @@ rounds, ≈US$6.43
 - **Tier 1 guard** on #556's lane: 84 → 85/116, grounded 24/27 → 27/27, no
   false absence claim. Absence openings (reported) 2 → 3; round 1 read 5, and
   the lane rows on main's prompt 4.
+
+## Wave D's full lane (2026-10-09, #497)
+
+One `pnpm test:eval` on main at 3455dd5, after #560, #564, #566, #563, #565
+and #567, at `ANSWER_EFFORT=low` with every other knob at its default. It ran
+to the end in 1781 s with no provider error. The setup, every gate and the
+per-case reads are in
+[`runs/2026-10-09-497-wave-d/README.md`](runs/2026-10-09-497-wave-d/README.md).
+No gate constant moved.
+
+- **Groundedness 71/74** by the judges' first verdict (baseline 73). Both
+  blocking first-verdict fails passed both re-asks.
+- **Tier 1 88/116**, ten over the baseline of 78. One lane: **not ratcheted**,
+  pending the owner's decision.
+- **False absence claims 0**, with #547's count hedges now counted. Tier 2
+  13/14, citation invariant 0, census 278/278, hit-rate 72/74, robustness
+  block 26/27 hits.
+- #559 works: `factura-primera-cabys` cites `cabys-dev` and gives the code.
+- **Red on one gate**: abstention's «invents no figure while declining».
+  `ho-abs-devs-exentos-renta` states the CABYS «IVA de 13%» one sentence before
+  the marker that cites `cabys-dev`, so `figureMentions` reads a true, sourced
+  figure as invented. Abstention itself is 15/15.
