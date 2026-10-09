@@ -324,7 +324,7 @@ async function readCase(
       retrieval.chunks,
       outcome?.stepPicks ?? [],
     );
-    const chunks = await pinAnswerSet(cut, retrieval.chunks);
+    const chunks = await pinAnswerSet(cut, retrieval.chunks, query);
     const figures = resolveDerivedFigures(chunks);
     const presentTargets = evalCase.expected.filter((t) =>
       chunks.some((ch) => chunkMatchesTarget(ch, t)),

@@ -44,6 +44,7 @@ value, except for `ANSWER_EFFORT`:
 | `ANSWER_DOC_CAP`                 | `off`                                          | `rerank.ts`                          |
 | `PIN_DERIVED_INPUTS`             | `on` (since #344)                              | `src/lib/answer/derived.ts`          |
 | `PIN_CROSS_REFERENCES`           | `on` (since #508)                              | `src/lib/answer/cross-references.ts` |
+| `PIN_NAMED_SOURCES`              | `on` (since #559)                              | `src/lib/answer/pins.ts`             |
 | `EVAL_CASES`                     | every case; comma-separated ids scope a lane¹  | `src/lib/eval/subset.ts`             |
 | `EVAL_TRANSCRIPT_DIR`            | `eval/transcripts/`                            | `src/lib/eval/transcript.ts`         |
 | `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites      | `src/lib/eval/rewrites.ts`           |
@@ -62,7 +63,7 @@ Sensitive in Vercel, so it can't be read back. The dashboard shows it added on
 it, so don't read the production value from notes older than #451.
 
 The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`,
-`PIN_CROSS_REFERENCES`)
+`PIN_CROSS_REFERENCES`, `PIN_NAMED_SOURCES`)
 accept only the values above, `ANSWER_EFFORT` only `low`, `medium`, `high`,
 `xhigh` or `max`, and `ANSWER_TOP_K` and `ANSWER_DOC_CAP` only a positive
 integer (or `off`, for the cap; #519). Anything else runs the default and logs `config: unknown knob
@@ -113,12 +114,19 @@ over every case in the unit lane, for free. See «Routed cases».
 Two gates are zero, with no constant. One is the citation invariant. The other,
 since #500, is false corpus-absence claims: an answer that says the documents
 lack an artículo or a listed figure that `corpus-index.json` covers
-(`src/lib/eval/absence.ts`). In the groundedness and abstention lanes, such a
-case fails whatever the judge said, and the lane lists it. It wins over the
-2-of-3 rule: a re-asked answer that makes one fails its case too. Each lane also
-reports, without gating, the answers that open with an absence claim and any
-typo runs (`src/lib/eval/answer-checks.ts`). The detector's precision read is on
-#500: 66 of 67 hits on the committed runs were true.
+(`src/lib/eval/absence.ts`). Since #558 it also holds #547's count hedge: «las
+fuentes no dicen cuántas veces se aplica esa multa» in an answer that cites a
+derived figure whose label says it («por cada …», «por mes …»). In the
+groundedness and abstention lanes, such a case fails whatever the judge said,
+and the lane lists it. It wins over the 2-of-3 rule: a re-asked answer that
+makes one fails its case too. Each lane also reports, without gating, the
+answers that open with an absence claim, any typo runs, and #546's reader's
+case worked out (an amount that is a figure times the question's «tres
+meses»/«2 hijos»/«un año», or a tope applied to the reader;
+`src/lib/eval/answer-checks.ts`). The precision reads are on #500 (66 of 67
+hits on the committed runs were true) and in
+[`runs/2026-10-08-558/`](runs/2026-10-08-558/) (58 of 58 count hedges, 11 of
+11 reader's-case slips).
 
 **Running a paid arm.** Get the owner's OK and a balance check first. Run one
 arm at a time, and smoke three cases before a full lane:
@@ -143,7 +151,7 @@ run's setup and deltas.
 | Command                                                  | Answers                                                                                              | Cost                             |
 | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------- |
 | `pnpm requirement-coverage <transcript…>`                | Tier 1 requirements stated, per case, from committed transcripts                                     | free                             |
-| `pnpm absence-backtest [--openings]`                     | false absence claims and typo runs in every committed answer                                         | free                             |
+| `pnpm absence-backtest [--openings]`                     | false absence claims and count hedges, reader's-case slips and typo runs in every committed answer   | free                             |
 | `pnpm answer-set-compare a.json b.json`                  | the first stage where two probe runs part, per case                                                  | free                             |
 | `pnpm prompt-tokens <transcript…>`                       | the answer prompt's input size, per case                                                             | free (count_tokens)              |
 | `pnpm answer-replay <transcript> [--tier=1] [--cases=…]` | the current prompt re-answering recorded chunks, false absence claims recorded → replayed            | ≈US$0.10 a row; `--dry-run` free |
@@ -3652,6 +3660,19 @@ now streams the route's text.
 
 No paid run: the routed cases first run in the next authorized lane (#511).
 
+**What the routed cases measure (2026-10-08, #549).** The model's routing,
+not the deterministic decline. Every abstention row committed under
+`eval/runs/` took the model path: 202 rows in 26 transcripts, all
+`route: "model"`, the six routed cases included. So the deterministic decline
+is covered by e2e only. `e2e/routing.local.spec.ts` drives it through the real
+`/api/ask` on a question built to retrieve nothing, and the free test above
+checks the classifier. Production can't settle whether a real question ever
+takes it. Vercel keeps runtime logs for an hour, so the `routedCategory`
+counter is gone before anyone reads it. The `questions` table stores no
+category, and only signed-in asks reach it: 26 rows, none an honest decline
+of either kind. The reads and queries are in
+[`runs/2026-10-08-549/`](runs/2026-10-08-549/).
+
 ## The total-loss fallback keeps the fused order (2026-10-07, #510)
 
 > Two `pnpm answer-set-probe` arms under `RERANK=off`, the fallback path a
@@ -3835,3 +3856,18 @@ breaks rule 3 or makes the #547 hedge.
   `factura-primera-cabys`'s CABYS opening, is an old one (9 committed runs
   back to 2026-09-16). On the lane's 72/74, `HIT_RATE_GATE` goes to 0.94
   (owner decision), and `ho-abs-iva-2027`'s assertion is armed.
+
+## A source the question names (2026-10-08, #559)
+
+`factura-primera-cabys`'s CABYS absence claim was a set miss, not a pool
+miss: `cabys-dev` is fused #3, the rerank reads it #13–#23, and `pin1`'s one
+append goes to a `reglamento-comprobantes` artículo. `pinAnswerSet` now
+appends one chunk of a source the condensed question names by its own name
+(`NAMED_SOURCES`, CABYS only; `PIN_NAMED_SOURCES`, on). An
+`answer-set-probe` off/on pair on fixed rewrites, ≈US$0.02
+([`runs/2026-10-08-559/README.md`](runs/2026-10-08-559/README.md)), puts
+`cabys-dev` in that case's set (1/2 → 2/2 targets) and leaves the two
+robustness rows that expect it unchanged: they never say CABYS and it is
+outside their pool. Hit-rate counted the case a hit throughout, since one
+expected target was enough. Whether the answer now cites the codes is the
+next full lane's read.

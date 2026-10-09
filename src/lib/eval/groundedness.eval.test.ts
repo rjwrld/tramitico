@@ -304,6 +304,7 @@ async function answerCase(
       },
     }),
     retrieval.chunks,
+    query,
   );
   const derivedFigures = resolveDerivedFigures(chunks);
   // The route's date (#455), recorded with the answer below.
@@ -337,8 +338,9 @@ async function answerCase(
       ? await labelFailure(query, chunks, answer, judged.reason, derivedFigures)
       : null;
   // #500: a false absence claim is a hard zero, whatever the judge says — it
-  // reads the same fragments the model did, so it cannot see one.
-  const checks = checkAnswer(answer, chunks);
+  // reads the same fragments the model did, so it cannot see one. #547's
+  // count hedge is one too; `query` carries the reader's counts #546 reads.
+  const checks = checkAnswer(answer, chunks, query);
   return {
     query,
     weak: false,
