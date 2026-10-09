@@ -20,8 +20,10 @@ import {
   rerankQueries,
   rerankEnabled,
   rerankReadings,
+  STEP_PINS,
   STEP_RERANK_MODE,
   STEP_SLOTS,
+  stepPins,
   stepRerankMode,
 } from "./rerank";
 
@@ -495,6 +497,8 @@ describe("the step catalogue at the rerank (#304)", () => {
 
   it("pin1: appends only the one pick the question ranks highest, past the cut (#311, #460)", async () => {
     vi.stubEnv("STEPS_RERANK", "pin1");
+    // The pre-#561 single append: these read its order, one place at a time.
+    vi.stubEnv("STEP_PINS", "1");
     vi.stubEnv("ANSWER_TOP_K", "1");
     const outcome = await rerankReadings("pregunta", pool, {
       fetchImpl: scripted(),
@@ -531,6 +535,8 @@ describe("the step catalogue at the rerank (#304)", () => {
 
   it("pin1: a chunk two sentences share carries the higher of their scores", async () => {
     vi.stubEnv("STEPS_RERANK", "pin1");
+    // The pre-#561 single append: these read its order, one place at a time.
+    vi.stubEnv("STEP_PINS", "1");
     vi.stubEnv("ANSWER_TOP_K", "1");
     const verdicts: Record<
       string,
@@ -569,6 +575,8 @@ describe("the step catalogue at the rerank (#304)", () => {
 
   it("pin1: the one pick is the one not already in the cut the question ranks best, not the best-scoring (#460)", () => {
     vi.stubEnv("STEPS_RERANK", "pin1");
+    // The pre-#561 single append: these read its order, one place at a time.
+    vi.stubEnv("STEP_PINS", "1");
     vi.stubEnv("ANSWER_TOP_K", "2");
     const order = [chunk(1), chunk(2), chunk(3), chunk(4)].map((c, i) => ({
       chunk: c,
@@ -626,6 +634,8 @@ describe("the step catalogue at the rerank (#304)", () => {
 
   it("pin1: never spends its append on a chunk the derived-figure pin adds anyway (#460)", () => {
     vi.stubEnv("STEPS_RERANK", "pin1");
+    // The pre-#561 single append: these read its order, one place at a time.
+    vi.stubEnv("STEP_PINS", "1");
     vi.stubEnv("ANSWER_TOP_K", "2");
     const escala: RetrievedChunk = {
       ...chunk(1),
@@ -654,6 +664,85 @@ describe("the step catalogue at the rerank (#304)", () => {
     expect(
       answerSetFromOrder(order, pool, picks).map((c) => c.chunkId),
     ).toEqual(["c1", "c2", "c3"]);
+  });
+});
+
+describe("STEP_PINS (#561)", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  const order = [1, 2, 3, 4, 5, 6].map((n, i) => ({
+    chunk: chunk(n),
+    score: 1 - i / 10,
+    rank: i + 1,
+  }));
+  // Four sentences' picks, in sentence order: one inside a cut of two, three
+  // outside it at question ranks #6, #3 and #5.
+  const picks = [order[5], order[0], order[2], order[4]];
+
+  it("defaults to two appends, the fresh picks the question ranks best", () => {
+    vi.stubEnv("STEPS_RERANK", "pin1");
+    vi.stubEnv("ANSWER_TOP_K", "2");
+    vi.stubEnv("STEP_PINS", "");
+    expect(STEP_PINS).toBe(2);
+    expect(stepPins()).toBe(2);
+    expect(answerSetFromOrder(order, [], picks).map((c) => c.chunkId)).toEqual([
+      "c1",
+      "c2",
+      "c3",
+      "c5",
+    ]);
+  });
+
+  it("appends only what is fresh, so fewer fresh picks append fewer", () => {
+    vi.stubEnv("STEPS_RERANK", "pin1");
+    vi.stubEnv("ANSWER_TOP_K", "2");
+    expect(
+      answerSetFromOrder(order, [], [order[0], order[3]]).map((c) => c.chunkId),
+    ).toEqual(["c1", "c2", "c4"]);
+  });
+
+  it("reads the environment: 1 is the pre-#561 pin1, a larger count appends more", () => {
+    vi.stubEnv("STEPS_RERANK", "pin1");
+    vi.stubEnv("ANSWER_TOP_K", "2");
+    vi.stubEnv("STEP_PINS", "1");
+    expect(answerSetFromOrder(order, [], picks).map((c) => c.chunkId)).toEqual([
+      "c1",
+      "c2",
+      "c3",
+    ]);
+    vi.stubEnv("STEP_PINS", "3");
+    expect(answerSetFromOrder(order, [], picks).map((c) => c.chunkId)).toEqual([
+      "c1",
+      "c2",
+      "c3",
+      "c5",
+      "c6",
+    ]);
+  });
+
+  it("reads anything but a positive integer as the default, logged", () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.stubEnv("STEP_PINS", "0");
+    expect(stepPins()).toBe(STEP_PINS);
+    expect(error).toHaveBeenCalledWith(
+      expect.stringContaining(`${KNOB_ERROR_PREFIX} STEP_PINS="0"`),
+    );
+    error.mockRestore();
+  });
+
+  it("does not touch pin, which appends every fresh pick", () => {
+    vi.stubEnv("STEPS_RERANK", "pin");
+    vi.stubEnv("ANSWER_TOP_K", "2");
+    vi.stubEnv("STEP_PINS", "1");
+    expect(answerSetFromOrder(order, [], picks).map((c) => c.chunkId)).toEqual([
+      "c1",
+      "c2",
+      "c6",
+      "c3",
+      "c5",
+    ]);
   });
 });
 

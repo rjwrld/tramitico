@@ -41,6 +41,7 @@ value, except for `ANSWER_EFFORT`:
 | `EXPAND`                         | `on` (needs `ANTHROPIC_API_KEY`)               | `src/lib/answer/expand.ts`           |
 | `STEPS`                          | `on`                                           | `src/lib/answer/steps.ts`            |
 | `STEPS_RERANK`                   | `pin1` (`pin`, `slot`, `max`, `off`)           | `src/lib/answer/rerank.ts`           |
+| `STEP_PINS`                      | `2`; how many step picks `pin1` appends (#561) | `rerank.ts`                          |
 | `RERANK`                         | `voyage`; `off` = the fused-only order         | `rerank.ts`                          |
 | `RERANK_MODEL`                   | `rerank-2.5-lite`                              | `rerank.ts`                          |
 | `ANSWER_TOP_K`                   | `8`                                            | `rerank.ts`                          |
@@ -68,7 +69,7 @@ it, so don't read the production value from notes older than #451.
 The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`,
 `PIN_CROSS_REFERENCES`, `PIN_NAMED_SOURCES`)
 accept only the values above, `ANSWER_EFFORT` only `low`, `medium`, `high`,
-`xhigh` or `max`, and `ANSWER_TOP_K` and `ANSWER_DOC_CAP` only a positive
+`xhigh` or `max`, and `ANSWER_TOP_K`, `ANSWER_DOC_CAP` and `STEP_PINS` only a positive
 integer (or `off`, for the cap; #519). Anything else runs the default and logs `config: unknown knob
 value` once (#499, `src/lib/knobs.ts`), so an arm that misspells `off`
 measures production rather than the baseline, and one that misspells `low`
@@ -3992,3 +3993,36 @@ lane. The cut `cabys-dev` shows only in the block's all-targets count, which
 lists both cases among those that hit with a target cut, and should. The two
 dataset lines' `notes` record this; no target moved, so the census is
 unchanged.
+
+## Two step picks past the cut (2026-10-09, #561)
+
+#554's 12 catalogue-reached carriers that missed both #512 answer sets are
+each **their own sentence's pick**: rank 1 in that sentence's rerank
+reading. Every one is pooled (fused #1–#31). `pin1` appends one pick, the
+fresh pick the question ranks best (#460). The step a reader needs is the
+one the question didn't ask, so it ranks low against the question, and with
+four or five sentences per family the one place went elsewhere. The
+catalogue was right, and the single append was the bottleneck. Record:
+[`runs/2026-10-09-561/README.md`](runs/2026-10-09-561/README.md).
+
+**Change.** `STEP_PINS` (rerank.ts, default **2**): `pin1` appends the best
+two fresh picks, in the same order. `STEP_PINS=1` is the pre-#561 pipeline.
+
+**Probe** (`answer-set-probe`, every case, the after arm on the before arm's
+rewrites), production configuration, before → after:
+
+- Expected targets in the set: 143 → 149/193. Tier 1: 63 → 69/93. Cases
+  holding every target: 48 → 49/74. Hit-rate 72/74 and robustness 27/27 on
+  both.
+- #561's rows in the set: 1 and 3 → 1, 3, 4 (`ley-iva` 27), 6, 7, 9, 11, 12.
+  Still out: 4 (`cnpt` 79), 18, 23–25, 27, whose carrier ranks third or lower
+  among the fresh picks.
+- Nothing leaves: no case loses a target or a hit. The two sets that lose a
+  chunk differ in the question's own reranked order. One of them classifies
+  to no family.
+- 86 of 116 sets grow by one fragment, typically 10 → 11. 8 go 9 → 10.
+
+**Not read here: groundedness.** `pin` (every pick) cost it in #311. The
+wave's final full lane is the check, and `STEP_PINS=1` is the rollback.
+Cost ≈US$0.32 (one step-pick read, two probe arms).
+||||||| cdef9d6

@@ -1,0 +1,112 @@
+$ tsx scripts/answer-set-probe.ts eval/runs/2026-10-09-561/probe-before.json
+.....................................................................................................aaaaaaaaaaaaaaa
+retrieval cases: 101 (27 in the robustness block; 193 expected targets outside it), abstention: 15, follow-ups condensed: 15
+condensation fell back to the question: none
+rewrites: live
+provider calls that did not come back: none
+rerank readings lost: none of 598
+weak: none
+expansion absent: none
+
+config                     targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff         137/193    44/74        5        —
+top8/capoff/pinon          143/193    48/74        23       —
+top8/cap3/pinoff           129/193    40/74        2        —
+top8/cap3/pinon            135/193    44/74        23       —
+top8/cap2/pinoff           121/193    37/74        2        —
+top8/cap2/pinon            127/193    40/74        23       —
+top10/capoff/pinoff        145/193    48/74        7        —
+top10/capoff/pinon         150/193    51/74        23       —
+top10/cap3/pinoff          134/193    41/74        2        —
+top10/cap3/pinon           140/193    45/74        23       —
+top10/cap2/pinoff          128/193    40/74        11       —
+top10/cap2/pinon           131/193    42/74        23       —
+top8/capoff/pinon/xrefoff  141/193    47/74        22       —
+
+cross-references (#508): targets 141 → 143, Tier 1 61 → 63
+  inscripcion-hacienda-clientes-extranjero: +ley-renta·ARTICULO 23·#0
+  iva-clientes-fuera-cr: +ley-iva·Artículo 11·#0
+  cabys-desarrollo-software: +reglamento-comprobantes·Artículo 23·#0
+  ccss-asalariado-y-freelance: +ley-renta·ARTICULO 32·#0
+  factura-electronica-v44: +reglamento-comprobantes·Artículo 23·#0
+  desinscripcion-dejar-actividad: +ley-renta·ARTICULO 2·#0
+  renta-persona-fisica-deduccion: +ley-renta·Artículo 33·#0
+  tribu-cr-declarar-pagar: +tribu-cr-res-0011-2025·Artículo 7·#0
+  iva-servicios-extranjero-comprados: +ley-iva·Artículo 10·#0
+  iva-credito-fiscal-compras: +ley-iva·Artículo 11·#0
+  iva-declaracion-mensual: +ley-iva·Artículo 10·#0
+  iva-tarifa-general: +ley-iva·Artículo 11·#0
+  iva-tarifas-reducidas: +ley-iva·Artículo 10·#0
+  iva-momento-hecho-generador: +ley-iva·Artículo 10·#0
+  renta-bruta-que-incluye: +reglamento-renta·Artículo 4·#0
+  renta-tramos-2026: +ley-renta·ARTICULO 32·#0
+  renta-declaracion-plazo: +ley-renta·Artículo 31 ter·#0
+  renta-pagos-parciales-retenciones: +ley-renta·ARTICULO 21·#0
+  renta-salario-y-actividad: +ley-renta·ARTICULO 32·#0
+  comprobantes-plazo-conservacion: +reglamento-comprobantes·Artículo 2·#0
+  comprobantes-factura-vs-tiquete: +reglamento-comprobantes·Artículo 7·#0
+  exportacion-servicios-comprobante: +ley-iva·Artículo 10·#0
+  iva-facturas-en-dolares: +ley-renta·Artículo 1·#0
+  ccss-asalariado-followup: +ley-renta·ARTICULO 2·#0
+  exportacion-comprobante-followup: +ley-iva·Artículo 10·#0
+  renta-plazo-followup: +ley-renta·ARTICULO 2·#0
+  iva-ajuste-bien-de-capital: +ley-iva·Artículo 11·#0
+  iva-retencion-tarjetas-porcentaje: +ley-iva·Artículo 10·#0
+  inscripcion-tribu-cr: +ley-renta·ARTICULO 2·#0
+  multa-iva-no-declarado: +ley-iva·Artículo 4·#0
+  inscripcion-tardia-sancion: +cnpt·Artículo 79·#0
+  factura-primera-cabys: +reglamento-comprobantes·Artículo 23·#0
+  ho-hacienda-solo-cliente-eeuu: +ley-renta·ARTICULO 23·#0
+  ho-trabajitos-por-mi-cuenta: +ley-renta·ARTICULO 2·#0 (targets +1)
+  ho-donde-inscribo-ya-no-atv: +tribu-cr-res-0011-2025·Artículo 1·#0 (targets +1)
+  ho-tiquete-en-vez-de-factura: +reglamento-comprobantes·Artículo 7·#0
+  ho-factura-electronica-o-recibo: +reglamento-comprobantes·Artículo 7·#0
+  ho-cabys-paginas-web: +reglamento-comprobantes·Artículo 2·#0
+  ho-cliente-espana-lleva-iva: +ley-iva·Artículo 11·#0
+  ho-iva-en-cero-sin-facturar: +ley-iva·Artículo 10·#0
+  ho-hasta-que-dia-tengo-iva: +ley-iva·Artículo 4·#0
+  ho-rebajar-25-sin-facturas: +ley-renta·ARTICULO 32·#0
+  ho-minimo-renta-2026: +ley-renta·ARTICULO 46·#0
+  ho-ademas-tengo-salario: +ley-renta·ARTICULO 46·#0
+  ho-800-mil-que-porcentaje-caja: +ley-renta·ARTICULO 46·#0
+  ho-desinscribir-debiendo-declaraciones: +ley-renta·ARTICULO 2·#0
+  ho-rebajar-multa-si-pago-ya: +ley-iva·Artículo 4·#0
+  ho-t2-credito-iva-compras: +ley-iva·Artículo 11·#0
+  ho-t2-hosting-extranjero: +ley-iva·Artículo 10·#0
+  ho-t2-retencion-tarjetas: +reglamento-renta·Artículo 10·#0
+  ho-t2-compu-cara-iva: +ley-iva·Artículo 11·#0
+  ho-t2-tipo-de-cambio: +reglamento-comprobantes·Artículo 9·#0
+  ho-t2-payoneer: +ley-renta·ARTICULO 23·#0
+  t2-inscripcion-dimex: +ley-iva·Artículo 4·#0
+  rb-pill-inscribo-exterior: +ley-iva·Artículo 4·#0 (targets +1)
+  rb-pill-primera-factura: +reglamento-comprobantes·Artículo 10·#0
+  rb-pill-iva-exterior: +ley-iva·Artículo 11·#0
+  rb-pill-impuesto-renta: +reglamento-rts·Artículo 1·#0
+  rb-pill-me-salgo: +ley-iva·Artículo 9·#0
+  rb-pill-inscribi-tarde: +ley-10363·ARTÍCULO 2·#0
+  rb-corto-cuanto-es-iva: +ley-iva·Artículo 4·#0
+  rb-corto-tasa-iva: +reglamento-iva·Artículo 66·#0
+  rb-corto-tramos-renta: +ley-renta·ARTICULO 46·#0
+  rb-corto-cuando-declaro-renta: +ley-renta·Artículo 1·#0
+  rb-corto-cuando-declaro-iva: +ley-iva·Artículo 4·#0
+  rb-corto-que-cabys: +reglamento-comprobantes·Artículo 23·#0
+  rb-corto-multa-tarde: +cnpt·Artículo 81·#0
+  rb-tilde-inscribirme-afuera: +ley-iva·Artículo 10·#0
+  rb-tilde-primera-fatura: +reglamento-comprobantes·Artículo 9·#0
+  rb-tilde-deje-de-trabajr: +ley-renta·ARTICULO 2·#0
+  rb-spanglish-client-usa: +ley-iva·Artículo 11·#0
+  rb-spanglish-invoice: +reglamento-comprobantes·Artículo 23·#0
+  rb-seguimiento-le-cobro-iva: +reglamento-iva·Artículo 66·#0
+  rb-seguimiento-de-cuanto-multa: +ley-renta·ARTICULO 2·#0
+  ho-abs-me-conviene-sociedad: +ley-renta·ARTICULO 2·#0
+  ho-abs-aguinaldo-freelancer: +ley-renta·ARTICULO 20·#0
+  ho-abs-iva-2027: +ley-iva·Artículo 1·#0
+  ho-abs-devs-exentos-renta: +ley-renta·Artículo 33·#0
+  ho-abs-patente-municipal: +reglamento-comprobantes·Artículo 4·#0
+  ho-abs-calculo-personalizado: +ley-renta·ARTICULO 46·#0
+  ho-abs-sociedad-inactiva: +reglamento-renta·Artículo 1·#0
+  ho-abs-recomendar-contador: +ley-renta·ARTICULO 13·#0
+  abs-dimex-sacar: +reglamento-comprobantes·Artículo 9·#0
+  abs-patente-comercial: +ley-renta·Artículo 2 bis·#0
+
+top8/capoff/pinon, robustness block (#502): 27/27

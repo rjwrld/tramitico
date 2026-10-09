@@ -124,7 +124,9 @@ export const ANSWER_DOC_CAP = Infinity;
  *   (68/73 each, neither over 0.94), and `pin1` states 83/116 Tier 1
  *   requirements against 71/116, 11/27 Tier 1 cases against 4/27, with the
  *   citation invariant and the blocking hit-rate green where `off` has them
- *   red (eval/README.md, «`pin1` becomes the default»).
+ *   red (eval/README.md, «`pin1` becomes the default»). Since #561 it
+ *   appends `STEP_PINS` picks, two by default, in the same order: the name
+ *   stays, as the knob value production and every transcript carry.
  * - `slot` — `pin`'s picks, taking the **last places of the cut** instead of
  *   growing it (#287): the best `STEP_SLOTS` picks the cut did not take
  *   displace its lowest-ranked chunks, so the prompt stays at the answer
@@ -151,6 +153,25 @@ export const STEP_RERANK_MODES = ["pin", "pin1", "slot", "max", "off"] as const;
 export type StepRerankMode = (typeof STEP_RERANK_MODES)[number];
 
 export const STEP_RERANK_MODE: StepRerankMode = "pin1";
+
+/**
+ * Step picks `pin1` appends past the cut (#561): the fresh picks the
+ * question ranks best, at most this many. One until #561, which found every
+ * one of #554's 12 catalogue-reached carriers to be its own sentence's pick,
+ * losing that one place to a pick the question ranked higher. The step the
+ * reader needs is the one the question did not ask, so it ranks low against
+ * the question by construction, and with four or five sentences per family
+ * one place went to the step nearest the question. On the 2026-10-09 read
+ * (eval/runs/2026-10-09-561/) two places bring 9 of #561's 13 rows in,
+ * against 1 with one place. The cost is one fragment more on an ask that classifies,
+ * which is what `pin` paid for in groundedness at ten or eleven: the wave's
+ * full lane reads it. `STEP_PINS` in the environment overrides it, a positive
+ * integer (knobs.ts); `1` is the pre-#561 `pin1`.
+ */
+export const STEP_PINS = 2;
+
+/** `STEP_PINS`, read at call time (#519's rules, knobs.ts). */
+export const stepPins = positiveIntKnob("STEP_PINS", STEP_PINS);
 
 /** Places of the cut `STEPS_RERANK=slot` gives to step picks (#287). */
 export const STEP_SLOTS = 2;
@@ -635,10 +656,10 @@ export async function rerankOrder(
  * made, so the eval harness and the route agree by construction — and the
  * cap applies to whichever order is being cut, since the fused head has the
  * same FAQ-page shape (#303). A pick is an append, like #287's derived
- * inputs: nothing the cut chose is displaced. Under `pin1` (#311) only one
- * pick is appended — of those the cut did not take, the one the question's
- * reading ranks best (#460), then the higher sentence score, then sentence
- * order. A pick's score is its chunk against its own sentence, which mirrors
+ * inputs: nothing the cut chose is displaced. Under `pin1` (#311) only
+ * `STEP_PINS` picks are appended (one until #561, two since) — of those the
+ * cut did not take, the ones the question's reading ranks best (#460), then
+ * the higher sentence score, then sentence order. A pick's score is its chunk against its own sentence, which mirrors
  * it, so every pick scores 0.95–0.97 and the quantized scores tie: ranked by
  * score alone the pin was close to a constant per family, whatever was asked.
  * Nor does `pin1` spend its one append on a chunk the derived-figure pin
@@ -677,7 +698,7 @@ export function answerSetFromOrder(
     appended = fresh
       .filter(({ chunk }) => !pinnedAnyway.has(chunk.chunkId))
       .sort((a, b) => a.rank - b.rank || b.score - a.score)
-      .slice(0, 1);
+      .slice(0, stepPins());
   }
   for (const { chunk } of appended) {
     // A caller's picks may repeat a chunk; it still goes in once.
