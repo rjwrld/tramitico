@@ -1,0 +1,17 @@
+$ tsx scripts/answer-replay.ts <worktree>/eval/runs/2026-10-09-497-wave-d/lane/groundedness-claude-sonnet-5-5-effort-low-20261009T004843Z.jsonl --cases=renta-plazo-followup,ho-t2-tipo-de-cambio,rb-corto-que-cabys,rb-seguimiento-de-cuanto-multa
+replaying 4 row(s) of groundedness-claude-sonnet-5-5-effort-low-20261009T004843Z.jsonl on claude-sonnet-5-5-effort-low
+  renta-plazo-followup  pass
+  ho-t2-tipo-de-cambio  pass  missing 0
+  rb-corto-que-cabys  pass
+  rb-seguimiento-de-cuanto-multa  pass  missing 0
+
+transcript: <worktree>/eval/runs/2026-10-09-572/round1/groundedness-claude-sonnet-5-5-effort-low-replay-subset-20261009T021827Z.jsonl
+
+requirements stated, recorded → replayed: 5 → 6 of 6
+  4 → 5 / 5  rb-seguimiento-de-cuanto-multa
+grounded, recorded → replayed: 4 → 4 of 4
+false absence claims (#500), recorded → replayed: 0 → 0
+absence openings, recorded → replayed: 0 → 1 — ho-t2-tipo-de-cambio
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+finish other than stop: 0; output tokens max 1282

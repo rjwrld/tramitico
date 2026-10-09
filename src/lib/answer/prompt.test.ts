@@ -498,6 +498,23 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     expect(ANSWER_SYSTEM_PROMPT).not.toContain("Fecha de hoy en Costa Rica:");
   });
 
+  /**
+   * #572: `renta-plazo-followup` asks when to file the annual declaración,
+   * whose plazo runs after 31 December, and 5.5 wrote «La fecha de setiembre
+   * de 2026 ya pasó» about the pagos parciales the documents date «setiembre
+   * de cada año» (#557's control d2, round 1 d2; the judges failed both 3/3).
+   * The year is one the documents never write, which the clause above already
+   * forbids, and the date belongs to another obligation than the one asked.
+   */
+  it("compares only the plazo asked about, with no year the documents lack (#572)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /3\. [^\n]*Esa comparación es solo para el plazo por el que la persona pregunta: no diga si ya pasó la fecha de otra obligación que la respuesta menciona de paso/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /3\. [^\n]*ni le ponga el año en curso a una fecha que los documentos dan para cada año \(«la cuota de setiembre de 2026 ya pasó»\)/,
+    );
+  });
+
   it("declines a personalised calculation even when the documents carry its inputs (#352)", () => {
     // 6c already named «una liquidación personalizada»; what it did not say is
     // that having every input in hand does not make it the answer's to do.
@@ -545,6 +562,25 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     );
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
       /2\. [^\n]*cada viñeta y cada fila de una tabla que dé una cifra o una afirmación lleva su propia cita \[n\], y si una viñeta tiene dos oraciones, las dos la llevan/,
+    );
+  });
+
+  /**
+   * #572: Wave D's one red. `ho-abs-devs-exentos-renta` wrote «los servicios
+   * de desarrollo de software tienen código CABYS con IVA de 13%.» with no
+   * marker, and cited `cabys-dev` [1] in the example after it; the abstention
+   * gate (`figureMentions`) reads a figure never cited in its own sentence as
+   * invented. The same lane wrote «la sanción se rebaja en un 75%.» before
+   * its [8], and «todos con IVA de 13%:» over the list that cites. The clause
+   * names the three things the next sentence carried: an example, the rule's
+   * other half, a list.
+   */
+  it("gives a figure's sentence its own marker, whatever follows it (#572)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /2\. [^\n]*la oración que da una cifra, un porcentaje o un monto lleva su propia cita aunque la siguiente cite el mismo documento con un ejemplo, la otra mitad de la regla o la lista que ella introduce/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /2\. [^\n]*«la tarifa es de …% \[n\]\. Por ejemplo, … \[n\]\.», no «la tarifa es de …%\. Por ejemplo, … \[n\]\.»/,
     );
   });
 
