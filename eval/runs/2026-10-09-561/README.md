@@ -75,6 +75,74 @@ them.
 | 3              | all but 27                                                |
 | all (`pin`)    | all                                                       |
 
-Cost: Haiku 5.5 wrote 10 expansions. There were about 60 embeds and 61
+The read's cost: Haiku 5.5 wrote 10 expansions. There were about 60 embeds and 61
 Voyage rerank readings over 40 chunks each. Scaled from the
 `answer-set-probe`'s ≈US$0.15 for about 116 cases, that is ≈US$0.02.
+
+## The fix and its probe
+
+`STEP_PINS` (rerank.ts, default 2): `pin1` appends the best `STEP_PINS`
+fresh picks in #460's order instead of one. `STEP_PINS=1` is the pre-#561
+code path. Both arms are `pnpm answer-set-probe` on every case, from this
+worktree on 941e8f5, with `ANSWER_EFFORT=low` exported:
+
+- **before**: `STEP_PINS=1`, live rewrites. Files:
+  [`probe-before.json`](probe-before.json) and
+  [`probe-before-20261009T014720Z.log`](probe-before-20261009T014720Z.log).
+- **after**: `STEP_PINS=2`, `EVAL_REWRITES=probe-before.json`,
+  `PROBE_CASE_MS=3000`. Files: [`probe-after.json`](probe-after.json) and
+  [`probe-after-20261009T015258Z.log`](probe-after-20261009T015258Z.log).
+  The log is cut short after the cross-reference list. It was piped through
+  `head`, which closed `tee`. The JSON is written before the log is printed,
+  and it holds all 116 cases.
+
+Neither arm lost a rerank reading (598 of 598 each). The per-case read is
+[`compare.mjs`](compare.mjs), free, on the production configuration
+(`top8/capoff/pinon`):
+
+| Production configuration    | before  | after   |
+| --------------------------- | ------- | ------- |
+| Expected targets in the set | 143/193 | 149/193 |
+| Tier 1 targets in the set   | 63/93   | 69/93   |
+| Cases holding every target  | 48/74   | 49/74   |
+| Hit-rate cases              | 72/74   | 72/74   |
+| Robustness block hits       | 27/27   | 27/27   |
+
+**#561's carriers in the set.** Rows 1 and 3 are in on both arms. Six more come
+in on the after arm: 4 (the `ley-iva` 27 half), 6, 7, 9, 11 and 12. Rows 4
+(`cnpt` 79), 18, 23–25 and 27 stay out. Their carrier ranks third or lower
+among the fresh picks against the question. On this draw `ho-ademas-tengo-salario`'s
+second place went to `reglamento-renta` 28, not `ley-renta` 22.
+
+**Nothing leaves.** No case loses an expected target, and no hit changes.
+Two answer sets lose a chunk, and neither is the change.
+`rb-spanglish-invoice` classifies to no family, so `STEP_PINS` never reads
+it. Its question order put the Preámbulo and Art. 1 in swapped places at
+#8/#9. On `ho-abs-devs-exentos-renta` the question's own order moved
+`ley-renta` 28 bis from #6 to #9. Nine cases' reranked top 8 differ between
+the arms. That is Voyage and the embedder run to run, which #457 measured.
+The appends themselves only add.
+
+**Set size**, before → after, in cases:
+
+| Sets                           | Cases |
+| ------------------------------ | ----- |
+| 10 → 11                        | 69    |
+| 9 → 10                         | 8     |
+| 11 → 12                        | 8     |
+| 12 → 13                        | 1     |
+| unchanged, classified (10, 11) | 2     |
+| unchanged, no family (8, 9)    | 28    |
+
+86 of 116 sets grow by exactly one fragment. Every one of them classified to
+a family and had a second fresh pick. The typical classified ask goes from 10
+fragments to 11: the cut, one step pick and a cross-reference or a
+derived-figure pin, plus now a second step pick. 8 asks go from 9 to 10.
+
+**The risk this can't read.** Groundedness and adequacy need the answer
+model. `pin` (every pick, 10–11 fragments) cost groundedness in #311's arm
+(2026-09-24, before Sonnet 5.5). The wave's final full lane is the check.
+
+Cost: both arms ≈US$0.15 each, by the probe's usual figure. The before arm
+ran 116 Haiku rewrites (expansions and 15 condensations), and both ran 598
+Voyage rerank readings. Total for #561 with the step-pick read: ≈US$0.32.
