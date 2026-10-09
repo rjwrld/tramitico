@@ -1,0 +1,113 @@
+
+=== ccss-pedir-prescripcion-cuotas [T1-G]
+query: ¿Cómo pido que me prescriban las cuotas viejas?
+expansion: Solicitud de prescripción de cuotas y deudas de trabajadores independientes ante la CCSS, con los requisitos y el plazo que establece la normativa de aseguramiento contributivo. Y solicitud de prescripción de deudas tributarias ante la Administración Tributaria, con el plazo legal que dispone el Código de Normas y Procedimientos Tributarios.
+readings: 7 back; pin1 appends: ccss-prescripcion·¿Una vez recibida la solicitud de prescripción e·#0
+  s1: pick ccss-prescripcion·¿Dónde presento la solicitud?·#0 (0.957; q-rank 14; fresh)
+  s2: pick ccss-prescripcion·¿Una vez recibida la solicitud de prescripción e·#0 (0.949; q-rank 12; fresh)
+  s3: pick ccss-prescripcion·¿En qué momento puedo solicitar la prescripción ·#0 (0.969; q-rank 25; fresh)
+  s4: pick ccss-faq·¿Dónde puedo solicitar la prescripción de cuotas·#0 (0.969; q-rank 16; fresh)
+  s5: pick ccss-reglamento-ti·TRANSITORIO V·#0 (0.965; q-rank 20; fresh)
+  row 1 ccss-prescripcion·¿Una vez recibida la solicitud de prescr fused 6 q-rank 12 s1:10 s2:1 s3:5 s4:18 s5:16 set ✓
+
+=== ccss-obligacion-ingreso-bajo [T1-B]
+query: ¿Estoy obligado a asegurarme en la Caja si gano poco?
+expansion: La obligación de aseguramiento contributivo del trabajador independiente ante la Caja Costarricense de Seguro Social, con la base mínima contributiva y la escala de cuotas de los seguros de salud y de invalidez, vejez y muerte que fije la Junta Directiva según los ingresos declarados.
+readings: 6 back; pin1 appends: ccss-reglamento-ti·Artículo 10·#0
+  s1: pick ccss-faq·¿Dónde me corresponde realizar el trámite de afi·#0 (0.965; q-rank 34; fresh)
+  s2: pick ccss-faq·¿Cuándo me corresponde pagar mi seguro de Trabaj·#0 (0.938; q-rank 25; fresh)
+  s3: pick ccss-reglamento-ti·Artículo 10·#0 (0.934; q-rank 9; fresh)
+  s4: pick salarios-minimos·Artículo 1·#0 (0.945; q-rank 40; fresh)
+  row 3 ccss-faq·¿El Trabajador Independiente está obliga fused 10 q-rank 6 s1:7 s2:15 s3:15 s4:18 set ✓
+
+=== desinscripcion-dejar-actividad [T1-H]
+query: Dejé de trabajar por mi cuenta, ¿cómo me salgo de Hacienda?
+expansion: Baja de la inscripción de contribuyente ante la Administración Tributaria por cese de actividades económicas, con presentación de declaración final y pago de obligaciones pendientes del impuesto sobre la renta y del impuesto sobre el valor agregado; y baja de la condición de trabajador independiente ante la Caja Costarricense de Seguro Social, con cese de la obligación de cotizar y regularización de cuotas adeudadas y prescripción de deudas.
+readings: 6 back; pin1 appends: tribu-cr-faq·Declaraciones del RUT · 43·#0
+  s1: pick tribu-cr-faq·Declaraciones del RUT · 43·#0 (0.926; q-rank 19; fresh)
+  s2: pick cnpt·Artículo 79·#0 (0.969; q-rank 40; fresh)
+  s3: pick ccss-faq·¿Qué debo hacer si dejo de trabajar de forma Ind·#0 (0.949; q-rank 1; in cut)
+  s4: pick ley-iva·Artículo 27·#0 (0.969; q-rank 24; fresh)
+  row 4 reglamento-iva·Artículo 40 fused 34 q-rank 33 s1:32 s2:5 s3:32 s4:2 set ✗
+  row 4 ley-iva·Artículo 27 fused 1 q-rank 24 s1:24 s2:6 s3:21 s4:1 set ✗
+  row 4 cnpt·Artículo 79 fused 11 q-rank 40 s1:34 s2:1 s3:33 s4:8 set ✗
+
+=== ho-hacienda-solo-cliente-eeuu [T1-A]
+query: ¿Tengo que meterme en Hacienda si sólo le facturo a una empresa de Estados Unidos?
+expansion: La obligación de inscribirse ante la Dirección General de Tributación por las actividades de servicios prestados a clientes en el exterior, y el tratamiento del impuesto sobre el valor agregado y del impuesto sobre la renta para las exportaciones de servicios y las rentas de fuente costarricense o extranjera que establece la normativa vigente.
+readings: 6 back; pin1 appends: tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0
+  s1: pick tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0 (0.961; q-rank 27; fresh)
+  s2: pick ccss-reglamento-ti·Artículo 1·#0 (0.961; q-rank 35; fresh)
+  s3: pick cnpt·Artículo 78·#0 (0.969; q-rank 31; fresh)
+  s4: pick tribu-cr-faq·Declaraciones del RUT · 2·#0 (0.965; q-rank 32; fresh)
+  row 6 cnpt·Artículo 78 fused 11 q-rank 31 s1:8 s2:19 s3:1 s4:4 set ✗
+
+=== ho-trabajitos-por-mi-cuenta [T1-A]
+query: Empecé a hacer trabajitos de programación por mi cuenta, ¿me tengo que inscribir en algo?
+expansion: Inscripción de la persona física como contribuyente del impuesto sobre la renta por rentas de actividades lucrativas de servicios profesionales y técnicos independientes, con obligación de inscribirse ante la Administración Tributaria y ante la Caja Costarricense de Seguro Social como trabajador independiente, en los plazos que establece la ley.
+readings: 6 back; pin1 appends: ccss-reglamento-ti·Artículo 1·#0
+  s1: pick tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0 (0.961; q-rank 18; fresh)
+  s2: pick ccss-reglamento-ti·Artículo 1·#0 (0.961; q-rank 17; fresh)
+  s3: pick cnpt·Artículo 78·#0 (0.969; q-rank 29; fresh)
+  s4: pick tribu-cr-faq·Declaraciones del RUT · 2·#0 (0.965; q-rank 23; fresh)
+  row 7 tribu-cr-faq·Declaraciones del RUT · 2 fused 5 q-rank 23 s1:2 s2:28 s3:11 s4:1 set ✗
+  row 7 tribu-cr-faq·Registro Único Tributario (RUT) · 1 fused 2 q-rank 18 s1:1 s2:21 s3:16 s4:3 set ✗
+
+=== ho-donde-me-afilio-caja [T1-B]
+query: ¿Dónde puedo afiliarme como trabajador independiente a la CCSS en Costa Rica?
+expansion: Inscripción como trabajador independiente en el Seguro de Salud y en el Seguro de Invalidez, Vejez y Muerte ante la Caja Costarricense de Seguro Social, conforme al Reglamento para el Aseguramiento Contributivo de los Trabajadores Independientes.
+readings: 6 back; pin1 appends: ccss-reglamento-ti·Artículo 10·#0
+  s1: pick ccss-faq·¿Dónde me corresponde realizar el trámite de afi·#0 (0.965; q-rank 1; in cut)
+  s2: pick ccss-faq·¿Cuándo me corresponde pagar mi seguro de Trabaj·#0 (0.938; q-rank 37; fresh)
+  s3: pick ccss-reglamento-ti·Artículo 10·#0 (0.934; q-rank 23; fresh)
+  s4: pick salarios-minimos·Artículo 1·#0 (0.945; q-rank 40; fresh)
+  row 9 ccss-faq·¿Cuándo me corresponde pagar mi seguro d fused 19 q-rank 37 s1:32 s2:1 s3:21 s4:21 set ✗
+  row 9 ccss-faq·¿Cuándo me corresponde pagar mi seguro v fused — q-rank — s1:— s2:— s3:— s4:— set ✗
+
+=== ho-factura-electronica-o-recibo [T1-C]
+query: ¿Tengo que usar factura electrónica o puedo dar recibo?
+expansion: Obligación de emitir comprobantes electrónicos en lugar de recibos o facturas físicas por las operaciones de venta de bienes y prestación de servicios, conforme al Reglamento de Comprobantes Electrónicos y sus disposiciones técnicas, que establecen los tipos de comprobante admisibles, las condiciones para su emisión y los supuestos en que se permite un documento distinto.
+readings: 6 back; pin1 appends: reglamento-comprobantes·Artículo 4·#0
+  s1: pick reglamento-comprobantes·Artículo 4·#0 (0.969; q-rank 10; fresh)
+  s2: pick reglamento-comprobantes·Artículo 9·#0 (0.969; q-rank 4; in cut)
+  s3: pick cabys-dev·*·#0 (0.941; q-rank 40; fresh)
+  s4: pick reglamento-comprobantes·Artículo 22·#0 (0.965; q-rank 29; fresh)
+  row 11 reglamento-comprobantes·Artículo 16 fused 7 q-rank 15 s1:7 s2:13 s3:11 s4:7 set ✗
+  row 11 reglamento-comprobantes·Artículo 22 fused 8 q-rank 29 s1:22 s2:31 s3:18 s4:1 set ✗
+  row 12 reglamento-comprobantes·Artículo 22 fused 8 q-rank 29 s1:22 s2:31 s3:18 s4:1 set ✗
+  row 12 reglamento-comprobantes·Preámbulo fused 11 q-rank 11 s1:14 s2:5 s3:9 s4:3 set ✗
+
+=== ho-rebajar-25-sin-facturas [T1-E]
+query: ¿Puedo rebajar el 25 % sin facturas en la renta de este año?
+expansion: Deducción de gastos sin comprobante de pago en la base imponible del Impuesto sobre la Renta, con el porcentaje de deducción forfettaria que fije la ley para el período fiscal vigente y los requisitos que establezca el reglamento para su aplicación.
+readings: 6 back; pin1 appends: ley-renta·ARTICULO 22·#0
+  s1: pick reglamento-renta·Artículo 28·#0 (0.949; q-rank 32; fresh)
+  s2: pick ley-renta·ARTICULO 22·#0 (0.965; q-rank 27; fresh)
+  s3: pick tribu-cr-res-0011-2025·Artículo 2·#0 (0.957; q-rank 40; fresh)
+  s4: pick ley-renta·ARTICULO 8·#2 (0.848; q-rank 8; in cut)
+  row 18 tribu-cr-res-0011-2025·Artículo 2 fused 19 q-rank 40 s1:28 s2:27 s3:1 s4:37 set ✗
+
+=== ho-ademas-tengo-salario [T1-E]
+query: ¿Cómo se suma el salario a las rentas de actividad lucrativa para el cálculo del mínimo no sujeto al impuesto sobre la renta en 2026?
+expansion: El cálculo del impuesto sobre la renta de los rentistas de capital, las rentas de trabajo y las rentas de actividad lucrativa para el período fiscal 2026 se realiza sobre la renta neta gravable determinada tras aplicar las deducciones y el mínimo no sujeto que fijan los tramos del Impuesto sobre la Renta del Decreto Ejecutivo 45333-H.
+readings: 6 back; pin1 appends: ley-renta·ARTICULO 8·#2
+  s1: pick reglamento-renta·Artículo 28·#0 (0.949; q-rank 37; fresh)
+  s2: pick ley-renta·ARTICULO 22·#0 (0.965; q-rank 34; fresh)
+  s3: pick tribu-cr-res-0011-2025·Artículo 2·#0 (0.957; q-rank 40; fresh)
+  s4: pick ley-renta·ARTICULO 8·#2 (0.848; q-rank 29; fresh)
+  row 23 ley-renta·ARTICULO 22 fused 12 q-rank 34 s1:3 s2:1 s3:6 s4:28 set ✗
+  row 23 ley-renta·ARTICULO 20 fused 27 q-rank 38 s1:2 s2:15 s3:9 s4:29 set ✗
+  row 24 ley-renta·ARTICULO 22 fused 12 q-rank 34 s1:3 s2:1 s3:6 s4:28 set ✗
+  row 24 ley-renta·ARTICULO 22 fused 12 q-rank 34 s1:3 s2:1 s3:6 s4:28 set ✗
+  row 25 ley-renta·ARTICULO 22 fused 12 q-rank 34 s1:3 s2:1 s3:6 s4:28 set ✗
+  row 25 ley-renta·ARTICULO 22 fused 12 q-rank 34 s1:3 s2:1 s3:6 s4:28 set ✗
+
+=== ho-desinscribir-debiendo-declaraciones [T1-H]
+query: ¿Me puedo desinscribir si debo declaraciones?
+expansion: La inscripción de un contribuyente en el régimen tributario y la cancelación o suspensión de su inscripción ante la Administración Tributaria, con la condición de que existan declaraciones pendientes de presentar o impuestos adeudados; y la inscripción de un trabajador independiente en la Caja Costarricense de Seguro Social, su desafiliación o cancelación, y el pago de las cuotas y obligaciones pendientes antes de dejar la actividad.
+readings: 6 back; pin1 appends: ley-iva·Artículo 27·#0
+  s1: pick tribu-cr-faq·Declaraciones del RUT · 43·#0 (0.926; q-rank 20; fresh)
+  s2: pick cnpt·Artículo 79·#0 (0.969; q-rank 35; fresh)
+  s3: pick ccss-faq·¿Qué debo hacer si dejo de trabajar de forma Ind·#0 (0.949; q-rank 22; fresh)
+  s4: pick ley-iva·Artículo 27·#0 (0.969; q-rank 11; fresh)
+  row 27 cnpt·Artículo 79 fused 12 q-rank 35 s1:39 s2:1 s3:37 s4:4 set ✗
