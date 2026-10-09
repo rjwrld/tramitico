@@ -75,8 +75,12 @@ export const ADEQUACY_TIER2_GATE = 0.84;
  * #512's two final lanes on one main stated 78 and 79
  * (eval/runs/2026-10-08-final/), so the baseline is 78: the lower of the two
  * lanes, which both reached. #511's 86 did not hold.
+ *
+ * Map #497's Wave D and Wave E lanes stated 88 and 92 on consecutive mains
+ * (eval/runs/2026-10-09-497-wave-{d,e}/), and the owner raised the baseline
+ * to 88, the lower of the two (2026-10-09).
  */
-export const TIER1_REQUIREMENT_BASELINE = 78;
+export const TIER1_REQUIREMENT_BASELINE = 88;
 
 /** The ±4 run-to-run noise on identical pipelines (#457). */
 export const TIER1_REGRESSION_MARGIN = 4;
