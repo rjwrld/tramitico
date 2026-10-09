@@ -1,0 +1,14 @@
+$ tsx scripts/answer-replay.ts <worktree>/eval/runs/2026-10-09-497-wave-d/lane/groundedness-claude-sonnet-5-5-effort-low-20261009T004843Z.jsonl --cases=rb-seguimiento-de-cuanto-multa
+replaying 1 row(s) of groundedness-claude-sonnet-5-5-effort-low-20261009T004843Z.jsonl on claude-sonnet-5-5-effort-low
+  rb-seguimiento-de-cuanto-multa  pass  missing 1
+
+transcript: <worktree>/eval/runs/2026-10-09-572/control/groundedness-claude-sonnet-5-5-effort-low-replay-subset-20261009T020338Z.jsonl
+
+requirements stated, recorded → replayed: 4 → 4 of 5
+  4 → 4 / 5  rb-seguimiento-de-cuanto-multa
+grounded, recorded → replayed: 1 → 1 of 1
+false absence claims (#500), recorded → replayed: 0 → 0
+absence openings, recorded → replayed: 0 → 0
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+finish other than stop: 0; output tokens max 1013

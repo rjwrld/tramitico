@@ -1,0 +1,14 @@
+$ tsx scripts/answer-replay.ts <worktree>/eval/runs/2026-10-09-497-wave-d/lane/groundedness-claude-sonnet-5-5-effort-low-20261009T004843Z.jsonl --cases=ho-tambien-asegurado-por-patrono
+replaying 1 row(s) of groundedness-claude-sonnet-5-5-effort-low-20261009T004843Z.jsonl on claude-sonnet-5-5-effort-low
+  ho-tambien-asegurado-por-patrono  pass  missing 1
+
+transcript: <worktree>/eval/runs/2026-10-09-572/round1/groundedness-claude-sonnet-5-5-effort-low-replay-subset-20261009T023011Z.jsonl
+
+requirements stated, recorded → replayed: 2 → 2 of 3
+  2 → 2 / 3  ho-tambien-asegurado-por-patrono
+grounded, recorded → replayed: 1 → 1 of 1
+false absence claims (#500), recorded → replayed: 0 → 0
+absence openings, recorded → replayed: 0 → 0
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+finish other than stop: 0; output tokens max 822

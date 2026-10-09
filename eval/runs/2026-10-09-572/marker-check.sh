@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # #572's check: a sentence that states a figure (¢…, …%) with no [n] of its
-# own, and a sentence that says a date «ya pasó» or «ya pasaron».
+# own, and a sentence that says a date «ya pasó» or «ya venció» (or their
+# plurals).
 #
 #   bash eval/runs/2026-10-09-572/marker-check.sh <transcript.jsonl>...
 #
@@ -30,7 +31,7 @@ defs='
   def marker: test("\\[\\d+\\]");
   def kind:
     if figure and (marker | not) then "figure"
-    elif test("\\bya pas(ó|aron)\\b"; "i") then "date"
+    elif test("\\bya (pas(ó|aron)|venci(ó|eron))\\b"; "i") then "date"
     else empty end;
   def hits($k): [(.answer // "") | sentences | select(kind == $k)] | length > 0;
 '
