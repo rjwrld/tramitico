@@ -342,12 +342,20 @@ async function answerCase(
     answer,
     undefined,
     derivedFigures,
+    today,
   );
   // #474: the label reads the judges' failure, before #500's gate can turn a
   // pass into a fail the judges never made.
   const label =
     judged.verdict === "fail"
-      ? await labelFailure(query, chunks, answer, judged.reason, derivedFigures)
+      ? await labelFailure(
+          query,
+          chunks,
+          answer,
+          judged.reason,
+          derivedFigures,
+          today,
+        )
       : null;
   // #500: a false absence claim is a hard zero, whatever the judge says — it
   // reads the same fragments the model did, so it cannot see one. #547's

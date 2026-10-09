@@ -511,8 +511,9 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   ratchet rule: a gate is the measured pass rate minus one case, rounded down, never below its
   previous value. Current gates (closing run, 2026-09-11): hit-rate ≥94% (0.92 since #296 requirement 4,
   raised by owner decision after #546/#547/#550's lane read 72/74, 2026-10-08), groundedness tracked against a baseline of 73/74 grounded answers,
-  failing at ≤ 68, and Tier 1 requirements stated against a baseline of 78/116, failing at
-  ≤ 73, both set by #512's two final lanes (2026-10-08) at the lower lane of the two
+  failing at ≤ 68, set by #512's two final lanes (2026-10-08), and Tier 1 requirements stated
+  against a baseline of 88/116, failing at ≤ 83, set by map #497's Wave D and Wave E lanes
+  (2026-10-09), each at the lower lane of the two
   ([ADR 0023](docs/adr/0023-eval-gates-after-sonnet-5-5.md); the 2026-10-02 baselines of 68
   and 70, and the ≥94% groundedness gate before them, are the relaxations the ratchet rule
   has had, both recorded there), Tier 2 adequacy
