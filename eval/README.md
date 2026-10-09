@@ -4091,3 +4091,32 @@ Found, not fixed: 8 of the 38 sentences committed before this change miss the
 strict branch and run on the OR fallback. The record, the per-case
 displacements and the noise floor are in
 [`runs/2026-10-09-562/README.md`](runs/2026-10-09-562/README.md). Cost ≈US$0.15.
+
+## Wave E's full lane (2026-10-09, #497)
+
+One `pnpm test:eval` on main at 9817c6e, after #573–#578, at
+`ANSWER_EFFORT=low` with every other knob at its default (now `STEP_PINS=2`).
+It ran to the end in 1683 s with no provider error. The setup, every gate and
+the per-case reads are in
+[`runs/2026-10-09-497-wave-e/README.md`](runs/2026-10-09-497-wave-e/README.md).
+No gate constant moved, and the Quick reference's baselines wait for the
+owner's decision.
+
+| Gate                                | Wave D | Wave E     |
+| ----------------------------------- | ------ | ---------- |
+| Groundedness, judges' first verdict | 71/74  | **73/74**  |
+| Tier 1 requirements stated          | 88/116 | **92/116** |
+| Tier 1 cases fully adequate         | 10/27  | 13/27      |
+| Tier 2 adequate                     | 13/14  | 12/14      |
+| Abstention                          | 15/15  | 14/15      |
+| Hit-rate                            | 72/74  | 73/74      |
+| Robustness block, hit               | 26/27  | 26/27      |
+
+- **Tier 1 92/116** is 14 over the baseline of 78 and 4 over Wave D, the ±4
+  two identical lanes differ by (#457). **Not ratcheted**, pending the owner.
+- **Red on two zero gates.** False corpus-absence claims: 1,
+  `rb-seguimiento-le-cobro-iva` («…ni el monto vigente del salario base»,
+  #579). Abstention's «invents no figure while declining»:
+  `ho-abs-devs-exentos-renta`'s CABYS «13%» again, one sentence before the
+  marker that cites `cabys-dev` (#580). Wave D accepted that slip once; a
+  second flag makes it a pattern. Neither was re-run: the owner's call.
