@@ -91,7 +91,15 @@ The **Catalogue** column marks a row where a part that missed an answer set has
 a carrier in its family's `reaches`. **Expected** marks one where that carrier
 is one of the case's own `expected` targets. Causes are shown per lane where
 the lanes differ. Chunk ids are shortened to 8 characters; `carriers.json` has
-them in full.
+them in full, in this table's order (since #584), so «row N» names the same
+requirement in both.
+
+Since #584 the script splits **Catalogue** in two. **Sentence finds it** is the
+column above: the family's `reaches` lists the carrier. **Enters the set** says
+whether that carrier is in each lane's answer set. On these two lanes it is
+«no» for every «yes» row: the catalogue finds each of them, and none reached
+the model (#561 found why). Run on today's catalogue, rows 5 and 14 also read
+«yes», from the sentences #562 added.
 
 | #   | Case                                     | Requirement                                                                                                                                                                                                                  | Cause (lane 1 / lane 2) | Catalogue | Expected | Carrier: the quote                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | --- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- | --------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
