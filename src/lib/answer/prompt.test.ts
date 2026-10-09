@@ -662,7 +662,7 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
       /7\. [^\n]*Tampoco escriba las palabras con que se le entregan las cifras calculadas —«cifra derivada», «etiqueta», «marcador»—: diga la cifra, cómo se cuenta y de qué artículo sale/,
     );
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
-      /8\. [^\n]*no lo diga en primera persona \(«no calculo su caso», «no le calculo un total», «no la hago aquí»\): diga quién la hace, como una remisión de la regla 6/,
+      /8\. [^\n]*no lo diga en primera persona ni como algo que este asistente no hace \(«no calculo su caso», «no le calculo un total», «no la hago aquí»/,
     );
     // 6c's «corríjala o dígalo» opened `ho-abs-calculo-personalizado` with
     // «No puedo darle un total exacto» on every round 1 draw.
@@ -672,6 +672,60 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     // The example carries no amount: the system prompt outlives a year's
     // salario base (#505).
     expect(ANSWER_SYSTEM_PROMPT).not.toMatch(/¢\d/);
+  });
+
+  /**
+   * #585: rule 8 named only an operation on the person's data, and the
+   * refusals moved to what else an answer doesn't give — a date («y yo no la
+   * calculo», «no la fijo yo», `renta-plazo-followup`), a code («no puedo
+   * darle ese código», `ho-cabys-paginas-web`), a recommendation («este
+   * asistente tampoco puede hacerlo»). Rule 6's scope sentence stays: it is
+   * what the routed declines must say.
+   */
+  it("turns any refusal, not only a calculation's, into a remit (#585)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /8\. [^\n]*Lo que la respuesta no da —una operación o una liquidación con los datos de la persona, una fecha, un código o una decisión sobre su caso que los documentos provistos no fijan—/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /8\. [^\n]*«yo no la calculo», «no puedo darle ese código», «este asistente tampoco puede hacerlo»\): diga quién lo da —la institución, y el documento cuando lo nombra—, como una remisión de la regla 6/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /8\. [^\n]*Decir que un tema queda fuera de lo que cubre este asistente \(regla 6\) no es una negativa: es el alcance, y sí se dice\./,
+    );
+  });
+
+  /**
+   * #585: `ho-abs-calculo-personalizado` failed abstention 3/3 on Wave E's
+   * lane with a decline that rested on a missing datum — «con sus datos no es
+   * posible fijarlo, porque no indicó sus ingresos» — and lane 1 of
+   * 2026-10-08 with «para ubicar su caso exacto, necesito saber … su renta
+   * imponible». A decline for want of data offers the calculation once the
+   * data comes, which is not a decline.
+   */
+  it("grounds a personalised calculation's decline in whose it is, not in a missing datum (#585)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /6c\. [^\n]*Esa remisión no se funda en un dato que falte: aunque la persona diera sus ingresos, el monto lo determina la institución/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /6c\. [^\n]*ni le pida el dato para hacer la operación \(«necesito saber su renta imponible»\)/,
+    );
+  });
+
+  /**
+   * #580: `ho-abs-devs-exentos-renta` asks about renta, and its decline added
+   * «los servicios de desarrollo de software tienen IVA del 13% según CABYS»
+   * on two lanes, a figure the abstention gate reads as invented when its
+   * sentence goes uncited. The owner's option 3: the aside is off-question.
+   * Scoped to 6c, a correction or a decline: an answer still names the
+   * obligations rule 9 ties to the person's case.
+   */
+  it("keeps a decline on the tax the question asks about (#580)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /6c\. [^\n]*Al corregir o declinar, quédese en lo que la pregunta pregunta: no agregue un impuesto que la pregunta no nombra ni sus cifras, aunque los documentos provistos los traigan/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /6c\. [^\n]*a quien pregunta si su oficio está exento de renta, no le dé la tarifa del IVA de sus servicios/,
+    );
   });
 
   it("speaks of documentos oficiales, never of RAG-internal material (#75)", () => {
