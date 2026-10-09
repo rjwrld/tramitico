@@ -994,7 +994,8 @@ export async function POST(request: Request): Promise<Response> {
     // Pinning the missing input back in from the pool the reranker just read
     // is an append, so nothing the rerank chose is displaced. #508: an
     // artículo the cut names («la tarifa referida en el artículo 10») is
-    // appended the same way, ahead of those inputs (pins.ts).
+    // appended the same way, ahead of those inputs (pins.ts). #559: so is a
+    // source the condensed question names by name («código CABYS»).
     // #286: the reranker scores the question *and* its corpus-register
     // expansion, for the same reason the fused legs do — and, since #304,
     // the step catalogue's sentences when retrieval ran a probe.
@@ -1015,7 +1016,7 @@ export async function POST(request: Request): Promise<Response> {
     const stopPin = telemetry.startStage("pin");
     let chunks;
     try {
-      chunks = await pinAnswerSet(reranked, retrieval.chunks, {
+      chunks = await pinAnswerSet(reranked, retrieval.chunks, asked.query, {
         // The lookup stops with the ask (pins.ts).
         signal: AbortSignal.any([request.signal, deadline.signal]),
         onOutcome: telemetry.crossReference,

@@ -304,6 +304,7 @@ async function answerCase(
       },
     }),
     retrieval.chunks,
+    query,
   );
   const derivedFigures = resolveDerivedFigures(chunks);
   // The route's date (#455), recorded with the answer below.

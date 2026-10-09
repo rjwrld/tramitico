@@ -251,6 +251,7 @@ describeEval("retrieval hit-rate (eval/dataset.jsonl)", () => {
       const topK = await pinAnswerSet(
         answerSetFromOrder(order, retrieval.chunks, outcome?.stepPicks ?? []),
         retrieval.chunks,
+        query,
       );
       const inPool = (chunk: RetrievedChunk) =>
         evalCase.expected.some((t) => chunkMatchesTarget(chunk, t));

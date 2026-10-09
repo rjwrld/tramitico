@@ -44,6 +44,7 @@ value, except for `ANSWER_EFFORT`:
 | `ANSWER_DOC_CAP`                 | `off`                                          | `rerank.ts`                          |
 | `PIN_DERIVED_INPUTS`             | `on` (since #344)                              | `src/lib/answer/derived.ts`          |
 | `PIN_CROSS_REFERENCES`           | `on` (since #508)                              | `src/lib/answer/cross-references.ts` |
+| `PIN_NAMED_SOURCES`              | `on` (since #559)                              | `src/lib/answer/pins.ts`             |
 | `EVAL_CASES`                     | every case; comma-separated ids scope a lane¹  | `src/lib/eval/subset.ts`             |
 | `EVAL_TRANSCRIPT_DIR`            | `eval/transcripts/`                            | `src/lib/eval/transcript.ts`         |
 | `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites      | `src/lib/eval/rewrites.ts`           |
@@ -62,7 +63,7 @@ Sensitive in Vercel, so it can't be read back. The dashboard shows it added on
 it, so don't read the production value from notes older than #451.
 
 The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`,
-`PIN_CROSS_REFERENCES`)
+`PIN_CROSS_REFERENCES`, `PIN_NAMED_SOURCES`)
 accept only the values above, `ANSWER_EFFORT` only `low`, `medium`, `high`,
 `xhigh` or `max`, and `ANSWER_TOP_K` and `ANSWER_DOC_CAP` only a positive
 integer (or `off`, for the cap; #519). Anything else runs the default and logs `config: unknown knob
@@ -3659,6 +3660,19 @@ now streams the route's text.
 
 No paid run: the routed cases first run in the next authorized lane (#511).
 
+**What the routed cases measure (2026-10-08, #549).** The model's routing,
+not the deterministic decline. Every abstention row committed under
+`eval/runs/` took the model path: 202 rows in 26 transcripts, all
+`route: "model"`, the six routed cases included. So the deterministic decline
+is covered by e2e only. `e2e/routing.local.spec.ts` drives it through the real
+`/api/ask` on a question built to retrieve nothing, and the free test above
+checks the classifier. Production can't settle whether a real question ever
+takes it. Vercel keeps runtime logs for an hour, so the `routedCategory`
+counter is gone before anyone reads it. The `questions` table stores no
+category, and only signed-in asks reach it: 26 rows, none an honest decline
+of either kind. The reads and queries are in
+[`runs/2026-10-08-549/`](runs/2026-10-08-549/).
+
 ## The total-loss fallback keeps the fused order (2026-10-07, #510)
 
 > Two `pnpm answer-set-probe` arms under `RERANK=off`, the fallback path a
@@ -3842,3 +3856,18 @@ breaks rule 3 or makes the #547 hedge.
   `factura-primera-cabys`'s CABYS opening, is an old one (9 committed runs
   back to 2026-09-16). On the lane's 72/74, `HIT_RATE_GATE` goes to 0.94
   (owner decision), and `ho-abs-iva-2027`'s assertion is armed.
+
+## A source the question names (2026-10-08, #559)
+
+`factura-primera-cabys`'s CABYS absence claim was a set miss, not a pool
+miss: `cabys-dev` is fused #3, the rerank reads it #13–#23, and `pin1`'s one
+append goes to a `reglamento-comprobantes` artículo. `pinAnswerSet` now
+appends one chunk of a source the condensed question names by its own name
+(`NAMED_SOURCES`, CABYS only; `PIN_NAMED_SOURCES`, on). An
+`answer-set-probe` off/on pair on fixed rewrites, ≈US$0.02
+([`runs/2026-10-08-559/README.md`](runs/2026-10-08-559/README.md)), puts
+`cabys-dev` in that case's set (1/2 → 2/2 targets) and leaves the two
+robustness rows that expect it unchanged: they never say CABYS and it is
+outside their pool. Hit-rate counted the case a hit throughout, since one
+expected target was enough. Whether the answer now cites the codes is the
+next full lane's read.

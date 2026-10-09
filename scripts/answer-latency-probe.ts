@@ -193,6 +193,7 @@ async function main(): Promise<void> {
         rerankOptionsFor(retrieval),
       ),
       retrieval.chunks,
+      question,
     );
     const derivedFigures = resolveDerivedFigures(chunks);
     const prompt = buildUserPrompt(question, chunks, {

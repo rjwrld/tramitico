@@ -33,6 +33,7 @@
     "cross-reference-census": "tsx scripts/cross-reference-census.ts",
     "answer-set-compare": "tsx scripts/answer-set-compare.ts",
     "requirement-coverage": "tsx scripts/requirement-coverage.ts",
+    "tier1-miss-causes": "tsx scripts/tier1-miss-causes.ts",
     "answer-latency-probe": "tsx scripts/answer-latency-probe.ts",
     "prompt-tokens": "tsx scripts/prompt-tokens.ts",
     "answer-replay": "tsx scripts/answer-replay.ts",
