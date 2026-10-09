@@ -15,37 +15,42 @@ question-rank order, so the step the question didn't ask about ranks last.
 pick therefore competes with the rest of its family's sentences for two slots,
 and each extra sentence makes that competition harder. So this change adds a
 sentence only where the carrier answers the requirement whole, and no family
-goes past five sentences, the cap `steps.test.ts` already pins.
+goes past five sentences, the cap `steps.test.ts` already pins. Then the probe
+decides: a sentence that brings nothing in, or displaces a target, is dropped.
 
 ## The sentences
 
-Each one is written in its chunk's own words, one step per sentence. Its
+Four sentences were drafted and probed, and two ship. Each draft is in its
+chunk's own words, one step per sentence. Its
 `websearch_to_tsquery('spanish', …)` matches on the strict AND branch (the
 `search_chunks` step legs, `supabase/migrations/20260907120000_search_chunks_step_legs.sql`)
 and ranks its target first by `ts_rank_cd`. These checks were read-only SQL on
-the shared local stack (query below).
+the shared local stack (query below). The last two columns are the probe's
+production configuration (`top8/capoff/pinon`), before → after.
 
-| #554 row | Case                          | Family | Target                                     | Strict matches | Target rank |
-| -------- | ----------------------------- | ------ | ------------------------------------------ | -------------- | ----------- |
-| 5        | `inscripcion-tardia-sancion`  | T1-I   | `tribu-cr-faq` · Declaraciones del RUT · 2 | 1              | 1           |
-| 8        | `ho-desde-cuanta-plata-caja`  | T1-B   | `ccss-faq` · ¿Dónde puedo pagar mi seguro? | 1              | 1           |
-| 14       | `ho-cliente-espana-lleva-iva` | T1-D   | `ley-iva` · Artículo 3                     | 1              | 1           |
-| 20       | `ho-minimo-renta-2026`        | T1-E   | `reglamento-renta` · Artículo 12           | 2              | 1           |
+| #554 row | Case                          | Family | Target                                     | Strict matches | Target rank | In the answer set | Fused pool rank | Ships   |
+| -------- | ----------------------------- | ------ | ------------------------------------------ | -------------- | ----------- | ----------------- | --------------- | ------- |
+| 5        | `inscripcion-tardia-sancion`  | T1-I   | `tribu-cr-faq` · Declaraciones del RUT · 2 | 1              | 1           | no → **yes**      | — → #2          | yes     |
+| 14       | `ho-cliente-espana-lleva-iva` | T1-D   | `ley-iva` · Artículo 3                     | 1              | 1           | no → **yes**      | #9 → #2         | yes     |
+| 8        | `ho-desde-cuanta-plata-caja`  | T1-B   | `ccss-faq` · ¿Dónde puedo pagar mi seguro? | 1              | 1           | no → no           | #33 → #6        | dropped |
+| 20       | `ho-minimo-renta-2026`        | T1-E   | `reglamento-renta` · Artículo 12           | 2              | 1           | no → no           | — → #24         | dropped |
 
 - **Row 5** reuses T1-A's fourth sentence word for word. It already reaches the
-  same chunk from T1-A. T1-I classifies `inscripcion-tardia-sancion`, so the
-  case never saw it.
-- **Row 8** covers the requirement's «dónde se paga la cuota» half.
-- **Row 14**'s carrier is one of the case's expected targets.
-- **Row 20**'s second strict match is `reglamento-renta` TRANSITORIO I, ranked
-  below Artículo 12.
+  same chunk from T1-A, but T1-I classifies `inscripcion-tardia-sancion`, so
+  the case never saw it.
+- **Row 14**'s carrier is one of the case's expected targets: that case's
+  targets in the set go 3 → 4.
+- **Row 8** (the requirement's «dónde se paga la cuota» half) and **row 20**
+  were dropped, not tuned. Neither brought its carrier into the set, and row
+  8's pick displaced an expected target (below).
 
-The families stay within the cap: T1-B, T1-D, T1-E and T1-I go from four
-sentences to five, and none is retired.
+T1-D and T1-I go from four sentences to five. T1-B and T1-E end where they
+started.
 
-`pnpm tier1-miss-causes` over #512's two final lanes, with this catalogue,
-marks rows 5, 8, 14 and 20 «Catalogue: yes». Cause-2 rows with a carrier the
-catalogue reaches go from 12 to 16 of 19.
+`pnpm tier1-miss-causes` over #512's two final lanes, with the shipped
+catalogue, marks rows 5 and 14 «Catalogue: yes». It said yes for all four
+drafts, which shows its «Catalogue» column reads the `reaches` lists: a
+reachable carrier is not one that reaches the answer set.
 
 ## Left out
 
@@ -96,9 +101,78 @@ its own.
 
 ## Probe
 
-Pending, after #561 merges. The before arm is #561's committed after JSON. The
-after arm replays its rewrites (`EVAL_REWRITES`) with this catalogue, on top of
-`STEP_PINS`.
+Before: #561's committed after arm,
+[`../2026-10-09-561/probe-after.json`](../2026-10-09-561/probe-after.json)
+(main's code with `STEP_PINS=2`). After: `pnpm answer-set-probe` on every case
+from this branch, with the four drafted sentences and #561's rewrites replayed,
+so both arms cut the same pools:
+
+```
+export ANSWER_EFFORT=low
+EVAL_REWRITES=<worktree>/eval/runs/2026-10-09-561/probe-after.json PROBE_CASE_MS=3000 \
+  pnpm answer-set-probe eval/runs/2026-10-09-562/probe-after.json
+```
+
+Files: [`probe-after.json`](probe-after.json) and
+[`probe-after-20261009T023257Z.log`](probe-after-20261009T023257Z.log). No
+rerank reading was lost (650 of 650). The read is [`compare.mjs`](compare.mjs),
+free: `node eval/runs/2026-10-09-562/compare.mjs`.
+
+Across all 116 cases: **no case's hit changed**, and only one case has fewer
+expected targets in its set. That one is row 8's, the reason that sentence was
+dropped.
+
+What each sentence pushed out of an answer set:
+
+- **Row 5 (T1-I).** On `inscripcion-tardia-sancion` and three robustness
+  variants of the T1-I seeds (`rb-pill-inscribi-tarde`, `rb-corto-multa-tarde`,
+  `rb-seguimiento-de-cuanto-multa`), the new pick replaces
+  `tribu-cr-res-0011-2025` Artículo 2, T1-I's TRIBU-CR channel sentence's pick.
+  That chunk is not an expected target of any of the four, and #554 did not
+  count it as row 5's carrier. `ho-rebajar-multa-si-pago-ya` gains the chunk
+  without losing one (11 → 12). `multa-iva-no-declarado`'s set doesn't change.
+- **Row 14 (T1-D).** `ley-iva` Artículo 3 enters 18 T1-D sets, Tier 2 and abstention
+  cases included. What it displaces is none of those cases' expected targets:
+  - `ley-iva` 27 on `ho-cliente-espana-lleva-iva`, `iva-facturas-en-dolares`,
+    `rb-corto-tasa-iva` and `ho-abs-iva-2027`;
+  - `ley-iva` 10 on `ho-hasta-que-dia-tengo-iva`, `iva-clientes-fuera-cr`,
+    `iva-ajuste-bien-de-capital`, `rb-pill-iva-exterior` and
+    `rb-spanglish-client-usa`;
+  - `reglamento-iva` 11 on six cases, including `ho-iva-en-cero-sin-facturar`;
+  - `cnpt` 79 on `iva-declaracion-mensual`;
+  - `ley-iva` 11 on both export cases.
+
+  On the three T1-D Tier 1 cases, no displaced fragment carries one of that
+  case's `requiredClaims` or `requiredSteps`. `ley-iva` 27 and `reglamento-iva` 40
+  stay in the sets of the two deadline cases, and `cnpt` 79 in
+  `ho-iva-en-cero-sin-facturar`'s. The `$comment`'s trade-off doesn't move:
+  `ley-iva` 21 was already outside `ho-t2-credito-iva-compras`'s fused 40 in
+  the before arm, and still is.
+
+- **Row 8 (T1-B, dropped).** Its pick took «¿Cuándo me corresponde pagar mi
+  seguro…?» from `ho-donde-me-afilio-caja`, an expected target and #561's
+  row 9 carrier (that case's targets go 2 → 1). It took the same chunk from
+  `ccss-obligacion-ingreso-bajo`, and «¿Dónde me corresponde realizar el
+  trámite…?» from `rb-pill-asegurarme-gano-poco`.
+- **Row 20 (T1-E, dropped).** It reached the set of `renta-declaracion-plazo`
+  and `rb-corto-tramos-renta` in place of a `ley-renta` 8 fragment. It never
+  reached the set of the case it was written for.
+
+**Noise floor.** A family's sentences are searched only when a question
+classifies to that family, so cases in the five unchanged families should not
+move. Some did: one set (`iva-retencion-tarjetas-porcentaje`, T1-F), one pool
+(`inscripcion-hacienda-clientes-extranjero`, T1-A), four unclassified cases'
+pools, and the order within many sets. Treat a single-fragment swap as noise
+unless it repeats.
+
+**Not re-probed.** The shipped catalogue is this arm minus the T1-B and T1-E
+sentences. The other families' entries are unchanged, so T1-D and T1-I cases
+get what this arm measured, and T1-B and T1-E cases get what the before arm
+measured.
+
+**Cost ≈US$0.15**: the probe's usual figure for every case, as #561
+recorded it. Replaying the rewrites spent no Haiku calls on expansion or
+condensation, so this arm cost at most that: embeds plus 650 rerank readings.
 
 ## Reproduce the lexical check
 
