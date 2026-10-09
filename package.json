@@ -39,6 +39,7 @@
     "prompt-tokens": "tsx scripts/prompt-tokens.ts",
     "answer-replay": "tsx scripts/answer-replay.ts",
     "absence-backtest": "tsx scripts/absence-backtest.ts",
+    "hitrate-all-targets": "tsx scripts/hitrate-all-targets.ts",
     "icons": "tsx scripts/generate-icons.ts",
     "email:push": "tsx scripts/push-email-templates.ts",
     "email:preview": "tsx scripts/preview-email-templates.ts"

@@ -86,7 +86,7 @@ jobs:
 
           {
             printf '%s\n\n' 'The daily canary asked production its fixed questions and at least one answer failed. An `error part` is the refunded/charged error the telemetry counts (`answer_failed` with a 4xx `providerError` is usually the spent `tramitico-prod` cap or a revoked key); `degraded` is Voyage embeddings down; a decline or an unresolved marker is a quality regression; `request failed` or a non-200 is the site itself. Runbook §3.3 has the reading; later failures comment here until this is closed.'
-            printf '%s\n\n' 'Contract: [docs/runbook.md §3.3](../blob/main/docs/runbook.md) · #551.'
+            printf '%s\n\n' 'Contract: [docs/runbook.md §3.3](https://github.com/rjwrld/tramitico/blob/main/docs/runbook.md#33-the-daily-canary-551--provider-failure-coverage-on-hobby) · #551.'
             cat report.md
           } > body.md
           gh issue create --title "$title" --label needs-triage --body-file body.md

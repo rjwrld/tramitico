@@ -58,7 +58,9 @@ jobs:
       PIN_CROSS_REFERENCES: ${{ vars.PIN_CROSS_REFERENCES }}
       # The *eval* key, from a workspace separate from `tramitico-prod`
       # (runbook §7): production's US$10/month cap must never block an
-      # authorized run, and a run must never eat production's budget.
+      # authorized run, nor a run count against that cap. The credit balance
+      # is org-wide (#552), so the pre-run balance check covers the hard stop
+      # plus ~US$15 for production.
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       ANSWER_MODEL: ${{ vars.ANSWER_MODEL }}
       ANSWER_EFFORT: ${{ vars.ANSWER_EFFORT }}
