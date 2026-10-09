@@ -3871,3 +3871,30 @@ robustness rows that expect it unchanged: they never say CABYS and it is
 outside their pool. Hit-rate counted the case a hit throughout, since one
 expected target was enough. Whether the answer now cites the codes is the
 next full lane's read.
+
+## The prompt's words and a first-person refusal, out of the answer (2026-10-08, #557)
+
+Answers wrote the derived-figure block's own words to the reader («la cifra
+derivada es ¢231.100», «la etiqueta de la cifra dice…») and refused a
+computation in the first person («no calculo su caso», «No puedo darle un
+total exacto»). Both predate #556: they are on #512's lanes too, about one
+answer in twelve. `runs/2026-10-08-557/leak-check.sh` (jq, free) lists the
+leads in any transcript. Fixed-chunk replays of #556's lane (and #512's lane 1
+for `rb-seguimiento-de-cuanto-multa`), a control on main's prompt and two
+rounds, ≈US$6.43
+([`runs/2026-10-08-557/README.md`](runs/2026-10-08-557/README.md)):
+
+- **Rule 7** keeps «cifra derivada», «etiqueta» and «marcador» out and says
+  what to write instead, and the derived-figure block says the same. **Rule
+  8** turns what the answer doesn't do into rule 6's remit («el total de su
+  caso lo determina Hacienda»). Round 2 added **rule 6c**'s «Ese «dígalo» es
+  la remisión misma», since round 1 left `ho-abs-calculo-personalizado`
+  opening «No puedo darle un total exacto» on 3/3.
+- Target passes by hand read, control → round 2: `multa-iva-no-declarado`
+  0/3 → 2/3, `ho-tambien-asegurado-por-patrono` 1/3 → 3/3,
+  `renta-plazo-followup` 1/3 → 3/3, `rb-seguimiento-de-cuanto-multa` 2/3 →
+  3/3, `ho-abs-calculo-personalizado` 0/3 (lanes) → 3/3. #546 and #547 held on
+  every round 2 draw.
+- **Tier 1 guard** on #556's lane: 84 → 85/116, grounded 24/27 → 27/27, no
+  false absence claim. Absence openings (reported) 2 → 3; round 1 read 5, and
+  the lane rows on main's prompt 4.

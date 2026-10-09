@@ -290,6 +290,14 @@ describe("formatDerivedFigures", () => {
     expect(block).not.toContain("dos cifras");
     expect(block).toContain("a partir de [1], [2], [3], [4] y [5]");
   });
+
+  it("keeps its own words out of the answer (#557)", () => {
+    // «La cifra derivada es ¢231.100», «la etiqueta de la cifra dice…»: the
+    // block's names for what it hands over, written back to the reader.
+    expect(formatDerivedFigures([DERIVED_FIGURE])).toContain(
+      "Las palabras de esta lista («cifra derivada», «etiqueta», «marcador») son para usted, no para la persona: no las escriba en la respuesta.",
+    );
+  });
 });
 
 describe("ANSWER_SYSTEM_PROMPT", () => {
@@ -604,6 +612,30 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     expect(ANSWER_SYSTEM_PROMPT).toMatch(
       /9\. [^\n]*si ni los documentos ni la cifra derivada que la calcula lo dicen; si lo dice la cifra derivada, dígalo con las palabras de su etiqueta, precedido de «en principio» y con sus marcadores, sin extenderlo a un número de infracciones ni a un total/,
     );
+  });
+
+  /**
+   * #557: «la cifra derivada es ¢231.100» to the reader, and a refusal in
+   * the first person — «no calculo su caso», «no le calculo un total». Rule
+   * 7 keeps the block's words out and says what to write in their place;
+   * rule 8, where the voice is set, turns what the answer does not do into
+   * rule 6's remit; rule 6c says its «dígalo» is that remit too.
+   */
+  it("keeps the derived-figure block's words and a first-person refusal out (#557)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /7\. [^\n]*Tampoco escriba las palabras con que se le entregan las cifras calculadas —«cifra derivada», «etiqueta», «marcador»—: diga la cifra, cómo se cuenta y de qué artículo sale/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /8\. [^\n]*no lo diga en primera persona \(«no calculo su caso», «no le calculo un total», «no la hago aquí»\): diga quién la hace, como una remisión de la regla 6/,
+    );
+    // 6c's «corríjala o dígalo» opened `ho-abs-calculo-personalizado` with
+    // «No puedo darle un total exacto» on every round 1 draw.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /6c\. [^\n]*Ese «dígalo» es la remisión misma, no una negativa en primera persona \(regla 8\): no «No puedo darle un total exacto», sino «El monto exacto de su caso lo determina Hacienda»/,
+    );
+    // The example carries no amount: the system prompt outlives a year's
+    // salario base (#505).
+    expect(ANSWER_SYSTEM_PROMPT).not.toMatch(/¢\d/);
   });
 
   it("speaks of documentos oficiales, never of RAG-internal material (#75)", () => {
