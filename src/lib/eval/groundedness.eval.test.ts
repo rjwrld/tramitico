@@ -46,7 +46,7 @@ import {
   resolveDerivedFigures,
   type ResolvedDerivedFigure,
 } from "../answer/derived";
-import { pinAnswerSet } from "../answer/pins";
+import { pinAnswerSet, type PinName } from "../answer/pins";
 import {
   ANSWER_MAX_OUTPUT_TOKENS,
   answerModelLabel,
@@ -163,6 +163,8 @@ interface Answered {
   query: string;
   /** Retrieval was weak and the route's fixed decline stood in (no model call). */
   weak: boolean;
+  /** Which pin brought each chunk past the cut, by chunk id (#579). */
+  pins: ReadonlyMap<string, PinName>;
   /** The chunks the prompt numbered, so a transcript row can resolve `[n]`.
    * Empty on a weak-retrieval decline, which makes no model call. */
   chunks: readonly RetrievedChunk[];
@@ -281,6 +283,7 @@ async function answerCase(
       query,
       weak: true,
       chunks: [],
+      pins: new Map(),
       verdict: "pass",
       judgesVerdict: "pass",
       verdicts: [],
@@ -296,15 +299,24 @@ async function answerCase(
   }
 
   let rerank: RerankReadingCount | null = null;
+  const pins = new Map<string, PinName>();
   const chunks = await pinAnswerSet(
     await rerankChunks(query, retrieval.chunks, {
       ...rerankOptionsFor(retrieval),
       onReadings: (count) => {
         rerank = count;
       },
+      onStepPins: (ids) => {
+        for (const id of ids) pins.set(id, "step");
+      },
     }),
     retrieval.chunks,
     query,
+    {
+      onPins: (appended) => {
+        for (const [id, pin] of appended) pins.set(id, pin);
+      },
+    },
   );
   const derivedFigures = resolveDerivedFigures(chunks);
   // The route's date (#455), recorded with the answer below.
@@ -345,6 +357,7 @@ async function answerCase(
     query,
     weak: false,
     chunks,
+    pins,
     ...withAbsenceGate(judged, checks),
     judgesVerdict: judged.verdict,
     label,
@@ -539,6 +552,7 @@ describeEval("groundedness (eval/dataset.jsonl)", () => {
               generation: r.generation,
               rerank: r.rerank,
               checks: r.checks,
+              pins: r.pins,
               reasks: r.reasks.map((reask) => ({
                 ...reask,
                 groundedness: groundednessOf(reask),

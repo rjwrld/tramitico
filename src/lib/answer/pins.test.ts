@@ -3,7 +3,7 @@ import type { RetrievedChunk } from "../retrieval";
 import { noneWithheld } from "../test-support/withheld";
 import type { ArticuloLookup } from "./cross-references";
 import type { DerivedFigure } from "./derived";
-import { pinAnswerSet } from "./pins";
+import { pinAnswerSet, type PinName } from "./pins";
 
 function chunk(
   docKey: string,
@@ -69,6 +69,7 @@ describe("pinAnswerSet", () => {
     vi.stubEnv("PIN_CROSS_REFERENCES", "on");
     vi.stubEnv("PIN_DERIVED_INPUTS", "on");
     vi.stubEnv("PIN_NAMED_SOURCES", "on");
+    vi.stubEnv("PIN_SALARIO_BASE", "on");
   });
   afterEach(() => {
     vi.unstubAllEnvs();
@@ -215,6 +216,64 @@ describe("pinAnswerSet", () => {
         options,
       );
       expect(pinned).toEqual([article4]);
+    });
+  });
+
+  describe("the salario base (#579)", () => {
+    const multa = chunk(
+      "cnpt",
+      "Artículo 79",
+      "tendrán una multa equivalente al cincuenta por ciento (50%) del salario base.",
+    );
+    const salarioBase = chunk("salario-base-2026", "Circular 246-2025");
+    const cabys = { ...chunk("cabys-dev", "—"), articulo: null };
+
+    it("appends it after the derived inputs and before a named source, and says which pin brought each", async () => {
+      let pins: ReadonlyMap<string, PinName> = new Map();
+      const pinned = await pinAnswerSet(
+        [multa, inputA],
+        [multa, inputA, inputB, cabys],
+        "¿Qué código CABYS uso?",
+        {
+          lookup: lookupOf([]),
+          withheld: NOTHING_WITHHELD,
+          figures: [FIGURE],
+          salarioBaseLookup: async () => [salarioBase],
+          onPins: (told) => {
+            pins = told;
+          },
+        },
+      );
+      expect(pinned).toEqual([multa, inputA, inputB, salarioBase, cabys]);
+      expect([...pins]).toEqual([
+        [inputB.chunkId, "derivedInput"],
+        [salarioBase.chunkId, "salarioBase"],
+        [cabys.chunkId, "namedSource"],
+      ]);
+    });
+
+    it("is judged on the cut: a referenced multa brings nothing", async () => {
+      const naming = chunk(
+        "cnpt",
+        "Artículo 80",
+        "Según el artículo 79 de este código.",
+      );
+      const pinned = await pinAnswerSet([naming], [naming], QUESTION, {
+        lookup: lookupOf([multa]),
+        withheld: NOTHING_WITHHELD,
+        salarioBaseLookup: async () => [salarioBase],
+      });
+      expect(pinned).toEqual([naming, multa]);
+    });
+
+    it("appends nothing under PIN_SALARIO_BASE=off", async () => {
+      vi.stubEnv("PIN_SALARIO_BASE", "off");
+      const pinned = await pinAnswerSet([multa], [multa], QUESTION, {
+        lookup: lookupOf([]),
+        withheld: NOTHING_WITHHELD,
+        salarioBaseLookup: async () => [salarioBase],
+      });
+      expect(pinned).toEqual([multa]);
     });
   });
 });

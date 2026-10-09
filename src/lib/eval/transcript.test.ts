@@ -166,6 +166,36 @@ describe("transcriptRow", () => {
     });
   });
 
+  it("records which pin brought each chunk past the cut, and nothing on the cut's own (#579)", () => {
+    const row = transcriptRow({
+      evalCase: CASE,
+      query: CASE.question,
+      answer: "Uno [1].",
+      chunks: [
+        chunk({}),
+        chunk({ chunkId: "c2", docKey: "cnpt" }),
+        chunk({ chunkId: "c3", docKey: "salario-base-2026" }),
+      ],
+      derivedFigures: [],
+      groundedness: { verdict: "pass", verdicts: ["pass"], reason: "" },
+      citations: { ok: true },
+      adequacy: null,
+      generation: null,
+      rerank: null,
+      checks: null,
+      pins: new Map([
+        ["c2", "step"],
+        ["c3", "salarioBase"],
+      ]),
+    });
+    expect(row.chunks.map((c) => c.pin)).toEqual([
+      undefined,
+      "step",
+      "salarioBase",
+    ]);
+    expect(Object.keys(row.chunks[0])).not.toContain("pin");
+  });
+
   it("records no failure label and no re-asks unless the lane gave them (#474)", () => {
     expect(ROW.groundedness.label).toBeNull();
     expect(ROW.reasks).toEqual([]);

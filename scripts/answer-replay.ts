@@ -187,6 +187,12 @@ async function main(): Promise<void> {
         // that chose them are the source's (#466); absent before #466.
         rerank: row.rerank ?? null,
         checks: checkAnswer(answer, chunks, row.query),
+        // Likewise the pins that brought them (#579); none before #579.
+        pins: new Map(
+          row.chunks.flatMap((chunk) =>
+            chunk.pin === undefined ? [] : [[chunk.chunkId, chunk.pin]],
+          ),
+        ),
       }),
     );
     const incomplete = incompletelyCitedDerivedFigures(answer, derivedFigures);
