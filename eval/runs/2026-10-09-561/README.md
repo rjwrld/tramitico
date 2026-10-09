@@ -29,10 +29,12 @@ and [`step-picks.json`](step-picks.json), whose `reads[].query`/`expansion`
 `EVAL_REWRITES` can replay.
 
 The log's `row` labels for `ccss-obligacion-ingreso-bajo` are wrong. The
-script indexed `carriers.json` by table row, but the file swaps rows 2/3 and
-23/25, so that case printed row 2's carrier (`¿El Trabajador Independiente
+script indexed `carriers.json` by table row, but the file then swapped rows 2/3
+and 23/25 (and permuted 19–21), so that case printed row 2's carrier (`¿El Trabajador Independiente
 está obligado…?`) under «row 3». Row 3's carrier is that case's `s1` pick in
-the same log. The script now keys rows on their requirement text.
+the same log. The script now keys rows on their requirement text. Since #584
+`carriers.json` is in the table's order, and `pnpm tier1-miss-causes` fails if
+it drifts.
 
 ## Result
 

@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
-  catalogueReaches,
+  catalogueCarriers,
   causeIn,
   checkQuotes,
   classify,
   countCauses,
   lostRequirements,
   quoteCheckSql,
+  renderTable,
   requirementOf,
   splitLanes,
   type Carrier,
@@ -179,7 +180,7 @@ describe("quoteCheckSql", () => {
   });
 });
 
-describe("catalogueReaches", () => {
+describe("catalogueCarriers", () => {
   const catalogue = {
     families: {
       "T1-X": { cases: ["t1"], reaches: ["cnpt · Artículo 79", "cabys-dev"] },
@@ -189,24 +190,21 @@ describe("catalogueReaches", () => {
   const parts = (c: Carrier) => [{ what: "x", carriers: [c] }];
 
   it("matches the case's own family by `docKey · articulo`, or docKey alone", () => {
-    expect(catalogueReaches("t1", parts(carrier("a")), catalogue)).toBe(true);
-    expect(
-      catalogueReaches(
-        "t1",
-        parts({ ...carrier("a"), docKey: "cabys-dev", articulo: null }),
-        catalogue,
-      ),
-    ).toBe(true);
+    expect(catalogueCarriers("t1", parts(carrier("a")), catalogue)).toEqual([
+      carrier("a"),
+    ]);
+    const whole = { ...carrier("a"), docKey: "cabys-dev", articulo: null };
+    expect(catalogueCarriers("t1", parts(whole), catalogue)).toEqual([whole]);
   });
 
   it("does not count another family's reach", () => {
     expect(
-      catalogueReaches(
+      catalogueCarriers(
         "t1",
         parts({ ...carrier("a"), articulo: "Artículo 88" }),
         catalogue,
       ),
-    ).toBe(false);
+    ).toEqual([]);
   });
 });
 
@@ -238,9 +236,80 @@ describe("classify: the catalogue and expected-target flags", () => {
     );
     expect(classified[0]).toMatchObject({
       lanes: [2, 2],
-      catalogued: false,
+      sentenceFinds: false,
+      entersSet: [false, false],
       expectedTarget: true,
     });
+  });
+
+  it("splits a sentence finding the carrier from the carrier entering each set", () => {
+    const catalogue = {
+      families: { "T1-X": { cases: ["t1"], reaches: ["cnpt · Artículo 79"] } },
+    };
+    const tagged: Tagged[] = [
+      {
+        case: "t1",
+        requirement: "R",
+        parts: [
+          { what: "found, in lane 2 only", carriers: [carrier("found")] },
+          {
+            what: "not found",
+            carriers: [{ ...carrier("other"), articulo: "Artículo 2" }],
+          },
+        ],
+      },
+    ];
+    const read = (one: string[], two: string[]) =>
+      classify(
+        [{ case: "t1", requirement: "R" }],
+        tagged,
+        [row("t1", one)],
+        [row("t1", two)],
+        catalogue,
+        new Map(),
+      ).classified[0];
+    expect(read([], ["found"])).toMatchObject({
+      lanes: [2, 2],
+      sentenceFinds: true,
+      entersSet: [false, true],
+    });
+    const outside = read([], []);
+    expect(outside).toMatchObject({
+      sentenceFinds: true,
+      entersSet: [false, false],
+    });
+    expect(countCauses([outside])).toMatchObject({
+      sentenceFindsCause2: 1,
+      foundOutsideCause2: 1,
+    });
+    expect(renderTable([outside])).toContain("| **2** | yes | no | no |");
+    expect(renderTable([read(["found"], [])])).toContain(
+      "| **2** | yes | yes / no | no |",
+    );
+  });
+});
+
+describe("classify: the carriers file's order", () => {
+  const tag = (requirement: string): Tagged => ({
+    case: "t1",
+    requirement,
+    parts: [{ what: "x", carriers: [carrier("a")] }],
+  });
+  const both = [
+    { case: "t1", requirement: "A" },
+    { case: "t1", requirement: "B" },
+  ];
+  const errorsFor = (tagged: Tagged[]) =>
+    classify(both, tagged, [], [], { families: {} }, new Map()).errors;
+
+  it("passes when the file lists the rows in the table's order", () => {
+    expect(errorsFor([tag("A"), tag("B")])).toEqual([]);
+  });
+
+  it("fails naming the first row where the file and the table differ", () => {
+    expect(errorsFor([tag("B"), tag("A")])).toEqual([
+      "carriers file out of the table's order at row 1: the file has t1: B, the table t1: A",
+    ]);
   });
 });
 
@@ -293,7 +362,8 @@ describe("classify and countCauses", () => {
       3: 0,
       split: 1,
       uncertain: 1,
-      cataloguedCause2: 0,
+      sentenceFindsCause2: 0,
+      foundOutsideCause2: 0,
       expectedCause2: 0,
     });
   });

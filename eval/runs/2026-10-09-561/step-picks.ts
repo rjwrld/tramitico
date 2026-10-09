@@ -42,7 +42,7 @@ function loadDotEnvLocal(): void {
 
 /**
  * #554's table rows that #561 names, by the start of their requirement:
- * `carriers.json` is not in the table's order (rows 2/3 and 23/25 swap).
+ * when this ran, `carriers.json` was not in the table's order (#584 fixed it).
  */
 const ROWS: Record<number, string> = {
   1: "En cobro, la Administración",

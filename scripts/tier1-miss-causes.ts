@@ -16,9 +16,15 @@
  * upstream cause among its parts. Fixing the answer alone would not state it.
  *
  * It also reads `eval/step-catalogue.json` and marks each row whose carrier is
- * already in the `reaches` of the case's own family (#304). For a cause-2 row
- * that is the lead: the catalogue meant to bring the chunk, and it still
- * missed the answer set.
+ * already in the `reaches` of the case's own family (#304): a sentence finds
+ * it. That is the catalogue's claim, not the lane's outcome, so a second
+ * column says whether that carrier entered each lane's answer set. A cause-2
+ * row the sentence finds and that enters no set is the lead: the catalogue
+ * brings the chunk, and it loses its place before the answer (#561, #584).
+ *
+ * The carriers file lists its requirements in the table's order, and the
+ * script fails when it doesn't, so «row N» names the same carrier in the
+ * printed table, the file and every record that cites it (#584).
  *
  * Usage:
  *   pnpm tier1-miss-causes <lane1 groundedness.jsonl> <lane2 groundedness.jsonl> <carriers.json>
@@ -197,10 +203,18 @@ export interface Classified {
   lanes: [Cause, Cause];
   /**
    * A part that missed an answer set has a carrier in `reaches` of the
-   * step-catalogue family that lists the case. A part already in both sets is
-   * not counted: the catalogue reaching it says nothing about the miss.
+   * step-catalogue family that lists the case: a sentence finds it. A part
+   * already in both sets is not counted: the catalogue reaching it says
+   * nothing about the miss.
    */
-  catalogued: boolean;
+  sentenceFinds: boolean;
+  /**
+   * Per lane, whether one of those catalogue-found carriers is in that lane's
+   * answer set. Finding a chunk is not putting it in front of the model: the
+   * pick can lose the pinned slot (#561). False on both when no sentence
+   * finds the carrier.
+   */
+  entersSet: [boolean, boolean];
   /**
    * A part that missed an answer set has a carrier that is one of the case's
    * own `expected` targets. The case can still hit through another target, so
@@ -214,19 +228,22 @@ export interface StepCatalogue {
   families: Record<string, { cases: string[]; reaches: string[] }>;
 }
 
-/** The catalogue labels a chunk `docKey · articulo`, or `docKey` alone. */
-export function catalogueReaches(
+/**
+ * The carriers in `parts` that the case's own family lists in `reaches`. The
+ * catalogue labels a chunk `docKey · articulo`, or `docKey` alone.
+ */
+export function catalogueCarriers(
   caseId: string,
   parts: readonly Part[],
   catalogue: StepCatalogue,
-): boolean {
+): Carrier[] {
   const reaches = new Set(
     Object.values(catalogue.families)
       .filter((family) => family.cases.includes(caseId))
       .flatMap((family) => family.reaches),
   );
-  return parts.some((part) =>
-    part.carriers.some((c) =>
+  return parts.flatMap((part) =>
+    part.carriers.filter((c) =>
       reaches.has(c.articulo ? `${c.docKey} · ${c.articulo}` : c.docKey),
     ),
   );
@@ -250,6 +267,15 @@ export function classify(
       );
     }
   }
+  const tableOrder = both.map(key).filter((k) => byKey.has(k));
+  const fileOrder = tagged.map(key).filter((k) => wanted.has(k));
+  const at = fileOrder.findIndex((k, i) => k !== tableOrder[i]);
+  if (at >= 0) {
+    const name = (k: string | undefined) => k?.replace("\u0000", ": ");
+    errors.push(
+      `carriers file out of the table's order at row ${at + 1}: the file has ${name(fileOrder[at])}, the table ${name(tableOrder[at])}`,
+    );
+  }
   const answerSet = (rows: readonly Row[], id: string) =>
     new Set(rows.find((row) => row.id === id)?.chunks.map((c) => c.chunkId));
   const reached = (part: Part, set: ReadonlySet<string>) =>
@@ -267,14 +293,25 @@ export function classify(
     const missedParts = t.parts.filter((part) =>
       sets.some((set) => !reached(part, set)),
     );
-    const catalogued = catalogueReaches(miss.case, missedParts, catalogue);
+    const found = catalogueCarriers(miss.case, missedParts, catalogue);
+    const entersSet = sets.map((set) =>
+      found.some((c) => set.has(c.chunkId)),
+    ) as [boolean, boolean];
     const targets = expected.get(miss.case) ?? [];
     const expectedTarget = missedParts.some((part) =>
       part.carriers.some((c) =>
         matchesTarget({ doc_key: c.docKey, articulo: c.articulo }, targets),
       ),
     );
-    return [{ tagged: t, lanes, catalogued, expectedTarget }];
+    return [
+      {
+        tagged: t,
+        lanes,
+        sentenceFinds: found.length > 0,
+        entersSet,
+        expectedTarget,
+      },
+    ];
   });
   return { classified, errors };
 }
@@ -286,15 +323,18 @@ export function countCauses(classified: readonly Classified[]) {
     3: 0,
     split: 0,
     uncertain: 0,
-    cataloguedCause2: 0,
+    sentenceFindsCause2: 0,
+    foundOutsideCause2: 0,
     expectedCause2: 0,
   };
-  for (const { tagged, lanes, catalogued, expectedTarget } of classified) {
+  for (const c of classified) {
+    const { tagged, lanes, sentenceFinds, entersSet, expectedTarget } = c;
     if (lanes[0] === lanes[1]) counts[lanes[0]] += 1;
     else counts.split += 1;
     if (tagged.uncertain) counts.uncertain += 1;
-    if (catalogued && lanes[0] === 2 && lanes[1] === 2) {
-      counts.cataloguedCause2 += 1;
+    if (sentenceFinds && lanes[0] === 2 && lanes[1] === 2) {
+      counts.sentenceFindsCause2 += 1;
+      if (!entersSet[0] && !entersSet[1]) counts.foundOutsideCause2 += 1;
     }
     if (expectedTarget && lanes[0] === 2 && lanes[1] === 2) {
       counts.expectedCause2 += 1;
@@ -305,14 +345,21 @@ export function countCauses(classified: readonly Classified[]) {
 
 export function renderTable(classified: readonly Classified[]): string {
   const lines = [
-    "| # | Case | Requirement | Cause (lane 1 / lane 2) | Catalogue | Expected | Carrier: the quote |",
-    "| - | ---- | ----------- | ----------------------- | --------- | -------- | ------------------ |",
+    "| # | Case | Requirement | Cause (lane 1 / lane 2) | Sentence finds it | Enters the set | Expected | Carrier: the quote |",
+    "| - | ---- | ----------- | ----------------------- | ----------------- | -------------- | -------- | ------------------ |",
   ];
-  classified.forEach(({ tagged, lanes, catalogued, expectedTarget }, i) => {
+  const yesNo = (b: boolean) => (b ? "yes" : "no");
+  classified.forEach((c, i) => {
+    const { tagged, lanes, sentenceFinds, entersSet, expectedTarget } = c;
     const cause =
       lanes[0] === lanes[1]
         ? `**${lanes[0]}**`
         : `**${lanes[0]} / ${lanes[1]}**`;
+    const enters = !sentenceFinds
+      ? "—"
+      : entersSet[0] === entersSet[1]
+        ? yesNo(entersSet[0])
+        : `${yesNo(entersSet[0])} / ${yesNo(entersSet[1])}`;
     const carriers = tagged.parts
       .map((part) =>
         part.carriers.length === 0
@@ -327,7 +374,7 @@ export function renderTable(classified: readonly Classified[]): string {
       .join(" — ");
     const flag = tagged.uncertain ? " (uncertain)" : "";
     lines.push(
-      `| ${i + 1} | \`${tagged.case}\` | ${cell(tagged.requirement)} | ${cause}${flag} | ${catalogued ? "yes" : "no"} | ${expectedTarget ? "yes" : "no"} | ${cell(carriers)} |`,
+      `| ${i + 1} | \`${tagged.case}\` | ${cell(tagged.requirement)} | ${cause}${flag} | ${yesNo(sentenceFinds)} | ${enters} | ${yesNo(expectedTarget)} | ${cell(carriers)} |`,
     );
   });
   return lines.join("\n");
@@ -380,7 +427,7 @@ function main(): void {
   }
   console.log(`| split between the lanes | ${counts.split} |`);
   console.log(
-    `\nFlagged uncertain: ${counts.uncertain}. Cause 2 in both lanes with a carrier the step catalogue already reaches: ${counts.cataloguedCause2} of ${counts[2]}; with a carrier that is one of the case's expected targets: ${counts.expectedCause2} of ${counts[2]}.`,
+    `\nFlagged uncertain: ${counts.uncertain}. Cause 2 in both lanes with a carrier a step-catalogue sentence finds: ${counts.sentenceFindsCause2} of ${counts[2]}, ${counts.foundOutsideCause2} of them in neither lane's set; with a carrier that is one of the case's expected targets: ${counts.expectedCause2} of ${counts[2]}.`,
   );
   console.log("\nMissed in one lane only:\n");
   for (const [lane, misses] of [
