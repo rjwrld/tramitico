@@ -3653,6 +3653,19 @@ now streams the route's text.
 
 No paid run: the routed cases first run in the next authorized lane (#511).
 
+**What the routed cases measure (2026-10-08, #549).** The model's routing,
+not the deterministic decline. Every abstention row committed under
+`eval/runs/` took the model path: 202 rows in 26 transcripts, all
+`route: "model"`, the six routed cases included. So the deterministic decline
+is covered by e2e only. `e2e/routing.local.spec.ts` drives it through the real
+`/api/ask` on a question built to retrieve nothing, and the free test above
+checks the classifier. Production can't settle whether a real question ever
+takes it. Vercel keeps runtime logs for an hour, so the `routedCategory`
+counter is gone before anyone reads it. The `questions` table stores no
+category, and only signed-in asks reach it: 26 rows, none an honest decline
+of either kind. The reads and queries are in
+[`runs/2026-10-08-549/`](runs/2026-10-08-549/).
+
 ## The total-loss fallback keeps the fused order (2026-10-07, #510)
 
 > Two `pnpm answer-set-probe` arms under `RERANK=off`, the fallback path a
