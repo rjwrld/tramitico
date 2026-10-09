@@ -138,6 +138,7 @@ import {
   DEGRADED_PART_ID,
   MARKERS_PART_ID,
   MAX_QUESTION_LENGTH,
+  RERANKED_PART_ID,
   RETRIEVAL_FAILED_MESSAGE,
   ROUTED_PART_ID,
   STATUS_PART_ID,
@@ -994,28 +995,42 @@ export async function POST(request: Request): Promise<Response> {
     // Pinning the missing input back in from the pool the reranker just read
     // is an append, so nothing the rerank chose is displaced. #508: an
     // artículo the cut names («la tarifa referida en el artículo 10») is
-    // appended the same way, ahead of those inputs (pins.ts).
+    // appended the same way, ahead of those inputs (pins.ts). #559: so is a
+    // source the condensed question names by name («código CABYS»).
     // #286: the reranker scores the question *and* its corpus-register
     // expansion, for the same reason the fused legs do — and, since #304,
     // the step catalogue's sentences when retrieval ran a probe.
     const stopRerank = telemetry.startStage("rerank");
     let reranked;
+    // #551: whether any reading came back, which is whether the answer set
+    // is Voyage's order or the fused fallback. Never called when the rerank
+    // is off or unkeyed, so `false` covers those too.
+    let rerankRan = false;
     try {
       reranked = await rerankChunks(asked.query, retrieval.chunks, {
         ...rerankOptionsFor(retrieval),
         // #466: a lost reading changes the answer set and nothing else.
-        onReadings: telemetry.rerankReadings,
+        onReadings: (count) => {
+          telemetry.rerankReadings(count);
+          rerankRan = count.returned > 0;
+        },
       });
     } finally {
       stopRerank();
     }
+    // One boolean for the production canary (contract.ts), before any text.
+    writer.write({
+      type: "data-reranked",
+      id: RERANKED_PART_ID,
+      data: rerankRan,
+    });
     // #508: the appends after the cut get their own stage — the
     // cross-reference lookup is a database read on most asks, and inside
     // `rerank` it could not be told apart from Voyage.
     const stopPin = telemetry.startStage("pin");
     let chunks;
     try {
-      chunks = await pinAnswerSet(reranked, retrieval.chunks, {
+      chunks = await pinAnswerSet(reranked, retrieval.chunks, asked.query, {
         // The lookup stops with the ask (pins.ts).
         signal: AbortSignal.any([request.signal, deadline.signal]),
         onOutcome: telemetry.crossReference,

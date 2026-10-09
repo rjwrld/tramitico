@@ -1,0 +1,589 @@
+{
+  "about": "Hand-tagged carriers for the Tier 1 requirements missing in both #512 lanes (#554). Read by scripts/tier1-miss-causes.ts.",
+  "requirements": [
+    {
+      "case": "ccss-pedir-prescripcion-cuotas",
+      "requirement": "En cobro, la Administración dispone de 20 días hábiles desde el siguiente día hábil a la recepción para resolver; en verificación, la solicitud se atiende dentro del informe o de la resolución del recurso, según la fase.",
+      "parts": [
+        {
+          "what": "the resolution deadline by phase",
+          "carriers": [
+            {
+              "chunkId": "f5de49d4-8500-4dde-99b7-19450616db70",
+              "docKey": "ccss-prescripcion",
+              "articulo": "¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración?",
+              "quote": "El plazo otorgado a la Administración para resolver la prescripción en sede administrativa es de 20 días hábiles, contados a partir del siguiente día hábil de recibida la solicitud por parte del deudor."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ccss-obligacion-ingreso-bajo",
+      "requirement": "Dónde se hace la afiliación y qué se declara: el ingreso de referencia, en la sucursal de la CCSS que corresponda a la zona de adscripción.",
+      "parts": [
+        {
+          "what": "where: the branch for the zona de adscripción",
+          "carriers": [
+            {
+              "chunkId": "9d024946-7c64-4261-abd8-b10dd734a365",
+              "docKey": "ccss-faq",
+              "articulo": "¿Dónde me corresponde realizar el trámite de afiliación?",
+              "quote": "El trámite de afiliación como trabajador independiente lo debe realizar en la sucursal de la CCSS más cercana o bien en el Edificio El Hierro en Calle 7 y 9 avenida segunda, esto acorde a la zona de adscripción"
+            }
+          ]
+        }
+      ],
+      "note": "Both answers state the income duty (veraz, on ingreso neto) from ccss-reglamento-ti Artículo 4 in their sets; the «where» half is the one neither lane states."
+    },
+    {
+      "case": "ccss-obligacion-ingreso-bajo",
+      "requirement": "La obligatoriedad está en la Ley Constitutiva de la CCSS y en el Reglamento para el aseguramiento de los trabajadores independientes, no en una decisión voluntaria de la persona.",
+      "parts": [
+        {
+          "what": "the legal basis",
+          "carriers": [
+            {
+              "chunkId": "abd64e0e-5d42-4c30-a69a-e2f66cfc1926",
+              "docKey": "ccss-faq",
+              "articulo": "¿El Trabajador Independiente está obligado a asegurarse ante la CCSS?",
+              "quote": "Está obligado de conformidad con la Ley de Protección al Trabajador, Transitorio XII; Ley Constitutiva de la CCSS, artículo 3 y 74, y el Reglamento para la Afiliación de los Trabajadores Independientes, artículo 1 y 2."
+            }
+          ]
+        }
+      ],
+      "note": "Both answers cite this fragment for «está obligado» and drop the laws it names."
+    },
+    {
+      "case": "desinscripcion-dejar-actividad",
+      "requirement": "Mientras la persona siga inscrita conserva sus obligaciones de declarar, y omitir una declaración se sanciona aunque no haya habido ingresos.",
+      "parts": [
+        {
+          "what": "the duty to file with nothing to pay",
+          "carriers": [
+            {
+              "chunkId": "18546661-f446-4b7c-b00f-75713f06a5fb",
+              "docKey": "reglamento-iva",
+              "articulo": "Artículo 40",
+              "quote": "La obligación de presentar la declaración subsiste aun cuando no se pague el impuesto, incluso cuando por cualquier circunstancia no exista la obligación de pagarlo"
+            },
+            {
+              "chunkId": "d1e97205-d15b-45d0-9db1-dac3e893d39c",
+              "docKey": "ley-iva",
+              "articulo": "Artículo 27",
+              "quote": "La obligación de presentar la declaración subsiste aun cuando no se pague el impuesto"
+            }
+          ]
+        },
+        {
+          "what": "the fine for an omitted return",
+          "carriers": [
+            {
+              "chunkId": "9cf26fa0-c289-4bfe-ab2f-93b4d2d7b721",
+              "docKey": "cnpt",
+              "articulo": "Artículo 79",
+              "quote": "Los sujetos pasivos que omitan presentar las declaraciones de autoliquidación de obligaciones tributarias dentro del plazo legal establecido, tendrán una multa equivalente al cincuenta por ciento (50%) del salario base."
+            }
+          ]
+        }
+      ],
+      "note": "ley-iva Artículo 27 is one of the case's expected targets."
+    },
+    {
+      "case": "inscripcion-tardia-sancion",
+      "requirement": "Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.",
+      "parts": [
+        {
+          "what": "where: the inscription in the Oficina Virtual",
+          "carriers": [
+            {
+              "chunkId": "ab018516-e8a8-491b-b92e-d31c8b99f204",
+              "docKey": "tribu-cr-faq",
+              "articulo": "Declaraciones del RUT · 2",
+              "quote": "Para realizar su declaración de inscripción, se debe ingresar a la Oficina Virtual"
+            }
+          ]
+        }
+      ],
+      "note": "The other half, autoliquidar for the artículo 88 rebaja, is in both sets (cnpt Artículo 88) and both answers state it."
+    },
+    {
+      "case": "ho-hacienda-solo-cliente-eeuu",
+      "requirement": "Omitir la declaración de inscripción se sanciona con el cincuenta por ciento (50 %) de un salario base por cada mes o fracción de atraso.",
+      "parts": [
+        {
+          "what": "the 50 % per month",
+          "carriers": [
+            {
+              "chunkId": "5e01c74d-5775-43fb-9781-77c241676768",
+              "docKey": "cnpt",
+              "articulo": "Artículo 78",
+              "quote": "deberán liquidar y pagar una sanción equivalente al cincuenta por ciento (50%) de un salario base por cada mes o fracción de mes"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ho-trabajitos-por-mi-cuenta",
+      "requirement": "Los dos trámites que siguen: la declaración de inscripción del RUT en la Oficina Virtual de TRIBU-CR y la afiliación como trabajador independiente en la CCSS.",
+      "parts": [
+        {
+          "what": "the RUT inscription in the Oficina Virtual",
+          "carriers": [
+            {
+              "chunkId": "ab018516-e8a8-491b-b92e-d31c8b99f204",
+              "docKey": "tribu-cr-faq",
+              "articulo": "Declaraciones del RUT · 2",
+              "quote": "Para realizar su declaración de inscripción, se debe ingresar a la Oficina Virtual"
+            },
+            {
+              "chunkId": "37f4b08e-e13d-4b76-a916-8a03d72db808",
+              "docKey": "tribu-cr-faq",
+              "articulo": "Registro Único Tributario (RUT) · 1",
+              "quote": "una persona física puede presentar la declaración de inscripción en el Registro Tributario"
+            }
+          ]
+        }
+      ],
+      "note": "Both answers name the CCSS afiliación and an inscription before Hacienda, from reglamento-renta Artículo 27, without the Oficina Virtual or TRIBU-CR."
+    },
+    {
+      "case": "ho-desde-cuanta-plata-caja",
+      "requirement": "Cómo se declara el ingreso de referencia y dónde se paga la cuota.",
+      "parts": [
+        {
+          "what": "how the income is declared",
+          "carriers": [
+            {
+              "chunkId": "816d94f8-d6b5-4f21-afb0-e410cf43ac09",
+              "docKey": "ccss-reglamento-ti",
+              "articulo": "Artículo 7",
+              "quote": "Toda persona que califique como trabajador independiente deberá gestionar su afiliación a los seguros sociales administrados por la CCSS, sea de forma presencial en las oficinas o centros que la CCSS designe al efecto, o a través de mecanismos para tramitación electrónica y de autogestión"
+            }
+          ]
+        },
+        {
+          "what": "where the cuota is paid",
+          "carriers": [
+            {
+              "chunkId": "7f09f1c7-79be-46bd-90d2-a82813c89662",
+              "docKey": "ccss-faq",
+              "articulo": "¿Dónde puedo pagar mi seguro?",
+              "quote": "pueden ser canceladas, hasta con 59 días de vencidas, en los diferentes puntos de pago con que cuenta la Institución"
+            }
+          ]
+        }
+      ],
+      "note": "The set's ccss-faq «¿Cuál es el porcentaje de cotización … y cómo se determina el ingreso de referencia?» is a rate table; it says nothing of how the income is declared.",
+      "uncertain": true
+    },
+    {
+      "case": "ho-donde-me-afilio-caja",
+      "requirement": "La cuota se paga mensualmente, dentro de la fecha que corresponde según la primera letra del primer apellido.",
+      "parts": [
+        {
+          "what": "the monthly due date by surname",
+          "carriers": [
+            {
+              "chunkId": "8225abfb-ca11-4793-a195-a2eb149fc698",
+              "docKey": "ccss-faq",
+              "articulo": "¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente?",
+              "quote": "Recuerde cancelar sus cuotas desde el primer día del mes hasta la fecha que le corresponda, según la primera letra de su apellido"
+            },
+            {
+              "chunkId": "a19f67fb-f30e-4f9d-bd28-747db533cedb",
+              "docKey": "ccss-faq",
+              "articulo": "¿Cuándo me corresponde pagar mi seguro voluntario, migrante o de trabajador independiente?",
+              "quote": "las fechas de pago van del día 5 al 9 de cada mes según la primera letra del primer apellido"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ho-tiquete-en-vez-de-factura",
+      "requirement": "Quien emite comprobantes electrónicos debe estar inscrito en el Registro Único Tributario y tener registrado un correo electrónico válido ante la Administración Tributaria.",
+      "parts": [
+        {
+          "what": "RUT and a valid e-mail",
+          "carriers": [
+            {
+              "chunkId": "09edbae7-2ae2-4940-9fc8-a4ee6d649e15",
+              "docKey": "reglamento-comprobantes",
+              "articulo": "Artículo 4",
+              "quote": "a) Estar inscrito en el Registro Único Tributario y tener registrado un correo electrónico válido ante la Administración Tributaria."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ho-factura-electronica-o-recibo",
+      "requirement": "Con qué emitir: el facturador gratuito de Hacienda o un proveedor de sistemas de comprobantes electrónicos.",
+      "parts": [
+        {
+          "what": "the free invoicer or a provider",
+          "carriers": [
+            {
+              "chunkId": "e0b31a4d-6c30-4d50-8313-8ca088d3a0c0",
+              "docKey": "reglamento-comprobantes",
+              "articulo": "Artículo 16",
+              "quote": "podrán utilizar el facturador gratuito proporcionado por cualquier proveedor de solución de comprobantes electrónicos o el proporcionado por el Ministerio de Hacienda"
+            },
+            {
+              "chunkId": "7ffa313d-1a73-41fe-9d33-fb27dfe5c651",
+              "docKey": "reglamento-comprobantes",
+              "articulo": "Artículo 22",
+              "quote": "El sistema gratuito de comprobantes electrónicos proporcionado por el Ministerio de Hacienda"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ho-factura-electronica-o-recibo",
+      "requirement": "Los comprobantes electrónicos y sus documentos asociados deben almacenarse y conservarse por un plazo de cinco años.",
+      "parts": [
+        {
+          "what": "five years",
+          "carriers": [
+            {
+              "chunkId": "7ffa313d-1a73-41fe-9d33-fb27dfe5c651",
+              "docKey": "reglamento-comprobantes",
+              "articulo": "Artículo 22",
+              "quote": "por un plazo de cinco años conforme a lo establecido en el artículo 109 del Código de Normas y Procedimientos Tributarios"
+            },
+            {
+              "chunkId": "5ee753ae-9f2d-4b62-93b8-beab6a935cbe",
+              "docKey": "reglamento-comprobantes",
+              "articulo": "Preámbulo",
+              "quote": "debiendo conservar los duplicados de estos documentos por un plazo de cinco años"
+            }
+          ]
+        }
+      ],
+      "note": "Lane 2's set carries only the Preámbulo, a considerando quoting the Code's general rule for documents, not the comprobantes article.",
+      "uncertain": true
+    },
+    {
+      "case": "ho-cabys-paginas-web",
+      "requirement": "Al emitir el comprobante, en cada línea de detalle se indica el código de producto, la descripción, la cantidad y el precio unitario.",
+      "parts": [
+        {
+          "what": "the detail line",
+          "carriers": [
+            {
+              "chunkId": "0982390e-64f8-49f8-9110-016f7a68f1d8",
+              "docKey": "reglamento-comprobantes",
+              "articulo": "Artículo 13",
+              "quote": "10) Detalle del bien o servicio prestado: cantidad enviada, precio unitario expresado en moneda nacional o moneda extranjera, unidad de medida, código de producto, descripción del producto o del servicio"
+            }
+          ]
+        }
+      ],
+      "note": "Artículo 13 is one of the case's expected targets."
+    },
+    {
+      "case": "ho-cliente-espana-lleva-iva",
+      "requirement": "El hecho generador ocurre al facturar o al prestar el servicio, el acto que se realice primero, no cuando el cliente paga.",
+      "parts": [
+        {
+          "what": "services: invoice or service, whichever is first",
+          "carriers": [
+            {
+              "chunkId": "ae3d06ad-91d4-45a8-9d06-54a65761f55b",
+              "docKey": "ley-iva",
+              "articulo": "Artículo 3",
+              "quote": "3. En la prestación de servicios, en el momento de la facturación o de la prestación del servicio, el acto que se realice primero."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ho-cliente-espana-lleva-iva",
+      "requirement": "Si el servicio se consume en Costa Rica, la tarifa general del impuesto es del 13 %.",
+      "parts": [
+        {
+          "what": "13 %",
+          "carriers": [
+            {
+              "chunkId": "68b3dd98-db27-4a90-9aa9-4a04959b723d",
+              "docKey": "reglamento-iva",
+              "articulo": "Artículo 32",
+              "quote": "sujetos a la tarifa general del 13%"
+            }
+          ]
+        }
+      ],
+      "note": "The rate appears only in passing, in the crédito pleno list; ley-iva Artículo 10, the rate article, is in neither set.",
+      "uncertain": true
+    },
+    {
+      "case": "ho-iva-en-cero-sin-facturar",
+      "requirement": "Dónde se presenta la declaración hoy y qué pasa si ya venció el plazo.",
+      "parts": [
+        {
+          "what": "where: TRIBU-CR",
+          "carriers": [
+            {
+              "chunkId": "1d70ef81-82e5-4bdb-b519-a6fa1f056921",
+              "docKey": "tribu-cr-res-0011-2025",
+              "articulo": "Artículo 2",
+              "quote": "como la única plataforma digital tributaria que se utilizará para la gestión de trámites, el cumplimiento de los deberes formales y materiales"
+            }
+          ]
+        },
+        {
+          "what": "after the deadline",
+          "carriers": [
+            {
+              "chunkId": "9cf26fa0-c289-4bfe-ab2f-93b4d2d7b721",
+              "docKey": "cnpt",
+              "articulo": "Artículo 79",
+              "quote": "Los sujetos pasivos que omitan presentar las declaraciones de autoliquidación de obligaciones tributarias dentro del plazo legal establecido, tendrán una multa equivalente al cincuenta por ciento (50%) del salario base."
+            },
+            {
+              "chunkId": "009d9a23-1645-41bc-8f75-048efe93fb4f",
+              "docKey": "cnpt",
+              "articulo": "Artículo 88",
+              "quote": "Cuando el infractor subsane, de forma espontánea, su incumplimiento sin que medie ninguna actuación de la Administración para obtener la reparación, la sanción será rebajada en un setenta y cinco por ciento (75%)."
+            }
+          ]
+        }
+      ],
+      "note": "Both answers say the October deadline has not passed yet and stop there; cnpt Artículo 79 is in both sets."
+    },
+    {
+      "case": "ho-hasta-que-dia-tengo-iva",
+      "requirement": "Qué hacer si la fecha ya pasó.",
+      "parts": [
+        {
+          "what": "file late and take the spontaneous rebaja",
+          "carriers": [
+            {
+              "chunkId": "009d9a23-1645-41bc-8f75-048efe93fb4f",
+              "docKey": "cnpt",
+              "articulo": "Artículo 88",
+              "quote": "Cuando el infractor subsane, de forma espontánea, su incumplimiento sin que medie ninguna actuación de la Administración para obtener la reparación, la sanción será rebajada en un setenta y cinco por ciento (75%)."
+            },
+            {
+              "chunkId": "1d70ef81-82e5-4bdb-b519-a6fa1f056921",
+              "docKey": "tribu-cr-res-0011-2025",
+              "articulo": "Artículo 2",
+              "quote": "como la única plataforma digital tributaria que se utilizará para la gestión de trámites, el cumplimiento de los deberes formales y materiales"
+            }
+          ]
+        }
+      ],
+      "note": "Lane 2's set has cnpt Artículo 79, the fine, which says what happens rather than what to do.",
+      "uncertain": true
+    },
+    {
+      "case": "ho-rebajar-25-sin-facturas",
+      "requirement": "La declaración anual se presenta en TRIBU-CR, la plataforma tributaria.",
+      "parts": [
+        {
+          "what": "where: TRIBU-CR",
+          "carriers": [
+            {
+              "chunkId": "1d70ef81-82e5-4bdb-b519-a6fa1f056921",
+              "docKey": "tribu-cr-res-0011-2025",
+              "articulo": "Artículo 2",
+              "quote": "como la única plataforma digital tributaria que se utilizará para la gestión de trámites, el cumplimiento de los deberes formales y materiales"
+            }
+          ]
+        }
+      ],
+      "note": "tribu-cr-res-0011-2025 Artículo 2 is one of the case's expected targets (decision #416)."
+    },
+    {
+      "case": "ho-minimo-renta-2026",
+      "requirement": "El período del impuesto va del 1 de enero al 31 de diciembre.",
+      "parts": [
+        {
+          "what": "1 January to 31 December",
+          "carriers": [
+            {
+              "chunkId": "04976fb8-e0c3-4019-afbe-e895ab4a272b",
+              "docKey": "reglamento-renta",
+              "articulo": "Artículo 12",
+              "quote": "El período fiscal del Impuesto sobre las Utilidades es de un año, comprendido entre el 1 de enero y el 31 de diciembre de cada año."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ho-minimo-renta-2026",
+      "requirement": "Los tramos se actualizan cada año por decreto ejecutivo; los de 2026 son del decreto N° 45333.",
+      "parts": [
+        {
+          "what": "the yearly decree, N° 45333",
+          "carriers": [
+            {
+              "chunkId": "436f11c7-3fbe-4b54-9779-bd6ebe1aac47",
+              "docKey": "ley-renta",
+              "articulo": "Artículo 33",
+              "quote": "decreto ejecutivo N°45333 del 10 de noviembre de 2025"
+            },
+            {
+              "chunkId": "90ac05ba-5ba4-4016-a6d9-c97728699cff",
+              "docKey": "ley-renta",
+              "articulo": "Artículo 15",
+              "quote": "decreto ejecutivo N° 45333 del 10 de noviembre de 2025"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ho-minimo-renta-2026",
+      "requirement": "Los tramos son anuales y se aplican sobre la renta neta, no sobre los ingresos brutos.",
+      "parts": [
+        {
+          "what": "annual, on renta neta",
+          "carriers": [
+            {
+              "chunkId": "aa0f56d3-7b7b-4e20-83d2-35fe30be84c3",
+              "docKey": "ley-renta",
+              "articulo": "Artículo 15",
+              "quote": "de renta neta anual"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ho-ademas-tengo-salario",
+      "requirement": "El salario y la actividad lucrativa tributan por escalas distintas: el salario por la escala mensual de rentas del trabajo y la actividad por la escala anual de personas físicas con actividad lucrativa.",
+      "parts": [
+        {
+          "what": "two scales",
+          "carriers": [
+            {
+              "chunkId": "eb1e276f-085a-4891-a181-bc403c5cfdc6",
+              "docKey": "tramos-renta-2026",
+              "articulo": null,
+              "quote": "1. Para asalariados, jubilados y pensionados Tramos de renta (salario bruto)"
+            },
+            {
+              "chunkId": "eb1e276f-085a-4891-a181-bc403c5cfdc6",
+              "docKey": "tramos-renta-2026",
+              "articulo": null,
+              "quote": "2. Para las personas físicas con actividades lucrativas"
+            }
+          ]
+        }
+      ],
+      "note": "Both answers give each scale's exempt amount but never say the two run separately, one monthly and one annual."
+    },
+    {
+      "case": "ho-ademas-tengo-salario",
+      "requirement": "La declaración anual y el pago vencen dentro de los dos meses y quince días naturales siguientes al cierre del período.",
+      "parts": [
+        {
+          "what": "two months and fifteen days",
+          "carriers": [
+            {
+              "chunkId": "93a75e50-9f99-435f-a138-bc73c81bd65f",
+              "docKey": "ley-renta",
+              "articulo": "ARTICULO 22",
+              "quote": "El saldo resultante deberá pagarse dentro de los dos meses y quince días naturales siguientes al término del período fiscal respectivo."
+            },
+            {
+              "chunkId": "b337b365-0faf-41de-8c6d-f1db701b2831",
+              "docKey": "ley-renta",
+              "articulo": "ARTICULO 20",
+              "quote": "dentro de los dos meses y quince días naturales siguientes al término del período fiscal"
+            }
+          ]
+        }
+      ],
+      "note": "ley-renta ARTICULO 22 is one of the case's expected targets."
+    },
+    {
+      "case": "ho-ademas-tengo-salario",
+      "requirement": "Los pagos parciales: cuándo se pagan y que puede pedirse su rebaja cuando la renta del período va a ser menor.",
+      "parts": [
+        {
+          "what": "when, and the rectification",
+          "carriers": [
+            {
+              "chunkId": "93a75e50-9f99-435f-a138-bc73c81bd65f",
+              "docKey": "ley-renta",
+              "articulo": "ARTICULO 22",
+              "quote": "deberán pagarse sucesivamente a más tardar el último día hábil de los meses de marzo, junio y setiembre de cada año"
+            },
+            {
+              "chunkId": "93a75e50-9f99-435f-a138-bc73c81bd65f",
+              "docKey": "ley-renta",
+              "articulo": "ARTICULO 22",
+              "quote": "La Administración Tributaria podrá rectificar las cuotas de los pagos parciales cuando los contribuyentes lo soliciten por escrito"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ho-ademas-tengo-salario",
+      "requirement": "Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.",
+      "parts": [
+        {
+          "what": "payments on account, deducted",
+          "carriers": [
+            {
+              "chunkId": "93a75e50-9f99-435f-a138-bc73c81bd65f",
+              "docKey": "ley-renta",
+              "articulo": "ARTICULO 22",
+              "quote": "están obligados a efectuar pagos parciales a cuenta del impuesto de cada período fiscal"
+            },
+            {
+              "chunkId": "93a75e50-9f99-435f-a138-bc73c81bd65f",
+              "docKey": "ley-renta",
+              "articulo": "ARTICULO 22",
+              "quote": "Del impuesto total que se liquide al presentar la declaración jurada, deberán deducirse los pagos parciales que correspondan a ese período fiscal."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ho-tambien-asegurado-por-patrono",
+      "requirement": "Qué hay que hacer ante la CCSS para quedar registrado en las dos condiciones.",
+      "parts": [
+        {
+          "what": "register the independent activity",
+          "carriers": [
+            {
+              "chunkId": "816d94f8-d6b5-4f21-afb0-e410cf43ac09",
+              "docKey": "ccss-reglamento-ti",
+              "articulo": "Artículo 7",
+              "quote": "Toda persona que califique como trabajador independiente deberá gestionar su afiliación a los seguros sociales administrados por la CCSS, sea de forma presencial en las oficinas o centros que la CCSS designe al efecto, o a través de mecanismos para tramitación electrónica y de autogestión"
+            }
+          ]
+        }
+      ],
+      "note": "No fragment describes registering both conditions as one step: the closest carrier is the afiliación duty itself. If that doesn't count, the row is cause 1.",
+      "uncertain": true
+    },
+    {
+      "case": "ho-desinscribir-debiendo-declaraciones",
+      "requirement": "Omitir una declaración dentro del plazo legal se sanciona con el cincuenta por ciento (50 %) de un salario base.",
+      "parts": [
+        {
+          "what": "50 % of a salario base",
+          "carriers": [
+            {
+              "chunkId": "9cf26fa0-c289-4bfe-ab2f-93b4d2d7b721",
+              "docKey": "cnpt",
+              "articulo": "Artículo 79",
+              "quote": "Los sujetos pasivos que omitan presentar las declaraciones de autoliquidación de obligaciones tributarias dentro del plazo legal establecido, tendrán una multa equivalente al cincuenta por ciento (50%) del salario base."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -299,6 +299,10 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   cited like any other. A reference to another instrument is not followed, and an appended
   chunk's own references are not read. `PIN_CROSS_REFERENCES=off` is the baseline —
   **[ADR 0024](docs/adr/0024-in-document-cross-references.md)**.
+- **Named sources (#559):** after those two appends, a question that names a source by its own
+  name — «CABYS», the one entry of `NAMED_SOURCES` (`src/lib/answer/steps.ts`), matched as a
+  whole word on the condensed question — brings that document's best pooled chunk, one chunk
+  and only when the set holds none of it. `PIN_NAMED_SOURCES=off` is the baseline.
 - **Answer assembly:** Claude **Sonnet by default, model as env var** — Week 3 runs Haiku 4.5
   through the same groundedness gate as a cost/quality comparison (portfolio material either way).
   Via Vercel AI SDK, streaming. System prompt constrains
@@ -486,6 +490,14 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
   13 % and artículo 10, each cited, and must not say the artículo is absent from the documents.
   The lane scores and asserts this on every run. #512's two lanes read it 0/1 (the 13 % cited, no
   artículo 10), and it was armed after #550's lane read it 1/1.
+- **Two routing paths, two owners (#549):** the deterministic routed decline (`retrieval.isWeak` →
+  `classifyRouting` → `streamHonestDecline` in the ask route) is covered by e2e only:
+  `e2e/routing.local.spec.ts` drives it through the real `/api/ask`, and
+  `src/lib/eval/routing-dataset.test.ts` checks the classifier on every abstention case. The
+  eval's routed cases measure the model's routing (rule 6 of the answer prompt). On the real
+  corpus no case on record has taken the weak path: 202 abstention rows in `eval/runs/`, all
+  `route: "model"`. Production cannot say otherwise: Hobby keeps runtime logs for an hour, and
+  `questions` stores no routing category (`eval/runs/2026-10-08-549/`).
 - **Threshold policy:** every Tier 1 case outside the robustness block is individually blocking across retrieval, groundedness,
   adequacy, citations, freshness, and abstention behavior; a strong aggregate cannot hide a red
   case. Numeric thresholds were fixed by the single authorized baseline on the beta corpus

@@ -429,6 +429,10 @@ function degradedParts(events: SseEvent[]): unknown[] {
   return events.filter((e) => e.type === "data-degraded").map((e) => e.data);
 }
 
+function rerankedParts(events: SseEvent[]): unknown[] {
+  return events.filter((e) => e.type === "data-reranked").map((e) => e.data);
+}
+
 function routedParts(events: SseEvent[]): unknown[] {
   return events.filter((e) => e.type === "data-routed").map((e) => e.data);
 }
@@ -2354,6 +2358,93 @@ describe("POST /api/ask", () => {
       expect(refund).not.toHaveBeenCalled();
     });
   });
+  describe("the rerank signal for the canary (#551)", () => {
+    const ANSWER = "La tarifa general es 13% [1].";
+
+    async function ask(): Promise<SseEvent[]> {
+      return readEvents(
+        await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+      );
+    }
+
+    it("says false, once, when the rerank is off — before the model writes", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+      mockModel(ANSWER);
+
+      const events = await ask();
+
+      // One boolean and nothing else: no provider, no scores, no chunk ids.
+      expect(events.filter((e) => e.type === "data-reranked")).toEqual([
+        { type: "data-reranked", id: "reranked", data: false },
+      ]);
+      const types = events.map((e) => e.type);
+      const status = events.findIndex(
+        (e) =>
+          e.type === "data-status" &&
+          (e.data as { stage: string }).stage === "redactando",
+      );
+      expect(types.indexOf("data-reranked")).toBeLessThan(status);
+      expect(types.indexOf("data-reranked")).toBeLessThan(
+        types.indexOf("text-delta"),
+      );
+    });
+
+    it("says true when a reading came back", async () => {
+      vi.stubEnv("RERANK", "voyage");
+      vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () =>
+          Response.json({
+            data: [
+              { index: 1, relevance_score: 0.9 },
+              { index: 0, relevance_score: 0.4 },
+            ],
+          }),
+        ),
+      );
+      let events: SseEvent[];
+      try {
+        allowRateLimit();
+        vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+        mockModel(ANSWER);
+        events = await ask();
+      } finally {
+        vi.unstubAllGlobals();
+      }
+
+      expect(rerankedParts(events)).toEqual([true]);
+      expect(streamedText(events).trim()).toBe(ANSWER);
+    });
+
+    it("is not written on a weak-retrieval decline, which never reaches the rerank", async () => {
+      allowRateLimit();
+      vi.mocked(retrieve).mockResolvedValue(
+        retrievalResult({ isWeak: true, chunks: [] }),
+      );
+
+      const events = await ask();
+
+      expect(routedParts(events)).toHaveLength(1);
+      expect(rerankedParts(events)).toEqual([]);
+    });
+
+    it("is not written when retrieval fails", async () => {
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      allowRateLimit();
+      vi.mocked(retrieve).mockRejectedValue(new Error("rpc down"));
+
+      const events = await ask();
+
+      expect(errorBodies(events).map((b) => b.error)).toEqual([
+        "retrieval_failed",
+      ]);
+      expect(rerankedParts(events)).toEqual([]);
+      vi.mocked(console.error).mockRestore();
+    });
+  });
+
   describe("history-save failures (#139)", () => {
     const ANSWER = "La tarifa general es 13% [1].";
 
@@ -2770,6 +2861,29 @@ describe("POST /api/ask", () => {
         rerankDrops: voyage.mock.calls.map(() => "429"),
         rerank: "on",
       });
+    });
+
+    it("says the rerank did not run when every reading was lost (#551)", async () => {
+      vi.stubEnv("RERANK", "voyage");
+      vi.stubEnv("VOYAGE_API_KEY", "vk-test");
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => new Response("", { status: 429 })),
+      );
+      let events: SseEvent[];
+      try {
+        allowRateLimit();
+        vi.mocked(retrieve).mockResolvedValue(retrievalResult());
+        mockModel(ANSWER);
+        events = await readEvents(
+          await POST(askRequest({ question: "¿Cuánto es el IVA?" })),
+        );
+      } finally {
+        vi.unstubAllGlobals();
+      }
+
+      expect(rerankedParts(events)).toEqual([false]);
+      expect(streamedText(events).trim()).toBe(ANSWER);
     });
 
     it("separates retrieval, first text, generation and failed persistence (#356)", async () => {
