@@ -788,9 +788,18 @@ if the read fails. Two things it cannot do:
 - **It cannot survive a quiet repo.** GitHub disables _every_ scheduled workflow in a
   repository after 60 days without a commit, and sends one email first. A portfolio repo
   that goes quiet loses `keepalive.yml` and `recrawl.yml` together, and the project pauses
-  a week later. Any commit re-enables them; so does **Actions → the workflow → Enable**. If
-  the repo is going to be untouched for two months, either push a trivial commit or accept
-  the pause and restore from the Supabase dashboard when the link is next needed.
+  a week later. Any commit re-enables them; so does **Actions → the workflow → Enable**.
+  The mitigation lives outside GitHub (#553): a free **UptimeRobot** monitor polls
+  `https://tramitico.com/api/health` every 5 minutes (keyword `"ok"`, or status 200) and
+  emails on failure. The route makes the same read as `keepalive.yml` — one row of
+  `documents` through the service-role client — so the monitor keeps the project awake
+  however long the repo sits, and doubles as the uptime signal #551's daily canary is too
+  coarse to give. It answers `{"status":"ok"}`, or a 503 `{"status":"unavailable"}` with
+  the cause only in the log (`[health] unavailable — …`); an empty `documents` is still
+  ok, since the database answered. UptimeRobot sees no question and no user data, so it
+  is not a subprocessor and `/privacidad` does not name it. The owner creates the monitor
+  after #553 merges; until it exists, push a trivial commit before two quiet months, or
+  accept the pause and restore from the Supabase dashboard when the link is next needed.
 - **It cannot un-pause.** A paused project is restored from the Supabase dashboard (a
   minute or two; the data is kept for 90 days on the free tier). The failure issue says so.
 
