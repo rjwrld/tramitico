@@ -26,6 +26,12 @@
  * prompt asks for, and is left alone too. The detector prefers a miss to a
  * false alarm: it gates the lanes, and #500's backtest is its precision read.
  *
+ * The same zero holds a narrower claim the corpus index cannot see (#547):
+ * «las fuentes no dicen cuántas veces se aplica esa multa», in an answer that
+ * cites a derived figure labelled «Multa por cada declaración tributaria
+ * omitida». The label is what the sources say about the count, and the
+ * answer cites it (`countHedges`).
+ *
  * Separately, an answer whose *opening* sentence is any absence claim is
  * reported (prompt rule 9: «no la anuncie al principio»; rule 6: «no la
  * empiece diciendo que no encuentra base oficial»), true or false, never
@@ -33,6 +39,7 @@
  */
 import committedIndex from "../../../eval/corpus-index.json";
 import { citationMarkers } from "../answer/citations";
+import { DERIVED_FIGURES, type DerivedFigure } from "../answer/derived";
 import type { CorpusIndex } from "./corpus-index";
 
 /** What the corpus index covers, in the shape the detector reads it. */
@@ -44,20 +51,32 @@ export interface CorpusCoverage {
 export interface FalseAbsence {
   /** The sentence, as the answer wrote it. */
   sentence: string;
-  /** What it says is absent: `ley-iva · Artículo 10`, or a figure's label. */
+  /**
+   * What it says is absent: `ley-iva · Artículo 10`, or a figure's label; for
+   * a count hedge, the cited label that states the count.
+   */
   target: string;
+  /** `count`: #547's hedge (`countHedges`). Absent: #500's corpus claim. */
+  kind?: "count";
 }
 
 export interface AbsenceReport {
-  /** Absence claims the corpus index contradicts. The lanes gate on these. */
+  /**
+   * Absence claims the corpus index contradicts, and count hedges a cited
+   * label contradicts (#547). The lanes gate on these.
+   */
   falseClaims: FalseAbsence[];
   /** The opening sentence when it is an absence claim, true or false. */
   opening: string | null;
 }
 
-/** A chunk the answer cited; only its document is read. */
+/**
+ * A chunk the answer cited. Its document resolves a bare artículo; its
+ * artículo, when the row carries one, resolves a derived figure's inputs.
+ */
 export interface CitedChunk {
   docKey: string;
+  articulo?: string | null;
 }
 
 /**
@@ -65,7 +84,7 @@ export interface CitedChunk {
  * form, so «Artículo», «ARTICULO» and «artículo» are one string, and `\b`
  * works (it is ASCII-only, and «está» would otherwise have no boundary).
  */
-function fold(text: string): string {
+export function fold(text: string): string {
   return text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 }
 
@@ -650,6 +669,81 @@ export function sentences(answer: string): string[] {
     .filter((sentence) => sentence.length > 0);
 }
 
+// ── the count hedge (#547) ────────────────────────────────────────────────
+
+/**
+ * A derived figure whose label says how it is counted: «Multa **por cada**
+ * declaración tributaria omitida (artículo 79)», «Multa **por mes** o
+ * fracción por omitir la inscripción (artículo 78)».
+ */
+const COUNTED_LABEL = /\bpor (?:cada|mes)\b/;
+
+/** The counted figures whose every input the answer cites. */
+function citedCountedFigures(
+  cited: readonly CitedChunk[],
+  figures: readonly DerivedFigure[],
+): DerivedFigure[] {
+  return figures.filter(
+    (figure) =>
+      COUNTED_LABEL.test(fold(figure.label)) &&
+      figure.inputs.every((input) =>
+        cited.some(
+          (chunk) =>
+            chunk.docKey === input.docKey && chunk.articulo === input.articulo,
+        ),
+      ),
+  );
+}
+
+const SAY_VERB = String.raw`(?:dicen|dice|indican|indica|precisan|precisa|aclaran|aclara|especifican|especifica|detallan|detalla|establecen|establece|explican|explica)`;
+/** How a figure is counted. «Aplica» only with a count after it: «cómo se aplica el plazo» is not one. */
+const COUNT_VERB = String.raw`(?:cobra|cobran|impone|imponen|cuenta|cuentan|computa|computan|suma|suman|acumula|acumulan|multiplica)`;
+/**
+ * «no precisan cómo se cuentan los meses de atraso en su caso»: the count in
+ * the reader's own case is theirs or Hacienda's to make (rule 3), and the
+ * sentence may be about when their months started, which no label says.
+ */
+const OWN_CASE = /^(?:\S+\s+){0,5}?en su caso\b/;
+/**
+ * «no dicen cuántas veces se aplica», «no dice cómo se cuenta», «no dicen si
+ * esa multa se cobra una vez por cada declaración». The count has to follow
+ * the verb at once: «no dicen **más** sobre cómo se cuenta» no longer denies
+ * the label's count (#556's round 2, d2), and «no indican el portal…;
+ * confirme … cómo se cuenta» is about the portal.
+ */
+const COUNT_HEDGE = new RegExp(
+  String.raw`\bno\s+(?:me\s+|le\s+|lo\s+)?${SAY_VERB}\s+(?:(?:con\s+claridad|claramente|expresamente)\s+)?(?:cuantas\s+veces|(?<how>como\s+se\s+${COUNT_VERB}\b)|si\s+(?:[a-z]+\s+){0,4}?se\s+(?:aplica|aplican|${COUNT_VERB})\s+(?:una\s+(?:sola\s+)?vez|por\s+cada|por\s+mes|cada|mes\s+a\s+mes))`,
+);
+
+/**
+ * The #547 hedge: a sentence that says the sources do not say how a figure is
+ * counted, in an answer that cites a derived figure whose label says it.
+ * «Las fuentes no dicen cuántas veces se aplica esa multa» under «Multa por
+ * cada declaración tributaria omitida» is an absence claim the label itself
+ * contradicts, and the judges read it as caution (#556's control, 3 of 3).
+ * The subject is left free — «el Código … pero no dice si se aplica una vez
+ * por cada declaración» is the same claim — because the cited label is what
+ * makes it false, whoever it is said of.
+ */
+export function countHedges(
+  answer: string,
+  cited: readonly CitedChunk[],
+  figures: readonly DerivedFigure[] = DERIVED_FIGURES,
+): FalseAbsence[] {
+  const counted = citedCountedFigures(cited, figures);
+  if (counted.length === 0) return [];
+  const target = `${counted.map((figure) => `«${figure.label}»`).join(", ")} says how it is counted`;
+  return sentences(answer)
+    .filter((sentence) => {
+      const folded = fold(sentence);
+      const match = COUNT_HEDGE.exec(folded);
+      if (match === null) return false;
+      const after = folded.slice(match.index + match[0].length).trim();
+      return match.groups?.how === undefined || !OWN_CASE.test(after);
+    })
+    .map((sentence) => ({ sentence, target, kind: "count" as const }));
+}
+
 const OPENING_ABSENCE = new RegExp(
   [
     String.raw`\b${CORPUS}\b.*\bno\s+(?:me\s+|le\s+)?(?:${ABSENT_VERB}|dicen|dice|indican|indica|precisan|fijan|fija|establecen|mencionan|detallan|especifican|permiten|responden)\b`,
@@ -685,6 +779,7 @@ export function detectAbsenceClaims(
     const target = sentenceTarget(fold(sentence), previous, context);
     if (target !== null) falseClaims.push({ sentence, target });
   });
+  falseClaims.push(...countHedges(answer, cited));
   const first = all.find((sentence) => !/^#+\s|^\*\*[^*]+\*\*$/.test(sentence));
   const opening =
     first !== undefined && OPENING_ABSENCE.test(fold(first)) ? first : null;

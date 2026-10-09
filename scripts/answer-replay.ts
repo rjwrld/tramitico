@@ -186,7 +186,7 @@ async function main(): Promise<void> {
         // The replay answers on the source row's chunks, so the readings
         // that chose them are the source's (#466); absent before #466.
         rerank: row.rerank ?? null,
-        checks: checkAnswer(answer, chunks),
+        checks: checkAnswer(answer, chunks, row.query),
       }),
     );
     const incomplete = incompletelyCitedDerivedFigures(answer, derivedFigures);
@@ -234,7 +234,7 @@ async function main(): Promise<void> {
   // since rows written before #500 carry no `checks`.
   const recordedChecks = plan.map(({ row }) => ({
     id: row.id,
-    absence: checkAnswer(row.answer, row.chunks).absence,
+    absence: checkAnswer(row.answer, row.chunks, row.query).absence,
   }));
   const recordedClaims = recordedChecks.flatMap(({ id, absence }) =>
     absence.falseClaims.map(() => id),

@@ -114,12 +114,19 @@ over every case in the unit lane, for free. See «Routed cases».
 Two gates are zero, with no constant. One is the citation invariant. The other,
 since #500, is false corpus-absence claims: an answer that says the documents
 lack an artículo or a listed figure that `corpus-index.json` covers
-(`src/lib/eval/absence.ts`). In the groundedness and abstention lanes, such a
-case fails whatever the judge said, and the lane lists it. It wins over the
-2-of-3 rule: a re-asked answer that makes one fails its case too. Each lane also
-reports, without gating, the answers that open with an absence claim and any
-typo runs (`src/lib/eval/answer-checks.ts`). The detector's precision read is on
-#500: 66 of 67 hits on the committed runs were true.
+(`src/lib/eval/absence.ts`). Since #558 it also holds #547's count hedge: «las
+fuentes no dicen cuántas veces se aplica esa multa» in an answer that cites a
+derived figure whose label says it («por cada …», «por mes …»). In the
+groundedness and abstention lanes, such a case fails whatever the judge said,
+and the lane lists it. It wins over the 2-of-3 rule: a re-asked answer that
+makes one fails its case too. Each lane also reports, without gating, the
+answers that open with an absence claim, any typo runs, and #546's reader's
+case worked out (an amount that is a figure times the question's «tres
+meses»/«2 hijos»/«un año», or a tope applied to the reader;
+`src/lib/eval/answer-checks.ts`). The precision reads are on #500 (66 of 67
+hits on the committed runs were true) and in
+[`runs/2026-10-08-558/`](runs/2026-10-08-558/) (58 of 58 count hedges, 11 of
+11 reader's-case slips).
 
 **Running a paid arm.** Get the owner's OK and a balance check first. Run one
 arm at a time, and smoke three cases before a full lane:
@@ -144,7 +151,7 @@ run's setup and deltas.
 | Command                                                  | Answers                                                                                              | Cost                             |
 | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------- |
 | `pnpm requirement-coverage <transcript…>`                | Tier 1 requirements stated, per case, from committed transcripts                                     | free                             |
-| `pnpm absence-backtest [--openings]`                     | false absence claims and typo runs in every committed answer                                         | free                             |
+| `pnpm absence-backtest [--openings]`                     | false absence claims and count hedges, reader's-case slips and typo runs in every committed answer   | free                             |
 | `pnpm answer-set-compare a.json b.json`                  | the first stage where two probe runs part, per case                                                  | free                             |
 | `pnpm prompt-tokens <transcript…>`                       | the answer prompt's input size, per case                                                             | free (count_tokens)              |
 | `pnpm answer-replay <transcript> [--tier=1] [--cases=…]` | the current prompt re-answering recorded chunks, false absence claims recorded → replayed            | ≈US$0.10 a row; `--dry-run` free |
