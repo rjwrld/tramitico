@@ -3919,4 +3919,7 @@ No gate constant moved.
 - **Red on one gate**: abstention's «invents no figure while declining».
   `ho-abs-devs-exentos-renta` states the CABYS «IVA de 13%» one sentence before
   the marker that cites `cabys-dev`, so `figureMentions` reads a true, sourced
-  figure as invented. Abstention itself is 15/15.
+  figure as invented. Abstention itself is 15/15. Accepted as a
+  citation-placement slip, no re-run (owner, 2026-10-09). If the next full
+  lane flags a sourced figure cited one sentence away again, it is a pattern
+  and gets an issue.

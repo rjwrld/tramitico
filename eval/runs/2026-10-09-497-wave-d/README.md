@@ -56,7 +56,7 @@ portal»), which is reported, not gated.
 | Citation invariant                             | 0 · 0                | 0             | green                                                                 |
 | Derived figures completely cited; F1 both BMCs | green · green        | green         | green                                                                 |
 | Abstention ≥ 90%                               | 14/15 · 15/15        | **15/15**     | green                                                                 |
-| Abstention invents no figure while declining   | green · green        | **red (1)**   | `ho-abs-devs-exentos-renta`, «13%»; see below                         |
+| Abstention invents no figure while declining   | green · green        | **red (1)**   | `ho-abs-devs-exentos-renta`, «13%»; accepted (owner), see below       |
 | `ho-abs-iva-2027` requirement (#502)           | 0/1 · 0/1            | **1/1**       | green                                                                 |
 | Hit-rate ≥ 94%                                 | 72/74 · 73/74        | **72/74**     | green (97.3%)                                                         |
 | Robustness block, hit (#502)                   | 27/27 · 27/27        | **26/27**     | green (baseline 27, fails ≤ 24); misses `rb-tilde-inscribirme-afuera` |
@@ -92,8 +92,8 @@ which is the fragment's own wording, so it reads as the judge's error. Labels
 ### Tier 1: 88/116, reported only
 
 88 is ten over #512's baseline of 78 and nine over its better lane. It is one
-lane, so it is **not ratcheted**: whether to move the Tier 1 baseline is the
-owner's call. The misses are still where-and-how (TRIBU-CR and OVi steps, CCSS
+lane, so it is **not ratcheted**: the baseline stays 78, pending the owner's
+decision. The misses are still where-and-how (TRIBU-CR and OVi steps, CCSS
 channels, how to regularize), as in the log's `missing:` lists. The robustness
 block reads 27/37 requirements, with no case fully adequate (0/7).
 
@@ -126,6 +126,14 @@ abstention rows, and the gate flagged it once before (2026-09-29's
 `runs/2026-09-29-451/low/`, «100%», in a row without CABYS). #566 pins
 `cabys-dev` only for a question that names CABYS, and this one doesn't: the
 source reached the set on its own. The lane is red on this one gate.
+
+**Owner decision (2026-10-09): accepted, option (a).** The red is a
+citation-placement slip on a true, sourced figure: the 13 % is in `cabys-dev`,
+cited [1] one sentence later. There is no re-run, and no gate or prompt
+changes here. **Check it on the next full lane:** if this case, or any case, is
+flagged again for a sourced figure cited one sentence away, treat it as a
+pattern and open an issue, either for the prompt (a figure's own sentence
+carries its marker) or for the gate's strictness.
 
 ### Absence openings (reported, not gated)
 
