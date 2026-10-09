@@ -1,0 +1,16 @@
+$ tsx scripts/answer-replay.ts <worktree>/eval/runs/2026-10-09-497-wave-e/lane/groundedness-claude-sonnet-5-5-effort-low-20261009T031939Z.jsonl --cases=renta-plazo-followup,renta-declaracion-plazo,ho-cabys-paginas-web
+replaying 3 row(s) of groundedness-claude-sonnet-5-5-effort-low-20261009T031939Z.jsonl on claude-sonnet-5-5-effort-low
+  renta-declaracion-plazo  pass
+  renta-plazo-followup  pass
+  ho-cabys-paginas-web  pass  missing 1
+
+transcript: <worktree>/eval/runs/2026-10-09-580/control/groundedness-claude-sonnet-5-5-effort-low-replay-subset-20261009T192925Z.jsonl
+
+requirements stated, recorded → replayed: 0 → 1 of 2
+  0 → 1 / 2  ho-cabys-paginas-web
+grounded, recorded → replayed: 3 → 3 of 3
+false absence claims (#500), recorded → replayed: 0 → 0
+absence openings, recorded → replayed: 1 → 1 — ho-cabys-paginas-web
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+finish other than stop: 0; output tokens max 1268
