@@ -18,7 +18,11 @@ import {
   type ResolvedDerivedFigure,
 } from "../answer/derived";
 import type { CitationVerdict } from "../answer/invariant";
-import { formatChunks, formatDerivedFigures } from "../answer/prompt";
+import {
+  formatChunks,
+  formatDerivedFigures,
+  formatToday,
+} from "../answer/prompt";
 import type { AnswerChecks } from "./answer-checks";
 
 /**
@@ -101,20 +105,43 @@ Rules:
 Respond with only a JSON object, no other text:
 {"verdict": "pass" | "fail", "reason": "<one short sentence>"}`;
 
-/** Question + the exact numbered fragments the answer model saw + the answer. */
+/**
+ * The date line the judge reads (#582): the answer prompt's own line
+ * (`formatToday`), named as a given. Since #572 an answer may compare a
+ * documented plazo with today («ese plazo ya pasó»); without the date the
+ * judge cannot check that sentence against the fragments and reads it
+ * against its own guess at the date.
+ */
+export function formatJudgeToday(today: string): string {
+  return (
+    `${formatToday(today)} Es la fecha en que se escribió la respuesta: un ` +
+    `dato de la conversación, como las cifras derivadas, no una afirmación ` +
+    `que requiera fragmento. Comparar con esta fecha un plazo que sí está en ` +
+    `los fragmentos (decir que ya pasó o que aún no llega) está sustentado.`
+  );
+}
+
+/**
+ * Question + the exact numbered fragments the answer model saw + the answer.
+ * `today` is the date the answer was written against (`generation.today`),
+ * omitted when unknown; without it the prompt is the one the baseline was
+ * measured on, byte for byte.
+ */
 export function buildJudgePrompt(
   question: string,
   chunks: readonly RetrievedChunk[],
   answer: string,
   derivedFigures: readonly ResolvedDerivedFigure[] = [],
+  today?: string,
 ): string {
   const derived =
     derivedFigures.length === 0
       ? ""
       : `\n\n${formatDerivedFigures(derivedFigures)}`;
+  const date = today === undefined ? "" : `\n\n${formatJudgeToday(today)}`;
   return (
     `Pregunta:\n${question}\n\n` +
-    `Fragmentos oficiales provistos:\n\n${formatChunks(chunks)}${derived}\n\n` +
+    `Fragmentos oficiales provistos:\n\n${formatChunks(chunks)}${derived}${date}\n\n` +
     `Respuesta del asistente:\n${answer}`
   );
 }
@@ -198,6 +225,7 @@ export type JudgeOnce = (
   chunks: readonly RetrievedChunk[],
   answer: string,
   derivedFigures?: readonly ResolvedDerivedFigure[],
+  today?: string,
 ) => Promise<JudgeVerdict>;
 
 const realJudgeOnce: JudgeOnce = async (
@@ -205,11 +233,12 @@ const realJudgeOnce: JudgeOnce = async (
   chunks,
   answer,
   derivedFigures = [],
+  today,
 ) => {
   const { text } = await generateText({
     model: getJudgeModel(),
     system: JUDGE_SYSTEM_PROMPT,
-    prompt: buildJudgePrompt(question, chunks, answer, derivedFigures),
+    prompt: buildJudgePrompt(question, chunks, answer, derivedFigures, today),
     temperature: JUDGE_TEMPERATURE,
   });
   return parseJudgeVerdict(text);
@@ -228,13 +257,26 @@ export async function judgeAnswer(
   answer: string,
   judgeOnce: JudgeOnce = realJudgeOnce,
   derivedFigures: readonly ResolvedDerivedFigure[] = [],
+  today?: string,
 ): Promise<{ verdict: Verdict; verdicts: Verdict[]; reason: string }> {
-  const first = await judgeOnce(question, chunks, answer, derivedFigures);
+  const first = await judgeOnce(
+    question,
+    chunks,
+    answer,
+    derivedFigures,
+    today,
+  );
   const verdicts: Verdict[] = [first.verdict];
   let reason = first.reason;
   if (first.verdict === "fail") {
     for (let i = 0; i < REJUDGE_COUNT; i++) {
-      const again = await judgeOnce(question, chunks, answer, derivedFigures);
+      const again = await judgeOnce(
+        question,
+        chunks,
+        answer,
+        derivedFigures,
+        today,
+      );
       verdicts.push(again.verdict);
       if (again.verdict === "fail") reason = again.reason;
     }
@@ -277,9 +319,10 @@ export function buildFailureLabelPrompt(
   answer: string,
   judgeReason: string,
   derivedFigures: readonly ResolvedDerivedFigure[] = [],
+  today?: string,
 ): string {
   return (
-    `${buildJudgePrompt(question, chunks, answer, derivedFigures)}\n\n` +
+    `${buildJudgePrompt(question, chunks, answer, derivedFigures, today)}\n\n` +
     `Motivo del juez:\n${judgeReason}`
   );
 }
@@ -325,6 +368,7 @@ export async function labelFailure(
   answer: string,
   judgeReason: string,
   derivedFigures: readonly ResolvedDerivedFigure[] = [],
+  today?: string,
   labelOnce: LabelOnce = realLabelOnce,
 ): Promise<FailureLabelling> {
   try {
@@ -336,6 +380,7 @@ export async function labelFailure(
           answer,
           judgeReason,
           derivedFigures,
+          today,
         ),
       ),
     );
