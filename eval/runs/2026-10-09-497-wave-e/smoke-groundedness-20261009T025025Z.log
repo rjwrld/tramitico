@@ -1,0 +1,172 @@
+Lockfile is up to date, resolution step is skipped
+Already up to date
+
+Done in 404ms using pnpm v11.5.2
+ Vitest  The "integration" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "eval" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "unit" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+
+ RUN  v5.0.3 <main-checkout>
+
+
+EVAL_CASES: 3/101 case(s) — renta-plazo-followup, inscripcion-tardia-sancion, ho-ademas-tengo-salario. Gates will fail: a subset run is a transcript read, not a measurement.
+
+transcript (#289): <main-checkout>/eval/runs/2026-10-09-497-wave-e/smoke/groundedness-claude-sonnet-5-5-effort-low-subset-20261009T025128Z.jsonl
+rerank readings lost: none of 19
+
+groundedness (answer=claude-sonnet-5-5-effort-low, judge=claude-sonnet-4-5): 3/3 by the judges (baseline 73, floor 69; ADR 0023)
+  pass  renta-plazo-followup
+  pass  inscripcion-tardia-sancion
+  pass  ho-ademas-tengo-salario
+
+blocking cases re-asked (#474, fail on 2 of 3): 0
+failure labels (#474, recorded, not gated): contradiction 0, inference 0
+groundedness, robustness block (#502): 0/0
+groundedness by exposure (#267):
+  first-exposure  1/1
+  promoted        1/1
+  corpus-derived  1/1
+
+adequacy (#130): 1/2
+  pass  tier 1  T1-I  inscripcion-tardia-sancion
+  FAIL  tier 1  T1-E  ho-ademas-tengo-salario  — missing: El salario y la actividad lucrativa tributan por escalas distintas: el salario por la escala mensual de rentas del trabajo y la actividad por la escala anual de personas físicas con actividad lucrativa.; Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.; Qué se declara en la declaración anual cuando hay salario y actividad, y cómo se tratan las retenciones ya soportadas.; Los pagos parciales: cuándo se pagan y que puede pedirse su rebaja cuando la renta del período va a ser menor.
+tier 1 requirements stated (#287): 7/11
+adequacy, robustness block (#502): 0/0
+  requirements stated: 0/0
+adequacy by exposure (#267):
+  first-exposure  0/1
+  promoted        1/1
+  corpus-derived  0/0
+
+false absence claims (#500): 0
+opens with an absence claim (reported): 0/3
+typo runs (reported): 0
+reader's case worked out (#546, reported): 0
+
+citation invariant (#168): 0 violation(s)
+ ❯ |eval| src/lib/eval/groundedness.eval.test.ts (8 tests | 8 failed) 60970ms
+   ❯ groundedness (eval/dataset.jsonl) (8)
+     × states at least 74 tier 1 requirements (baseline 78 − 4, ADR 0023) 2ms
+     × at least 84% of tier 2 cases with required claims are adequate 0ms
+     × ships no answer the runtime citation invariant would refuse 0ms
+     × claims nothing absent that the corpus carries, in any answer (#500, #474) 0ms
+     × no blocking case fails on 2 of its 3 answers (#474) 0ms
+     × grounds at least 69 of 74 answers (baseline 73 − 4, ADR 0023) 0ms
+     × ships no answer whose derived figures are incompletely cited 0ms
+     × answers F1 with both BMC figures and citations to every input 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > states at least 74 tier 1 requirements (baseline 78 − 4, ADR 0023)
+Error: EVAL_CASES selected 3 case(s) — renta-plazo-followup, ho-ademas-tengo-salario, inscripcion-tardia-sancion. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:440:32
+    438|    */
+    439|   function assertFullRun(): void {
+    440|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    441|   }
+    442|
+ ❯ src/lib/eval/groundedness.eval.test.ts:721:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > at least 84% of tier 2 cases with required claims are adequate
+Error: EVAL_CASES selected 3 case(s) — renta-plazo-followup, ho-ademas-tengo-salario, inscripcion-tardia-sancion. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:440:32
+    438|    */
+    439|   function assertFullRun(): void {
+    440|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    441|   }
+    442|
+ ❯ src/lib/eval/groundedness.eval.test.ts:734:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > ships no answer the runtime citation invariant would refuse
+Error: EVAL_CASES selected 3 case(s) — renta-plazo-followup, ho-ademas-tengo-salario, inscripcion-tardia-sancion. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:440:32
+    438|    */
+    439|   function assertFullRun(): void {
+    440|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    441|   }
+    442|
+ ❯ src/lib/eval/groundedness.eval.test.ts:750:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > claims nothing absent that the corpus carries, in any answer (#500, #474)
+Error: EVAL_CASES selected 3 case(s) — renta-plazo-followup, ho-ademas-tengo-salario, inscripcion-tardia-sancion. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:440:32
+    438|    */
+    439|   function assertFullRun(): void {
+    440|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    441|   }
+    442|
+ ❯ src/lib/eval/groundedness.eval.test.ts:764:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > no blocking case fails on 2 of its 3 answers (#474)
+Error: EVAL_CASES selected 3 case(s) — renta-plazo-followup, ho-ademas-tengo-salario, inscripcion-tardia-sancion. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:440:32
+    438|    */
+    439|   function assertFullRun(): void {
+    440|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    441|   }
+    442|
+ ❯ src/lib/eval/groundedness.eval.test.ts:770:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > grounds at least 69 of 74 answers (baseline 73 − 4, ADR 0023)
+Error: EVAL_CASES selected 3 case(s) — renta-plazo-followup, ho-ademas-tengo-salario, inscripcion-tardia-sancion. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:440:32
+    438|    */
+    439|   function assertFullRun(): void {
+    440|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    441|   }
+    442|
+ ❯ src/lib/eval/groundedness.eval.test.ts:785:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > ships no answer whose derived figures are incompletely cited
+Error: EVAL_CASES selected 3 case(s) — renta-plazo-followup, ho-ademas-tengo-salario, inscripcion-tardia-sancion. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:440:32
+    438|    */
+    439|   function assertFullRun(): void {
+    440|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    441|   }
+    442|
+ ❯ src/lib/eval/groundedness.eval.test.ts:805:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > answers F1 with both BMC figures and citations to every input
+Error: EVAL_CASES selected 3 case(s) — renta-plazo-followup, ho-ademas-tengo-salario, inscripcion-tardia-sancion. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:440:32
+    438|    */
+    439|   function assertFullRun(): void {
+    440|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    441|   }
+    442|
+ ❯ src/lib/eval/groundedness.eval.test.ts:833:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  8 failed (8)
+   Start at  20:50:26
+   Duration  61.39s (tests 99%)
+
