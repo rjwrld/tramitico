@@ -66,6 +66,41 @@ a step pin. The probe can't prove it: its `pinned` field has never listed step
 picks. From this change on, the probe records them per configuration (`pins`),
 and so do the lane transcripts (`chunks[].pin`).
 
-## Paid step
+## Paid step (2026-10-09, orchestrator's go)
 
-Pending the orchestrator's go. Details below once run.
+The two parts ran one after the other at ≈19:10 UTC with `ANSWER_EFFORT=low`.
+The transcripts are also in `<main-checkout>/eval/transcripts/2026-10-09-579/`.
+
+| Part                                                                                                                           | Files                               | ≈US$ |
+| ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- | ---- |
+| `answer-set-probe` on the 8 cases, rewrites replayed from `2026-10-09-562/probe-after.json`, `PROBE_CASE_MS=3000`              | `probe.json`, `probe-…T191003Z.log` | 0.03 |
+| `answer-replay` of `rb-seguimiento-le-cobro-iva` ×3 on Wave E's chunks plus `salario-base-2026` as [12] (`replay-input.jsonl`) | `replay/`, `replay-…T191046Z.log`   | 0.30 |
+
+**Probe.** No rerank readings were lost (0 of 52), and no case was weak. The
+route's configuration with the pin is compared with `/sboff`, the same run's
+order without it:
+
+- 7 of the 8 sets gain `salario-base-2026`.
+- `iva-declaracion-mensual` is unchanged because its set no longer holds
+  `cnpt` 79 under #562's catalogue. #562's own probe already showed this.
+- No set loses a chunk, and expected targets stay at 12/16.
+- Derived figures resolved go from 0 to 7. The salario base completes the
+  manifest's `cnpt-articulo-78-multa-mensual-2026`, `-tope-2026` and
+  `cnpt-articulo-79-multa-declaracion-2026`.
+- **The cause is now proven, not just likely.** The new `pins` record shows
+  the `cnpt` 78/79 chunk as a `step` pin in all 7 sets.
+
+**Replay.** The pass bar was 3/3 with no false absence claim, and it was met:
+
+```
+grounded, recorded → replayed: 0 → 3 of 3
+false absence claims (#500), recorded → replayed: 3 → 0
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+```
+
+All three answers state the multa as «¢231.100 (0,50 × ¢462.200)», cited
+[10][12]. The live probe set for this case differs from Wave E's in one
+cross-referenced chunk: `reglamento-iva` 66 instead of `ley-iva` 11. The replay
+holds Wave E's set fixed so that the only change from the red answer is the
+appended chunk.

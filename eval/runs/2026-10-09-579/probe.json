@@ -1,0 +1,4693 @@
+{
+  "configs": [
+    {
+      "name": "top8/capoff/pinoff",
+      "topK": "8",
+      "cap": "off",
+      "pin": "off",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top8/capoff/pinon",
+      "topK": "8",
+      "cap": "off",
+      "pin": "on",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top8/cap3/pinoff",
+      "topK": "8",
+      "cap": "3",
+      "pin": "off",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top8/cap3/pinon",
+      "topK": "8",
+      "cap": "3",
+      "pin": "on",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top8/cap2/pinoff",
+      "topK": "8",
+      "cap": "2",
+      "pin": "off",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top8/cap2/pinon",
+      "topK": "8",
+      "cap": "2",
+      "pin": "on",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top10/capoff/pinoff",
+      "topK": "10",
+      "cap": "off",
+      "pin": "off",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top10/capoff/pinon",
+      "topK": "10",
+      "cap": "off",
+      "pin": "on",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top10/cap3/pinoff",
+      "topK": "10",
+      "cap": "3",
+      "pin": "off",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top10/cap3/pinon",
+      "topK": "10",
+      "cap": "3",
+      "pin": "on",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top10/cap2/pinoff",
+      "topK": "10",
+      "cap": "2",
+      "pin": "off",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top10/cap2/pinon",
+      "topK": "10",
+      "cap": "2",
+      "pin": "on",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top8/capoff/pinon/xrefoff",
+      "topK": "8",
+      "cap": "off",
+      "pin": "on",
+      "xref": "off",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top8/capoff/pinon/sboff",
+      "topK": "8",
+      "cap": "off",
+      "pin": "on",
+      "xref": "on",
+      "salarioBase": "off"
+    }
+  ],
+  "reads": [
+    {
+      "id": "iva-declaracion-mensual",
+      "kind": "retrieval",
+      "query": "¿Cuándo y cómo presento la declaración mensual del IVA?",
+      "condenseFailed": false,
+      "tier": 2,
+      "family": null,
+      "variant": null,
+      "weak": false,
+      "expansionFailed": false,
+      "expectedCount": 2,
+      "per": {
+        "top8/capoff/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-iva·Artículo 10·#0"],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "ley-iva·Artículo 7·#0",
+            "reglamento-iva·Artículo 40 bis·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 10·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 11·#0": "step",
+            "ley-iva·Artículo 10·#0": "crossReference"
+          }
+        },
+        "top8/capoff/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-iva·Artículo 10·#0"],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "ley-iva·Artículo 7·#0",
+            "reglamento-iva·Artículo 40 bis·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 10·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 11·#0": "step",
+            "ley-iva·Artículo 10·#0": "crossReference"
+          }
+        },
+        "top8/cap3/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-iva·Artículo 10·#0"],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "ley-iva·Artículo 7·#0",
+            "reglamento-rts·Artículo 6·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 10·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 11·#0": "step",
+            "ley-iva·Artículo 10·#0": "crossReference"
+          }
+        },
+        "top8/cap3/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-iva·Artículo 10·#0"],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "ley-iva·Artículo 7·#0",
+            "reglamento-rts·Artículo 6·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 10·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 11·#0": "step",
+            "ley-iva·Artículo 10·#0": "crossReference"
+          }
+        },
+        "top8/cap2/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-iva·Artículo 4·#0"],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-rts·Artículo 6·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·Artículo 28 quáter·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 4·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 11·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference"
+          }
+        },
+        "top8/cap2/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-iva·Artículo 4·#0"],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-rts·Artículo 6·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·Artículo 28 quáter·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 4·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 11·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference"
+          }
+        },
+        "top10/capoff/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 13,
+          "pinned": ["ley-iva·Artículo 10·#0"],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "ley-iva·Artículo 7·#0",
+            "reglamento-iva·Artículo 40 bis·#0",
+            "reglamento-iva·Preámbulo·#0",
+            "ley-iva·Artículo 16·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 10·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 11·#0": "step",
+            "ley-iva·Artículo 10·#0": "crossReference"
+          }
+        },
+        "top10/capoff/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 13,
+          "pinned": ["ley-iva·Artículo 10·#0"],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "ley-iva·Artículo 7·#0",
+            "reglamento-iva·Artículo 40 bis·#0",
+            "reglamento-iva·Preámbulo·#0",
+            "ley-iva·Artículo 16·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 10·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 11·#0": "step",
+            "ley-iva·Artículo 10·#0": "crossReference"
+          }
+        },
+        "top10/cap3/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 13,
+          "pinned": ["ley-iva·Artículo 10·#0"],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "ley-iva·Artículo 7·#0",
+            "reglamento-rts·Artículo 6·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·Artículo 28 quáter·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 10·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 11·#0": "step",
+            "ley-iva·Artículo 10·#0": "crossReference"
+          }
+        },
+        "top10/cap3/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 13,
+          "pinned": ["ley-iva·Artículo 10·#0"],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "ley-iva·Artículo 7·#0",
+            "reglamento-rts·Artículo 6·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·Artículo 28 quáter·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 10·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 11·#0": "step",
+            "ley-iva·Artículo 10·#0": "crossReference"
+          }
+        },
+        "top10/cap2/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 13,
+          "pinned": ["ley-iva·Artículo 4·#0"],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-rts·Artículo 6·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·Artículo 28 quáter·#0",
+            "ley-renta·ARTICULO 20·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 4·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 11·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference"
+          }
+        },
+        "top10/cap2/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 13,
+          "pinned": ["ley-iva·Artículo 4·#0"],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-rts·Artículo 6·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·Artículo 28 quáter·#0",
+            "ley-renta·ARTICULO 20·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 4·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 11·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference"
+          }
+        },
+        "top8/capoff/pinon/xrefoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 10,
+          "pinned": [],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "ley-iva·Artículo 7·#0",
+            "reglamento-iva·Artículo 40 bis·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 11·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 11·#0": "step"
+          }
+        },
+        "top8/capoff/pinon/sboff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-iva·Artículo 10·#0"],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "ley-iva·Artículo 7·#0",
+            "reglamento-iva·Artículo 40 bis·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 10·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 11·#0": "step",
+            "ley-iva·Artículo 10·#0": "crossReference"
+          }
+        }
+      },
+      "targetRanks": [
+        {
+          "target": "ley-iva/Artículo 27",
+          "rank": 1
+        },
+        {
+          "target": "reglamento-iva/Artículo 40",
+          "rank": 2
+        }
+      ],
+      "expansion": "El contribuyente debe presentar la declaración mensual del Impuesto sobre el Valor Agregado ante la Administración Tributaria, dentro del plazo que fije el reglamento y por los medios electrónicos establecidos, consignando las ventas gravadas, el débito fiscal, los créditos fiscales aplicables y el saldo a pagar o a favor, de conformidad con la Ley del Impuesto sobre el Valor Agregado y su reglamento.",
+      "steps": "T1-D",
+      "pool": [
+        "ley-iva·Artículo 27·#0",
+        "reglamento-iva·Artículo 40·#0",
+        "reglamento-iva·Preámbulo·#0",
+        "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+        "reglamento-iva·Artículo 38·#0",
+        "ley-iva·Artículo 3·#0",
+        "reglamento-renta·Artículo 51·#0",
+        "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+        "ley-iva·Artículo 8·#0",
+        "cnpt·Artículo 81·#0",
+        "reglamento-iva·Artículo 60·#0",
+        "reglamento-iva·Artículo 25·#0",
+        "reglamento-iva·Artículo 40 bis·#0",
+        "ley-renta·Artículo 28 quáter·#0",
+        "ley-iva·Artículo 10·#0",
+        "cnpt·Artículo 79·#0",
+        "ley-iva·Artículo 28·#0",
+        "ley-iva·Artículo 38·#0",
+        "reglamento-iva·Artículo 50·#0",
+        "reglamento-iva·Artículo 41·#0",
+        "reglamento-renta·Artículo 28·#0",
+        "reglamento-renta·Artículo 53·#0",
+        "ley-iva·Artículo 30·#0",
+        "reglamento-comprobantes·Artículo 13·#0",
+        "ley-renta·ARTICULO 20·#0",
+        "ley-iva·Artículo 7·#0",
+        "reglamento-iva·Artículo 41·#1",
+        "ley-renta·ARTICULO 22·#0",
+        "reglamento-iva·Artículo 29·#0",
+        "reglamento-iva·Artículo 10·#0",
+        "reglamento-iva·Preámbulo·#1",
+        "reglamento-iva·Artículo 11·#0",
+        "ley-iva·Artículo 16·#0",
+        "ley-iva·Artículo 6·#0",
+        "ley-iva·Artículo 5·#0",
+        "reglamento-iva·Artículo 67·#0",
+        "reglamento-iva·Artículo 63·#0",
+        "ley-renta·Artículo 31 quinquies·#0",
+        "reglamento-iva·Artículo 32·#0",
+        "reglamento-rts·Artículo 6·#0"
+      ],
+      "order": [
+        "ley-iva·Artículo 27·#0",
+        "reglamento-iva·Artículo 40·#0",
+        "reglamento-iva·Artículo 60·#0",
+        "ley-iva·Artículo 38·#0",
+        "reglamento-iva·Artículo 25·#0",
+        "reglamento-iva·Artículo 50·#0",
+        "ley-iva·Artículo 7·#0",
+        "reglamento-iva·Artículo 40 bis·#0",
+        "reglamento-iva·Preámbulo·#0",
+        "ley-iva·Artículo 16·#0",
+        "reglamento-iva·Artículo 41·#1",
+        "reglamento-rts·Artículo 6·#0",
+        "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+        "reglamento-iva·Artículo 41·#0",
+        "reglamento-renta·Artículo 28·#0",
+        "ley-iva·Artículo 28·#0",
+        "reglamento-iva·Preámbulo·#1",
+        "ley-renta·Artículo 28 quáter·#0",
+        "reglamento-iva·Artículo 29·#0",
+        "reglamento-iva·Artículo 38·#0",
+        "reglamento-iva·Artículo 10·#0",
+        "ley-renta·ARTICULO 20·#0",
+        "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+        "reglamento-iva·Artículo 63·#0",
+        "reglamento-iva·Artículo 32·#0",
+        "ley-iva·Artículo 3·#0",
+        "reglamento-comprobantes·Artículo 13·#0",
+        "ley-renta·ARTICULO 22·#0",
+        "ley-iva·Artículo 30·#0",
+        "ley-iva·Artículo 6·#0",
+        "ley-iva·Artículo 5·#0",
+        "reglamento-renta·Artículo 51·#0",
+        "ley-renta·Artículo 31 quinquies·#0",
+        "reglamento-iva·Artículo 67·#0",
+        "reglamento-iva·Artículo 11·#0",
+        "cnpt·Artículo 79·#0",
+        "cnpt·Artículo 81·#0",
+        "reglamento-renta·Artículo 53·#0",
+        "ley-iva·Artículo 8·#0",
+        "ley-iva·Artículo 10·#0"
+      ],
+      "scores": [
+        0.87109375, 0.86328125, 0.84375, 0.80078125, 0.7734375, 0.734375,
+        0.69921875, 0.6953125, 0.67578125, 0.671875, 0.65234375, 0.6484375,
+        0.63671875, 0.6328125, 0.625, 0.62109375, 0.60546875, 0.6015625,
+        0.6015625, 0.59375, 0.58984375, 0.58203125, 0.5703125, 0.5546875,
+        0.5546875, 0.546875, 0.54296875, 0.5390625, 0.52734375, 0.51953125,
+        0.51953125, 0.51171875, 0.498046875, 0.490234375, 0.484375, 0.474609375,
+        0.47265625, 0.466796875, 0.462890625, 0.458984375
+      ],
+      "failures": {
+        "condense": 0,
+        "expand": 0,
+        "embed": 0,
+        "rerank": 0
+      },
+      "rerankReadings": {
+        "asked": 7,
+        "returned": 7,
+        "dropped": []
+      },
+      "ms": {
+        "rewrite": 0,
+        "retrieve": 1389,
+        "rerank": 834
+      }
+    },
+    {
+      "id": "inscripcion-tribu-cr",
+      "kind": "retrieval",
+      "query": "¿Cómo me inscribo en TRIBU-CR?",
+      "condenseFailed": false,
+      "tier": 2,
+      "family": null,
+      "variant": null,
+      "weak": false,
+      "expansionFailed": false,
+      "expectedCount": 4,
+      "per": {
+        "top8/capoff/pinoff": {
+          "present": 3,
+          "missing": ["tribu-cr-faq/Declaraciones del RUT · 1"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 6·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-res-0011-2025·Artículo 3·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#1",
+            "cnpt·Artículo 78·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "cnpt·Artículo 78·#0": "step",
+            "ccss-reglamento-ti·Artículo 1·#0": "step",
+            "ley-renta·ARTICULO 2·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon": {
+          "present": 3,
+          "missing": ["tribu-cr-faq/Declaraciones del RUT · 1"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 6·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-res-0011-2025·Artículo 3·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#1",
+            "cnpt·Artículo 78·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "cnpt·Artículo 78·#0": "step",
+            "ccss-reglamento-ti·Artículo 1·#0": "step",
+            "ley-renta·ARTICULO 2·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap3/pinoff": {
+          "present": 3,
+          "missing": ["tribu-cr-faq/Declaraciones del RUT · 1"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 11,
+          "pinned": [
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-res-0011-2025·Artículo 3·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#1",
+            "cnpt·Artículo 78·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ccss-reglamento-ti·Artículo 1·#0": "step",
+            "ley-renta·ARTICULO 2·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap3/pinon": {
+          "present": 3,
+          "missing": ["tribu-cr-faq/Declaraciones del RUT · 1"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 11,
+          "pinned": [
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-res-0011-2025·Artículo 3·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#1",
+            "cnpt·Artículo 78·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ccss-reglamento-ti·Artículo 1·#0": "step",
+            "ley-renta·ARTICULO 2·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap2/pinoff": {
+          "present": 2,
+          "missing": [
+            "tribu-cr-faq/Registro Único Tributario (RUT) · 2",
+            "tribu-cr-faq/Declaraciones del RUT · 1"
+          ],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 11,
+          "pinned": [
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-res-0011-2025·Artículo 3·#0",
+            "cnpt·Artículo 78·#0",
+            "ccss-faq·¿Puedo tener un seguro de Trabajador Independiente si actualmente vivo fuera de Costa Rica?·#0",
+            "ley-10363·ARTÍCULO 2·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ccss-reglamento-ti·Artículo 1·#0": "step",
+            "ley-renta·ARTICULO 2·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap2/pinon": {
+          "present": 2,
+          "missing": [
+            "tribu-cr-faq/Registro Único Tributario (RUT) · 2",
+            "tribu-cr-faq/Declaraciones del RUT · 1"
+          ],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 11,
+          "pinned": [
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-res-0011-2025·Artículo 3·#0",
+            "cnpt·Artículo 78·#0",
+            "ccss-faq·¿Puedo tener un seguro de Trabajador Independiente si actualmente vivo fuera de Costa Rica?·#0",
+            "ley-10363·ARTÍCULO 2·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ccss-reglamento-ti·Artículo 1·#0": "step",
+            "ley-renta·ARTICULO 2·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/capoff/pinoff": {
+          "present": 3,
+          "missing": ["tribu-cr-faq/Declaraciones del RUT · 1"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 6·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-res-0011-2025·Artículo 3·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#1",
+            "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 20·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+            "cnpt·Artículo 78·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "cnpt·Artículo 78·#0": "step",
+            "ccss-reglamento-ti·Artículo 1·#0": "step",
+            "ley-renta·ARTICULO 2·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/capoff/pinon": {
+          "present": 3,
+          "missing": ["tribu-cr-faq/Declaraciones del RUT · 1"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 6·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-res-0011-2025·Artículo 3·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#1",
+            "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 20·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+            "cnpt·Artículo 78·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "cnpt·Artículo 78·#0": "step",
+            "ccss-reglamento-ti·Artículo 1·#0": "step",
+            "ley-renta·ARTICULO 2·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap3/pinoff": {
+          "present": 3,
+          "missing": ["tribu-cr-faq/Declaraciones del RUT · 1"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 13,
+          "pinned": [
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-res-0011-2025·Artículo 3·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#1",
+            "cnpt·Artículo 78·#0",
+            "ccss-faq·¿Puedo tener un seguro de Trabajador Independiente si actualmente vivo fuera de Costa Rica?·#0",
+            "ley-10363·ARTÍCULO 2·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ccss-reglamento-ti·Artículo 1·#0": "step",
+            "ley-renta·ARTICULO 2·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap3/pinon": {
+          "present": 3,
+          "missing": ["tribu-cr-faq/Declaraciones del RUT · 1"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 13,
+          "pinned": [
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-res-0011-2025·Artículo 3·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#1",
+            "cnpt·Artículo 78·#0",
+            "ccss-faq·¿Puedo tener un seguro de Trabajador Independiente si actualmente vivo fuera de Costa Rica?·#0",
+            "ley-10363·ARTÍCULO 2·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ccss-reglamento-ti·Artículo 1·#0": "step",
+            "ley-renta·ARTICULO 2·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap2/pinoff": {
+          "present": 2,
+          "missing": [
+            "tribu-cr-faq/Registro Único Tributario (RUT) · 2",
+            "tribu-cr-faq/Declaraciones del RUT · 1"
+          ],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-res-0011-2025·Artículo 3·#0",
+            "cnpt·Artículo 78·#0",
+            "ccss-faq·¿Puedo tener un seguro de Trabajador Independiente si actualmente vivo fuera de Costa Rica?·#0",
+            "ley-10363·ARTÍCULO 2·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-renta·ARTICULO 2·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap2/pinon": {
+          "present": 2,
+          "missing": [
+            "tribu-cr-faq/Registro Único Tributario (RUT) · 2",
+            "tribu-cr-faq/Declaraciones del RUT · 1"
+          ],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-res-0011-2025·Artículo 3·#0",
+            "cnpt·Artículo 78·#0",
+            "ccss-faq·¿Puedo tener un seguro de Trabajador Independiente si actualmente vivo fuera de Costa Rica?·#0",
+            "ley-10363·ARTÍCULO 2·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ccss-reglamento-ti·Artículo 6·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-renta·ARTICULO 2·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon/xrefoff": {
+          "present": 3,
+          "missing": ["tribu-cr-faq/Declaraciones del RUT · 1"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 11,
+          "pinned": ["salario-base-2026·Circular 246-2025·#0"],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 6·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-res-0011-2025·Artículo 3·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#1",
+            "cnpt·Artículo 78·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "cnpt·Artículo 78·#0": "step",
+            "ccss-reglamento-ti·Artículo 1·#0": "step",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon/sboff": {
+          "present": 3,
+          "missing": ["tribu-cr-faq/Declaraciones del RUT · 1"],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-renta·ARTICULO 2·#0"],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 6·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-res-0011-2025·Artículo 3·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#1",
+            "cnpt·Artículo 78·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ley-renta·ARTICULO 2·#0"
+          ],
+          "pins": {
+            "cnpt·Artículo 78·#0": "step",
+            "ccss-reglamento-ti·Artículo 1·#0": "step",
+            "ley-renta·ARTICULO 2·#0": "crossReference"
+          }
+        }
+      },
+      "targetRanks": [
+        {
+          "target": "tribu-cr-faq/Registro Único Tributario (RUT) · 1",
+          "rank": 1
+        },
+        {
+          "target": "tribu-cr-faq/Registro Único Tributario (RUT) · 2",
+          "rank": 3
+        },
+        {
+          "target": "tribu-cr-faq/Declaraciones del RUT · 1",
+          "rank": 20
+        },
+        {
+          "target": "tribu-cr-faq/Declaraciones del RUT · 2",
+          "rank": 2
+        }
+      ],
+      "expansion": "Procedimiento de inscripción de personas físicas en la plataforma TRIBU-CR del Ministerio de Hacienda, con los requisitos de identificación, registro de usuario y acceso a los servicios tributarios electrónicos que establece la Resolución General para la deshabilitación de plataformas tributarias e implementación de TRIBU-CR.",
+      "steps": "T1-A",
+      "pool": [
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 5·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 29·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 31·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 24·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 30·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 6·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 20·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 1·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 12·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 4·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 3·#0",
+        "cnpt·Artículo 78·#0",
+        "ccss-reglamento-ti·Artículo 1·#0",
+        "tribu-cr-res-0011-2025·Preámbulo·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 4·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 47·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 13·#0",
+        "tribu-cr-res-0011-2025·Preámbulo·#1",
+        "tribu-cr-faq·Declaraciones del RUT · 32·#0",
+        "ccss-faq·¿Puedo tener un seguro de Trabajador Independiente si actualmente vivo fuera de Costa Rica?·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 19·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 6·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 36·#0",
+        "tribu-cr-faq·Comunicaciones y Notificaciones · 9·#0",
+        "tribu-cr-res-0011-2025·Transitorio II·#0",
+        "reglamento-renta·Artículo 27·#0",
+        "tribu-cr-faq·Consulta de la Situación Tributaria (OVi Pública) · 5·#0",
+        "ley-10363·ARTÍCULO 2·#0",
+        "ccss-reglamento-ti·Artículo 6·#0",
+        "ccss-faq·¿Puedo tener un seguro si actualmente vivo fuera de Costa Rica?·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 19·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 21·#0",
+        "tribu-cr-faq·Consulta de la Situación Tributaria (OVi Pública) · 2·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 37·#0",
+        "tribu-cr-res-0011-2025·Artículo 5·#0",
+        "tribu-cr-res-0011-2025·Artículo 3·#0"
+      ],
+      "order": [
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 6·#0",
+        "tribu-cr-res-0011-2025·Preámbulo·#0",
+        "reglamento-renta·Artículo 27·#0",
+        "tribu-cr-res-0011-2025·Artículo 3·#0",
+        "tribu-cr-res-0011-2025·Preámbulo·#1",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 20·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 4·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 5·#0",
+        "tribu-cr-faq·Comunicaciones y Notificaciones · 9·#0",
+        "tribu-cr-res-0011-2025·Transitorio II·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 3·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 6·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 21·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 31·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 19·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 1·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 29·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 13·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 30·#0",
+        "tribu-cr-res-0011-2025·Artículo 5·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 4·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 36·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 12·#0",
+        "tribu-cr-faq·Consulta de la Situación Tributaria (OVi Pública) · 2·#0",
+        "tribu-cr-faq·Consulta de la Situación Tributaria (OVi Pública) · 5·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 32·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 24·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 47·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 19·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 37·#0",
+        "cnpt·Artículo 78·#0",
+        "ccss-faq·¿Puedo tener un seguro de Trabajador Independiente si actualmente vivo fuera de Costa Rica?·#0",
+        "ley-10363·ARTÍCULO 2·#0",
+        "ccss-reglamento-ti·Artículo 1·#0",
+        "ccss-reglamento-ti·Artículo 6·#0",
+        "ccss-faq·¿Puedo tener un seguro si actualmente vivo fuera de Costa Rica?·#0"
+      ],
+      "scores": [
+        0.77734375, 0.76953125, 0.7578125, 0.703125, 0.6953125, 0.671875,
+        0.671875, 0.66015625, 0.64453125, 0.64453125, 0.640625, 0.62109375,
+        0.60546875, 0.6015625, 0.59765625, 0.59375, 0.58203125, 0.57421875,
+        0.5703125, 0.5703125, 0.5703125, 0.56640625, 0.55078125, 0.546875,
+        0.54296875, 0.54296875, 0.53515625, 0.53125, 0.51171875, 0.51171875,
+        0.50390625, 0.4921875, 0.490234375, 0.474609375, 0.462890625,
+        0.396484375, 0.390625, 0.384765625, 0.3828125, 0.37890625
+      ],
+      "failures": {
+        "condense": 0,
+        "expand": 0,
+        "embed": 0,
+        "rerank": 0
+      },
+      "rerankReadings": {
+        "asked": 6,
+        "returned": 6,
+        "dropped": []
+      },
+      "ms": {
+        "rewrite": 0,
+        "retrieve": 688,
+        "rerank": 515
+      }
+    },
+    {
+      "id": "ho-hacienda-solo-cliente-eeuu",
+      "kind": "retrieval",
+      "query": "¿Tengo que meterme en Hacienda si sólo le facturo a una empresa de Estados Unidos?",
+      "condenseFailed": false,
+      "tier": 1,
+      "family": "T1-A",
+      "variant": "literal",
+      "weak": false,
+      "expansionFailed": false,
+      "expectedCount": 5,
+      "per": {
+        "top8/capoff/pinoff": {
+          "present": 2,
+          "missing": [
+            "ley-iva/Artículo 5",
+            "ley-iva/Artículo 4",
+            "ley-renta/ARTICULO 2"
+          ],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 18·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-renta·ARTICULO 23·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon": {
+          "present": 2,
+          "missing": [
+            "ley-iva/Artículo 5",
+            "ley-iva/Artículo 4",
+            "ley-renta/ARTICULO 2"
+          ],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 18·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-renta·ARTICULO 23·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap3/pinoff": {
+          "present": 2,
+          "missing": [
+            "ley-iva/Artículo 5",
+            "ley-iva/Artículo 4",
+            "ley-renta/ARTICULO 2"
+          ],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 18·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-renta·ARTICULO 23·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap3/pinon": {
+          "present": 2,
+          "missing": [
+            "ley-iva/Artículo 5",
+            "ley-iva/Artículo 4",
+            "ley-renta/ARTICULO 2"
+          ],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 18·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-renta·ARTICULO 23·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap2/pinoff": {
+          "present": 1,
+          "missing": [
+            "ley-iva/Artículo 5",
+            "ley-iva/Artículo 4",
+            "ley-renta/ARTICULO 2",
+            "reglamento-renta/Artículo 27"
+          ],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 18·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "reglamento-comprobantes·Preámbulo·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-renta·ARTICULO 23·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap2/pinon": {
+          "present": 1,
+          "missing": [
+            "ley-iva/Artículo 5",
+            "ley-iva/Artículo 4",
+            "ley-renta/ARTICULO 2",
+            "reglamento-renta/Artículo 27"
+          ],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 18·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "reglamento-comprobantes·Preámbulo·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-renta·ARTICULO 23·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/capoff/pinoff": {
+          "present": 2,
+          "missing": [
+            "ley-iva/Artículo 5",
+            "ley-iva/Artículo 4",
+            "ley-renta/ARTICULO 2"
+          ],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 18·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "reglamento-comprobantes·Preámbulo·#0",
+            "ley-iva·Artículo 30·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-renta·ARTICULO 23·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/capoff/pinon": {
+          "present": 2,
+          "missing": [
+            "ley-iva/Artículo 5",
+            "ley-iva/Artículo 4",
+            "ley-renta/ARTICULO 2"
+          ],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 18·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "reglamento-comprobantes·Preámbulo·#0",
+            "ley-iva·Artículo 30·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-renta·ARTICULO 23·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap3/pinoff": {
+          "present": 2,
+          "missing": [
+            "ley-iva/Artículo 5",
+            "ley-iva/Artículo 4",
+            "ley-renta/ARTICULO 2"
+          ],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 18·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "reglamento-comprobantes·Preámbulo·#0",
+            "ley-iva·Artículo 30·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-renta·ARTICULO 23·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap3/pinon": {
+          "present": 2,
+          "missing": [
+            "ley-iva/Artículo 5",
+            "ley-iva/Artículo 4",
+            "ley-renta/ARTICULO 2"
+          ],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 18·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "reglamento-comprobantes·Preámbulo·#0",
+            "ley-iva·Artículo 30·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-renta·ARTICULO 23·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap2/pinoff": {
+          "present": 1,
+          "missing": [
+            "ley-iva/Artículo 5",
+            "ley-iva/Artículo 4",
+            "ley-renta/ARTICULO 2",
+            "reglamento-renta/Artículo 27"
+          ],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 18·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "reglamento-comprobantes·Preámbulo·#0",
+            "ley-iva·Artículo 30·#0",
+            "ley-renta·ARTICULO 65·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-renta·ARTICULO 23·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap2/pinon": {
+          "present": 1,
+          "missing": [
+            "ley-iva/Artículo 5",
+            "ley-iva/Artículo 4",
+            "ley-renta/ARTICULO 2",
+            "reglamento-renta/Artículo 27"
+          ],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 18·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "reglamento-comprobantes·Preámbulo·#0",
+            "ley-iva·Artículo 30·#0",
+            "ley-renta·ARTICULO 65·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-renta·ARTICULO 23·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon/xrefoff": {
+          "present": 2,
+          "missing": [
+            "ley-iva/Artículo 5",
+            "ley-iva/Artículo 4",
+            "ley-renta/ARTICULO 2"
+          ],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 11,
+          "pinned": ["salario-base-2026·Circular 246-2025·#0"],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 18·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon/sboff": {
+          "present": 2,
+          "missing": [
+            "ley-iva/Artículo 5",
+            "ley-iva/Artículo 4",
+            "ley-renta/ARTICULO 2"
+          ],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-renta·ARTICULO 23·#0"],
+          "set": [
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 18·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-renta·ARTICULO 23·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-renta·ARTICULO 23·#0": "crossReference"
+          }
+        }
+      },
+      "targetRanks": [
+        {
+          "target": "ley-iva/Artículo 5",
+          "rank": null
+        },
+        {
+          "target": "ley-iva/Artículo 4",
+          "rank": null
+        },
+        {
+          "target": "ley-renta/ARTICULO 2",
+          "rank": 12
+        },
+        {
+          "target": "reglamento-renta/Artículo 27",
+          "rank": 7
+        },
+        {
+          "target": "cnpt/Artículo 78",
+          "rank": 30
+        }
+      ],
+      "expansion": "Obligación de inscripción en el registro tributario y de emisión de comprobantes electrónicos para personas físicas que prestan servicios desde Costa Rica a clientes extranjeros, con la exención o no sujeción del impuesto sobre el valor agregado a las exportaciones de servicios y la determinación de la base imponible del impuesto sobre la renta sobre ingresos de fuente costarricense.",
+      "steps": "T1-A",
+      "pool": [
+        "reglamento-comprobantes·Artículo 13·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+        "ley-renta·ARTICULO 2·#0",
+        "reglamento-renta·Artículo 30·#2",
+        "ley-iva·Artículo 27·#0",
+        "ley-renta·ARTICULO 23·#0",
+        "ley-renta·ARTICULO 23·#1",
+        "ley-renta·Artículo 1·#0",
+        "reglamento-rts·Artículo 7·#0",
+        "ley-renta·ARTICULO 2·#1",
+        "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+        "cnpt·Artículo 78·#0",
+        "reglamento-renta·Artículo 17·#1",
+        "cnpt·Artículo 81·#0",
+        "reglamento-iva·Artículo 60·#0",
+        "ccss-reglamento-ti·Artículo 1·#0",
+        "reglamento-renta·Artículo 7·#0",
+        "ley-renta·Artículo 5·#0",
+        "ley-iva·Artículo 35·#0",
+        "reglamento-iva·Artículo 40·#0",
+        "reglamento-renta·Artículo 18·#0",
+        "ley-renta·ARTICULO 65·#0",
+        "reglamento-renta·Artículo 27·#0",
+        "cnpt·Artículo 81·#1",
+        "ley-iva·Artículo 40·#0",
+        "reglamento-renta·Artículo 103·#0",
+        "reglamento-comprobantes·Preámbulo·#0",
+        "ccss-faq·¿Puedo tener un seguro de Trabajador Independiente si actualmente vivo fuera de Costa Rica?·#0",
+        "ley-10363·ARTÍCULO 2·#0",
+        "ccss-reglamento-ti·Artículo 6·#0",
+        "ccss-faq·¿Puedo tener un seguro si actualmente vivo fuera de Costa Rica?·#0",
+        "reglamento-comprobantes·Artículo 7·#0",
+        "ley-renta·Artículo 31 quáter·#0",
+        "ley-renta·Artículo 2 bis·#0",
+        "ley-iva·Artículo 8·#0",
+        "reglamento-renta·Artículo 10·#0",
+        "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+        "ccss-faq·¿Quién puede optar por aplica a un Seguro Voluntario?·#0",
+        "ley-iva·Artículo 30·#0",
+        "ccss-reglamento-ti·Preámbulo·#0"
+      ],
+      "order": [
+        "reglamento-iva·Artículo 60·#0",
+        "reglamento-comprobantes·Artículo 13·#0",
+        "reglamento-rts·Artículo 7·#0",
+        "ley-iva·Artículo 8·#0",
+        "reglamento-renta·Artículo 30·#2",
+        "reglamento-renta·Artículo 18·#0",
+        "reglamento-renta·Artículo 27·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+        "reglamento-comprobantes·Preámbulo·#0",
+        "ley-iva·Artículo 30·#0",
+        "ley-renta·ARTICULO 65·#0",
+        "ley-renta·ARTICULO 2·#0",
+        "ley-renta·Artículo 1·#0",
+        "ley-renta·Artículo 5·#0",
+        "ley-iva·Artículo 40·#0",
+        "reglamento-comprobantes·Artículo 7·#0",
+        "ley-iva·Artículo 27·#0",
+        "ley-renta·ARTICULO 23·#1",
+        "reglamento-renta·Artículo 17·#1",
+        "ley-renta·ARTICULO 23·#0",
+        "ley-renta·ARTICULO 2·#1",
+        "reglamento-renta·Artículo 103·#0",
+        "reglamento-renta·Artículo 10·#0",
+        "reglamento-renta·Artículo 7·#0",
+        "reglamento-iva·Artículo 40·#0",
+        "ley-renta·Artículo 2 bis·#0",
+        "ley-iva·Artículo 35·#0",
+        "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+        "cnpt·Artículo 78·#0",
+        "ley-renta·Artículo 31 quáter·#0",
+        "cnpt·Artículo 81·#0",
+        "cnpt·Artículo 81·#1",
+        "ccss-reglamento-ti·Artículo 1·#0",
+        "ley-10363·ARTÍCULO 2·#0",
+        "ccss-reglamento-ti·Preámbulo·#0",
+        "ccss-reglamento-ti·Artículo 6·#0",
+        "ccss-faq·¿Puedo tener un seguro de Trabajador Independiente si actualmente vivo fuera de Costa Rica?·#0",
+        "ccss-faq·¿Quién puede optar por aplica a un Seguro Voluntario?·#0",
+        "ccss-faq·¿Puedo tener un seguro si actualmente vivo fuera de Costa Rica?·#0"
+      ],
+      "scores": [
+        0.6640625, 0.640625, 0.62109375, 0.61328125, 0.546875, 0.54296875,
+        0.54296875, 0.54296875, 0.54296875, 0.53515625, 0.53515625, 0.52734375,
+        0.52734375, 0.51953125, 0.515625, 0.51171875, 0.50390625, 0.5,
+        0.498046875, 0.49609375, 0.49609375, 0.484375, 0.48046875, 0.47265625,
+        0.45703125, 0.439453125, 0.431640625, 0.419921875, 0.4140625, 0.3984375,
+        0.390625, 0.380859375, 0.37109375, 0.3671875, 0.33203125, 0.318359375,
+        0.294921875, 0.291015625, 0.28515625, 0.28125
+      ],
+      "failures": {
+        "condense": 0,
+        "expand": 0,
+        "embed": 0,
+        "rerank": 0
+      },
+      "rerankReadings": {
+        "asked": 6,
+        "returned": 6,
+        "dropped": []
+      },
+      "ms": {
+        "rewrite": 0,
+        "retrieve": 507,
+        "rerank": 1851
+      }
+    },
+    {
+      "id": "ho-iva-en-cero-sin-facturar",
+      "kind": "retrieval",
+      "query": "¿Tengo que presentar el IVA en cero si no facturé este mes?",
+      "condenseFailed": false,
+      "tier": 1,
+      "family": "T1-D",
+      "variant": "coloquial",
+      "weak": false,
+      "expansionFailed": false,
+      "expectedCount": 3,
+      "per": {
+        "top8/capoff/pinoff": {
+          "present": 3,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 10·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-iva·Artículo 41·#1",
+            "reglamento-iva·Artículo 25·#0",
+            "ley-iva·Artículo 7·#0",
+            "ley-iva·Artículo 3·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 10·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 10·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon": {
+          "present": 3,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 10·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-iva·Artículo 41·#1",
+            "reglamento-iva·Artículo 25·#0",
+            "ley-iva·Artículo 7·#0",
+            "ley-iva·Artículo 3·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 10·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 10·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap3/pinoff": {
+          "present": 3,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "ley-iva·Artículo 7·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+            "ley-iva·Artículo 3·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap3/pinon": {
+          "present": 3,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "ley-iva·Artículo 7·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+            "ley-iva·Artículo 3·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap2/pinoff": {
+          "present": 3,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 20·#0",
+            "ley-iva·Artículo 3·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap2/pinon": {
+          "present": 3,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 20·#0",
+            "ley-iva·Artículo 3·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/capoff/pinoff": {
+          "present": 3,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 10·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-iva·Artículo 41·#1",
+            "reglamento-iva·Artículo 25·#0",
+            "ley-iva·Artículo 7·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+            "ley-iva·Artículo 3·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 10·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 10·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/capoff/pinon": {
+          "present": 3,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 10·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-iva·Artículo 41·#1",
+            "reglamento-iva·Artículo 25·#0",
+            "ley-iva·Artículo 7·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+            "ley-iva·Artículo 3·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 10·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 10·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap3/pinoff": {
+          "present": 3,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "ley-iva·Artículo 7·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 20·#0",
+            "ley-iva·Artículo 3·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap3/pinon": {
+          "present": 3,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "ley-iva·Artículo 7·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 20·#0",
+            "ley-iva·Artículo 3·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap2/pinoff": {
+          "present": 3,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 14,
+          "pinned": [
+            "ley-renta·Artículo 31 ter·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 20·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+            "reglamento-renta·Artículo 51·#0",
+            "ley-iva·Artículo 3·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-renta·Artículo 31 ter·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-renta·Artículo 31 ter·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap2/pinon": {
+          "present": 3,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 14,
+          "pinned": [
+            "ley-renta·Artículo 31 ter·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 20·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+            "reglamento-renta·Artículo 51·#0",
+            "ley-iva·Artículo 3·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-renta·Artículo 31 ter·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-renta·Artículo 31 ter·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon/xrefoff": {
+          "present": 3,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 11,
+          "pinned": ["salario-base-2026·Circular 246-2025·#0"],
+          "set": [
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-iva·Artículo 41·#1",
+            "reglamento-iva·Artículo 25·#0",
+            "ley-iva·Artículo 7·#0",
+            "ley-iva·Artículo 3·#0",
+            "cnpt·Artículo 79·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon/sboff": {
+          "present": 3,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-iva·Artículo 10·#0"],
+          "set": [
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-iva·Artículo 41·#1",
+            "reglamento-iva·Artículo 25·#0",
+            "ley-iva·Artículo 7·#0",
+            "ley-iva·Artículo 3·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 10·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 10·#0": "crossReference"
+          }
+        }
+      },
+      "targetRanks": [
+        {
+          "target": "ley-iva/Artículo 27",
+          "rank": 2
+        },
+        {
+          "target": "reglamento-iva/Artículo 40",
+          "rank": 1
+        },
+        {
+          "target": "cnpt/Artículo 79",
+          "rank": 30
+        }
+      ],
+      "expansion": "La obligación de presentar la declaración mensual del Impuesto sobre el Valor Agregado, incluso cuando no hubo operaciones gravadas ni ventas en el período, con el plazo y la forma de presentación que establezca la Administración Tributaria.",
+      "steps": "T1-D",
+      "pool": [
+        "ley-iva·Artículo 27·#0",
+        "reglamento-iva·Artículo 40·#0",
+        "reglamento-iva·Artículo 40 bis·#0",
+        "cnpt·Artículo 79·#0",
+        "cnpt·Artículo 81·#0",
+        "ley-renta·ARTICULO 20·#0",
+        "reglamento-renta·Artículo 28·#0",
+        "ley-iva·Artículo 8·#0",
+        "ley-iva·Artículo 10·#0",
+        "reglamento-iva·Preámbulo·#0",
+        "reglamento-renta·Artículo 51·#0",
+        "reglamento-iva·Artículo 25·#0",
+        "ley-iva·Artículo 12·#0",
+        "reglamento-iva·Artículo 11·#0",
+        "reglamento-iva·Artículo 60·#0",
+        "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+        "reglamento-iva·Artículo 41·#1",
+        "reglamento-iva·Artículo 38·#0",
+        "reglamento-iva·Artículo 41·#0",
+        "ley-renta·ARTICULO 22·#0",
+        "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+        "reglamento-iva·Artículo 3·#0",
+        "ley-iva·Artículo 38·#0",
+        "ley-iva·Artículo 3·#0",
+        "ley-iva·Artículo 7·#0",
+        "reglamento-iva·Artículo 67·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+        "reglamento-renta·Artículo 53·#0",
+        "ley-iva·Artículo 5·#0",
+        "reglamento-iva·Artículo 50·#0",
+        "ley-iva·Artículo 35·#0",
+        "reglamento-iva·Artículo 37·#0",
+        "ley-iva·Artículo 40·#0",
+        "reglamento-iva·Transitorio VIII·#0",
+        "reglamento-iva·Artículo 18·#0",
+        "reglamento-comprobantes·Artículo 13·#0",
+        "ley-iva·Artículo 2·#0",
+        "reglamento-comprobantes·Artículo 2·#0",
+        "reglamento-iva·Transitorio II·#0",
+        "ley-iva·Artículo 13·#0"
+      ],
+      "order": [
+        "reglamento-iva·Artículo 40·#0",
+        "ley-iva·Artículo 27·#0",
+        "ley-iva·Artículo 38·#0",
+        "reglamento-iva·Artículo 60·#0",
+        "reglamento-iva·Artículo 50·#0",
+        "reglamento-iva·Artículo 41·#1",
+        "reglamento-iva·Artículo 25·#0",
+        "ley-iva·Artículo 7·#0",
+        "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+        "reglamento-iva·Artículo 40 bis·#0",
+        "reglamento-iva·Artículo 41·#0",
+        "reglamento-renta·Artículo 28·#0",
+        "reglamento-iva·Transitorio II·#0",
+        "ley-iva·Artículo 35·#0",
+        "ley-renta·ARTICULO 20·#0",
+        "reglamento-iva·Artículo 38·#0",
+        "reglamento-iva·Transitorio VIII·#0",
+        "reglamento-iva·Preámbulo·#0",
+        "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+        "ley-iva·Artículo 3·#0",
+        "reglamento-renta·Artículo 51·#0",
+        "ley-iva·Artículo 12·#0",
+        "ley-renta·ARTICULO 22·#0",
+        "reglamento-iva·Artículo 67·#0",
+        "ley-iva·Artículo 40·#0",
+        "ley-iva·Artículo 5·#0",
+        "reglamento-comprobantes·Artículo 13·#0",
+        "reglamento-iva·Artículo 37·#0",
+        "cnpt·Artículo 79·#0",
+        "cnpt·Artículo 81·#0",
+        "reglamento-iva·Artículo 11·#0",
+        "reglamento-iva·Artículo 3·#0",
+        "reglamento-renta·Artículo 53·#0",
+        "ley-iva·Artículo 8·#0",
+        "ley-iva·Artículo 2·#0",
+        "reglamento-iva·Artículo 18·#0",
+        "ley-iva·Artículo 13·#0",
+        "ley-iva·Artículo 10·#0",
+        "reglamento-comprobantes·Artículo 2·#0"
+      ],
+      "scores": [
+        0.8828125, 0.87890625, 0.76953125, 0.71484375, 0.6796875, 0.63671875,
+        0.60546875, 0.58984375, 0.578125, 0.56640625, 0.5625, 0.5625,
+        0.55078125, 0.546875, 0.53515625, 0.53125, 0.52734375, 0.52734375,
+        0.52734375, 0.5234375, 0.515625, 0.498046875, 0.49609375, 0.490234375,
+        0.48828125, 0.486328125, 0.484375, 0.46875, 0.466796875, 0.462890625,
+        0.462890625, 0.458984375, 0.458984375, 0.458984375, 0.453125, 0.453125,
+        0.421875, 0.416015625, 0.412109375, 0.365234375
+      ],
+      "failures": {
+        "condense": 0,
+        "expand": 0,
+        "embed": 0,
+        "rerank": 0
+      },
+      "rerankReadings": {
+        "asked": 7,
+        "returned": 7,
+        "dropped": []
+      },
+      "ms": {
+        "rewrite": 0,
+        "retrieve": 524,
+        "rerank": 822
+      }
+    },
+    {
+      "id": "t2-inscripcion-dimex",
+      "kind": "retrieval",
+      "query": "¿Puedo inscribirme en Hacienda con mi DIMEX?",
+      "condenseFailed": false,
+      "tier": 2,
+      "family": null,
+      "variant": null,
+      "weak": false,
+      "expansionFailed": false,
+      "expectedCount": 2,
+      "per": {
+        "top8/capoff/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 1·#0",
+            "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 17·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "tribu-cr-faq·Consulta de la Situación Tributaria (OVi Pública) · 3·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 42·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 1·#0",
+            "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 17·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "tribu-cr-faq·Consulta de la Situación Tributaria (OVi Pública) · 3·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 42·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap3/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 1·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap3/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 1·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap2/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-renta·Artículo 7·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap2/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-renta·Artículo 7·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/capoff/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 1·#0",
+            "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 17·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "tribu-cr-faq·Consulta de la Situación Tributaria (OVi Pública) · 3·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 42·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/capoff/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 1·#0",
+            "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 17·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "tribu-cr-faq·Consulta de la Situación Tributaria (OVi Pública) · 3·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 42·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap3/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 1·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-renta·Artículo 7·#0",
+            "reglamento-iva·Artículo 66·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap3/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 1·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-renta·Artículo 7·#0",
+            "reglamento-iva·Artículo 66·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap2/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-renta·Artículo 7·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-iva·Artículo 27·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "ccss-reglamento-ti·Artículo 1·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap2/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-renta·Artículo 7·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-iva·Artículo 27·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "ccss-reglamento-ti·Artículo 1·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "ccss-reglamento-ti·Artículo 1·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon/xrefoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 11,
+          "pinned": ["salario-base-2026·Circular 246-2025·#0"],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 1·#0",
+            "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 17·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "tribu-cr-faq·Consulta de la Situación Tributaria (OVi Pública) · 3·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 42·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon/sboff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-iva·Artículo 4·#0"],
+          "set": [
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 1·#0",
+            "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 17·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "tribu-cr-faq·Consulta de la Situación Tributaria (OVi Pública) · 3·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 42·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-iva·Artículo 4·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference"
+          }
+        }
+      },
+      "targetRanks": [
+        {
+          "target": "tribu-cr-faq/Registro Único Tributario (RUT) · 1",
+          "rank": 2
+        },
+        {
+          "target": "tribu-cr-faq/Registro Único Tributario (RUT) · 3",
+          "rank": 1
+        }
+      ],
+      "expansion": "Requisitos para la inscripción de personas extranjeras con documento de identificación migratoria (DIMEX) como contribuyentes ante la Administración Tributaria, y su obligación de inscribirse en el Registro Único de Contribuyentes como persona física para el cumplimiento de obligaciones tributarias.",
+      "steps": "T1-A",
+      "pool": [
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+        "reglamento-renta·Artículo 27·#0",
+        "cnpt·Artículo 78·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 1·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 5·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 20·#0",
+        "ley-iva·Artículo 5·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 29·#0",
+        "reglamento-comprobantes·Artículo 7·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 17·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+        "reglamento-iva·Artículo 60·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 42·#0",
+        "ley-10363·ARTÍCULO 2·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 4·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 19·#0",
+        "reglamento-iva·Artículo 61·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 6·#0",
+        "ccss-reglamento-ti·Artículo 1·#0",
+        "reglamento-comprobantes·Preámbulo·#0",
+        "tribu-cr-faq·Consulta de la Situación Tributaria (OVi Pública) · 3·#0",
+        "reglamento-comprobantes·Artículo 13·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 24·#0",
+        "ley-renta·Artículo 79·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 11·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 14·#0",
+        "reglamento-iva·Artículo 66·#0",
+        "ccss-faq·¿Puedo tener un seguro de Trabajador Independiente si actualmente vivo fuera de Costa Rica?·#0",
+        "reglamento-renta·Artículo 7·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 12·#0",
+        "reglamento-comprobantes·Artículo 2·#0",
+        "reglamento-renta·TRANSITORIO VII·#0",
+        "ccss-reglamento-ti·Artículo 6·#0",
+        "ccss-faq·¿Puedo tener un seguro si actualmente vivo fuera de Costa Rica?·#0",
+        "ley-iva·Artículo 27·#0",
+        "reglamento-renta·Artículo 30·#2",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 21·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 4·#0"
+      ],
+      "order": [
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 1·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 17·#0",
+        "reglamento-iva·Artículo 61·#0",
+        "tribu-cr-faq·Consulta de la Situación Tributaria (OVi Pública) · 3·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 42·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 2·#0",
+        "ley-iva·Artículo 5·#0",
+        "reglamento-comprobantes·Artículo 13·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 5·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 4·#0",
+        "reglamento-renta·Artículo 27·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 6·#0",
+        "reglamento-iva·Artículo 60·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+        "reglamento-renta·Artículo 7·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 19·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 20·#0",
+        "reglamento-iva·Artículo 66·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 21·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 4·#0",
+        "reglamento-renta·Artículo 30·#2",
+        "tribu-cr-faq·Declaraciones del RUT · 14·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 29·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 11·#0",
+        "cnpt·Artículo 78·#0",
+        "ley-iva·Artículo 27·#0",
+        "reglamento-comprobantes·Artículo 7·#0",
+        "tribu-cr-faq·Ingreso a la Oficina Virtual (OVI) · 12·#0",
+        "reglamento-renta·TRANSITORIO VII·#0",
+        "reglamento-comprobantes·Preámbulo·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 24·#0",
+        "ccss-reglamento-ti·Artículo 1·#0",
+        "reglamento-comprobantes·Artículo 2·#0",
+        "ccss-reglamento-ti·Artículo 6·#0",
+        "ley-renta·Artículo 79·#0",
+        "ley-10363·ARTÍCULO 2·#0",
+        "ccss-faq·¿Puedo tener un seguro si actualmente vivo fuera de Costa Rica?·#0",
+        "ccss-faq·¿Puedo tener un seguro de Trabajador Independiente si actualmente vivo fuera de Costa Rica?·#0"
+      ],
+      "scores": [
+        0.8515625, 0.77734375, 0.7421875, 0.66015625, 0.66015625, 0.625,
+        0.609375, 0.58984375, 0.55078125, 0.53125, 0.51953125, 0.51953125,
+        0.51953125, 0.498046875, 0.490234375, 0.474609375, 0.466796875,
+        0.46484375, 0.453125, 0.451171875, 0.44921875, 0.435546875, 0.43359375,
+        0.431640625, 0.431640625, 0.4296875, 0.4296875, 0.427734375,
+        0.423828125, 0.41796875, 0.41015625, 0.404296875, 0.388671875,
+        0.3828125, 0.380859375, 0.37890625, 0.37109375, 0.357421875,
+        0.349609375, 0.345703125
+      ],
+      "failures": {
+        "condense": 0,
+        "expand": 0,
+        "embed": 0,
+        "rerank": 0
+      },
+      "rerankReadings": {
+        "asked": 6,
+        "returned": 6,
+        "dropped": []
+      },
+      "ms": {
+        "rewrite": 0,
+        "retrieve": 436,
+        "rerank": 491
+      }
+    },
+    {
+      "id": "rb-corto-cuando-declaro-iva",
+      "kind": "retrieval",
+      "query": "¿cuándo declaro el IVA?",
+      "condenseFailed": false,
+      "tier": 2,
+      "family": null,
+      "variant": "robustez",
+      "weak": false,
+      "expansionFailed": false,
+      "expectedCount": 2,
+      "per": {
+        "top8/capoff/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "reglamento-iva·Artículo 41·#1",
+            "reglamento-iva·Artículo 11·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "reglamento-iva·Artículo 11·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "reglamento-iva·Artículo 41·#1",
+            "reglamento-iva·Artículo 11·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "reglamento-iva·Artículo 11·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap3/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 20·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "reglamento-iva·Artículo 11·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap3/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 20·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "reglamento-iva·Artículo 11·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap2/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["reglamento-rts·Artículo 1·#0"],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 20·#0",
+            "reglamento-rts·Artículo 4·#0",
+            "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "reglamento-rts·Artículo 1·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 11·#0": "step",
+            "reglamento-rts·Artículo 1·#0": "crossReference"
+          }
+        },
+        "top8/cap2/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["reglamento-rts·Artículo 1·#0"],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 20·#0",
+            "reglamento-rts·Artículo 4·#0",
+            "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "reglamento-rts·Artículo 1·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 11·#0": "step",
+            "reglamento-rts·Artículo 1·#0": "crossReference"
+          }
+        },
+        "top10/capoff/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "reglamento-iva·Artículo 41·#1",
+            "ley-renta·ARTICULO 20·#0",
+            "reglamento-iva·Artículo 41·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "reglamento-iva·Artículo 11·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/capoff/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "reglamento-iva·Artículo 41·#1",
+            "ley-renta·ARTICULO 20·#0",
+            "reglamento-iva·Artículo 41·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 4·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "reglamento-iva·Artículo 11·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap3/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 14,
+          "pinned": [
+            "reglamento-rts·Artículo 1·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 20·#0",
+            "reglamento-rts·Artículo 4·#0",
+            "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "cnpt·Artículo 79·#0",
+            "reglamento-rts·Artículo 1·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "reglamento-iva·Artículo 11·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "reglamento-rts·Artículo 1·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap3/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 14,
+          "pinned": [
+            "reglamento-rts·Artículo 1·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 20·#0",
+            "reglamento-rts·Artículo 4·#0",
+            "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "cnpt·Artículo 79·#0",
+            "reglamento-rts·Artículo 1·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "reglamento-iva·Artículo 11·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "reglamento-rts·Artículo 1·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap2/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 13,
+          "pinned": ["reglamento-rts·Artículo 1·#0"],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 20·#0",
+            "reglamento-rts·Artículo 4·#0",
+            "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "reglamento-rts·Artículo 1·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 11·#0": "step",
+            "reglamento-rts·Artículo 1·#0": "crossReference"
+          }
+        },
+        "top10/cap2/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 13,
+          "pinned": ["reglamento-rts·Artículo 1·#0"],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 20·#0",
+            "reglamento-rts·Artículo 4·#0",
+            "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 11·#0",
+            "reglamento-rts·Artículo 1·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 11·#0": "step",
+            "reglamento-rts·Artículo 1·#0": "crossReference"
+          }
+        },
+        "top8/capoff/pinon/xrefoff": {
+          "present": 2,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 11,
+          "pinned": ["salario-base-2026·Circular 246-2025·#0"],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "reglamento-iva·Artículo 41·#1",
+            "reglamento-iva·Artículo 11·#0",
+            "cnpt·Artículo 79·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "reglamento-iva·Artículo 11·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon/sboff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-iva·Artículo 4·#0"],
+          "set": [
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 38·#0",
+            "reglamento-iva·Artículo 40·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 50·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-renta·Artículo 28·#0",
+            "reglamento-iva·Artículo 41·#1",
+            "reglamento-iva·Artículo 11·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 4·#0"
+          ],
+          "pins": {
+            "reglamento-iva·Artículo 11·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 4·#0": "crossReference"
+          }
+        }
+      },
+      "targetRanks": [
+        {
+          "target": "ley-iva/Artículo 27",
+          "rank": 1
+        },
+        {
+          "target": "reglamento-iva/Artículo 40",
+          "rank": 3
+        }
+      ],
+      "expansion": "La declaración mensual del impuesto sobre el valor agregado que deben presentar los contribuyentes registrados ante la Administración Tributaria, con indicación del período fiscal que corresponde a cada declaración y del plazo que establezca la ley para su presentación y pago.",
+      "steps": "T1-D",
+      "pool": [
+        "ley-iva·Artículo 27·#0",
+        "ley-iva·Artículo 3·#0",
+        "reglamento-iva·Artículo 38·#0",
+        "reglamento-iva·Artículo 40 bis·#0",
+        "reglamento-iva·Artículo 40·#0",
+        "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+        "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+        "reglamento-iva·Preámbulo·#0",
+        "reglamento-iva·Artículo 25·#0",
+        "reglamento-renta·Artículo 28·#0",
+        "reglamento-iva·Transitorio II·#0",
+        "ley-iva·Artículo 8·#0",
+        "reglamento-iva·Artículo 60·#0",
+        "cnpt·Artículo 81·#0",
+        "ley-iva·Artículo 38·#0",
+        "ley-iva·Artículo 10·#0",
+        "cnpt·Artículo 79·#0",
+        "ley-renta·ARTICULO 20·#0",
+        "ley-iva·Artículo 16·#0",
+        "reglamento-iva·Artículo 41·#1",
+        "reglamento-iva·Artículo 50·#0",
+        "reglamento-iva·Artículo 10·#0",
+        "reglamento-iva·Artículo 41·#0",
+        "ley-iva·Artículo 7·#0",
+        "reglamento-rts·Artículo 4·#0",
+        "ley-iva·Artículo 5·#0",
+        "ley-iva·Artículo 30·#0",
+        "ley-iva·Artículo 35·#0",
+        "reglamento-iva·Artículo 34·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+        "ley-iva·Artículo 4·#0",
+        "ley-iva·Artículo 28·#0",
+        "reglamento-iva·Artículo 61·#0",
+        "reglamento-renta·TRANSITORIO I·#0",
+        "reglamento-iva·Artículo 11·#0",
+        "reglamento-iva·Artículo 63·#0",
+        "reglamento-iva·Artículo 7·#0",
+        "reglamento-iva·Artículo 67·#0",
+        "ley-iva·Artículo 2·#0",
+        "reglamento-iva·Artículo 3·#0"
+      ],
+      "order": [
+        "ley-iva·Artículo 27·#0",
+        "ley-iva·Artículo 38·#0",
+        "reglamento-iva·Artículo 40·#0",
+        "ley-iva·Artículo 3·#0",
+        "reglamento-iva·Artículo 50·#0",
+        "reglamento-iva·Artículo 60·#0",
+        "reglamento-renta·Artículo 28·#0",
+        "reglamento-iva·Artículo 41·#1",
+        "ley-renta·ARTICULO 20·#0",
+        "reglamento-iva·Artículo 41·#0",
+        "reglamento-iva·Artículo 25·#0",
+        "reglamento-iva·Artículo 40 bis·#0",
+        "reglamento-iva·Transitorio II·#0",
+        "ley-iva·Artículo 7·#0",
+        "reglamento-iva·Artículo 61·#0",
+        "reglamento-rts·Artículo 4·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 8·#0",
+        "reglamento-iva-retencion-tarjetas·Artículo 41·#1",
+        "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+        "reglamento-iva·Preámbulo·#0",
+        "reglamento-iva·Artículo 38·#0",
+        "reglamento-renta·TRANSITORIO I·#0",
+        "ley-iva·Artículo 28·#0",
+        "reglamento-iva·Artículo 10·#0",
+        "ley-iva·Artículo 4·#0",
+        "ley-iva·Artículo 5·#0",
+        "ley-iva·Artículo 16·#0",
+        "ley-iva·Artículo 30·#0",
+        "reglamento-iva·Artículo 63·#0",
+        "ley-iva·Artículo 35·#0",
+        "reglamento-iva·Artículo 34·#0",
+        "reglamento-iva·Artículo 3·#0",
+        "reglamento-iva·Artículo 7·#0",
+        "ley-iva·Artículo 2·#0",
+        "reglamento-iva·Artículo 11·#0",
+        "reglamento-iva·Artículo 67·#0",
+        "cnpt·Artículo 79·#0",
+        "ley-iva·Artículo 8·#0",
+        "ley-iva·Artículo 10·#0",
+        "cnpt·Artículo 81·#0"
+      ],
+      "scores": [
+        0.80859375, 0.8046875, 0.79296875, 0.703125, 0.703125, 0.67578125,
+        0.640625, 0.6328125, 0.62890625, 0.60546875, 0.6015625, 0.6015625,
+        0.5703125, 0.5703125, 0.56640625, 0.56640625, 0.55859375, 0.55859375,
+        0.5546875, 0.546875, 0.53515625, 0.53125, 0.53125, 0.53125, 0.52734375,
+        0.515625, 0.515625, 0.515625, 0.51171875, 0.50390625, 0.490234375,
+        0.48828125, 0.48046875, 0.46875, 0.46484375, 0.458984375, 0.45703125,
+        0.45703125, 0.451171875, 0.4453125
+      ],
+      "failures": {
+        "condense": 0,
+        "expand": 0,
+        "embed": 0,
+        "rerank": 0
+      },
+      "rerankReadings": {
+        "asked": 7,
+        "returned": 7,
+        "dropped": []
+      },
+      "ms": {
+        "rewrite": 0,
+        "retrieve": 455,
+        "rerank": 944
+      }
+    },
+    {
+      "id": "rb-tilde-inscribirme-afuera",
+      "kind": "retrieval",
+      "query": "tengo q inscribirme en hacienda si le facturo a clientes de afuera",
+      "condenseFailed": false,
+      "tier": 2,
+      "family": null,
+      "variant": "robustez",
+      "weak": false,
+      "expansionFailed": false,
+      "expectedCount": 4,
+      "per": {
+        "top8/capoff/pinoff": {
+          "present": 2,
+          "missing": ["ley-iva/Artículo 4", "ley-renta/ARTICULO 2"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 10·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 66·#0",
+            "reglamento-iva·Artículo 47·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "ley-iva·Artículo 7·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-iva·Artículo 10·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-iva·Artículo 10·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon": {
+          "present": 2,
+          "missing": ["ley-iva/Artículo 4", "ley-renta/ARTICULO 2"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 10·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 66·#0",
+            "reglamento-iva·Artículo 47·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "ley-iva·Artículo 7·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-iva·Artículo 10·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-iva·Artículo 10·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap3/pinoff": {
+          "present": 2,
+          "missing": ["ley-iva/Artículo 4", "ley-renta/ARTICULO 2"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 66·#0",
+            "reglamento-iva·Artículo 47·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 7·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "ley-iva·Artículo 27·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-renta·ARTICULO 23·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap3/pinon": {
+          "present": 2,
+          "missing": ["ley-iva/Artículo 4", "ley-renta/ARTICULO 2"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 66·#0",
+            "reglamento-iva·Artículo 47·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 7·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "ley-iva·Artículo 27·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-renta·ARTICULO 23·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap2/pinoff": {
+          "present": 3,
+          "missing": ["ley-iva/Artículo 4"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 66·#0",
+            "reglamento-iva·Artículo 47·#0",
+            "ley-iva·Artículo 7·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-rts·Artículo 4·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-renta·ARTICULO 23·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap2/pinon": {
+          "present": 3,
+          "missing": ["ley-iva/Artículo 4"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 12,
+          "pinned": [
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 66·#0",
+            "reglamento-iva·Artículo 47·#0",
+            "ley-iva·Artículo 7·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-rts·Artículo 4·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-renta·ARTICULO 23·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/capoff/pinoff": {
+          "present": 2,
+          "missing": ["ley-iva/Artículo 4", "ley-renta/ARTICULO 2"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 10·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 66·#0",
+            "reglamento-iva·Artículo 47·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "ley-iva·Artículo 7·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-iva·Artículo 49·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-iva·Artículo 10·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-iva·Artículo 10·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/capoff/pinon": {
+          "present": 2,
+          "missing": ["ley-iva/Artículo 4", "ley-renta/ARTICULO 2"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 10·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 66·#0",
+            "reglamento-iva·Artículo 47·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "ley-iva·Artículo 7·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-iva·Artículo 49·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-iva·Artículo 10·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-iva·Artículo 10·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap3/pinoff": {
+          "present": 2,
+          "missing": ["ley-iva/Artículo 4", "ley-renta/ARTICULO 2"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 66·#0",
+            "reglamento-iva·Artículo 47·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 7·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "ley-iva·Artículo 27·#0",
+            "reglamento-rts·Artículo 4·#0",
+            "reglamento-renta·TRANSITORIO VII·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-renta·ARTICULO 23·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap3/pinon": {
+          "present": 2,
+          "missing": ["ley-iva/Artículo 4", "ley-renta/ARTICULO 2"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 66·#0",
+            "reglamento-iva·Artículo 47·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 7·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "ley-iva·Artículo 27·#0",
+            "reglamento-rts·Artículo 4·#0",
+            "reglamento-renta·TRANSITORIO VII·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-renta·ARTICULO 23·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap2/pinoff": {
+          "present": 3,
+          "missing": ["ley-iva/Artículo 4"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "reglamento-rts·Artículo 1·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 66·#0",
+            "reglamento-iva·Artículo 47·#0",
+            "ley-iva·Artículo 7·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-rts·Artículo 4·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "cnpt·Artículo 78·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "reglamento-rts·Artículo 1·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "cnpt·Artículo 78·#0": "step",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "reglamento-rts·Artículo 1·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap2/pinon": {
+          "present": 3,
+          "missing": ["ley-iva/Artículo 4"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 14,
+          "pinned": [
+            "reglamento-rts·Artículo 1·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 66·#0",
+            "reglamento-iva·Artículo 47·#0",
+            "ley-iva·Artículo 7·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-rts·Artículo 4·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "ley-renta·ARTICULO 23·#0",
+            "cnpt·Artículo 78·#0",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+            "reglamento-rts·Artículo 1·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "cnpt·Artículo 78·#0": "step",
+            "tribu-cr-faq·Declaraciones del RUT · 2·#0": "step",
+            "reglamento-rts·Artículo 1·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon/xrefoff": {
+          "present": 2,
+          "missing": ["ley-iva/Artículo 4", "ley-renta/ARTICULO 2"],
+          "figures": [
+            "cnpt-articulo-78-multa-mensual-2026",
+            "cnpt-articulo-78-tope-2026"
+          ],
+          "size": 11,
+          "pinned": ["salario-base-2026·Circular 246-2025·#0"],
+          "set": [
+            "reglamento-iva·Artículo 66·#0",
+            "reglamento-iva·Artículo 47·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "ley-iva·Artículo 7·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "cnpt·Artículo 78·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon/sboff": {
+          "present": 2,
+          "missing": ["ley-iva/Artículo 4", "ley-renta/ARTICULO 2"],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-iva·Artículo 10·#0"],
+          "set": [
+            "reglamento-iva·Artículo 66·#0",
+            "reglamento-iva·Artículo 47·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "reglamento-iva·Artículo 61·#0",
+            "ley-iva·Artículo 7·#0",
+            "ley-iva·Artículo 5·#0",
+            "reglamento-renta·Artículo 27·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+            "cnpt·Artículo 78·#0",
+            "ley-iva·Artículo 10·#0"
+          ],
+          "pins": {
+            "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0": "step",
+            "cnpt·Artículo 78·#0": "step",
+            "ley-iva·Artículo 10·#0": "crossReference"
+          }
+        }
+      },
+      "targetRanks": [
+        {
+          "target": "ley-iva/Artículo 5",
+          "rank": 6
+        },
+        {
+          "target": "ley-iva/Artículo 4",
+          "rank": null
+        },
+        {
+          "target": "ley-renta/ARTICULO 2",
+          "rank": 16
+        },
+        {
+          "target": "reglamento-renta/Artículo 27",
+          "rank": 7
+        }
+      ],
+      "expansion": "Obligación de inscripción ante la Administración Tributaria de los contribuyentes que prestan servicios o venden bienes a clientes del exterior, con la determinación de su condición de sujeto pasivo del impuesto sobre la renta y del impuesto sobre el valor agregado, y el trámite de inscripción en el registro tributario correspondiente.",
+      "steps": "T1-A",
+      "pool": [
+        "ley-iva·Artículo 27·#0",
+        "reglamento-iva·Artículo 40 bis·#0",
+        "reglamento-iva·Artículo 60·#0",
+        "ley-iva·Artículo 5·#0",
+        "reglamento-renta·Artículo 30·#2",
+        "reglamento-renta·Artículo 27·#0",
+        "ley-10363·ARTÍCULO 2·#0",
+        "ley-iva·Artículo 8·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+        "reglamento-iva·Artículo 66·#0",
+        "ley-iva·Artículo 7·#0",
+        "cnpt·Artículo 78·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+        "ccss-reglamento-ti·Artículo 1·#0",
+        "reglamento-renta·Artículo 17·#1",
+        "reglamento-iva·Artículo 65·#0",
+        "reglamento-renta·TRANSITORIO VII·#0",
+        "reglamento-iva·Artículo 47·#0",
+        "reglamento-iva·Preámbulo·#0",
+        "reglamento-iva·Artículo 50·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 20·#0",
+        "reglamento-iva·Artículo 25·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 24·#0",
+        "reglamento-iva·Artículo 1·#0",
+        "ley-renta·ARTICULO 2·#0",
+        "ccss-faq·¿Puedo tener un seguro de Trabajador Independiente si actualmente vivo fuera de Costa Rica?·#0",
+        "reglamento-iva·Artículo 61·#0",
+        "ley-iva·Artículo 28·#0",
+        "reglamento-iva·Artículo 49·#0",
+        "reglamento-iva·Artículo 40·#0",
+        "ley-iva·Artículo 42·#0",
+        "reglamento-rts·Artículo 4·#0",
+        "reglamento-comprobantes·Artículo 13·#0",
+        "ley-renta·ARTICULO 23·#0",
+        "ccss-reglamento-ti·Artículo 6·#0",
+        "ccss-faq·¿Puedo tener un seguro si actualmente vivo fuera de Costa Rica?·#0",
+        "cnpt·Artículo 81·#0",
+        "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+        "ccss-faq·¿Quién puede optar por aplica a un Seguro Voluntario?·#0"
+      ],
+      "order": [
+        "reglamento-iva·Artículo 66·#0",
+        "reglamento-iva·Artículo 47·#0",
+        "reglamento-iva·Artículo 60·#0",
+        "reglamento-iva·Artículo 61·#0",
+        "ley-iva·Artículo 7·#0",
+        "ley-iva·Artículo 5·#0",
+        "reglamento-renta·Artículo 27·#0",
+        "reglamento-iva·Artículo 25·#0",
+        "reglamento-renta·Artículo 30·#2",
+        "reglamento-iva·Artículo 49·#0",
+        "reglamento-iva·Artículo 65·#0",
+        "ley-iva·Artículo 27·#0",
+        "ley-iva·Artículo 8·#0",
+        "reglamento-rts·Artículo 4·#0",
+        "reglamento-renta·TRANSITORIO VII·#0",
+        "ley-renta·ARTICULO 2·#0",
+        "reglamento-iva·Preámbulo·#0",
+        "reglamento-iva·Artículo 40 bis·#0",
+        "reglamento-iva·Artículo 40·#0",
+        "reglamento-iva·Artículo 50·#0",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 1·#0",
+        "ley-renta·ARTICULO 23·#0",
+        "reglamento-renta·Artículo 17·#1",
+        "tribu-cr-faq·Registro Único Tributario (RUT) · 3·#0",
+        "ley-iva·Artículo 28·#0",
+        "cnpt·Artículo 78·#0",
+        "ley-iva·Artículo 42·#0",
+        "tribu-cr-faq·Declaraciones del RUT · 2·#0",
+        "reglamento-iva·Artículo 1·#0",
+        "reglamento-comprobantes·Artículo 13·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 20·#0",
+        "cnpt·Artículo 81·#0",
+        "ccss-faq·¿Quién es un Trabajador Independiente?·#0",
+        "tribu-cr-faq·Consulta Integral Hacendaria (CIH) vista OVi · 24·#0",
+        "ley-10363·ARTÍCULO 2·#0",
+        "ccss-reglamento-ti·Artículo 1·#0",
+        "ccss-reglamento-ti·Artículo 6·#0",
+        "ccss-faq·¿Puedo tener un seguro de Trabajador Independiente si actualmente vivo fuera de Costa Rica?·#0",
+        "ccss-faq·¿Quién puede optar por aplica a un Seguro Voluntario?·#0",
+        "ccss-faq·¿Puedo tener un seguro si actualmente vivo fuera de Costa Rica?·#0"
+      ],
+      "scores": [
+        0.67578125, 0.66796875, 0.66796875, 0.66015625, 0.64453125, 0.6171875,
+        0.58984375, 0.58984375, 0.5546875, 0.5546875, 0.5546875, 0.546875,
+        0.54296875, 0.54296875, 0.53125, 0.52734375, 0.52734375, 0.51953125,
+        0.50390625, 0.50390625, 0.5, 0.5, 0.482421875, 0.474609375, 0.474609375,
+        0.4609375, 0.458984375, 0.455078125, 0.447265625, 0.4453125,
+        0.435546875, 0.427734375, 0.3828125, 0.37109375, 0.361328125,
+        0.33203125, 0.318359375, 0.310546875, 0.296875, 0.294921875
+      ],
+      "failures": {
+        "condense": 0,
+        "expand": 0,
+        "embed": 0,
+        "rerank": 0
+      },
+      "rerankReadings": {
+        "asked": 6,
+        "returned": 6,
+        "dropped": []
+      },
+      "ms": {
+        "rewrite": 0,
+        "retrieve": 529,
+        "rerank": 625
+      }
+    },
+    {
+      "id": "rb-seguimiento-le-cobro-iva",
+      "kind": "retrieval",
+      "query": "¿Debe cobrar IVA una persona inscrita en el Registro Único Tributario de Costa Rica que presta servicios de programación por cuenta propia a una empresa de Canadá, y emite una factura electrónica de exportación?",
+      "condenseFailed": false,
+      "tier": 2,
+      "family": null,
+      "variant": "robustez",
+      "weak": false,
+      "expansionFailed": false,
+      "expectedCount": 2,
+      "per": {
+        "top8/capoff/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 12,
+          "pinned": [
+            "reglamento-iva·Artículo 66·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "ley-iva·Artículo 4·#0",
+            "reglamento-iva·Artículo 10·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 10·#0",
+            "cnpt·Artículo 79·#0",
+            "reglamento-iva·Artículo 66·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 10·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "reglamento-iva·Artículo 66·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 12,
+          "pinned": [
+            "reglamento-iva·Artículo 66·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "ley-iva·Artículo 4·#0",
+            "reglamento-iva·Artículo 10·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 10·#0",
+            "cnpt·Artículo 79·#0",
+            "reglamento-iva·Artículo 66·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 10·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "reglamento-iva·Artículo 66·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap3/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-iva·Artículo 11·#0"],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "ley-iva·Artículo 4·#0",
+            "reglamento-iva·Artículo 10·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 10·#0",
+            "ley-iva·Artículo 11·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 10·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference"
+          }
+        },
+        "top8/cap3/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-iva·Artículo 11·#0"],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "ley-iva·Artículo 4·#0",
+            "reglamento-iva·Artículo 10·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 10·#0",
+            "ley-iva·Artículo 11·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 10·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference"
+          }
+        },
+        "top8/cap2/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["reglamento-iva·Artículo 66·#0"],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "ley-iva·Artículo 4·#0",
+            "reglamento-iva·Artículo 10·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 66·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 27·#0": "step",
+            "reglamento-iva·Artículo 66·#0": "crossReference"
+          }
+        },
+        "top8/cap2/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["reglamento-iva·Artículo 66·#0"],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "ley-iva·Artículo 4·#0",
+            "reglamento-iva·Artículo 10·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 66·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 27·#0": "step",
+            "reglamento-iva·Artículo 66·#0": "crossReference"
+          }
+        },
+        "top10/capoff/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "ley-iva·Artículo 4·#0",
+            "reglamento-iva·Artículo 10·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 10·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 10·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/capoff/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "ley-iva·Artículo 4·#0",
+            "reglamento-iva·Artículo 10·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "reglamento-iva·Artículo 60·#0",
+            "ley-iva·Artículo 10·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 10·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap3/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 13,
+          "pinned": ["ley-iva·Artículo 11·#0"],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "ley-iva·Artículo 4·#0",
+            "reglamento-iva·Artículo 10·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "reglamento-comprobantes·Artículo 2·#1",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 10·#0",
+            "ley-iva·Artículo 11·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 10·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference"
+          }
+        },
+        "top10/cap3/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 13,
+          "pinned": ["ley-iva·Artículo 11·#0"],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "ley-iva·Artículo 4·#0",
+            "reglamento-iva·Artículo 10·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "reglamento-comprobantes·Artículo 2·#1",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 10·#0",
+            "ley-iva·Artículo 11·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 10·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference"
+          }
+        },
+        "top10/cap2/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 13,
+          "pinned": ["reglamento-iva·Artículo 66·#0"],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "ley-iva·Artículo 4·#0",
+            "reglamento-iva·Artículo 10·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "ley-renta·ARTICULO 65·#0",
+            "cabys-dev·*·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 66·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 27·#0": "step",
+            "reglamento-iva·Artículo 66·#0": "crossReference"
+          }
+        },
+        "top10/cap2/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 13,
+          "pinned": ["reglamento-iva·Artículo 66·#0"],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "ley-iva·Artículo 4·#0",
+            "reglamento-iva·Artículo 10·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "ley-renta·ARTICULO 2·#0",
+            "reglamento-rts·Artículo 7·#0",
+            "ley-renta·ARTICULO 65·#0",
+            "cabys-dev·*·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "reglamento-iva·Artículo 66·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 27·#0": "step",
+            "reglamento-iva·Artículo 66·#0": "crossReference"
+          }
+        },
+        "top8/capoff/pinon/xrefoff": {
+          "present": 2,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 11,
+          "pinned": ["salario-base-2026·Circular 246-2025·#0"],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "ley-iva·Artículo 4·#0",
+            "reglamento-iva·Artículo 10·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 10·#0",
+            "cnpt·Artículo 79·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 10·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon/sboff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["reglamento-iva·Artículo 66·#0"],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "ley-iva·Artículo 4·#0",
+            "reglamento-iva·Artículo 10·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-comprobantes·Artículo 2·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 10·#0",
+            "cnpt·Artículo 79·#0",
+            "reglamento-iva·Artículo 66·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 10·#0": "step",
+            "cnpt·Artículo 79·#0": "step",
+            "reglamento-iva·Artículo 66·#0": "crossReference"
+          }
+        }
+      },
+      "targetRanks": [
+        {
+          "target": "reglamento-iva/Artículo 11",
+          "rank": 1
+        },
+        {
+          "target": "ley-iva/Artículo 8",
+          "rank": 5
+        }
+      ],
+      "expansion": "La exportación de servicios de programación prestados por una persona inscrita en el Registro Único Tributario a una empresa extranjera, documentada con factura electrónica de exportación, se encuentra sujeta o exenta del impuesto al valor agregado conforme a las condiciones que la ley y su reglamento establecen para las exportaciones de servicios, las operaciones que se consideran exportadas y los requisitos formales del comprobante electrónico que debe emitirse y del régimen de tributación aplicable.",
+      "steps": "T1-D",
+      "pool": [
+        "ley-iva·Artículo 8·#0",
+        "reglamento-iva·Artículo 11·#0",
+        "reglamento-comprobantes·Artículo 13·#0",
+        "ley-iva·Artículo 27·#0",
+        "reglamento-iva·Artículo 30·#0",
+        "reglamento-iva·Artículo 32·#0",
+        "ley-renta·ARTICULO 65·#0",
+        "reglamento-comprobantes·Artículo 2·#0",
+        "ley-iva·Artículo 3·#0",
+        "reglamento-iva·Artículo 17·#0",
+        "ley-iva·Artículo 30·#0",
+        "reglamento-iva·Artículo 25·#0",
+        "ley-iva·Artículo 4·#0",
+        "reglamento-renta·Artículo 103·#0",
+        "reglamento-iva·Artículo 40 bis·#0",
+        "reglamento-iva·Artículo 23·#0",
+        "cabys-dev·*·#0",
+        "reglamento-iva·Preámbulo·#0",
+        "ley-iva·Artículo 8·#1",
+        "ley-iva·Artículo 10·#0",
+        "cnpt·Artículo 79·#0",
+        "reglamento-iva·Artículo 3·#0",
+        "reglamento-iva·Artículo 11·#3",
+        "reglamento-iva·Artículo 11·#2",
+        "ley-renta·ARTICULO 23·#0",
+        "ley-renta·ARTICULO 2·#0",
+        "reglamento-iva·Artículo 38·#0",
+        "cnpt·Artículo 81·#0",
+        "reglamento-iva·Artículo 60·#0",
+        "reglamento-iva·Artículo 10·#0",
+        "reglamento-iva·Artículo 1·#1",
+        "reglamento-iva·Preámbulo·#1",
+        "reglamento-iva·Transitorio IX·#0",
+        "reglamento-iva·Artículo 47·#0",
+        "reglamento-iva·Artículo 12·#0",
+        "ley-iva·Artículo 14·#0",
+        "ley-iva·Artículo 2·#0",
+        "reglamento-comprobantes·Artículo 2·#1",
+        "reglamento-rts·Artículo 7·#0",
+        "ley-iva·Artículo 11·#0"
+      ],
+      "order": [
+        "reglamento-iva·Artículo 11·#0",
+        "reglamento-comprobantes·Artículo 13·#0",
+        "ley-iva·Artículo 4·#0",
+        "reglamento-iva·Artículo 10·#0",
+        "ley-iva·Artículo 8·#0",
+        "reglamento-comprobantes·Artículo 2·#0",
+        "ley-iva·Artículo 3·#0",
+        "ley-iva·Artículo 27·#0",
+        "reglamento-iva·Artículo 30·#0",
+        "reglamento-iva·Artículo 60·#0",
+        "reglamento-iva·Artículo 47·#0",
+        "reglamento-iva·Artículo 32·#0",
+        "ley-renta·ARTICULO 2·#0",
+        "reglamento-comprobantes·Artículo 2·#1",
+        "reglamento-iva·Artículo 1·#1",
+        "reglamento-iva·Artículo 25·#0",
+        "ley-iva·Artículo 2·#0",
+        "reglamento-iva·Artículo 12·#0",
+        "ley-iva·Artículo 30·#0",
+        "reglamento-rts·Artículo 7·#0",
+        "reglamento-iva·Preámbulo·#1",
+        "reglamento-iva·Artículo 40 bis·#0",
+        "reglamento-iva·Artículo 3·#0",
+        "ley-iva·Artículo 14·#0",
+        "reglamento-iva·Artículo 17·#0",
+        "reglamento-iva·Preámbulo·#0",
+        "ley-renta·ARTICULO 65·#0",
+        "reglamento-iva·Artículo 38·#0",
+        "reglamento-iva·Artículo 11·#2",
+        "reglamento-iva·Transitorio IX·#0",
+        "ley-renta·ARTICULO 23·#0",
+        "ley-iva·Artículo 11·#0",
+        "reglamento-iva·Artículo 23·#0",
+        "cabys-dev·*·#0",
+        "reglamento-renta·Artículo 103·#0",
+        "reglamento-iva·Artículo 11·#3",
+        "ley-iva·Artículo 8·#1",
+        "ley-iva·Artículo 10·#0",
+        "cnpt·Artículo 81·#0",
+        "cnpt·Artículo 79·#0"
+      ],
+      "scores": [
+        0.73828125, 0.7109375, 0.6796875, 0.6796875, 0.67578125, 0.625,
+        0.6171875, 0.59375, 0.58984375, 0.5859375, 0.5703125, 0.5625,
+        0.55859375, 0.55859375, 0.55078125, 0.546875, 0.54296875, 0.5390625,
+        0.53515625, 0.53515625, 0.53125, 0.515625, 0.51171875, 0.5078125, 0.5,
+        0.4921875, 0.4765625, 0.466796875, 0.44921875, 0.443359375, 0.439453125,
+        0.435546875, 0.431640625, 0.427734375, 0.427734375, 0.427734375,
+        0.427734375, 0.421875, 0.376953125, 0.35546875
+      ],
+      "failures": {
+        "condense": 0,
+        "expand": 0,
+        "embed": 0,
+        "rerank": 0
+      },
+      "rerankReadings": {
+        "asked": 7,
+        "returned": 7,
+        "dropped": []
+      },
+      "ms": {
+        "rewrite": 0,
+        "retrieve": 878,
+        "rerank": 1382
+      }
+    }
+  ]
+}
