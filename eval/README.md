@@ -15,8 +15,12 @@ at b8d8667: groundedness 73/74 and 73/74, Tier 1 78/116 and 79/116, Tier 2
 robustness block 27/27 hits in both, and no false absence claim in either.
 Lane 2 passed every gate; lane 1's one red was `multa-iva-no-declarado`, a
 blocking case failed on 2 of 3 answers. Each tracked baseline is the lower
-lane of the two: groundedness 73 (a lane fails at ≤ 68), Tier 1 78 (≤ 73) and
-robustness 27 (≤ 24). Their transcripts (`lane1/`, `lane2/`, also copied to
+lane of the two: groundedness 73 (a lane fails at ≤ 68) and robustness 27
+(≤ 24). Tier 1 is **88** (≤ 83) since 2026-10-09: the lower of map #497's
+Wave D and Wave E lanes, 88/116 at 3455dd5 and 92/116 at 9817c6e
+([`runs/2026-10-09-497-wave-d/`](runs/2026-10-09-497-wave-d/),
+[`runs/2026-10-09-497-wave-e/`](runs/2026-10-09-497-wave-e/)), raised by the
+owner; #512's lanes read 78 and 79. #512's transcripts (`lane1/`, `lane2/`, also copied to
 the main checkout's `eval/transcripts/2026-10-08-final-512/`) are the next
 `answer-replay` input. #511's lane
 ([`runs/2026-10-08-baseline/`](runs/2026-10-08-baseline/)) read 72/74 and
@@ -99,7 +103,7 @@ The gate constants are `GROUNDEDNESS_BASELINE` (`groundedness.ts`), `HIT_RATE_GA
 `TIER1_REQUIREMENT_BASELINE` (`adequacy.ts`), and `ROBUSTNESS_HIT_BASELINE`
 (`robustness.ts`, 27 since #512). Groundedness and Tier 1 are tracked
 baselines: a lane fails only more than 4 below one (groundedness 73 grounded
-answers of 74, so ≤ 68; Tier 1 78, so ≤ 73), and a lane that beats one raises
+answers of 74, so ≤ 68; Tier 1 88, so ≤ 83), and a lane that beats one raises
 it, unless the owner holds it, as for #511's lane. A blocking case fails groundedness
 on 2 of 3 answers: the lane re-asks a failing one twice (#474, about US$0.50 a
 lane), and each failure the judges make carries a `contradiction`/`inference`
@@ -4113,7 +4117,8 @@ owner's decision.
 | Robustness block, hit               | 26/27  | 26/27      |
 
 - **Tier 1 92/116** is 14 over the baseline of 78 and 4 over Wave D, the ±4
-  two identical lanes differ by (#457). **Not ratcheted**, pending the owner.
+  two identical lanes differ by (#457). Not ratcheted by this lane; the owner
+  then set the baseline to 88, the lower of Wave D and Wave E (2026-10-09).
 - **Red on two zero gates.** False corpus-absence claims: 1,
   `rb-seguimiento-le-cobro-iva` («…ni el monto vigente del salario base»,
   #579). Abstention's «invents no figure while declining»:

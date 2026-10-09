@@ -8,6 +8,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
 import type { ResolvedDerivedFigure } from "../answer/derived";
+import { formatChunks } from "../answer/prompt";
 import {
   DATASET_PATH,
   isRobustness,
@@ -26,6 +27,7 @@ import {
   GROUNDEDNESS_FLOOR,
   judgeAnswer,
   JUDGE_SYSTEM_PROMPT,
+  type JudgeOnce,
   labelFailure,
   majorityVerdict,
   needsReask,
@@ -167,6 +169,48 @@ describe("buildJudgePrompt", () => {
     expect(prompt).toContain("¢324.590");
     expect(prompt).toContain("[1][2]");
   });
+
+  it("states the answer's date as a given, before the answer (#582)", () => {
+    const prompt = buildJudgePrompt(
+      "¿Todavía puedo presentar la declaración?",
+      [chunk()],
+      "Hoy es 9 de octubre de 2026: ese plazo ya pasó [1].",
+      [],
+      "2026-10-09",
+    );
+    const dateLine = prompt.indexOf(
+      "Fecha de hoy en Costa Rica: 9 de octubre de 2026.",
+    );
+    expect(dateLine).toBeGreaterThan(prompt.indexOf("Fragmentos oficiales"));
+    expect(dateLine).toBeLessThan(prompt.indexOf("Respuesta del asistente"));
+    expect(prompt).toContain("dato de la conversación");
+    expect(prompt).toContain("no una afirmación que requiera fragmento");
+  });
+
+  it("puts the date after the derived figures it sits beside (#582)", () => {
+    const prompt = buildJudgePrompt(
+      "¿Cuánto pago?",
+      [chunk()],
+      "La base es ¢324.590 [1].",
+      [derivedFigure],
+      "2026-10-09",
+    );
+    expect(prompt.indexOf("Fecha de hoy")).toBeGreaterThan(
+      prompt.indexOf("Cifras derivadas"),
+    );
+  });
+
+  it("names no date when none is known, the prompt the baseline read", () => {
+    const args = ["¿Cuánto pago?", [chunk()], "Pagás 11,66 % [1]."] as const;
+    const prompt = buildJudgePrompt(...args);
+    expect(prompt).not.toContain("Fecha de hoy");
+    expect(buildJudgePrompt(...args, [], undefined)).toBe(prompt);
+    expect(prompt).toBe(
+      `Pregunta:\n${args[0]}\n\n` +
+        `Fragmentos oficiales provistos:\n\n${formatChunks([chunk()])}\n\n` +
+        `Respuesta del asistente:\n${args[2]}`,
+    );
+  });
 });
 
 describe("judgeAnswer", () => {
@@ -187,6 +231,16 @@ describe("judgeAnswer", () => {
     judgeOnce: () => Promise<JudgeVerdict>,
   ): ReturnType<typeof judgeAnswer> =>
     judgeAnswer("¿pregunta?", [chunk()], "respuesta", judgeOnce);
+
+  it("hands every judge call the answer's date (#582)", async () => {
+    const seen: (string | undefined)[] = [];
+    const judgeOnce: JudgeOnce = (_q, _c, _a, _d, today) => {
+      seen.push(today);
+      return Promise.resolve(fail("no"));
+    };
+    await judgeAnswer("q", [chunk()], "a", judgeOnce, [], "2026-10-09");
+    expect(seen).toEqual(["2026-10-09", "2026-10-09", "2026-10-09"]);
+  });
 
   it("passes on a first-call pass without re-judging", async () => {
     const s = scripted(pass());
@@ -521,6 +575,20 @@ describe("failure labels (#474, recorded, never gated)", () => {
     expect(prompt).toMatch(/Motivo del juez:\n\[1\] does not carry 11,66 %$/);
   });
 
+  it("shows the labeller the answer's date the judges saw (#582)", async () => {
+    let prompt = "";
+    await labelFailure("q", [chunk()], "a", "why", [], "2026-10-09", (p) => {
+      prompt = p;
+      return Promise.resolve('{"label": "inference"}');
+    });
+    expect(prompt).toContain(
+      buildJudgePrompt("q", [chunk()], "a", [], "2026-10-09"),
+    );
+    expect(prompt).toContain(
+      "Fecha de hoy en Costa Rica: 9 de octubre de 2026.",
+    );
+  });
+
   it("parses a label and its reason", () => {
     expect(
       parseFailureLabel(
@@ -535,7 +603,7 @@ describe("failure labels (#474, recorded, never gated)", () => {
 
   it("returns the labeller's reading", async () => {
     await expect(
-      labelFailure("q", [chunk()], "a", "why", [], () =>
+      labelFailure("q", [chunk()], "a", "why", [], undefined, () =>
         Promise.resolve('{"label": "contradiction", "reason": "wrong rate"}'),
       ),
     ).resolves.toEqual({ label: "contradiction", reason: "wrong rate" });
@@ -543,7 +611,7 @@ describe("failure labels (#474, recorded, never gated)", () => {
 
   it("records a failed call as no label rather than throwing", async () => {
     await expect(
-      labelFailure("q", [chunk()], "a", "why", [], () =>
+      labelFailure("q", [chunk()], "a", "why", [], undefined, () =>
         Promise.reject(new Error("overloaded")),
       ),
     ).resolves.toEqual({
@@ -551,7 +619,7 @@ describe("failure labels (#474, recorded, never gated)", () => {
       reason: "not labelled: Error: overloaded",
     });
     await expect(
-      labelFailure("q", [chunk()], "a", "why", [], () =>
+      labelFailure("q", [chunk()], "a", "why", [], undefined, () =>
         Promise.resolve("no idea"),
       ),
     ).resolves.toMatchObject({ label: null });

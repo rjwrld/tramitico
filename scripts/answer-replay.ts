@@ -150,7 +150,14 @@ async function main(): Promise<void> {
       prompt: buildUserPrompt(row.query, chunks, { today, derivedFigures }),
     });
     const groundedness = judgeGroundedness
-      ? await judgeAnswer(row.query, chunks, answer, undefined, derivedFigures)
+      ? await judgeAnswer(
+          row.query,
+          chunks,
+          answer,
+          undefined,
+          derivedFigures,
+          today,
+        )
       : { verdict: "pass" as const, verdicts: [], reason: "not judged" };
     const declares =
       evalCase.requiredClaims !== undefined ||
