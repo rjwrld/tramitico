@@ -3923,3 +3923,26 @@ No gate constant moved.
   citation-placement slip, no re-run (owner, 2026-10-09). If the next full
   lane flags a sourced figure cited one sentence away again, it is a pattern
   and gets an issue.
+
+## Step-catalogue sentences for #554's unreached carriers (2026-10-09, #562)
+
+#554 found 7 cause-2 Tier 1 rows whose carrier no sentence in the family's
+catalogue reaches. Four now have one, each the family's fifth sentence, written
+in its chunk's words and checked to rank that chunk first on the lexical leg's
+strict branch:
+
+- T1-I: the Oficina Virtual inscription line, for `inscripcion-tardia-sancion`
+- T1-B: the CCSS payment points, for `ho-desde-cuanta-plata-caja`
+- T1-D: `ley-iva` art. 3 for services, for `ho-cliente-espana-lleva-iva`
+- T1-E: `reglamento-renta` art. 12, the 1 January to 31 December period, for
+  `ho-minimo-renta-2026`
+
+The three uncertain carriers (rows 8's «cómo se declara», 17 and 26) are left
+out: under #561's `STEP_PINS` a family's picks compete for two pinned slots,
+and a partial carrier would take a slot from a whole one. Row 16, the TRIBU-CR
+channel for T1-D, stays open for the trade-off the catalogue's `$comment`
+already records.
+
+Found, not fixed: 8 of the 38 sentences committed before this change miss the
+strict branch and run on the OR fallback. The record and the probe are in
+[`runs/2026-10-09-562/README.md`](runs/2026-10-09-562/README.md).
