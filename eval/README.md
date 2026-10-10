@@ -173,7 +173,9 @@ run's setup and deltas.
 | `pnpm cross-reference-census [--all]`                    | every cross-reference in the corpus, held or not; `--timing=<probe.json>` times the append (#508)    | free                             |
 | `pnpm answer-latency-probe`                              | answer latency per effort arm                                                                        | ≈US$1–2                          |
 
-A transcript row is `TranscriptRow` in `src/lib/eval/transcript.ts`.
+A transcript row is `TranscriptRow` in `src/lib/eval/transcript.ts`. A probe
+read is `CaseRead` in `scripts/answer-set-probe.ts`; since #593 it names each
+chunk by chunk id as well as by label (`chunkIds`, `poolIds`, `orderIds`).
 
 ## The dataset
 
