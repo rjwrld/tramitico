@@ -75,6 +75,8 @@ export const SHORT_NAME_TOKENS: Record<string, string> = {
   tramos: "Tramos",
   // Norm numbers and the version the Hacienda disposiciones are known by.
   "0011": "0011",
+  "0020": "0020",
+  "0033": "0033",
   "2025": "2025",
   "2026": "2026",
   "9635": "9635",
