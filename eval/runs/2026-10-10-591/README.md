@@ -77,9 +77,12 @@ The orchestrator OK'd each command. Rewrites were replayed from
 | Part                                                                                                                 | Files                                 | ≈US$ |
 | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ---- |
 | Smoke (2026-10-10): `answer-set-probe` on `iva-clientes-fuera-cr`, `renta-tramos-2026`, `iva-ajuste-bien-de-capital` | `probe-smoke.json`, `probe-smoke.log` | 0.01 |
+| Full (2026-10-10): `answer-set-probe` on the 32 sets the offline check grows (`probe.log` names them)                | `probe.json`, `probe.log`             | 0.11 |
 
-The cost is scaled from #579's measured 0.03 for 52 rerank readings. The
-smoke made 20, and lost none.
+Both costs are scaled from #579's measured 0.03 for 52 rerank readings. The
+smoke made 20 readings and the full probe 185, and neither lost any. Both ran
+on the local stack's 873-chunk corpus, before #592's two TRIBU-CR
+resolutions were ingested.
 
 **Smoke.** The live sets match the offline re-pin. The route's configuration
 and `/sboff` differ in exactly one chunk in all 3 cases, the appended
@@ -89,6 +92,33 @@ reads the salario base). Apart from that pin, `iva-clientes-fuera-cr`'s live
 set differs from #562's saved one in one reranked chunk (`ley-renta` 65 in,
 `reglamento-iva` 10 out). That comes from the rerank and is the same with the
 pin off.
+
+**Full probe.** The live result matches the offline one, except for one case
+the rerank moved:
+
+- **31 of the 32 sets gain `salario-base-2026`** (route configuration vs
+  `/sboff`), and no set loses a chunk. Expected targets stay at 49 → 49, and
+  the robustness block stays at 7/7.
+- **`iva-retencion-tarjetas-porcentaje` gains nothing live.** Its only
+  trigger offline was `reglamento-renta` 30 #0, and this run's rerank left it
+  out of the set (`ley-iva` 30 and 10 came in, `reglamento-renta` 30 #0 and
+  `ley-renta` 3 went out), so the pin answers `not_triggered`. Five more sets
+  differ from #562's saved ones by one or two reranked chunks, the same way
+  with the pin off. In each of those five, the pin still triggers.
+- **Derived figures.** 7 sets newly resolve a figure: the CNPT multas
+  (`cnpt-articulo-78-multa-mensual-2026`, `-tope-2026`,
+  `cnpt-articulo-79-multa-declaracion-2026`). All 7 are #579's cases. **None
+  of the 24 sets that gain the page only because of #591 resolves a derived
+  figure.** There the circular is context only.
+- **`abs-patente-comercial`, the abstention case, gains the circular too**
+  (pin `salarioBase`), and `reglamento-rts` 2's «50% de un salario base»
+  triggers it. It resolves no figure (abs-figures `—`), so the leak check has
+  nothing to flag. Its full set is `reglamento-rts` 2, `reglamento-renta` 1,
+  two `tribu-cr-faq` entries (RUT · 14 and CIH vista OVi · 14), `ley-renta`
+  15, 54, 2, `reglamento-renta` 17, then the appends: `ley-renta` 2 bis
+  (cross-reference) and `salario-base-2026`. Whether an extra colones figure
+  in a decline's context makes the model more likely to quote it can only be
+  shown by an answer replay.
 
 No answer replay has been run. The owner is reviewing the noise finding
 above first.
