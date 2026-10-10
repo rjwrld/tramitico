@@ -70,4 +70,25 @@ provider call. Log: `offline-check.log`.
 
 ## Paid step
 
-Pending the orchestrator's OK. See the PR thread.
+The orchestrator OK'd each command. Rewrites were replayed from
+`2026-10-09-562/probe-after.json`, so Voyage was the only provider called.
+`ANSWER_EFFORT=low` was set but unused, since a probe asks no answer model.
+
+| Part                                                                                                                 | Files                                 | ≈US$ |
+| -------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ---- |
+| Smoke (2026-10-10): `answer-set-probe` on `iva-clientes-fuera-cr`, `renta-tramos-2026`, `iva-ajuste-bien-de-capital` | `probe-smoke.json`, `probe-smoke.log` | 0.01 |
+
+The cost is scaled from #579's measured 0.03 for 52 rerank readings. The
+smoke made 20, and lost none.
+
+**Smoke.** The live sets match the offline re-pin. The route's configuration
+and `/sboff` differ in exactly one chunk in all 3 cases, the appended
+`salario-base-2026` (pin `salarioBase`), and no set loses a chunk. Expected
+targets stay at 5/5, and derived figures stay at 0 (nothing these sets hold
+reads the salario base). Apart from that pin, `iva-clientes-fuera-cr`'s live
+set differs from #562's saved one in one reranked chunk (`ley-renta` 65 in,
+`reglamento-iva` 10 out). That comes from the rerank and is the same with the
+pin off.
+
+No answer replay has been run. The owner is reviewing the noise finding
+above first.
