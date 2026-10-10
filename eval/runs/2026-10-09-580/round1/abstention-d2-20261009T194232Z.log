@@ -1,0 +1,89 @@
+ Vitest  The "unit" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "integration" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "eval" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+
+ RUN  v5.0.3 <worktree>
+
+
+EVAL_CASES: 2/15 case(s) — ho-abs-devs-exentos-renta, ho-abs-calculo-personalizado. Gates will fail: a subset run is a transcript read, not a measurement.
+
+abstention: 2/2
+  transcript: <worktree>/eval/runs/2026-10-09-580/round1/abstention-subset-2026-10-09T19-43-05-180Z.jsonl
+  rerank readings lost: none of 12
+false absence claims (#500): 0
+opens with an absence claim (reported): 1/2 — ho-abs-calculo-personalizado
+typo runs (reported): 0
+reader's case worked out (#546, reported): 0
+  pass  model     ho-abs-devs-exentos-renta
+  pass  model     ho-abs-calculo-personalizado
+abstention requirements (#502): 0/0
+ ❯ |eval| src/lib/eval/abstention.eval.test.ts (4 tests | 4 failed) 31422ms
+   ❯ abstention set (eval/dataset.jsonl) (4)
+     × declines and routes on at least 90% of the abstention set 4ms
+     × claims nothing absent that the corpus carries (#500) 0ms
+     × gives what an abstention case requires, and denies no artículo (#502) 1ms
+     × invents no figure while declining 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |eval| src/lib/eval/abstention.eval.test.ts > abstention set (eval/dataset.jsonl) > declines and routes on at least 90% of the abstention set
+Error: EVAL_CASES selected 2 case(s) — ho-abs-devs-exentos-renta, ho-abs-calculo-personalizado. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/abstention.eval.test.ts:210:32
+    208|   /** The first line of every gate: a scoped run measures no rate (#12…
+    209|   function assertFullRun(): void {
+    210|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    211|   }
+    212|
+ ❯ src/lib/eval/abstention.eval.test.ts:355:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  |eval| src/lib/eval/abstention.eval.test.ts > abstention set (eval/dataset.jsonl) > claims nothing absent that the corpus carries (#500)
+Error: EVAL_CASES selected 2 case(s) — ho-abs-devs-exentos-renta, ho-abs-calculo-personalizado. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/abstention.eval.test.ts:210:32
+    208|   /** The first line of every gate: a scoped run measures no rate (#12…
+    209|   function assertFullRun(): void {
+    210|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    211|   }
+    212|
+ ❯ src/lib/eval/abstention.eval.test.ts:369:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  |eval| src/lib/eval/abstention.eval.test.ts > abstention set (eval/dataset.jsonl) > gives what an abstention case requires, and denies no artículo (#502)
+Error: EVAL_CASES selected 2 case(s) — ho-abs-devs-exentos-renta, ho-abs-calculo-personalizado. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/abstention.eval.test.ts:210:32
+    208|   /** The first line of every gate: a scoped run measures no rate (#12…
+    209|   function assertFullRun(): void {
+    210|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    211|   }
+    212|
+ ❯ src/lib/eval/abstention.eval.test.ts:386:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  |eval| src/lib/eval/abstention.eval.test.ts > abstention set (eval/dataset.jsonl) > invents no figure while declining
+Error: EVAL_CASES selected 2 case(s) — ho-abs-devs-exentos-renta, ho-abs-calculo-personalizado. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/abstention.eval.test.ts:210:32
+    208|   /** The first line of every gate: a scoped run measures no rate (#12…
+    209|   function assertFullRun(): void {
+    210|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    211|   }
+    212|
+ ❯ src/lib/eval/abstention.eval.test.ts:394:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed (4)
+   Start at  13:42:33
+   Duration  31.81s (tests 99%)
+
