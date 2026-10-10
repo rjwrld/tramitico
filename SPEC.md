@@ -303,11 +303,14 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   name — «CABYS», the one entry of `NAMED_SOURCES` (`src/lib/answer/steps.ts`), matched as a
   whole word on the condensed question — brings that document's best pooled chunk, one chunk
   and only when the set holds none of it. `PIN_NAMED_SOURCES=off` is the baseline.
-- **Salario base (#579):** an answer-set chunk that states a multa or a sanción in salarios base
-  (`cnpt` 78, 79, 81, `ley-iva` 85 bis — detected by its text) brings the salario base in force,
-  one chunk, when the set holds none: the `salario-base` series entry `retrieve()` serves this
-  fiscal year (#505), from the pool or one fail-open lookup, appended before the named source.
-  `PIN_SALARIO_BASE=off` is the baseline.
+- **Salario base (#579, #591):** an answer-set chunk that states an amount as a multiple or a
+  fraction of the salario base — a multa (`cnpt` 78, 79, 81, `ley-iva` 85 bis), an exemption
+  threshold (`ley-iva` 8's alquiler, `reglamento-iva` 31's bienes de capital), a tramo (`ley-renta`
+  31 ter) — brings the salario base in force, one chunk, when the set holds none. Detected by its
+  text: a count or a share right before «salario(s) base»; the words alone, with no count, do not
+  trigger. The chunk is the `salario-base` series entry `retrieve()` serves this fiscal year
+  (#505), from the pool or one fail-open lookup, appended before the named source; what the pin
+  did is the ask event's `salarioBase` field. `PIN_SALARIO_BASE=off` is the baseline.
 - **Answer assembly:** Claude **Sonnet by default, model as env var** — Week 3 runs Haiku 4.5
   through the same groundedness gate as a cost/quality comparison (portfolio material either way).
   Via Vercel AI SDK, streaming. System prompt constrains
