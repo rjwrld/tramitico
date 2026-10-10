@@ -94,6 +94,12 @@
  * stage and the append's outcome the `crossReference` field of the event.
  * `PIN_CROSS_REFERENCES=off` is the measured baseline.
  *
+ * A multa stated in salarios base brings the salario base in force (#579,
+ * `salario-base.ts`): `cnpt` 79 says «50 % del salario base» and the colones
+ * are in the Corte's yearly circular, which nothing in the artículo names.
+ * Its lookup runs beside the cross-reference one, in the same `pin` stage.
+ * `PIN_SALARIO_BASE=off` is the baseline.
+ *
  * Stop/retry (#74, audit F-11): `request.signal` is threaded into `streamText`
  * as `abortSignal`, so a client-side `stop()` (chat.tsx) cancels the paid
  * Anthropic call once generation has started — the issue's named target for

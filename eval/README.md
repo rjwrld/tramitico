@@ -53,6 +53,7 @@ value, except for `ANSWER_EFFORT`:
 | `PIN_DERIVED_INPUTS`             | `on` (since #344)                              | `src/lib/answer/derived.ts`          |
 | `PIN_CROSS_REFERENCES`           | `on` (since #508)                              | `src/lib/answer/cross-references.ts` |
 | `PIN_NAMED_SOURCES`              | `on` (since #559)                              | `src/lib/answer/pins.ts`             |
+| `PIN_SALARIO_BASE`               | `on` (since #579)                              | `src/lib/answer/salario-base.ts`     |
 | `EVAL_CASES`                     | every case; comma-separated ids scope a lane¹  | `src/lib/eval/subset.ts`             |
 | `EVAL_TRANSCRIPT_DIR`            | `eval/transcripts/`                            | `src/lib/eval/transcript.ts`         |
 | `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites      | `src/lib/eval/rewrites.ts`           |
@@ -71,7 +72,7 @@ Sensitive in Vercel, so it can't be read back. The dashboard shows it added on
 it, so don't read the production value from notes older than #451.
 
 The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`,
-`PIN_CROSS_REFERENCES`, `PIN_NAMED_SOURCES`)
+`PIN_CROSS_REFERENCES`, `PIN_NAMED_SOURCES`, `PIN_SALARIO_BASE`)
 accept only the values above, `ANSWER_EFFORT` only `low`, `medium`, `high`,
 `xhigh` or `max`, and `ANSWER_TOP_K`, `ANSWER_DOC_CAP` and `STEP_PINS` only a positive
 integer (or `off`, for the cap; #519). Anything else runs the default and logs `config: unknown knob

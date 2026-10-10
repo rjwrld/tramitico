@@ -495,6 +495,25 @@ describe("the step catalogue at the rerank (#304)", () => {
     ).toEqual(["c1", "c2", "c3"]);
   });
 
+  it("answerSetFromOrder names the picks it put past the cut (#579)", () => {
+    vi.stubEnv("STEPS_RERANK", "pin");
+    vi.stubEnv("ANSWER_TOP_K", "2");
+    const order = [chunk(1), chunk(2), chunk(3), chunk(4)].map((c, i) => ({
+      chunk: c,
+      score: 1 - i / 10,
+      rank: i + 1,
+    }));
+    const told: string[][] = [];
+    // c1 is a pick the cut already took: not a step pin.
+    answerSetFromOrder(order, [], [order[3], order[0]], (ids) => {
+      told.push([...ids]);
+    });
+    answerSetFromOrder(order, [], [], (ids) => {
+      told.push([...ids]);
+    });
+    expect(told).toEqual([["c4"], []]);
+  });
+
   it("pin1: appends only the one pick the question ranks highest, past the cut (#311, #460)", async () => {
     vi.stubEnv("STEPS_RERANK", "pin1");
     // The pre-#561 single append: these read its order, one place at a time.

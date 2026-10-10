@@ -1,0 +1,14 @@
+replaying 3 row(s) of replay-input.jsonl on claude-sonnet-5-5-effort-low
+  rb-seguimiento-le-cobro-iva  pass
+  rb-seguimiento-le-cobro-iva  pass
+  rb-seguimiento-le-cobro-iva  pass
+
+transcript: <main-checkout>/eval/transcripts/2026-10-09-579/groundedness-claude-sonnet-5-5-effort-low-replay-subset-20261009T191120Z.jsonl
+
+requirements stated, recorded → replayed: 0 → 0 of 0
+grounded, recorded → replayed: 0 → 3 of 3
+false absence claims (#500), recorded → replayed: 3 → 0
+absence openings, recorded → replayed: 0 → 0
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+finish other than stop: 0; output tokens max 1020

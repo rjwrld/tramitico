@@ -24,6 +24,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { CitationVerdict } from "../answer/invariant";
 import type { ResolvedDerivedFigure } from "../answer/derived";
+import type { PinName } from "../answer/pins";
 import type { RerankReadingCount } from "../answer/rerank";
 import type { RetrievedChunk } from "../retrieval";
 import type { GenerationFinishReason } from "../telemetry";
@@ -54,6 +55,12 @@ export interface TranscriptChunk {
   articulo: string | null;
   /** Verbatim, as `formatChunks` put it in the prompt. */
   content: string;
+  /**
+   * What put it past the cut, when something did (#579): a step pick or one
+   * of `pinAnswerSet`'s appends. Absent on the cut's own chunks, and on every
+   * chunk of a transcript written before #579.
+   */
+  pin?: PinName;
 }
 
 export interface TranscriptRow {
@@ -165,6 +172,8 @@ export interface ReaskInput {
   checks: AnswerChecks | null;
   generation: TranscriptGeneration | null;
   rerank: RerankReadingCount | null;
+  /** Which pin brought each chunk past the cut, by chunk id (#579). */
+  pins?: ReadonlyMap<string, PinName>;
 }
 
 export interface TranscriptInput {
@@ -179,6 +188,8 @@ export interface TranscriptInput {
   generation: TranscriptGeneration | null;
   rerank: RerankReadingCount | null;
   checks: AnswerChecks | null;
+  /** Which pin brought each chunk past the cut, by chunk id (#579). */
+  pins?: ReadonlyMap<string, PinName>;
   /** #474's re-asks; none unless the lane asked them. */
   reasks?: readonly ReaskInput[];
 }
@@ -186,14 +197,19 @@ export interface TranscriptInput {
 /** The chunk list as the prompt numbered it. */
 function transcriptChunks(
   chunks: readonly RetrievedChunk[],
+  pins: ReadonlyMap<string, PinName> = new Map(),
 ): TranscriptChunk[] {
-  return chunks.map((chunk, i) => ({
-    marker: i + 1,
-    chunkId: chunk.chunkId,
-    docKey: chunk.docKey,
-    articulo: chunk.articulo,
-    content: chunk.content,
-  }));
+  return chunks.map((chunk, i) => {
+    const pin = pins.get(chunk.chunkId);
+    return {
+      marker: i + 1,
+      chunkId: chunk.chunkId,
+      docKey: chunk.docKey,
+      articulo: chunk.articulo,
+      content: chunk.content,
+      ...(pin === undefined ? {} : { pin }),
+    };
+  });
 }
 
 function transcriptFigures(
@@ -249,6 +265,7 @@ export function transcriptRow({
   generation,
   rerank,
   checks,
+  pins,
   reasks = [],
 }: TranscriptInput): TranscriptRow {
   return {
@@ -261,7 +278,7 @@ export function transcriptRow({
     question: evalCase.question,
     query,
     answer,
-    chunks: transcriptChunks(chunks),
+    chunks: transcriptChunks(chunks, pins),
     derivedFigures: transcriptFigures(derivedFigures),
     groundedness: transcriptGroundedness(groundedness),
     citations,
@@ -273,7 +290,7 @@ export function transcriptRow({
     reasks: reasks.map((reask) => ({
       query: reask.query,
       answer: reask.answer,
-      chunks: transcriptChunks(reask.chunks),
+      chunks: transcriptChunks(reask.chunks, reask.pins),
       derivedFigures: transcriptFigures(reask.derivedFigures),
       groundedness: transcriptGroundedness(reask.groundedness),
       citations: reask.citations,

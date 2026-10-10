@@ -46,6 +46,12 @@
  * the configuration table counts the cases it counted before the block
  * existed, so an earlier probe's totals still compare, and the block prints
  * its own line under the route's configuration, every miss beside its seed.
+ * The salario base pin (#579, `PIN_SALARIO_BASE`) is on in every
+ * configuration too, and one more, the route's own with it off, is its
+ * baseline: the closing lines list every set it grows, and every set that
+ * holds a chunk the baseline's does not — a loss, which an append should
+ * never cause. Each set also says which pin brought each chunk past the cut.
+ *
  * `EVAL_CASES=<id,…>` scopes the probe the way it scopes the lanes
  * (`src/lib/eval/subset.ts`): the three-case smoke before a full arm.
  *
@@ -67,7 +73,7 @@ function loadDotEnvLocal(): void {
   }
 }
 import { resolveDerivedFigures } from "../src/lib/answer/derived";
-import { pinAnswerSet } from "../src/lib/answer/pins";
+import { pinAnswerSet, type PinName } from "../src/lib/answer/pins";
 import {
   answerSetFromOrder,
   RERANK_POOL,
@@ -106,6 +112,7 @@ interface Config {
   cap: string;
   pin: string;
   xref: string;
+  salarioBase: string;
 }
 
 const CONFIGS: Config[] = [];
@@ -113,13 +120,30 @@ for (const topK of ["8", "10"]) {
   for (const cap of ["off", "3", "2"]) {
     for (const pin of ["off", "on"]) {
       const name = `top${topK}/cap${cap}/pin${pin}`;
-      CONFIGS.push({ name, topK, cap, pin, xref: "on" });
+      CONFIGS.push({ name, topK, cap, pin, xref: "on", salarioBase: "on" });
     }
   }
 }
 /** The route's configuration without the cross-references (#508). */
 const XREF_OFF = `${PRODUCTION_CONFIG}/xrefoff`;
-CONFIGS.push({ name: XREF_OFF, topK: "8", cap: "off", pin: "on", xref: "off" });
+CONFIGS.push({
+  name: XREF_OFF,
+  topK: "8",
+  cap: "off",
+  pin: "on",
+  xref: "off",
+  salarioBase: "on",
+});
+/** The route's configuration without the salario base pin (#579). */
+const SALARIO_BASE_OFF = `${PRODUCTION_CONFIG}/sboff`;
+CONFIGS.push({
+  name: SALARIO_BASE_OFF,
+  topK: "8",
+  cap: "off",
+  pin: "on",
+  xref: "on",
+  salarioBase: "off",
+});
 
 interface CaseRead {
   id: string;
@@ -145,6 +169,8 @@ interface CaseRead {
       size: number;
       pinned: string[];
       set: string[];
+      /** Label → what put it past the cut (#579); absent before #579. */
+      pins?: Record<string, PinName>;
     }
   >;
   /** Reranked rank of each expected target (1-based) or null. */
@@ -319,12 +345,21 @@ async function readCase(
     process.env.ANSWER_DOC_CAP = c.cap;
     process.env.PIN_DERIVED_INPUTS = c.pin;
     process.env.PIN_CROSS_REFERENCES = c.xref;
+    process.env.PIN_SALARIO_BASE = c.salarioBase;
+    const pins = new Map<string, PinName>();
     const cut = answerSetFromOrder(
       order,
       retrieval.chunks,
       outcome?.stepPicks ?? [],
+      (ids) => {
+        for (const id of ids) pins.set(id, "step");
+      },
     );
-    const chunks = await pinAnswerSet(cut, retrieval.chunks, query);
+    const chunks = await pinAnswerSet(cut, retrieval.chunks, query, {
+      onPins: (appended) => {
+        for (const [id, pin] of appended) pins.set(id, pin);
+      },
+    });
     const figures = resolveDerivedFigures(chunks);
     const presentTargets = evalCase.expected.filter((t) =>
       chunks.some((ch) => chunkMatchesTarget(ch, t)),
@@ -338,6 +373,12 @@ async function readCase(
       size: chunks.length,
       pinned: chunks.slice(cut.length).map(label),
       set: chunks.map(label),
+      pins: Object.fromEntries(
+        chunks.flatMap((chunk) => {
+          const pin = pins.get(chunk.chunkId);
+          return pin === undefined ? [] : [[label(chunk), pin]];
+        }),
+      ),
     };
   }
   return read;
@@ -471,6 +512,22 @@ async function main(): Promise<void> {
     const gained = r.per[PRODUCTION_CONFIG].present - r.per[XREF_OFF].present;
     console.log(
       `  ${r.id}: +${added.join(", ")}${gained === 0 ? "" : ` (targets +${gained})`}`,
+    );
+  }
+
+  // #579: what the salario base pin adds to the route's configuration, and
+  // any chunk it costs — an append should cost none.
+  console.log(
+    `\nsalario base (#579): targets ${sum(retrievalReads, SALARIO_BASE_OFF)} → ${sum(retrievalReads, PRODUCTION_CONFIG)}`,
+  );
+  for (const r of reads) {
+    const off = r.per[SALARIO_BASE_OFF].set;
+    const on = new Set(r.per[PRODUCTION_CONFIG].set);
+    const added = [...on].filter((l) => !off.includes(l));
+    const lost = off.filter((l) => !on.has(l));
+    if (added.length === 0 && lost.length === 0) continue;
+    console.log(
+      `  ${r.id}: ${added.length > 0 ? `+${added.join(", ")}` : ""}${lost.length > 0 ? ` LOST ${lost.join(", ")}` : ""}`,
     );
   }
 

@@ -1,0 +1,47 @@
+
+EVAL_REWRITES: 116 cases' query and expansion replayed from eval/runs/2026-10-09-562/probe-after.json
+........
+retrieval cases: 8 (3 in the robustness block; 16 expected targets outside it), abstention: 0, follow-ups condensed: 1
+condensation fell back to the question: none
+rewrites: replayed from eval/runs/2026-10-09-562/probe-after.json
+provider calls that did not come back: none
+rerank readings lost: none of 52
+weak: none
+expansion absent: none
+
+config                     targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff         12/16      3/5          7        —
+top8/capoff/pinon          12/16      3/5          7        —
+top8/cap3/pinoff           12/16      3/5          7        —
+top8/cap3/pinon            12/16      3/5          7        —
+top8/cap2/pinoff           10/16      3/5          7        —
+top8/cap2/pinon            10/16      3/5          7        —
+top10/capoff/pinoff        12/16      3/5          7        —
+top10/capoff/pinon         12/16      3/5          7        —
+top10/cap3/pinoff          12/16      3/5          7        —
+top10/cap3/pinon           12/16      3/5          7        —
+top10/cap2/pinoff          10/16      3/5          7        —
+top10/cap2/pinon           10/16      3/5          7        —
+top8/capoff/pinon/xrefoff  12/16      3/5          7        —
+top8/capoff/pinon/sboff    12/16      3/5          0        —
+
+cross-references (#508): targets 12 → 12, Tier 1 5 → 5
+  iva-declaracion-mensual: +ley-iva·Artículo 10·#0
+  inscripcion-tribu-cr: +ley-renta·ARTICULO 2·#0
+  ho-hacienda-solo-cliente-eeuu: +ley-renta·ARTICULO 23·#0
+  ho-iva-en-cero-sin-facturar: +ley-iva·Artículo 10·#0
+  t2-inscripcion-dimex: +ley-iva·Artículo 4·#0
+  rb-corto-cuando-declaro-iva: +ley-iva·Artículo 4·#0
+  rb-tilde-inscribirme-afuera: +ley-iva·Artículo 10·#0
+  rb-seguimiento-le-cobro-iva: +reglamento-iva·Artículo 66·#0
+
+salario base (#579): targets 12 → 12
+  inscripcion-tribu-cr: +salario-base-2026·Circular 246-2025·#0
+  ho-hacienda-solo-cliente-eeuu: +salario-base-2026·Circular 246-2025·#0
+  ho-iva-en-cero-sin-facturar: +salario-base-2026·Circular 246-2025·#0
+  t2-inscripcion-dimex: +salario-base-2026·Circular 246-2025·#0
+  rb-corto-cuando-declaro-iva: +salario-base-2026·Circular 246-2025·#0
+  rb-tilde-inscribirme-afuera: +salario-base-2026·Circular 246-2025·#0
+  rb-seguimiento-le-cobro-iva: +salario-base-2026·Circular 246-2025·#0
+
+top8/capoff/pinon, robustness block (#502): 3/3

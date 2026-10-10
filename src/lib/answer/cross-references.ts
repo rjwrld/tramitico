@@ -283,7 +283,7 @@ export type ArticuloLookup = (
 ) => Promise<RetrievedChunk[]>;
 
 /** The `chunks` ⋈ `documents` row the lookup selects. */
-interface ArticuloRow {
+export interface ArticuloRow {
   id: string;
   articulo: string | null;
   path: string[] | null;
@@ -368,7 +368,8 @@ function namedBy(chunk: RetrievedChunk, reference: ArticuloReference): boolean {
   );
 }
 
-function toChunk(row: ArticuloRow): RetrievedChunk {
+/** A looked-up row as an answer-set chunk; the salario base pin reads rows the same way. */
+export function toChunk(row: ArticuloRow): RetrievedChunk {
   return {
     chunkId: row.id,
     docKey: row.documents.doc_key,

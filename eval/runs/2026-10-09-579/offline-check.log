@@ -1,0 +1,33 @@
+
+eval/runs/2026-10-09-561/probe-after.json: 116 cases
+  iva-declaracion-mensual: sanción cnpt·Artículo 79·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  inscripcion-tribu-cr: sanción cnpt·Artículo 78·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  multa-iva-no-declarado: sanción cnpt·Artículo 79·#0, cnpt·Artículo 78·#0, cnpt·Artículo 81·#0; salario base already in
+  inscripcion-tardia-sancion: sanción cnpt·Artículo 78·#0; salario base already in
+  ho-hacienda-solo-cliente-eeuu: sanción cnpt·Artículo 78·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  ho-iva-en-cero-sin-facturar: sanción cnpt·Artículo 79·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  ho-rebajar-multa-si-pago-ya: sanción cnpt·Artículo 81·#0, cnpt·Artículo 79·#0, cnpt·Artículo 78·#0; salario base already in
+  t2-inscripcion-dimex: sanción cnpt·Artículo 78·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  rb-pill-inscribi-tarde: sanción cnpt·Artículo 78·#0; salario base already in
+  rb-corto-cuando-declaro-iva: sanción cnpt·Artículo 79·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  rb-corto-multa-tarde: sanción cnpt·Artículo 78·#0, cnpt·Artículo 79·#0; salario base already in
+  rb-tilde-inscribirme-afuera: sanción cnpt·Artículo 78·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  rb-seguimiento-le-cobro-iva: sanción cnpt·Artículo 79·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  rb-seguimiento-de-cuanto-multa: sanción cnpt·Artículo 78·#0, cnpt·Artículo 81·#0, cnpt·Artículo 79·#0; salario base already in
+  sets grown: 8; chunks lost: 0
+
+eval/runs/2026-10-09-562/probe-after.json: 116 cases
+  inscripcion-tribu-cr: sanción cnpt·Artículo 78·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  multa-iva-no-declarado: sanción cnpt·Artículo 79·#0, cnpt·Artículo 78·#0, cnpt·Artículo 81·#0; salario base already in
+  inscripcion-tardia-sancion: sanción cnpt·Artículo 78·#0; salario base already in
+  ho-hacienda-solo-cliente-eeuu: sanción cnpt·Artículo 78·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  ho-iva-en-cero-sin-facturar: sanción cnpt·Artículo 79·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  ho-rebajar-multa-si-pago-ya: sanción cnpt·Artículo 81·#0, cnpt·Artículo 79·#0, cnpt·Artículo 78·#0; salario base already in
+  t2-inscripcion-dimex: sanción cnpt·Artículo 78·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  rb-pill-inscribi-tarde: sanción cnpt·Artículo 78·#0; salario base already in
+  rb-corto-cuando-declaro-iva: sanción cnpt·Artículo 79·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  rb-corto-multa-tarde: sanción cnpt·Artículo 78·#0, cnpt·Artículo 79·#0; salario base already in
+  rb-tilde-inscribirme-afuera: sanción cnpt·Artículo 78·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  rb-seguimiento-le-cobro-iva: sanción cnpt·Artículo 79·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  rb-seguimiento-de-cuanto-multa: sanción cnpt·Artículo 78·#0, cnpt·Artículo 81·#0, cnpt·Artículo 79·#0; salario base already in
+  sets grown: 7; chunks lost: 0
