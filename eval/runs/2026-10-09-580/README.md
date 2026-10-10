@@ -136,6 +136,23 @@ and that is the orchestrator's call. The two abstention targets pass 3/3, but
 the control passed them 2/2 on its scoped draws, so the replays don't separate
 the clauses from noise. Only the lane failed them.
 
+## Outcome: a documented exception
+
+Per the owner's Wave F rule («if the fix fails, accept it as a documented
+exception»), there is no round 2. The prompt change does not ship: this PR
+carries the evidence only, and the round-1 prompt and its tests are kept on
+the branch `rjwrld/580-prompt-round1-code` (fb7d6ea). Main's prompt stays as
+it was, so the two first-person targets keep failing as in the control.
+
+What a later attempt starts from:
+
+- The first-person sentence is the second half of an absence claim («los
+  documentos no traen X, así que no puedo …»), so the clause belongs in rule 3's
+  fallback and rule 7, not in rule 8.
+- `ho-abs-calculo-personalizado`: no rubric change. The control's scoped draws
+  passed it too, so the next full lane decides whether it is still red.
+- First person outside declines is tracked in #593.
+
 ## Cost
 
 These figures are estimates at #572's rates: ≈US$0.043 a replayed row and
