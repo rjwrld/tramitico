@@ -309,12 +309,15 @@ rate_limits (subject text pk, window_start timestamptz, count int)             -
   name — «CABYS», the one entry of `NAMED_SOURCES` (`src/lib/answer/steps.ts`), matched as a
   whole word on the condensed question — brings that document's best pooled chunk, one chunk
   and only when the set holds none of it. `PIN_NAMED_SOURCES=off` is the baseline.
-- **Salario base (#579, #591):** an answer-set chunk that states an amount as a multiple or a
-  fraction of the salario base — a multa (`cnpt` 78, 79, 81, `ley-iva` 85 bis), an exemption
-  threshold (`ley-iva` 8's alquiler, `reglamento-iva` 31's bienes de capital), a tramo (`ley-renta`
-  31 ter) — brings the salario base in force, one chunk, when the set holds none. Detected by its
-  text: a count or a share right before «salario(s) base»; the words alone, with no count, do not
-  trigger. The chunk is the `salario-base` series entry `retrieve()` serves this fiscal year
+- **Salario base (#579, #591, #599):** an answer-set chunk that states a multa or a sanción in
+  salarios base (`cnpt` 78, 79, 81, `ley-iva` 85 bis), or any other amount in salarios base and
+  names Ley 7337 in its own text (`ley-iva` 8's alquiler exemption, `ley-iva` 11 bis,
+  `ley-renta` 13, `reglamento-iva` 38 bis, `reglamento-renta` 30's last part), brings the salario
+  base in force, one chunk, when the set holds none. The circular states the salario base of Ley
+  7337, so an amount whose chunk does not name the law (`reglamento-iva` 31's bienes de capital,
+  `reglamento-rts`' limits, `ley-renta` 31 ter's tramos) does not trigger it: there the set would
+  not tie the figure to the threshold (#599). Detected by the text: a count or a share right
+  before «salario(s) base»; the words alone, with no count, do not trigger. The chunk is the `salario-base` series entry `retrieve()` serves this fiscal year
   (#505), from the pool or one fail-open lookup, appended before the named source; what the pin
   did is the ask event's `salarioBase` field. `PIN_SALARIO_BASE=off` is the baseline.
 - **Answer assembly:** Claude **Sonnet by default, model as env var** — Week 3 runs Haiku 4.5
