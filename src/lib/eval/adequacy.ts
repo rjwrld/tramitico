@@ -79,8 +79,14 @@ export const ADEQUACY_TIER2_GATE = 0.84;
  * Map #497's Wave D and Wave E lanes stated 88 and 92 on consecutive mains
  * (eval/runs/2026-10-09-497-wave-{d,e}/), and the owner raised the baseline
  * to 88, the lower of the two (2026-10-09).
+ *
+ * Map #497's Wave E and Wave G lanes stated 92 and 93
+ * (eval/runs/2026-10-{09,10}-497-wave-{e,g}/), and the owner raised the
+ * baseline to 92, the lower of the two (2026-10-10). The dataset, corpus and
+ * salario-base pin changed between them (#596–#598), so they are not a strict
+ * pair (ADR 0023).
  */
-export const TIER1_REQUIREMENT_BASELINE = 88;
+export const TIER1_REQUIREMENT_BASELINE = 92;
 
 /** The ±4 run-to-run noise on identical pipelines (#457). */
 export const TIER1_REGRESSION_MARGIN = 4;
