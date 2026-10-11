@@ -171,6 +171,8 @@ describe("docShortName covers the manifest", () => {
       "disposiciones-v44": "Disposiciones v4.4",
       "tribu-cr-faq": "TRIBU CR FAQ",
       "tribu-cr-res-0011-2025": "TRIBU CR Res. 0011 2025",
+      "tribu-cr-res-0020-2025": "TRIBU CR Res. 0020 2025",
+      "tribu-cr-res-0033-2025": "TRIBU CR Res. 0033 2025",
       "cabys-dev": "CABYS Dev",
     });
   });

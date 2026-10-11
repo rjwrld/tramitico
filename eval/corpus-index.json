@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-08T05:10:02.797Z",
-  "chunkCount": 873,
+  "generatedAt": "2026-10-11T00:22:49.547Z",
+  "chunkCount": 894,
   "entries": [
     {
       "docKey": "cabys-dev",
@@ -6629,6 +6629,139 @@
     {
       "docKey": "tribu-cr-res-0011-2025",
       "articulo": "Transitorio IV",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0020-2025",
+      "articulo": "Artículo 1",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0020-2025",
+      "articulo": "Artículo 2",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0020-2025",
+      "articulo": "Artículo 3",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0020-2025",
+      "articulo": "Artículo 4",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0020-2025",
+      "articulo": "Artículo 5",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0020-2025",
+      "articulo": "Artículo 6",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0020-2025",
+      "articulo": "Artículo 7",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0020-2025",
+      "articulo": "Preámbulo",
+      "path": [],
+      "chunks": 2,
+      "parts": 2
+    },
+    {
+      "docKey": "tribu-cr-res-0033-2025",
+      "articulo": "Artículo 1",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0033-2025",
+      "articulo": "Artículo 2",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0033-2025",
+      "articulo": "Artículo 3",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0033-2025",
+      "articulo": "Artículo 4",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0033-2025",
+      "articulo": "Artículo 5",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0033-2025",
+      "articulo": "Artículo 6",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0033-2025",
+      "articulo": "Artículo 7",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0033-2025",
+      "articulo": "Artículo 8",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0033-2025",
+      "articulo": "Preámbulo",
+      "path": [],
+      "chunks": 2,
+      "parts": 2
+    },
+    {
+      "docKey": "tribu-cr-res-0033-2025",
+      "articulo": "Transitorio I",
+      "path": [],
+      "chunks": 1,
+      "parts": 1
+    },
+    {
+      "docKey": "tribu-cr-res-0033-2025",
+      "articulo": "Transitorio II",
       "path": [],
       "chunks": 1,
       "parts": 1
