@@ -4,6 +4,8 @@ Date: 2026-10-02 · Status: accepted (A); amended 2026-10-07
 ([#474, below](#amendment-2026-10-07-474-groundedness-and-the-blocking-gate));
 baselines re-set 2026-10-08
 ([#512, below](#512s-two-final-lanes-the-baselines-re-set-2026-10-08));
+Tier 1 raised 2026-10-09
+([Wave D and Wave E, below](#map-497s-wave-d-and-wave-e-lanes-tier-1-at-88-2026-10-09));
 the blocking column corrected 2026-10-07
 ([#504](https://github.com/rjwrld/tramitico/issues/504), note ² under the table) · Amends
 [SPEC §9](../../SPEC.md) · Context: issues
@@ -259,3 +261,39 @@ gate stays at 0.92: both lanes clear it, and #512 does not re-set it.
 In code: `GROUNDEDNESS_BASELINE` (`groundedness.ts`),
 `TIER1_REQUIREMENT_BASELINE` (`adequacy.ts`) and `ROBUSTNESS_HIT_BASELINE`
 (`robustness.ts`), each pinned by its unit test.
+
+## Map #497's Wave D and Wave E lanes: Tier 1 at 88 (2026-10-09)
+
+Two full lanes ran on consecutive mains, each after its wave's fixes landed
+([`eval/runs/2026-10-09-497-wave-d/`](../../eval/runs/2026-10-09-497-wave-d/),
+[`eval/runs/2026-10-09-497-wave-e/`](../../eval/runs/2026-10-09-497-wave-e/)),
+with #512's setup: 5.5 at `low`, every other knob at production's default.
+
+| Gate                        | Wave D (3455dd5) | Wave E (9817c6e) | Baseline      | A lane fails at |
+| --------------------------- | ---------------- | ---------------- | ------------- | --------------- |
+| Tier 1 requirements / 116   | 88               | 92               | **78 → 88**   | ≤ 83            |
+| Tier 1 cases fully adequate | 10/27            | 13/27            | reported      | —               |
+| Groundedness / 74           | 71               | 73               | 73, unchanged | ≤ 68            |
+| Robustness block hits       | 26/27            | 26/27            | 27, unchanged | ≤ 24            |
+
+Neither lane raised the baseline on its own: each README left Tier 1 «not
+ratcheted» for the owner. The owner then raised it to **88**, the lower of the
+two lanes, by #512's rule. The margin stays 4, so a lane fails at 83 or below.
+Groundedness and robustness keep #512's baselines, since neither lane beat
+them.
+
+Unlike #512's pair, these two lanes are not the same pipeline. Wave E's main
+adds #576's second step pin and #578's two catalogue sentences, both aimed at
+Tier 1 carriers. So the 4 between them is either that change or the ±4 two
+identical lanes differ by (#457); the lanes can't tell which. The lower lane
+is the level both pipelines reached, which is what the baseline claims. The
+misses are still where-and-how: TRIBU-CR and OVi steps, CCSS channels, how to
+regularize.
+
+Both lanes were red on zero gates that do not bear on Tier 1: the abstention
+figure gate on `ho-abs-devs-exentos-renta` in both (#580), and one false
+absence claim in Wave E (#579). Their READMEs carry the reads.
+
+In code: `TIER1_REQUIREMENT_BASELINE = 88` (`src/lib/eval/adequacy.ts`),
+pinned by its unit test, with SPEC §9 and eval/README's Quick reference
+(#586).
