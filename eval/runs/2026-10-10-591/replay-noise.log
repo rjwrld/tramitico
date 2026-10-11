@@ -1,0 +1,17 @@
+$ tsx scripts/answer-replay.ts eval/runs/2026-10-10-591/replay-input.jsonl --cases=renta-tramos-2026,ho-minimo-renta-2026,iva-clientes-fuera-cr,abs-patente-comercial
+replaying 4 row(s) of replay-input.jsonl on claude-sonnet-5-5-effort-low
+  renta-tramos-2026  pass
+  ho-minimo-renta-2026  pass  missing 2
+  iva-clientes-fuera-cr  pass
+  abs-patente-comercial  pass
+
+transcript: <main>/eval/transcripts/2026-10-10-591/groundedness-claude-sonnet-5-5-effort-low-replay-subset-20261011T002903Z.jsonl
+
+requirements stated, recorded → replayed: 3 → 2 of 4
+  3 → 2 / 4  ho-minimo-renta-2026
+grounded, recorded → replayed: 4 → 4 of 4
+false absence claims (#500), recorded → replayed: 0 → 0
+absence openings, recorded → replayed: 1 → 1 — abs-patente-comercial
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+finish other than stop: 0; output tokens max 1163

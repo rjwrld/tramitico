@@ -53,7 +53,7 @@ value, except for `ANSWER_EFFORT`:
 | `PIN_DERIVED_INPUTS`             | `on` (since #344)                              | `src/lib/answer/derived.ts`          |
 | `PIN_CROSS_REFERENCES`           | `on` (since #508)                              | `src/lib/answer/cross-references.ts` |
 | `PIN_NAMED_SOURCES`              | `on` (since #559)                              | `src/lib/answer/pins.ts`             |
-| `PIN_SALARIO_BASE`               | `on` (since #579)                              | `src/lib/answer/salario-base.ts`     |
+| `PIN_SALARIO_BASE`               | `on` (since #579)³                             | `src/lib/answer/salario-base.ts`     |
 | `EVAL_CASES`                     | every case; comma-separated ids scope a lane¹  | `src/lib/eval/subset.ts`             |
 | `EVAL_TRANSCRIPT_DIR`            | `eval/transcripts/`                            | `src/lib/eval/transcript.ts`         |
 | `EVAL_REWRITES`                  | live; a probe's JSON replays its rewrites      | `src/lib/eval/rewrites.ts`           |
@@ -70,6 +70,12 @@ Sensitive in Vercel, so it can't be read back. The dashboard shows it added on
 2026-09-29 and never updated since. That is the day #451 ran
 `printf low | vercel env add ANSWER_EFFORT production`. #402's `medium` predates
 it, so don't read the production value from notes older than #451.
+
+³ Since #591 the pin triggers on any amount a set chunk states as a multiple
+or a fraction of the salario base («(1,5) del salario base», «dos salarios
+base», «medio salario base»), not only on a multa or a sanción. The words
+«salario base» with no count before them do not trigger. In the local corpus
+that is 24 chunks, up from #579's 4 (`eval/runs/2026-10-10-591/`).
 
 The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`,
 `PIN_CROSS_REFERENCES`, `PIN_NAMED_SOURCES`, `PIN_SALARIO_BASE`)

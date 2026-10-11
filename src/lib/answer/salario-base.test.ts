@@ -6,8 +6,10 @@ import {
   salarioBaseChunks,
   salarioBaseDocKeys,
   SALARIO_BASE_LOG_PREFIX,
+  statesAmountInSalariosBase,
   statesSanctionInSalariosBase,
   type SalarioBaseLookup,
+  type SalarioBaseOutcome,
 } from "./salario-base";
 
 function chunk(
@@ -49,6 +51,12 @@ const SALARIO_BASE = chunk(
   "El salario base que regirá durante el año 2026 será de ¢462.200,00.",
 );
 const UNRELATED = chunk("ley-iva", "Artículo 1");
+// #591: an exemption threshold, not a sanción.
+const LEY_IVA_8 = chunk(
+  "ley-iva",
+  "Artículo 8",
+  "siempre y cuando el monto de la renta mensual sea igual o inferior al uno coma cinco (1,5) del salario base.",
+);
 
 const lookupOf = (...found: RetrievedChunk[]): SalarioBaseLookup =>
   vi.fn(async () => found);
@@ -89,6 +97,94 @@ describe("statesSanctionInSalariosBase", () => {
   });
 });
 
+describe("statesAmountInSalariosBase", () => {
+  // Every phrase is verbatim from the local corpus (2026-10-10), the census
+  // in eval/runs/2026-10-10-591/.
+  it.each([
+    ["cnpt 79, a fraction in words and figures", CNPT_79.content],
+    ["cnpt 78, «de un salario base»", CNPT_78.content],
+    [
+      "cnpt 81, a count in words",
+      "la base de la sanción sea igual o inferior al equivalente de quinientos salarios base",
+    ],
+    [
+      "ley-iva 85 bis, «un salario base»",
+      "una multa equivalente a un salario base",
+    ],
+    ["ley-iva 8, the alquiler exemption", LEY_IVA_8.content],
+    [
+      "reglamento-iva 11, «(1,5) uno coma cinco del salario base»",
+      "sea igual o inferior a (1,5) uno coma cinco del salario base",
+    ],
+    [
+      "reglamento-iva 11, a bare decimal",
+      "alquileres que no superen el 1,5 del salario base mensual",
+    ],
+    [
+      "ley-renta 31 ter, the tramos",
+      "Sobre el exceso de un salario base y hasta dos salarios base, pagarán un siete por ciento (7%)",
+    ],
+    [
+      "ley-iva 11 bis, «medio salario base»",
+      "cuyo precio no supere medio salario base fijado conforme al artículo 2",
+    ],
+    [
+      "ley-renta 13, a count in parentheses",
+      "el monto equivalente a doscientos cincuenta (250) salarios base",
+    ],
+    [
+      "reglamento-iva 31, bienes de capital",
+      "Cuando el valor de adquisición de un bien de capital supere los quince salarios base",
+    ],
+    ["reglamento-iva 64, a count in figures", "superenlos 15 salarios base"],
+    [
+      "reglamento-renta 81, «1,000 (mil)»",
+      "superen el monto equivalente a 1,000 (mil) salarios base en el año",
+    ],
+    [
+      "reglamento-rts 3, a compound count",
+      "no supere los ciento ochenta y seis salarios base",
+    ],
+    [
+      "a percentage in words alone",
+      "el cincuenta por ciento de un salario base",
+    ],
+  ])("reads %s as an amount in salarios base", (_, content) => {
+    expect(statesAmountInSalariosBase({ content })).toBe(true);
+  });
+
+  it.each([
+    [
+      "reglamento-renta 22, a definition",
+      "Para efectos de este artículo se entiende como salario base (*) la contenida en el artículo 2º de la ley Nº 7337",
+    ],
+    [
+      "ley-renta 13's note",
+      "(Sobre monto actualizado del salario base, ver observaciones de esta ley)",
+    ],
+    [
+      "ley-iva 8's naming of the term",
+      "La denominación salario base utilizada en este inciso debe entenderse como la contenida en el artículo 2",
+    ],
+    [
+      "the law's title",
+      "Ley N.° 7337, Crea Concepto Salario Base para Delitos Especiales del Código Penal",
+    ],
+    ["the circular itself", SALARIO_BASE.content],
+    ["the header alone", "[Tres salarios base] Texto sin cifras."],
+    ["a number in another sentence", "Son 3. Salario base vigente."],
+  ])("does not read %s as one", (_, content) => {
+    expect(statesAmountInSalariosBase({ content })).toBe(false);
+  });
+
+  it("reads every sanción #579 read", () => {
+    for (const content of [CNPT_78.content, CNPT_79.content]) {
+      expect(statesSanctionInSalariosBase({ content })).toBe(true);
+      expect(statesAmountInSalariosBase({ content })).toBe(true);
+    }
+  });
+});
+
 describe("salarioBaseDocKeys", () => {
   it("is the series entry the year serves, never a hard-coded year", () => {
     const keys = ["cnpt", "salario-base-2025", "salario-base-2026"];
@@ -120,6 +216,22 @@ describe("salarioBaseChunks", () => {
     salarioBaseLookup: lookup,
     withheld: noneWithheld(),
   });
+
+  /** Runs the pin and returns what it appended and every outcome it told. */
+  async function told(
+    answerSet: readonly RetrievedChunk[],
+    pool: readonly RetrievedChunk[],
+    lookup: SalarioBaseLookup,
+    withheld = noneWithheld(),
+  ) {
+    const outcomes: SalarioBaseOutcome[] = [];
+    const found = await salarioBaseChunks(answerSet, pool, {
+      salarioBaseLookup: lookup,
+      withheld,
+      onSalarioBase: (outcome) => outcomes.push(outcome),
+    });
+    return { found, outcomes };
+  }
 
   it("looks the salario base up when a multa enters without it (#579)", async () => {
     const lookup = lookupOf(SALARIO_BASE);
@@ -193,6 +305,89 @@ describe("salarioBaseChunks", () => {
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining(SALARIO_BASE_LOG_PREFIX),
     );
+  });
+
+  it("looks the salario base up for an exemption threshold (#591)", async () => {
+    const lookup = lookupOf(SALARIO_BASE);
+    expect(await told([UNRELATED, LEY_IVA_8], [], lookup)).toEqual({
+      found: [SALARIO_BASE],
+      outcomes: ["appended"],
+    });
+  });
+
+  describe("tells what it did, once (#591)", () => {
+    it("not_triggered: no amount in salarios base", async () => {
+      expect(await told([UNRELATED], [SALARIO_BASE], lookupOf())).toEqual({
+        found: [],
+        outcomes: ["not_triggered"],
+      });
+    });
+
+    it("not_triggered: the circular alone triggers nothing", async () => {
+      expect(await told([SALARIO_BASE], [], lookupOf())).toEqual({
+        found: [],
+        outcomes: ["not_triggered"],
+      });
+    });
+
+    it("already_in_set", async () => {
+      const lookup = lookupOf(SALARIO_BASE);
+      expect(await told([LEY_IVA_8, SALARIO_BASE], [], lookup)).toEqual({
+        found: [],
+        outcomes: ["already_in_set"],
+      });
+      expect(lookup).not.toHaveBeenCalled();
+    });
+
+    it("appended, from the pool", async () => {
+      expect(
+        await told([CNPT_79], [CNPT_79, SALARIO_BASE], lookupOf()),
+      ).toEqual({ found: [SALARIO_BASE], outcomes: ["appended"] });
+    });
+
+    it("appended, from the lookup", async () => {
+      expect(await told([CNPT_79], [], lookupOf(SALARIO_BASE))).toEqual({
+        found: [SALARIO_BASE],
+        outcomes: ["appended"],
+      });
+    });
+
+    it("missing: the year serves no circular", async () => {
+      const lookup = lookupOf(SALARIO_BASE);
+      expect(
+        await told(
+          [CNPT_79],
+          [SALARIO_BASE],
+          lookup,
+          noneWithheld({ outOfPeriod: new Set(["salario-base-2026"]) }),
+        ),
+      ).toEqual({ found: [], outcomes: ["missing"] });
+      expect(lookup).not.toHaveBeenCalled();
+    });
+
+    it("missing: the lookup answered with none of it", async () => {
+      expect(await told([CNPT_79], [], lookupOf())).toEqual({
+        found: [],
+        outcomes: ["missing"],
+      });
+    });
+
+    it("failed: the lookup threw", async () => {
+      vi.spyOn(console, "warn").mockImplementation(() => {});
+      expect(
+        await told([CNPT_79], [], async () => {
+          throw new Error("boom");
+        }),
+      ).toEqual({ found: [], outcomes: ["failed"] });
+    });
+
+    it("nothing under PIN_SALARIO_BASE=off", async () => {
+      vi.stubEnv("PIN_SALARIO_BASE", "off");
+      expect(await told([CNPT_79], [], lookupOf(SALARIO_BASE))).toEqual({
+        found: [],
+        outcomes: [],
+      });
+    });
   });
 
   it("appends nothing under PIN_SALARIO_BASE=off", async () => {

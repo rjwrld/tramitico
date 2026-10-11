@@ -36,6 +36,7 @@
 import type { FinishReason, ProviderMetadata } from "ai";
 import type { CrossReferenceOutcome } from "./answer/cross-references";
 import { type DroppedReading, rerankEnabled } from "./answer/rerank";
+import type { SalarioBaseOutcome } from "./answer/salario-base";
 import { describeError } from "./log-redaction";
 import type { RateLimitCounter } from "./rate-limit";
 import type { RoutedCategory } from "./routing";
@@ -296,6 +297,14 @@ export interface AskEvent {
    * which artículo.
    */
   crossReference: CrossReferenceOutcome | null;
+  /**
+   * What the salario-base pin did (#591): `not_triggered`,
+   * `already_in_set`, `appended`, `missing` or `failed`
+   * (`SalarioBaseOutcome`); `null` when it never ran — a decline, an ask
+   * that ended before it, `PIN_SALARIO_BASE=off`. Never which chunk
+   * triggered it, nor which year's circular went in.
+   */
+  salarioBase: SalarioBaseOutcome | null;
 }
 
 /**
@@ -333,6 +342,7 @@ interface AskFacts {
   rerankDrops: RerankDrop[] | null;
   lexicalRetry: boolean;
   crossReference: CrossReferenceOutcome | null;
+  salarioBase: SalarioBaseOutcome | null;
   chargeKept: boolean;
 }
 
@@ -427,6 +437,8 @@ export interface AskTelemetry {
   lexicalRetry: () => void;
   /** The cross-reference append's outcome — `pinAnswerSet`'s `onOutcome`. */
   crossReference: (outcome: CrossReferenceOutcome) => void;
+  /** The salario-base pin's outcome — `pinAnswerSet`'s `onSalarioBase`. */
+  salarioBase: (outcome: SalarioBaseOutcome) => void;
   /**
    * The ask settled without a refund: it keeps its quota slot. Called by the
    * route's settlement, the one place that knows, so `outcome` can never
@@ -460,6 +472,7 @@ export function createAskTelemetry(
     rerankDrops: null,
     lexicalRetry: false,
     crossReference: null,
+    salarioBase: null,
     chargeKept: false,
   };
   const durations: Record<AskStage, number | null> = {
@@ -562,6 +575,9 @@ export function createAskTelemetry(
     crossReference: (outcome) => {
       facts.crossReference = outcome;
     },
+    salarioBase: (outcome) => {
+      facts.salarioBase = outcome;
+    },
     chargeKept: () => {
       facts.chargeKept = true;
     },
@@ -610,6 +626,7 @@ export function createAskTelemetry(
         rerank: rerankEnabled() ? "on" : "off",
         lexicalRetry: facts.lexicalRetry,
         crossReference: facts.crossReference,
+        salarioBase: facts.salarioBase,
       });
     },
   };

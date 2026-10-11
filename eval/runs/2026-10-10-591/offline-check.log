@@ -1,0 +1,41 @@
+
+eval/runs/2026-10-09-562/probe-after.json: 116 cases
+  inscripcion-hacienda-clientes-extranjero: NEW ONLY; amount reglamento-renta·Artículo 30·#2; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  iva-clientes-fuera-cr: NEW ONLY; amount ley-iva·Artículo 8·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  cabys-desarrollo-software: NEW ONLY; amount ley-iva·Artículo 11 bis·#0, reglamento-iva·Artículo 38 bis·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  ccss-asalariado-y-freelance: NEW ONLY; amount reglamento-renta·Artículo 30·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  regimen-simplificado-programador: NEW ONLY; amount reglamento-rts·Artículo 3·#0, reglamento-rts·Artículo 2·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  iva-tarifas-reducidas: NEW ONLY; amount reglamento-iva·Artículo 11·#2; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  renta-tramos-2026: NEW ONLY; amount reglamento-renta·Artículo 30·#1; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  renta-pagos-parciales-retenciones: NEW ONLY; amount reglamento-renta·Artículo 30·#0, reglamento-renta·Artículo 30·#2; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  renta-salario-y-actividad: NEW ONLY; amount reglamento-renta·Artículo 30·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  exportacion-servicios-comprobante: NEW ONLY; amount ley-iva·Artículo 8·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  iva-ajuste-bien-de-capital: NEW ONLY; amount reglamento-iva·Artículo 31·#0, reglamento-iva-bienes-capital·Artículo 31·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  iva-retencion-tarjetas-porcentaje: NEW ONLY; amount reglamento-renta·Artículo 30·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  inscripcion-tribu-cr: OLD+NEW; amount cnpt·Artículo 78·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  multa-iva-no-declarado: OLD+NEW; amount cnpt·Artículo 79·#0, cnpt·Artículo 78·#0, cnpt·Artículo 81·#1, cnpt·Artículo 81·#0; salario base already in
+  inscripcion-tardia-sancion: OLD+NEW; amount cnpt·Artículo 78·#0; salario base already in
+  ho-hacienda-solo-cliente-eeuu: OLD+NEW; amount ley-iva·Artículo 8·#0, reglamento-renta·Artículo 30·#2, cnpt·Artículo 78·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  ho-cliente-espana-lleva-iva: NEW ONLY; amount ley-iva·Artículo 8·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  ho-iva-en-cero-sin-facturar: OLD+NEW; amount cnpt·Artículo 79·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  ho-minimo-renta-2026: NEW ONLY; amount ley-renta·Artículo 31 ter·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  ho-ademas-tengo-salario: NEW ONLY; amount reglamento-renta·Artículo 30·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  ho-rebajar-multa-si-pago-ya: OLD+NEW; amount cnpt·Artículo 81·#0, cnpt·Artículo 79·#0, cnpt·Artículo 78·#0; salario base already in
+  ho-t2-hosting-extranjero: NEW ONLY; amount ley-iva·Artículo 8·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  ho-t2-retencion-tarjetas: NEW ONLY; amount reglamento-renta·Artículo 30·#0, reglamento-renta·Artículo 30·#2, reglamento-renta·Artículo 30·#1; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  ho-t2-compu-cara-iva: NEW ONLY; amount reglamento-iva·Artículo 31·#0, reglamento-iva-bienes-capital·Artículo 31·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  ho-t2-panaderia-simplificado: NEW ONLY; amount reglamento-rts·Artículo 3·#0, reglamento-rts·Artículo 2·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  ho-t2-payoneer: NEW ONLY; amount reglamento-renta·Artículo 30·#2; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  t2-inscripcion-dimex: OLD+NEW; amount cnpt·Artículo 78·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  rb-pill-iva-exterior: NEW ONLY; amount ley-iva·Artículo 8·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  rb-pill-inscribi-tarde: OLD+NEW; amount cnpt·Artículo 78·#0; salario base already in
+  rb-corto-tramos-renta: NEW ONLY; amount ley-renta·Artículo 31 ter·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  rb-corto-cuando-declaro-iva: OLD+NEW; amount cnpt·Artículo 79·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  rb-corto-que-cabys: NEW ONLY; amount reglamento-iva·Artículo 38 bis·#0, ley-iva·Artículo 11 bis·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  rb-corto-multa-tarde: OLD+NEW; amount cnpt·Artículo 78·#0, cnpt·Artículo 79·#0; salario base already in
+  rb-tilde-inscribirme-afuera: OLD+NEW; amount cnpt·Artículo 78·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  rb-spanglish-client-usa: NEW ONLY; amount ley-iva·Artículo 8·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  rb-seguimiento-le-cobro-iva: OLD+NEW; amount ley-iva·Artículo 8·#0, cnpt·Artículo 79·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  rb-seguimiento-de-cuanto-multa: OLD+NEW; amount cnpt·Artículo 78·#0, cnpt·Artículo 81·#0, cnpt·Artículo 79·#0, cnpt·Artículo 81·#1; salario base already in
+  abs-patente-comercial: NEW ONLY; amount reglamento-rts·Artículo 2·#0; salario base ADDED; +salario-base-2026·Circular 246-2025·#0 (salarioBase)
+  sets that trigger only under #591: 25; sets grown: 32, 25 of them only under #591; chunks lost: 0

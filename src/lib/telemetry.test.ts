@@ -96,6 +96,7 @@ describe("emitAskEvent", () => {
     rerank: "on",
     lexicalRetry: false,
     crossReference: null,
+    salarioBase: null,
   };
 
   it("writes one line: the stable prefix, a space, then the JSON", () => {
@@ -544,6 +545,26 @@ describe("createAskTelemetry", () => {
     ]);
   });
 
+  it("carries the salario-base pin's outcome, and null when it never ran (#591)", () => {
+    const outcomes = [
+      "not_triggered",
+      "already_in_set",
+      "appended",
+      "missing",
+      "failed",
+    ] as const;
+    createAskTelemetry().emit();
+    for (const outcome of outcomes) {
+      const telemetry = createAskTelemetry();
+      telemetry.salarioBase(outcome);
+      telemetry.emit();
+    }
+    expect(capture.events().map((e) => e.salarioBase)).toEqual([
+      null,
+      ...outcomes,
+    ]);
+  });
+
   it("times the appends after the cut as their own stage (#508)", () => {
     const clock = fakeClock();
     const telemetry = createAskTelemetry(clock.now);
@@ -663,6 +684,7 @@ describe("no telemetry event can carry content (#141)", () => {
       "rerank",
       "rerankDrops",
       "routedCategory",
+      "salarioBase",
       "stages",
       "typoRun",
     ]);

@@ -1,0 +1,37 @@
+$ tsx scripts/answer-set-probe.ts eval/runs/2026-10-10-591/probe-smoke.json
+
+EVAL_REWRITES: 116 cases' query and expansion replayed from eval/runs/2026-10-09-562/probe-after.json
+...
+retrieval cases: 3 (0 in the robustness block; 5 expected targets outside it), abstention: 0, follow-ups condensed: 0
+condensation fell back to the question: none
+rewrites: replayed from eval/runs/2026-10-09-562/probe-after.json
+provider calls that did not come back: none
+rerank readings lost: none of 20
+weak: none
+expansion absent: none
+
+config                     targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff         5/5        3/3          0        —
+top8/capoff/pinon          5/5        3/3          0        —
+top8/cap3/pinoff           5/5        3/3          0        —
+top8/cap3/pinon            5/5        3/3          0        —
+top8/cap2/pinoff           5/5        3/3          0        —
+top8/cap2/pinon            5/5        3/3          0        —
+top10/capoff/pinoff        5/5        3/3          0        —
+top10/capoff/pinon         5/5        3/3          0        —
+top10/cap3/pinoff          5/5        3/3          0        —
+top10/cap3/pinon           5/5        3/3          0        —
+top10/cap2/pinoff          5/5        3/3          1        —
+top10/cap2/pinon           5/5        3/3          1        —
+top8/capoff/pinon/xrefoff  5/5        3/3          0        —
+top8/capoff/pinon/sboff    5/5        3/3          0        —
+
+cross-references (#508): targets 5 → 5, Tier 1 0 → 0
+  iva-clientes-fuera-cr: +ley-iva·Artículo 11·#0
+  renta-tramos-2026: +ley-renta·ARTICULO 32·#0
+  iva-ajuste-bien-de-capital: +ley-iva·Artículo 11·#0
+
+salario base (#579): targets 5 → 5
+  iva-clientes-fuera-cr: +salario-base-2026·Circular 246-2025·#0
+  renta-tramos-2026: +salario-base-2026·Circular 246-2025·#0
+  iva-ajuste-bien-de-capital: +salario-base-2026·Circular 246-2025·#0
