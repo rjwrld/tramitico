@@ -120,5 +120,64 @@ the rerank moved:
   in a decline's context makes the model more likely to quote it can only be
   shown by an answer replay.
 
-No answer replay has been run. The owner is reviewing the noise finding
+## Answer replay (owner decision, 2026-10-10)
+
+The owner kept the wide trigger. Before merging, a scoped `answer-replay`
+checks that the extra chunk doesn't pull the salario base into answers where
+it doesn't belong. Every row is answered on a set the full probe recorded, so
+the chunks are fixed, and #592's ingest can't move them.
+
+**Input.** `replay-input.ts` writes `replay-input.jsonl`, 10 rows, in this
+order:
+
+| Row | Case                                | Set              | Why                                                                                           |
+| --- | ----------------------------------- | ---------------- | --------------------------------------------------------------------------------------------- |
+| 1–2 | `iva-ajuste-bien-de-capital`        | pin on, `/sboff` | the «quince salarios base» threshold: does the page help?                                     |
+| 3–4 | `ho-t2-compu-cara-iva`              | pin on, `/sboff` | the same                                                                                      |
+| 5   | `renta-tramos-2026`                 | pin on           | `reglamento-renta` 30 #1, the cooperatives' tramos in salarios base, beside a tramos question |
+| 6   | `ho-t2-retencion-tarjetas`          | pin on           | `reglamento-renta` 30 #0–#2                                                                   |
+| 7   | `renta-pagos-parciales-retenciones` | pin on           | `reglamento-renta` 30 #0                                                                      |
+| 8   | `ho-minimo-renta-2026` (Tier 1)     | pin on           | `ley-renta` 31 ter beside «el mínimo exento»                                                  |
+| 9   | `iva-clientes-fuera-cr`             | pin on           | `ley-iva` 8's alquiler exemption beside the export one                                        |
+| 10  | `abs-patente-comercial`             | pin on           | abstention, triggered by `reglamento-rts` 2                                                   |
+
+The «recorded» side that `answer-replay` prints is Wave E's lane row. It was
+answered on Wave E's sets, not these. The abstention case has no groundedness
+row, so its row is built from the dataset and its Wave E abstention answer.
+`--dry-run` rebuilt all 10 prompts (free). `replay-check.ts` reads the
+replayed transcript against the bar below (free).
+
+Two of the recorded answers, written without the page, already show the gap
+the page fills: `iva-ajuste-bien-de-capital` says «supera los quince salarios
+base [2] … El monto vigente del salario base confírmelo con Hacienda», and so
+does `ho-t2-retencion-tarjetas`, about the retention's «operaciones que no
+excedan de un salario base».
+
+**Cost against the cap.** At the documented ≈US$0.10 a row with both judges
+(eval/README Quick reference, and #579's 3 rows for 0.30), the 10 rows come
+to ≈US$1.00, over the US$0.45 cap. The first request is the four rows that
+answer the owner's question, «where it doesn't belong»: rows 5, 8, 9 and 10,
+≈US$0.40. The two bienes-de-capital pairs (rows 1–4, ≈US$0.40) wait for a
+cap decision.
+
+**Pass bar, fixed before running.** Every replayed row must meet all of it:
+
+1. **No salario base where the question doesn't need it.** In rows 5, 7, 8
+   and 9, the answer doesn't cite the salario base's marker, doesn't state
+   ¢462.200 or any colones amount derived from it, and doesn't apply a
+   salario-base threshold to the reader's own case. In row 6 the salario base
+   may appear only tied to the retention's exclusion («operaciones que no
+   excedan de un salario base»), which the recorded answer already names.
+2. **No abstention leak.** Row 10 states no figure at all (`figureMentions`,
+   strict form) and doesn't cite the salario base. Read by hand: it still
+   declines and routes to the municipality, because `answer-replay` doesn't
+   run the abstention judge.
+3. **No groundedness or false-absence regression.** Every row is grounded
+   `pass`, with 0 false absence claims (#500) and 0 citation-invariant
+   violations. Rows 1 and 3 must be no worse than their controls, rows 2 and 4. Whether the page helps (rows 1 and 3 state the threshold in colones,
+   15 × ¢462.200, where the controls say «confírmelo con Hacienda») is
+   reported, not gated.
+
+Any row that misses the bar is a fail for #591 as it stands. It goes back to
+the orchestrator, and nothing gets tuned toward the bar. The owner is reviewing the noise finding
 above first.
