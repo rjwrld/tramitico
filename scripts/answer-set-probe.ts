@@ -10,7 +10,11 @@
  * cases holding every target, derived figures resolved, and the abstention
  * cases that resolve a figure — the leak #312 found under the document cap.
  * The JSON it writes carries every case's per-configuration answer set and
- * each expected target's reranked rank, for the per-case read.
+ * each expected target's reranked rank, for the per-case read. Since #593
+ * every list of chunks (`set`, `pool`, `order`) has a twin of chunk ids,
+ * place for place (`chunkIds`, `poolIds`, `orderIds`): a label is
+ * `docKey·articulo·#part`, which a heading repeated inside one document
+ * makes ambiguous (#530).
  *
  * A follow-up — a case carrying `history` — is condensed first, by the
  * route's own `condenseQuestion`, and read on the rewrite the pipeline
@@ -145,6 +149,23 @@ CONFIGS.push({
   salarioBase: "off",
 });
 
+/** One configuration's answer set, as the JSON records it. */
+export interface AnswerSetEntry {
+  present: number;
+  missing: string[];
+  figures: string[];
+  size: number;
+  pinned: string[];
+  set: string[];
+  /**
+   * `set`'s chunk ids, place for place (#593): a label can repeat across a
+   * document's headings (#530), an id can't. Absent before #593.
+   */
+  chunkIds?: string[];
+  /** Label → what put it past the cut (#579); absent before #579. */
+  pins?: Record<string, PinName>;
+}
+
 interface CaseRead {
   id: string;
   kind: "retrieval" | "abstention";
@@ -160,19 +181,7 @@ interface CaseRead {
   expansionFailed: boolean;
   expectedCount: number;
   /** Per config: targets present, figures resolved, answer set labels. */
-  per: Record<
-    string,
-    {
-      present: number;
-      missing: string[];
-      figures: string[];
-      size: number;
-      pinned: string[];
-      set: string[];
-      /** Label → what put it past the cut (#579); absent before #579. */
-      pins?: Record<string, PinName>;
-    }
-  >;
+  per: Record<string, AnswerSetEntry>;
   /** Reranked rank of each expected target (1-based) or null. */
   targetRanks: { target: string; rank: number | null }[];
   /** The expansion the legs and the rerank read, null for none. */
@@ -181,8 +190,12 @@ interface CaseRead {
   steps: string | null;
   /** The fused pool, best first. */
   pool: string[];
+  /** `pool`'s chunk ids, place for place (#593); absent before #593. */
+  poolIds?: string[];
   /** The whole reranked order, null when the rerank did not happen. */
   order: string[] | null;
+  /** `order`'s chunk ids, place for place (#593); absent before #593. */
+  orderIds?: string[] | null;
   /** Voyage's score for each place of `order`, for reading near-ties. */
   scores: number[] | null;
   /**
@@ -204,6 +217,39 @@ interface CaseRead {
 
 function label(chunk: RetrievedChunk): string {
   return `${chunk.docKey}·${chunk.articulo ?? "*"}·#${chunk.part}`;
+}
+
+/**
+ * One configuration's entry: `chunks` is the answer set, its first `cut`
+ * chunks the reranked cut and the rest appended by the pins; `pins` names,
+ * by chunk id, what put a chunk past the cut.
+ */
+export function answerSetEntry(
+  expected: EvalCase["expected"],
+  chunks: readonly RetrievedChunk[],
+  cut: number,
+  pins: ReadonlyMap<string, PinName>,
+): AnswerSetEntry {
+  const present = expected.filter((t) =>
+    chunks.some((ch) => chunkMatchesTarget(ch, t)),
+  );
+  return {
+    present: present.length,
+    missing: expected
+      .filter((t) => !present.includes(t))
+      .map((t) => `${t.docKey}/${t.articulo ?? "*"}`),
+    figures: resolveDerivedFigures(chunks).map((f) => f.id),
+    size: chunks.length,
+    pinned: chunks.slice(cut).map(label),
+    set: chunks.map(label),
+    chunkIds: chunks.map((chunk) => chunk.chunkId),
+    pins: Object.fromEntries(
+      chunks.flatMap((chunk) => {
+        const pin = pins.get(chunk.chunkId);
+        return pin === undefined ? [] : [[label(chunk), pin]];
+      }),
+    ),
+  };
 }
 
 /**
@@ -244,14 +290,16 @@ function countingCalls(embedder: Embedder): CallCounter {
  * counts in production. The lines still print.
  */
 const rewriteFailures = { condense: 0, expand: 0 };
-const consoleWarn = console.warn.bind(console);
-console.warn = (...args: unknown[]) => {
-  const line = String(args[0]);
-  if (line.startsWith("ask: condensation failed"))
-    rewriteFailures.condense += 1;
-  if (line.startsWith("ask: expansion failed")) rewriteFailures.expand += 1;
-  consoleWarn(...args);
-};
+function countRewriteFailures(): void {
+  const consoleWarn = console.warn.bind(console);
+  console.warn = (...args: unknown[]) => {
+    const line = String(args[0]);
+    if (line.startsWith("ask: condensation failed"))
+      rewriteFailures.condense += 1;
+    if (line.startsWith("ask: expansion failed")) rewriteFailures.expand += 1;
+    consoleWarn(...args);
+  };
+}
 
 async function readCase(
   evalCase: EvalCase,
@@ -286,7 +334,9 @@ async function readCase(
     expansion: retrieval.expansion,
     steps: retrieval.steps?.family ?? null,
     pool: retrieval.chunks.map(label),
+    poolIds: retrieval.chunks.map((chunk) => chunk.chunkId),
     order: null,
+    orderIds: null,
     scores: null,
     failures: { condense: 0, expand: 0, embed: 0, rerank: 0 },
     rerankReadings: null,
@@ -307,16 +357,7 @@ async function readCase(
   };
   if (retrieval.isWeak) {
     for (const c of CONFIGS) {
-      read.per[c.name] = {
-        present: 0,
-        missing: evalCase.expected.map(
-          (t) => `${t.docKey}/${t.articulo ?? "*"}`,
-        ),
-        figures: [],
-        size: 0,
-        pinned: [],
-        set: [],
-      };
+      read.per[c.name] = answerSetEntry(evalCase.expected, [], 0, new Map());
     }
     tally();
     return read;
@@ -330,6 +371,8 @@ async function readCase(
   });
   const order: RerankedChunk[] | null = outcome?.order ?? null;
   read.order = order === null ? null : order.map((entry) => label(entry.chunk));
+  read.orderIds =
+    order === null ? null : order.map((entry) => entry.chunk.chunkId);
   read.scores = order === null ? null : order.map((entry) => entry.score);
   read.ms.rerank = Date.now() - reranking;
   tally();
@@ -360,32 +403,19 @@ async function readCase(
         for (const [id, pin] of appended) pins.set(id, pin);
       },
     });
-    const figures = resolveDerivedFigures(chunks);
-    const presentTargets = evalCase.expected.filter((t) =>
-      chunks.some((ch) => chunkMatchesTarget(ch, t)),
+    read.per[c.name] = answerSetEntry(
+      evalCase.expected,
+      chunks,
+      cut.length,
+      pins,
     );
-    read.per[c.name] = {
-      present: presentTargets.length,
-      missing: evalCase.expected
-        .filter((t) => !presentTargets.includes(t))
-        .map((t) => `${t.docKey}/${t.articulo ?? "*"}`),
-      figures: figures.map((f) => f.id),
-      size: chunks.length,
-      pinned: chunks.slice(cut.length).map(label),
-      set: chunks.map(label),
-      pins: Object.fromEntries(
-        chunks.flatMap((chunk) => {
-          const pin = pins.get(chunk.chunkId);
-          return pin === undefined ? [] : [[label(chunk), pin]];
-        }),
-      ),
-    };
   }
   return read;
 }
 
 async function main(): Promise<void> {
   loadDotEnvLocal();
+  countRewriteFailures();
   // Before any paid call: an id that names no case throws here.
   const all = selectCases(
     parseDataset(readFileSync(DATASET_PATH, "utf8")),
@@ -558,7 +588,9 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+if (process.argv[1]?.endsWith("answer-set-probe.ts")) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
