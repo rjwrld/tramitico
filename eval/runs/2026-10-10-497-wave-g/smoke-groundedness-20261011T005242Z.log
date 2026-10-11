@@ -1,0 +1,168 @@
+ Vitest  The "unit" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "eval" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "integration" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+
+ RUN  v5.0.3 <main-checkout>
+
+
+EVAL_CASES: 3/101 case(s) — desinscripcion-dejar-actividad, iva-ajuste-bien-de-capital, ho-rebajar-25-sin-facturas. Gates will fail: a subset run is a transcript read, not a measurement.
+
+transcript (#289): <main-checkout>/eval/runs/2026-10-10-497-wave-g/smoke/groundedness-claude-sonnet-5-5-effort-low-subset-20261011T005410Z.jsonl
+rerank readings lost: none of 19
+
+groundedness (answer=claude-sonnet-5-5-effort-low, judge=claude-sonnet-4-5): 2/3 by the judges (baseline 73, floor 69; ADR 0023)
+  pass  desinscripcion-dejar-actividad
+  FAIL [fail/fail/fail]  iva-ajuste-bien-de-capital {inference}  — The answer states that the 2026 base salary is ¢462,200 according to fragment [12] and then says 'Confirme con Hacienda cuál salario base corresponde a su caso, pues los documentos oficiales lo mencionan solo como referencia para ese año,' but fragment [12] establishes the base salary for penal fines under the Penal Code, not for IVA capital-goods thresholds, creating an unsupported link between that figure and the fifteen-base-salary threshold in the IVA regulation.
+  pass  ho-rebajar-25-sin-facturas
+
+blocking cases re-asked (#474, fail on 2 of 3): 0
+failure labels (#474, recorded, not gated): contradiction 0, inference 1
+groundedness, robustness block (#502): 0/0
+groundedness by exposure (#267):
+  first-exposure  1/1
+  promoted        1/1
+  corpus-derived  0/1
+
+adequacy (#130): 0/2
+  FAIL  tier 1  T1-H  desinscripcion-dejar-actividad  — missing: La desinscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, en «Mis datos» → «Solicitar desinscripción», indicando motivo y fecha de cese; ATV, la plataforma anterior, quedó deshabilitada.
+  FAIL  tier 1  T1-E  ho-rebajar-25-sin-facturas  — missing: La declaración anual se presenta en TRIBU-CR, la plataforma tributaria.
+tier 1 requirements stated (#287): 8/10
+adequacy, robustness block (#502): 0/0
+  requirements stated: 0/0
+adequacy by exposure (#267):
+  first-exposure  0/1
+  promoted        0/1
+  corpus-derived  0/0
+
+false absence claims (#500): 0
+opens with an absence claim (reported): 0/3
+typo runs (reported): 0
+reader's case worked out (#546, reported): 0
+
+citation invariant (#168): 0 violation(s)
+ ❯ |eval| src/lib/eval/groundedness.eval.test.ts (8 tests | 8 failed) 87341ms
+   ❯ groundedness (eval/dataset.jsonl) (8)
+     × states at least 84 tier 1 requirements (baseline 88 − 4, ADR 0023) 5ms
+     × at least 84% of tier 2 cases with required claims are adequate 0ms
+     × ships no answer the runtime citation invariant would refuse 0ms
+     × claims nothing absent that the corpus carries, in any answer (#500, #474) 0ms
+     × no blocking case fails on 2 of its 3 answers (#474) 0ms
+     × grounds at least 69 of 74 answers (baseline 73 − 4, ADR 0023) 0ms
+     × ships no answer whose derived figures are incompletely cited 0ms
+     × answers F1 with both BMC figures and citations to every input 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > states at least 84 tier 1 requirements (baseline 88 − 4, ADR 0023)
+Error: EVAL_CASES selected 3 case(s) — iva-ajuste-bien-de-capital, ho-rebajar-25-sin-facturas, desinscripcion-dejar-actividad. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:461:32
+    459|    */
+    460|   function assertFullRun(): void {
+    461|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    462|   }
+    463|
+ ❯ src/lib/eval/groundedness.eval.test.ts:743:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > at least 84% of tier 2 cases with required claims are adequate
+Error: EVAL_CASES selected 3 case(s) — iva-ajuste-bien-de-capital, ho-rebajar-25-sin-facturas, desinscripcion-dejar-actividad. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:461:32
+    459|    */
+    460|   function assertFullRun(): void {
+    461|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    462|   }
+    463|
+ ❯ src/lib/eval/groundedness.eval.test.ts:756:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > ships no answer the runtime citation invariant would refuse
+Error: EVAL_CASES selected 3 case(s) — iva-ajuste-bien-de-capital, ho-rebajar-25-sin-facturas, desinscripcion-dejar-actividad. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:461:32
+    459|    */
+    460|   function assertFullRun(): void {
+    461|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    462|   }
+    463|
+ ❯ src/lib/eval/groundedness.eval.test.ts:772:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > claims nothing absent that the corpus carries, in any answer (#500, #474)
+Error: EVAL_CASES selected 3 case(s) — iva-ajuste-bien-de-capital, ho-rebajar-25-sin-facturas, desinscripcion-dejar-actividad. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:461:32
+    459|    */
+    460|   function assertFullRun(): void {
+    461|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    462|   }
+    463|
+ ❯ src/lib/eval/groundedness.eval.test.ts:786:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > no blocking case fails on 2 of its 3 answers (#474)
+Error: EVAL_CASES selected 3 case(s) — iva-ajuste-bien-de-capital, ho-rebajar-25-sin-facturas, desinscripcion-dejar-actividad. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:461:32
+    459|    */
+    460|   function assertFullRun(): void {
+    461|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    462|   }
+    463|
+ ❯ src/lib/eval/groundedness.eval.test.ts:792:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > grounds at least 69 of 74 answers (baseline 73 − 4, ADR 0023)
+Error: EVAL_CASES selected 3 case(s) — iva-ajuste-bien-de-capital, ho-rebajar-25-sin-facturas, desinscripcion-dejar-actividad. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:461:32
+    459|    */
+    460|   function assertFullRun(): void {
+    461|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    462|   }
+    463|
+ ❯ src/lib/eval/groundedness.eval.test.ts:807:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > ships no answer whose derived figures are incompletely cited
+Error: EVAL_CASES selected 3 case(s) — iva-ajuste-bien-de-capital, ho-rebajar-25-sin-facturas, desinscripcion-dejar-actividad. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:461:32
+    459|    */
+    460|   function assertFullRun(): void {
+    461|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    462|   }
+    463|
+ ❯ src/lib/eval/groundedness.eval.test.ts:827:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+ FAIL  |eval| src/lib/eval/groundedness.eval.test.ts > groundedness (eval/dataset.jsonl) > answers F1 with both BMC figures and citations to every input
+Error: EVAL_CASES selected 3 case(s) — iva-ajuste-bien-de-capital, ho-rebajar-25-sin-facturas, desinscripcion-dejar-actividad. The gates measure the whole dataset and cannot be read from a subset; this run is a transcript read, not a measurement. Unset EVAL_CASES to run the gates.
+ ❯ assertFullRun src/lib/eval/groundedness.eval.test.ts:461:32
+    459|    */
+    460|   function assertFullRun(): void {
+    461|     if (subset !== null) throw new Error(subsetGateFailure(subset));
+       |                                ^
+    462|   }
+    463|
+ ❯ src/lib/eval/groundedness.eval.test.ts:855:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  8 failed (8)
+   Start at  18:52:42
+   Duration  87.69s (tests 100%)
+
