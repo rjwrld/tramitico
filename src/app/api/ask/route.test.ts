@@ -2782,6 +2782,8 @@ describe("POST /api/ask", () => {
         rerank: "off",
         // The fixture's chunks name no artículo: the append ran, found none.
         crossReference: "none",
+        // Nor does it state an amount in salarios base (#591).
+        salarioBase: "not_triggered",
         lexicalRetry: false,
       });
     });
@@ -3361,6 +3363,7 @@ describe("POST /api/ask", () => {
         "rerank",
         "rerankDrops",
         "routedCategory",
+        "salarioBase",
         "stages",
         "typoRun",
       ]);

@@ -1,0 +1,94 @@
+$ tsx scripts/answer-set-probe.ts eval/runs/2026-10-10-591/probe.json
+
+EVAL_REWRITES: 116 cases' query and expansion replayed from eval/runs/2026-10-09-562/probe-after.json
+...............................a
+retrieval cases: 31 (7 in the robustness block; 62 expected targets outside it), abstention: 1, follow-ups condensed: 2
+condensation fell back to the question: none
+rewrites: replayed from eval/runs/2026-10-09-562/probe-after.json
+provider calls that did not come back: none
+rerank readings lost: none of 185
+weak: none
+expansion absent: none
+
+config                     targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff         49/62      15/24        7        —
+top8/capoff/pinon          49/62      15/24        9        —
+top8/cap3/pinoff           47/62      15/24        7        —
+top8/cap3/pinon            47/62      15/24        9        —
+top8/cap2/pinoff           40/62      13/24        8        —
+top8/cap2/pinon            40/62      13/24        10       —
+top10/capoff/pinoff        49/62      15/24        7        —
+top10/capoff/pinon         49/62      15/24        9        —
+top10/cap3/pinoff          48/62      15/24        8        —
+top10/cap3/pinon           48/62      15/24        10       —
+top10/cap2/pinoff          42/62      13/24        13       —
+top10/cap2/pinon           42/62      13/24        15       —
+top8/capoff/pinon/xrefoff  49/62      15/24        9        —
+top8/capoff/pinon/sboff    49/62      15/24        2        —
+
+cross-references (#508): targets 49 → 49, Tier 1 14 → 14
+  inscripcion-hacienda-clientes-extranjero: +ley-renta·ARTICULO 23·#0
+  iva-clientes-fuera-cr: +ley-iva·Artículo 11·#0
+  cabys-desarrollo-software: +reglamento-comprobantes·Artículo 23·#0
+  ccss-asalariado-y-freelance: +ley-renta·ARTICULO 32·#0
+  iva-tarifas-reducidas: +ley-iva·Artículo 28·#0
+  renta-tramos-2026: +ley-renta·ARTICULO 32·#0
+  renta-pagos-parciales-retenciones: +ley-renta·ARTICULO 21·#0
+  renta-salario-y-actividad: +ley-renta·ARTICULO 32·#0
+  exportacion-servicios-comprobante: +ley-iva·Artículo 10·#0
+  iva-ajuste-bien-de-capital: +ley-iva·Artículo 11·#0
+  iva-retencion-tarjetas-porcentaje: +ley-iva·Artículo 10·#0
+  inscripcion-tribu-cr: +ley-renta·ARTICULO 2·#0
+  ho-hacienda-solo-cliente-eeuu: +ley-renta·ARTICULO 23·#0
+  ho-cliente-espana-lleva-iva: +ley-iva·Artículo 11·#0
+  ho-iva-en-cero-sin-facturar: +ley-iva·Artículo 10·#0
+  ho-minimo-renta-2026: +ley-renta·ARTICULO 46·#0
+  ho-ademas-tengo-salario: +ley-renta·ARTICULO 46·#0
+  ho-t2-hosting-extranjero: +ley-iva·Artículo 10·#0
+  ho-t2-retencion-tarjetas: +reglamento-renta·Artículo 10·#0
+  ho-t2-compu-cara-iva: +ley-iva·Artículo 11·#0
+  ho-t2-payoneer: +ley-renta·ARTICULO 23·#0
+  t2-inscripcion-dimex: +ley-iva·Artículo 4·#0
+  rb-pill-iva-exterior: +ley-iva·Artículo 11·#0
+  rb-corto-tramos-renta: +ley-renta·ARTICULO 46·#0
+  rb-corto-cuando-declaro-iva: +ley-iva·Artículo 4·#0
+  rb-corto-que-cabys: +reglamento-comprobantes·Artículo 23·#0
+  rb-tilde-inscribirme-afuera: +ley-iva·Artículo 10·#0
+  rb-spanglish-client-usa: +ley-iva·Artículo 11·#0
+  rb-seguimiento-le-cobro-iva: +reglamento-iva·Artículo 66·#0
+  abs-patente-comercial: +ley-renta·Artículo 2 bis·#0
+
+salario base (#579): targets 49 → 49
+  inscripcion-hacienda-clientes-extranjero: +salario-base-2026·Circular 246-2025·#0
+  iva-clientes-fuera-cr: +salario-base-2026·Circular 246-2025·#0
+  cabys-desarrollo-software: +salario-base-2026·Circular 246-2025·#0
+  ccss-asalariado-y-freelance: +salario-base-2026·Circular 246-2025·#0
+  regimen-simplificado-programador: +salario-base-2026·Circular 246-2025·#0
+  iva-tarifas-reducidas: +salario-base-2026·Circular 246-2025·#0
+  renta-tramos-2026: +salario-base-2026·Circular 246-2025·#0
+  renta-pagos-parciales-retenciones: +salario-base-2026·Circular 246-2025·#0
+  renta-salario-y-actividad: +salario-base-2026·Circular 246-2025·#0
+  exportacion-servicios-comprobante: +salario-base-2026·Circular 246-2025·#0
+  iva-ajuste-bien-de-capital: +salario-base-2026·Circular 246-2025·#0
+  inscripcion-tribu-cr: +salario-base-2026·Circular 246-2025·#0
+  ho-hacienda-solo-cliente-eeuu: +salario-base-2026·Circular 246-2025·#0
+  ho-cliente-espana-lleva-iva: +salario-base-2026·Circular 246-2025·#0
+  ho-iva-en-cero-sin-facturar: +salario-base-2026·Circular 246-2025·#0
+  ho-minimo-renta-2026: +salario-base-2026·Circular 246-2025·#0
+  ho-ademas-tengo-salario: +salario-base-2026·Circular 246-2025·#0
+  ho-t2-hosting-extranjero: +salario-base-2026·Circular 246-2025·#0
+  ho-t2-retencion-tarjetas: +salario-base-2026·Circular 246-2025·#0
+  ho-t2-compu-cara-iva: +salario-base-2026·Circular 246-2025·#0
+  ho-t2-panaderia-simplificado: +salario-base-2026·Circular 246-2025·#0
+  ho-t2-payoneer: +salario-base-2026·Circular 246-2025·#0
+  t2-inscripcion-dimex: +salario-base-2026·Circular 246-2025·#0
+  rb-pill-iva-exterior: +salario-base-2026·Circular 246-2025·#0
+  rb-corto-tramos-renta: +salario-base-2026·Circular 246-2025·#0
+  rb-corto-cuando-declaro-iva: +salario-base-2026·Circular 246-2025·#0
+  rb-corto-que-cabys: +salario-base-2026·Circular 246-2025·#0
+  rb-tilde-inscribirme-afuera: +salario-base-2026·Circular 246-2025·#0
+  rb-spanglish-client-usa: +salario-base-2026·Circular 246-2025·#0
+  rb-seguimiento-le-cobro-iva: +salario-base-2026·Circular 246-2025·#0
+  abs-patente-comercial: +salario-base-2026·Circular 246-2025·#0
+
+top8/capoff/pinon, robustness block (#502): 7/7

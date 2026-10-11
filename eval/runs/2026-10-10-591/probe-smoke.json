@@ -1,0 +1,1775 @@
+{
+  "configs": [
+    {
+      "name": "top8/capoff/pinoff",
+      "topK": "8",
+      "cap": "off",
+      "pin": "off",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top8/capoff/pinon",
+      "topK": "8",
+      "cap": "off",
+      "pin": "on",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top8/cap3/pinoff",
+      "topK": "8",
+      "cap": "3",
+      "pin": "off",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top8/cap3/pinon",
+      "topK": "8",
+      "cap": "3",
+      "pin": "on",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top8/cap2/pinoff",
+      "topK": "8",
+      "cap": "2",
+      "pin": "off",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top8/cap2/pinon",
+      "topK": "8",
+      "cap": "2",
+      "pin": "on",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top10/capoff/pinoff",
+      "topK": "10",
+      "cap": "off",
+      "pin": "off",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top10/capoff/pinon",
+      "topK": "10",
+      "cap": "off",
+      "pin": "on",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top10/cap3/pinoff",
+      "topK": "10",
+      "cap": "3",
+      "pin": "off",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top10/cap3/pinon",
+      "topK": "10",
+      "cap": "3",
+      "pin": "on",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top10/cap2/pinoff",
+      "topK": "10",
+      "cap": "2",
+      "pin": "off",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top10/cap2/pinon",
+      "topK": "10",
+      "cap": "2",
+      "pin": "on",
+      "xref": "on",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top8/capoff/pinon/xrefoff",
+      "topK": "8",
+      "cap": "off",
+      "pin": "on",
+      "xref": "off",
+      "salarioBase": "on"
+    },
+    {
+      "name": "top8/capoff/pinon/sboff",
+      "topK": "8",
+      "cap": "off",
+      "pin": "on",
+      "xref": "on",
+      "salarioBase": "off"
+    }
+  ],
+  "reads": [
+    {
+      "id": "iva-clientes-fuera-cr",
+      "kind": "retrieval",
+      "query": "¿Debo cobrar IVA en facturas a clientes fuera de Costa Rica?",
+      "condenseFailed": false,
+      "tier": 2,
+      "family": null,
+      "variant": null,
+      "weak": false,
+      "expansionFailed": false,
+      "expectedCount": 2,
+      "per": {
+        "top8/capoff/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "ley-iva·Artículo 30·#0",
+            "reglamento-iva·Artículo 1·#2",
+            "ley-iva·Artículo 4·#0",
+            "ley-renta·ARTICULO 65·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "ley-iva·Artículo 30·#0",
+            "reglamento-iva·Artículo 1·#2",
+            "ley-iva·Artículo 4·#0",
+            "ley-renta·ARTICULO 65·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap3/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "ley-iva·Artículo 30·#0",
+            "ley-iva·Artículo 4·#0",
+            "ley-renta·ARTICULO 65·#0",
+            "ley-renta·Artículo 59·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap3/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "ley-iva·Artículo 30·#0",
+            "ley-iva·Artículo 4·#0",
+            "ley-renta·ARTICULO 65·#0",
+            "ley-renta·Artículo 59·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap2/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "ley-iva·Artículo 30·#0",
+            "ley-renta·ARTICULO 65·#0",
+            "ley-renta·Artículo 59·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 103·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap2/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "ley-iva·Artículo 30·#0",
+            "ley-renta·ARTICULO 65·#0",
+            "ley-renta·Artículo 59·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 103·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/capoff/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "ley-iva·Artículo 30·#0",
+            "reglamento-iva·Artículo 1·#2",
+            "ley-iva·Artículo 4·#0",
+            "ley-renta·ARTICULO 65·#0",
+            "reglamento-iva·Artículo 10·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 10·#0",
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 10·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/capoff/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "ley-iva·Artículo 30·#0",
+            "reglamento-iva·Artículo 1·#2",
+            "ley-iva·Artículo 4·#0",
+            "ley-renta·ARTICULO 65·#0",
+            "reglamento-iva·Artículo 10·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 10·#0",
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 10·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap3/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "ley-iva·Artículo 30·#0",
+            "ley-iva·Artículo 4·#0",
+            "ley-renta·ARTICULO 65·#0",
+            "ley-renta·Artículo 59·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 103·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap3/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "ley-iva·Artículo 30·#0",
+            "ley-iva·Artículo 4·#0",
+            "ley-renta·ARTICULO 65·#0",
+            "ley-renta·Artículo 59·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 103·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap2/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "ley-iva·Artículo 30·#0",
+            "ley-renta·ARTICULO 65·#0",
+            "ley-renta·Artículo 59·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 103·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "cnpt·Artículo 81·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap2/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "ley-iva·Artículo 30·#0",
+            "ley-renta·ARTICULO 65·#0",
+            "ley-renta·Artículo 59·#0",
+            "reglamento-renta·Artículo 30·#2",
+            "reglamento-renta·Artículo 103·#0",
+            "reglamento-comprobantes·Artículo 13·#0",
+            "cnpt·Artículo 81·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon/xrefoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["salario-base-2026·Circular 246-2025·#0"],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "ley-iva·Artículo 30·#0",
+            "reglamento-iva·Artículo 1·#2",
+            "ley-iva·Artículo 4·#0",
+            "ley-renta·ARTICULO 65·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 27·#0": "step",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon/sboff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-iva·Artículo 11·#0"],
+          "set": [
+            "reglamento-iva·Artículo 11·#0",
+            "ley-iva·Artículo 8·#0",
+            "reglamento-iva·Artículo 30·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "ley-iva·Artículo 30·#0",
+            "reglamento-iva·Artículo 1·#2",
+            "ley-iva·Artículo 4·#0",
+            "ley-renta·ARTICULO 65·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 11·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference"
+          }
+        }
+      },
+      "targetRanks": [
+        {
+          "target": "reglamento-iva/Artículo 11",
+          "rank": 1
+        },
+        {
+          "target": "ley-iva/Artículo 8",
+          "rank": 2
+        }
+      ],
+      "expansion": "Las operaciones de exportación de servicios o bienes a clientes del exterior, y su tratamiento frente al impuesto sobre el valor agregado, están sujetas a las condiciones de no sujeción o exención que establezca la ley, según la naturaleza de la operación y el lugar de consumo o aprovechamiento del bien o servicio.",
+      "steps": "T1-D",
+      "pool": [
+        "ley-iva·Artículo 8·#0",
+        "ley-iva·Artículo 3·#0",
+        "reglamento-iva·Artículo 32·#0",
+        "reglamento-iva·Artículo 11·#0",
+        "reglamento-iva·Artículo 30·#0",
+        "ley-iva·Artículo 27·#0",
+        "reglamento-iva·Artículo 17·#0",
+        "ley-iva·Artículo 30·#0",
+        "ley-renta·ARTICULO 65·#0",
+        "ley-iva·Artículo 8·#1",
+        "reglamento-iva·Artículo 3·#0",
+        "ley-iva·Artículo 12·#0",
+        "reglamento-iva·Artículo 25·#0",
+        "reglamento-iva·Artículo 34·#0",
+        "ley-renta·Artículo 31 ter·#0",
+        "reglamento-iva·Preámbulo·#1",
+        "ley-iva·Artículo 10·#0",
+        "cnpt·Artículo 79·#0",
+        "reglamento-comprobantes·Artículo 13·#0",
+        "reglamento-iva·Artículo 12·#0",
+        "reglamento-renta·Artículo 103·#0",
+        "cnpt·Artículo 81·#0",
+        "reglamento-renta·Artículo 30·#2",
+        "ley-renta·ARTICULO 23·#0",
+        "reglamento-iva·Artículo 40 bis·#0",
+        "reglamento-iva·Artículo 13·#0",
+        "reglamento-iva·Artículo 10·#0",
+        "ley-renta·Artículo 59·#0",
+        "ley-iva·Artículo 4·#0",
+        "reglamento-iva·Transitorio VII·#0",
+        "ley-iva·Artículo 2·#0",
+        "reglamento-iva·Artículo 18·#0",
+        "reglamento-iva·Artículo 1·#2",
+        "ley-iva·Artículo 14·#0",
+        "reglamento-iva·Artículo 11·#2",
+        "reglamento-iva·Artículo 11·#3",
+        "reglamento-iva·Transitorio II·#0",
+        "reglamento-iva·Artículo 1·#3",
+        "reglamento-iva·Artículo 7·#0",
+        "reglamento-iva·Artículo 1·#1"
+      ],
+      "order": [
+        "reglamento-iva·Artículo 11·#0",
+        "ley-iva·Artículo 8·#0",
+        "reglamento-iva·Artículo 30·#0",
+        "reglamento-iva·Artículo 32·#0",
+        "ley-iva·Artículo 30·#0",
+        "reglamento-iva·Artículo 1·#2",
+        "ley-iva·Artículo 4·#0",
+        "ley-renta·ARTICULO 65·#0",
+        "reglamento-iva·Artículo 10·#0",
+        "ley-iva·Artículo 3·#0",
+        "reglamento-iva·Artículo 3·#0",
+        "reglamento-iva·Preámbulo·#1",
+        "ley-renta·Artículo 59·#0",
+        "reglamento-iva·Artículo 12·#0",
+        "ley-iva·Artículo 14·#0",
+        "reglamento-renta·Artículo 30·#2",
+        "reglamento-renta·Artículo 103·#0",
+        "ley-renta·ARTICULO 23·#0",
+        "reglamento-iva·Artículo 1·#3",
+        "reglamento-iva·Artículo 25·#0",
+        "reglamento-iva·Artículo 11·#2",
+        "reglamento-iva·Artículo 18·#0",
+        "ley-iva·Artículo 8·#1",
+        "reglamento-iva·Artículo 17·#0",
+        "ley-iva·Artículo 2·#0",
+        "ley-iva·Artículo 27·#0",
+        "reglamento-iva·Transitorio II·#0",
+        "reglamento-iva·Artículo 11·#3",
+        "reglamento-iva·Artículo 34·#0",
+        "ley-iva·Artículo 12·#0",
+        "reglamento-iva·Artículo 13·#0",
+        "reglamento-iva·Transitorio VII·#0",
+        "ley-renta·Artículo 31 ter·#0",
+        "reglamento-iva·Artículo 40 bis·#0",
+        "reglamento-comprobantes·Artículo 13·#0",
+        "ley-iva·Artículo 10·#0",
+        "reglamento-iva·Artículo 1·#1",
+        "reglamento-iva·Artículo 7·#0",
+        "cnpt·Artículo 81·#0",
+        "cnpt·Artículo 79·#0"
+      ],
+      "scores": [
+        0.8515625, 0.80859375, 0.74609375, 0.67578125, 0.64453125, 0.63671875,
+        0.62890625, 0.62109375, 0.6171875, 0.609375, 0.60546875, 0.58203125,
+        0.57421875, 0.57421875, 0.5703125, 0.55859375, 0.5546875, 0.55078125,
+        0.53125, 0.5234375, 0.5234375, 0.51953125, 0.51953125, 0.51171875,
+        0.51171875, 0.498046875, 0.490234375, 0.48828125, 0.484375, 0.478515625,
+        0.4765625, 0.4765625, 0.474609375, 0.45703125, 0.443359375, 0.4296875,
+        0.427734375, 0.376953125, 0.35546875, 0.345703125
+      ],
+      "failures": {
+        "condense": 0,
+        "expand": 0,
+        "embed": 0,
+        "rerank": 0
+      },
+      "rerankReadings": {
+        "asked": 7,
+        "returned": 7,
+        "dropped": []
+      },
+      "ms": {
+        "rewrite": 0,
+        "retrieve": 1200,
+        "rerank": 854
+      }
+    },
+    {
+      "id": "renta-tramos-2026",
+      "kind": "retrieval",
+      "query": "¿Cuáles son los tramos del impuesto sobre la renta para personas físicas con actividad lucrativa en el período fiscal 2026?",
+      "condenseFailed": false,
+      "tier": 2,
+      "family": null,
+      "variant": null,
+      "weak": false,
+      "expansionFailed": false,
+      "expectedCount": 2,
+      "per": {
+        "top8/capoff/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": [
+            "ley-renta·ARTICULO 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tramos-renta-2026·*·#0",
+            "ley-renta·Artículo 15·#0",
+            "ley-renta·Artículo 33·#0",
+            "ley-renta·Artículo 15·#1",
+            "reglamento-renta·Artículo 24·#0",
+            "reglamento-renta·Artículo 25·#0",
+            "reglamento-renta·Artículo 30·#1",
+            "reglamento-renta·Artículo 57·#0",
+            "ley-renta·ARTICULO 8·#2",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-renta·ARTICULO 8·#2": "step",
+            "reglamento-renta·Artículo 28·#0": "step",
+            "ley-renta·ARTICULO 32·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": [
+            "ley-renta·ARTICULO 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tramos-renta-2026·*·#0",
+            "ley-renta·Artículo 15·#0",
+            "ley-renta·Artículo 33·#0",
+            "ley-renta·Artículo 15·#1",
+            "reglamento-renta·Artículo 24·#0",
+            "reglamento-renta·Artículo 25·#0",
+            "reglamento-renta·Artículo 30·#1",
+            "reglamento-renta·Artículo 57·#0",
+            "ley-renta·ARTICULO 8·#2",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-renta·ARTICULO 8·#2": "step",
+            "reglamento-renta·Artículo 28·#0": "step",
+            "ley-renta·ARTICULO 32·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap3/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": [
+            "ley-renta·ARTICULO 46·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tramos-renta-2026·*·#0",
+            "ley-renta·Artículo 15·#0",
+            "ley-renta·Artículo 33·#0",
+            "ley-renta·Artículo 15·#1",
+            "reglamento-renta·Artículo 24·#0",
+            "reglamento-renta·Artículo 25·#0",
+            "reglamento-renta·Artículo 30·#1",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "ley-renta·ARTICULO 8·#2",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 46·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-renta·ARTICULO 8·#2": "step",
+            "reglamento-renta·Artículo 28·#0": "step",
+            "ley-renta·ARTICULO 46·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap3/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": [
+            "ley-renta·ARTICULO 46·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tramos-renta-2026·*·#0",
+            "ley-renta·Artículo 15·#0",
+            "ley-renta·Artículo 33·#0",
+            "ley-renta·Artículo 15·#1",
+            "reglamento-renta·Artículo 24·#0",
+            "reglamento-renta·Artículo 25·#0",
+            "reglamento-renta·Artículo 30·#1",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "ley-renta·ARTICULO 8·#2",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 46·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-renta·ARTICULO 8·#2": "step",
+            "reglamento-renta·Artículo 28·#0": "step",
+            "ley-renta·ARTICULO 46·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap2/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-renta·ARTICULO 46·#0"],
+          "set": [
+            "tramos-renta-2026·*·#0",
+            "ley-renta·Artículo 15·#0",
+            "ley-renta·Artículo 33·#0",
+            "reglamento-renta·Artículo 24·#0",
+            "reglamento-renta·Artículo 25·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "tribu-cr-res-0011-2025·Artículo 2·#0",
+            "ley-renta·Artículo 15·#1",
+            "ley-renta·ARTICULO 8·#2",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 46·#0"
+          ],
+          "pins": {
+            "ley-renta·ARTICULO 8·#2": "step",
+            "reglamento-renta·Artículo 28·#0": "step",
+            "ley-renta·ARTICULO 46·#0": "crossReference"
+          }
+        },
+        "top8/cap2/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-renta·ARTICULO 46·#0"],
+          "set": [
+            "tramos-renta-2026·*·#0",
+            "ley-renta·Artículo 15·#0",
+            "ley-renta·Artículo 33·#0",
+            "reglamento-renta·Artículo 24·#0",
+            "reglamento-renta·Artículo 25·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "tribu-cr-res-0011-2025·Artículo 2·#0",
+            "ley-renta·Artículo 15·#1",
+            "ley-renta·ARTICULO 8·#2",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 46·#0"
+          ],
+          "pins": {
+            "ley-renta·ARTICULO 8·#2": "step",
+            "reglamento-renta·Artículo 28·#0": "step",
+            "ley-renta·ARTICULO 46·#0": "crossReference"
+          }
+        },
+        "top10/capoff/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 14,
+          "pinned": [
+            "ley-renta·ARTICULO 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tramos-renta-2026·*·#0",
+            "ley-renta·Artículo 15·#0",
+            "ley-renta·Artículo 33·#0",
+            "ley-renta·Artículo 15·#1",
+            "reglamento-renta·Artículo 24·#0",
+            "reglamento-renta·Artículo 25·#0",
+            "reglamento-renta·Artículo 30·#1",
+            "reglamento-renta·Artículo 57·#0",
+            "reglamento-renta·Artículo 7·#0",
+            "reglamento-renta·Artículo 56·#0",
+            "ley-renta·ARTICULO 8·#2",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-renta·ARTICULO 8·#2": "step",
+            "reglamento-renta·Artículo 28·#0": "step",
+            "ley-renta·ARTICULO 32·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/capoff/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 14,
+          "pinned": [
+            "ley-renta·ARTICULO 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tramos-renta-2026·*·#0",
+            "ley-renta·Artículo 15·#0",
+            "ley-renta·Artículo 33·#0",
+            "ley-renta·Artículo 15·#1",
+            "reglamento-renta·Artículo 24·#0",
+            "reglamento-renta·Artículo 25·#0",
+            "reglamento-renta·Artículo 30·#1",
+            "reglamento-renta·Artículo 57·#0",
+            "reglamento-renta·Artículo 7·#0",
+            "reglamento-renta·Artículo 56·#0",
+            "ley-renta·ARTICULO 8·#2",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-renta·ARTICULO 8·#2": "step",
+            "reglamento-renta·Artículo 28·#0": "step",
+            "ley-renta·ARTICULO 32·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap3/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 14,
+          "pinned": [
+            "ley-renta·ARTICULO 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tramos-renta-2026·*·#0",
+            "ley-renta·Artículo 15·#0",
+            "ley-renta·Artículo 33·#0",
+            "ley-renta·Artículo 15·#1",
+            "reglamento-renta·Artículo 24·#0",
+            "reglamento-renta·Artículo 25·#0",
+            "reglamento-renta·Artículo 30·#1",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "tribu-cr-res-0011-2025·Artículo 2·#0",
+            "reglamento-renta·Artículo 57·#0",
+            "ley-renta·ARTICULO 8·#2",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-renta·ARTICULO 8·#2": "step",
+            "reglamento-renta·Artículo 28·#0": "step",
+            "ley-renta·ARTICULO 32·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap3/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 14,
+          "pinned": [
+            "ley-renta·ARTICULO 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tramos-renta-2026·*·#0",
+            "ley-renta·Artículo 15·#0",
+            "ley-renta·Artículo 33·#0",
+            "ley-renta·Artículo 15·#1",
+            "reglamento-renta·Artículo 24·#0",
+            "reglamento-renta·Artículo 25·#0",
+            "reglamento-renta·Artículo 30·#1",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "tribu-cr-res-0011-2025·Artículo 2·#0",
+            "reglamento-renta·Artículo 57·#0",
+            "ley-renta·ARTICULO 8·#2",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-renta·ARTICULO 8·#2": "step",
+            "reglamento-renta·Artículo 28·#0": "step",
+            "ley-renta·ARTICULO 32·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap2/pinoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 14,
+          "pinned": [
+            "ley-renta·ARTICULO 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tramos-renta-2026·*·#0",
+            "ley-renta·Artículo 15·#0",
+            "ley-renta·Artículo 33·#0",
+            "reglamento-renta·Artículo 24·#0",
+            "reglamento-renta·Artículo 25·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "tribu-cr-res-0011-2025·Artículo 2·#0",
+            "ley-renta·Artículo 15·#1",
+            "reglamento-renta·Artículo 30·#1",
+            "reglamento-renta·Artículo 57·#0",
+            "ley-renta·ARTICULO 8·#2",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-renta·ARTICULO 8·#2": "step",
+            "reglamento-renta·Artículo 28·#0": "step",
+            "ley-renta·ARTICULO 32·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap2/pinon": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 14,
+          "pinned": [
+            "ley-renta·ARTICULO 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "tramos-renta-2026·*·#0",
+            "ley-renta·Artículo 15·#0",
+            "ley-renta·Artículo 33·#0",
+            "reglamento-renta·Artículo 24·#0",
+            "reglamento-renta·Artículo 25·#0",
+            "tribu-cr-res-0011-2025·Preámbulo·#0",
+            "tribu-cr-res-0011-2025·Artículo 2·#0",
+            "ley-renta·Artículo 15·#1",
+            "reglamento-renta·Artículo 30·#1",
+            "reglamento-renta·Artículo 57·#0",
+            "ley-renta·ARTICULO 8·#2",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-renta·ARTICULO 8·#2": "step",
+            "reglamento-renta·Artículo 28·#0": "step",
+            "ley-renta·ARTICULO 32·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon/xrefoff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["salario-base-2026·Circular 246-2025·#0"],
+          "set": [
+            "tramos-renta-2026·*·#0",
+            "ley-renta·Artículo 15·#0",
+            "ley-renta·Artículo 33·#0",
+            "ley-renta·Artículo 15·#1",
+            "reglamento-renta·Artículo 24·#0",
+            "reglamento-renta·Artículo 25·#0",
+            "reglamento-renta·Artículo 30·#1",
+            "reglamento-renta·Artículo 57·#0",
+            "ley-renta·ARTICULO 8·#2",
+            "reglamento-renta·Artículo 28·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-renta·ARTICULO 8·#2": "step",
+            "reglamento-renta·Artículo 28·#0": "step",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon/sboff": {
+          "present": 2,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-renta·ARTICULO 32·#0"],
+          "set": [
+            "tramos-renta-2026·*·#0",
+            "ley-renta·Artículo 15·#0",
+            "ley-renta·Artículo 33·#0",
+            "ley-renta·Artículo 15·#1",
+            "reglamento-renta·Artículo 24·#0",
+            "reglamento-renta·Artículo 25·#0",
+            "reglamento-renta·Artículo 30·#1",
+            "reglamento-renta·Artículo 57·#0",
+            "ley-renta·ARTICULO 8·#2",
+            "reglamento-renta·Artículo 28·#0",
+            "ley-renta·ARTICULO 32·#0"
+          ],
+          "pins": {
+            "ley-renta·ARTICULO 8·#2": "step",
+            "reglamento-renta·Artículo 28·#0": "step",
+            "ley-renta·ARTICULO 32·#0": "crossReference"
+          }
+        }
+      },
+      "targetRanks": [
+        {
+          "target": "tramos-renta-2026/*",
+          "rank": 1
+        },
+        {
+          "target": "ley-renta/Artículo 15",
+          "rank": 2
+        }
+      ],
+      "expansion": "Los tramos del Impuesto sobre la Renta aplicables a las personas físicas con rentas de actividades lucrativas en el período fiscal 2026 son los que fija el decreto de tarifas del impuesto para ese período, con los porcentajes progresivos y los límites de renta neta gravable por tramo establecidos en la Ley del Impuesto sobre la Renta.",
+      "steps": "T1-E",
+      "pool": [
+        "ley-renta·Artículo 15·#0",
+        "ley-renta·Artículo 15·#1",
+        "reglamento-renta·Artículo 28·#0",
+        "reglamento-renta·TRANSITORIO I·#0",
+        "tramos-renta-2026·*·#0",
+        "reglamento-renta·Artículo 24·#0",
+        "reglamento-renta·TRANSITORIO I·#1",
+        "reglamento-renta·Artículo 25·#0",
+        "reglamento-renta·Artículo 30·#1",
+        "ley-renta·Artículo 33·#0",
+        "reglamento-renta·Artículo 51·#0",
+        "ley-renta·ARTICULO 8·#1",
+        "ley-renta·ARTICULO 22·#0",
+        "reglamento-renta·Artículo 10·#0",
+        "reglamento-renta·Artículo 30·#2",
+        "ley-renta·ARTICULO 2·#0",
+        "reglamento-renta·Artículo 22·#0",
+        "reglamento-renta·Artículo 26·#0",
+        "ley-renta·ARTICULO 13·#0",
+        "tribu-cr-res-0011-2025·Artículo 2·#0",
+        "tribu-cr-res-0011-2025·Preámbulo·#0",
+        "ley-renta·Transitorio VI·#0",
+        "ley-renta·ARTICULO 8·#2",
+        "reglamento-renta·Artículo 49·#0",
+        "reglamento-renta·Artículo 15·#0",
+        "reglamento-renta·Artículo 30·#0",
+        "ley-renta·ARTICULO 20·#0",
+        "ley-renta·ARTICULO 26·#0",
+        "ley-renta·Artículo 27 ter·#0",
+        "ley-renta·Transitorio V·#0",
+        "reglamento-renta·Artículo 48·#0",
+        "reglamento-renta·Artículo 7·#0",
+        "reglamento-renta·Artículo 57·#0",
+        "reglamento-renta·Artículo 56·#0",
+        "ley-renta·Artículo 4·#0",
+        "reglamento-renta·Artículo 50·#0",
+        "ley-renta·Artículo 28·#0",
+        "ley-renta·ARTICULO 36·#0",
+        "reglamento-renta·Artículo 27·#0",
+        "ley-renta·ARTICULO 46·#0"
+      ],
+      "order": [
+        "tramos-renta-2026·*·#0",
+        "ley-renta·Artículo 15·#0",
+        "ley-renta·Artículo 33·#0",
+        "ley-renta·Artículo 15·#1",
+        "reglamento-renta·Artículo 24·#0",
+        "reglamento-renta·Artículo 25·#0",
+        "reglamento-renta·Artículo 30·#1",
+        "reglamento-renta·Artículo 57·#0",
+        "reglamento-renta·Artículo 7·#0",
+        "reglamento-renta·Artículo 56·#0",
+        "ley-renta·ARTICULO 2·#0",
+        "ley-renta·Artículo 27 ter·#0",
+        "reglamento-renta·Artículo 15·#0",
+        "reglamento-renta·Artículo 30·#0",
+        "ley-renta·ARTICULO 8·#2",
+        "reglamento-renta·Artículo 27·#0",
+        "ley-renta·ARTICULO 13·#0",
+        "reglamento-renta·Artículo 30·#2",
+        "reglamento-renta·Artículo 22·#0",
+        "reglamento-renta·Artículo 28·#0",
+        "ley-renta·Artículo 28·#0",
+        "reglamento-renta·TRANSITORIO I·#0",
+        "ley-renta·Artículo 4·#0",
+        "reglamento-renta·TRANSITORIO I·#1",
+        "ley-renta·ARTICULO 22·#0",
+        "ley-renta·Transitorio V·#0",
+        "reglamento-renta·Artículo 51·#0",
+        "reglamento-renta·Artículo 10·#0",
+        "ley-renta·ARTICULO 8·#1",
+        "reglamento-renta·Artículo 48·#0",
+        "ley-renta·ARTICULO 20·#0",
+        "reglamento-renta·Artículo 49·#0",
+        "reglamento-renta·Artículo 26·#0",
+        "ley-renta·ARTICULO 46·#0",
+        "reglamento-renta·Artículo 50·#0",
+        "ley-renta·ARTICULO 26·#0",
+        "ley-renta·ARTICULO 36·#0",
+        "ley-renta·Transitorio VI·#0",
+        "tribu-cr-res-0011-2025·Preámbulo·#0",
+        "tribu-cr-res-0011-2025·Artículo 2·#0"
+      ],
+      "scores": [
+        0.95703125, 0.8984375, 0.79296875, 0.7734375, 0.703125, 0.62109375,
+        0.6015625, 0.56640625, 0.5546875, 0.55078125, 0.55078125, 0.546875,
+        0.54296875, 0.54296875, 0.54296875, 0.53125, 0.53125, 0.53125,
+        0.5234375, 0.5234375, 0.51953125, 0.515625, 0.5078125, 0.5078125,
+        0.5078125, 0.5, 0.490234375, 0.490234375, 0.48828125, 0.486328125,
+        0.486328125, 0.47265625, 0.470703125, 0.45703125, 0.447265625,
+        0.443359375, 0.4296875, 0.42578125, 0.39453125, 0.345703125
+      ],
+      "failures": {
+        "condense": 0,
+        "expand": 0,
+        "embed": 0,
+        "rerank": 0
+      },
+      "rerankReadings": {
+        "asked": 6,
+        "returned": 6,
+        "dropped": []
+      },
+      "ms": {
+        "rewrite": 0,
+        "retrieve": 813,
+        "rerank": 739
+      }
+    },
+    {
+      "id": "iva-ajuste-bien-de-capital",
+      "kind": "retrieval",
+      "query": "Compré una computadora cara para mi actividad: ¿cómo calculo el ajuste anual del crédito de IVA por ese bien de capital?",
+      "condenseFailed": false,
+      "tier": 2,
+      "family": null,
+      "variant": null,
+      "weak": false,
+      "expansionFailed": false,
+      "expectedCount": 1,
+      "per": {
+        "top8/capoff/pinoff": {
+          "present": 1,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 31·#0",
+            "reglamento-iva-bienes-capital·Artículo 31·#0",
+            "ley-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 34·#0",
+            "ley-iva·Artículo 24·#0",
+            "reglamento-iva·Transitorio V·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon": {
+          "present": 1,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": [
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 31·#0",
+            "reglamento-iva-bienes-capital·Artículo 31·#0",
+            "ley-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 34·#0",
+            "ley-iva·Artículo 24·#0",
+            "reglamento-iva·Transitorio V·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap3/pinoff": {
+          "present": 1,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": [
+            "reglamento-iva·Artículo 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 31·#0",
+            "reglamento-iva-bienes-capital·Artículo 31·#0",
+            "ley-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 34·#0",
+            "ley-iva·Artículo 24·#0",
+            "reglamento-iva·Transitorio V·#0",
+            "ley-iva·Artículo 16·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 32·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap3/pinon": {
+          "present": 1,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": [
+            "reglamento-iva·Artículo 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 31·#0",
+            "reglamento-iva-bienes-capital·Artículo 31·#0",
+            "ley-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 34·#0",
+            "ley-iva·Artículo 24·#0",
+            "reglamento-iva·Transitorio V·#0",
+            "ley-iva·Artículo 16·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 32·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap2/pinoff": {
+          "present": 1,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": [
+            "reglamento-iva·Artículo 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 31·#0",
+            "reglamento-iva-bienes-capital·Artículo 31·#0",
+            "ley-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 34·#0",
+            "ley-iva·Artículo 24·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+            "reglamento-renta·Artículo 43·#0",
+            "reglamento-renta·Artículo 107·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 32·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/cap2/pinon": {
+          "present": 1,
+          "missing": [],
+          "figures": [],
+          "size": 12,
+          "pinned": [
+            "reglamento-iva·Artículo 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 31·#0",
+            "reglamento-iva-bienes-capital·Artículo 31·#0",
+            "ley-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 34·#0",
+            "ley-iva·Artículo 24·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+            "reglamento-renta·Artículo 43·#0",
+            "reglamento-renta·Artículo 107·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 32·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/capoff/pinoff": {
+          "present": 1,
+          "missing": [],
+          "figures": [],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 31·#0",
+            "reglamento-iva-bienes-capital·Artículo 31·#0",
+            "ley-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 34·#0",
+            "ley-iva·Artículo 24·#0",
+            "reglamento-iva·Transitorio V·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "ley-iva·Artículo 16·#0",
+            "reglamento-iva·Artículo 36·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/capoff/pinon": {
+          "present": 1,
+          "missing": [],
+          "figures": [],
+          "size": 14,
+          "pinned": [
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 31·#0",
+            "reglamento-iva-bienes-capital·Artículo 31·#0",
+            "ley-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 34·#0",
+            "ley-iva·Artículo 24·#0",
+            "reglamento-iva·Transitorio V·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "ley-iva·Artículo 16·#0",
+            "reglamento-iva·Artículo 36·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 11·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap3/pinoff": {
+          "present": 1,
+          "missing": [],
+          "figures": [],
+          "size": 14,
+          "pinned": [
+            "reglamento-iva·Artículo 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 31·#0",
+            "reglamento-iva-bienes-capital·Artículo 31·#0",
+            "ley-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 34·#0",
+            "ley-iva·Artículo 24·#0",
+            "reglamento-iva·Transitorio V·#0",
+            "ley-iva·Artículo 16·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+            "reglamento-renta·Artículo 43·#0",
+            "reglamento-renta·Artículo 107·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 32·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap3/pinon": {
+          "present": 1,
+          "missing": [],
+          "figures": [],
+          "size": 14,
+          "pinned": [
+            "reglamento-iva·Artículo 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 31·#0",
+            "reglamento-iva-bienes-capital·Artículo 31·#0",
+            "ley-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 34·#0",
+            "ley-iva·Artículo 24·#0",
+            "reglamento-iva·Transitorio V·#0",
+            "ley-iva·Artículo 16·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+            "reglamento-renta·Artículo 43·#0",
+            "reglamento-renta·Artículo 107·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 32·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap2/pinoff": {
+          "present": 1,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 14,
+          "pinned": [
+            "reglamento-iva·Artículo 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 31·#0",
+            "reglamento-iva-bienes-capital·Artículo 31·#0",
+            "ley-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 34·#0",
+            "ley-iva·Artículo 24·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+            "reglamento-renta·Artículo 43·#0",
+            "reglamento-renta·Artículo 107·#0",
+            "cnpt·Artículo 81·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 32·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top10/cap2/pinon": {
+          "present": 1,
+          "missing": [],
+          "figures": ["cnpt-articulo-79-multa-declaracion-2026"],
+          "size": 14,
+          "pinned": [
+            "reglamento-iva·Artículo 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "set": [
+            "reglamento-iva·Artículo 31·#0",
+            "reglamento-iva-bienes-capital·Artículo 31·#0",
+            "ley-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 34·#0",
+            "ley-iva·Artículo 24·#0",
+            "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+            "reglamento-renta·Artículo 43·#0",
+            "reglamento-renta·Artículo 107·#0",
+            "cnpt·Artículo 81·#0",
+            "cnpt·Artículo 79·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 3·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 3·#0": "step",
+            "reglamento-iva·Artículo 32·#0": "crossReference",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon/xrefoff": {
+          "present": 1,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["salario-base-2026·Circular 246-2025·#0"],
+          "set": [
+            "reglamento-iva·Artículo 31·#0",
+            "reglamento-iva-bienes-capital·Artículo 31·#0",
+            "ley-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 34·#0",
+            "ley-iva·Artículo 24·#0",
+            "reglamento-iva·Transitorio V·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 3·#0",
+            "salario-base-2026·Circular 246-2025·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 3·#0": "step",
+            "salario-base-2026·Circular 246-2025·#0": "salarioBase"
+          }
+        },
+        "top8/capoff/pinon/sboff": {
+          "present": 1,
+          "missing": [],
+          "figures": [],
+          "size": 11,
+          "pinned": ["ley-iva·Artículo 11·#0"],
+          "set": [
+            "reglamento-iva·Artículo 31·#0",
+            "reglamento-iva-bienes-capital·Artículo 31·#0",
+            "ley-iva·Artículo 25·#0",
+            "reglamento-iva·Artículo 34·#0",
+            "ley-iva·Artículo 24·#0",
+            "reglamento-iva·Transitorio V·#0",
+            "reglamento-iva·Artículo 32·#0",
+            "reglamento-iva·Artículo 25·#0",
+            "ley-iva·Artículo 27·#0",
+            "ley-iva·Artículo 3·#0",
+            "ley-iva·Artículo 11·#0"
+          ],
+          "pins": {
+            "ley-iva·Artículo 27·#0": "step",
+            "ley-iva·Artículo 3·#0": "step",
+            "ley-iva·Artículo 11·#0": "crossReference"
+          }
+        }
+      },
+      "targetRanks": [
+        {
+          "target": "reglamento-iva-bienes-capital/Artículo 31",
+          "rank": 2
+        }
+      ],
+      "expansion": "El crédito fiscal del impuesto al valor agregado soportado en la adquisición de bienes de capital se ajusta anualmente conforme a lo que establece el reglamento de la ley del impuesto sobre el valor agregado para los bienes de capital, en el que se fija el método de prorrateo, el porcentaje de amortización aplicable y el procedimiento de cálculo del crédito que corresponde en cada ejercicio fiscal.",
+      "steps": "T1-D",
+      "pool": [
+        "reglamento-iva·Artículo 34·#0",
+        "reglamento-iva·Artículo 32·#0",
+        "ley-iva·Artículo 27·#0",
+        "reglamento-iva·Artículo 31·#0",
+        "reglamento-iva·Artículo 30·#0",
+        "reglamento-iva·Artículo 25·#0",
+        "reglamento-renta·Artículo 107·#0",
+        "reglamento-iva-bienes-capital·Artículo 31·#0",
+        "reglamento-iva·Preámbulo·#1",
+        "reglamento-iva·Artículo 40 bis·#0",
+        "ley-iva·Artículo 8·#0",
+        "reglamento-iva·Artículo 29·#0",
+        "reglamento-iva·Artículo 13·#0",
+        "reglamento-iva·Artículo 1·#3",
+        "ley-iva·Artículo 16·#0",
+        "ley-iva·Artículo 3·#0",
+        "ley-iva·Artículo 25·#0",
+        "ley-iva·Artículo 10·#0",
+        "cnpt·Artículo 79·#0",
+        "reglamento-renta·Artículo 36·#0",
+        "reglamento-iva·Artículo 1·#0",
+        "reglamento-iva·Artículo 64·#0",
+        "cnpt·Artículo 81·#0",
+        "reglamento-iva·Artículo 36·#0",
+        "ley-iva·Artículo 12·#0",
+        "reglamento-iva·Transitorio V·#0",
+        "reglamento-renta·Artículo 43·#0",
+        "reglamento-renta·Artículo 107·#1",
+        "ley-iva·Artículo 20·#0",
+        "reglamento-iva·Artículo 27·#0",
+        "ley-iva·Artículo 26·#0",
+        "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+        "reglamento-iva·Artículo 44·#0",
+        "reglamento-iva·Artículo 28·#0",
+        "reglamento-iva·Artículo 41·#0",
+        "reglamento-iva·Artículo 11·#0",
+        "reglamento-iva·Artículo 17·#0",
+        "ley-iva·Artículo 28·#0",
+        "ley-iva·Artículo 24·#0",
+        "ley-iva·Artículo 8·#1"
+      ],
+      "order": [
+        "reglamento-iva·Artículo 31·#0",
+        "reglamento-iva-bienes-capital·Artículo 31·#0",
+        "ley-iva·Artículo 25·#0",
+        "reglamento-iva·Artículo 34·#0",
+        "ley-iva·Artículo 24·#0",
+        "reglamento-iva·Transitorio V·#0",
+        "reglamento-iva·Artículo 32·#0",
+        "reglamento-iva·Artículo 25·#0",
+        "ley-iva·Artículo 16·#0",
+        "reglamento-iva·Artículo 36·#0",
+        "reglamento-iva·Artículo 30·#0",
+        "ley-iva·Artículo 28·#0",
+        "reglamento-iva·Artículo 41·#0",
+        "reglamento-iva·Artículo 29·#0",
+        "reglamento-iva·Artículo 40 bis·#0",
+        "ley-iva·Artículo 20·#0",
+        "reglamento-iva·Artículo 64·#0",
+        "reglamento-iva·Preámbulo·#1",
+        "ley-iva·Artículo 27·#0",
+        "reglamento-iva-retencion-tarjetas·Artículo 41·#0",
+        "reglamento-iva·Artículo 27·#0",
+        "reglamento-iva·Artículo 13·#0",
+        "ley-iva·Artículo 26·#0",
+        "reglamento-iva·Artículo 1·#0",
+        "reglamento-iva·Artículo 44·#0",
+        "reglamento-renta·Artículo 43·#0",
+        "reglamento-renta·Artículo 107·#0",
+        "reglamento-iva·Artículo 28·#0",
+        "ley-iva·Artículo 12·#0",
+        "ley-iva·Artículo 3·#0",
+        "reglamento-iva·Artículo 1·#3",
+        "ley-iva·Artículo 10·#0",
+        "reglamento-renta·Artículo 36·#0",
+        "reglamento-renta·Artículo 107·#1",
+        "reglamento-iva·Artículo 11·#0",
+        "ley-iva·Artículo 8·#1",
+        "reglamento-iva·Artículo 17·#0",
+        "ley-iva·Artículo 8·#0",
+        "cnpt·Artículo 81·#0",
+        "cnpt·Artículo 79·#0"
+      ],
+      "scores": [
+        0.87890625, 0.87109375, 0.75, 0.67578125, 0.67578125, 0.625, 0.60546875,
+        0.59765625, 0.58984375, 0.57421875, 0.55859375, 0.55078125, 0.54296875,
+        0.5390625, 0.53125, 0.53125, 0.52734375, 0.52734375, 0.51171875,
+        0.51171875, 0.50390625, 0.484375, 0.484375, 0.482421875, 0.48046875,
+        0.470703125, 0.4609375, 0.45703125, 0.4453125, 0.435546875, 0.427734375,
+        0.423828125, 0.421875, 0.41796875, 0.41796875, 0.3984375, 0.38671875,
+        0.38671875, 0.318359375, 0.275390625
+      ],
+      "failures": {
+        "condense": 0,
+        "expand": 0,
+        "embed": 0,
+        "rerank": 0
+      },
+      "rerankReadings": {
+        "asked": 7,
+        "returned": 7,
+        "dropped": []
+      },
+      "ms": {
+        "rewrite": 0,
+        "retrieve": 502,
+        "rerank": 792
+      }
+    }
+  ]
+}

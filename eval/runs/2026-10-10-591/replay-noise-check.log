@@ -1,0 +1,4 @@
+renta-tramos-2026                    | pin on  | grounded pass | falseAbsence 0 | cites salario base no | names salario base no | states ¢462.200 no | figures [¢6.244.000 ¢8.329.000 ¢10.414.000 ¢20.872.000 ¢20.520 ¢31.080 10% 15% 20% 25% 0% 50%]
+ho-minimo-renta-2026                 | pin on  | grounded pass | falseAbsence 0 | cites salario base no | names salario base no | states ¢462.200 no | figures [¢6.244.000,00 ¢6.244.000 ¢8.329.000 ¢10.414.000 ¢20.872.000 ¢918.000,00 10% 15% 20% 25% 0% 50%]
+iva-clientes-fuera-cr                | pin on  | grounded pass | falseAbsence 0 | cites salario base no | names salario base no | states ¢462.200 no | figures []
+abs-patente-comercial                | pin on  | grounded pass | falseAbsence 0 | cites salario base no | names salario base no | states ¢462.200 no | figures [] | lane leak []
