@@ -181,3 +181,52 @@ cap decision.
 Any row that misses the bar is a fail for #591 as it stands. It goes back to
 the orchestrator, and nothing gets tuned toward the bar. The owner is reviewing the noise finding
 above first.
+
+### Replay, rows 5, 8, 9, 10 (2026-10-10, the orchestrator's OK)
+
+The run used `ANSWER_MODEL=claude-sonnet-5-5` and `ANSWER_EFFORT=low`. Files:
+`replay-noise.log`, and the transcript in `replay/`, copied from
+`<main>/eval/transcripts/2026-10-10-591/`. `replay-check.ts` printed
+`replay-noise-check.log`, and `cost.ts` printed `replay-noise-cost.log`.
+
+```
+grounded, recorded → replayed: 4 → 4 of 4
+false absence claims (#500), recorded → replayed: 0 → 0
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+```
+
+**Against the bar: all four rows pass.**
+
+1. **No salario base where it isn't needed.** `renta-tramos-2026`,
+   `ho-minimo-renta-2026` and `iva-clientes-fuera-cr` don't cite the salario
+   base's marker [12], don't name the salario base, and don't state ¢462.200.
+   Their figures are the persona física's tramos in colones and the rates.
+2. **No abstention leak.** `abs-patente-comercial` states no figure at all.
+   It declines («No encuentro base oficial sobre dónde se tramita la patente
+   comercial…»), routes to the municipality (ifam.go.cr), and cites only two
+   `tribu-cr-faq` entries about the OVi inscripción ([3], [8]). It doesn't
+   cite the salario base, [10]. The abstention judge didn't run, since
+   `answer-replay` doesn't run it, so this reading is by hand.
+3. **No groundedness or false-absence regression.** All four rows are
+   grounded `pass`, as their recorded rows were, with 0 false absence claims
+   and 0 citation violations.
+
+**Outside the bar.** `ho-minimo-renta-2026` (Tier 1) has adequacy `fail`
+with 2 requirements missing: «Los tramos son anuales y se aplican sobre la
+renta neta…» and «El período del impuesto va del 1 de enero al 31 de
+diciembre». Its Wave E row, answered on Wave E's set, also failed adequacy,
+with 1 missing (the period). The replayed answer doesn't mention the salario
+base, so nothing ties the extra miss to the pin. This row has no control,
+so it can't be separated from answer-to-answer variance.
+
+**Cost.** The transcript records only the answer call's output tokens (385–1,163
+a row). `cost.ts` estimates the inputs from characters, at 3 characters a
+token, with no cache discount and assumed judge outputs. The prompts carry
+10–12 chunks (≈14–19k input tokens each, for the answer and the groundedness
+judge alike), which gives **≈US$0.11 a row, ≈US$0.44 for the four**. At 4
+characters a token it is still ≈US$0.09 a row. That is above the ledger's
+≈US$0.043 a row and above the US$0.06 a row the orchestrator set as the
+condition for the bienes rows, so rows 1–4 were **not requested**. There's
+no console figure, so the owner's Console usage for 2026-10-11 00:29 UTC is
+the only exact reading.
