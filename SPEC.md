@@ -140,6 +140,12 @@ replaces the stale `tribu-cr-guia` press release one-for-one, and `ccss-prescrip
 the count grows **22 → 23**. The resolution owns TRIBU-CR's 2025-10-06 cutover; the CCSS microsite
 adds the current steps for requesting prescription of debts.
 
+Amended by [#592](https://github.com/rjwrld/tramitico/issues/592): **two docs added, count 23 →
+25** — `tribu-cr-res-0020-2025` and `tribu-cr-res-0033-2025`, the DGT resolutions that make
+TRIBU-CR the only medium for the renta (utilidades) and IVA declaration forms. Until then the
+corpus carried the channel only as `tribu-cr-res-0011-2025`'s generic «única plataforma digital
+tributaria». Neither names the old D-101 or D-104 in its operative text.
+
 Fetch strategy (validated in [#3](https://github.com/rjwrld/tramitico/issues/3)):
 
 - **SINALEVI (laws/reglamentos):** 3 calls, all `_BuscarVersionNorma`/`_CargarTextoCompleto` —

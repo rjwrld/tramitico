@@ -631,6 +631,30 @@
       "notes": "Canonical rollout source replacing the stale CP-39-2025 press release (#260). SINALEVI ficha 104789 resolves the vigente text, including the later reforms that rescheduled the cutover: TRIBU-CR became the exclusive system on 2025-10-06, while ATV, TRAVI, EDDI-7, Declara7, DeclaraWeb and the legacy consultation systems were disabled under the resolution and its transitorios. The effective_date records the operational fecha de rige required by this corpus rather than the original resolution's publication date. Deep link articulo (#134): the vigente ficha exposes stable anchors for artículos 5–8; other chunks honestly fall back to the document root when SINALEVI's rail has no unambiguous anchor."
     },
     {
+      "doc_key": "tribu-cr-res-0020-2025",
+      "title": "Uso de los formularios de declaración del impuesto sobre las utilidades en TRIBU-CR",
+      "norma": "MH-DGT-RES-0020-2025",
+      "source": {
+        "kind": "sinalevi",
+        "idFichaNorma": 104893,
+        "deepLink": "articulo"
+      },
+      "effective_date": "2025-10-06",
+      "notes": "The renta declaration's filing channel (#592): Artículo 3 makes TRIBU-CR the only medium for the «Impuesto sobre las Utilidades -PF» form («Las declaraciones presentadas en otros medios y formatos se tendrán por no presentadas»), Artículo 2 the dos meses y quince días deadline; it derogates DGT-R-40-2019, the ATV-era resolution. No other corpus chunk names TRIBU-CR together with a renta or IVA declaration (#583 cause D). LABEL GAP: the text names the form by title only, never «D-101» nor its TRIBU-CR code 101; the code appears only in Anexo 1's form-layout image. SINALEVI ficha 104893 resolves the vigente version 2 (Transitorio único and Artículo 7 reformed by MH-DGT-RES-0043-2025, rige 2025-10-06). IMAGES (#150): the 15 images are the three anexos' blank form layouts (PF, PJ, PP); three of them were looked at on 2026-10-10, not all, so imagesAudited stays unset and ingestion warns. Deep link articulo (#134): the rail anchors artículos 4–7; 1–3 share their numbers with the anexos and fall back to the document root."
+    },
+    {
+      "doc_key": "tribu-cr-res-0033-2025",
+      "title": "Formularios y medio para la presentación de declaraciones del impuesto al valor agregado en TRIBU-CR",
+      "norma": "MH-DGT-RES-0033-2025",
+      "source": {
+        "kind": "sinalevi",
+        "idFichaNorma": 105194,
+        "deepLink": "articulo"
+      },
+      "effective_date": "2025-10-06",
+      "notes": "The IVA declaration's filing channel (#592): Artículo 1 requires liquidating the tax «utilizando el sistema en línea TRIBUCR» in the «Impuesto al Valor Agregado» form, Artículo 3 makes TRIBU-CR the only medium («Las declaraciones presentadas en otros medios y formatos se tendrán por no presentadas»), Artículo 4 points the deadline to Ley 6826 artículo 27. It derogates DGT-R-36-2019 and DGT-R-20-2020. LABEL GAP: the operative text names the form by title only; «D-104» appears once, in the considerandos, as the form the 2019 resolution used, and the TRIBU-CR code 150 only in Anexo 1's form-layout image. SINALEVI ficha 105194 resolves the vigente version 3 (Transitorio II reformed by MH-DGT-RES-0002-2026). Dated passages, none listed as datedFacts (ADR 0016): the Sinalevi note on MH-DGT-RES-0047-2025's one-off move of the 2025-10-15 deadlines to 2025-10-24 is past; Transitorio II says what applies from the December 2026 period, so it stays accurate past that day. IMAGES (#150): the 57 images are the four anexos' blank form layouts; three were looked at on 2026-10-10, not all, so imagesAudited stays unset and ingestion warns. Deep link articulo (#134): the rail anchors artículos 5–8; 1–4 share their numbers with the anexos and fall back to the document root."
+    },
+    {
       "doc_key": "cabys-dev",
       "title": "CABYS — códigos relevantes para desarrollo de software y TI (subconjunto curado)",
       "norma": null,
