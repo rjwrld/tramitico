@@ -5,7 +5,9 @@ Date: 2026-10-02 · Status: accepted (A); amended 2026-10-07
 baselines re-set 2026-10-08
 ([#512, below](#512s-two-final-lanes-the-baselines-re-set-2026-10-08));
 Tier 1 raised 2026-10-09
-([Wave D and Wave E, below](#map-497s-wave-d-and-wave-e-lanes-tier-1-at-88-2026-10-09));
+([Wave D and Wave E, below](#map-497s-wave-d-and-wave-e-lanes-tier-1-at-88-2026-10-09))
+and again 2026-10-10
+([Wave E and Wave G, below](#map-497s-wave-e-and-wave-g-lanes-tier-1-at-92-2026-10-10));
 the blocking column corrected 2026-10-07
 ([#504](https://github.com/rjwrld/tramitico/issues/504), note ² under the table) · Amends
 [SPEC §9](../../SPEC.md) · Context: issues
@@ -294,6 +296,40 @@ Both lanes were red on zero gates that do not bear on Tier 1: the abstention
 figure gate on `ho-abs-devs-exentos-renta` in both (#580), and one false
 absence claim in Wave E (#579). Their READMEs carry the reads.
 
-In code: `TIER1_REQUIREMENT_BASELINE = 88` (`src/lib/eval/adequacy.ts`),
-pinned by its unit test, with SPEC §9 and eval/README's Quick reference
-(#586).
+In code until 2026-10-10: `TIER1_REQUIREMENT_BASELINE = 88`
+(`src/lib/eval/adequacy.ts`), pinned by its unit test, with SPEC §9 and
+eval/README's Quick reference (#586).
+
+## Map #497's Wave E and Wave G lanes: Tier 1 at 92 (2026-10-10)
+
+Wave G's full lane ran on main at e7d954c, after Wave F's and Wave G's PRs
+landed ([`eval/runs/2026-10-10-497-wave-g/`](../../eval/runs/2026-10-10-497-wave-g/)),
+with Wave E's setup: 5.5 at `low`, every other knob at production's default.
+It is the first lane of map #497 with every suite green.
+
+| Gate                        | Wave E (9817c6e) | Wave G (e7d954c) | Baseline      | A lane fails at |
+| --------------------------- | ---------------- | ---------------- | ------------- | --------------- |
+| Tier 1 requirements / 116   | 92               | 93               | **88 → 92**   | ≤ 87            |
+| Tier 1 cases fully adequate | 13/27            | 15/27            | reported      | —               |
+| Groundedness / 74           | 73               | 71               | 73, unchanged | ≤ 68            |
+| Robustness block hits       | 26/27            | 27/27            | 27, unchanged | ≤ 24            |
+
+Wave G's README left Tier 1 «not ratcheted» for the owner, who raised it to
+**92**, the lower of Wave E and Wave G, by #512's rule. The margin stays 4, so
+a lane fails at 87 or below. Three lanes in a row now read 88, 92 and 93.
+Groundedness and robustness keep #512's baselines: Wave G's 71 is below 73,
+and its 27/27 only matches.
+
+The two lanes are not a strict pair, and the owner raised the baseline anyway.
+Between them the dataset changed (#598 rewrote 4 Tier 1 requirements against
+what the corpus carries), the corpus gained RES-0020 and RES-0033, the renta
+and IVA filing channel (#597), and #596 widened the salario-base pin to any
+amount in salarios base. So 92 and 93 measure different requirements on
+different pipelines, and a lane can't separate those changes from the ±4 two
+identical lanes differ by (#457). The baseline claims the level both reached.
+
+Wave G's three groundedness failures are one cause, the salario-base circular
+#596's pin appends (#599); they do not bear on Tier 1.
+
+In code: `TIER1_REQUIREMENT_BASELINE = 92` (`src/lib/eval/adequacy.ts`),
+pinned by its unit test, with SPEC §9 and eval/README's Quick reference.
