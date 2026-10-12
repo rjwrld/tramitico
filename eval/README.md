@@ -16,11 +16,13 @@ robustness block 27/27 hits in both, and no false absence claim in either.
 Lane 2 passed every gate; lane 1's one red was `multa-iva-no-declarado`, a
 blocking case failed on 2 of 3 answers. Each tracked baseline is the lower
 lane of the two: groundedness 73 (a lane fails at ≤ 68) and robustness 27
-(≤ 24). Tier 1 is **88** (≤ 83) since 2026-10-09: the lower of map #497's
-Wave D and Wave E lanes, 88/116 at 3455dd5 and 92/116 at 9817c6e
-([`runs/2026-10-09-497-wave-d/`](runs/2026-10-09-497-wave-d/),
-[`runs/2026-10-09-497-wave-e/`](runs/2026-10-09-497-wave-e/)), raised by the
-owner; #512's lanes read 78 and 79. #512's transcripts (`lane1/`, `lane2/`, also copied to
+(≤ 24). Tier 1 is **92** (≤ 87) since 2026-10-10: the lower of map #497's
+Wave E and Wave G lanes, 92/116 at 9817c6e and 93/116 at e7d954c
+([`runs/2026-10-09-497-wave-e/`](runs/2026-10-09-497-wave-e/),
+[`runs/2026-10-10-497-wave-g/`](runs/2026-10-10-497-wave-g/)), raised by the
+owner though the dataset, corpus and salario-base pin changed between them
+(ADR 0023); it was 88 from 2026-10-09 (Wave D and Wave E), and #512's lanes
+read 78 and 79. #512's transcripts (`lane1/`, `lane2/`, also copied to
 the main checkout's `eval/transcripts/2026-10-08-final-512/`) are the next
 `answer-replay` input. #511's lane
 ([`runs/2026-10-08-baseline/`](runs/2026-10-08-baseline/)) read 72/74 and
@@ -110,7 +112,7 @@ The gate constants are `GROUNDEDNESS_BASELINE` (`groundedness.ts`), `HIT_RATE_GA
 `TIER1_REQUIREMENT_BASELINE` (`adequacy.ts`), and `ROBUSTNESS_HIT_BASELINE`
 (`robustness.ts`, 27 since #512). Groundedness and Tier 1 are tracked
 baselines: a lane fails only more than 4 below one (groundedness 73 grounded
-answers of 74, so ≤ 68; Tier 1 88, so ≤ 83), and a lane that beats one raises
+answers of 74, so ≤ 68; Tier 1 92, so ≤ 87), and a lane that beats one raises
 it, unless the owner holds it, as for #511's lane. A blocking case fails groundedness
 on 2 of 3 answers: the lane re-asks a failing one twice (#474, about US$0.50 a
 lane), and each failure the judges make carries a `contradiction`/`inference`
