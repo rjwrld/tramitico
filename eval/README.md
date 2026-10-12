@@ -4168,3 +4168,6 @@ every suite green. The setup, every gate and the per-case reads are in
 - **#592's corpus** reaches nine answer sets, and row 16 now passes. The claims
   that still miss, and the carrier maps that named the old source, are in
   [`runs/2026-10-10-602/README.md`](runs/2026-10-10-602/README.md) (#605).
+- **Dataset, no run (2026-10-12):** `ho-iva-en-cero-sin-facturar` and
+  `ho-rebajar-25-sin-facturas` gain their RES-0033 and RES-0020 carriers as
+  expected targets, #602 item 4's narrow version. No number moves.

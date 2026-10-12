@@ -176,6 +176,12 @@ So the narrow version (rows 16 and 18 only: `ho-rebajar-25-sin-facturas`,
 2 on all-targets and 1 on robustness all-targets, on one probe's draw. A lane
 would re-read it. Either way the 0.94 gate doesn't move.
 
+**Owner chose the narrow version, 2026-10-12:** `ho-iva-en-cero-sin-facturar`
+gains `tribu-cr-res-0033-2025` Artículo 1 and Artículo 3, and
+`ho-rebajar-25-sin-facturas` gains `tribu-cr-res-0020-2025` Artículo 3 beside
+`tribu-cr-res-0011-2025` Artículo 2, in `eval/dataset.jsonl`. No target is
+removed and no other case changes. No gate or reported number moves.
+
 The quoted sentences are excerpts of official public documents of the
 Government of Costa Rica (Hacienda), outside the repository's Apache-2.0
 license; see the rights table in
