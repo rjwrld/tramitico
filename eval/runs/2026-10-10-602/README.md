@@ -51,7 +51,9 @@ Row 17 (`ho-hasta-que-dia-tengo-iva`, «what to do if the date passed») also
 named `tribu-cr-res-0011-2025` Art. 2. A follow-up moved it the way row 16
 moved, to `tribu-cr-res-0033-2025` Art. 1 and Art. 3 beside `cnpt` 88, in
 `../2026-10-08-554/carriers.json` only (`eval/tier1-carriers.json` has no row
-for it).
+for it). The same follow-up moved `ho-rebajar-multa-si-pago-ya` in
+`eval/tier1-carriers.json` from RES-0011 Art. 2 to RES-0033 Art. 1 and Art. 3:
+its carrier is the IVA case's «presentar lo omitido y pagar en TRIBU-CR» step.
 
 ## Item 1: the D-140 → ATV rewrite (three cases)
 
