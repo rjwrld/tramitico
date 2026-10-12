@@ -1,0 +1,45 @@
+$ tsx scripts/answer-set-probe.ts eval/runs/2026-10-10-602/probe.json
+
+EVAL_REWRITES: 116 cases' query and expansion replayed from eval/runs/2026-10-09-562/probe-after.json
+..........
+retrieval cases: 10 (4 in the robustness block; 22 expected targets outside it), abstention: 0, follow-ups condensed: 0
+condensation fell back to the question: none
+rewrites: replayed from eval/runs/2026-10-09-562/probe-after.json
+provider calls that did not come back: none
+rerank readings lost: none of 59
+weak: none
+expansion absent: none
+
+config                     targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff         15/22      3/6          1        —
+top8/capoff/pinon          15/22      3/6          1        —
+top8/cap3/pinoff           14/22      3/6          1        —
+top8/cap3/pinon            14/22      3/6          1        —
+top8/cap2/pinoff           12/22      3/6          1        —
+top8/cap2/pinon            12/22      3/6          1        —
+top10/capoff/pinoff        15/22      3/6          1        —
+top10/capoff/pinon         15/22      3/6          1        —
+top10/cap3/pinoff          14/22      3/6          1        —
+top10/cap3/pinon           14/22      3/6          1        —
+top10/cap2/pinoff          13/22      3/6          1        —
+top10/cap2/pinon           13/22      3/6          1        —
+top8/capoff/pinon/xrefoff  15/22      3/6          1        —
+top8/capoff/pinon/sboff    15/22      3/6          0        —
+
+cross-references (#508): targets 15 → 15, Tier 1 9 → 9
+  desinscripcion-dejar-actividad: +ley-renta·ARTICULO 2·#0
+  tribu-cr-declarar-pagar: +tribu-cr-res-0011-2025·Artículo 7·#0
+  iva-declaracion-mensual: +ley-iva·Artículo 10·#0
+  renta-declaracion-plazo: +ley-renta·Artículo 31 ter·#0
+  ho-iva-en-cero-sin-facturar: +ley-iva·Artículo 4·#0
+  ho-rebajar-25-sin-facturas: +ley-renta·ARTICULO 32·#0
+  rb-pill-me-salgo: +ley-iva·Artículo 9·#0
+  rb-corto-cuando-declaro-renta: +ley-renta·Artículo 1·#0
+  rb-corto-cuando-declaro-iva: +ley-iva·Artículo 4·#0
+  rb-tilde-deje-de-trabajr: +ley-renta·ARTICULO 2·#0
+
+salario base (#579): targets 15 → 15
+  ho-iva-en-cero-sin-facturar: +salario-base-2026·Circular 246-2025·#0
+  rb-corto-cuando-declaro-iva: +salario-base-2026·Circular 246-2025·#0
+
+top8/capoff/pinon, robustness block (#502): 4/4
