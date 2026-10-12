@@ -967,10 +967,10 @@ describe("abstentionRequirementFailures", () => {
 });
 
 describe("the tracked Tier 1 baseline (ADR 0023)", () => {
-  it("is 88 requirements, failing a lane at 83 or below", () => {
-    // Map #497's Wave D and Wave E lanes stated 88 and 92; the baseline is the
-    // lower of the two (owner, 2026-10-09).
-    expect(TIER1_REQUIREMENT_BASELINE).toBe(88);
-    expect(TIER1_REQUIREMENT_FLOOR).toBe(84);
+  it("is 92 requirements, failing a lane at 87 or below", () => {
+    // Map #497's Wave E and Wave G lanes stated 92 and 93; the baseline is the
+    // lower of the two (owner, 2026-10-10).
+    expect(TIER1_REQUIREMENT_BASELINE).toBe(92);
+    expect(TIER1_REQUIREMENT_FLOOR).toBe(88);
   });
 });
