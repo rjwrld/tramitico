@@ -5,9 +5,11 @@ import { withheldSources } from "../vigencia";
 import {
   salarioBaseChunks,
   salarioBaseDocKeys,
+  namesLey7337,
   SALARIO_BASE_LOG_PREFIX,
   statesAmountInSalariosBase,
   statesSanctionInSalariosBase,
+  triggersSalarioBase,
   type SalarioBaseLookup,
   type SalarioBaseOutcome,
 } from "./salario-base";
@@ -51,11 +53,28 @@ const SALARIO_BASE = chunk(
   "El salario base que regirá durante el año 2026 será de ¢462.200,00.",
 );
 const UNRELATED = chunk("ley-iva", "Artículo 1");
-// #591: an exemption threshold, not a sanción.
+// #591: an exemption threshold, not a sanción. Its chunk names Ley 7337.
 const LEY_IVA_8 = chunk(
   "ley-iva",
   "Artículo 8",
-  "siempre y cuando el monto de la renta mensual sea igual o inferior al uno coma cinco (1,5) del salario base.",
+  "siempre y cuando el monto de la renta mensual sea igual o inferior al uno coma cinco (1,5) del salario base. La denominación salario base utilizada en este inciso debe entenderse como la contenida en el artículo 2 de la Ley N.° 7337, Crea Concepto Salario Base para Delitos Especiales del Código Penal.",
+);
+// #599: Wave G's three groundedness failures were triggered by these, and
+// none names Ley 7337 (local stack, 2026-10-10).
+const BIENES_CAPITAL_31 = chunk(
+  "reglamento-iva-bienes-capital",
+  "Artículo 31",
+  "Cuando el valor de adquisición de un bien de capital supere los quince salarios base, y este se utilice o prevea utilizar indistintamente en operaciones con diferentes tarifas",
+);
+const RTS_2 = chunk(
+  "reglamento-rts",
+  "Artículo 2",
+  "Además, su precio de venta no debe superar el 50% de un salario base. (Así reformado el inciso anterior por el artículo 1° del decreto ejecutivo N° 45209 del 11 de agosto de 2025)",
+);
+const RTS_3 = chunk(
+  "reglamento-rts",
+  "Artículo 3",
+  "que el valor de sus compras anuales, realizadas del primero de enero al treinta y uno de diciembre de cada año, no supere los ciento ochenta y seis salarios base.",
 );
 
 const lookupOf = (...found: RetrievedChunk[]): SalarioBaseLookup =>
@@ -185,6 +204,78 @@ describe("statesAmountInSalariosBase", () => {
   });
 });
 
+describe("namesLey7337", () => {
+  // The first four are verbatim from the chunks that name it (local stack,
+  // 2026-10-10); the rest are the spellings a citation can take.
+  it.each([
+    ["ley-iva 8", "en el artículo 2 de la Ley N.° 7337, Crea Concepto"],
+    ["ley-renta 13", "en el artículo 2 de la Ley No. 7337. (Así reformado"],
+    ["reglamento-iva 38 bis", "el artículo 2 de la Ley Nº7337, del 5 de mayo"],
+    ["reglamento-renta 22", "en el artículo 2º de la ley Nº 7337."],
+    ["«Ley 7337»", "conforme al artículo 2 de la Ley 7337, del 5 de mayo"],
+    ["«Ley número 7337»", "la Ley número 7337"],
+    ["a thousands point", "la Ley N° 7.337"],
+    ["at the end of the text", "según la Ley 7337"],
+  ])("reads %s", (_, content) => {
+    expect(namesLey7337({ content })).toBe(true);
+  });
+
+  it.each([
+    ["another law", "la Ley N.° 10.620, de Presupuesto"],
+    ["a longer number", "la Ley 17337"],
+    ["a longer number after it", "la Ley 73370"],
+    ["a decimal", "la Ley 7337,5"],
+    ["a decree", "el decreto ejecutivo N° 7337"],
+    ["an amount", "un monto de ¢7337"],
+    ["another figure between", "la Ley 10.620 y el artículo 7337"],
+    ["the header alone", "[Ley 7337] Texto sin cifras."],
+  ])("does not read %s", (_, content) => {
+    expect(namesLey7337({ content })).toBe(false);
+  });
+});
+
+describe("triggersSalarioBase (#599)", () => {
+  it.each([
+    ["cnpt 79, a sanción that names no law", CNPT_79],
+    ["cnpt 78", CNPT_78],
+    ["ley-iva 8, an amount beside Ley 7337", LEY_IVA_8],
+    [
+      "ley-iva 11 bis",
+      chunk(
+        "ley-iva",
+        "Artículo 11 bis",
+        "cuyo precio no supere medio salario base fijado conforme al artículo 2 de la Ley 7337, del 5 de mayo de 1993.",
+      ),
+    ],
+  ])("fires on %s", (_, c) => {
+    expect(triggersSalarioBase(c)).toBe(true);
+  });
+
+  it.each([
+    ["reglamento-iva-bienes-capital 31", BIENES_CAPITAL_31],
+    ["reglamento-rts 2", RTS_2],
+    ["reglamento-rts 3", RTS_3],
+    [
+      "reglamento-renta 22, the law with no amount",
+      chunk(
+        "reglamento-renta",
+        "Artículo 22",
+        "se entiende como salario base (*) la contenida en el artículo 2º de la ley Nº 7337.",
+      ),
+    ],
+    ["the circular itself", SALARIO_BASE],
+  ])("does not fire on %s", (_, c) => {
+    expect(statesSanctionInSalariosBase(c)).toBe(false);
+    expect(triggersSalarioBase(c)).toBe(false);
+  });
+
+  it("reads the law in the same chunk, not elsewhere in the set", () => {
+    expect(statesAmountInSalariosBase(BIENES_CAPITAL_31)).toBe(true);
+    expect(namesLey7337(LEY_IVA_8)).toBe(true);
+    expect(triggersSalarioBase(BIENES_CAPITAL_31)).toBe(false);
+  });
+});
+
 describe("salarioBaseDocKeys", () => {
   it("is the series entry the year serves, never a hard-coded year", () => {
     const keys = ["cnpt", "salario-base-2025", "salario-base-2026"];
@@ -307,7 +398,29 @@ describe("salarioBaseChunks", () => {
     );
   });
 
-  it("looks the salario base up for an exemption threshold (#591)", async () => {
+  it("leaves Wave G's three triggers alone (#599)", async () => {
+    for (const set of [[BIENES_CAPITAL_31], [RTS_2, RTS_3]]) {
+      const lookup = lookupOf(SALARIO_BASE);
+      expect(await told([UNRELATED, ...set], [SALARIO_BASE], lookup)).toEqual({
+        found: [],
+        outcomes: ["not_triggered"],
+      });
+      expect(lookup).not.toHaveBeenCalled();
+    }
+  });
+
+  it("does not take the law from another chunk of the set (#599)", async () => {
+    const reglamentoRenta22 = chunk(
+      "reglamento-renta",
+      "Artículo 22",
+      "se entiende como salario base (*) la contenida en el artículo 2º de la ley Nº 7337.",
+    );
+    expect(
+      await told([BIENES_CAPITAL_31, reglamentoRenta22], [], lookupOf()),
+    ).toEqual({ found: [], outcomes: ["not_triggered"] });
+  });
+
+  it("looks the salario base up for an exemption threshold that names Ley 7337 (#591, #599)", async () => {
     const lookup = lookupOf(SALARIO_BASE);
     expect(await told([UNRELATED, LEY_IVA_8], [], lookup)).toEqual({
       found: [SALARIO_BASE],

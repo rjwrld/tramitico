@@ -73,11 +73,15 @@ Sensitive in Vercel, so it can't be read back. The dashboard shows it added on
 `printf low | vercel env add ANSWER_EFFORT production`. #402's `medium` predates
 it, so don't read the production value from notes older than #451.
 
-³ Since #591 the pin triggers on any amount a set chunk states as a multiple
-or a fraction of the salario base («(1,5) del salario base», «dos salarios
-base», «medio salario base»), not only on a multa or a sanción. The words
-«salario base» with no count before them do not trigger. In the local corpus
-that is 24 chunks, up from #579's 4 (`eval/runs/2026-10-10-591/`).
+³ #591 widened the trigger from a multa or a sanción in salarios base to any
+amount a set chunk states as a multiple or a fraction of one («(1,5) del
+salario base», «dos salarios base», «medio salario base»): 24 local-corpus
+chunks, up from #579's 4 (`eval/runs/2026-10-10-591/`). #599 narrowed it to
+the circular's own scope: a multa or sanción, or an amount whose chunk names
+Ley 7337 itself. That is 9 chunks: #579's 4 plus `ley-iva` 8 and 11 bis,
+`ley-renta` 13, `reglamento-iva` 38 bis and `reglamento-renta` 30 #2
+(`eval/runs/2026-10-10-599/`). The words «salario base» with no count before
+them do not trigger.
 
 The mode knobs (`EXPAND`, `STEPS`, `STEPS_RERANK`, `RERANK`, `PIN_DERIVED_INPUTS`,
 `PIN_CROSS_REFERENCES`, `PIN_NAMED_SOURCES`, `PIN_SALARIO_BASE`)

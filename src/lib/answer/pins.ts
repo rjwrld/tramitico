@@ -11,8 +11,9 @@
  *    names, «la tarifa referida en el artículo 10», at most one.
  * 2. Derived-figure inputs (#287, ADR 0018): the sibling of a figure input
  *    that survived the cut.
- * 3. The salario base in force (#579, #591, `salario-base.ts`): an amount
- *    the set states in salarios base brings the year's circular, at most
+ * 3. The salario base in force (#579, #591, #599, `salario-base.ts`): a
+ *    multa the set states in salarios base, or an amount in salarios base
+ *    in a chunk that names Ley 7337, brings the year's circular, at most
  *    one.
  * 4. A source the question names (#559, `NAMED_SOURCES` in steps.ts): «qué
  *    código CABYS uso» brings `cabys-dev`'s best pooled chunk, at most one,
