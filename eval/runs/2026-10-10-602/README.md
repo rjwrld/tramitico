@@ -48,8 +48,10 @@ quote, and Q2 reads all three true against `public.chunks`. The labels are the
 `carriers.test.ts` and `tier1-miss-causes.test.ts` stay green.
 
 Row 17 (`ho-hasta-que-dia-tengo-iva`, «what to do if the date passed») also
-names `tribu-cr-res-0011-2025` Art. 2. It is outside #602's scope and is left
-as is.
+named `tribu-cr-res-0011-2025` Art. 2. A follow-up moved it the way row 16
+moved, to `tribu-cr-res-0033-2025` Art. 1 and Art. 3 beside `cnpt` 88, in
+`../2026-10-08-554/carriers.json` only (`eval/tier1-carriers.json` has no row
+for it).
 
 ## Item 1: the D-140 → ATV rewrite (three cases)
 

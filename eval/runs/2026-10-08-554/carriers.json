@@ -375,15 +375,21 @@
               "quote": "Cuando el infractor subsane, de forma espontánea, su incumplimiento sin que medie ninguna actuación de la Administración para obtener la reparación, la sanción será rebajada en un setenta y cinco por ciento (75%)."
             },
             {
-              "chunkId": "1d70ef81-82e5-4bdb-b519-a6fa1f056921",
-              "docKey": "tribu-cr-res-0011-2025",
-              "articulo": "Artículo 2",
-              "quote": "como la única plataforma digital tributaria que se utilizará para la gestión de trámites, el cumplimiento de los deberes formales y materiales"
+              "chunkId": "08b0596b-132d-4a05-8e4a-598ed2295db0",
+              "docKey": "tribu-cr-res-0033-2025",
+              "articulo": "Artículo 1",
+              "quote": "Los obligados tributarios deben liquidar los impuestos a los que estén afectos utilizando el sistema en línea TRIBUCR"
+            },
+            {
+              "chunkId": "46dd069c-a43d-4df2-9a2b-ee29021d2fec",
+              "docKey": "tribu-cr-res-0033-2025",
+              "articulo": "Artículo 3",
+              "quote": "Los formularios en esta resolución estarán disponibles para ser llenados y presentados mediante el sistema TRIBU-CR"
             }
           ]
         }
       ],
-      "note": "Lane 2's set has cnpt Artículo 79, the fine, which says what happens rather than what to do.",
+      "note": "Lane 2's set has cnpt Artículo 79, the fine, which says what happens rather than what to do. Since #597 the IVA channel is carried by tribu-cr-res-0033-2025 Artículos 1 and 3, not tribu-cr-res-0011-2025 Artículo 2 (#602).",
       "uncertain": true
     },
     {

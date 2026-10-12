@@ -4140,3 +4140,31 @@ owner's decision.
   `ho-abs-devs-exentos-renta`'s CABYS «13%» again, one sentence before the
   marker that cites `cabys-dev` (#580). Wave D accepted that slip once; a
   second flag makes it a pattern. Neither was re-run: the owner's call.
+
+## Wave G's full lane (2026-10-10, #497)
+
+One `pnpm test:eval` on main at e7d954c, after Wave F's and Wave G's PRs, in
+Wave E's setup (`ANSWER_EFFORT=low`, every other knob at its default). It ran
+to the end in 1749 s with no provider error, the first lane of map #497 with
+every suite green. The setup, every gate and the per-case reads are in
+[`runs/2026-10-10-497-wave-g/README.md`](runs/2026-10-10-497-wave-g/README.md).
+
+| Gate                                | Wave E | Wave G     |
+| ----------------------------------- | ------ | ---------- |
+| Groundedness, judges' first verdict | 73/74  | **71/74**  |
+| Tier 1 requirements stated          | 92/116 | **93/116** |
+| Tier 1 cases fully adequate         | 13/27  | 15/27      |
+| Tier 2 adequate                     | 12/14  | 12/14      |
+| Abstention                          | 14/15  | 15/15      |
+| Hit-rate                            | 73/74  | 73/74      |
+| Robustness block, hit               | 26/27  | 27/27      |
+
+- **Tier 1 93/116** is 5 over the baseline of 88 and 1 over Wave E. The owner
+  then raised the baseline to 92, the lower of Wave E and Wave G (#603,
+  f91bfd7).
+- **Groundedness 71/74**, three inference fails on one cause: the salario base
+  circular appended by #596's wide pin. #599's option A narrowed the pin to the
+  sets that tie the salario base to Ley 7337 (#604, 357951a).
+- **#592's corpus** reaches nine answer sets, and row 16 now passes. The claims
+  that still miss, and the carrier maps that named the old source, are in
+  [`runs/2026-10-10-602/README.md`](runs/2026-10-10-602/README.md) (#605).
