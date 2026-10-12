@@ -94,10 +94,10 @@
  * stage and the append's outcome the `crossReference` field of the event.
  * `PIN_CROSS_REFERENCES=off` is the measured baseline.
  *
- * An amount stated in salarios base brings the salario base in force (#579,
- * widened from multas by #591, `salario-base.ts`): `cnpt` 79 says «50 % del
- * salario base» and the colones are in the Corte's yearly circular, which
- * nothing in the artículo names. Its lookup runs beside the cross-reference
+ * A multa in salarios base, or an amount in salarios base beside Ley 7337,
+ * brings the salario base in force (#579, #591, #599, `salario-base.ts`):
+ * `cnpt` 79 says «50 % del salario base» and the colones are in the Corte's
+ * yearly circular, which nothing in the artículo names. Its lookup runs beside the cross-reference
  * one, in the same `pin` stage; what it did is the event's `salarioBase`.
  * `PIN_SALARIO_BASE=off` is the baseline.
  *

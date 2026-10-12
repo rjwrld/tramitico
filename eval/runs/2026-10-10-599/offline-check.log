@@ -1,0 +1,77 @@
+
+probe-after.json: 116 cases
+case: #591 → #599; triggering chunks; circular before → now
+  inscripcion-hacienda-clientes-extranjero: KEPT; reglamento-renta·Artículo 30·#2; circular absent → appended (salarioBase)
+  iva-clientes-fuera-cr: KEPT; ley-iva·Artículo 8·#0; circular absent → appended (salarioBase)
+  cabys-desarrollo-software: KEPT; ley-iva·Artículo 11 bis·#0, reglamento-iva·Artículo 38 bis·#0; circular absent → appended (salarioBase)
+  ccss-asalariado-y-freelance: DROPPED; (#591 only: reglamento-renta·Artículo 30·#0); circular absent → absent
+  regimen-simplificado-programador: DROPPED; (#591 only: reglamento-rts·Artículo 3·#0, reglamento-rts·Artículo 2·#0); circular absent → absent
+  iva-tarifas-reducidas: DROPPED; (#591 only: reglamento-iva·Artículo 11·#2); circular absent → absent
+  renta-tramos-2026: DROPPED; (#591 only: reglamento-renta·Artículo 30·#1); circular absent → absent
+  renta-pagos-parciales-retenciones: KEPT; reglamento-renta·Artículo 30·#2; circular absent → appended (salarioBase)
+  renta-salario-y-actividad: DROPPED; (#591 only: reglamento-renta·Artículo 30·#0); circular absent → absent
+  exportacion-servicios-comprobante: KEPT; ley-iva·Artículo 8·#0; circular absent → appended (salarioBase)
+  iva-ajuste-bien-de-capital: DROPPED; (#591 only: reglamento-iva·Artículo 31·#0, reglamento-iva-bienes-capital·Artículo 31·#0); circular absent → absent
+  iva-retencion-tarjetas-porcentaje: DROPPED; (#591 only: reglamento-renta·Artículo 30·#0); circular absent → absent
+  inscripcion-tribu-cr: KEPT; cnpt·Artículo 78·#0; circular absent → appended (salarioBase)
+  multa-iva-no-declarado: KEPT; cnpt·Artículo 79·#0, cnpt·Artículo 78·#0, cnpt·Artículo 81·#0; circular appended → appended (derivedInput)
+  inscripcion-tardia-sancion: KEPT; cnpt·Artículo 78·#0; circular appended → appended (derivedInput)
+  ho-hacienda-solo-cliente-eeuu: KEPT; ley-iva·Artículo 8·#0, reglamento-renta·Artículo 30·#2, cnpt·Artículo 78·#0; circular absent → appended (salarioBase)
+  ho-cliente-espana-lleva-iva: KEPT; ley-iva·Artículo 8·#0; circular absent → appended (salarioBase)
+  ho-iva-en-cero-sin-facturar: KEPT; cnpt·Artículo 79·#0; circular absent → appended (salarioBase)
+  ho-minimo-renta-2026: DROPPED; (#591 only: ley-renta·Artículo 31 ter·#0); circular absent → absent
+  ho-ademas-tengo-salario: DROPPED; (#591 only: reglamento-renta·Artículo 30·#0); circular absent → absent
+  ho-rebajar-multa-si-pago-ya: KEPT; cnpt·Artículo 81·#0, cnpt·Artículo 79·#0, cnpt·Artículo 78·#0; circular appended → appended (derivedInput)
+  ho-t2-hosting-extranjero: KEPT; ley-iva·Artículo 8·#0; circular absent → appended (salarioBase)
+  ho-t2-retencion-tarjetas: KEPT; reglamento-renta·Artículo 30·#2; circular absent → appended (salarioBase)
+  ho-t2-compu-cara-iva: DROPPED; (#591 only: reglamento-iva·Artículo 31·#0, reglamento-iva-bienes-capital·Artículo 31·#0); circular absent → absent
+  ho-t2-panaderia-simplificado: DROPPED; (#591 only: reglamento-rts·Artículo 3·#0, reglamento-rts·Artículo 2·#0); circular absent → absent
+  ho-t2-payoneer: KEPT; reglamento-renta·Artículo 30·#2; circular absent → appended (salarioBase)
+  t2-inscripcion-dimex: KEPT; cnpt·Artículo 78·#0; circular absent → appended (salarioBase)
+  rb-pill-iva-exterior: KEPT; ley-iva·Artículo 8·#0; circular absent → appended (salarioBase)
+  rb-pill-inscribi-tarde: KEPT; cnpt·Artículo 78·#0; circular appended → appended (derivedInput)
+  rb-corto-tramos-renta: DROPPED; (#591 only: ley-renta·Artículo 31 ter·#0); circular absent → absent
+  rb-corto-cuando-declaro-iva: KEPT; cnpt·Artículo 79·#0; circular absent → appended (salarioBase)
+  rb-corto-que-cabys: KEPT; reglamento-iva·Artículo 38 bis·#0, ley-iva·Artículo 11 bis·#0; circular absent → appended (salarioBase)
+  rb-corto-multa-tarde: KEPT; cnpt·Artículo 78·#0, cnpt·Artículo 79·#0; circular appended → appended (derivedInput)
+  rb-tilde-inscribirme-afuera: KEPT; cnpt·Artículo 78·#0; circular absent → appended (salarioBase)
+  rb-spanglish-client-usa: KEPT; ley-iva·Artículo 8·#0; circular absent → appended (salarioBase)
+  rb-seguimiento-le-cobro-iva: KEPT; ley-iva·Artículo 8·#0, cnpt·Artículo 79·#0; circular absent → appended (salarioBase)
+  rb-seguimiento-de-cuanto-multa: KEPT; cnpt·Artículo 78·#0, cnpt·Artículo 81·#0, cnpt·Artículo 79·#0; circular appended → appended (derivedInput)
+  abs-patente-comercial: DROPPED; (#591 only: reglamento-rts·Artículo 2·#0); circular absent → absent
+  cases #591 fires on: 38; #599 still fires on 25; sets holding the circular past the cut 6 → 25 (19 of them by this pin); chunks lost besides the circular: 0
+
+probe.json: 32 cases
+case: #591 → #599; triggering chunks; circular before → now
+  inscripcion-hacienda-clientes-extranjero: KEPT; reglamento-renta·Artículo 30·#2; circular appended → appended (salarioBase)
+  iva-clientes-fuera-cr: KEPT; ley-iva·Artículo 8·#0; circular appended → appended (salarioBase)
+  cabys-desarrollo-software: KEPT; ley-iva·Artículo 11 bis·#0, reglamento-iva·Artículo 38 bis·#0; circular appended → appended (salarioBase)
+  ccss-asalariado-y-freelance: DROPPED; (#591 only: reglamento-renta·Artículo 30·#0); circular appended → absent; LOST salario-base-2026·Circular 246-2025·#0
+  regimen-simplificado-programador: DROPPED; (#591 only: reglamento-rts·Artículo 3·#0, reglamento-rts·Artículo 2·#0); circular appended → absent; LOST salario-base-2026·Circular 246-2025·#0
+  iva-tarifas-reducidas: DROPPED; (#591 only: reglamento-iva·Artículo 11·#2); circular appended → absent; LOST salario-base-2026·Circular 246-2025·#0
+  renta-tramos-2026: DROPPED; (#591 only: reglamento-renta·Artículo 30·#1); circular appended → absent; LOST salario-base-2026·Circular 246-2025·#0
+  renta-pagos-parciales-retenciones: DROPPED; (#591 only: reglamento-renta·Artículo 30·#0); circular appended → absent; LOST salario-base-2026·Circular 246-2025·#0
+  renta-salario-y-actividad: DROPPED; (#591 only: reglamento-renta·Artículo 30·#0); circular appended → absent; LOST salario-base-2026·Circular 246-2025·#0
+  exportacion-servicios-comprobante: KEPT; ley-iva·Artículo 8·#0; circular appended → appended (salarioBase)
+  iva-ajuste-bien-de-capital: DROPPED; (#591 only: reglamento-iva·Artículo 31·#0, reglamento-iva-bienes-capital·Artículo 31·#0); circular appended → absent; LOST salario-base-2026·Circular 246-2025·#0
+  inscripcion-tribu-cr: KEPT; cnpt·Artículo 78·#0; circular appended → appended (salarioBase)
+  ho-hacienda-solo-cliente-eeuu: KEPT; ley-iva·Artículo 8·#0, reglamento-renta·Artículo 30·#2, cnpt·Artículo 78·#0; circular appended → appended (salarioBase)
+  ho-cliente-espana-lleva-iva: KEPT; ley-iva·Artículo 8·#0; circular appended → appended (salarioBase)
+  ho-iva-en-cero-sin-facturar: KEPT; cnpt·Artículo 79·#0; circular appended → appended (salarioBase)
+  ho-minimo-renta-2026: DROPPED; (#591 only: ley-renta·Artículo 31 ter·#0); circular appended → absent; LOST salario-base-2026·Circular 246-2025·#0
+  ho-ademas-tengo-salario: DROPPED; (#591 only: reglamento-renta·Artículo 30·#0); circular appended → absent; LOST salario-base-2026·Circular 246-2025·#0
+  ho-t2-hosting-extranjero: KEPT; ley-iva·Artículo 8·#0; circular appended → appended (salarioBase)
+  ho-t2-retencion-tarjetas: KEPT; reglamento-renta·Artículo 30·#2; circular appended → appended (salarioBase)
+  ho-t2-compu-cara-iva: DROPPED; (#591 only: reglamento-iva·Artículo 31·#0, reglamento-iva-bienes-capital·Artículo 31·#0); circular appended → absent; LOST salario-base-2026·Circular 246-2025·#0
+  ho-t2-panaderia-simplificado: DROPPED; (#591 only: reglamento-rts·Artículo 3·#0, reglamento-rts·Artículo 2·#0); circular appended → absent; LOST salario-base-2026·Circular 246-2025·#0
+  ho-t2-payoneer: KEPT; reglamento-renta·Artículo 30·#2; circular appended → appended (salarioBase)
+  t2-inscripcion-dimex: KEPT; cnpt·Artículo 78·#0; circular appended → appended (salarioBase)
+  rb-pill-iva-exterior: KEPT; ley-iva·Artículo 8·#0; circular appended → appended (salarioBase)
+  rb-corto-tramos-renta: DROPPED; (#591 only: ley-renta·Artículo 31 ter·#0); circular appended → absent; LOST salario-base-2026·Circular 246-2025·#0
+  rb-corto-cuando-declaro-iva: KEPT; cnpt·Artículo 79·#0; circular appended → appended (salarioBase)
+  rb-corto-que-cabys: KEPT; reglamento-iva·Artículo 38 bis·#0, ley-iva·Artículo 11 bis·#0; circular appended → appended (salarioBase)
+  rb-tilde-inscribirme-afuera: KEPT; cnpt·Artículo 78·#0; circular appended → appended (salarioBase)
+  rb-spanglish-client-usa: KEPT; ley-iva·Artículo 8·#0; circular appended → appended (salarioBase)
+  rb-seguimiento-le-cobro-iva: KEPT; ley-iva·Artículo 8·#0, cnpt·Artículo 79·#0; circular appended → appended (salarioBase)
+  abs-patente-comercial: DROPPED; (#591 only: reglamento-rts·Artículo 2·#0); circular appended → absent; LOST salario-base-2026·Circular 246-2025·#0
+  cases #591 fires on: 31; #599 still fires on 18; sets holding the circular past the cut 31 → 18 (18 of them by this pin); chunks lost besides the circular: 0

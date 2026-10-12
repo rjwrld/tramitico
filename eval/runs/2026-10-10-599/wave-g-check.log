@@ -1,0 +1,44 @@
+
+abstention-2026-10-11T00-57-06-251Z.jsonl: 15 rows
+  sets carrying the circular: 0; keep it 0 (0 through another append or the cut); lose it 0
+
+groundedness-claude-sonnet-5-5-effort-low-20261011T012347Z.jsonl: 101 rows
+  inscripcion-hacienda-clientes-extranjero: KEEPS; cnpt · Artículo 78
+  iva-clientes-fuera-cr: KEEPS; ley-iva · Artículo 8
+  cabys-desarrollo-software: KEEPS; ley-iva · Artículo 11 bis
+  ccss-asalariado-y-freelance: KEEPS; ley-renta · ARTICULO 13
+  regimen-simplificado-programador: LOSES; #591 only: reglamento-rts · Artículo 3, reglamento-rts · Artículo 2
+  iva-declaracion-mensual: KEEPS; cnpt · Artículo 79
+  iva-tarifas-reducidas: LOSES; #591 only: reglamento-iva · Artículo 11
+  renta-tramos-2026: LOSES; #591 only: reglamento-renta · Artículo 30
+  renta-pagos-parciales-retenciones: LOSES; #591 only: reglamento-renta · Artículo 30, reglamento-renta · Artículo 30
+  exportacion-servicios-comprobante: KEEPS; ley-iva · Artículo 8
+  iva-ajuste-bien-de-capital: LOSES; #591 only: reglamento-iva · Artículo 31, reglamento-iva-bienes-capital · Artículo 31
+  iva-retencion-tarjetas-porcentaje: LOSES; #591 only: reglamento-renta · Artículo 30
+  inscripcion-tribu-cr: KEEPS; cnpt · Artículo 78
+  multa-iva-no-declarado: KEEPS (derivedInput)
+  inscripcion-tardia-sancion: KEEPS (derivedInput)
+  ho-hacienda-solo-cliente-eeuu: KEEPS; reglamento-renta · Artículo 30, cnpt · Artículo 78
+  ho-donde-inscribo-ya-no-atv: KEEPS; cnpt · Artículo 78
+  ho-iva-en-cero-sin-facturar: KEEPS; cnpt · Artículo 79
+  ho-hasta-que-dia-tengo-iva: KEEPS; cnpt · Artículo 79
+  ho-minimo-renta-2026: KEEPS (in the cut)
+  ho-ademas-tengo-salario: LOSES; #591 only: reglamento-renta · Artículo 30
+  ho-rebajar-multa-si-pago-ya: KEEPS (derivedInput)
+  ho-t2-credito-iva-compras: LOSES; #591 only: reglamento-iva · Artículo 31
+  ho-t2-retencion-tarjetas: KEEPS; reglamento-renta · Artículo 30
+  ho-t2-compu-cara-iva: LOSES; #591 only: reglamento-iva · Artículo 31, reglamento-iva-bienes-capital · Artículo 31
+  ho-t2-panaderia-simplificado: LOSES; #591 only: reglamento-rts · Artículo 2, reglamento-rts · Artículo 3
+  ho-t2-payoneer: KEEPS; reglamento-renta · Artículo 30
+  t2-inscripcion-dimex: KEEPS; cnpt · Artículo 78
+  rb-pill-iva-exterior: KEEPS; ley-iva · Artículo 8
+  rb-pill-inscribi-tarde: KEEPS (derivedInput)
+  rb-corto-tramos-renta: LOSES; #591 only: ley-renta · Artículo 31 ter
+  rb-corto-cuando-declaro-iva: KEEPS; cnpt · Artículo 79
+  rb-corto-que-cabys: LOSES; #591 only: reglamento-iva · Artículo 64
+  rb-corto-multa-tarde: KEEPS (derivedInput)
+  rb-tilde-deje-de-trabajr: KEEPS; cnpt · Artículo 79
+  rb-spanglish-client-usa: KEEPS; ley-iva · Artículo 8
+  rb-seguimiento-le-cobro-iva: KEEPS; ley-iva · Artículo 8
+  rb-seguimiento-de-cuanto-multa: KEEPS; cnpt · Artículo 78, cnpt · Artículo 79, cnpt · Artículo 81
+  sets carrying the circular: 38; keep it 26 (6 through another append or the cut); lose it 12
