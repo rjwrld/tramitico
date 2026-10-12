@@ -35,11 +35,12 @@
       "ley-iva · Artículo 10"
     ],
     "ho-iva-en-cero-sin-facturar": [
-      "tribu-cr-res-0011-2025 · Artículo 2",
+      "tribu-cr-res-0033-2025 · Artículo 1",
+      "tribu-cr-res-0033-2025 · Artículo 3",
       "cnpt · Artículo 79",
       "cnpt · Artículo 88"
     ],
-    "ho-rebajar-25-sin-facturas": ["tribu-cr-res-0011-2025 · Artículo 2"],
+    "ho-rebajar-25-sin-facturas": ["tribu-cr-res-0020-2025 · Artículo 3"],
     "ho-minimo-renta-2026": ["ley-renta · Artículo 4"],
     "ho-ademas-tengo-salario": [
       "ley-renta · ARTICULO 22",

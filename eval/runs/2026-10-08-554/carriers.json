@@ -328,10 +328,16 @@
           "what": "where: TRIBU-CR",
           "carriers": [
             {
-              "chunkId": "1d70ef81-82e5-4bdb-b519-a6fa1f056921",
-              "docKey": "tribu-cr-res-0011-2025",
-              "articulo": "Artículo 2",
-              "quote": "como la única plataforma digital tributaria que se utilizará para la gestión de trámites, el cumplimiento de los deberes formales y materiales"
+              "chunkId": "08b0596b-132d-4a05-8e4a-598ed2295db0",
+              "docKey": "tribu-cr-res-0033-2025",
+              "articulo": "Artículo 1",
+              "quote": "Los obligados tributarios deben liquidar los impuestos a los que estén afectos utilizando el sistema en línea TRIBUCR"
+            },
+            {
+              "chunkId": "46dd069c-a43d-4df2-9a2b-ee29021d2fec",
+              "docKey": "tribu-cr-res-0033-2025",
+              "articulo": "Artículo 3",
+              "quote": "Los formularios en esta resolución estarán disponibles para ser llenados y presentados mediante el sistema TRIBU-CR"
             }
           ]
         },
@@ -388,15 +394,15 @@
           "what": "where: TRIBU-CR",
           "carriers": [
             {
-              "chunkId": "1d70ef81-82e5-4bdb-b519-a6fa1f056921",
-              "docKey": "tribu-cr-res-0011-2025",
-              "articulo": "Artículo 2",
-              "quote": "como la única plataforma digital tributaria que se utilizará para la gestión de trámites, el cumplimiento de los deberes formales y materiales"
+              "chunkId": "f8cf1bac-f7fa-4188-8d16-fcc13e65bf13",
+              "docKey": "tribu-cr-res-0020-2025",
+              "articulo": "Artículo 3",
+              "quote": "Los formularios de declaración indicados en el artículo 1 estarán disponible para ser llenados y presentados mediante el sistema TRIBU-CR"
             }
           ]
         }
       ],
-      "note": "tribu-cr-res-0011-2025 Artículo 2 is one of the case's expected targets (decision #416)."
+      "note": "tribu-cr-res-0011-2025 Artículo 2 is one of the case's expected targets (decision #416); since #597 the renta channel is carried by tribu-cr-res-0020-2025 Artículo 3 (#602)."
     },
     {
       "case": "ho-minimo-renta-2026",
