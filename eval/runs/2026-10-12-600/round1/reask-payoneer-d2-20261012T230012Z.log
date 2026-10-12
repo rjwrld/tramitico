@@ -1,0 +1,14 @@
+$ tsx scripts/answer-replay.ts <worktree>/eval/runs/2026-10-10-497-wave-g/lane/groundedness-claude-sonnet-5-5-effort-low-20261011T012347Z.jsonl --cases=ho-t2-payoneer
+replaying 1 row(s) of groundedness-claude-sonnet-5-5-effort-low-20261011T012347Z.jsonl on claude-sonnet-5-5-effort-low
+  ho-t2-payoneer  pass  missing 1
+
+transcript: <main-checkout>/eval/transcripts/2026-10-12-600/round1/groundedness-claude-sonnet-5-5-effort-low-replay-subset-20261012T230031Z.jsonl
+
+requirements stated, recorded → replayed: 0 → 1 of 2
+  0 → 1 / 2  ho-t2-payoneer
+grounded, recorded → replayed: 1 → 1 of 1
+false absence claims (#500), recorded → replayed: 0 → 0
+absence openings, recorded → replayed: 1 → 1 — ho-t2-payoneer
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+finish other than stop: 0; output tokens max 946
