@@ -1,0 +1,29 @@
+$ tsx scripts/answer-replay.ts <worktree>/eval/runs/2026-10-10-497-wave-g/lane/groundedness-claude-sonnet-5-5-effort-low-20261011T012347Z.jsonl --cases=ho-t2-payoneer,ccss-ventana-prescripcion-24-meses,rb-tilde-inscribirme-afuera,desinscripcion-dejar-actividad,ho-factura-electronica-o-recibo,ho-rebajar-25-sin-facturas,ho-tambien-asegurado-por-patrono,ho-cobrar-8-anos-atras-caja,ho-desinscribir-debiendo-declaraciones,ho-iva-en-cero-sin-facturar,ho-hasta-que-dia-tengo-iva
+replaying 11 row(s) of groundedness-claude-sonnet-5-5-effort-low-20261011T012347Z.jsonl on claude-sonnet-5-5-effort-low
+  ccss-ventana-prescripcion-24-meses  pass  missing 0
+  desinscripcion-dejar-actividad  pass  missing 2
+  ho-factura-electronica-o-recibo  pass  missing 2
+  ho-iva-en-cero-sin-facturar  pass  missing 0
+  ho-hasta-que-dia-tengo-iva  pass  missing 0
+  ho-rebajar-25-sin-facturas  pass  missing 2
+  ho-tambien-asegurado-por-patrono  pass  missing 1
+  ho-cobrar-8-anos-atras-caja  pass  missing 0
+  ho-desinscribir-debiendo-declaraciones  pass  missing 1
+  ho-t2-payoneer  pass  missing 1
+  rb-tilde-inscribirme-afuera  pass
+
+transcript: <main-checkout>/eval/transcripts/2026-10-12-600/control/groundedness-claude-sonnet-5-5-effort-low-replay-subset-20261012T222004Z.jsonl
+
+requirements stated, recorded → replayed: 28 → 28 of 37
+  4 → 4 / 6  desinscripcion-dejar-actividad
+  2 → 2 / 4  ho-factura-electronica-o-recibo
+  2 → 2 / 4  ho-rebajar-25-sin-facturas
+  3 → 2 / 3  ho-tambien-asegurado-por-patrono
+  3 → 3 / 4  ho-desinscribir-debiendo-declaraciones
+  0 → 1 / 2  ho-t2-payoneer
+grounded, recorded → replayed: 11 → 11 of 11
+false absence claims (#500), recorded → replayed: 0 → 0
+absence openings, recorded → replayed: 3 → 2 — ho-desinscribir-debiendo-declaraciones, ho-t2-payoneer
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+finish other than stop: 0; output tokens max 1338

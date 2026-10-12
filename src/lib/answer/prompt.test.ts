@@ -716,6 +716,66 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     );
   });
 
+  /**
+   * #600: outside declines, 14 of Wave G's 101 answers spoke about the
+   * assistant, 11 of them as the tail of an absence claim — «no lo puedo
+   * determinar con los documentos que consulté», «los documentos oficiales
+   * que tengo a la vista no lo detallan», «No encuentro en los documentos
+   * oficiales…». #594 put the clause in rule 8 and it missed: the sentence is
+   * rule 7's absence claim (and rule 3's missing date) said in the first
+   * person, so the clause sits there. Two phrasings echo rule 7's own words,
+   * «lo que consultó» and «lo que no tiene a la vista».
+   */
+  it("says a missing datum of the data, not of the assistant (#600)", () => {
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /7\. [^\n]*Esa falta tampoco la diga en primera persona, que es la misma afirmación dicha de usted: no escriba lo que usted no encuentra, no tiene a la vista o no puede determinar, confirmar o dar/,
+    );
+    for (const phrasing of [
+      "«No encuentro en los documentos…»",
+      "«los documentos que tengo a la vista no lo detallan»",
+      "«no lo puedo determinar con los documentos que consulté»",
+      "«así que no puedo darle uno»",
+    ]) {
+      expect(ANSWER_SYSTEM_PROMPT).toMatch(
+        new RegExp(`7\\. [^\\n]*${phrasing}`),
+      );
+    }
+    // What to write instead: what the sources say, and the rest as what the
+    // person confirms, rule 7's salario-base pattern.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /7\. [^\n]*Diga lo que las fuentes sí dicen sobre ese punto, con su cita, y nombre lo que queda como lo que la persona confirma: no «no puedo confirmar si su servicio al exterior está gravado», sino «si su servicio al exterior está gravado, confírmelo con Hacienda»/,
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /7\. [^\n]*refiérase a lo que consultó como «los documentos oficiales» o «las fuentes», no como los documentos que usted consultó, recibió o tiene a la vista/,
+    );
+    // Rule 3's missing date: the same claim, said of the date.
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /3\. [^\n]*diga que esa fecha debe confirmarla con la institución, y dígalo de la fecha, no de usted: no «no encuentro esa fecha» ni «no puedo decirle si ya pasó», sino «si ese plazo ya venció, confírmelo con la institución»/,
+    );
+  });
+
+  it("leaves a decline its «no encuentra base oficial» (#600 vs rule 6)", () => {
+    // The clause comes before rule 7's hand-off to rule 6, and rule 6's
+    // wording is untouched: a question nothing covers is still declined.
+    const rule7 = ANSWER_SYSTEM_PROMPT.split("\n").find((line) =>
+      line.startsWith("7. "),
+    );
+    expect(rule7).toBeDefined();
+    expect(
+      rule7!.indexOf("Esa falta tampoco la diga en primera persona"),
+    ).toBeLessThan(
+      rule7!.indexOf(
+        "Cuando nada de lo que recibió responde la pregunta, rige la regla 6",
+      ),
+    );
+    expect(ANSWER_SYSTEM_PROMPT).toMatch(
+      /6\. [^\n]*dígalo directamente: no encuentra base oficial/,
+    );
+    // Rule 8 keeps #557's clause, and nothing else: #594's rule-8 placement
+    // is not this change.
+    expect(ANSWER_SYSTEM_PROMPT).not.toMatch(/8\. [^\n]*tengo a la vista/);
+  });
+
   it("permits only the three constructs AnswerProse renders (#77)", () => {
     // The subset: `- ` bullets, **bold**, simple pipe tables.
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/viñetas/i);
