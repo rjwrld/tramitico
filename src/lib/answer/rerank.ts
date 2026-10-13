@@ -110,7 +110,7 @@ export const ANSWER_DOC_CAP = Infinity;
  *   sentence, only on an ask that classified to a family.
  * - `pin1` — `pin`'s picks, but only **one** of them reaches the prompt: the
  *   pick the cut did not already take that the **question** ranks highest
- *   (#311, #460), by its own reading's score since #611. `pin`'s cost
+ *   (#311, #460). `pin`'s cost
  *   was the answer set's size — ten or eleven overlapping fragments, and the
  *   model mis-indexing them — so this is its smallest version: +1 fragment,
  *   on an ask that classifies. A sentence whose best chunk is already in the
@@ -367,18 +367,6 @@ export interface RerankedChunk {
 }
 
 /**
- * A step pick (#304): its sentence's best chunk, carrying that sentence's
- * score and the rank `order` gave it — and, when the question's own reading
- * came back holding the chunk, that reading's score for it and the place
- * Voyage gave it there (#611 fix 1). `pin1` ranks its picks by those, since a
- * Voyage score for a (query, chunk) pair does not depend on the rest of the
- * pool, while `rank` moves with the expansion.
- */
-export interface StepPick extends RerankedChunk {
-  asked?: { score: number; place: number };
-}
-
-/**
  * The step-rerank mode in force: `STEPS_RERANK`, or the constant when it is
  * unset, empty or unrecognised — the last logged (knobs.ts).
  */
@@ -538,7 +526,7 @@ export interface RerankOutcome {
    * probe. How many of them reach the prompt is `answerSetFromOrder`'s call,
    * because only the cut knows which are already in.
    */
-  stepPicks: StepPick[];
+  stepPicks: RerankedChunk[];
 }
 
 /**
@@ -618,16 +606,9 @@ export async function rerankReadings(
   });
   if (order.length === 0) return null;
 
-  const stepPicks: StepPick[] = [];
+  const stepPicks: RerankedChunk[] = [];
   if (pinning) {
-    // The question's own reading, by pool index: what `pin1` ranks the picks
-    // by (#611 fix 1). Lost, it leaves every pick unasked, and they fall back
-    // to `order`'s ranks.
-    const asked = new Map<number, { score: number; place: number }>();
-    (scored[0] ?? []).forEach(({ index, score }, place) => {
-      if (!asked.has(index)) asked.set(index, { score, place });
-    });
-    const picked = new Map<number, StepPick>();
+    const picked = new Map<number, RerankedChunk>();
     for (const reading of stepReadings) {
       // Voyage returns best first, but the pick is by score, not position —
       // the verdict is typed, not trusted (`scorePool`).
@@ -650,15 +631,13 @@ export async function rerankReadings(
       }
       const inOrder = byIndex.get(best.index);
       const chunk = chunks[best.index];
-      const pick: StepPick | null =
+      const pick =
         inOrder !== undefined
           ? { ...inOrder, score: best.score }
           : chunk !== undefined
             ? { chunk, score: best.score, rank: order.length + 1 }
             : null;
       if (pick === null) continue;
-      const question = asked.get(best.index);
-      if (question !== undefined) pick.asked = question;
       picked.set(best.index, pick);
       stepPicks.push(pick);
     }
@@ -685,13 +664,8 @@ export async function rerankOrder(
  * same FAQ-page shape (#303). A pick is an append, like #287's derived
  * inputs: nothing the cut chose is displaced. Under `pin1` (#311) only
  * `STEP_PINS` picks are appended (one until #561, two since) — of those the
- * cut did not take, the ones the question's own reading scores highest
- * (#611 fix 1), then the place Voyage gave them in that reading. Until #611
- * the key was the pick's rank in `order` (#460), which fuses the question
- * with the expansion, so the pins moved with a rewrite that differs on every
- * draw. A pick the question's reading did not hold, or every pick when that
- * reading was lost, sorts after the asked ones by that rank, then the higher
- * sentence score, then sentence order. A pick's score is its chunk against its own sentence, which mirrors
+ * cut did not take, the ones the question's reading ranks best (#460), then
+ * the higher sentence score, then sentence order. A pick's score is its chunk against its own sentence, which mirrors
  * it, so every pick scores 0.95–0.97 and the quantized scores tie: ranked by
  * score alone the pin was close to a constant per family, whatever was asked.
  * Nor does `pin1` spend its one append on a chunk the derived-figure pin
@@ -715,7 +689,7 @@ export async function rerankOrder(
 export function answerSetFromOrder(
   order: readonly RerankedChunk[] | null,
   fused: readonly RetrievedChunk[],
-  stepPicks: readonly StepPick[] = [],
+  stepPicks: readonly RerankedChunk[] = [],
   onStepPins?: (chunkIds: readonly string[]) => void,
 ): RetrievedChunk[] {
   const { set, fresh } = cutWithSteps(order, fused, stepPicks);
@@ -727,7 +701,7 @@ export function answerSetFromOrder(
 function cutWithSteps(
   order: readonly RerankedChunk[] | null,
   fused: readonly RetrievedChunk[],
-  stepPicks: readonly StepPick[],
+  stepPicks: readonly RerankedChunk[],
 ): { set: RetrievedChunk[]; fresh: ReadonlySet<string> } {
   const topK = answerTopK();
   const cap = answerDocCap();
@@ -746,13 +720,7 @@ function cutWithSteps(
     );
     appended = fresh
       .filter(({ chunk }) => !pinnedAnyway.has(chunk.chunkId))
-      .sort(
-        (a, b) =>
-          (b.asked?.score ?? -Infinity) - (a.asked?.score ?? -Infinity) ||
-          (a.asked?.place ?? Infinity) - (b.asked?.place ?? Infinity) ||
-          a.rank - b.rank ||
-          b.score - a.score,
-      )
+      .sort((a, b) => a.rank - b.rank || b.score - a.score)
       .slice(0, stepPins());
   }
   for (const { chunk } of appended) {
@@ -772,7 +740,7 @@ function cutWithSteps(
  */
 function slotSteps(
   cut: RetrievedChunk[],
-  fresh: readonly StepPick[],
+  fresh: readonly RerankedChunk[],
 ): RetrievedChunk[] {
   const set = [...cut];
   const placed = new Set<string>();
