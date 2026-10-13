@@ -199,6 +199,24 @@ describe("detectAbsenceClaims: other false claims", () => {
     ).toEqual(["CABYS"]);
   });
 
+  it("flags ho-cliente-espana-lleva-iva's «cuál tipo de comprobante» (#613)", () => {
+    // Verbatim from #497's confirming lane, whose answer set carries
+    // reglamento-comprobantes 13 and its «Factura Electrónica de Exportación».
+    expect(
+      falseTargets(
+        "Los documentos oficiales no indican cuál tipo de comprobante corresponde a su caso.",
+      ),
+    ).toEqual(["tipo de comprobante"]);
+  });
+
+  it.each([
+    "Los documentos no indican cuál tipo de comprobante corresponde a su caso.",
+    "Las fuentes consultadas no precisan qué tipo de comprobante corresponde a la exportación de servicios.",
+    "Los documentos que consulté no traen el tipo de comprobante para un cliente en el exterior.",
+  ])("reads a qualifier or none between subject and verb: %s", (answer) => {
+    expect(falseTargets(answer)).toEqual(["tipo de comprobante"]);
+  });
+
   it("does not let a conjunction inside the target split it", () => {
     expect(
       falseTargets(
@@ -234,6 +252,10 @@ describe("detectAbsenceClaims: honest abstentions", () => {
     "Los documentos no indican una escala posterior distinta para el Seguro de Salud.",
     // A procedure, under a figure topic.
     "Sobre el código CABYS específicamente, los documentos oficiales no detallan cómo buscarlo ni dónde consultarlo.",
+    // A detail of one comprobante, or a procedure, not the type (#613).
+    "Los documentos oficiales no precisan el campo o código específico de la factura electrónica de exportación, ni el procedimiento para documentar que el servicio se consume fuera del país.",
+    "Los documentos no detallan el procedimiento para escoger el tipo de comprobante en su sistema de facturación.",
+    "Los documentos no detallan los requisitos de cada tipo de comprobante.",
   ])("leaves alone: %s", (answer) => {
     expect(falseTargets(answer)).toEqual([]);
   });

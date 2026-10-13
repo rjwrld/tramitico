@@ -140,7 +140,10 @@ fuentes no dicen cuántas veces se aplica esa multa» in an answer that cites a
 derived figure whose label says it («por cada …», «por mes …»). Since #570 a
 listed figure named in parentheses after its head noun («no traen el código
 (CABYS)») counts as named; «no traen el código de actividad económica (CIIU
-4)» is a true absence, since the corpus lists no CIIU code. In the
+4)» is a true absence, since the corpus lists no CIIU code. Since #613 the
+type of comprobante is a listed figure: «no indican cuál tipo de comprobante
+corresponde» is false while `reglamento-comprobantes` 2 and 9 are covered,
+and «el campo de la factura electrónica de exportación» is left alone. In the
 groundedness and abstention lanes, such a case fails whatever the judge said,
 and the lane lists it. It wins over the 2-of-3 rule: a re-asked answer that
 makes one fails its case too. Each lane also reports, without gating, the

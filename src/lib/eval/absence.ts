@@ -269,6 +269,20 @@ export const FIGURES: readonly {
     requires: [{ docKey: "tramos-renta-2026" }],
     years: [2026],
   },
+  {
+    // «no indican cuál tipo de comprobante corresponde a su caso» (#613): the
+    // reglamento lists the types (art. 9) and says what each one documents
+    // (art. 2, the factura electrónica de exportación among them). Only the
+    // type: «el campo de la factura electrónica de exportación» is a detail
+    // of one comprobante, not a claim the classification is missing.
+    label: "tipo de comprobante",
+    pattern: /\b(?:(?:cual(?:es)?|que)\s+)?tipos?\s+de\s+comprobantes?\b/,
+    requires: [
+      { docKey: "reglamento-comprobantes", articulo: "2" },
+      { docKey: "reglamento-comprobantes", articulo: "9" },
+    ],
+    years: null,
+  },
 ];
 
 // ── the absence constructions ─────────────────────────────────────────────
