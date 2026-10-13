@@ -1,0 +1,145 @@
+
+ccss-pedir-prescripcion-cuotas
+  LOST    En cobro, la Administración dispone de 20 días hábiles desde el siguiente día hábil a la recepción para resolver; en verificación, la solicitud se atiende dentro del informe o de la resolución del recurso, según la fase.
+    only before  ccss-reglamento-ti · Artículo 30 (6a90a7f3)
+    only before  ccss-prescripcion · ¿Cómo se solicita la prescripción? (edb85394)
+    only before  ccss-prescripcion · ¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración? (f5de49d4)
+    only after   ley-10363 · TRANSITORIO II (523a6dca)
+    only after   ccss-prescripcion · ¿Cuál es el plazo de prescripción de las deudas pendientes por un Trabajador Independiente? (70706607)
+    only after   ccss-reglamento-ti · TRANSITORIO V (57b8cee6)
+
+ccss-ventana-prescripcion-24-meses
+  LOST    Para una persona trabajadora independiente no inscrita que no se regularizó dentro de esa ventana, vuelve a aplicar el plazo de diez años; la CCSS además debe analizar si hubo actos que interrumpieran la prescripción.
+    only before  ccss-prescripcion · ¿Dónde presento la solicitud? (8fc86b1f)
+    only after   ccss-prescripcion · ¿Cuál es el plazo de prescripción de las deudas pendientes por un Trabajador Independiente? (70706607)
+
+ccss-obligacion-ingreso-bajo
+  LOST    La obligatoriedad está en la Ley Constitutiva de la CCSS y en el Reglamento para el aseguramiento de los trabajadores independientes, no en una decisión voluntaria de la persona.
+  LOST    Quien tiene muy escasa capacidad contributiva se ubica en la categoría 1 de la escala, que es exclusiva de trabajadores independientes y asegurados voluntarios.
+    only before  ccss-faq · ¿Quién es un Trabajador Independiente? (439de401)
+    only before  ccss-bmc · null (d9ae9c3d)
+    only after   ccss-reglamento-ti · Preámbulo (26dfd292)
+    only after   ccss-faq · ¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente? (8225abfb)
+
+desinscripcion-dejar-actividad
+  GAINED  Los pasos en la OVi: dónde está la solicitud, qué campos son obligatorios y cuál es el efecto (estado «Desinscrito», con posibilidad de reinscribirse).
+    only before  ccss-faq · ¿Se puede suspender el seguro de trabajador independiente? (956606c4)
+    only after   ccss-faq · ¿Hace tiempo fui asegurado como Trabajador Independiente y quiero volver a serlo, qué tengo que hacer? (eb29d803)
+
+inscripcion-tardia-sancion
+  LOST    Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.
+    only before  tribu-cr-faq · Declaraciones del RUT · 19 (737bd6ee)
+    only before  reglamento-renta · Artículo 28 (15f48ba4)
+    only before  reglamento-rts · Artículo 8 (b11947e6)
+    only before  tribu-cr-faq · Declaraciones del RUT · 2 (ab018516)
+    only before  ley-renta · ARTICULO 2 (6100e2b9)
+    only after   ccss-prescripcion · ¿Cuáles son los requisitos para presentar una solicitud de prescripción en sede administrativa? (0bd52cc3)
+    only after   ccss-prescripcion · ¿Cómo se solicita la prescripción? (edb85394)
+    only after   ccss-reglamento-ti · Artículo 33 (a8e5922a)
+    only after   ccss-prescripcion · ¿Sí tengo un acuerdo de pago puedo solicitar la prescripción? (2f906a4f)
+    only after   cnpt · Artículo 79 (9cf26fa0)
+
+ho-trabajitos-por-mi-cuenta
+  LOST    La persona física con actividad lucrativa es contribuyente del impuesto sobre las utilidades y, si presta servicios gravados, también del IVA.
+    only before  reglamento-iva · Artículo 60 (2c75d7bc)
+    only before  reglamento-iva · Artículo 61 (8cae408b)
+    only after   ccss-reglamento-ti · Artículo 6 (55c80278)
+    only after   tribu-cr-faq · Declaraciones del RUT · 2 (ab018516)
+
+ho-donde-inscribo-ya-no-atv
+  LOST    El camino dentro de la OVi hasta la declaración de inscripción y qué datos pide (actividad, fecha de inicio, domicilio).
+  GAINED  El usuario de la Oficina Virtual es el número de identificación de la persona: cédula, DIMEX o NITE.
+    only before  reglamento-renta · Artículo 27 (93a059f5)
+    only before  tribu-cr-res-0020-2025 · Preámbulo (6c8b8695)
+    only before  tribu-cr-faq · Declaraciones del RUT · 3 (b4d65583)
+    only before  ley-renta · ARTICULO 2 (6100e2b9)
+    only after   tribu-cr-res-0011-2025 · Preámbulo (13726d4d)
+    only after   tribu-cr-res-0011-2025 · Transitorio II (e93b9380)
+    only after   tribu-cr-res-0011-2025 · Transitorio III (3f926643)
+    only after   tribu-cr-res-0011-2025 · Artículo 1 (105f8161)
+
+ho-tiquete-en-vez-de-factura
+  LOST    Los únicos comprobantes autorizados para cumplir obligaciones tributarias son los que lista el artículo 9 del Reglamento de Comprobantes Electrónicos: factura electrónica, factura electrónica de compra, factura electrónica de exportación, tiquete electrónico, recibo electrónico de pago y las notas de crédito y débito.
+    only before  reglamento-renta · Artículo 84 (ccd57ed1)
+    only before  reglamento-comprobantes · Preámbulo (5ee753ae)
+    only before  reglamento-comprobantes · Artículo 23 (4aeeed0f)
+    only after   reglamento-iva · Artículo 29 (5092e7c2)
+    only after   reglamento-comprobantes · Artículo 20 (fade320d)
+    only after   reglamento-comprobantes · Artículo 7 (8eb49f22)
+
+ho-factura-electronica-o-recibo
+  GAINED  Las excepciones a la obligación de emitir comprobantes electrónicos son las del artículo 8 y no alcanzan a una persona física que vende bienes o presta servicios gravados con IVA.
+    only before  reglamento-rts · Artículo 7 (5d06106d)
+    only before  reglamento-comprobantes · Artículo 7 (8eb49f22)
+    only after   reglamento-comprobantes · Artículo 13 (0982390e)
+    only after   reglamento-comprobantes · Artículo 23 (4aeeed0f)
+
+ho-cabys-paginas-web
+  GAINED  El código que corresponde a los servicios de desarrollo y diseño de sitios web sale del catálogo CABYS, no de una elección libre del emisor.
+  GAINED  Al emitir el comprobante, en cada línea de detalle se indica el código de producto, la descripción, la cantidad y el precio unitario.
+    only before  tribu-cr-faq · Declaraciones del RUT · 14 (652b2721)
+    only before  reglamento-iva · Artículo 62 (b739e3a8)
+    only before  reglamento-iva · Artículo 61 (8cae408b)
+    only before  reglamento-renta · Artículo 27 (93a059f5)
+    only before  reglamento-renta · Artículo 7 (e3f1fd44)
+    only before  ley-iva · Artículo 4 (4c721999)
+    only after   reglamento-comprobantes · Artículo 16 (e0b31a4d)
+    only after   reglamento-comprobantes · Artículo 13 (0982390e)
+    only after   reglamento-comprobantes · Artículo 2 (9c82d7c6)
+    only after   reglamento-comprobantes · Artículo 1 (bd33fb58)
+    only after   reglamento-comprobantes · Artículo 15 (45a1ccc4)
+    only after   reglamento-comprobantes · Artículo 12 (4433c841)
+
+ho-cliente-espana-lleva-iva
+  LOST    Si el servicio se consume en Costa Rica, la tarifa general del impuesto es del 13 %.
+  GAINED  La operación exenta se documenta igual, con el comprobante electrónico que corresponda.
+    only before  ley-iva · Artículo 4 (4c721999)
+    only before  ley-iva · Artículo 14 (dcd30b76)
+    only before  reglamento-iva · Artículo 3 (4fe7fd31)
+    only before  reglamento-iva · Artículo 1 (d5f8e29e)
+    only before  ley-iva · Artículo 10 (3895c7d0)
+    only after   ley-iva · Artículo 8 (55a3fe85)
+    only after   reglamento-iva · Artículo 49 (326983d4)
+    only after   reglamento-comprobantes · Artículo 13 (0982390e)
+    only after   reglamento-iva · Artículo 1 (01d04735)
+    only after   reglamento-iva · Preámbulo (c2647c41)
+    only after   salario-base-2026 · Circular 246-2025 (4a289469)
+
+ho-iva-en-cero-sin-facturar
+  LOST    Omitir la declaración dentro del plazo legal se sanciona con una multa del cincuenta por ciento (50 %) de un salario base.
+    only before  reglamento-iva · Artículo 50 (55d096aa)
+    only before  reglamento-iva · Artículo 25 (525236cb)
+    only before  cnpt · Artículo 79 (9cf26fa0)
+    only before  ley-iva · Artículo 10 (3895c7d0)
+    only before  salario-base-2026 · Circular 246-2025 (4a289469)
+    only after   tribu-cr-res-0033-2025 · Preámbulo (619098ba)
+    only after   tribu-cr-res-0033-2025 · Artículo 3 (46dd069c)
+    only after   reglamento-iva · Artículo 11 (3465c992)
+    only after   ley-iva · Artículo 4 (4c721999)
+
+ho-rebajar-25-sin-facturas
+  GAINED  La deducción única fue incorporada por la Ley 10818 del 13 de noviembre de 2025, así que rige para los períodos que esa reforma alcanza.
+    only before  reglamento-rts · Artículo 7 (5d06106d)
+    only before  reglamento-renta · Artículo 17 (0d149635)
+    only before  ley-renta · ARTICULO 46 (f8106955)
+    only after   ley-renta · ARTICULO 9 (998edec8)
+    only after   ley-renta · ARTICULO 8 (edb8eb52)
+    only after   reglamento-renta · Artículo 28 (15f48ba4)
+
+ho-tambien-asegurado-por-patrono
+  LOST    Ante la CCSS hay que gestionar la afiliación como trabajador independiente, en una sucursal o por los medios electrónicos que la CCSS habilite, aunque ya se cotice como asalariado.
+    only before  ccss-reglamento-ti · Artículo 1 (3b7ef82d)
+    only before  ley-renta · Artículo 33 (436f11c7)
+    only before  ley-renta · ARTICULO 46 (f8106955)
+    only after   ccss-reglamento-ti · Artículo 15 (89e5b239)
+    only after   ccss-faq · En el caso de Trabajadores Independientes, ¿se debe cancelar algún monto o gasto adicional para formalizar un acuerdo de pago con la CAJA? (342ebdc4)
+
+ho-cobrar-8-anos-atras-caja
+  LOST    La prescripción no opera de oficio: hay que solicitarla, y mientras no se solicite la deuda sigue registrada.
+    only before  ccss-reglamento-ti · Artículo 29 (9607bfaf)
+    only before  ccss-prescripcion · ¿Dónde presento la solicitud? (8fc86b1f)
+    only after   ccss-faq · ¿Cuáles son los requisitos para solicitar la prescripción de cuotas de trabajador independiente en aplicación de lo dispuesto en la Ley N°10.363? (dfa6dc46)
+    only after   ccss-reglamento-ti · TRANSITORIO V (57b8cee6)
+
+tier 1 requirements: 12 lost, 7 gained
+answer-set overlap (Jaccard), 101 rows: median 0.64; lowest ho-t2-payoneer 0.00, rb-pill-inscribo-exterior 0.10, ho-t2-arreglo-pago-caja 0.23

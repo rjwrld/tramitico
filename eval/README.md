@@ -4171,3 +4171,39 @@ every suite green. The setup, every gate and the per-case reads are in
 - **Dataset, no run (2026-10-12):** `ho-iva-en-cero-sin-facturar` and
   `ho-rebajar-25-sin-facturas` gain their RES-0033 and RES-0020 carriers as
   expected targets, #602 item 4's narrow version. No number moves.
+
+## The confirming lane (2026-10-12, #497)
+
+One `pnpm test:eval` on main at b416b54, after #603, #604, #605–#607 and #600
+(#608), in Wave G's setup (`ANSWER_EFFORT=low`, every other knob at its
+default). It ran to the end in 1784 s with no provider error and one
+expansion timeout, **red on two gates**: Tier 2 adequacy and conflicting
+sources. The setup, every gate, the per-requirement read and the paid check
+that would settle it are in
+[`runs/2026-10-12-497-confirm/README.md`](runs/2026-10-12-497-confirm/README.md).
+
+| Gate                                | Wave G | Confirming |
+| ----------------------------------- | ------ | ---------- |
+| Groundedness, judges' first verdict | 71/74  | **73/74**  |
+| Tier 1 requirements stated          | 93/116 | **88/116** |
+| Tier 1 cases fully adequate         | 15/27  | 8/27       |
+| Tier 2 adequate                     | 12/14  | **11/14**  |
+| Abstention                          | 15/15  | 15/15      |
+| Hit-rate                            | 73/74  | 73/74      |
+| Robustness block, hit               | 27/27  | 27/27      |
+| Conflicting sources (#135)          | pass   | **fail**   |
+
+- **Tier 1 88/116** is exactly the floor (baseline 92, fails ≤ 87). The read
+  finds 12 requirements lost and 7 gained. Of the 12, 5 are retrieval (the
+  carrier left the set), 3 are answer omissions with the carrier in both sets,
+  and 4 are judge verdicts on the same content. No loss is #600's rule-7 form
+  standing in for a fact the set carried, and none is #604's. Median answer-set
+  overlap between the two lanes is 0.64.
+- **#604 and #600 did what they were for.** Wave G's three circular inference
+  fails ground. First person outside declines drops from 16 to 2 of 101
+  answers.
+- **The reds.** Tier 2: `ho-t2-constancia-al-dia` lost its carrier from the
+  set, and `tribu-cr-declarar-pagar` and `ho-t2-payoneer` miss as in Wave G.
+  Conflicting sources: the answer gives both decrees but never says they
+  discrepan, and a lane on 2026-10-08 passed the same opening. No gate constant
+  moved, and nothing was re-run: the owner's call.
