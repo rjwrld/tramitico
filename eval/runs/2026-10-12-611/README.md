@@ -118,9 +118,11 @@ misses.
 reads as judge noise on a faithful sentence. If it recurs, the fix belongs to
 the judge or the answer prompt, not to retrieval.
 
-## Step 1: control, 5 live probe draws on main (paid, awaiting OK)
+## Step 1: control, 5 live probe draws on main (ran 2026-10-13)
 
-From this worktree. Its pipeline code equals `origin/main`: `git diff
+The results are in [`control/README.md`](control/README.md).
+
+Run from this worktree, written below as `<worktree>`. Its pipeline code equals `origin/main`: `git diff
 origin/main -- src corpus supabase scripts/answer-set-probe.ts` is empty, and
 the branch changes only scripts, tests and eval files no pipeline step reads.
 Rewrites are **live**: `EVAL_REWRITES` is unset, and the probe's log must
@@ -129,7 +131,7 @@ no answer model, but it is set to production's value anyway. The runs are
 serial, about 6 minutes each at `PROBE_CASE_MS=3000` (116 cases).
 
 ```sh
-W=/Users/rj/.t3/worktrees/tramitico/t3-097015de
+W=<worktree>
 OUT=$W/eval/runs/2026-10-12-611/control
 mkdir -p "$OUT"
 
@@ -152,3 +154,33 @@ pnpm -C "$W" carrier-recall "$W/eval/runs/2026-10-12-611/carriers.json" \
 **Cost:** ≈US$1.50 for the five draws (Voyage embeddings and rerank readings,
 Haiku 5.5 expansions and condensations), plus ≈US$0.01 for the smoke. Steps
 1–5 stop at US$12.
+
+## Step 2: the width sweep, knob only (paid, awaiting OK)
+
+`STEP_PINS=3` and `STEP_PINS=5`, five live draws each, on the same code as
+the control. `STEP_PINS=5` pins every fresh pick, since a family has at most
+five. No code changes: `STEP_PINS` is a knob (`rerank.ts`). Each arm runs a
+3-case smoke first. It must read `rewrites: live`, and its largest `step` pin
+count must be above 2 (the control's is 2), which proves the knob took. If it
+isn't, the arm stops before any draw. The ten draws run serially, about 6 minutes each.
+
+```sh
+W=<worktree>
+for w in 3 5; do
+  OUT=$W/eval/runs/2026-10-12-611/pins$w
+  mkdir -p "$OUT"
+  env -u EVAL_REWRITES STEP_PINS=$w EVAL_CASES=ho-ademas-tengo-salario,ho-t2-credito-iva-compras,ho-abs-iva-2027 \
+    PROBE_CASE_MS=3000 ANSWER_EFFORT=low \
+    pnpm -C "$W" answer-set-probe "$OUT/smoke.json" 2>&1 | tee "$OUT/smoke.log"
+  jq '[.reads[] | [.per["top8/capoff/pinon"].pins // {} | to_entries[] | select(.value=="step")] | length] | max' "$OUT/smoke.json"
+  for i in 1 2 3 4 5; do
+    env -u EVAL_REWRITES -u EVAL_CASES STEP_PINS=$w PROBE_CASE_MS=3000 ANSWER_EFFORT=low \
+      pnpm -C "$W" answer-set-probe "$OUT/probe-$i.json" > "$OUT/probe-$i.log" 2>&1
+  done
+  pnpm -s -C "$W" carrier-recall "$W/eval/runs/2026-10-12-611/carriers.json" \
+    "$OUT"/probe-{1,2,3,4,5}.json > "$OUT/carrier-recall.log"
+done
+```
+
+**Cost:** ≈US$3.00 for the ten draws, plus ≈US$0.02 for the two smokes. That
+brings steps 1–2 to ≈US$4.50 of the US$12 cap for steps 1–5.

@@ -1,0 +1,32 @@
+$ tsx scripts/answer-set-probe.ts eval/runs/2026-10-12-611/control/smoke.json
+..a
+retrieval cases: 2 (0 in the robustness block; 6 expected targets outside it), abstention: 1, follow-ups condensed: 1
+condensation fell back to the question: none
+rewrites: live
+provider calls that did not come back: none
+rerank readings lost: none of 20
+weak: none
+expansion absent: none
+
+config                     targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff         3/6        0/2          0        —
+top8/capoff/pinon          3/6        0/2          0        —
+top8/cap3/pinoff           3/6        0/2          0        —
+top8/cap3/pinon            3/6        0/2          0        —
+top8/cap2/pinoff           3/6        0/2          1        —
+top8/cap2/pinon            3/6        0/2          1        —
+top10/capoff/pinoff        3/6        0/2          0        —
+top10/capoff/pinon         3/6        0/2          0        —
+top10/cap3/pinoff          3/6        0/2          1        —
+top10/cap3/pinon           3/6        0/2          1        —
+top10/cap2/pinoff          3/6        0/2          1        —
+top10/cap2/pinon           3/6        0/2          1        —
+top8/capoff/pinon/xrefoff  3/6        0/2          0        —
+top8/capoff/pinon/sboff    3/6        0/2          0        —
+
+cross-references (#508): targets 3 → 3, Tier 1 3 → 3
+  ho-ademas-tengo-salario: +ley-renta·ARTICULO 46·#0
+  ho-t2-credito-iva-compras: +ley-iva·Artículo 11·#0
+  ho-abs-iva-2027: +ley-iva·Artículo 1·#0
+
+salario base (#579): targets 3 → 3
