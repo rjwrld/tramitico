@@ -43,7 +43,7 @@ that lost a rerank reading is excluded from that draw and listed
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | **R1** carrier recall | The mean share of (row, draw) pairs carried, over all 64 rows, is **≥ control + 10 points**. No row that control carries in ≥ 4/5 draws falls below 3/5.                                                                                                                                                   | `R1 … mean over (row, draw) pairs`, and the per-row `k/n`                |
 | **R2** stability      | The step-pinned subset is identical across draws on **≥ 90 %** of classified Tier 1 cases. Tier 1 median pairwise Jaccard **≥ control's** (fix 3, if it runs: ≥ control + 0.10).                                                                                                                           | `R2 median pairwise Jaccard: Tier 1 …`, `step-pinned subset identical …` |
-| **R3** no loss        | Hit-rate **≥ 0.94** and robustness hit **27/27** on every draw. All-targets-reached mean ≥ control − 1. `isWeak` unchanged on every case, abstention cases included: no case flips within an arm, and each case's flag matches control's.                                                                  | the per-draw table; `R3 isWeak differs across draws`                     |
+| **R3** no loss        | Hit-rate **≥ 0.94** and ~~robustness hit **27/27** on every draw~~ (robustness: see Amendment 1). All-targets-reached mean ≥ control − 1. `isWeak` unchanged on every case, abstention cases included: no case flips within an arm, and each case's flag matches control's.                                | the per-draw table; `R3 isWeak differs across draws`                     |
 | **R4** size           | Median answer-set size **≤ control + 2**.                                                                                                                                                                                                                                                                  | the per-draw `size` column                                               |
 | **G** groundedness    | Scoped lane on the 34 Tier 1 rows (27 + 7 robustness), both arms on the **same `EVAL_REWRITES`**, so the pins are the only difference. Judges' first verdict: candidate ≥ control − 1. 0 false absence claims, 0 citation-invariant breaks, derived figures complete.                                      | the lane's own gates                                                     |
 | **A** abstention      | Abstention lane on the candidate: **≥ 90 %**, and the invented-figure gate green (both earlier lanes: 15/15).                                                                                                                                                                                              | the lane's own gates                                                     |
@@ -60,3 +60,16 @@ that lost a rerank reading is excluded from that draw and listed
 Hard stop for the wave: US$35. Steps 1–5 stop at US$12, step 6 at US$11,
 step 7 at US$12. Owner OKs are needed before step 1, before step 6 and before
 step 7, and the paid calls go through the owner one at a time.
+
+## Amendment 1 (2026-10-13, before any candidate draw)
+
+The owner's decision, made after the control (step 1) and before any step 2
+draw. **R3's robustness clause** changes. Nothing else in this file changes.
+
+- **Was:** «Hit-rate **≥ 0.94** and robustness hit **27/27** on every draw.»
+- **Now:** hit-rate ≥ 0.94 on every draw, unchanged. Robustness hit **≥ 25
+  on every draw** and **≥ 130/135 summed over the five draws**.
+- **Why:** the control's five draws hit 26, 25, 26, 27 and 26 (130/135,
+  [`control/README.md`](control/README.md)). On that noise, 27/27 on every
+  draw would fail any arm, the control included. The new bar is «no worse
+  than control».
