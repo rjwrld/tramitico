@@ -29,8 +29,9 @@ carriers stay as they are: #605 and #606 re-pointed rows 16–18 on purpose.
 #554's file. That list doesn't carry four of the confirming lane's 16
 retrieval misses (the ATV carriers, `ley-iva` 4/8, `ley-iva` 5, RUT · 2).
 Those are classes N, E and R, which fix 2 targets. The seven `609#` rows add
-them. If the owner prefers §3's literal list, the five rows sourced only from
-`609#` come out of the file **before step 1**, and never after.
+them, taken from #609's read of the confirming lane (`stability.mjs`).
+**The owner kept them (2026-10-12), before any draw.** R1 reads on all 64
+rows, and the list doesn't change from here on.
 
 ## The bars
 

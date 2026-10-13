@@ -28,9 +28,9 @@ Step 0 is free. Each paid step runs only after an owner OK, one at a time.
   (`ho-minimo-renta-2026`) and `ccss-reglamento-ti` Artículo 7
   (`ho-tambien-asegurado-por-patrono`). That makes 52 chunks over 22 cases.
 - **The list and the bars** are in `preregistration.md` and `carriers.json`.
-  There is one deviation from §3, which the owner decides before step 1: the
-  list adds seven rows from #609's read, because §3's two files don't carry
-  four of the 16 retrieval misses.
+  There is one deviation from §3: the list adds seven rows from #609's read,
+  because §3's two files don't carry four of the 16 retrieval misses. The
+  owner kept them on 2026-10-12, before any draw.
 
 A smoke run on three committed probes (2026-10-09 #561/#562, 2026-10-08
 `rerank-off`; old corpus, different configs) parsed every case and printed
