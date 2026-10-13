@@ -345,18 +345,24 @@ export function serializeTranscript(rows: readonly TranscriptRow[]): string {
  * `subset` is there for the same reason (#289): a run scoped by `EVAL_CASES`
  * covers the cases someone named and says nothing about the rest, so the file
  * it leaves behind must not read, a week later, as the full run it sits beside.
+ *
+ * `lane` replaces the `groundedness` prefix for a lane that writes its own
+ * rows (#610: `conflicting-sources-…`).
  */
 export function transcriptFilename(
   answerModel: string,
   now: Date,
-  { subset = false }: { subset?: boolean } = {},
+  {
+    subset = false,
+    lane = "groundedness",
+  }: { subset?: boolean; lane?: string } = {},
 ): string {
   const stamp = now
     .toISOString()
     .replace(/[-:]/g, "")
     .replace(/\.\d+Z$/, "Z");
   const model = answerModel.replace(/[^A-Za-z0-9._-]+/g, "-");
-  return `groundedness-${model}${subset ? "-subset" : ""}-${stamp}.jsonl`;
+  return `${lane}-${model}${subset ? "-subset" : ""}-${stamp}.jsonl`;
 }
 
 /**
@@ -378,9 +384,24 @@ export function writeTranscript(
     subset = false,
   }: { dir?: string; answerModel: string; now?: Date; subset?: boolean },
 ): string {
+  return writeJsonlExclusive(
+    dir,
+    transcriptFilename(answerModel, now, { subset }),
+    serializeTranscript(rows),
+  );
+}
+
+/**
+ * Writes `body` to `dir/name`, or to `name-2.jsonl`, `-3`… when the name is
+ * taken, and returns the path: `writeTranscript`'s no-overwrite rule, for a
+ * lane whose rows aren't a `TranscriptRow` (#610's conflicting-sources case).
+ */
+export function writeJsonlExclusive(
+  dir: string,
+  name: string,
+  body: string,
+): string {
   mkdirSync(dir, { recursive: true });
-  const name = transcriptFilename(answerModel, now, { subset });
-  const body = serializeTranscript(rows);
   for (let attempt = 0; ; attempt += 1) {
     const file = path.join(
       dir,

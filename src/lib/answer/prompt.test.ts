@@ -776,6 +776,25 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     expect(ANSWER_SYSTEM_PROMPT).not.toMatch(/8\. [^\n]*tengo a la vista/);
   });
 
+  /**
+   * #610: rule 4b ended «usted no puede afirmarlo», the limit said of the
+   * model, and the conflicting-sources answer said it back in the first
+   * person: «no puedo señalar cuál aplica a su caso», «no puedo darlos
+   * aquí». #600's form, said of the documents: what the person verifies.
+   */
+  it("says rule 4b's limit of the documents, not of the assistant (#610)", () => {
+    const rule4b = ANSWER_SYSTEM_PROMPT.split("\n").find((line) =>
+      line.startsWith("4b. "),
+    );
+    expect(rule4b).toBeDefined();
+    expect(rule4b).not.toMatch(/usted no puede/);
+    expect(rule4b).toMatch(
+      /si los documentos no dicen que una sustituye a la otra, no lo afirme\. Ese límite es de los documentos y tampoco lo diga en primera persona, como manda la regla 7: no «no puedo señalar cuál aplica a su caso» ni «no puedo indicarle cuál rige», sino «cuál de los dos decretos rige para su período, verifíquelo con Hacienda»\.$/,
+    );
+    // The rest of 4b stands: the discrepancy is still said, with both data.
+    expect(rule4b).toMatch(/diga expresamente que las fuentes discrepan/);
+  });
+
   it("permits only the three constructs AnswerProse renders (#77)", () => {
     // The subset: `- ` bullets, **bold**, simple pipe tables.
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/viñetas/i);

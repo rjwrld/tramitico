@@ -29,7 +29,13 @@ import {
   JUDGE_TEMPERATURE,
   parseJudgeVerdict,
   type JudgeOnce,
+  type Verdict,
 } from "./groundedness";
+import {
+  DEFAULT_TRANSCRIPT_DIR,
+  transcriptFilename,
+  writeJsonlExclusive,
+} from "./transcript";
 
 /** The question both fragments answer — and answer differently. */
 export const CONFLICT_QUESTION =
@@ -129,3 +135,46 @@ export const conflictJudgeOnce: JudgeOnce = async (
   });
   return parseJudgeVerdict(text);
 };
+
+/** The id the case's transcript row carries, as a dataset row carries its own. */
+export const CONFLICT_CASE_ID = "conflicting-sources";
+
+/**
+ * The case's one transcript row (#610). Until #610 its answer lived only in
+ * the console, so `first-person-check.sh` (runs/2026-10-12-600/), which reads
+ * `id` and `answer` from a JSONL, could not count it, and rule 4b's first
+ * person went unseen through #600's read.
+ */
+export interface ConflictTranscriptRow {
+  id: typeof CONFLICT_CASE_ID;
+  question: string;
+  answer: string;
+  verdict: Verdict;
+  verdicts: Verdict[];
+  reason: string;
+}
+
+/**
+ * Writes the row as `conflicting-sources-<answer model>-<instant>.jsonl`
+ * beside the other lanes' transcripts, never over an earlier one, and
+ * returns the path.
+ */
+export function writeConflictTranscript(
+  row: Omit<ConflictTranscriptRow, "id" | "question">,
+  {
+    dir = process.env.EVAL_TRANSCRIPT_DIR ?? DEFAULT_TRANSCRIPT_DIR,
+    answerModel,
+    now = new Date(),
+  }: { dir?: string; answerModel: string; now?: Date },
+): string {
+  const full: ConflictTranscriptRow = {
+    id: CONFLICT_CASE_ID,
+    question: CONFLICT_QUESTION,
+    ...row,
+  };
+  return writeJsonlExclusive(
+    dir,
+    transcriptFilename(answerModel, now, { lane: CONFLICT_CASE_ID }),
+    JSON.stringify(full) + "\n",
+  );
+}

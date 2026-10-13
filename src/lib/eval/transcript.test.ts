@@ -432,6 +432,14 @@ describe("transcriptFilename", () => {
       }),
     ).toBe("groundedness-claude-sonnet-5-subset-20260905T025503Z.jsonl");
   });
+
+  it("takes another lane's prefix in place of groundedness (#610)", () => {
+    expect(
+      transcriptFilename("claude-sonnet-5", new Date("2026-09-05T02:55:03Z"), {
+        lane: "conflicting-sources",
+      }),
+    ).toBe("conflicting-sources-claude-sonnet-5-20260905T025503Z.jsonl");
+  });
 });
 
 describe("writeTranscript", () => {

@@ -30,6 +30,7 @@ import {
   CONFLICT_CHUNKS,
   CONFLICT_FIGURES,
   CONFLICT_QUESTION,
+  writeConflictTranscript,
 } from "./conflicting-sources";
 import { judgeAnswer, JUDGE_MODEL, type Verdict } from "./groundedness";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
@@ -69,9 +70,14 @@ describeEval("conflicting sources (#135)", () => {
       conflictJudgeOnce,
     ));
     const votes = verdicts.length > 1 ? ` [${verdicts.join("/")}]` : "";
+    // #610: on disk too, where first-person-check.sh can read the answer.
+    const transcript = writeConflictTranscript(
+      { answer, verdict, verdicts, reason },
+      { answerModel: answerModelId },
+    );
     console.log(
       `\nconflicting sources (answer=${answerModelId}, judge=${JUDGE_MODEL}): ` +
-        `${verdict}${votes}\n${answer}\n`,
+        `${verdict}${votes}\n${answer}\n\ntranscript: ${transcript}\n`,
     );
   }, 300_000);
 
