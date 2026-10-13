@@ -1,0 +1,152 @@
+$ tsx scripts/answer-set-probe.ts eval/runs/2026-10-12-611/fix1-pins3/probe-5.json
+ask: expansion failed — reason=timeout error=DOMException.TimeoutError#23
+.............................................ask: expansion failed — reason=timeout error=DOMException.TimeoutError#23
+............................................ask: expansion failed — reason=timeout error=DOMException.TimeoutError#23
+............ask: expansion failed — reason=timeout error=DOMException.TimeoutError#23
+aaaaaaaaaaaaaaa
+retrieval cases: 101 (27 in the robustness block; 196 expected targets outside it), abstention: 15, follow-ups condensed: 15
+condensation fell back to the question: none
+rewrites: live
+provider calls that did not come back: inscripcion-hacienda-clientes-extranjero(expand×1) ho-donde-me-afilio-caja(expand×1) rb-corto-que-cabys(expand×1) ho-abs-cuanto-cobro-la-hora(expand×1)
+rerank readings lost: none of 623
+weak: none
+expansion absent: inscripcion-hacienda-clientes-extranjero, ho-donde-me-afilio-caja, rb-corto-que-cabys, ho-abs-cuanto-cobro-la-hora
+
+config                     targets    cases w/ all figures  abs-figures
+top8/capoff/pinoff         154/196    50/74        39       ho-abs-cuanto-cobro-la-hora(bmc-sem-2026)
+top8/capoff/pinon          154/196    50/74        41       ho-abs-cuanto-cobro-la-hora(bmc-ivm-2026,bmc-sem-2026)
+top8/cap3/pinoff           145/196    46/74        35       ho-abs-cuanto-cobro-la-hora(bmc-sem-2026)
+top8/cap3/pinon            147/196    47/74        41       ho-abs-cuanto-cobro-la-hora(bmc-ivm-2026,bmc-sem-2026)
+top8/cap2/pinoff           136/196    43/74        39       ho-abs-cuanto-cobro-la-hora(bmc-sem-2026)
+top8/cap2/pinon            138/196    44/74        45       ho-abs-cuanto-cobro-la-hora(bmc-ivm-2026,bmc-sem-2026)
+top10/capoff/pinoff        158/196    51/74        39       ho-abs-cuanto-cobro-la-hora(bmc-sem-2026)
+top10/capoff/pinon         158/196    51/74        41       ho-abs-cuanto-cobro-la-hora(bmc-ivm-2026,bmc-sem-2026)
+top10/cap3/pinoff          145/196    47/74        39       ho-abs-cuanto-cobro-la-hora(bmc-sem-2026)
+top10/cap3/pinon           147/196    48/74        45       ho-abs-cuanto-cobro-la-hora(bmc-ivm-2026,bmc-sem-2026)
+top10/cap2/pinoff          144/196    46/74        46       ho-abs-cuanto-cobro-la-hora(bmc-ivm-2026,bmc-sem-2026) ho-abs-iva-2027(cnpt-articulo-79-multa-declaracion-2026)
+top10/cap2/pinon           145/196    46/74        50       ho-abs-cuanto-cobro-la-hora(bmc-ivm-2026,bmc-sem-2026) ho-abs-iva-2027(cnpt-articulo-79-multa-declaracion-2026)
+top8/capoff/pinon/xrefoff  152/196    49/74        40       ho-abs-cuanto-cobro-la-hora(bmc-ivm-2026,bmc-sem-2026)
+top8/capoff/pinon/sboff    154/196    50/74        23       ho-abs-cuanto-cobro-la-hora(bmc-ivm-2026,bmc-sem-2026)
+
+cross-references (#508): targets 152 → 154, Tier 1 72 → 73
+  inscripcion-hacienda-clientes-extranjero: +ley-renta·ARTICULO 2·#0 (targets +1)
+  iva-clientes-fuera-cr: +ley-iva·Artículo 11·#0
+  cabys-desarrollo-software: +reglamento-comprobantes·Artículo 12·#0
+  ccss-asalariado-y-freelance: +ley-renta·ARTICULO 2·#0
+  ccss-cese-actividad: +ley-iva·Artículo 4·#0
+  factura-electronica-v44: +reglamento-comprobantes·Artículo 10·#0
+  desinscripcion-dejar-actividad: +ley-renta·ARTICULO 2·#0
+  renta-persona-fisica-deduccion: +ley-renta·Artículo 33·#0
+  tribu-cr-declarar-pagar: +tribu-cr-res-0020-2025·Artículo 1·#0
+  iva-servicios-extranjero-comprados: +ley-iva·Artículo 10·#0
+  iva-credito-fiscal-compras: +ley-iva·Artículo 11·#0
+  iva-declaracion-mensual: +ley-iva·Artículo 4·#0
+  iva-tarifa-general: +ley-iva·Artículo 1·#0
+  iva-tarifas-reducidas: +ley-iva·Artículo 28·#0
+  iva-momento-hecho-generador: +ley-iva·Artículo 11·#0
+  renta-bruta-que-incluye: +reglamento-renta·Artículo 4·#0
+  renta-tramos-2026: +ley-renta·ARTICULO 46·#0
+  renta-declaracion-plazo: +ley-renta·Artículo 31 ter·#0
+  renta-pagos-parciales-retenciones: +ley-renta·ARTICULO 21·#0
+  renta-salario-y-actividad: +ley-renta·ARTICULO 32·#0
+  comprobantes-plazo-conservacion: +reglamento-comprobantes·Artículo 23·#0
+  comprobantes-factura-vs-tiquete: +reglamento-comprobantes·Artículo 7·#0
+  exportacion-servicios-comprobante: +ley-iva·Artículo 11·#0
+  iva-facturas-en-dolares: +ley-renta·Artículo 1·#0
+  ccss-asalariado-followup: +ley-renta·ARTICULO 2·#0
+  exportacion-comprobante-followup: +reglamento-comprobantes·Artículo 9·#0
+  renta-plazo-followup: +ley-renta·ARTICULO 2·#0
+  iva-ajuste-bien-de-capital: +ley-iva·Artículo 11·#0
+  iva-retencion-tarjetas-porcentaje: +ley-iva·Artículo 10·#0
+  inscripcion-tribu-cr: +ley-renta·ARTICULO 2·#0
+  inscripcion-tardia-sancion: +cnpt·Artículo 79·#0
+  factura-primera-cabys: +reglamento-comprobantes·Artículo 12·#0
+  ho-hacienda-solo-cliente-eeuu: +reglamento-rts·Artículo 1·#0
+  ho-trabajitos-por-mi-cuenta: +ley-renta·ARTICULO 2·#0 (targets +1)
+  ho-donde-inscribo-ya-no-atv: +ley-renta·ARTICULO 23·#0
+  ho-tiquete-en-vez-de-factura: +reglamento-comprobantes·Artículo 7·#0
+  ho-factura-electronica-o-recibo: +reglamento-comprobantes·Artículo 10·#0
+  ho-cabys-paginas-web: +ley-iva·Artículo 4·#0
+  ho-cliente-espana-lleva-iva: +ley-iva·Artículo 11·#0
+  ho-iva-en-cero-sin-facturar: +ley-iva·Artículo 11·#0
+  ho-hasta-que-dia-tengo-iva: +ley-iva·Artículo 4·#0
+  ho-rebajar-25-sin-facturas: +ley-renta·ARTICULO 46·#0
+  ho-minimo-renta-2026: +ley-renta·ARTICULO 46·#0
+  ho-ademas-tengo-salario: +ley-renta·ARTICULO 32·#0
+  ho-desinscribir-debiendo-declaraciones: +ley-renta·ARTICULO 2·#0
+  ho-rebajar-multa-si-pago-ya: +ley-iva·Artículo 4·#0
+  ho-t2-credito-iva-compras: +ley-iva·Artículo 11·#0
+  ho-t2-hosting-extranjero: +ley-iva·Artículo 10·#0
+  ho-t2-retencion-tarjetas: +ley-iva·Artículo 10·#0
+  ho-t2-compu-cara-iva: +ley-iva·Artículo 11·#0
+  ho-t2-tipo-de-cambio: +ley-renta·Artículo 1·#0
+  ho-t2-payoneer: +ley-renta·Artículo 2 bis·#0
+  t2-inscripcion-dimex: +ley-iva·Artículo 4·#0
+  rb-pill-inscribo-exterior: +ley-renta·ARTICULO 2·#0 (targets +1)
+  rb-pill-primera-factura: +reglamento-comprobantes·Artículo 23·#0
+  rb-pill-iva-exterior: +ley-iva·Artículo 11·#0
+  rb-pill-retroactivo: +ley-renta·ARTICULO 46·#0
+  rb-pill-impuesto-renta: +reglamento-rts·Artículo 1·#0
+  rb-pill-me-salgo: +ley-iva·Artículo 9·#0
+  rb-pill-inscribi-tarde: +ley-iva·Artículo 4·#0
+  rb-corto-cuanto-es-iva: +ley-iva·Artículo 4·#0
+  rb-corto-tasa-iva: +ley-iva·Artículo 1·#0
+  rb-corto-tramos-renta: +ley-renta·ARTICULO 32·#0
+  rb-corto-cuando-declaro-renta: +ley-renta·ARTICULO 2·#0
+  rb-corto-cuando-declaro-iva: +ley-iva·Artículo 11·#0
+  rb-corto-que-cabys: +reglamento-comprobantes·Artículo 2·#0
+  rb-corto-multa-tarde: +cnpt·Artículo 81·#0
+  rb-tilde-inscribirme-afuera: +reglamento-comprobantes·Artículo 2·#0
+  rb-tilde-primera-fatura: +reglamento-comprobantes·Artículo 9·#0
+  rb-tilde-deje-de-trabajr: +ley-renta·ARTICULO 2·#0
+  rb-spanglish-client-usa: +ley-iva·Artículo 11·#0
+  rb-spanglish-invoice: +reglamento-comprobantes·Artículo 12·#0
+  rb-seguimiento-le-cobro-iva: +reglamento-comprobantes·Artículo 9·#0
+  rb-seguimiento-de-cuanto-multa: +ley-iva·Artículo 4·#0
+  ho-abs-me-conviene-sociedad: +reglamento-comprobantes·Artículo 2·#0
+  ho-abs-aguinaldo-freelancer: +ley-renta·ARTICULO 20·#0
+  ho-abs-iva-2027: +ley-iva·Artículo 28·#0
+  ho-abs-devs-exentos-renta: +ley-renta·Artículo 33·#0
+  ho-abs-patente-municipal: +reglamento-comprobantes·Artículo 4·#0
+  ho-abs-calculo-personalizado: +ley-renta·ARTICULO 32·#0
+  ho-abs-sociedad-inactiva: +reglamento-renta·Artículo 1·#0
+  ho-abs-recomendar-contador: +ley-renta·ARTICULO 13·#0
+  abs-dimex-sacar: +reglamento-comprobantes·Artículo 9·#0
+  abs-patente-comercial: +ley-renta·ARTICULO 2·#0
+
+salario base (#579): targets 154 → 154
+  inscripcion-hacienda-clientes-extranjero: +salario-base-2026·Circular 246-2025·#0
+  iva-clientes-fuera-cr: +salario-base-2026·Circular 246-2025·#0
+  cabys-desarrollo-software: +salario-base-2026·Circular 246-2025·#0
+  ccss-cese-actividad: +salario-base-2026·Circular 246-2025·#0
+  desinscripcion-dejar-actividad: +salario-base-2026·Circular 246-2025·#0
+  iva-declaracion-mensual: +salario-base-2026·Circular 246-2025·#0
+  iva-momento-hecho-generador: +salario-base-2026·Circular 246-2025·#0
+  renta-pagos-parciales-retenciones: +salario-base-2026·Circular 246-2025·#0
+  exportacion-servicios-comprobante: +salario-base-2026·Circular 246-2025·#0
+  renta-plazo-followup: +salario-base-2026·Circular 246-2025·#0
+  inscripcion-tribu-cr: +salario-base-2026·Circular 246-2025·#0
+  ho-hacienda-solo-cliente-eeuu: +salario-base-2026·Circular 246-2025·#0
+  ho-donde-inscribo-ya-no-atv: +salario-base-2026·Circular 246-2025·#0
+  ho-cliente-espana-lleva-iva: +salario-base-2026·Circular 246-2025·#0
+  ho-iva-en-cero-sin-facturar: +salario-base-2026·Circular 246-2025·#0
+  ho-hasta-que-dia-tengo-iva: +salario-base-2026·Circular 246-2025·#0
+  ho-rebajar-25-sin-facturas: +salario-base-2026·Circular 246-2025·#0
+  ho-desinscribir-debiendo-declaraciones: +salario-base-2026·Circular 246-2025·#0
+  ho-t2-retencion-tarjetas: +salario-base-2026·Circular 246-2025·#0
+  ho-t2-salir-del-pais-seguro: +salario-base-2026·Circular 246-2025·#0
+  ho-t2-payoneer: +salario-base-2026·Circular 246-2025·#0
+  t2-inscripcion-dimex: +salario-base-2026·Circular 246-2025·#0
+  rb-pill-inscribo-exterior: +salario-base-2026·Circular 246-2025·#0
+  rb-pill-iva-exterior: +salario-base-2026·Circular 246-2025·#0
+  rb-pill-me-salgo: +salario-base-2026·Circular 246-2025·#0
+  rb-corto-cuanto-es-iva: +salario-base-2026·Circular 246-2025·#0
+  rb-corto-cuando-declaro-iva: +salario-base-2026·Circular 246-2025·#0
+  rb-tilde-inscribirme-afuera: +salario-base-2026·Circular 246-2025·#0
+  rb-tilde-deje-de-trabajr: +salario-base-2026·Circular 246-2025·#0
+  rb-spanglish-client-usa: +salario-base-2026·Circular 246-2025·#0
+  rb-seguimiento-le-cobro-iva: +salario-base-2026·Circular 246-2025·#0
+
+top8/capoff/pinon, robustness block (#502): 25/27
+  MISS  rb-pill-retroactivo ← ccss-cobro-retroactivo  «¿Me pueden cobrar retroactivo?»  (seed hit)
+  MISS  rb-tilde-inscribirme-afuera ← inscripcion-hacienda-clientes-extranjero  «tengo q inscribirme en hacienda si le facturo a clientes de afuera»  (seed hit)
