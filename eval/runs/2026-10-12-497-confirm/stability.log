@@ -1,0 +1,115 @@
+hit-rate blocks in both lanes: 100
+  expansion text identical: 0/100 (missing in either: 0)
+  step family identical:    99/100
+groundedness rows in both lanes: 101
+  pipeline query identical: 87/101 — differs: ccss-cese-actividad, ccss-asalariado-followup, exportacion-comprobante-followup, renta-plazo-followup, ho-donde-inscribo-ya-no-atv, ho-donde-me-afilio-caja, ho-cabys-paginas-web, ho-hasta-que-dia-tengo-iva, ho-ademas-tengo-salario, ho-tambien-asegurado-por-patrono, ho-rebajar-multa-si-pago-ya, rb-seguimiento-cuanto-me-toca, rb-seguimiento-le-cobro-iva, rb-seguimiento-de-cuanto-multa
+printed chunks in both lanes' hit-rate leg: 625
+  same pool#: 232 · same rr#: 237 · same top/pinned/cut: 522
+groundedness answer-set Jaccard, G vs C: median 0.64
+  sets identical: 7/101
+
+the 17 rows #609 files as retrieval misses (16 once one is refiled): carrier, per draw
+  hit-rate leg: pool#/rr#/status, or «not printed» when the carrier is no target, catalogue reach or tier1-carriers entry
+  answer set:   the groundedness leg's set, «in» or «—»
+
+ccss-pedir-prescripcion-cuotas — 20 días hábiles to resolve
+  carrier: ccss-prescripcion · ¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración?
+  expansion G vs C: differs · steps T1-G / T1-G
+  Wave G   hit-rate pool#7 rr#19 cut           answer set in
+  confirm  hit-rate pool#6 rr#16 pinned        answer set —
+
+desinscripcion-dejar-actividad — ATV disabled (#602 item 1)
+  carrier: tribu-cr-res-0011-2025 · Artículo 1 | tribu-cr-res-0020-2025 · Preámbulo | tribu-cr-res-0033-2025 · Preámbulo
+  expansion G vs C: differs · steps T1-H / T1-H
+  Wave G   hit-rate not printed                answer set —
+  confirm  hit-rate not printed                answer set —
+
+inscripcion-tardia-sancion — inscription filing in the OVi
+  carrier: tribu-cr-faq · Declaraciones del RUT · 2
+  expansion G vs C: differs · steps T1-I / T1-I
+  Wave G   hit-rate pool#2 rr#31 pinned        answer set in
+  confirm  hit-rate pool#2 rr#35 pinned        answer set —
+
+ho-hacienda-solo-cliente-eeuu — exempt is not non-contribuyente
+  carrier: ley-iva · Artículo 4 | ley-iva · Artículo 8
+  expansion G vs C: differs · steps T1-A / T1-A
+  Wave G   hit-rate pool#— rr#— cut            answer set —
+  confirm  hit-rate pool#— rr#— cut            answer set —
+
+ho-hacienda-solo-cliente-eeuu — inscripción de oficio
+  carrier: ley-iva · Artículo 5
+  expansion G vs C: differs · steps T1-A / T1-A
+  Wave G   hit-rate pool#19 rr#8 top           answer set —
+  confirm  hit-rate pool#— rr#— cut            answer set —
+
+ho-donde-inscribo-ya-no-atv — who may inscribe online
+  carrier: tribu-cr-faq · Registro Único Tributario (RUT) · 2
+  expansion G vs C: differs · steps T1-A / T1-A
+  Wave G   hit-rate pool#7 rr#10 cut           answer set —
+  confirm  hit-rate pool#10 rr#12 cut          answer set —
+
+ho-donde-inscribo-ya-no-atv — OVi path to the inscription
+  carrier: tribu-cr-faq · Declaraciones del RUT · 3
+  expansion G vs C: differs · steps T1-A / T1-A
+  Wave G   hit-rate not printed                answer set in
+  confirm  hit-rate not printed                answer set —
+
+ho-cliente-espana-lleva-iva — 13 % if consumed in CR
+  carrier: ley-iva · Artículo 10 | reglamento-iva · Artículo 32
+  expansion G vs C: differs · steps T1-D / T1-D
+  Wave G   hit-rate pool#14 rr#36 cut          answer set in
+  confirm  hit-rate pool#20 rr#34 pinned       answer set —
+
+ho-cliente-espana-lleva-iva — factura electrónica de exportación (#609 counts it as retrieval; the confirming set holds it, so unsaid)
+  carrier: reglamento-comprobantes · Artículo 13
+  expansion G vs C: differs · steps T1-D / T1-D
+  Wave G   hit-rate not printed                answer set —
+  confirm  hit-rate not printed                answer set in
+
+ho-iva-en-cero-sin-facturar — 50 % of a salario base
+  carrier: cnpt · Artículo 79
+  expansion G vs C: differs · steps T1-D / T1-D
+  Wave G   hit-rate pool#7 rr#38 cut           answer set in
+  confirm  hit-rate pool#7 rr#36 cut           answer set —
+
+ho-rebajar-25-sin-facturas — annual return in TRIBU-CR (#602 item 2)
+  carrier: tribu-cr-res-0020-2025 · Artículo 3 | tribu-cr-res-0011-2025 · Artículo 2
+  expansion G vs C: differs · steps T1-E / T1-E
+  Wave G   hit-rate pool#17 rr#40 cut          answer set —
+  confirm  hit-rate pool#— rr#— cut            answer set —
+
+ho-minimo-renta-2026 — period 1 Jan – 31 Dec
+  carrier: reglamento-renta · Artículo 12
+  expansion G vs C: differs · steps T1-E / T1-E
+  Wave G   hit-rate not printed                answer set —
+  confirm  hit-rate not printed                answer set —
+
+ho-ademas-tengo-salario — pagos parciales, deducted
+  carrier: ley-renta · ARTICULO 22
+  expansion G vs C: differs · steps T1-E / T1-E
+  Wave G   hit-rate pool#20 rr#29 cut          answer set in
+  confirm  hit-rate pool#17 rr#27 pinned       answer set —
+
+ho-ademas-tengo-salario — pagos parciales: when, rebaja
+  carrier: ley-renta · ARTICULO 22
+  expansion G vs C: differs · steps T1-E / T1-E
+  Wave G   hit-rate pool#20 rr#29 cut          answer set in
+  confirm  hit-rate pool#17 rr#27 pinned       answer set —
+
+ho-ademas-tengo-salario — 2 months 15 days
+  carrier: ley-renta · ARTICULO 22 | ley-renta · ARTICULO 20
+  expansion G vs C: differs · steps T1-E / T1-E
+  Wave G   hit-rate pool#20 rr#29 cut          answer set in
+  confirm  hit-rate pool#17 rr#27 pinned       answer set —
+
+ho-tambien-asegurado-por-patrono — afiliación, sucursal or online
+  carrier: ccss-reglamento-ti · Artículo 7
+  expansion G vs C: differs · steps T1-F / T1-F
+  Wave G   hit-rate not printed                answer set —
+  confirm  hit-rate not printed                answer set —
+
+ho-desinscribir-debiendo-declaraciones — 50 % of a salario base
+  carrier: cnpt · Artículo 79
+  expansion G vs C: differs · steps T1-H / T1-H
+  Wave G   hit-rate pool#13 rr#28 cut          answer set —
+  confirm  hit-rate pool#10 rr#28 cut          answer set —
