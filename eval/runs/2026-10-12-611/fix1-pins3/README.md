@@ -2,7 +2,9 @@
 
 `pin1`'s fresh step picks are ranked by the question's own Voyage score for
 each pick, not by their rank in the question-and-expansion order. The draws
-ran on 2026-10-13 from PR #621's head (36f2bb4), with the README's step 3
+ran on 2026-10-13 from 36f2bb4, now kept on the branch
+`rjwrld/611-fix1-question-score-code` (the code did not ship; see
+[the close-out](../README.md)), with the README's step 3
 commands and `ANSWER_EFFORT=low`. Estimated cost ≈US$1.60.
 
 - The smoke read `rewrites: live`, and its largest `step` count was 3.

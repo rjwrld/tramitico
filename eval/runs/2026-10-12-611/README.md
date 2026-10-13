@@ -3,6 +3,8 @@
 #611 makes Tier 1 carrier recall higher and the same from run to run. It
 doesn't touch the answer prompt. This directory holds the wave's record.
 Step 0 is free. Each paid step runs only after an owner OK, one at a time.
+The owner stopped the wave after step 3: see «Wave stopped after step 3»
+at the end.
 
 | File                                       | What it is                                                                                               |
 | ------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
@@ -187,7 +189,10 @@ done
 **Cost:** ≈US$3.00 for the ten draws, plus ≈US$0.02 for the two smokes. That
 brings steps 1–2 to ≈US$4.50 of the US$12 cap for steps 1–5.
 
-## Step 3: fix 1 at `STEP_PINS=3`, step picks ranked by the question's own score (needs code, awaiting OK)
+## Step 3: fix 1 at `STEP_PINS=3`, step picks ranked by the question's own score (ran 2026-10-13)
+
+The results are in [`fix1-pins3/README.md`](fix1-pins3/README.md). The arm
+fails R1–R4.
 
 Fix 1 ranks `pin1`'s fresh picks by the question's own Voyage score for each
 pick, instead of their place in the question-and-expansion order
@@ -232,3 +237,58 @@ pnpm -s -C "$W" exec tsx eval/runs/2026-10-12-611/bars.ts --picks \
 The frozen logs must read `rewrites: replayed from …`. **Cost:** ≈US$1.60:
 ≈US$1.50 for the five live draws, plus ≈US$0.10 for the two frozen ones,
 which ask Voyage only. That brings steps 1–3 to ≈US$6.00 of US$12.
+
+## Wave stopped after step 3 (owner, 2026-10-13)
+
+The owner stopped the wave after step 3. No more paid calls. The evidence
+ships, and fix 1's code does not (the #460/#470 pattern).
+
+### What each step measured
+
+Five live `answer-set-probe` draws per arm, read by `bars.ts` against the
+control. R2 is Amendment 2's measure and R3 is Amendment 1's.
+
+| Arm                                 | R1 carrier recall (needs ≥ 63.1 %, floor 3/5) | R2 picks identical (needs ≥ 90 %) | R3 hit-rate · robustness                | R4 median size (≤ 13) | R1–R4    |
+| ----------------------------------- | --------------------------------------------- | --------------------------------- | --------------------------------------- | --------------------- | -------- |
+| [control](control/) (main, width 2) | 53.1 %                                        | 7/27                              | 71–73/74 · 130/135                      | 11                    | baseline |
+| [`pins3`](pins3/) (width 3)         | FAIL 60.9 %, floor held                       | FAIL 16/27                        | PASS 70–71/74 · 133/135                 | PASS 12               | FAIL     |
+| [`pins5`](pins5/) (width 5)         | PASS 63.3 %, floor held                       | FAIL 22/27                        | FAIL 69/74 = 93.2 % on draw 2 · 133/135 | PASS 13               | FAIL     |
+| [`fix1-pins3`](fix1-pins3/) (fix 1) | FAIL 60.9 %, floor broken on 2 rows           | FAIL 19/27                        | PASS 70–73/74 · 131/135                 | PASS 12               | FAIL     |
+
+No arm passes R1–R4, so by the stop rules no answer spend (steps 6–7) was
+due.
+
+### Why it stopped
+
+- **Recall is flat.** Fix 1 reads 195/320 (60.9 %), the same as width 3
+  alone. It changes which rows are carried, not how many.
+- **Fix 1 breaks the floor.** Two rows the control carries on 4+/5 draws
+  fall to 2/5: `ccss-pedir-prescripcion-cuotas`'s resolution deadline (4/5 →
+  2/5) and `ccss-obligacion-ingreso-bajo`'s legal basis (5/5 → 2/5).
+- **R2's residual comes from the live rewrites.** With the rewrites frozen,
+  fix 1's two draws pick the same catalogue chunks on 26/27 cases. With live
+  rewrites they agree on 19/27. The expansion still moves the pool and the
+  top 8, and ranking the pins alone doesn't hold the set still. The one
+  frozen miss, `ho-rebajar-25-sin-facturas`, fits embeddings that aren't
+  bit-identical (#457).
+- Width 5 passes R1 but fails R2 and R3, and sits at R4's limit.
+
+### Where the code lives
+
+Fix 1's code (`cutWithSteps` ranking fresh picks by the question's own
+Voyage score, with its unit tests) is on the kept branch
+[`rjwrld/611-fix1-question-score-code`](https://github.com/rjwrld/tramitico/tree/rjwrld/611-fix1-question-score-code)
+(commit 36f2bb4). It was reverted on #621 and never reached main.
+Production stays on `pin1` at `STEP_PINS=2`.
+
+### Not tried
+
+- Fix 2, the catalogue (#602 items 1 and 2, and the gap sentences).
+- Fix 3, several expansions merged. It is the only fix aimed at the
+  rewrite variance that R2's residual points to.
+
+### Spend
+
+Steps 1–3 cost about **US$6.00** (estimated; no log prints a cost):
+≈US$1.45 for the control, ≈US$2.95 for the width sweep and ≈US$1.60 for
+fix 1. That is within the US$12 cap for steps 1–5.
