@@ -4,6 +4,8 @@ import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import type { RetrievedChunk } from "../retrieval";
 import { checkAnswer } from "./answer-checks";
+import { AMENDING_CASE_ID, AMENDING_QUESTION } from "./amending-law";
+import { CONFLICT_CASE_ID, CONFLICT_QUESTION } from "./conflicting-sources";
 import type { EvalCase } from "./dataset";
 import {
   droppedReadingsSummary,
@@ -11,6 +13,7 @@ import {
   serializeTranscript,
   transcriptFilename,
   transcriptRow,
+  writeFixtureTranscript,
   writeTranscript,
   type TranscriptRow,
 } from "./transcript";
@@ -432,6 +435,14 @@ describe("transcriptFilename", () => {
       }),
     ).toBe("groundedness-claude-sonnet-5-subset-20260905T025503Z.jsonl");
   });
+
+  it("takes another lane's prefix in place of groundedness (#610)", () => {
+    expect(
+      transcriptFilename("claude-sonnet-5", new Date("2026-09-05T02:55:03Z"), {
+        lane: "conflicting-sources",
+      }),
+    ).toBe("conflicting-sources-claude-sonnet-5-20260905T025503Z.jsonl");
+  });
 });
 
 describe("writeTranscript", () => {
@@ -468,5 +479,49 @@ describe("writeTranscript", () => {
     expect(JSON.parse(readFileSync(written, "utf8").trim()).id).toBe(
       "ho-minimo-renta-2026",
     );
+  });
+});
+
+describe("writeFixtureTranscript", () => {
+  const now = new Date("2026-10-12T23:10:00Z");
+  const fixtureRow = (id: string, question: string) => ({
+    id,
+    question,
+    answer: "Las fuentes discrepan: ¢4.094.000 [1] y ¢3.947.000 [2].",
+    verdict: "pass" as const,
+    verdicts: ["pass" as const],
+    reason: "states both",
+  });
+
+  // #610: first-person-check.sh reads `id` and `answer` off each line, so
+  // both fixture lanes' answers reach it.
+  it.each([
+    [CONFLICT_CASE_ID, CONFLICT_QUESTION],
+    [AMENDING_CASE_ID, AMENDING_QUESTION],
+  ])("writes %s's answer as one line named by the lane", (id, question) => {
+    const dir = mkdtempSync(path.join(tmpdir(), "fixture-"));
+    const row = fixtureRow(id, question);
+    const file = writeFixtureTranscript(row, {
+      dir,
+      answerModel: "claude-sonnet-5-5-effort-low",
+      now,
+    });
+    expect(path.basename(file)).toBe(
+      `${id}-claude-sonnet-5-5-effort-low-20261012T231000Z.jsonl`,
+    );
+    const lines = readFileSync(file, "utf8").split("\n").filter(Boolean);
+    expect(lines).toHaveLength(1);
+    expect(JSON.parse(lines[0])).toEqual(row);
+  });
+
+  it("never overwrites an earlier re-ask from the same second", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "fixture-"));
+    const at = { dir, answerModel: "m", now };
+    const row = fixtureRow(CONFLICT_CASE_ID, CONFLICT_QUESTION);
+    const first = writeFixtureTranscript(row, at);
+    const second = writeFixtureTranscript({ ...row, answer: "otra" }, at);
+    expect(second).not.toBe(first);
+    expect(JSON.parse(readFileSync(first, "utf8")).answer).toBe(row.answer);
+    expect(JSON.parse(readFileSync(second, "utf8")).answer).toBe("otra");
   });
 });

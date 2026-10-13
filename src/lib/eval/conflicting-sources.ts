@@ -129,3 +129,6 @@ export const conflictJudgeOnce: JudgeOnce = async (
   });
   return parseJudgeVerdict(text);
 };
+
+/** The case's id in its transcript row and filename (#610). */
+export const CONFLICT_CASE_ID = "conflicting-sources";

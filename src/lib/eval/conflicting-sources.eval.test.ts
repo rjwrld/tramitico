@@ -29,11 +29,13 @@ import {
   conflictJudgeOnce,
   CONFLICT_CHUNKS,
   CONFLICT_FIGURES,
+  CONFLICT_CASE_ID,
   CONFLICT_QUESTION,
 } from "./conflicting-sources";
 import { judgeAnswer, JUDGE_MODEL, type Verdict } from "./groundedness";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import { fixtureLane } from "./scoped-lane";
+import { writeFixtureTranscript } from "./transcript";
 
 // `describe.runIf` was a silent skip: with no key this suite reported zero
 // tests and the eval lane went green having asserted nothing — the exact
@@ -69,9 +71,21 @@ describeEval("conflicting sources (#135)", () => {
       conflictJudgeOnce,
     ));
     const votes = verdicts.length > 1 ? ` [${verdicts.join("/")}]` : "";
+    // #610: on disk too, where first-person-check.sh can read the answer.
+    const transcript = writeFixtureTranscript(
+      {
+        id: CONFLICT_CASE_ID,
+        question: CONFLICT_QUESTION,
+        answer,
+        verdict,
+        verdicts,
+        reason,
+      },
+      { answerModel: answerModelId },
+    );
     console.log(
       `\nconflicting sources (answer=${answerModelId}, judge=${JUDGE_MODEL}): ` +
-        `${verdict}${votes}\n${answer}\n`,
+        `${verdict}${votes}\n${answer}\n\ntranscript: ${transcript}\n`,
     );
   }, 300_000);
 

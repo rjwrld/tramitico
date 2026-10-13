@@ -2503,6 +2503,12 @@ ANTHROPIC_API_KEY=<key> \
 pnpm vitest run --disableConsoleIntercept src/lib/eval/conflicting-sources.eval.test.ts
 ```
 
+Since #610 each run also writes its answer and verdict as one row,
+`conflicting-sources-<answer model>-<instant>.jsonl`, beside the other lanes'
+transcripts, so #600's `runs/2026-10-12-600/first-person-check.sh` counts it
+with the groundedness answers. The amending-law case (#182) writes
+`amending-law-…` the same way (`writeFixtureTranscript`).
+
 Verified 2026-08-13 (answer `claude-sonnet-5`, judge `claude-sonnet-4-5`):
 pass — the answer opens with «Las fuentes discrepan…», names each decree with
 its own figure and marker, and refers the reader to Hacienda for which one

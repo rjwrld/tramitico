@@ -126,6 +126,9 @@ export const AMENDING_CHUNKS: RetrievedChunk[] = [
  */
 export const AMENDING_ONLY_IN_CONSOLIDATED = "0,5%";
 
+/** The case's id in its transcript row and filename (#610). */
+export const AMENDING_CASE_ID = "amending-law";
+
 export const AMENDING_JUDGE_SYSTEM_PROMPT = `You are an adversarial judge for a Costa Rican tax/trámite assistant. You are given a user question, two numbered official fragments, and the assistant's answer (in Spanish).
 
 The two fragments are the SAME article of the SAME body of law at two moments: fragment [1] is the consolidated (current) text, and fragment [2] is the reform law that wrote it. They differ on some figures and wording because the consolidated text has since been amended. They are NOT two sources in conflict, and nothing in them says the current rates are disputed.
