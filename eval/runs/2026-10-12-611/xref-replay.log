@@ -1,0 +1,32 @@
+
+eval/runs/2026-10-10-497-wave-g/lane/groundedness-claude-sonnet-5-5-effort-low-20261011T012347Z.jsonl
+  cut: reglamento-iva Artículo 30 | reglamento-iva Artículo 32 | reglamento-iva Artículo 29 | reglamento-iva Artículo 25 | ley-iva Artículo 28 | reglamento-iva Artículo 31 | ley-iva Artículo 20 | reglamento-iva Transitorio XIII | ley-iva Artículo 27 | ley-iva Artículo 3
+  appended after the cut: ley-iva Artículo 11 | salario-base-2026 Circular 246-2025
+   1. ley-iva 11 (defers a figure)
+   2. ley-iva 10 (defers a figure)
+   3. ley-iva 9
+   4. reglamento-iva 66
+   5. reglamento-iva 11
+   6. ley-iva 4
+   7. ley-iva 8
+   8. ley-iva 26
+   9. reglamento-iva 34
+  10. reglamento-iva 15
+  11. reglamento-iva 18
+  12. reglamento-iva 49
+
+eval/runs/2026-10-12-497-confirm/lane/groundedness-claude-sonnet-5-5-effort-low-20261012T233756Z.jsonl
+  cut: reglamento-iva Artículo 29 | ley-iva Artículo 27 | reglamento-iva Artículo 12 | reglamento-iva Artículo 25 | ley-iva Artículo 20 | reglamento-iva Artículo 32 | reglamento-iva Artículo 30 | reglamento-iva Artículo 40 bis | ley-iva Artículo 3 | ley-iva Artículo 10
+  appended after the cut: ley-iva Artículo 11
+   1. ley-iva 11 (defers a figure)
+   2. reglamento-iva 15
+   3. reglamento-iva 18
+   4. ley-iva 4
+   5. ley-iva 8
+   6. reglamento-iva 49
+   7. ley-iva 18
+   8. ley-iva 19
+   9. ley-iva 26
+  10. reglamento-iva 37
+  11. ley-iva 12
+  12. reglamento-iva 66
