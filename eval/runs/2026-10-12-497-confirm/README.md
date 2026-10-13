@@ -18,6 +18,8 @@ said of the data, not of the assistant, rules 3 and 7).
 | `smoke-groundedness-…T230710Z.log` · `smoke/` | The three-case smoke: 3/3 grounded, no false absence claim, Tier 1 4/4.                                                  |
 | `lane-…T230811Z.log` · `lane/`                | The lane, 1784 s: the groundedness (101 rows, no re-ask) and abstention (15 rows) transcripts.                           |
 | `read.mjs` · `read.log`                       | Free: the Tier 1 requirements lost and gained against Wave G, the chunks only one set holds, and the answer-set overlap. |
+| `conflicting/`                                | The conflicting-sources case re-asked three times on main 0aa2011, after the lane (below).                               |
+| `stability.mjs` · `stability.log`             | Free: where the two lanes' retrieval parts, and where each retrieval-miss carrier sat in each draw (below).              |
 
 The run went from the main checkout, so the logs' paths to it read
 `<main-checkout>`. Nothing else is edited. The transcripts are also in the main
@@ -196,6 +198,12 @@ hand above. The local stack was queried read-only for
 | In the set, unsaid                      |           11 | `ccss-ventana-prescripcion-24-meses`, `ccss-obligacion-ingreso-bajo` ×2, `ho-trabajitos-por-mi-cuenta`, `ho-donde-me-afilio-caja`, `ho-tiquete-en-vez-de-factura` ×2, `ho-factura-electronica-o-recibo`, `ho-cliente-espana-lleva-iva` (hecho generador), `ho-ademas-tengo-salario` (two scales), `ho-cobrar-8-anos-atras-caja`                                                                                                                                                                                                                   |
 | Corpus gap                              |            0 | —                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
+**Correction (2026-10-12, `stability.log`):** one row is misfiled.
+`ho-cliente-espana-lleva-iva`'s «factura electrónica de exportación» is in this
+set (`reglamento-comprobantes` 13, as the paragraph below says), so it is
+unsaid, not a retrieval miss. The split is **16 retrieval · 12 unsaid**; the
+case counts below are unchanged, since the case misses on both anyway.
+
 By case: 10 of the 19 miss on retrieval alone, 7 only on unsaid carriers, and 2
 (`ho-cliente-espana-lleva-iva`, `ho-ademas-tengo-salario`) on both. Four of
 the 11 unsaid rows are judge-sensitive: their wording passed in Wave G
@@ -237,6 +245,50 @@ sampling. The conflicting-sources case alone, re-asked three times on main
 (#474's 2-of-3), costs ≈US$0.30. This proposes no tuning toward a number (ADR
 0023).
 
+## Conflicting sources, re-asked
+
+After the lane the orchestrator re-asked the case three times on main at
+0aa2011, whose answer path is b416b54's (`conflicting/`). **3/3 pass**, so
+the lane's red reads as one fail in four asks: noise on a borderline answer,
+as above. The ≈US$2.5 fixed-chunk replay was not run, by the owner's decision.
+
+Two of the three answers keep first person: «no puedo señalar cuál aplica a
+su caso» (re-ask 2) and «no aparecen en lo que recibí de las fuentes, así que
+no puedo darlos aquí» (re-ask 3). Rule 4b's own last sentence ends «usted no
+puede afirmarlo», which likely invites it. #600's rules 3 and 7 don't reach
+this answer, and the groundedness transcript doesn't hold it, so
+`first-person-check.sh` can't see it either.
+
+## Where the retrieval variance enters
+
+`stability.mjs` reads both lanes' hit-rate blocks (the expansion text and the
+pool#/rr# of each printed target, catalogue reach and carrier) and both
+groundedness answer sets. It is free.
+
+```sh
+node eval/runs/2026-10-12-497-confirm/stability.mjs \
+  eval/runs/2026-10-10-497-wave-g/lane-20261011T005438Z.log \
+  eval/runs/2026-10-12-497-confirm/lane-20261012T230811Z.log \
+  eval/runs/2026-10-10-497-wave-g/lane/groundedness-claude-sonnet-5-5-effort-low-20261011T012347Z.jsonl \
+  eval/runs/2026-10-12-497-confirm/lane/groundedness-claude-sonnet-5-5-effort-low-20261012T233756Z.jsonl
+```
+
+- **The expansion text differs on 100 of 100 cases** between the lanes. The
+  step family is the same on 99, and the one that changes
+  (`exportacion-comprobante-followup`) is a follow-up whose condensation
+  changed: 14 of 101 rows ran on a different condensed query.
+- **Seven of the 16 retrieval misses are a step-pin draw.** The carrier is in
+  the pool every time it is printed (pool#2–#20), the rerank puts it at
+  rr#16–#38, and it reaches the set only when a pin brings it. `pin1` takes 2
+  of a family's 4–5 sentence picks, ranked by the question-and-expansion
+  order, so which two changes with the expansion. Six of the seven are pinned
+  in a lane's hit-rate draw and absent from the same lane's answer set; the
+  seventh (`cnpt` 79 for `ho-iva-en-cero-sin-facturar`) is the reverse.
+- The others: 2 are in the pool and cut on every draw (`cnpt` 79 at rr#28,
+  RUT · 2 at rr#10–#12), 2 enter the pool only on some expansions (`ley-iva`
+  5, RES-0020/RES-0011), 2 are in no pool read (the ATV carriers, `ley-iva`
+  4/8), and 3 aren't printed by the lane, so their place is unknown.
+
 ## Baselines
 
 None moved. Groundedness stays 73 (floor 69), Tier 1 92 (fails ≤ 87), the
@@ -252,7 +304,8 @@ configuration and row count.
 | Smoke (3 answers, judges, rewrites, rerank)              | 0.20       |
 | Lane: answers, judges, adequacy and label judges         | 8.30       |
 | Lane: abstention, fixtures, embeddings, rerank, rewrites | 2.10       |
-| **Total**                                                | **≈10.60** |
+| Conflicting sources re-asked ×3 (answers, judges)        | 0.30       |
+| **Total**                                                | **≈10.90** |
 
 The read above is free: transcripts, `read.mjs`, `first-person-check.sh` and
 one read-only query on the shared local stack.
