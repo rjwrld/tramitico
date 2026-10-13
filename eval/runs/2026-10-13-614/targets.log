@@ -1,0 +1,10 @@
+# per target requirement, 1 = stated, 0 = in the adequacy judge's missing list
+# columns: lane (control d0), control d1, control d2, candidate d1, candidate d2, candidate d3
+ho-tiquete-en-vez-de-factura «artículo 9»: 0 1 0 1 1 0
+ho-factura-electronica-o-recibo «facturador gratuito»: 0 0 0 1 0 0
+ho-ademas-tengo-salario «escalas distintas»: 0 0 0 0 0 0
+ccss-obligacion-ingreso-bajo «categoría 1»: 0 0 0 0 0 0
+ho-cliente-espana-lleva-iva «factura electrónica de exportación»: 0 1 1 0 1 0
+ho-tiquete-en-vez-de-factura «Registro Único»: 0 0 0 0 0 0
+ho-cliente-espana-lleva-iva «hecho generador»: 0 0 0 0 0 0
+ho-donde-me-afilio-caja «primera letra»: 0 0 0 0 0 1
