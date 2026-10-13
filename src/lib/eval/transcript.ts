@@ -347,7 +347,7 @@ export function serializeTranscript(rows: readonly TranscriptRow[]): string {
  * it leaves behind must not read, a week later, as the full run it sits beside.
  *
  * `lane` replaces the `groundedness` prefix for a lane that writes its own
- * rows (#610: `conflicting-sources-…`).
+ * rows (#610: `conflicting-sources-…`, `amending-law-…`).
  */
 export function transcriptFilename(
   answerModel: string,
@@ -392,15 +392,45 @@ export function writeTranscript(
 }
 
 /**
- * Writes `body` to `dir/name`, or to `name-2.jsonl`, `-3`… when the name is
- * taken, and returns the path: `writeTranscript`'s no-overwrite rule, for a
- * lane whose rows aren't a `TranscriptRow` (#610's conflicting-sources case).
+ * The one row a fixture lane writes (#610): the conflicting-sources and
+ * amending-law cases answer hand-written fragments, not a dataset case, so
+ * they have no `TranscriptRow`. Until #610 their answers lived only in the
+ * console, so `first-person-check.sh` (runs/2026-10-12-600/), which reads `id`
+ * and `answer` off each JSONL line, could not count them, and rule 4b's first
+ * person went unseen through #600's read.
  */
-export function writeJsonlExclusive(
-  dir: string,
-  name: string,
-  body: string,
+export interface FixtureTranscriptRow {
+  /** The lane's case id; also the filename's prefix. */
+  id: string;
+  question: string;
+  answer: string;
+  verdict: Verdict;
+  verdicts: Verdict[];
+  reason: string;
+}
+
+/**
+ * Writes the row as `<id>-<answer model>-<instant>.jsonl` beside the other
+ * lanes' transcripts, never over an earlier one, and returns the path.
+ */
+export function writeFixtureTranscript(
+  row: FixtureTranscriptRow,
+  {
+    dir = process.env.EVAL_TRANSCRIPT_DIR ?? DEFAULT_TRANSCRIPT_DIR,
+    answerModel,
+    now = new Date(),
+  }: { dir?: string; answerModel: string; now?: Date },
 ): string {
+  return writeJsonlExclusive(
+    dir,
+    transcriptFilename(answerModel, now, { lane: row.id }),
+    JSON.stringify(row) + "\n",
+  );
+}
+
+/** Writes `body` to `dir/name`, or to `name-2.jsonl`, `-3`… when the name is
+ * taken, and returns the path: `writeTranscript`'s no-overwrite rule. */
+function writeJsonlExclusive(dir: string, name: string, body: string): string {
   mkdirSync(dir, { recursive: true });
   for (let attempt = 0; ; attempt += 1) {
     const file = path.join(

@@ -37,6 +37,7 @@ import { ANSWER_SYSTEM, buildUserPrompt } from "../answer/prompt";
 import { crDate } from "../cr-time";
 import {
   amendingJudgeOnce,
+  AMENDING_CASE_ID,
   AMENDING_CHUNKS,
   AMENDING_ONLY_IN_CONSOLIDATED,
   AMENDING_QUESTION,
@@ -44,6 +45,7 @@ import {
 import { judgeAnswer, JUDGE_MODEL, type Verdict } from "./groundedness";
 import { envPrereqs, integrationSuite } from "../test-support/suite-gate";
 import { fixtureLane } from "./scoped-lane";
+import { writeFixtureTranscript } from "./transcript";
 
 // #536: no dataset case lives here, so any `EVAL_CASES` skips this lane.
 const describeEval = fixtureLane(
@@ -75,9 +77,21 @@ describeEval("consolidated law beside its reform (#182)", () => {
       amendingJudgeOnce,
     ));
     const votes = verdicts.length > 1 ? ` [${verdicts.join("/")}]` : "";
+    // #610: on disk too, where first-person-check.sh can read the answer.
+    const transcript = writeFixtureTranscript(
+      {
+        id: AMENDING_CASE_ID,
+        question: AMENDING_QUESTION,
+        answer,
+        verdict,
+        verdicts,
+        reason,
+      },
+      { answerModel: answerModelId },
+    );
     console.log(
       `\nconsolidated vs reform (answer=${answerModelId}, judge=${JUDGE_MODEL}): ` +
-        `${verdict}${votes}\n${answer}\n`,
+        `${verdict}${votes}\n${answer}\n\ntranscript: ${transcript}\n`,
     );
   }, 300_000);
 
