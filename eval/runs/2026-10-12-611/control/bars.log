@@ -1,0 +1,8 @@
+arm eval/runs/2026-10-12-611/control against eval/runs/2026-10-12-611/control
+
+R1 FAIL  mean share 53.1 % vs control 53.1 % (needs ≥ 63.1 %); floor rows fallen below 3/5: none
+R2 FAIL  step-pinned subset identical 7/27 (25.9 %, needs ≥ 90 %); Tier 1 median Jaccard 0.67 vs control 0.67
+R3 PASS  hit-rate 71/74 71/74 73/74 72/74 72/74 (PASS); robustness 26 25 26 27 26 = 130/135 (PASS); all-targets mean 49.2 vs control 49.2; isWeak flips none, differs from control none
+R4 PASS  median size 11 vs control 11 (needs ≤ 13)
+
+R1–R4: FAIL

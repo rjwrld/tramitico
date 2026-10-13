@@ -155,7 +155,9 @@ pnpm -C "$W" carrier-recall "$W/eval/runs/2026-10-12-611/carriers.json" \
 Haiku 5.5 expansions and condensations), plus ≈US$0.01 for the smoke. Steps
 1–5 stop at US$12.
 
-## Step 2: the width sweep, knob only (paid, awaiting OK)
+## Step 2: the width sweep, knob only (ran 2026-10-13)
+
+The results are in [`step2.md`](step2.md). Neither arm passes R1–R4.
 
 `STEP_PINS=3` and `STEP_PINS=5`, five live draws each, on the same code as
 the control. `STEP_PINS=5` pins every fresh pick, since a family has at most
@@ -184,3 +186,49 @@ done
 
 **Cost:** ≈US$3.00 for the ten draws, plus ≈US$0.02 for the two smokes. That
 brings steps 1–2 to ≈US$4.50 of the US$12 cap for steps 1–5.
+
+## Step 3: fix 1, step picks ranked by the question's own score (needs code, awaiting OK)
+
+Fix 1 ranks `pin1`'s fresh picks by the question's own Voyage score for each
+pick, instead of their place in the question-and-expansion order
+(`cutWithSteps` in `rerank.ts`). The code lands where the owner decides,
+written below as `<fix1-worktree>`. The arm runs at a width the owner picks,
+`<width>`. Fix 1 only changes which picks go in where the slots are fewer
+than the fresh picks, so width 2 or 3 tests it, and width 5 nearly doesn't
+(`step2.md`).
+
+```sh
+W=<fix1-worktree>
+WIDTH=<width>
+OUT=$W/eval/runs/2026-10-12-611/fix1-pins$WIDTH
+mkdir -p "$OUT"
+
+# Smoke: `rewrites: live`; the largest `step` count must equal min(WIDTH, fresh picks), > 2 when WIDTH > 2.
+env -u EVAL_REWRITES STEP_PINS=$WIDTH EVAL_CASES=ho-ademas-tengo-salario,ho-t2-credito-iva-compras,ho-abs-iva-2027 \
+  PROBE_CASE_MS=3000 ANSWER_EFFORT=low \
+  pnpm -C "$W" answer-set-probe "$OUT/smoke.json" > "$OUT/smoke.log" 2>&1
+jq '[.reads[] | [.per["top8/capoff/pinon"].pins // {} | to_entries[] | select(.value=="step")] | length] | max' "$OUT/smoke.json"
+
+# Five live draws, one after another.
+for i in 1 2 3 4 5; do
+  env -u EVAL_REWRITES -u EVAL_CASES STEP_PINS=$WIDTH PROBE_CASE_MS=3000 ANSWER_EFFORT=low \
+    pnpm -C "$W" answer-set-probe "$OUT/probe-$i.json" > "$OUT/probe-$i.log" 2>&1
+done
+
+# Two frozen-rewrite draws on draw 1's rewrites: their step-pinned subsets must be identical.
+for i in 1 2; do
+  env -u EVAL_CASES EVAL_REWRITES="$OUT/probe-1.json" STEP_PINS=$WIDTH PROBE_CASE_MS=3000 ANSWER_EFFORT=low \
+    pnpm -C "$W" answer-set-probe "$OUT/frozen-$i.json" > "$OUT/frozen-$i.log" 2>&1
+done
+
+# Free reads.
+pnpm -s -C "$W" carrier-recall "$W/eval/runs/2026-10-12-611/carriers.json" \
+  "$OUT"/probe-{1,2,3,4,5}.json > "$OUT/carrier-recall.log"
+pnpm -s -C "$W" carrier-recall "$W/eval/runs/2026-10-12-611/carriers.json" \
+  "$OUT"/frozen-{1,2}.json > "$OUT/frozen-recall.log"
+pnpm -s -C "$W" exec tsx eval/runs/2026-10-12-611/bars.ts "$OUT" > "$OUT/bars.log"
+```
+
+The frozen logs must read `rewrites: replayed from …`. **Cost:** ≈US$1.60:
+≈US$1.50 for the five live draws, plus ≈US$0.10 for the two frozen ones,
+which ask Voyage only. That brings steps 1–3 to ≈US$6.00 of US$12.
