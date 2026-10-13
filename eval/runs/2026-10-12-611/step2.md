@@ -26,6 +26,11 @@ pnpm exec tsx eval/runs/2026-10-12-611/bars.ts eval/runs/2026-10-12-611/pins5
 | R3  | hit-rate 71–73/74; robustness 130/135; all-targets 49.2 | **PASS** hit-rate 70–71/74; robustness 26 27 26 27 27 = 133; 50.2 | **FAIL** hit-rate 69/74 = 93.2 % on draw 2; robustness 26 27 27 27 26 = 133; all-targets 49.2 |
 | R4  | median size 11                                          | **PASS** 12                                                       | **PASS** 13, exactly the limit                                                                |
 
+**Amendment 2 (after this step) changed R2's measure** to the catalogue
+picks in the set, whatever their label: control 7/27, `pins3` 16/27, `pins5`
+22/27 (81.5 %). Both arms still fail R2, and no other verdict moves. The
+`bars.log` files are the amended read.
+
 No case's `isWeak` flips in either arm or differs from the control.
 `pins5`'s draw 5 lost two rerank readings, both to Voyage timeouts
 (`iva-declaracion-mensual`: expansion; `ho-tambien-asegurado-por-patrono`:
@@ -50,8 +55,8 @@ step). Those two cases are excluded from that draw, so its hit-rate reads
 - **R2's step-pinned measure counts more than pin stability.** A pick that
   lands inside the top 8 is labelled `top`, not `step`, so the subset changes
   whenever the cut takes or drops a pick, even when the picks themselves don't
-  change. `reach-stability.mjs` reads the catalogue-reached chunks in the set
-  instead: they are identical on every draw for 7/27 cases in the control,
+  change. Read instead as the catalogue-reached chunks in the set (`bars.ts`'s
+  R2 line since Amendment 2), they are identical on every draw for 7/27 cases in the control,
   16/27 at width 3 and 22/27 at width 5. The step-pinned subset reads 7, 12
   and 13. That read is approximate, since `reaches` stand in for the picks,
   which the probe doesn't record.

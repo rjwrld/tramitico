@@ -187,23 +187,21 @@ done
 **Cost:** ≈US$3.00 for the ten draws, plus ≈US$0.02 for the two smokes. That
 brings steps 1–2 to ≈US$4.50 of the US$12 cap for steps 1–5.
 
-## Step 3: fix 1, step picks ranked by the question's own score (needs code, awaiting OK)
+## Step 3: fix 1 at `STEP_PINS=3`, step picks ranked by the question's own score (needs code, awaiting OK)
 
 Fix 1 ranks `pin1`'s fresh picks by the question's own Voyage score for each
 pick, instead of their place in the question-and-expansion order
-(`cutWithSteps` in `rerank.ts`). The code lands where the owner decides,
-written below as `<fix1-worktree>`. The arm runs at a width the owner picks,
-`<width>`. Fix 1 only changes which picks go in where the slots are fewer
-than the fresh picks, so width 2 or 3 tests it, and width 5 nearly doesn't
-(`step2.md`).
+(`cutWithSteps` in `rerank.ts`). It is tested at width 3 (Amendment 2). The
+code goes in a new worktree off main once #616 has merged, written below as
+`<fix1-worktree>`. These files reach it through main.
 
 ```sh
 W=<fix1-worktree>
-WIDTH=<width>
+WIDTH=3
 OUT=$W/eval/runs/2026-10-12-611/fix1-pins$WIDTH
 mkdir -p "$OUT"
 
-# Smoke: `rewrites: live`; the largest `step` count must equal min(WIDTH, fresh picks), > 2 when WIDTH > 2.
+# Smoke: `rewrites: live`, and the largest `step` count must be 3.
 env -u EVAL_REWRITES STEP_PINS=$WIDTH EVAL_CASES=ho-ademas-tengo-salario,ho-t2-credito-iva-compras,ho-abs-iva-2027 \
   PROBE_CASE_MS=3000 ANSWER_EFFORT=low \
   pnpm -C "$W" answer-set-probe "$OUT/smoke.json" > "$OUT/smoke.log" 2>&1
@@ -215,7 +213,7 @@ for i in 1 2 3 4 5; do
     pnpm -C "$W" answer-set-probe "$OUT/probe-$i.json" > "$OUT/probe-$i.log" 2>&1
 done
 
-# Two frozen-rewrite draws on draw 1's rewrites: their step-pinned subsets must be identical.
+# Two frozen-rewrite draws on draw 1's rewrites: R2's picks must agree on all 27 (Amendment 2).
 for i in 1 2; do
   env -u EVAL_CASES EVAL_REWRITES="$OUT/probe-1.json" STEP_PINS=$WIDTH PROBE_CASE_MS=3000 ANSWER_EFFORT=low \
     pnpm -C "$W" answer-set-probe "$OUT/frozen-$i.json" > "$OUT/frozen-$i.log" 2>&1
@@ -227,6 +225,8 @@ pnpm -s -C "$W" carrier-recall "$W/eval/runs/2026-10-12-611/carriers.json" \
 pnpm -s -C "$W" carrier-recall "$W/eval/runs/2026-10-12-611/carriers.json" \
   "$OUT"/frozen-{1,2}.json > "$OUT/frozen-recall.log"
 pnpm -s -C "$W" exec tsx eval/runs/2026-10-12-611/bars.ts "$OUT" > "$OUT/bars.log"
+pnpm -s -C "$W" exec tsx eval/runs/2026-10-12-611/bars.ts --picks \
+  "$OUT"/frozen-{1,2}.json > "$OUT/frozen-picks.log"
 ```
 
 The frozen logs must read `rewrites: replayed from …`. **Cost:** ≈US$1.60:

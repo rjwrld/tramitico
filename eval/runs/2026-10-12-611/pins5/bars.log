@@ -1,7 +1,7 @@
 arm eval/runs/2026-10-12-611/pins5 against eval/runs/2026-10-12-611/control
 
 R1 PASS  mean share 63.3 % vs control 53.1 % (needs ≥ 63.1 %); floor rows fallen below 3/5: none
-R2 FAIL  step-pinned subset identical 13/27 (48.1 %, needs ≥ 90 %); Tier 1 median Jaccard 0.71 vs control 0.67
+R2 FAIL  catalogue picks in the set identical 22/27 (81.5 %, needs ≥ 90 %); Tier 1 median Jaccard 0.71 vs control 0.67; differs: ccss-cese-actividad, desinscripcion-dejar-actividad, inscripcion-tardia-sancion, ho-rebajar-25-sin-facturas, ho-desinscribir-debiendo-declaraciones
 R3 FAIL  hit-rate 71/74 69/74 72/74 71/74 68/72 (FAIL); robustness 26 27 27 27 26 = 133/135 (PASS); all-targets mean 49.2 vs control 49.2; isWeak flips none, differs from control none
 R4 PASS  median size 13 vs control 11 (needs ≤ 13)
 
