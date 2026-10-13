@@ -1,0 +1,24 @@
+$ tsx scripts/answer-replay.ts <worktree>/eval/runs/2026-10-12-497-confirm/lane/groundedness-claude-sonnet-5-5-effort-low-20261012T233756Z.jsonl --cases=ho-tiquete-en-vez-de-factura,ho-factura-electronica-o-recibo,ho-ademas-tengo-salario,ccss-obligacion-ingreso-bajo,ho-cliente-espana-lleva-iva,ho-donde-me-afilio-caja
+replaying 6 row(s) of groundedness-claude-sonnet-5-5-effort-low-20261012T233756Z.jsonl on claude-sonnet-5-5-effort-low
+  ccss-obligacion-ingreso-bajo  pass  missing 1
+  ho-donde-me-afilio-caja  pass  missing 1
+  ho-tiquete-en-vez-de-factura  pass  missing 1
+  ho-factura-electronica-o-recibo  pass  missing 1
+  ho-cliente-espana-lleva-iva  pass  missing 2
+  ho-ademas-tengo-salario  pass  missing 4
+
+transcript: <main-checkout>/eval/transcripts/2026-10-13-614/candidate/groundedness-claude-sonnet-5-5-effort-low-replay-subset-20261013T185126Z.jsonl
+
+requirements stated, recorded → replayed: 16 → 19 of 29
+  3 → 4 / 5  ccss-obligacion-ingreso-bajo
+  3 → 3 / 4  ho-donde-me-afilio-caja
+  2 → 3 / 4  ho-tiquete-en-vez-de-factura
+  3 → 3 / 4  ho-factura-electronica-o-recibo
+  3 → 4 / 6  ho-cliente-espana-lleva-iva
+  2 → 2 / 6  ho-ademas-tengo-salario
+grounded, recorded → replayed: 6 → 6 of 6
+false absence claims (#500), recorded → replayed: 1 → 0
+absence openings, recorded → replayed: 0 → 0
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+finish other than stop: 0; output tokens max 1412

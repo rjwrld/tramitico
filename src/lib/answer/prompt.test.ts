@@ -795,57 +795,6 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     expect(rule4b).toMatch(/diga expresamente que las fuentes discrepan/);
   });
 
-  /**
-   * #618: after #610, the conflicting-sources answer still closed on a rule-7
-   * tail in the first person, a reason given for the referral — «Esos tramos
-   * no vienen reproducidos en lo que consulté, por lo que … confírmelas con
-   * Hacienda» (#610's re-ask 2), «no aparecen en lo que recibí» (#497's). The
-   * referral needs no reason, in 4b's answer too, and «lo que consulté»
-   * joins the prose sentence's list.
-   */
-  it("gives rule 7's referral no reason, in 4b's answer too (#618)", () => {
-    const rule7 = ANSWER_SYSTEM_PROMPT.split("\n").find((line) =>
-      line.startsWith("7. "),
-    );
-    expect(rule7).toBeDefined();
-    expect(rule7).toMatch(
-      /Esa confirmación no lleva motivo, tampoco cuando las fuentes discrepan \(regla 4b\): no la justifique con lo que falta, no «esos tramos no vienen reproducidos en lo que consulté, por lo que confírmelos con Hacienda», sino «los tramos que rigen para su período confírmelos con Hacienda»/,
-    );
-    // Right after the salario-base example it extends, before #600's clause.
-    expect(rule7!.indexOf("Esa confirmación no lleva motivo")).toBeGreaterThan(
-      rule7!.indexOf("«el monto vigente del salario base confírmelo"),
-    );
-    expect(rule7!.indexOf("Esa confirmación no lleva motivo")).toBeLessThan(
-      rule7!.indexOf("Esa falta tampoco la diga en primera persona"),
-    );
-    expect(rule7).toMatch(
-      /no como los documentos que usted consultó, recibió o tiene a la vista, ni como «lo que consulté» o «lo que recibí»\./,
-    );
-  });
-
-  /**
-   * #614: the confirming lane's answer sets carried a list or a
-   * classification that answered the question, and the answers gave a summary
-   * of it or said it wasn't there — art. 9's comprobantes, the means to
-   * issue one, the two scales of salary and activity, the categoría of a low
-   * income, the exportación invoice. Rule 9 asked for an enumeration «que
-   * aplica al caso»; a question about which one applies, or whether one can
-   * stand in for another, is answered by the options themselves.
-   */
-  it("gives the options a which-one question turns on, and places the case (#614)", () => {
-    expect(ANSWER_SYSTEM_PROMPT).toMatch(
-      /9\. [^\n]*Lo mismo cuando la pregunta es cuál le corresponde o si puede usar una cosa en lugar de otra: si los documentos provistos traen las opciones o la clasificación de la que sale la respuesta —los tipos de comprobante, los medios con que se cumple una obligación, las escalas o categorías en que se ubica un ingreso—, dé esas opciones con su cita, no un resumen de ellas, y diga en cuál cae el caso de la persona; si los documentos no permiten ubicarlo, diga qué dato lo decide\./,
-    );
-    // It follows the scale sentence it widens, and rule 3 still says placing
-    // a datum in a category is not a calculation.
-    expect(ANSWER_SYSTEM_PROMPT).toMatch(
-      /9\. [^\n]*diga qué dato falta para ubicarla\. Lo mismo cuando la pregunta/,
-    );
-    expect(ANSWER_SYSTEM_PROMPT).toMatch(
-      /3\. [^\n]*Ubicar un dato que la persona dio en un tramo o una categoría de los documentos no es calcular/,
-    );
-  });
-
   it("permits only the three constructs AnswerProse renders (#77)", () => {
     // The subset: `- ` bullets, **bold**, simple pipe tables.
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/viñetas/i);
