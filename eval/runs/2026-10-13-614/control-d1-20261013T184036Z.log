@@ -1,0 +1,36 @@
+Lockfile is up to date, resolution step is skipped
+Already up to date
+
+Done in 609ms using pnpm v11.5.2
+
+   ╭───────────────────────────────────────────────╮
+   │                                               │
+   │      Update available! 11.5.2 → 12.11.2.      │
+   │     Changelog: https://pnpm.io/v/12.11.2      │
+   │   To update, run: corepack use pnpm@12.11.2   │
+   │                                               │
+   ╰───────────────────────────────────────────────╯
+
+$ tsx scripts/answer-replay.ts <main-checkout>/eval/runs/2026-10-12-497-confirm/lane/groundedness-claude-sonnet-5-5-effort-low-20261012T233756Z.jsonl --cases=ho-tiquete-en-vez-de-factura,ho-factura-electronica-o-recibo,ho-ademas-tengo-salario,ccss-obligacion-ingreso-bajo,ho-cliente-espana-lleva-iva,ho-donde-me-afilio-caja --no-groundedness
+replaying 6 row(s) of groundedness-claude-sonnet-5-5-effort-low-20261012T233756Z.jsonl on claude-sonnet-5-5-effort-low (no groundedness judge)
+  ccss-obligacion-ingreso-bajo  pass  missing 2
+  ho-donde-me-afilio-caja  pass  missing 1
+  ho-tiquete-en-vez-de-factura  pass  missing 1
+  ho-factura-electronica-o-recibo  pass  missing 1
+  ho-cliente-espana-lleva-iva  pass  missing 2
+  ho-ademas-tengo-salario  pass  missing 4
+
+transcript: <main-checkout>/eval/transcripts/2026-10-13-614/control/groundedness-claude-sonnet-5-5-effort-low-replay-ungrounded-subset-20261013T184306Z.jsonl
+
+requirements stated, recorded → replayed: 16 → 18 of 29
+  3 → 3 / 5  ccss-obligacion-ingreso-bajo
+  3 → 3 / 4  ho-donde-me-afilio-caja
+  2 → 3 / 4  ho-tiquete-en-vez-de-factura
+  3 → 3 / 4  ho-factura-electronica-o-recibo
+  3 → 4 / 6  ho-cliente-espana-lleva-iva
+  2 → 2 / 6  ho-ademas-tengo-salario
+false absence claims (#500), recorded → replayed: 1 → 0
+absence openings, recorded → replayed: 0 → 0
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+finish other than stop: 0; output tokens max 1286

@@ -1,0 +1,28 @@
+ Vitest  The "unit" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "eval" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+ Vitest  The "integration" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+
+ RUN  v5.0.3 <worktree>
+
+
+conflicting sources (answer=claude-sonnet-5-5-effort-low, judge=claude-sonnet-4-5): pass
+Las fuentes discrepan sobre el monto exento, porque hay dos decretos distintos, uno para 2026 y otro para 2025, y los documentos no dicen que uno sustituya al otro.
+
+- El Decreto de tramos del impuesto sobre la renta 2026 (Decreto Ejecutivo 44000), en su artículo 1, dice que las rentas de las personas físicas con actividad lucrativa están exentas hasta un monto anual de ¢4.094.000 [1].
+- El Decreto de tramos del impuesto sobre la renta 2025 (Decreto Ejecutivo 43500), en su artículo 1, dice que las rentas de las personas físicas con actividad lucrativa están exentas hasta un monto anual de ¢3.947.000 [2].
+
+En ambos casos, lo que excede ese monto se grava según los tramos que cada decreto establece [1][2]. Esos tramos de cada decreto, por su parte, deben confirmarse con Hacienda.
+
+Cuál de los dos decretos rige para el período que usted va a declarar, verifíquelo con Hacienda en https://www.hacienda.go.cr, y confirme allí también los tramos aplicables al exceso.
+
+transcript: <main-checkout>/eval/transcripts/2026-10-13-614/conflicting/conflicting-sources-claude-sonnet-5-5-effort-low-20261013T185411Z.jsonl
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  12:54:05
+   Duration  5.89s (tests 97%, transform 1%, import 1%)
+
