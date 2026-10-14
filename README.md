@@ -102,8 +102,8 @@ the deployed stack on 2026-09-16, executed by the eval workflow on GitHub Action
 
 | Gate                                            | Baseline (2026-09-05) | Closing run (2026-09-11) | Record (2026-09-15) | Production (2026-09-16) | Gate today                                     |
 | ----------------------------------------------- | --------------------- | ------------------------ | ------------------- | ----------------------- | ---------------------------------------------- |
-| Retrieval hit-rate (cited artículo in top 8)    | 63/73                 | 70/73                    | 72/73               | **70/73**               | ≥ 0.92                                         |
-| Groundedness (answer supported by its chunks)   | 70/73                 | 70/73                    | 69/73               | **69/73**               | baseline 68 answers; fails at ≤ 63             |
+| Retrieval hit-rate (cited artículo in top 8)    | 63/73                 | 70/73                    | 72/73               | **70/73**               | ≥ 0.94                                         |
+| Groundedness (answer supported by its chunks)   | 70/73                 | 70/73                    | 69/73               | **69/73**               | baseline 73 answers; fails at ≤ 68             |
 | Adequacy, Tier 2 (every required claim present) | 9/13                  | 12/13                    | 10/13               | **12/13**               | ≥ 0.84                                         |
 | Abstention (declines when it should)            | 4/7                   | 9/9                      | 9/9                 | **8/9**                 | ≥ 0.90                                         |
 | Adequacy, Tier 1 (every required claim present) | —                     | 5/27                     | 3/27                | **6/27**                | reported; the gate counts requirements (below) |
@@ -116,24 +116,27 @@ the pipeline barely changed between them, and Tier 1 moved by three cases, hit-r
 groundedness by one or two. A single reading is a point inside that band.
 
 The last column is today's gates, not the ones those runs were read against. Since then
-[ADR 0023](docs/adr/0023-eval-gates-after-sonnet-5-5.md) and its 2026-10-07 amendment changed
-three of them:
+[ADR 0023](docs/adr/0023-eval-gates-after-sonnet-5-5.md) and its amendments changed three of
+them, and the hit-rate gate rose to 0.94
+([#556](https://github.com/rjwrld/tramitico/pull/556)):
 
-- **Tier 1** is a tracked baseline of requirements stated rather than of whole cases: 70 of
-  the 116 required claims and steps across the 27 Tier 1 cases, on the 2026-10-02 lane
-  ([`eval/runs/2026-10-02-full-lane/`](eval/runs/2026-10-02-full-lane/)). A lane at 65 or
-  below fails.
-- **Groundedness** is a tracked baseline too: 68 grounded answers on that lane, so a lane at
-  63 or below fails. It is counted over 74 cases since a Tier 2 case joined (#503).
+- **Tier 1** is a tracked baseline of requirements stated rather than of whole cases: 92 of
+  the 116 required claims and steps across the 27 Tier 1 cases, the lower of map #497's Wave
+  E and Wave G lanes ([`eval/runs/2026-10-10-497-wave-g/`](eval/runs/2026-10-10-497-wave-g/)).
+  A lane at 87 or below fails.
+- **Groundedness** is a tracked baseline too: 73 grounded answers of 74, the lower of
+  [#512](https://github.com/rjwrld/tramitico/issues/512)'s two final lanes
+  ([`eval/runs/2026-10-08-final/`](eval/runs/2026-10-08-final/)), so a lane at 68 or below
+  fails. It is counted over 74 cases since a Tier 2 case joined (#503).
 - **A blocking case** fails only when two of its three answers fail: the lane re-asks a
   failing one twice.
 
-One gate is new: an answer that says the documents lack something the corpus holds fails its
-case, whatever the judges say ([#500](https://github.com/rjwrld/tramitico/issues/500)). The
-next numbers come from
-[#511](https://github.com/rjwrld/tramitico/issues/511) and
-[#512](https://github.com/rjwrld/tramitico/issues/512). A full run costs about US$10 in
-provider spend.
+Two gates are new. An answer that says the documents lack something the corpus holds fails
+its case, whatever the judges say ([#500](https://github.com/rjwrld/tramitico/issues/500)).
+And the robustness block's retrieval hits are a tracked baseline, 27 of 27, so a lane at 24
+or below fails ([#502](https://github.com/rjwrld/tramitico/issues/502)). The latest full
+lanes are map #497's Wave G lane of 2026-10-10 and the confirming lane of 2026-10-12, read
+under Limitations below. A full run costs about US$10 in provider spend.
 
 How the gates are defined, how thresholds ratchet and never lower, and every run since the
 first are in [`eval/README.md`](eval/README.md).
@@ -152,28 +155,41 @@ The full account, including what was lost and what the gates failed to say, is i
 - Until 2026-10-07 production did not rerank, while the eval lanes behind ADR 0023's
   baselines did ([#498](https://github.com/rjwrld/tramitico/issues/498)). Production has run
   the pipeline those baselines measure only since then.
-- The gate results vary from run to run. Of
-  [#512](https://github.com/rjwrld/tramitico/issues/512)'s two final lanes on the same code
-  (2026-10-08), one passed every gate, the first to do so since 2026-09-24. The other failed
-  one blocking case on 2 of its 3 answers.
-- Answers are incomplete. The two final lanes stated 78 and 79 of the 116 required claims and
-  steps across the Tier 1 cases, and 4 and 5 of the 27 Tier 1 questions got every one. Most
-  of what is missing is where and how: TRIBU-CR and OVi steps, CCSS channels, and how to
-  regularize ([eval/runs/2026-10-08-final](eval/runs/2026-10-08-final/)). ADR 0023 tracks the
-  count rather than paying for prompt rounds aimed at a number.
-- Some answers state what their fragments don't support. The two final lanes each grounded
-  73 of 74. The failures include a claim that's in no fragment, an assumption about the
-  reader («como usted trabaja por cuenta propia») and an answer that says the sources don't
-  settle how a fine is counted when the cited figure does.
+- The gate results vary from run to run. Map #497's Wave G lane (2026-10-10, main e7d954c)
+  passed every gate, the first lane to do so since
+  [#512](https://github.com/rjwrld/tramitico/issues/512)
+  ([eval/runs/2026-10-10-497-wave-g](eval/runs/2026-10-10-497-wave-g/)). The confirming lane
+  two days later ran the same configuration, with two small changes to how answers are built
+  (#600, #604), and failed two gates: Tier 2 adequacy, 11 of 14 where Wave G had 12, and the
+  conflicting-sources case
+  ([eval/runs/2026-10-12-497-confirm](eval/runs/2026-10-12-497-confirm/)). That case passed 3
+  of 3 when re-asked. The read blames mostly the retrieval draw and judge noise: query
+  expansion is a model call, and the two lanes' answer sets overlap by a median Jaccard of
+  0.64. A retrieval wave that tried to make those sets steadier stopped after three steps with
+  no arm passing its bars ([eval/runs/2026-10-12-611](eval/runs/2026-10-12-611/)).
+- Answers are incomplete. The two lanes stated 93 and 88 of the 116 required claims and steps
+  across the Tier 1 cases, and 15 and 8 of the 27 Tier 1 questions got every one. Of the
+  confirming lane's 28 misses, 16 had no fragment carrying them in the answer set and 12 were
+  in the set but unsaid. ADR 0023 tracks the count rather than paying for prompt rounds aimed
+  at a number. One prompt round aimed at specific unsaid requirements failed its pre-registered
+  bar ([eval/runs/2026-10-13-614](eval/runs/2026-10-13-614/)).
+- Some answers state what their fragments don't support. Wave G grounded 71 of 74 and the
+  confirming lane 73 of 74. Wave G's three failures applied a salario base circular to a
+  threshold nothing in the set tied it to, which
+  [#604](https://github.com/rjwrld/tramitico/pull/604) then narrowed. The confirming lane's one
+  failure repeats a fragment's own pointer to another artículo the set doesn't carry, and the
+  judges read that as unsupported.
 - The model sometimes says the documents lack an artículo or figure that the corpus holds. The
   eval now fails any answer that does ([#500](https://github.com/rjwrld/tramitico/issues/500)).
   Since [#507](https://github.com/rjwrld/tramitico/issues/507) the prompt tells the model it
-  sees only part of the documents. #512's two final lanes made none, where #511's lane made
-  four.
+  sees only part of the documents. Neither lane had an absence claim the check counted. The
+  confirming lane had one it missed, «Los documentos oficiales no indican cuál tipo de
+  comprobante», and the check counts that form since
+  [#613](https://github.com/rjwrld/tramitico/issues/613).
 - Short, unaccented, Spanglish and seed-pill questions are measured by a robustness block
-  outside every gate ([#502](https://github.com/rjwrld/tramitico/issues/502)). Both final
-  lanes retrieved a right source for all 27, though only 23 of their 37 required claims and
-  steps reach the answer.
+  ([#502](https://github.com/rjwrld/tramitico/issues/502)). Both lanes retrieved a right source
+  for all 27, though only 26 and 28 of their 37 required claims and steps reach the answer. The
+  retrieval is gated; what the answer states is only reported.
 - No one outside the author has used it, and the author wrote the eval set. Peer questions
   are the next dataset.
 - The corpus has annual obligations, tramos, minimum wage, contribution scales, that change
