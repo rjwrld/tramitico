@@ -1,0 +1,107 @@
+config top8/capoff/pinon
+
+draw                        hit-rate          robustness  all-targets  weak  size  excluded (lost rerank reading)
+probe-1                     71/74 95.9 %      26/27       48/74        0     11    none
+probe-2                     71/74 95.9 %      25/27       50/74        0     11    none
+probe-3                     73/74 98.6 %      26/27       48/74        0     11    none
+probe-4                     72/74 97.3 %      27/27       50/74        0     11    none
+probe-5                     72/74 97.3 %      26/27       50/74        0     11    none
+
+R1 carrier recall, mean over (row, draw) pairs: 170/320 (53.1 %)
+   requirement rows only (34): 90/170 (52.9 %) · lone carriers (30): 80/150 (53.3 %)
+   1 4/5   ccss-pedir-prescripcion-cuotas — the resolution deadline by phase [554#1, 609#1]
+   2 5/5   ccss-obligacion-ingreso-bajo — the legal basis [554#2]
+   3 4/5   ccss-obligacion-ingreso-bajo — where: the branch for the zona de adscripción [554#3, tier1-carriers]
+   4 0/5   desinscripcion-dejar-actividad — the duty to file with nothing to pay + the fine for an omitted return [554#4, tier1-carriers]
+   5 5/5   inscripcion-tardia-sancion — where: the inscription in the Oficina Virtual [554#5, 609#3, tier1-carriers]
+   6 1/5   ho-hacienda-solo-cliente-eeuu — the 50 % per month [554#6, tier1-carriers]
+   7 5/5   ho-trabajitos-por-mi-cuenta — the RUT inscription in the Oficina Virtual [554#7, tier1-carriers]
+   8 0/5   ho-desde-cuanta-plata-caja — how the income is declared + where the cuota is paid [554#8, tier1-carriers]
+   9 5/5   ho-donde-me-afilio-caja — the monthly due date by surname [554#9, tier1-carriers]
+  10 5/5   ho-tiquete-en-vez-de-factura — RUT and a valid e-mail [554#10, tier1-carriers]
+  11 5/5   ho-factura-electronica-o-recibo — the free invoicer or a provider [554#11, tier1-carriers]
+  12 5/5   ho-factura-electronica-o-recibo — five years [554#12, tier1-carriers]
+  13 3/5   ho-cabys-paginas-web — the detail line [554#13]
+  14 5/5   ho-cliente-espana-lleva-iva — services: invoice or service, whichever is first [554#14]
+  15 3/5   ho-cliente-espana-lleva-iva — 13 % [554#15, 609#8]
+  16 1/5   ho-iva-en-cero-sin-facturar — where: TRIBU-CR + after the deadline [554#16, tier1-carriers]
+  17 4/5   ho-hasta-que-dia-tengo-iva — file late and take the spontaneous rebaja [554#17]
+  18 0/5   ho-rebajar-25-sin-facturas — where: TRIBU-CR [554#18, 609#11, tier1-carriers]
+  19 5/5   ho-minimo-renta-2026 — annual, on renta neta [554#19]
+  20 0/5   ho-minimo-renta-2026 — 1 January to 31 December [554#20, 609#12, tier1-carriers]
+  21 5/5   ho-minimo-renta-2026 — the yearly decree, N° 45333 [554#21]
+  22 5/5   ho-ademas-tengo-salario — two scales [554#22]
+  23 2/5   ho-ademas-tengo-salario — payments on account, deducted [554#23, 609#13, tier1-carriers]
+  24 2/5   ho-ademas-tengo-salario — when, and the rectification [554#24, 609#14, tier1-carriers]
+  25 2/5   ho-ademas-tengo-salario — two months and fifteen days [554#25, 609#15, tier1-carriers]
+  26 0/5   ho-tambien-asegurado-por-patrono — register the independent activity [554#26, 609#16, tier1-carriers]
+  27 0/5   ho-desinscribir-debiendo-declaraciones — 50 % of a salario base [554#27, 609#17, tier1-carriers]
+  28 0/5   desinscripcion-dejar-actividad — ATV disabled (#602 item 1) [609#2]
+  29 3/5   ho-hacienda-solo-cliente-eeuu — exempt is not non-contribuyente [609#4]
+  30 3/5   ho-hacienda-solo-cliente-eeuu — inscripción de oficio [609#5]
+  31 1/5   ho-donde-inscribo-ya-no-atv — who may inscribe online [609#6]
+  32 0/5   ho-donde-inscribo-ya-no-atv — the OVi path to the inscription [609#7, tier1-carriers]
+  33 1/5   ho-cliente-espana-lleva-iva — the factura electrónica de exportación (refiled: unsaid) [609#9]
+  34 1/5   ho-iva-en-cero-sin-facturar — 50 % of a salario base [609#10, tier1-carriers]
+  35 3/5   ho-hacienda-solo-cliente-eeuu — tribu-cr-faq · Declaraciones del RUT · 2 [tier1-carriers]
+  36 0/5   ho-donde-inscribo-ya-no-atv — tribu-cr-faq · Ingreso a la Oficina Virtual (OVI) · 1 [tier1-carriers]
+  37 0/5   ho-donde-inscribo-ya-no-atv — tribu-cr-faq · Declaraciones del RUT · 10 [tier1-carriers]
+  38 0/5   ho-donde-inscribo-ya-no-atv — tribu-cr-faq · Declaraciones del RUT · 13 [tier1-carriers]
+  39 0/5   ho-donde-inscribo-ya-no-atv — tribu-cr-faq · Declaraciones del RUT · 14 [tier1-carriers]
+  40 5/5   ho-desde-cuanta-plata-caja — ccss-reglamento-ti · Artículo 10 [tier1-carriers]
+  41 5/5   ho-cliente-espana-lleva-iva — ley-iva · Artículo 8 [tier1-carriers]
+  42 5/5   ho-cliente-espana-lleva-iva — reglamento-iva · Artículo 11 [tier1-carriers]
+  43 0/5   ho-cliente-espana-lleva-iva — reglamento-comprobantes · Artículo 2 [tier1-carriers]
+  44 4/5   ho-cliente-espana-lleva-iva — ley-iva · Artículo 10 [tier1-carriers]
+  45 0/5   ho-minimo-renta-2026 — ley-renta · Artículo 4 [tier1-carriers]
+  46 0/5   ho-ademas-tengo-salario — ley-renta · Artículo 24 [tier1-carriers]
+  47 0/5   ho-ademas-tengo-salario — reglamento-renta · Artículo 26 [tier1-carriers]
+  48 3/5   ho-ademas-tengo-salario — reglamento-renta · Artículo 28 [tier1-carriers]
+  49 3/5   ho-ademas-tengo-salario — reglamento-renta · Artículo 30 [tier1-carriers]
+  50 0/5   ho-800-mil-que-porcentaje-caja — ccss-faq · ¿Cómo procedo si mis ingresos han variado? [tier1-carriers]
+  51 4/5   ccss-pedir-prescripcion-cuotas — ccss-prescripcion · ¿Cómo se solicita la prescripción? [tier1-carriers]
+  52 5/5   ccss-pedir-prescripcion-cuotas — ccss-prescripcion · ¿Dónde presento la solicitud? [tier1-carriers]
+  53 3/5   ccss-pedir-prescripcion-cuotas — ccss-faq · ¿Dónde puedo solicitar la prescripción de cuotas de trabajador independiente pendientes de pago (Ley N°10.363)? [tier1-carriers]
+  54 4/5   desinscripcion-dejar-actividad — reglamento-iva · Artículo 67 [tier1-carriers]
+  55 5/5   ho-desinscribir-debiendo-declaraciones — ley-iva · Artículo 27 [tier1-carriers]
+  56 0/5   multa-iva-no-declarado — cnpt · Artículo 57 [tier1-carriers]
+  57 5/5   multa-iva-no-declarado — cnpt · Artículo 88 [tier1-carriers]
+  58 5/5   multa-iva-no-declarado — salario-base-2026 · Circular 246-2025 [tier1-carriers]
+  59 5/5   inscripcion-tardia-sancion — cnpt · Artículo 88 [tier1-carriers]
+  60 5/5   inscripcion-tardia-sancion — salario-base-2026 · Circular 246-2025 [tier1-carriers]
+  61 1/5   ho-rebajar-multa-si-pago-ya — tribu-cr-res-0033-2025 · Artículo 1 [tier1-carriers]
+  62 0/5   ho-rebajar-multa-si-pago-ya — tribu-cr-res-0033-2025 · Artículo 3 [tier1-carriers]
+  63 5/5   ccss-cuanto-pago-base — ccss-escala-ivm · Artículo 4°, sesión 9570 [tier1-carriers]
+  64 5/5   ccss-cuanto-pago-base — salarios-minimos · Artículo 1 [tier1-carriers]
+
+R2 median pairwise Jaccard: Tier 1 0.67 (27 cases) · all 0.64 (116 cases)
+   step-pinned subset identical on every draw: 7/27 classified Tier 1 cases (25.9 %)
+  0.54  ≠ ccss-pedir-prescripcion-cuotas (5 draws)
+  0.43  ≠ ccss-ventana-prescripcion-24-meses (5 draws)
+  0.88  ≠ ccss-obligacion-ingreso-bajo (5 draws)
+  0.57  = ccss-cese-actividad (5 draws)
+  0.83  = desinscripcion-dejar-actividad (5 draws)
+  1.00  ≠ multa-iva-no-declarado (5 draws)
+  0.71  = inscripcion-tardia-sancion (5 draws)
+  0.17  ≠ ho-hacienda-solo-cliente-eeuu (5 draws)
+  0.69  ≠ ho-trabajitos-por-mi-cuenta (5 draws)
+  0.32  ≠ ho-donde-inscribo-ya-no-atv (5 draws)
+  0.83  = ho-desde-cuanta-plata-caja (5 draws)
+  0.67  = ho-donde-me-afilio-caja (5 draws)
+  0.57  ≠ ho-tiquete-en-vez-de-factura (5 draws)
+  0.63  ≠ ho-factura-electronica-o-recibo (5 draws)
+  0.38  ≠ ho-cabys-paginas-web (5 draws)
+  0.60  ≠ ho-cliente-espana-lleva-iva (5 draws)
+  0.47  ≠ ho-iva-en-cero-sin-facturar (5 draws)
+  0.53  ≠ ho-hasta-que-dia-tengo-iva (5 draws)
+  0.69  ≠ ho-rebajar-25-sin-facturas (5 draws)
+  0.83  = ho-minimo-renta-2026 (5 draws)
+  0.45  ≠ ho-ademas-tengo-salario (5 draws)
+  0.82  ≠ ho-minimo-caja-independiente-2026 (5 draws)
+  0.68  ≠ ho-800-mil-que-porcentaje-caja (5 draws)
+  0.91  ≠ ho-tambien-asegurado-por-patrono (5 draws)
+  0.82  ≠ ho-cobrar-8-anos-atras-caja (5 draws)
+  1.00  = ho-desinscribir-debiendo-declaraciones (5 draws)
+  0.64  ≠ ho-rebajar-multa-si-pago-ya (5 draws)
+
+R3 isWeak differs across draws: none

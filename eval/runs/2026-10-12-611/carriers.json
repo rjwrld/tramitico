@@ -1,0 +1,753 @@
+{
+  "about": "#611's pre-registered carrier list, frozen before any draw. Read by scripts/carrier-recall.ts. Rows: #554's 27 hand-tagged requirements (eval/runs/2026-10-08-554/carriers.json, with #602's map), the 7 rows of #609's confirming-lane read (stability.mjs) that #554 lacks, and every eval/tier1-carriers.json chunk no such row names, each a row with no requirement text. A row is carried in a draw when every part has one of its carriers in the answer set; a carrier is `docKey · articulo`, or `docKey` for any chunk of the document.",
+  "asOf": "main 0cebb62",
+  "requirements": [
+    {
+      "case": "ccss-pedir-prescripcion-cuotas",
+      "requirement": "En cobro, la Administración dispone de 20 días hábiles desde el siguiente día hábil a la recepción para resolver; en verificación, la solicitud se atiende dentro del informe o de la resolución del recurso, según la fase.",
+      "sources": ["554#1", "609#1"],
+      "parts": [
+        {
+          "what": "the resolution deadline by phase",
+          "carriers": [
+            "ccss-prescripcion · ¿Una vez recibida la solicitud de prescripción en sede administrativa, en cuanto tiempo resuelve la Administración?"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ccss-obligacion-ingreso-bajo",
+      "requirement": "La obligatoriedad está en la Ley Constitutiva de la CCSS y en el Reglamento para el aseguramiento de los trabajadores independientes, no en una decisión voluntaria de la persona.",
+      "sources": ["554#2"],
+      "parts": [
+        {
+          "what": "the legal basis",
+          "carriers": [
+            "ccss-faq · ¿El Trabajador Independiente está obligado a asegurarse ante la CCSS?"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ccss-obligacion-ingreso-bajo",
+      "requirement": "Dónde se hace la afiliación y qué se declara: el ingreso de referencia, en la sucursal de la CCSS que corresponda a la zona de adscripción.",
+      "sources": ["554#3", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "where: the branch for the zona de adscripción",
+          "carriers": [
+            "ccss-faq · ¿Dónde me corresponde realizar el trámite de afiliación?"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "desinscripcion-dejar-actividad",
+      "requirement": "Mientras la persona siga inscrita conserva sus obligaciones de declarar, y omitir una declaración se sanciona aunque no haya habido ingresos.",
+      "sources": ["554#4", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "the duty to file with nothing to pay",
+          "carriers": ["reglamento-iva · Artículo 40", "ley-iva · Artículo 27"]
+        },
+        {
+          "what": "the fine for an omitted return",
+          "carriers": ["cnpt · Artículo 79"]
+        }
+      ]
+    },
+    {
+      "case": "inscripcion-tardia-sancion",
+      "requirement": "Cómo regularizar: presentar la declaración de inscripción en la Oficina Virtual de TRIBU-CR y autoliquidar la sanción para acceder a la rebaja del artículo 88.",
+      "sources": ["554#5", "609#3", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "where: the inscription in the Oficina Virtual",
+          "carriers": ["tribu-cr-faq · Declaraciones del RUT · 2"]
+        }
+      ]
+    },
+    {
+      "case": "ho-hacienda-solo-cliente-eeuu",
+      "requirement": "Omitir la declaración de inscripción se sanciona con el cincuenta por ciento (50 %) de un salario base por cada mes o fracción de atraso.",
+      "sources": ["554#6", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "the 50 % per month",
+          "carriers": ["cnpt · Artículo 78"]
+        }
+      ]
+    },
+    {
+      "case": "ho-trabajitos-por-mi-cuenta",
+      "requirement": "Los dos trámites que siguen: la declaración de inscripción del RUT en la Oficina Virtual de TRIBU-CR y la afiliación como trabajador independiente en la CCSS.",
+      "sources": ["554#7", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "the RUT inscription in the Oficina Virtual",
+          "carriers": [
+            "tribu-cr-faq · Declaraciones del RUT · 2",
+            "tribu-cr-faq · Registro Único Tributario (RUT) · 1"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ho-desde-cuanta-plata-caja",
+      "requirement": "Cómo se declara el ingreso de referencia y dónde se paga la cuota.",
+      "sources": ["554#8", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "how the income is declared",
+          "carriers": ["ccss-reglamento-ti · Artículo 7"]
+        },
+        {
+          "what": "where the cuota is paid",
+          "carriers": ["ccss-faq · ¿Dónde puedo pagar mi seguro?"]
+        }
+      ]
+    },
+    {
+      "case": "ho-donde-me-afilio-caja",
+      "requirement": "La cuota se paga mensualmente, dentro de la fecha que corresponde según la primera letra del primer apellido.",
+      "sources": ["554#9", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "the monthly due date by surname",
+          "carriers": [
+            "ccss-faq · ¿Cuándo me corresponde pagar mi seguro de Trabajador Independiente?",
+            "ccss-faq · ¿Cuándo me corresponde pagar mi seguro voluntario, migrante o de trabajador independiente?"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ho-tiquete-en-vez-de-factura",
+      "requirement": "Quien emite comprobantes electrónicos debe estar inscrito en el Registro Único Tributario y tener registrado un correo electrónico válido ante la Administración Tributaria.",
+      "sources": ["554#10", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "RUT and a valid e-mail",
+          "carriers": ["reglamento-comprobantes · Artículo 4"]
+        }
+      ]
+    },
+    {
+      "case": "ho-factura-electronica-o-recibo",
+      "requirement": "Con qué emitir: el facturador gratuito de Hacienda o un proveedor de sistemas de comprobantes electrónicos.",
+      "sources": ["554#11", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "the free invoicer or a provider",
+          "carriers": [
+            "reglamento-comprobantes · Artículo 16",
+            "reglamento-comprobantes · Artículo 22"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ho-factura-electronica-o-recibo",
+      "requirement": "Los comprobantes electrónicos y sus documentos asociados deben almacenarse y conservarse por un plazo de cinco años.",
+      "sources": ["554#12", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "five years",
+          "carriers": [
+            "reglamento-comprobantes · Artículo 22",
+            "reglamento-comprobantes · Preámbulo"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ho-cabys-paginas-web",
+      "requirement": "Al emitir el comprobante, en cada línea de detalle se indica el código de producto, la descripción, la cantidad y el precio unitario.",
+      "sources": ["554#13"],
+      "parts": [
+        {
+          "what": "the detail line",
+          "carriers": ["reglamento-comprobantes · Artículo 13"]
+        }
+      ]
+    },
+    {
+      "case": "ho-cliente-espana-lleva-iva",
+      "requirement": "El hecho generador ocurre al facturar o al prestar el servicio, el acto que se realice primero, no cuando el cliente paga.",
+      "sources": ["554#14"],
+      "parts": [
+        {
+          "what": "services: invoice or service, whichever is first",
+          "carriers": ["ley-iva · Artículo 3"]
+        }
+      ]
+    },
+    {
+      "case": "ho-cliente-espana-lleva-iva",
+      "requirement": "Si el servicio se consume en Costa Rica, la tarifa general del impuesto es del 13 %.",
+      "sources": ["554#15", "609#8"],
+      "parts": [
+        {
+          "what": "13 %",
+          "carriers": ["reglamento-iva · Artículo 32"]
+        }
+      ]
+    },
+    {
+      "case": "ho-iva-en-cero-sin-facturar",
+      "requirement": "Dónde se presenta la declaración hoy y qué pasa si ya venció el plazo.",
+      "sources": ["554#16", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "where: TRIBU-CR",
+          "carriers": [
+            "tribu-cr-res-0033-2025 · Artículo 1",
+            "tribu-cr-res-0033-2025 · Artículo 3"
+          ]
+        },
+        {
+          "what": "after the deadline",
+          "carriers": ["cnpt · Artículo 79", "cnpt · Artículo 88"]
+        }
+      ]
+    },
+    {
+      "case": "ho-hasta-que-dia-tengo-iva",
+      "requirement": "Qué hacer si la fecha ya pasó.",
+      "sources": ["554#17"],
+      "parts": [
+        {
+          "what": "file late and take the spontaneous rebaja",
+          "carriers": [
+            "cnpt · Artículo 88",
+            "tribu-cr-res-0033-2025 · Artículo 1",
+            "tribu-cr-res-0033-2025 · Artículo 3"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ho-rebajar-25-sin-facturas",
+      "requirement": "La declaración anual se presenta en TRIBU-CR, la plataforma tributaria.",
+      "sources": ["554#18", "609#11", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "where: TRIBU-CR",
+          "carriers": ["tribu-cr-res-0020-2025 · Artículo 3"]
+        }
+      ]
+    },
+    {
+      "case": "ho-minimo-renta-2026",
+      "requirement": "Los tramos son anuales y se aplican sobre la renta neta, no sobre los ingresos brutos.",
+      "sources": ["554#19"],
+      "parts": [
+        {
+          "what": "annual, on renta neta",
+          "carriers": ["ley-renta · Artículo 15"]
+        }
+      ]
+    },
+    {
+      "case": "ho-minimo-renta-2026",
+      "requirement": "El período del impuesto va del 1 de enero al 31 de diciembre.",
+      "sources": ["554#20", "609#12", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "1 January to 31 December",
+          "carriers": ["reglamento-renta · Artículo 12"]
+        }
+      ]
+    },
+    {
+      "case": "ho-minimo-renta-2026",
+      "requirement": "Los tramos se actualizan cada año por decreto ejecutivo; los de 2026 son del decreto N° 45333.",
+      "sources": ["554#21"],
+      "parts": [
+        {
+          "what": "the yearly decree, N° 45333",
+          "carriers": ["ley-renta · Artículo 33", "ley-renta · Artículo 15"]
+        }
+      ]
+    },
+    {
+      "case": "ho-ademas-tengo-salario",
+      "requirement": "El salario y la actividad lucrativa tributan por escalas distintas: el salario por la escala mensual de rentas del trabajo y la actividad por la escala anual de personas físicas con actividad lucrativa.",
+      "sources": ["554#22"],
+      "parts": [
+        {
+          "what": "two scales",
+          "carriers": ["tramos-renta-2026"]
+        }
+      ]
+    },
+    {
+      "case": "ho-ademas-tengo-salario",
+      "requirement": "Quien tiene actividad lucrativa debe además hacer pagos parciales a cuenta del impuesto del período, que luego se restan del impuesto liquidado en la declaración anual.",
+      "sources": ["554#23", "609#13", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "payments on account, deducted",
+          "carriers": ["ley-renta · ARTICULO 22"]
+        }
+      ]
+    },
+    {
+      "case": "ho-ademas-tengo-salario",
+      "requirement": "Los pagos parciales: cuándo se pagan y que puede pedirse su rebaja cuando la renta del período va a ser menor.",
+      "sources": ["554#24", "609#14", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "when, and the rectification",
+          "carriers": ["ley-renta · ARTICULO 22"]
+        }
+      ]
+    },
+    {
+      "case": "ho-ademas-tengo-salario",
+      "requirement": "La declaración anual y el pago vencen dentro de los dos meses y quince días naturales siguientes al cierre del período.",
+      "sources": ["554#25", "609#15", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "two months and fifteen days",
+          "carriers": ["ley-renta · ARTICULO 22", "ley-renta · ARTICULO 20"]
+        }
+      ]
+    },
+    {
+      "case": "ho-tambien-asegurado-por-patrono",
+      "requirement": "Qué hay que hacer ante la CCSS para quedar registrado en las dos condiciones.",
+      "sources": ["554#26", "609#16", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "register the independent activity",
+          "carriers": ["ccss-reglamento-ti · Artículo 7"]
+        }
+      ]
+    },
+    {
+      "case": "ho-desinscribir-debiendo-declaraciones",
+      "requirement": "Omitir una declaración dentro del plazo legal se sanciona con el cincuenta por ciento (50 %) de un salario base.",
+      "sources": ["554#27", "609#17", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "50 % of a salario base",
+          "carriers": ["cnpt · Artículo 79"]
+        }
+      ]
+    },
+    {
+      "case": "desinscripcion-dejar-actividad",
+      "requirement": "La desinscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, en «Mis datos» → «Solicitar desinscripción», indicando motivo y fecha de cese; ATV, la plataforma anterior, quedó deshabilitada.",
+      "sources": ["609#2"],
+      "parts": [
+        {
+          "what": "ATV disabled (#602 item 1)",
+          "carriers": [
+            "tribu-cr-res-0011-2025 · Artículo 1",
+            "tribu-cr-res-0020-2025 · Preámbulo",
+            "tribu-cr-res-0033-2025 · Preámbulo"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ho-hacienda-solo-cliente-eeuu",
+      "requirement": "Facturar sólo a clientes del exterior no exime de inscribirse: aunque el servicio llegue a calificar como exportación exenta —lo que depende de que se consuma fuera de Costa Rica—, estar exento no es lo mismo que no ser contribuyente.",
+      "sources": ["609#4"],
+      "parts": [
+        {
+          "what": "exempt is not non-contribuyente",
+          "carriers": ["ley-iva · Artículo 4", "ley-iva · Artículo 8"]
+        }
+      ]
+    },
+    {
+      "case": "ho-hacienda-solo-cliente-eeuu",
+      "requirement": "Quien no solicita la inscripción puede ser inscrito de oficio por la Administración Tributaria.",
+      "sources": ["609#5"],
+      "parts": [
+        {
+          "what": "inscripción de oficio",
+          "carriers": ["ley-iva · Artículo 5"]
+        }
+      ]
+    },
+    {
+      "case": "ho-donde-inscribo-ya-no-atv",
+      "requirement": "Una persona física nacional puede inscribirse por la Oficina Virtual si es mayor de 18 años, figura como «vivo» en el sistema y su estado tributario es «No inscrito», «Desinscrito» o «Desinscrito de oficio».",
+      "sources": ["609#6"],
+      "parts": [
+        {
+          "what": "who may inscribe online",
+          "carriers": ["tribu-cr-faq · Registro Único Tributario (RUT) · 2"]
+        }
+      ]
+    },
+    {
+      "case": "ho-donde-inscribo-ya-no-atv",
+      "requirement": "La inscripción se presenta en la Oficina Virtual de TRIBU-CR, que sustituyó a ATV como canal de la Administración Tributaria.",
+      "sources": ["609#7", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "the OVi path to the inscription",
+          "carriers": ["tribu-cr-faq · Declaraciones del RUT · 3"]
+        }
+      ]
+    },
+    {
+      "case": "ho-cliente-espana-lleva-iva",
+      "requirement": "La operación exenta se documenta igual, con el comprobante electrónico que corresponda.",
+      "sources": ["609#9"],
+      "parts": [
+        {
+          "what": "the factura electrónica de exportación (refiled: unsaid)",
+          "carriers": ["reglamento-comprobantes · Artículo 13"]
+        }
+      ]
+    },
+    {
+      "case": "ho-iva-en-cero-sin-facturar",
+      "requirement": "Omitir la declaración dentro del plazo legal se sanciona con una multa del cincuenta por ciento (50 %) de un salario base.",
+      "sources": ["609#10", "tier1-carriers"],
+      "parts": [
+        {
+          "what": "50 % of a salario base",
+          "carriers": ["cnpt · Artículo 79"]
+        }
+      ]
+    },
+    {
+      "case": "ho-hacienda-solo-cliente-eeuu",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["tribu-cr-faq · Declaraciones del RUT · 2"]
+        }
+      ]
+    },
+    {
+      "case": "ho-donde-inscribo-ya-no-atv",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["tribu-cr-faq · Ingreso a la Oficina Virtual (OVI) · 1"]
+        }
+      ]
+    },
+    {
+      "case": "ho-donde-inscribo-ya-no-atv",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["tribu-cr-faq · Declaraciones del RUT · 10"]
+        }
+      ]
+    },
+    {
+      "case": "ho-donde-inscribo-ya-no-atv",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["tribu-cr-faq · Declaraciones del RUT · 13"]
+        }
+      ]
+    },
+    {
+      "case": "ho-donde-inscribo-ya-no-atv",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["tribu-cr-faq · Declaraciones del RUT · 14"]
+        }
+      ]
+    },
+    {
+      "case": "ho-desde-cuanta-plata-caja",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["ccss-reglamento-ti · Artículo 10"]
+        }
+      ]
+    },
+    {
+      "case": "ho-cliente-espana-lleva-iva",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["ley-iva · Artículo 8"]
+        }
+      ]
+    },
+    {
+      "case": "ho-cliente-espana-lleva-iva",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["reglamento-iva · Artículo 11"]
+        }
+      ]
+    },
+    {
+      "case": "ho-cliente-espana-lleva-iva",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["reglamento-comprobantes · Artículo 2"]
+        }
+      ]
+    },
+    {
+      "case": "ho-cliente-espana-lleva-iva",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["ley-iva · Artículo 10"]
+        }
+      ]
+    },
+    {
+      "case": "ho-minimo-renta-2026",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["ley-renta · Artículo 4"]
+        }
+      ]
+    },
+    {
+      "case": "ho-ademas-tengo-salario",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["ley-renta · Artículo 24"]
+        }
+      ]
+    },
+    {
+      "case": "ho-ademas-tengo-salario",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["reglamento-renta · Artículo 26"]
+        }
+      ]
+    },
+    {
+      "case": "ho-ademas-tengo-salario",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["reglamento-renta · Artículo 28"]
+        }
+      ]
+    },
+    {
+      "case": "ho-ademas-tengo-salario",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["reglamento-renta · Artículo 30"]
+        }
+      ]
+    },
+    {
+      "case": "ho-800-mil-que-porcentaje-caja",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["ccss-faq · ¿Cómo procedo si mis ingresos han variado?"]
+        }
+      ]
+    },
+    {
+      "case": "ccss-pedir-prescripcion-cuotas",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["ccss-prescripcion · ¿Cómo se solicita la prescripción?"]
+        }
+      ]
+    },
+    {
+      "case": "ccss-pedir-prescripcion-cuotas",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["ccss-prescripcion · ¿Dónde presento la solicitud?"]
+        }
+      ]
+    },
+    {
+      "case": "ccss-pedir-prescripcion-cuotas",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": [
+            "ccss-faq · ¿Dónde puedo solicitar la prescripción de cuotas de trabajador independiente pendientes de pago (Ley N°10.363)?"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "desinscripcion-dejar-actividad",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["reglamento-iva · Artículo 67"]
+        }
+      ]
+    },
+    {
+      "case": "ho-desinscribir-debiendo-declaraciones",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["ley-iva · Artículo 27"]
+        }
+      ]
+    },
+    {
+      "case": "multa-iva-no-declarado",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["cnpt · Artículo 57"]
+        }
+      ]
+    },
+    {
+      "case": "multa-iva-no-declarado",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["cnpt · Artículo 88"]
+        }
+      ]
+    },
+    {
+      "case": "multa-iva-no-declarado",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["salario-base-2026 · Circular 246-2025"]
+        }
+      ]
+    },
+    {
+      "case": "inscripcion-tardia-sancion",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["cnpt · Artículo 88"]
+        }
+      ]
+    },
+    {
+      "case": "inscripcion-tardia-sancion",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["salario-base-2026 · Circular 246-2025"]
+        }
+      ]
+    },
+    {
+      "case": "ho-rebajar-multa-si-pago-ya",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["tribu-cr-res-0033-2025 · Artículo 1"]
+        }
+      ]
+    },
+    {
+      "case": "ho-rebajar-multa-si-pago-ya",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["tribu-cr-res-0033-2025 · Artículo 3"]
+        }
+      ]
+    },
+    {
+      "case": "ccss-cuanto-pago-base",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["ccss-escala-ivm · Artículo 4°, sesión 9570"]
+        }
+      ]
+    },
+    {
+      "case": "ccss-cuanto-pago-base",
+      "requirement": null,
+      "sources": ["tier1-carriers"],
+      "parts": [
+        {
+          "what": "a #412 carrier",
+          "carriers": ["salarios-minimos · Artículo 1"]
+        }
+      ]
+    }
+  ]
+}

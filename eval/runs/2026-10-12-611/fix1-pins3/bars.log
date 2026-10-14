@@ -1,0 +1,8 @@
+arm eval/runs/2026-10-12-611/fix1-pins3 against eval/runs/2026-10-12-611/control
+
+R1 FAIL  mean share 60.9 % vs control 53.1 % (needs ≥ 63.1 %); floor rows fallen below 3/5: 1 ccss-pedir-prescripcion-cuotas 4/5 → 2/5; 2 ccss-obligacion-ingreso-bajo 5/5 → 2/5
+R2 FAIL  catalogue picks in the set identical 19/27 (70.4 %, needs ≥ 90 %); Tier 1 median Jaccard 0.69 vs control 0.67; differs: ccss-pedir-prescripcion-cuotas, ccss-ventana-prescripcion-24-meses, desinscripcion-dejar-actividad, inscripcion-tardia-sancion, ho-trabajitos-por-mi-cuenta, ho-donde-inscribo-ya-no-atv, ho-cliente-espana-lleva-iva, ho-rebajar-25-sin-facturas
+R3 PASS  hit-rate 70/74 73/74 71/74 72/74 73/74 (PASS); robustness 27 27 26 26 25 = 131/135 (PASS); all-targets mean 49.2 vs control 49.2; isWeak flips none, differs from control none
+R4 PASS  median size 12 vs control 11 (needs ≤ 13)
+
+R1–R4: FAIL

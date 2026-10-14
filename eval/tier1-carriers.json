@@ -1,5 +1,5 @@
 {
-  "$comment": "The carrying chunks of #412's Tier 1 miss classification (eval/README.md «The 23 Tier 1 misses, classified»), for #287's retrieval-only read: each case's retrieval rows mapped to the chunk that carries the missing requirement, plus F1's two BMC inputs. `retrieval-hitrate.eval.test.ts` prints, per case, where each one sat — fused pool, reranked order, answer set — and how many reached the answer set. A diagnostic, not a gate: the rows come from one run's answers, and a case whose answer now states the requirement from another chunk is still read here by this chunk.",
+  "$comment": "The carrying chunks of #412's Tier 1 miss classification (eval/README.md «The 23 Tier 1 misses, classified»), for #287's retrieval-only read: each case's retrieval rows mapped to the chunk that carries the missing requirement, plus F1's two BMC inputs. `retrieval-hitrate.eval.test.ts` prints, per case, where each one sat — fused pool, reranked order, answer set — and how many reached the answer set. A diagnostic, not a gate: the rows come from one run's answers, and a case whose answer now states the requirement from another chunk is still read here by this chunk. The last three (#611: `Declaraciones del RUT · 3`, `reglamento-renta` 12, `ccss-reglamento-ti` 7) are carriers #609's confirming-lane read found the lane did not print.",
   "cases": {
     "ho-hacienda-solo-cliente-eeuu": [
       "tribu-cr-faq · Declaraciones del RUT · 2",
@@ -10,7 +10,8 @@
       "tribu-cr-faq · Ingreso a la Oficina Virtual (OVI) · 1",
       "tribu-cr-faq · Declaraciones del RUT · 10",
       "tribu-cr-faq · Declaraciones del RUT · 13",
-      "tribu-cr-faq · Declaraciones del RUT · 14"
+      "tribu-cr-faq · Declaraciones del RUT · 14",
+      "tribu-cr-faq · Declaraciones del RUT · 3"
     ],
     "ccss-obligacion-ingreso-bajo": [
       "ccss-faq · ¿Dónde me corresponde realizar el trámite de afiliación?"
@@ -41,7 +42,10 @@
       "cnpt · Artículo 88"
     ],
     "ho-rebajar-25-sin-facturas": ["tribu-cr-res-0020-2025 · Artículo 3"],
-    "ho-minimo-renta-2026": ["ley-renta · Artículo 4"],
+    "ho-minimo-renta-2026": [
+      "ley-renta · Artículo 4",
+      "reglamento-renta · Artículo 12"
+    ],
     "ho-ademas-tengo-salario": [
       "ley-renta · ARTICULO 22",
       "ley-renta · Artículo 24",
@@ -49,6 +53,7 @@
       "reglamento-renta · Artículo 28",
       "reglamento-renta · Artículo 30"
     ],
+    "ho-tambien-asegurado-por-patrono": ["ccss-reglamento-ti · Artículo 7"],
     "ho-800-mil-que-porcentaje-caja": [
       "ccss-faq · ¿Cómo procedo si mis ingresos han variado?"
     ],
