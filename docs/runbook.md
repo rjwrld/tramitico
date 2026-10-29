@@ -821,10 +821,9 @@ beside `ANTHROPIC_API_KEY` in `.env.example`.
 **The cap is not the balance (#552, owner check of 2026-10-09).** Workspaces separate limits
 and keys, not money: the credit balance is **org-wide**, shared by `tramitico-prod` and the
 eval workspace, so a paid wave can still drain the credit production answers on, below its
-cap. There is no auto-reload and no monthly limit on the eval workspace (both declined);
-Anthropic grants **US$200 of API credit a month**, which covers production's US$10 plus a
-development wave's evals. The rule instead: **every paid wave's pre-launch balance check
-must show its hard stop plus ~US$15**, so production keeps a margin. Evals run only in
+cap. There is no auto-reload and no monthly limit on the eval workspace (both declined).
+The rule instead: **every paid wave's pre-launch balance check must show its hard stop
+plus ~US$15**, so production keeps a margin. Evals run only in
 development waves, with the owner's OK; nothing runs them on a schedule.
 
 **What is not capped.** Voyage AI (embeddings and rerank) has no per-workspace spend limit
