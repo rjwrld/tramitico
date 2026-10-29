@@ -6,6 +6,14 @@ has run, nothing in this file changes. A result that misses a bar is reported
 as a miss, and the bars are not moved to fit it. As in #611, no arm is chosen
 on Tier 1 adequacy or on the count of fully adequate cases (ADR 0023).
 
+## Owner decision (2026-10-28), after step 0
+
+**Step 1 isn't run.** Fixes 2 and 3 stop here, and #602 item 1 is deferred
+(neither B nor C). The step 0b estimate of a larger cut found no candidate
+(R1 ≤ 60.9 % at every cut up to 16, [`README.md`](README.md)), so no step 1b
+is drafted. Nothing below ran. It stays as the record of what was
+pre-registered.
+
 ## What step 0 settled (free)
 
 - **Fix 3 is a no-go** ([`README.md`](README.md), `merge-estimate.log`).
