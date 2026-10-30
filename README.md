@@ -219,7 +219,6 @@ five test lanes, split by what each one needs.
 | [SPEC.md](SPEC.md)                                   | the build contract: corpus, retrieval, answer contract, gates |
 | [DESIGN.md](DESIGN.md)                               | the visual contract, written before the first component       |
 | [PRODUCT.md](PRODUCT.md)                             | who it is for and what it is not                              |
-| [BRIEF.md](BRIEF.md)                                 | the original scope; its out-of-scope list is binding          |
 | [docs/adr/](docs/adr/README.md)                      | the decisions that overturned a default, numbered and dated   |
 | [docs/how-it-was-built.md](docs/how-it-was-built.md) | the workflow and what each stage caught                       |
 | [docs/runbook.md](docs/runbook.md)                   | what to watch in production and when to roll back             |
