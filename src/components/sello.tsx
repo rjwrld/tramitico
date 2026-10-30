@@ -244,32 +244,17 @@ export function effectiveLabel(
 }
 
 /**
- * Anchor id for the nth seal of one answer (#133). `prefix` scopes it to that
- * answer — several are on screen at once in a chat — and is scrubbed to the
- * characters an `href="#…"` fragment can carry, since React's `useId` spells
- * its ids with punctuation (`«r0»`).
- */
-export function selloAnchorId(prefix: string, ordinal: number): string {
-  return `${prefix.replace(/[^A-Za-z0-9_-]/g, "")}-fuente-${ordinal}`;
-}
-
-/**
  * The answer's sello row — one stamp per citation, in order of use.
  *
- * `anchorPrefix` turns the row into the landing site for the prose's inline
- * superscripts: each stamp is numbered by its position here, and that is the
- * numbering `renumberCitationMarkers` writes into the text. The stamp itself
- * is untouched (DESIGN §5) — the id and the `:target` ring live on the `li`,
- * so a reader who follows ¹ sees which stamp lit up without the chip growing
- * a number it does not need.
+ * A stamp's position here is the numbering `renumberCitationMarkers` writes
+ * into the text, so the prose's inline chip `k` stands for the kth stamp. The
+ * chip brings the source's card to the claim; the row is not a jump target.
  */
 export function SelloRow({
   citations,
-  anchorPrefix,
   className,
 }: {
   citations: Citation[];
-  anchorPrefix?: string;
   className?: string;
 }) {
   if (citations.length === 0) return null;
@@ -292,8 +277,7 @@ export function SelloRow({
       {citations.map((citation, i) => (
         <li
           key={`${citation.docKey} ${citation.articulo ?? ""}`}
-          id={anchorPrefix ? selloAnchorId(anchorPrefix, i + 1) : undefined}
-          className="flex scroll-mt-24 flex-col items-start gap-1 rounded-[3px] target:outline-2 target:outline-offset-2 target:outline-ring"
+          className="flex flex-col items-start gap-1"
         >
           <Sello citation={citation} />
           {shared === null && captions[i] && (

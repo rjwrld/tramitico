@@ -35,6 +35,7 @@ import {
 import { routingEntriesFor, type RoutedCategory } from "@/lib/routing";
 import { renumberCitationMarkers } from "@/lib/answer/citations";
 import { AnswerProse } from "@/components/chat/answer-prose";
+import { useCopiedFlag } from "@/components/chat/use-copied-flag";
 import { AskStatus, type AskStatusState } from "@/components/chat/ask-status";
 import { SelloRow, selloLabel } from "@/components/sello";
 import { Button } from "@/components/ui/button";
@@ -253,7 +254,7 @@ export function AnswerBlock({
     <div data-slot="answer" className="flex flex-col gap-4" aria-busy={busy}>
       <AnswerProse
         text={text}
-        references={{ count: citations.length, anchorPrefix: message.id }}
+        citations={citations}
         reveal={
           phase === "holding" || phase === "revealing" ? { delayFor } : null
         }
@@ -264,9 +265,7 @@ export function AnswerBlock({
         settle instead of competing with it mid-reveal. Same gate for the
         notes below — they qualify an answer the reader can now actually read.
       */}
-      {revealDone && (
-        <SelloRow citations={citations} anchorPrefix={message.id} />
-      )}
+      {revealDone && <SelloRow citations={citations} />}
       {/*
         The degraded-search label (#127 req. 3). Quiet, above the disclaimer,
         and only once there is an answer to qualify — before then, the status
@@ -339,7 +338,6 @@ function RoutedLinks({ category }: { category: RoutedCategory }) {
 
 export const COPY_ANSWER_LABEL = "Copiar respuesta";
 export const COPIED_ANSWER_LABEL = "Respuesta copiada";
-const COPIED_DISPLAY_MS = 2000;
 
 /**
  * What «Copiar respuesta» puts on the clipboard: the prose as plain text, its
@@ -402,12 +400,7 @@ export function AnswerFoot({
  * permission, insecure context) just leaves the label as it was.
  */
 function CopyAnswerButton({ text }: { text: string }) {
-  const [copied, setCopied] = React.useState(false);
-  React.useEffect(() => {
-    if (!copied) return;
-    const timer = setTimeout(() => setCopied(false), COPIED_DISPLAY_MS);
-    return () => clearTimeout(timer);
-  }, [copied]);
+  const [copied, flashCopied] = useCopiedFlag();
 
   return (
     <>
@@ -417,10 +410,7 @@ function CopyAnswerButton({ text }: { text: string }) {
         size="xs"
         className="shrink-0 text-muted-foreground pointer-coarse:h-11"
         onClick={() => {
-          navigator.clipboard?.writeText(text).then(
-            () => setCopied(true),
-            () => {},
-          );
+          navigator.clipboard?.writeText(text).then(flashCopied, () => {});
         }}
       >
         {copied ? <CheckIcon aria-hidden /> : <CopyIcon aria-hidden />}

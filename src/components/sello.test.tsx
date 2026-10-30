@@ -292,34 +292,6 @@ describe("SelloRow", () => {
     expect(row.querySelectorAll("[data-slot=sello]")).toHaveLength(2);
   });
 
-  it("anchors each sello for the prose's superscripts (#133)", () => {
-    render(
-      <SelloRow
-        anchorPrefix="«r3»"
-        citations={[
-          reglamentoIva,
-          { ...reglamentoIva, docKey: "ley-iva", articulo: "Artículo 8" },
-        ]}
-      />,
-    );
-
-    // useId spells its ids with punctuation an href fragment cannot carry.
-    expect(screen.getAllByRole("listitem").map((li) => li.id)).toEqual([
-      "r3-fuente-1",
-      "r3-fuente-2",
-    ]);
-    // The stamp itself is untouched (DESIGN §5) — no number on the chip.
-    expect(
-      screen.getByRole("link", { name: "Reglamento IVA · Art. 11" })
-        .textContent,
-    ).toBe("Reglamento IVA · Art. 11");
-  });
-
-  it("leaves the sellos unanchored when no answer owns them", () => {
-    render(<SelloRow citations={[reglamentoIva]} />);
-    expect(screen.getByRole("listitem").id).toBe("");
-  });
-
   it("captions every stamp with its effective and consultation dates", () => {
     render(
       <SelloRow

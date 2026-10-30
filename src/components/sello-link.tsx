@@ -29,6 +29,31 @@ export function sourceHost(url: string): string | null {
   }
 }
 
+/** The card's frame — the sello's and the inline reference's (#478). */
+export const sourcePreviewPopupClassName = cn(
+  "flex max-w-xs origin-(--transform-origin) flex-col gap-1 rounded-lg bg-popover p-3 text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none",
+  "duration-150 data-closed:animate-out data-closed:fade-out-0 data-open:animate-in data-open:fade-in-0 motion-reduce:animate-none",
+);
+
+/** What the card says about a source: its full title and its norma. */
+export function SourcePreview({ citation }: { citation: Citation }) {
+  const reference = [citation.norma, citation.articulo]
+    .filter(Boolean)
+    .join(" · ");
+  return (
+    <>
+      <p className="text-sm leading-snug font-medium text-balance">
+        {citation.docTitle}
+      </p>
+      {reference && (
+        <p className="font-mono text-[0.6875rem] text-muted-foreground">
+          {reference}
+        </p>
+      )}
+    </>
+  );
+}
+
 export function SelloLink({
   citation,
   href,
@@ -41,9 +66,6 @@ export function SelloLink({
   className?: string;
 }) {
   const host = sourceHost(href);
-  const reference = [citation.norma, citation.articulo]
-    .filter(Boolean)
-    .join(" · ");
   return (
     <PreviewCard.Root>
       <PreviewCard.Trigger
@@ -61,19 +83,9 @@ export function SelloLink({
         <PreviewCard.Positioner sideOffset={8} className="isolate z-50">
           <PreviewCard.Popup
             data-slot="sello-preview"
-            className={cn(
-              "flex max-w-xs origin-(--transform-origin) flex-col gap-1 rounded-lg bg-popover p-3 text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none",
-              "duration-150 data-closed:animate-out data-closed:fade-out-0 data-open:animate-in data-open:fade-in-0 motion-reduce:animate-none",
-            )}
+            className={sourcePreviewPopupClassName}
           >
-            <p className="text-sm leading-snug font-medium text-balance">
-              {citation.docTitle}
-            </p>
-            {reference && (
-              <p className="font-mono text-[0.6875rem] text-muted-foreground">
-                {reference}
-              </p>
-            )}
+            <SourcePreview citation={citation} />
             {host && (
               <p className="font-mono text-[0.6875rem] text-muted-foreground">
                 {host} <span aria-hidden>↗</span>
