@@ -18,5 +18,13 @@ minimumReleaseAgeExclude:
 # The `@ai-sdk/*` chain pins undici ^7, which is stuck below the 7.29.0 patch
 # line for the advisories tracked on #122. Hoisting the whole tree onto the
 # direct 8.x pin resolves every path at once instead of chasing each transitive.
+#
+# The shadcn CLI (dev only, never in the production bundle) pulls three
+# transitives below their advisory fixes, and its dependents' locked
+# resolutions don't move on their own. Each selector touches only the
+# vulnerable range, so a later release that lifts them makes the entry a no-op.
 overrides:
   undici: "^8.10.0"
+  "systeminformation@<5.33.16": "^5.33.16"
+  "fast-uri@<3.1.9": "^3.1.9"
+  "body-parser@>=2.0.0 <2.4.0": "^2.4.0"
