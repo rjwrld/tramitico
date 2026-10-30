@@ -554,7 +554,7 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
 Feature publicly when: the MVP ships (curated corpus and re-runnable ingestion, answers with
 inline citations, chat UI with the legal disclaimer, auth and per-user history, eval set and
 groundedness check in CI, Vitest + Playwright, deploy on Vercel) · CI green including the
-groundedness gate · deployed on the real URL · README + ADRs + `how-it-was-built.md` done.
+groundedness gate · deployed on the real URL · README + ADRs done.
 MCP server **not** required to feature — it is phase 2 (§13) and gates only the "builds MCP
 servers" claim.
 
@@ -568,7 +568,7 @@ servers" claim.
 - **Wk 2 — RAG core:** hybrid retrieval + RRF, embedding ADR benchmark, answer assembly +
   citations + guardrail prompt, chat UI + seeded prompts, auth + history, rate limiting, unit tests.
 - **Wk 3 — harden + ship:** eval dataset + groundedness judge wired into CI, Haiku-vs-Sonnet
-  eval comparison, Playwright e2e, README/ADRs/how-it-was-built, deploy, buffer.
+  eval comparison, Playwright e2e, README/ADRs, deploy, buffer.
 
 ## 12. ADRs to write during build
 

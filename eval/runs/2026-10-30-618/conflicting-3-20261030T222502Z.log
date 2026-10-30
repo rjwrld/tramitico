@@ -1,0 +1,40 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+ Vitest  The "unit" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+ Vitest  The "integration" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+ Vitest  The "eval" project applies the same plugin multiple times: "vite:react-babel", "vite:react-refresh-fbm", "vite:react-refresh", "vite:react:refresh-wrapper", "vite:react-virtual-preamble", "vite:react:config-post". Since Vitest 5, an inline project extends the config file that declares it by default, so the plugins from "vitest.config.ts" already apply to this project and don't need to be listed again.
+Remove the duplicated plugins from the project, or set `extends: false` to not inherit the declaring config. Setting the `extends` option explicitly hides this warning.
+
+ RUN  v5.0.5 <worktree>
+
+
+conflicting sources (answer=claude-sonnet-5-5-effort-low, judge=claude-sonnet-4-5): pass
+Las fuentes discrepan: hay dos decretos anuales distintos, cada uno con un monto exento diferente.
+
+- El Decreto de tramos del impuesto sobre la renta 2026 (Decreto Ejecutivo 44000), artículo 1, dice que las rentas de las personas físicas con actividad lucrativa están exentas hasta un monto anual de ¢4.094.000 [1].
+- El Decreto de tramos del impuesto sobre la renta 2025 (Decreto Ejecutivo 43500), artículo 1, fija ese monto exento anual en ¢3.947.000 [2].
+
+Los documentos no dicen que uno sustituya al otro. Cuál de los dos decretos rige para el período que usted va a declarar, verifíquelo con Hacienda (https://www.hacienda.go.cr).
+
+En ambos decretos, lo que excede el monto exento se grava según los tramos que cada decreto establece [1][2]. Los tramos y porcentajes aplicables a su período, y el impuesto resultante de su caso, los determina Hacienda.
+
+transcript: <main-checkout>/eval/transcripts/2026-10-30-618/conflicting-sources-claude-sonnet-5-5-effort-low-20261030T222508Z.jsonl
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  16:25:03
+   Duration  5.18s (tests 99%, import 1%)
+

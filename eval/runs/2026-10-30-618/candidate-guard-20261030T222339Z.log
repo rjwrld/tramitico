@@ -1,0 +1,21 @@
+$ tsx scripts/answer-replay.ts eval/runs/2026-10-12-497-confirm/lane/groundedness-claude-sonnet-5-5-effort-low-20261012T233756Z.jsonl --cases=ho-cabys-paginas-web,ho-800-mil-que-porcentaje-caja,ho-desde-cuanta-plata-caja,multa-iva-no-declarado,ho-desinscribir-debiendo-declaraciones
+replaying 5 row(s) of groundedness-claude-sonnet-5-5-effort-low-20261012T233756Z.jsonl on claude-sonnet-5-5-effort-low
+(node:6099) Warning: AI SDK Warning System: To turn off warning logging, set the AI_SDK_LOG_WARNINGS global to false.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:6099) [AISDK_DEP_GENERATE_OBJECT] DeprecationWarning: AI SDK Warning: Deprecated: "generateObject". Use generateText with an output setting instead.
+  multa-iva-no-declarado  pass  missing 0
+  ho-desde-cuanta-plata-caja  pass  missing 0
+  ho-cabys-paginas-web  pass  missing 0
+  ho-800-mil-que-porcentaje-caja  pass  missing 0
+  ho-desinscribir-debiendo-declaraciones  pass  missing 1
+
+transcript: eval/transcripts/groundedness-claude-sonnet-5-5-effort-low-replay-subset-20261030T222445Z.jsonl
+
+requirements stated, recorded → replayed: 20 → 20 of 21
+  3 → 3 / 4  ho-desinscribir-debiendo-declaraciones
+grounded, recorded → replayed: 5 → 5 of 5
+false absence claims (#500), recorded → replayed: 0 → 0
+absence openings, recorded → replayed: 1 → 2 — ho-cabys-paginas-web, ho-desinscribir-debiendo-declaraciones
+citation invariant: 0 violation(s)
+derived figures incompletely cited: 0
+finish other than stop: 0; output tokens max 1091

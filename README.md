@@ -130,12 +130,12 @@ How each gate was set, and every run since the first, are in
 
 ## How it was built
 
-By one person and a set of coding agents, in about eight weeks: a wayfinder map of the
+By one person and a set of coding agents, starting 2026-07-21: a wayfinder map of the
 domain first, then a grilling session per decision, then GitHub issues that link the spec
 section they implement, then agents working in parallel worktrees, then review, then the eval
 gates above as the release bar. Each stage caught something the previous one had let through.
-The full account, including what was lost and what the gates failed to say, is in
-[`docs/how-it-was-built.md`](docs/how-it-was-built.md).
+The decisions that overturned a default are in [docs/adr/](docs/adr/README.md), and every eval run,
+including the ones that failed, is in [`eval/README.md`](eval/README.md).
 
 ## Limitations
 
@@ -201,16 +201,15 @@ five test lanes, split by what each one needs.
 
 ## Docs
 
-| Document                                             | What it is                                                    |
-| ---------------------------------------------------- | ------------------------------------------------------------- |
-| [SPEC.md](SPEC.md)                                   | the build contract: corpus, retrieval, answer contract, gates |
-| [DESIGN.md](DESIGN.md)                               | the visual contract, written before the first component       |
-| [PRODUCT.md](PRODUCT.md)                             | who it is for and what it is not                              |
-| [docs/adr/](docs/adr/README.md)                      | the decisions that overturned a default, numbered and dated   |
-| [docs/how-it-was-built.md](docs/how-it-was-built.md) | the workflow and what each stage caught                       |
-| [docs/runbook.md](docs/runbook.md)                   | what to watch in production and when to roll back             |
-| [eval/README.md](eval/README.md)                     | every eval run, and the rules for reading one                 |
-| [CLAUDE.md](CLAUDE.md)                               | the working map for coding agents                             |
+| Document                           | What it is                                                    |
+| ---------------------------------- | ------------------------------------------------------------- |
+| [SPEC.md](SPEC.md)                 | the build contract: corpus, retrieval, answer contract, gates |
+| [DESIGN.md](DESIGN.md)             | the visual contract, written before the first component       |
+| [PRODUCT.md](PRODUCT.md)           | who it is for and what it is not                              |
+| [docs/adr/](docs/adr/README.md)    | the decisions that overturned a default, numbered and dated   |
+| [docs/runbook.md](docs/runbook.md) | what to watch in production and when to roll back             |
+| [eval/README.md](eval/README.md)   | every eval run, and the rules for reading one                 |
+| [CLAUDE.md](CLAUDE.md)             | the working map for coding agents                             |
 
 ## License
 

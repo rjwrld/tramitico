@@ -15,7 +15,8 @@ inversion — each is tuned independently. Theme follows system preference, with
 
 Strategy: **restrained with one owned accent**. Neutrals are cool ink-tinted grays; the sello red
 carries the identity and is _policed_ — it marks exactly four things: the `tico` syllable in the
-wordmark, citations (sellos), the primary action, and active/focus states. Everything else is ink
+wordmark, citations (sellos, their inline reference chips, and the official links an answer names),
+the primary action, and active/focus states. Everything else is ink
 on paper. If red appears anywhere else, it's a bug.
 
 ### shadcn tokens
@@ -184,13 +185,24 @@ document with neither date gets no caption — the slot is never filled with a g
 stamp in a row carries the same caption, it is said once, under the row, rather than repeated
 under each stamp.
 
-**Inline reference.** A claim carries its source as a superscript numeral at the end of the
-clause — Geist Mono, tabular numerals, `--sello`, no underline, hover ground `--sello-bg`.
-The numeral is the sello's position in the row below; following it targets that sello, which
-takes a `--ring` outline while it is the fragment target. The chip itself never changes: it grows
-no number, keeps its own link to the official source, and stays the object the eye lands on. A
-reference with no sello behind it is not rendered — there is no such thing as a superscript that
-leads nowhere.
+**Inline reference.** A claim carries its source as a miniature sello at the end of the clause:
+the numeral in Geist Mono 9.5px/500, tabular, `--sello` on `--sello-bg`, a 1px `--sello-border`
+rule with a 1px inset ground, raised to superscript height. It is an inline box, never an atomic
+one, so the line cannot break between the word and its numeral. The numeral is the sello's
+position in the row below. Hover (after 250ms) opens the sello's own source card beside the claim
+— full title, norma, and «Abrir en {host} ↗»; a click or tap pins it until Esc, a press outside,
+or a second press. Hovered or open, the chip fills `--sello` with `--background` text; while a
+card is open, every other chip citing the same source raises its rule to `--sello`. Nothing jumps
+to the row: the row is where the sources are listed, the card is where they are read. The stamp
+in the row never changes: it grows no number, keeps its own link to the official source, and
+stays the object the eye lands on. A reference with no sello behind it is not rendered — there is
+no such thing as a chip that leads nowhere.
+
+**Official links.** A bare URL in an answer becomes a link only when its host is official
+(`src/lib/official-hosts.ts`); any other stays text. It reads as the answer wrote it, minus
+`https://` and `www.`, in `--sello` with a lucide `Landmark` mark glued to the host, underlined
+only on hover, opening a new tab. An official address takes the same treatment with a `Mail`
+mark; with a mouse a click copies it («Copiado»), on touch it opens the mail app.
 
 ## 6. Components (shadcn + AI Elements)
 
