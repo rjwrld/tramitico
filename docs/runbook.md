@@ -630,6 +630,22 @@ comments on) the issue: `gh workflow run canary.yml -f host=https://canary-force
 — close the issue afterwards. From a checkout, `pnpm canary` asks production and spends its
 cap; `CANARY_HOST=http://localhost:3000 pnpm canary` asks a local `pnpm dev`.
 
+### 3.4 The scheduled audit (#626)
+
+`.github/workflows/audit.yml` runs `pnpm audit --prod --audit-level=high` against `main` every
+day at 12:41 UTC, the same gate as `ci.yml`'s `checks` job, without waiting for a push. It
+installs nothing: the audit reads the lockfile. A failure files one `needs-triage` issue
+titled «Dependency audit failed» with the advisory table, and later failures comment on it.
+
+**When it fires.** Read the table for the package and its fixed version. If Dependabot's
+weekly group PR already carries the fix, merge it. Otherwise carry the bump on a branch; a
+stuck transitive moves with `pnpm add -D <pkg>@^<fixed>` followed by `pnpm remove <pkg>`.
+Close the issue once the fix is on `main`; the next green run is the evidence.
+
+**By hand.** `gh workflow run audit.yml` audits the production tree. A forced failure, which
+files (or comments on) the issue while a dev-only advisory is open:
+`gh workflow run audit.yml -f tree=all` — close the issue afterwards.
+
 ---
 
 ## 4. Rollback threshold (#141 req. 4)
