@@ -2,8 +2,8 @@
 
 > Destination artifact of the [wayfinder map](https://github.com/rjwrld/tramitico/issues/1).
 > Consolidates every decision made during planning (July 2026). The map's closed tickets hold
-> the full reasoning; this document holds the answers. [BRIEF.md](BRIEF.md) holds the original
-> motivation and remains the scope contract (§5 OUT-list is binding).
+> the full reasoning; this document holds the answers. §13's out-of-scope list is the
+> scope contract and is binding.
 >
 > **Status: building.** Week 1 (foundation) landed 2026-07-21 — PRs [#15](https://github.com/rjwrld/tramitico/pull/15), [#16](https://github.com/rjwrld/tramitico/pull/16).
 > Build work is tracked as GitHub issues (label `build`); deviations discovered during the build
@@ -55,8 +55,8 @@ quality gates in §9, and deployment on Vercel. This contract is recorded in
 | Auth     | Public ask (rate-limited); sign-in → history + higher limits                                                                                                                                 | [#10](https://github.com/rjwrld/tramitico/issues/10) |
 | Language | ES corpus/answers **and app chrome** ([ADR 0021](docs/adr/0021-spanish-chrome.md)); EN README, demo                                                                                          | [#11](https://github.com/rjwrld/tramitico/issues/11) |
 | Eval set | ~20–30 hand-written Q&As; peer questions post-launch                                                                                                                                         | [#12](https://github.com/rjwrld/tramitico/issues/12) |
-| Done bar | §5 IN-list + green CI w/ eval gate + deployed + docs                                                                                                                                         | [#14](https://github.com/rjwrld/tramitico/issues/14) |
-| Stack    | Next.js App Router · Supabase (Postgres/pgvector/Auth) · Claude Sonnet via Vercel AI SDK · **shadcn/ui + AI Elements** · Vitest/Playwright/GHA/Vercel — re-confirmed layer-by-layer post-map | BRIEF §4                                             |
+| Done bar | MVP list (§10) + green CI w/ eval gate + deployed + docs                                                                                                                                     | [#14](https://github.com/rjwrld/tramitico/issues/14) |
+| Stack    | Next.js App Router · Supabase (Postgres/pgvector/Auth) · Claude Sonnet via Vercel AI SDK · **shadcn/ui + AI Elements** · Vitest/Playwright/GHA/Vercel — re-confirmed layer-by-layer post-map | original plan                                        |
 | Branding | **DESIGN.md authored before build** (impeccable-driven): palette as shadcn CSS vars, type, tone, citation-chip look                                                                          | spec discussion                                      |
 
 ## 3. Corpus
@@ -551,9 +551,12 @@ crDate + IP + coarse UA)` (#125 — keyed so the subject can't be recomputed fro
 
 ## 10. Done bar (from #14)
 
-Feature publicly (CV/LinkedIn) when: every BRIEF §5 IN-item ships · CI green including the
+Feature publicly when: the MVP ships (curated corpus and re-runnable ingestion, answers with
+inline citations, chat UI with the legal disclaimer, auth and per-user history, eval set and
+groundedness check in CI, Vitest + Playwright, deploy on Vercel) · CI green including the
 groundedness gate · deployed on the real URL · README + ADRs + `how-it-was-built.md` done.
-MCP server **not** required to feature — it gates only the "builds MCP servers" claim (BRIEF §6).
+MCP server **not** required to feature — it is phase 2 (§13) and gates only the "builds MCP
+servers" claim.
 
 ## 11. Week-by-week (refreshed)
 
@@ -581,7 +584,7 @@ MCP server **not** required to feature — it gates only the "builds MCP servers
    **[ADR 0008](docs/adr/0008-answer-markdown-rendering.md)**, the answer-prose markdown subset
    rendered by owned code instead of AI Elements' `Response`.
 
-## 13. Out of scope (binding — BRIEF §5)
+## 13. Out of scope (binding)
 
 Full tax-law coverage · payments · multi-tenant · realtime · EN answers · fine-tuning ·
 MCP server (phase-2) · peer question collection (post-launch) · Renta Global Dual reform
