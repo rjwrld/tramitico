@@ -795,6 +795,34 @@ describe("ANSWER_SYSTEM_PROMPT", () => {
     expect(rule4b).toMatch(/diga expresamente que las fuentes discrepan/);
   });
 
+  /**
+   * #618: after #610, the conflicting-sources answer still closed on a rule-7
+   * tail in the first person, a reason given for the referral — «Esos tramos
+   * no vienen reproducidos en lo que consulté, por lo que … confírmelas con
+   * Hacienda» (#610's re-ask 2), «no aparecen en lo que recibí» (#497's). The
+   * referral needs no reason, in 4b's answer too, and «lo que consulté»
+   * joins the prose sentence's list.
+   */
+  it("gives rule 7's referral no reason, in 4b's answer too (#618)", () => {
+    const rule7 = ANSWER_SYSTEM_PROMPT.split("\n").find((line) =>
+      line.startsWith("7. "),
+    );
+    expect(rule7).toBeDefined();
+    expect(rule7).toMatch(
+      /Esa confirmación no lleva motivo, tampoco cuando las fuentes discrepan \(regla 4b\): no la justifique con lo que falta, no «esos tramos no vienen reproducidos en lo que consulté, por lo que confírmelos con Hacienda», sino «los tramos que rigen para su período confírmelos con Hacienda»/,
+    );
+    // Right after the salario-base example it extends, before #600's clause.
+    expect(rule7!.indexOf("Esa confirmación no lleva motivo")).toBeGreaterThan(
+      rule7!.indexOf("«el monto vigente del salario base confírmelo"),
+    );
+    expect(rule7!.indexOf("Esa confirmación no lleva motivo")).toBeLessThan(
+      rule7!.indexOf("Esa falta tampoco la diga en primera persona"),
+    );
+    expect(rule7).toMatch(
+      /no como los documentos que usted consultó, recibió o tiene a la vista, ni como «lo que consulté» o «lo que recibí»\./,
+    );
+  });
+
   it("permits only the three constructs AnswerProse renders (#77)", () => {
     // The subset: `- ` bullets, **bold**, simple pipe tables.
     expect(ANSWER_SYSTEM_PROMPT).toMatch(/viñetas/i);
