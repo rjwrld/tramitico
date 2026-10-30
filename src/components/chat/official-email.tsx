@@ -12,26 +12,15 @@
  * reaches the `href`.
  */
 import { MailIcon } from "lucide-react";
-import * as React from "react";
 
-import { cn } from "@/lib/utils";
+import { MarkedText, outboundClassName } from "@/components/chat/outbound";
+import { useCopiedFlag } from "@/components/chat/use-copied-flag";
+import { cn, hasFinePointer } from "@/lib/utils";
 
 export const COPIED_EMAIL_LABEL = "Copiado";
-const COPIED_DISPLAY_MS = 1400;
 
-export function OfficialEmail({
-  address,
-  className,
-}: {
-  address: string;
-  className?: string;
-}) {
-  const [copied, setCopied] = React.useState(false);
-  React.useEffect(() => {
-    if (!copied) return;
-    const timer = setTimeout(() => setCopied(false), COPIED_DISPLAY_MS);
-    return () => clearTimeout(timer);
-  }, [copied]);
+export function OfficialEmail({ address }: { address: string }) {
+  const [copied, flashCopied] = useCopiedFlag();
   const at = address.lastIndexOf("@");
   const href = `mailto:${address}`;
 
@@ -39,28 +28,20 @@ export function OfficialEmail({
     <span className="relative">
       <a
         href={href}
-        className={className}
+        className={outboundClassName}
         onClick={(event) => {
-          const desk = window.matchMedia?.(
-            "(hover: hover) and (pointer: fine)",
-          ).matches;
-          if (!desk || !navigator.clipboard) return;
+          if (!hasFinePointer() || !navigator.clipboard) return;
           event.preventDefault();
-          navigator.clipboard.writeText(address).then(
-            () => setCopied(true),
-            () => window.location.assign(href),
-          );
+          navigator.clipboard
+            .writeText(address)
+            .then(flashCopied, () => window.location.assign(href));
         }}
       >
-        <span className="whitespace-nowrap">
-          <MailIcon
-            aria-hidden
-            strokeWidth={1.75}
-            className="mr-1 inline size-[0.95em] align-[-0.125em]"
-          />
-          {address.slice(0, at)}
-        </span>
-        {address.slice(at)}
+        <MarkedText
+          icon={MailIcon}
+          head={address.slice(0, at)}
+          tail={address.slice(at)}
+        />
       </a>
       <span
         aria-live="polite"

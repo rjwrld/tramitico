@@ -58,6 +58,18 @@ async function hover(chip: HTMLElement) {
   });
 }
 
+async function press(chip: HTMLElement) {
+  await act(async () => {
+    fireEvent.click(chip);
+  });
+}
+
+async function tick(ms: number) {
+  await act(async () => {
+    vi.advanceTimersByTime(ms);
+  });
+}
+
 async function leave(chip: HTMLElement) {
   await act(async () => {
     fireEvent.pointerLeave(chip, { pointerType: "mouse" });
@@ -86,9 +98,7 @@ describe("CitationRef", () => {
 
     await hover(first);
     expect(card()).toBeNull();
-    await act(async () => {
-      vi.advanceTimersByTime(300);
-    });
+    await tick(300);
 
     expect(card()?.textContent).toContain(ley.docTitle);
     expect(card()?.textContent).toContain("Ley 10363 · Artículo 2");
@@ -104,16 +114,12 @@ describe("CitationRef", () => {
     vi.useFakeTimers();
     const [first] = renderChips();
 
-    await act(async () => {
-      fireEvent.click(first);
-    });
+    await press(first);
     expect(card()?.textContent).toContain(ley.docTitle);
     expect(first.getAttribute("aria-expanded")).toBe("true");
 
     await leave(first);
-    await act(async () => {
-      vi.advanceTimersByTime(1000);
-    });
+    await tick(1000);
     expect(card()).not.toBeNull();
   });
 
@@ -122,17 +128,11 @@ describe("CitationRef", () => {
     const [first] = renderChips();
 
     await hover(first);
-    await act(async () => {
-      vi.advanceTimersByTime(1000);
-    });
+    await tick(1000);
     expect(card()).not.toBeNull();
-    await act(async () => {
-      fireEvent.click(first);
-    });
+    await press(first);
     await leave(first);
-    await act(async () => {
-      vi.advanceTimersByTime(1000);
-    });
+    await tick(1000);
 
     expect(card()).not.toBeNull();
   });
@@ -140,13 +140,9 @@ describe("CitationRef", () => {
   it("unpins and closes on a second click", async () => {
     const [first] = renderChips();
 
-    await act(async () => {
-      fireEvent.click(first);
-    });
+    await press(first);
     expect(card()).not.toBeNull();
-    await act(async () => {
-      fireEvent.click(first);
-    });
+    await press(first);
 
     expect(first.getAttribute("aria-expanded")).toBe("false");
   });
@@ -154,9 +150,7 @@ describe("CitationRef", () => {
   it("closes a pinned card on Escape", async () => {
     const [first] = renderChips();
 
-    await act(async () => {
-      fireEvent.click(first);
-    });
+    await press(first);
     await act(async () => {
       fireEvent.keyDown(document.activeElement ?? document.body, {
         key: "Escape",
@@ -180,9 +174,7 @@ describe("CitationRef", () => {
   it("offers no way out for a source with no official URL", async () => {
     const [, , third] = renderChips();
 
-    await act(async () => {
-      fireEvent.click(third);
-    });
+    await press(third);
 
     expect(card()?.textContent).toContain(reglamento.docTitle);
     expect(screen.queryByRole("link", { name: /Abrir en/ })).toBeNull();
@@ -191,17 +183,13 @@ describe("CitationRef", () => {
   it("lights the other chips citing the same source while its card is open", async () => {
     const [first, second, third] = renderChips();
 
-    await act(async () => {
-      fireEvent.click(first);
-    });
+    await press(first);
 
     expect(first.hasAttribute("data-sibling")).toBe(false);
     expect(second.hasAttribute("data-sibling")).toBe(true);
     expect(third.hasAttribute("data-sibling")).toBe(false);
 
-    await act(async () => {
-      fireEvent.click(first);
-    });
+    await press(first);
     expect(second.hasAttribute("data-sibling")).toBe(false);
   });
 });

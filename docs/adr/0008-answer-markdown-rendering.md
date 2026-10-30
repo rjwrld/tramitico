@@ -8,7 +8,8 @@ Context: issue [#76](https://github.com/rjwrld/tramitico/issues/76), sibling of
 > answers captured from the production path overturned it — see [§1](#1-what-the-model-actually-emits).
 > The record of the reversal is kept deliberately: the first pass is why the census exists.
 
-> **Amended 2026-08-12 (issue [#133](https://github.com/rjwrld/tramitico/issues/133)).** The
+> **Amended 2026-08-12 (issue [#133](https://github.com/rjwrld/tramitico/issues/133)); its fragment
+> link is superseded by the 2026-10-30 note below.** The
 > renderer now emits one `<a>`: the inline superscript reference, whose `href` is a same-page
 > `#fragment` built from an id the component itself minted (`selloAnchorId`). The decision below
 > is unchanged and so is the property it bought — see the amended Consequences bullet: the

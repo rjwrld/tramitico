@@ -51,7 +51,7 @@ export function ReferenceScope({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function CitationRef({
+export const CitationRef = React.memo(function CitationRef({
   ordinal,
   citation,
 }: {
@@ -136,4 +136,4 @@ export function CitationRef({
       </Popover.Portal>
     </Popover.Root>
   );
-}
+});

@@ -9,29 +9,30 @@
  *
  * Hosts, not suffixes: anyone can register a `.sa.cr` or `.com`, so a TLD
  * proves nothing. The list is exactly the hosts the product already sends
- * people to — the corpus's sources (`corpus/manifest.json`) and the routed
- * decline's front doors (`ROUTING` in `routing.ts`). `official-hosts.test.ts`
- * fails if either gains a host this list does not cover.
+ * people to: the corpus's sources, listed here and held equal to
+ * `corpus/manifest.json` by `official-hosts.test.ts` (the manifest itself
+ * stays out of the browser bundle), and the routed decline's front doors,
+ * read from `ROUTING`.
  */
-export const OFFICIAL_HOSTS: readonly string[] = [
-  // Corpus sources.
+import { ROUTING } from "@/lib/routing";
+
+/** `https://www.ccss.sa.cr` → `ccss.sa.cr`. */
+export function bareHost(url: string): string {
+  return new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+}
+
+/** The corpus's source hosts — `official-hosts.test.ts` keeps this in step with the manifest. */
+export const CORPUS_HOSTS: readonly string[] = [
   "bccr.fi.cr",
   "ccss.sa.cr",
   "hacienda.go.cr",
   "imprentanacional.go.cr",
-  "poder-judicial.go.cr",
+  "saladecasacionpenal.poder-judicial.go.cr",
   "sinalevi.go.cr",
-  // Routed-decline front doors.
-  "ccpa.or.cr",
-  "cpic.or.cr",
-  "csv.go.cr",
-  "grupoins.com",
-  "ifam.go.cr",
-  "meic.go.cr",
-  "migracion.go.cr",
-  "mtss.go.cr",
-  "rnpdigital.com",
-  "sugef.fi.cr",
+];
+
+export const OFFICIAL_HOSTS: readonly string[] = [
+  ...new Set([...CORPUS_HOSTS, ...ROUTING.map((entry) => bareHost(entry.url))]),
 ];
 
 /** `aissfa.ccss.sa.cr` → true; `ccss.sa.cr.evil.com` → false. */

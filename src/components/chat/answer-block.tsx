@@ -35,6 +35,7 @@ import {
 import { routingEntriesFor, type RoutedCategory } from "@/lib/routing";
 import { renumberCitationMarkers } from "@/lib/answer/citations";
 import { AnswerProse } from "@/components/chat/answer-prose";
+import { useCopiedFlag } from "@/components/chat/use-copied-flag";
 import { AskStatus, type AskStatusState } from "@/components/chat/ask-status";
 import { SelloRow, selloLabel } from "@/components/sello";
 import { Button } from "@/components/ui/button";
@@ -337,7 +338,6 @@ function RoutedLinks({ category }: { category: RoutedCategory }) {
 
 export const COPY_ANSWER_LABEL = "Copiar respuesta";
 export const COPIED_ANSWER_LABEL = "Respuesta copiada";
-const COPIED_DISPLAY_MS = 2000;
 
 /**
  * What «Copiar respuesta» puts on the clipboard: the prose as plain text, its
@@ -400,12 +400,7 @@ export function AnswerFoot({
  * permission, insecure context) just leaves the label as it was.
  */
 function CopyAnswerButton({ text }: { text: string }) {
-  const [copied, setCopied] = React.useState(false);
-  React.useEffect(() => {
-    if (!copied) return;
-    const timer = setTimeout(() => setCopied(false), COPIED_DISPLAY_MS);
-    return () => clearTimeout(timer);
-  }, [copied]);
+  const [copied, flashCopied] = useCopiedFlag();
 
   return (
     <>
@@ -415,10 +410,7 @@ function CopyAnswerButton({ text }: { text: string }) {
         size="xs"
         className="shrink-0 text-muted-foreground pointer-coarse:h-11"
         onClick={() => {
-          navigator.clipboard?.writeText(text).then(
-            () => setCopied(true),
-            () => {},
-          );
+          navigator.clipboard?.writeText(text).then(flashCopied, () => {});
         }}
       >
         {copied ? <CheckIcon aria-hidden /> : <CopyIcon aria-hidden />}

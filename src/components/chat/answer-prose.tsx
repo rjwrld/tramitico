@@ -33,8 +33,9 @@ import { LandmarkIcon } from "lucide-react";
 
 import { CitationRef, ReferenceScope } from "@/components/chat/citation-ref";
 import { OfficialEmail } from "@/components/chat/official-email";
+import { MarkedText, outboundClassName } from "@/components/chat/outbound";
 import type { Citation } from "@/lib/citations";
-import { isOfficialEmail, officialUrl } from "@/lib/official-hosts";
+import { bareHost, isOfficialEmail, officialUrl } from "@/lib/official-hosts";
 
 /**
  * The word-fade reveal (#219, DESIGN §8 moment 2). While active, every prose
@@ -157,9 +158,6 @@ function words(
     .map((token, j) => fadeToken(token, `${key}-${j}`, reveal));
 }
 
-const outboundClassName =
-  "rounded-[2px] text-sello decoration-1 underline-offset-3 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
-
 /**
  * A URL or address that may leave the page, or null when it stays text.
  * The link shows what the model wrote, minus the scheme and `www.`, with
@@ -169,10 +167,9 @@ function outbound(candidate: string, key: string): React.ReactNode {
   if (candidate.startsWith("https://")) {
     const url = officialUrl(candidate);
     if (!url) return null;
-    const shown = candidate
-      .replace(/^https:\/\/(www\.)?/i, "")
+    const path = candidate
+      .replace(/^https:\/\/[^/?#]*/i, "")
       .replace(/\/$/, "");
-    const slash = shown.indexOf("/");
     return (
       <a
         key={key}
@@ -182,26 +179,12 @@ function outbound(candidate: string, key: string): React.ReactNode {
         data-slot="official-link"
         className={outboundClassName}
       >
-        <span className="whitespace-nowrap">
-          <LandmarkIcon
-            aria-hidden
-            strokeWidth={1.75}
-            className="mr-1 inline size-[0.95em] align-[-0.125em]"
-          />
-          {slash < 0 ? shown : shown.slice(0, slash)}
-        </span>
-        {slash < 0 ? "" : shown.slice(slash)}
+        <MarkedText icon={LandmarkIcon} head={bareHost(url.href)} tail={path} />
       </a>
     );
   }
   if (!isOfficialEmail(candidate)) return null;
-  return (
-    <OfficialEmail
-      key={key}
-      address={candidate}
-      className={outboundClassName}
-    />
-  );
+  return <OfficialEmail key={key} address={candidate} />;
 }
 
 /**
@@ -251,7 +234,7 @@ function leaf(
   return text.split(REFERENCE).flatMap((piece, i): React.ReactNode[] => {
     if (i % 2 === 0) return prose(gluePercent(piece), `${key}-p-${i}`, reveal);
     const ordinal = Number(piece);
-    const citation = ordinal >= 1 ? citations?.[ordinal - 1] : undefined;
+    const citation = citations?.[ordinal - 1];
     if (!citation) return [];
     const chip = (
       <CitationRef

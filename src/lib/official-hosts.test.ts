@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import manifest from "../../corpus/manifest.json";
 import {
+  bareHost,
+  CORPUS_HOSTS,
   isOfficialEmail,
   isOfficialHost,
   OFFICIAL_HOSTS,
@@ -10,20 +12,22 @@ import {
 import { ROUTING } from "./routing";
 
 describe("official hosts", () => {
-  it("covers every host the corpus and the routed decline send people to", () => {
-    const urls = [
-      ...(JSON.stringify(manifest.documents).match(/https?:\/\/[^"\s]+/g) ??
-        []),
-      ...ROUTING.map((entry) => entry.url),
-    ];
-    expect(urls.length).toBeGreaterThan(0);
-    const uncovered = urls
-      .map((url) => new URL(url).hostname)
-      .filter((host) => !isOfficialHost(host));
-    expect(uncovered).toEqual([]);
+  it("lists exactly the corpus's source hosts — no more, no fewer", () => {
+    const manifestHosts = (
+      JSON.stringify(manifest.documents).match(/https?:\/\/[^"\s]+/g) ?? []
+    ).map(bareHost);
+    expect(manifestHosts.length).toBeGreaterThan(0);
+    expect([...CORPUS_HOSTS].sort()).toEqual(
+      [...new Set(manifestHosts)].sort(),
+    );
   });
 
-  it("lists bare hosts, never a www. form the subdomain rule already covers", () => {
+  it("covers every routed-decline front door", () => {
+    expect(
+      ROUTING.map((entry) => entry.url).filter(
+        (url) => !isOfficialHost(new URL(url).hostname),
+      ),
+    ).toEqual([]);
     expect(OFFICIAL_HOSTS.filter((host) => host.startsWith("www."))).toEqual(
       [],
     );

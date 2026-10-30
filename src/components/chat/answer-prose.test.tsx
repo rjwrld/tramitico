@@ -377,6 +377,8 @@ describe("AnswerProse", () => {
       },
     ];
     const chips = () => screen.queryAllByRole("button", { name: /^Fuente/ });
+    const chip = (k: number, scope: HTMLElement = document.body) =>
+      within(scope).getByRole("button", { name: new RegExp(`^Fuente ${k}:`) });
 
     it("renders each marker as a chip named for its source", () => {
       render(
@@ -414,12 +416,8 @@ describe("AnswerProse", () => {
 
       const items = screen.getAllByRole("listitem");
       expect(items[0].textContent).toBe("Inscribirse1");
-      expect(
-        within(items[0]).getByRole("button", { name: /^Fuente 1/ }),
-      ).toBeTruthy();
-      expect(
-        within(items[1]).getByRole("button", { name: /^Fuente 2/ }),
-      ).toBeTruthy();
+      expect(chip(1, items[0])).toBeTruthy();
+      expect(chip(2, items[1])).toBeTruthy();
     });
 
     it("cites the same source twice with the same number", () => {
@@ -444,12 +442,10 @@ describe("AnswerProse", () => {
         />,
       );
 
-      expect(screen.getAllByRole("button", { name: /^Fuente 1/ })).toHaveLength(
-        1,
-      );
-      const cell = screen.getByRole("cell", { name: /Primero/ });
+      expect(chips()).toHaveLength(2);
+      expect(chip(1, screen.getByRole("strong"))).toBeTruthy();
       expect(
-        within(cell).getByRole("button", { name: /^Fuente 2/ }),
+        chip(2, screen.getByRole("cell", { name: /Primero/ })),
       ).toBeTruthy();
     });
 
