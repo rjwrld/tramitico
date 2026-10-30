@@ -1,0 +1,33 @@
+{
+  "$comment": "One central requirement per Tier 1 case: the required claim that answers the question as the person asked it. The owner chose all 27 on 2026-10-29 from the questions and their requirements, before any count was taken; the two lanes first read with them (map #497's Wave G and confirming lanes) already existed. `pnpm requirement-coverage` prints how many an answer states, read from each transcript row: a judged claim counts as stated unless `adequacy.missing` lists it, a literal-checked one unless `adequacy.literals` does. Reported, never gated. Each value is its claim's exact dataset text, so editing that claim fails `central.test.ts` until this file follows.",
+  "decided": "2026-10-29",
+  "cases": {
+    "ccss-pedir-prescripcion-cuotas": "La prescripción no se aplica automáticamente: el trabajador independiente debe presentar una carta o petición e indicar expresamente los periodos que solicita declarar prescritos.",
+    "ccss-ventana-prescripcion-24-meses": "No: la ventana excepcional duró 24 meses desde la vigencia de la Ley 10363 el 8 de mayo de 2023, por lo que terminó el 8 de mayo de 2025.",
+    "ccss-obligacion-ingreso-bajo": "La obligación de asegurarse ante la CCSS como persona trabajadora independiente arranca cuando el ingreso neto mensual alcanza la base mínima contributiva; por debajo de ese monto la persona no es asegurada obligatoria y puede afiliarse de forma voluntaria.",
+    "ccss-cese-actividad": "Hay que comunicar el cese de la actividad a la CCSS de inmediato: la facturación de cuotas no se detiene sola.",
+    "desinscripcion-dejar-actividad": "La desinscripción se presenta hoy en la Oficina Virtual de TRIBU-CR, en «Mis datos» → «Solicitar desinscripción», indicando motivo y fecha de cese; ATV, la plataforma anterior, quedó deshabilitada.",
+    "multa-iva-no-declarado": "Cada declaración de IVA omitida se sanciona con una multa del cincuenta por ciento (50 %) de un salario base (CNPT artículo 79).",
+    "inscripcion-tardia-sancion": "Omitir la declaración de inscripción se sanciona con el cincuenta por ciento (50 %) de un salario base por cada mes o fracción de mes de atraso (CNPT artículo 78).",
+    "ho-hacienda-solo-cliente-eeuu": "Toda persona física que inicie una actividad lucrativa debe inscribirse en el registro de contribuyentes al iniciarla, aunque todos sus clientes estén en el extranjero.",
+    "ho-trabajitos-por-mi-cuenta": "Sí: iniciar una actividad lucrativa por cuenta propia obliga a inscribirse ante la Administración Tributaria al momento de iniciarla, sin importar lo pequeña que sea.",
+    "ho-donde-inscribo-ya-no-atv": "La inscripción se presenta en la Oficina Virtual de TRIBU-CR, que sustituyó a ATV como canal de la Administración Tributaria.",
+    "ho-desde-cuanta-plata-caja": "Sí hay un piso: la obligación de asegurarse arranca cuando el ingreso neto mensual alcanza la base mínima contributiva; por debajo de ese monto la persona no es asegurada obligatoria y puede afiliarse de forma voluntaria.",
+    "ho-donde-me-afilio-caja": "La afiliación como trabajador independiente se tramita presencialmente, en la sucursal de la CCSS que corresponda a la zona de adscripción del domicilio o centro de trabajo.",
+    "ho-tiquete-en-vez-de-factura": "El tiquete electrónico es uno de esos comprobantes autorizados, de modo que la pregunta no es si es válido sino cuál corresponde a la operación.",
+    "ho-factura-electronica-o-recibo": "Un recibo común no es un comprobante electrónico autorizado: la obligación se cumple sólo con los documentos que el Reglamento autoriza.",
+    "ho-cabys-paginas-web": "El código que corresponde a los servicios de desarrollo y diseño de sitios web sale del catálogo CABYS, no de una elección libre del emisor.",
+    "ho-cliente-espana-lleva-iva": "La exención aplica a los servicios prestados por contribuyentes del impuesto cuando son consumidos fuera del territorio nacional.",
+    "ho-iva-en-cero-sin-facturar": "Sí: la declaración del IVA es mensual y se presenta aunque no haya habido ventas en el mes.",
+    "ho-hasta-que-dia-tengo-iva": "El impuesto se liquida a más tardar el decimoquinto día natural de cada mes, por las operaciones del mes anterior.",
+    "ho-rebajar-25-sin-facturas": "Sí: la ley permite acogerse a una deducción única, sin necesidad de prueba alguna, del veinticinco por ciento (25 %) de los ingresos brutos de la actividad.",
+    "ho-minimo-renta-2026": "Para personas físicas con actividad lucrativa, las rentas de hasta ¢6.244.000,00 anuales no están sujetas al impuesto en el período fiscal 2026.",
+    "ho-ademas-tengo-salario": "El salario y la actividad lucrativa tributan por escalas distintas: el salario por la escala mensual de rentas del trabajo y la actividad por la escala anual de personas físicas con actividad lucrativa.",
+    "ho-minimo-caja-independiente-2026": "La base mínima contributiva es 0,9295 salarios mínimos en el Seguro de Salud y 0,87 salarios mínimos en el de IVM.",
+    "ho-800-mil-que-porcentaje-caja": "Un ingreso de ¢800.000 supera dos salarios mínimos, así que cae en la categoría 3 (de 2 SM a menos de 4 SM), cuya cuota de afiliado es del 6,24 % en el Seguro de Salud.",
+    "ho-tambien-asegurado-por-patrono": "Estar asegurado por un patrono no exime de cotizar como trabajador independiente por la actividad propia: se cotiza en ambas condiciones.",
+    "ho-cobrar-8-anos-atras-caja": "Para quien no se inscribió ante la CCSS o incumplió sus deberes formales de declaración, el plazo es de diez años.",
+    "ho-desinscribir-debiendo-declaraciones": "La desinscripción se solicita cuando cesa la actividad económica y se tramita en la Oficina Virtual de TRIBU-CR.",
+    "ho-rebajar-multa-si-pago-ya": "Subsanar de forma espontánea, sin que medie actuación de la Administración, rebaja la sanción en un setenta y cinco por ciento (75 %)."
+  }
+}
