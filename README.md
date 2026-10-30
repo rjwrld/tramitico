@@ -89,57 +89,44 @@ corpus, the question history and the quota, all behind row-level security.
 
 ## The numbers
 
-The corpus is 25 official documents in 894 chunks. The eval set those runs read is 73
-hand-written cases, each with the artículo the answer must cite and, for the 40 that carry
-them, the claims a complete answer must make. Every case is run through the production
-pipeline and judged by a second model at temperature 0. The table carries the three full
-runs since the pipeline was frozen: the closing run of 2026-09-11
-([`eval/runs/2026-09-11-closing/`](eval/runs/2026-09-11-closing/)), the record run of
-2026-09-15 that measured the last knob and left it where it was
-([`eval/runs/2026-09-15-top-k/`](eval/runs/2026-09-15-top-k/)), and the first run against
-the deployed stack on 2026-09-16, executed by the eval workflow on GitHub Actions
-([`eval/runs/2026-09-16-production/`](eval/runs/2026-09-16-production/)).
+The corpus is 25 official documents in 894 chunks. The eval set is hand-written: questions
+with the artículo a correct answer must cite and, for many, the claims and steps a complete
+answer must make. Every case runs through the production pipeline, and a second model judges
+each answer at temperature 0. Identical runs differ by a few cases, so the chart shows the two
+latest full runs on the same pipeline, map #497's Wave G lane of 2026-10-10
+([`eval/runs/2026-10-10-497-wave-g/`](eval/runs/2026-10-10-497-wave-g/)) and the confirming
+lane of 2026-10-12 ([`eval/runs/2026-10-12-497-confirm/`](eval/runs/2026-10-12-497-confirm/)),
+and this README quotes the lower.
 
-| Gate                                            | Baseline (2026-09-05) | Closing run (2026-09-11) | Record (2026-09-15) | Production (2026-09-16) | Gate today                                     |
-| ----------------------------------------------- | --------------------- | ------------------------ | ------------------- | ----------------------- | ---------------------------------------------- |
-| Retrieval hit-rate (cited artículo in top 8)    | 63/73                 | 70/73                    | 72/73               | **70/73**               | ≥ 0.94                                         |
-| Groundedness (answer supported by its chunks)   | 70/73                 | 70/73                    | 69/73               | **69/73**               | baseline 73 answers; fails at ≤ 68             |
-| Adequacy, Tier 2 (every required claim present) | 9/13                  | 12/13                    | 10/13               | **12/13**               | ≥ 0.84                                         |
-| Abstention (declines when it should)            | 4/7                   | 9/9                      | 9/9                 | **8/9**                 | ≥ 0.90                                         |
-| Adequacy, Tier 1 (every required claim present) | —                     | 5/27                     | 3/27                | **6/27**                | reported; the gate counts requirements (below) |
-| Blocking cases that fail groundedness           | —                     | 2                        | 3                   | **2**                   | 0, a case failing on 2 of 3 answers            |
-| Answers with an unresolved citation marker      | —                     | 0                        | 2                   | **1**                   | 0                                              |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/eval-numbers-dark.svg">
+  <img src="docs/assets/eval-numbers-light.svg" alt="The two latest full eval runs. Answers backed by their sources: 71 and 73 of 74, gate fails at 68 or below. Out-of-scope questions declined: 15 of 15 in both, gate 90 percent. Right source retrieved: 73 of 74 in both, gate 94 percent. Answered what was asked: 24 and 25 of 27, reported, not gated. Required details stated: 88 and 93 of 116, gate fails at 87 or below.">
+</picture>
 
-The last three rows are the per-case gates added after the baseline; the closing run's
-values are read from its transcripts. Read the three dated columns as a band, not a trend:
-the pipeline barely changed between them, and Tier 1 moved by three cases, hit-rate and
-groundedness by one or two. A single reading is a point inside that band.
+<sub>Rendered by [`scripts/readme-numbers-chart.ts`](scripts/readme-numbers-chart.ts); a unit test fails when the images drift from it.</sub>
 
-The last column is today's gates, not the ones those runs were read against. Since then
-[ADR 0023](docs/adr/0023-eval-gates-after-sonnet-5-5.md) and its amendments changed three of
-them, and the hit-rate gate rose to 0.94
-([#556](https://github.com/rjwrld/tramitico/pull/556)):
+| What it measures                               | Lower run | Other run | Gate          |
+| ---------------------------------------------- | --------- | --------- | ------------- |
+| Answers backed by their sources (groundedness) | 71/74     | 73/74     | fails at ≤ 68 |
+| Out-of-scope questions declined (abstention)   | 15/15     | 15/15     | ≥ 0.90        |
+| Right source retrieved (hit-rate)              | 73/74     | 73/74     | ≥ 0.94        |
+| Answered what was asked (Tier 1 central claim) | 24/27     | 25/27     | reported      |
+| Required details stated (Tier 1 requirements)  | 88/116    | 93/116    | fails at ≤ 87 |
 
-- **Tier 1** is a tracked baseline of requirements stated rather than of whole cases: 92 of
-  the 116 required claims and steps across the 27 Tier 1 cases, the lower of map #497's Wave
-  E and Wave G lanes ([`eval/runs/2026-10-10-497-wave-g/`](eval/runs/2026-10-10-497-wave-g/)).
-  A lane at 87 or below fails.
-- **Groundedness** is a tracked baseline too: 73 grounded answers of 74, the lower of
-  [#512](https://github.com/rjwrld/tramitico/issues/512)'s two final lanes
-  ([`eval/runs/2026-10-08-final/`](eval/runs/2026-10-08-final/)), so a lane at 68 or below
-  fails. It is counted over 74 cases since a Tier 2 case joined (#503).
-- **A blocking case** fails only when two of its three answers fail: the lane re-asks a
-  failing one twice.
+- **Answered what was asked** counts, for each of the 27 Tier 1 questions, the one claim that
+  answers it as asked, chosen before anything was counted
+  ([`eval/tier1-central.json`](eval/tier1-central.json)). **Required details stated** counts
+  every claim and step a complete answer carries, including the ones nobody asked for, and is
+  the gate.
+- Two questions miss their central claim in both runs. «Además tengo salario» is a real gap:
+  neither answer says salary and activity are taxed on different scales. «¿Cómo me salgo de
+  Hacienda?» gives the right path but not that ATV was retired, which the claim also asks for.
+- Thresholds ratchet: a gate is set from a measured run and never lowered to meet a number
+  ([ADR 0023](docs/adr/0023-eval-gates-after-sonnet-5-5.md)). The lower run's 88 sits exactly
+  on its gate. A full run costs about US$10 in provider spend.
 
-Two gates are new. An answer that says the documents lack something the corpus holds fails
-its case, whatever the judges say ([#500](https://github.com/rjwrld/tramitico/issues/500)).
-And the robustness block's retrieval hits are a tracked baseline, 27 of 27, so a lane at 24
-or below fails ([#502](https://github.com/rjwrld/tramitico/issues/502)). The latest full
-lanes are map #497's Wave G lane of 2026-10-10 and the confirming lane of 2026-10-12, read
-under Limitations below. A full run costs about US$10 in provider spend.
-
-How the gates are defined, how thresholds ratchet and never lower, and every run since the
-first are in [`eval/README.md`](eval/README.md).
+How each gate was set, and every run since the first, are in
+[`eval/README.md`](eval/README.md).
 
 ## How it was built
 
