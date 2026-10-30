@@ -8,7 +8,8 @@
 @custom-variant no-hover (@media (hover: none));
 
 /* Tramitico tokens — DESIGN.md §2 (notaría moderna). Red appears only as: wordmark
-   syllable, sello (citations), the single primary action, and focus/active states.
+   syllable, sello (citations, their inline chips, official links), the single
+   primary action, and focus/active states.
 
    Destructive grounds are real tokens, not an alpha of `--destructive` (issue
    #160): in dark mode the polarity inverts — the text is lighter than the page —

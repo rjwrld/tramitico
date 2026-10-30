@@ -8,7 +8,8 @@ Context: issue [#76](https://github.com/rjwrld/tramitico/issues/76), sibling of
 > answers captured from the production path overturned it — see [§1](#1-what-the-model-actually-emits).
 > The record of the reversal is kept deliberately: the first pass is why the census exists.
 
-> **Amended 2026-08-12 (issue [#133](https://github.com/rjwrld/tramitico/issues/133)).** The
+> **Amended 2026-08-12 (issue [#133](https://github.com/rjwrld/tramitico/issues/133)); its fragment
+> link is superseded by the 2026-10-30 note below.** The
 > renderer now emits one `<a>`: the inline superscript reference, whose `href` is a same-page
 > `#fragment` built from an id the component itself minted (`selloAnchorId`). The decision below
 > is unchanged and so is the property it bought — see the amended Consequences bullet: the
@@ -22,6 +23,24 @@ Context: issue [#76](https://github.com/rjwrld/tramitico/issues/76), sibling of
 > grow the superscripts a live one has. The guarantee #75 was protecting is unchanged and now
 > stated as such: no stored marker resolves to nothing, enforced by `dropUnbackedMarkers` on the
 > write path. Rows written before this carry no markers and render as they always did.
+
+> **Amended 2026-10-30 (inline source card and official links).** Two changes to what the
+> renderer emits, neither touching the prompt — so no groundedness re-run:
+>
+> 1. The `[k]` reference is no longer a `#fragment` link down to the sello row. It is a chip that
+>    opens the sello's own source card (#478) beside the claim — on hover, pinned on click or tap —
+>    built from the answer's citation snapshot indexed by the ordinal. The renderer emits no
+>    fragment `href` any more; `selloAnchorId` and the row's `:target` ring are gone.
+> 2. A bare `https` URL or email address in prose becomes a link **only when its host is on the
+>    official list** (`src/lib/official-hosts.ts`: the corpus's sources and the routed decline's
+>    front doors, test-enforced against both). This is the first `href` derived from model text,
+>    so the gate is the whole of the property now: the candidate must parse as a URL with
+>    protocol `https:`, no credentials, no port, and an allowlisted host or subdomain of one; the
+>    `href` is the parsed URL. An address must match a plain-address pattern on an allowlisted
+>    domain and becomes `mailto:` plus that address. Anything else — another host, `http:`,
+>    markdown link syntax — stays inert text, as before. ADR 0004's "links stay the sellos' job"
+>    narrows accordingly: the sellos still carry the citations; prose may point at an official
+>    page it names.
 
 ## Context
 
@@ -282,13 +301,15 @@ widens what the sketch does: a live run surfaced a case none of the captured ans
   constraining the model is what keeps the renderer small enough to own.
 - **Headings degrade, they don't break.** The prompt forbids them; the renderer still strips a
   stray `#` run to a quiet lead-in, so an 8%-of-the-time slip never shows a user raw hashes.
-- **No HTML or image path exists in the render, and no URL is ever derived from model text.** The
-  audit's no-injection-surface property is preserved by construction, not by sanitizer
-  configuration — no props to keep right, no dependency to track. Since #133 the renderer emits
-  one `href`, and it is a same-page fragment it built itself from a marker's digits
-  (`selloAnchorId`); marker text cannot reach it, because only the ordinal does.
-- **Links out stay the sellos' job** (ADR 0004). Bare URLs in prose render as inert text, as they
-  do today; the #133 superscript links _to_ a sello, never past it.
+- **No HTML or image path exists in the render, and no URL reaches an `href` unless it passes the
+  official-host gate.** The audit's no-injection-surface property is preserved by construction,
+  not by sanitizer configuration — no props to keep right, no dependency to track. Since the
+  2026-10-30 amendment the only `href`s in prose are a parsed `https` URL on an allowlisted host,
+  or `mailto:` an allowlisted address; the reference chip's card is built from the citation
+  snapshot, which marker text cannot reach, because only the ordinal does.
+- **Citations stay the sellos' job** (ADR 0004). Bare URLs on any other host render as inert
+  text, as they always did; the reference chip brings the sello's card to the claim, never a
+  source of its own.
 - The screenshot set (~4.7 MB) is the first ADR asset directory in this repo. If this becomes a
   habit, a `.gitattributes`/LFS policy is worth having.
 

@@ -124,48 +124,39 @@ describe("AnswerBlock", () => {
       );
       expect(
         screen
-          .getAllByRole("link", { name: /^fuente/ })
-          .map((l) => l.textContent),
+          .getAllByRole("button", { name: /^Fuente \d/ })
+          .map((chip) => chip.textContent),
       ).toEqual(["1", "2"]);
     });
 
-    it("anchors each superscript to its sello", () => {
+    it("names each chip for the sello at its position in the row", () => {
       render(<AnswerBlock message={message} />);
 
-      const sellos = screen.getAllByRole("listitem");
-      expect(sellos.map((li) => li.id)).toEqual(["a1-fuente-1", "a1-fuente-2"]);
-
-      for (const [i, name] of ["fuente 1", "fuente 2"].entries()) {
-        const link = screen.getByRole("link", { name });
-        const href = link.getAttribute("href")!;
-        expect(href).toBe(`#${sellos[i].id}`);
-        // The fragment resolves to the sello, not merely to some element.
-        const target = document.getElementById(href.slice(1));
-        expect(target).toBe(sellos[i]);
-        expect(target!.querySelector('[data-slot="sello"]')).toBeTruthy();
+      const stamps = Array.from(
+        document.querySelectorAll('[data-slot="sello"]'),
+      ).map((stamp) => stamp.textContent);
+      expect(stamps).toEqual(["Reglamento IVA · Art. 11", "Ley 9635 · Art. 4"]);
+      for (const [i, stamp] of stamps.entries()) {
+        expect(
+          screen.getByRole("button", { name: `Fuente ${i + 1}: ${stamp}` }),
+        ).toBeTruthy();
       }
     });
 
-    it("takes the reader to the sello when a superscript is clicked", () => {
+    it("brings the source to the claim on click, with no jump to the row", async () => {
       render(<AnswerBlock message={message} />);
 
-      const link = screen.getByRole("link", { name: "fuente 2" });
-      const clicked = new MouseEvent("click", {
-        bubbles: true,
-        cancelable: true,
+      const chip = screen.getByRole("button", { name: /^Fuente 2:/ });
+      await act(async () => {
+        fireEvent.click(chip);
       });
-      fireEvent(link, clicked);
 
-      // jsdom does not run the fragment navigation itself, so the assertion
-      // is on the two halves that make it happen in a browser: nothing in
-      // our tree cancels the click, and the fragment it would follow
-      // resolves to the sello — which is what the browser scrolls to.
-      expect(clicked.defaultPrevented).toBe(false);
-      const landed = document.getElementById(
-        link.getAttribute("href")!.slice(1),
-      )!;
-      expect(landed).toBe(screen.getAllByRole("listitem")[1]);
-      expect(landed.textContent).toBe("Ley 9635 · Art. 4");
+      const card = await screen.findByText(otherCitation.docTitle);
+      expect(card.closest('[data-slot="citation-preview"]')).not.toBeNull();
+      // The row is no longer a fragment target.
+      expect(screen.getAllByRole("listitem").every((li) => li.id === "")).toBe(
+        true,
+      );
     });
 
     it("leaves the sello itself untouched", () => {
