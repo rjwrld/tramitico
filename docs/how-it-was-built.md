@@ -4,8 +4,8 @@ Tramitico was built by one person and a set of coding agents between 2026-07-21 
 2026-09-14: 161 merged pull requests, 163 closed issues, 21 architecture decision records,
 and one eval harness that decided what could ship. This is the account of the workflow,
 stage by stage, with one thing each stage caught that the previous one had let through. I
-wrote it because BRIEF §3 said the process had to be visible, and because the parts that
-went wrong are the parts an interviewer should ask about.
+wrote it because the plan said from the start that the process had to be visible, and
+because the parts that went wrong are the parts an interviewer should ask about.
 
 ## The loop
 
@@ -41,7 +41,7 @@ locked-decisions table maps each decision to the ticket that made it. A second m
 [#254](https://github.com/rjwrld/tramitico/issues/254), ran in late August when the first
 map's product boundary turned out to be wrong.
 
-**What it caught:** that the product was not for developers. The brief said "independent
+**What it caught:** that the product was not for developers. The first plan said "independent
 developers"; the map's audience ticket ended with "independent workers as natural persons,
 developers the first cohort, not the boundary", and killed the metric the map had started
 with: there is no target document count, only a coverage matrix. That reframing became

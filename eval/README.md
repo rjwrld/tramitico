@@ -2451,8 +2451,9 @@ not change until the next paid run.
 
 - `ho-cabys-paginas-web` (Tier 1 adequacy FAIL, #289 A2) — the v4.4 «Anexos y
   Estructuras» annex stays out of the corpus: field-level comprobante
-  structure is outside the release promise (BRIEF §5). The claim «cada línea
-  de detalle lleva su código CABYS» lived only in that annex and is rewritten
+  structure is outside the release promise (#254: rules and steps, not a
+  technical specification). The claim «cada línea de detalle lleva su código
+  CABYS» lived only in that annex and is rewritten
   to what the ingested corpus states: Reglamento de Comprobantes art. 13
   inciso 10 requires a «código de producto» per bien o servicio in the
   detail. That the code is CABYS is the annex's sentence, not the
