@@ -6,8 +6,8 @@ narrative of how the project was built is [docs/how-it-was-built.md](docs/how-it
 
 RAG assistant for CR independent developers — tax & trámite answers cited to official
 Hacienda/CCSS documents. [SPEC.md](SPEC.md) is the build contract; [DESIGN.md](DESIGN.md) the
-visual contract; [PRODUCT.md](PRODUCT.md) the strategic context; [BRIEF.md](BRIEF.md) the
-original scope (its §5 OUT-list is binding).
+visual contract; [PRODUCT.md](PRODUCT.md) the strategic context. SPEC §13's out-of-scope list is
+binding.
 
 ## Map
 
