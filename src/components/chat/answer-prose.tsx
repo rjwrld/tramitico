@@ -84,9 +84,12 @@ const REFERENCE = /\[(\d+)\]/;
 /**
  * An `https` URL or an email address as prose writes one, kept as a
  * capturing split. Parentheses and brackets end a URL — prose wraps URLs in
- * them far more often than paths contain them.
+ * them far more often than paths contain them. An address must be whole: no
+ * letter, digit or further label may touch either end, so the ASCII prefix
+ * of `consultas@hacienda.go.crévil.com` never passes for an official address.
  */
-const OUTBOUND = /(https:\/\/[^\s<>()[\]{}"'`]+|[\w.%+-]+@[\w-]+(?:\.[\w-]+)+)/;
+const OUTBOUND =
+  /(https:\/\/[^\s<>()[\]{}"'`]+|(?<![\p{L}\p{N}._%+-])[\w.%+-]+@[\w-]+(?:\.[\w-]+)+(?!\.?[\p{L}\p{N}_-]))/u;
 /** Sentence punctuation that ends a URL rather than belonging to it. */
 const URL_TRAILING = /[.,;:!?»”’]+$/;
 const BULLET_LINE = /^- /;
@@ -197,8 +200,11 @@ function prose(
   key: string,
   reveal?: RevealCtx,
 ): React.ReactNode[] {
-  return text.split(OUTBOUND).flatMap((piece, i): React.ReactNode[] => {
-    if (i % 2 === 1) {
+  const pieces = text.split(OUTBOUND);
+  return pieces.flatMap((piece, i): React.ReactNode[] => {
+    // `[portal](https://…)` is markdown link syntax, which ADR 0008 keeps
+    // inert: only a bare URL becomes a link.
+    if (i % 2 === 1 && !pieces[i - 1].endsWith("](")) {
       const trailing = URL_TRAILING.exec(piece)?.[0] ?? "";
       const link = outbound(
         piece.slice(0, piece.length - trailing.length),
@@ -231,8 +237,17 @@ function leaf(
   citations?: readonly Citation[],
   reveal?: RevealCtx,
 ): React.ReactNode[] {
-  return text.split(REFERENCE).flatMap((piece, i): React.ReactNode[] => {
-    if (i % 2 === 0) return prose(gluePercent(piece), `${key}-p-${i}`, reveal);
+  const pieces = text.split(REFERENCE);
+  return pieces.flatMap((piece, i): React.ReactNode[] => {
+    if (i % 2 === 0) {
+      // «servicios [1]»: the space would let the line break before the chip
+      // and strand it alone, so a reference with a source takes its word's
+      // side. The live path already glues them (`renumberCitationMarkers`).
+      const next = pieces[i + 1];
+      if (next !== undefined && citations?.[Number(next) - 1])
+        piece = piece.trimEnd();
+      return prose(gluePercent(piece), `${key}-p-${i}`, reveal);
+    }
     const ordinal = Number(piece);
     const citation = citations?.[ordinal - 1];
     if (!citation) return [];

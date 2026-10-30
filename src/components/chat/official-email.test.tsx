@@ -36,8 +36,13 @@ afterEach(() => {
 });
 
 /** Clicks the link and reports whether the browser would have followed it. */
-async function click(link: HTMLElement): Promise<boolean> {
+async function click(
+  link: HTMLElement,
+  pointerType?: string,
+): Promise<boolean> {
   const event = new MouseEvent("click", { bubbles: true, cancelable: true });
+  if (pointerType !== undefined)
+    Object.defineProperty(event, "pointerType", { value: pointerType });
   await act(async () => {
     fireEvent(link, event);
   });
@@ -75,6 +80,19 @@ describe("OfficialEmail", () => {
 
     expect(followed).toBe(true);
     expect(writeText).not.toHaveBeenCalled();
+  });
+
+  it("lets the tap's own pointer decide on a touchscreen laptop", async () => {
+    pointer(true);
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    clipboard(writeText);
+    render(<OfficialEmail address={ADDRESS} />);
+    const link = screen.getByRole("link", { name: ADDRESS });
+
+    expect(await click(link, "touch")).toBe(true);
+    expect(writeText).not.toHaveBeenCalled();
+    expect(await click(link, "mouse")).toBe(false);
+    expect(writeText).toHaveBeenCalledWith(ADDRESS);
   });
 
   it("follows the mailto when there is no clipboard to copy to", async () => {

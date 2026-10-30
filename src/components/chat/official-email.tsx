@@ -12,12 +12,23 @@
  * reaches the `href`.
  */
 import { MailIcon } from "lucide-react";
+import type * as React from "react";
 
 import { MarkedText, outboundClassName } from "@/components/chat/outbound";
 import { useCopiedFlag } from "@/components/chat/use-copied-flag";
 import { cn, hasFinePointer } from "@/lib/utils";
 
 export const COPIED_EMAIL_LABEL = "Copiado";
+
+/**
+ * Whether this activation copies rather than opens the mail app. The click's
+ * own pointer decides — a tap on a touchscreen laptop still opens mail — and
+ * a keyboard press (no pointer) follows the device's primary pointer.
+ */
+function copiesOnClick(event: React.MouseEvent): boolean {
+  const { pointerType } = event.nativeEvent as Partial<PointerEvent>;
+  return pointerType ? pointerType === "mouse" : hasFinePointer();
+}
 
 export function OfficialEmail({ address }: { address: string }) {
   const [copied, flashCopied] = useCopiedFlag();
@@ -30,7 +41,7 @@ export function OfficialEmail({ address }: { address: string }) {
         href={href}
         className={outboundClassName}
         onClick={(event) => {
-          if (!hasFinePointer() || !navigator.clipboard) return;
+          if (!copiesOnClick(event) || !navigator.clipboard) return;
           event.preventDefault();
           navigator.clipboard
             .writeText(address)

@@ -463,6 +463,19 @@ describe("AnswerProse", () => {
       expect(container.textContent).toContain("https://evil.example");
     });
 
+    it("draws a spaced reference against its word so it cannot wrap alone", () => {
+      const { container } = render(
+        <AnswerProse
+          text="Aplica a servicios [1]. Y a bienes [9]."
+          citations={CITATIONS}
+        />,
+      );
+
+      expect(chip(1).previousSibling?.textContent).toBe("Aplica a servicios");
+      // A dropped marker leaves its prose as written.
+      expect(container.textContent).toBe("Aplica a servicios1. Y a bienes .");
+    });
+
     it("renders markers as nothing when the answer has no sources", () => {
       const { container } = render(<AnswerProse text="Una cosa[1]." />);
 
@@ -546,6 +559,25 @@ describe("AnswerProse", () => {
       expect(container.textContent).toContain(
         "https://ccss.sa.cr.evil.example/x",
       );
+    });
+
+    it("keeps markdown link syntax inert even on an official host (ADR 0008)", () => {
+      const { container } = render(
+        <AnswerProse text="Vea el [portal](https://www.ccss.sa.cr) de la CCSS." />,
+      );
+
+      expect(container.querySelectorAll("a")).toHaveLength(0);
+      expect(container.textContent).toContain(
+        "[portal](https://www.ccss.sa.cr)",
+      );
+    });
+
+    it("never links the official-looking prefix of a longer address", () => {
+      const { container } = render(
+        <AnswerProse text="Escriba a consultas@hacienda.go.crévil.com, a x@ccss.sa.cr.évil o a éx@ccss.sa.cr." />,
+      );
+
+      expect(container.querySelectorAll("a")).toHaveLength(0);
     });
 
     it("links an official email address and leaves any other as text", () => {
