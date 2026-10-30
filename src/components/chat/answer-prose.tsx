@@ -3,17 +3,20 @@
  * `ANSWER_SYSTEM_PROMPT` to three constructs — `- ` bullets, `**bold**` and
  * simple pipe tables — and this renders exactly those, by hand.
  *
- * No markdown library, no HTML parsing, no URL/link/image handling: every leaf
- * is a React text node, so nothing the model echoes can become markup. The
+ * No markdown library, no HTML parsing, no image handling: every leaf is a
+ * React text node, so nothing the model echoes can become markup. The
  * readiness audit's no-injection-surface property holds by construction, not
- * by sanitizer configuration. Links *out* stay the sellos' job (ADR 0004) —
- * bare URLs in prose render as inert text.
+ * by sanitizer configuration.
  *
- * The one exception, and it is not one in substance: the inline citation
- * reference (#133) renders an `<a>`, but its `href` is a same-page fragment
- * this file mints from a marker's digits (`selloAnchorId`), never from marker
- * text. No model output reaches an attribute. ADR 0008's amendment note
- * records the narrowing.
+ * Two narrowings, both recorded in ADR 0008's amendment notes:
+ *
+ * - The inline citation reference (#133) renders a chip whose card names the
+ *   sello's source. It is built from the answer's citation snapshot, indexed
+ *   by the marker's digits — never from marker text.
+ * - A bare `https` URL or email address becomes a link only when
+ *   `officialUrl` / `isOfficialEmail` accept it: it parses, and its host is
+ *   on the official list. The `href` is the parsed URL (or `mailto:` plus an
+ *   address matched by a plain-address pattern); anything else stays text.
  *
  * Typography per DESIGN §3/§6: 68ch measure, 1.7 leading, hanging-indent
  * bullets with a marker muted to `--border`, table body in Geist Mono with
@@ -26,23 +29,16 @@
  */
 import * as React from "react";
 
-import { selloAnchorId } from "@/components/sello";
+import { LandmarkIcon } from "lucide-react";
 
-/**
- * What an inline `[k]` marker resolves to (#133). `k` is the seal's position
- * in the answer's sello row — the numbering `renumberCitationMarkers` stamps
- * into the text — so `count` is how many seals there are and anything past it
- * has no target and is dropped. Plain data, not a callback: this crosses a
- * component boundary that may be rendered from a server component.
- */
-export interface AnswerReferences {
-  count: number;
-  anchorPrefix: string;
-}
+import { CitationRef, ReferenceScope } from "@/components/chat/citation-ref";
+import { OfficialEmail } from "@/components/chat/official-email";
+import type { Citation } from "@/lib/citations";
+import { isOfficialEmail, officialUrl } from "@/lib/official-hosts";
 
 /**
  * The word-fade reveal (#219, DESIGN §8 moment 2). While active, every prose
- * token — a word, or a `[k]` superscript — renders wrapped in a span whose
+ * token — a word, a link, or a `[k]` chip — renders wrapped in a span whose
  * `animation-delay` is `delayFor(i)`, with `i` the token's position in
  * reading order. The delay schedule is the caller's (answer-block.tsx owns
  * the clock and the catch-up rule); this file only walks the tree in render
@@ -84,6 +80,14 @@ const RULE_CELL = /^:?-+:?$/;
 const HEADING_LINE = /^#{1,6} /;
 /** `[k]` seal references, kept as a capturing split so the digits survive. */
 const REFERENCE = /\[(\d+)\]/;
+/**
+ * An `https` URL or an email address as prose writes one, kept as a
+ * capturing split. Parentheses and brackets end a URL — prose wraps URLs in
+ * them far more often than paths contain them.
+ */
+const OUTBOUND = /(https:\/\/[^\s<>()[\]{}"'`]+|[\w.%+-]+@[\w-]+(?:\.[\w-]+)+)/;
+/** Sentence punctuation that ends a URL rather than belonging to it. */
+const URL_TRAILING = /[.,;:!?»”’]+$/;
 const BULLET_LINE = /^- /;
 /**
  * A line that is one bold run and nothing else — how the model titles a
@@ -109,7 +113,7 @@ type Run = { kind: Kind; lines: string[] };
 function inline(
   text: string,
   key: string,
-  references?: AnswerReferences,
+  citations?: readonly Citation[],
   reveal?: RevealCtx,
 ): React.ReactNode[] {
   const parts = text.split(/\*\*/);
@@ -118,11 +122,11 @@ function inline(
   return parts.map((part, i) =>
     i % 2 === 1 && i < closed ? (
       <strong key={`${key}-${i}`} className="font-medium">
-        {leaf(part, `${key}-${i}`, references, reveal)}
+        {leaf(part, `${key}-${i}`, citations, reveal)}
       </strong>
     ) : (
       <React.Fragment key={`${key}-${i}`}>
-        {leaf(part, `${key}-${i}`, references, reveal)}
+        {leaf(part, `${key}-${i}`, citations, reveal)}
       </React.Fragment>
     ),
   );
@@ -138,50 +142,126 @@ export function gluePercent(text: string): string {
   return text.replace(/(\d) %/g, "$1 %");
 }
 
+/** Plain prose, one fade token per word while the #219 reveal runs. */
+function words(
+  text: string,
+  key: string,
+  reveal?: RevealCtx,
+): React.ReactNode[] {
+  if (!reveal) return text === "" ? [] : [text];
+  // Split on trailing spaces so each word rides its own fade; the space
+  // travels with the word before it, keeping the text node identical.
+  return text
+    .split(/(?<= )/)
+    .filter((token) => token !== "")
+    .map((token, j) => fadeToken(token, `${key}-${j}`, reveal));
+}
+
+const outboundClassName =
+  "rounded-[2px] text-sello decoration-1 underline-offset-3 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+
+/**
+ * A URL or address that may leave the page, or null when it stays text.
+ * The link shows what the model wrote, minus the scheme and `www.`, with
+ * the institution mark glued to the host so the icon never ends a line.
+ */
+function outbound(candidate: string, key: string): React.ReactNode {
+  if (candidate.startsWith("https://")) {
+    const url = officialUrl(candidate);
+    if (!url) return null;
+    const shown = candidate
+      .replace(/^https:\/\/(www\.)?/i, "")
+      .replace(/\/$/, "");
+    const slash = shown.indexOf("/");
+    return (
+      <a
+        key={key}
+        href={url.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-slot="official-link"
+        className={outboundClassName}
+      >
+        <span className="whitespace-nowrap">
+          <LandmarkIcon
+            aria-hidden
+            strokeWidth={1.75}
+            className="mr-1 inline size-[0.95em] align-[-0.125em]"
+          />
+          {slash < 0 ? shown : shown.slice(0, slash)}
+        </span>
+        {slash < 0 ? "" : shown.slice(slash)}
+      </a>
+    );
+  }
+  if (!isOfficialEmail(candidate)) return null;
+  return (
+    <OfficialEmail
+      key={key}
+      address={candidate}
+      className={outboundClassName}
+    />
+  );
+}
+
+/**
+ * Prose between references, with official URLs and addresses lifted into
+ * links. A link is one reveal token, like a word; whatever trails it (the
+ * sentence's period) goes back to the prose.
+ */
+function prose(
+  text: string,
+  key: string,
+  reveal?: RevealCtx,
+): React.ReactNode[] {
+  return text.split(OUTBOUND).flatMap((piece, i): React.ReactNode[] => {
+    if (i % 2 === 1) {
+      const trailing = URL_TRAILING.exec(piece)?.[0] ?? "";
+      const link = outbound(
+        piece.slice(0, piece.length - trailing.length),
+        `${key}-o-${i}`,
+      );
+      if (link)
+        return [
+          reveal ? fadeToken(link, `${key}-ow-${i}`, reveal) : link,
+          ...words(trailing, `${key}-t-${i}`, reveal),
+        ];
+    }
+    return words(piece, `${key}-w-${i}`, reveal);
+  });
+}
+
 /**
  * A leaf segment split on its `[k]` references. Every other piece is the
- * captured digits, which become a superscript link to the matching sello;
- * everything else stays a text node, so the no-injection-surface property
- * above still holds by construction — the only `href` this file can produce
- * is a same-page fragment built from `selloAnchorId`, never marker text.
+ * captured digits, which become the chip for the matching citation;
+ * everything else is prose. The chip's card is built from `citations[k-1]`,
+ * so marker text never reaches it.
  *
- * A `k` with no sello behind it renders as nothing rather than as a literal
- * `[7]`: the answer either has a source the reader can open or it says
- * nothing. That also covers the moment mid-stream before the seal snapshot
- * lands, and prose rendered with no references at all.
+ * A `k` with no citation behind it renders as nothing rather than as a
+ * literal `[7]`: the answer either has a source the reader can open or it
+ * says nothing. That also covers the moment mid-stream before the seal
+ * snapshot lands, and prose rendered with no citations at all.
  */
 function leaf(
   text: string,
   key: string,
-  references?: AnswerReferences,
+  citations?: readonly Citation[],
   reveal?: RevealCtx,
 ): React.ReactNode[] {
   return text.split(REFERENCE).flatMap((piece, i): React.ReactNode[] => {
-    if (i % 2 === 0) {
-      piece = gluePercent(piece);
-      if (!reveal) return [piece];
-      // Split on trailing spaces so each word rides its own fade; the space
-      // travels with the word before it, keeping the text node identical.
-      return piece
-        .split(/(?<= )/)
-        .filter((token) => token !== "")
-        .map((token, j) => fadeToken(token, `${key}-w-${i}-${j}`, reveal));
-    }
+    if (i % 2 === 0) return prose(gluePercent(piece), `${key}-p-${i}`, reveal);
     const ordinal = Number(piece);
-    if (!references || ordinal < 1 || ordinal > references.count) return [];
-    const sup = (
-      <sup key={`${key}-r-${i}`} className="ml-px font-mono tabular-nums">
-        <a
-          href={`#${selloAnchorId(references.anchorPrefix, ordinal)}`}
-          aria-label={`fuente ${ordinal}`}
-          className="rounded-[2px] px-px text-sello no-underline transition-colors duration-150 hover:bg-sello-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-        >
-          {ordinal}
-        </a>
-      </sup>
+    const citation = ordinal >= 1 ? citations?.[ordinal - 1] : undefined;
+    if (!citation) return [];
+    const chip = (
+      <CitationRef
+        key={`${key}-r-${i}`}
+        ordinal={ordinal}
+        citation={citation}
+      />
     );
     // A reference is one token like any word — it fades in whole (#219).
-    return [reveal ? fadeToken(sup, `${key}-rw-${i}`, reveal) : sup];
+    return [reveal ? fadeToken(chip, `${key}-rw-${i}`, reveal) : chip];
   });
 }
 
@@ -258,12 +338,12 @@ function cells(line: string): string[] {
 function Table({
   lines,
   keyPrefix,
-  references,
+  citations,
   reveal,
 }: {
   lines: string[];
   keyPrefix: string;
-  references?: AnswerReferences;
+  citations?: readonly Citation[];
   reveal?: RevealCtx;
 }) {
   const rows = lines
@@ -283,7 +363,7 @@ function Table({
                 scope="col"
                 className="py-2 pr-4 text-left font-normal text-muted-foreground last:pr-0"
               >
-                {inline(cell, `${keyPrefix}-h-${i}`, references, reveal)}
+                {inline(cell, `${keyPrefix}-h-${i}`, citations, reveal)}
               </th>
             ))}
           </tr>
@@ -293,7 +373,7 @@ function Table({
             <tr key={r} className="border-b border-border last:border-b-0">
               {row.map((cell, c) => (
                 <td key={c} className="py-2 pr-4 align-top last:pr-0">
-                  {inline(cell, `${keyPrefix}-${r}-${c}`, references, reveal)}
+                  {inline(cell, `${keyPrefix}-${r}-${c}`, citations, reveal)}
                 </td>
               ))}
             </tr>
@@ -307,12 +387,12 @@ function Table({
 function Segment({
   run,
   keyPrefix,
-  references,
+  citations,
   reveal,
 }: {
   run: Run;
   keyPrefix: string;
-  references?: AnswerReferences;
+  citations?: readonly Citation[];
   reveal?: RevealCtx;
 }) {
   const { kind, lines } = run;
@@ -322,7 +402,7 @@ function Segment({
       <Table
         lines={lines}
         keyPrefix={keyPrefix}
-        references={references}
+        citations={citations}
         reveal={reveal}
       />
     );
@@ -332,7 +412,7 @@ function Segment({
       <ul className="my-4 list-disc pl-5 marker:text-border">
         {lines.map((line, i) => (
           <li key={i} className="py-0.5 pl-1">
-            {inline(line.slice(2), `${keyPrefix}-${i}`, references, reveal)}
+            {inline(line.slice(2), `${keyPrefix}-${i}`, citations, reveal)}
           </li>
         ))}
       </ul>
@@ -352,7 +432,7 @@ function Segment({
         {inline(
           lines[0].replace(HEADING_LINE, ""),
           keyPrefix,
-          references,
+          citations,
           reveal,
         )}
       </p>
@@ -362,19 +442,19 @@ function Segment({
   // Soft line breaks inside a paragraph flow, as they would in markdown.
   return (
     <p className="my-4 first:mt-0 last:mb-0">
-      {inline(lines.join(" "), keyPrefix, references, reveal)}
+      {inline(lines.join(" "), keyPrefix, citations, reveal)}
     </p>
   );
 }
 
 export function AnswerProse({
   text,
-  references,
+  citations,
   reveal,
 }: {
   text: string;
-  /** Omit and `[k]` markers render as nothing — see `leaf`. */
-  references?: AnswerReferences;
+  /** The sello row's citations, in order. Omit and `[k]` markers render as nothing — see `leaf`. */
+  citations?: readonly Citation[];
   /** Present while the #219 word-fade reveal is running — see `AnswerReveal`. */
   reveal?: AnswerReveal | null;
 }) {
@@ -391,15 +471,17 @@ export function AnswerProse({
 
   return (
     <div className="max-w-[68ch] text-base leading-[1.7] wrap-break-word text-pretty">
-      {runs.map((run, i) => (
-        <Segment
-          key={i}
-          run={run}
-          keyPrefix={String(i)}
-          references={references}
-          reveal={revealCtx}
-        />
-      ))}
+      <ReferenceScope>
+        {runs.map((run, i) => (
+          <Segment
+            key={i}
+            run={run}
+            keyPrefix={String(i)}
+            citations={citations}
+            reveal={revealCtx}
+          />
+        ))}
+      </ReferenceScope>
     </div>
   );
 }

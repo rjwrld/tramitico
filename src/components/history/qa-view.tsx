@@ -61,12 +61,9 @@ export function QAView({
           the same bullets, bold and tables the model wrote — and, since #133,
           its markers already number the sellos, so there is nothing to
           resolve, only orphans to drop. Rows saved before #133 have no
-          markers at all and simply render without superscripts. */}
-      <AnswerProse
-        text={text}
-        references={{ count: citations.length, anchorPrefix: item.id }}
-      />
-      <SelloRow citations={citations} anchorPrefix={item.id} />
+          markers at all and simply render without reference chips. */}
+      <AnswerProse text={text} citations={citations} />
+      <SelloRow citations={citations} />
       {/* DESIGN §9: the disclaimer is always present — on a saved answer as
           much as a fresh one (#491). */}
       <AnswerFoot text={text} citations={citations} disclaimer={disclaimer} />

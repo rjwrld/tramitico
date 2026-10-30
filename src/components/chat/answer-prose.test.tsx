@@ -2,6 +2,7 @@
 import { describe, expect, it, afterEach } from "vitest";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { AnswerProse, gluePercent } from "@/components/chat/answer-prose";
+import type { Citation } from "@/lib/citations";
 
 afterEach(cleanup);
 
@@ -359,61 +360,74 @@ describe("AnswerProse", () => {
   });
 
   describe("inline references (#133)", () => {
-    const REFERENCES = { count: 2, anchorPrefix: "a1" };
+    const CITATIONS: Citation[] = [
+      {
+        docKey: "ley-iva",
+        docTitle: "Ley del Impuesto sobre el Valor Agregado",
+        norma: "Ley 6826",
+        articulo: "Artículo 8",
+        url: "https://sinalevi.go.cr/ResultadosNormativa/Informacion?param1=1",
+      },
+      {
+        docKey: "reglamento-iva",
+        docTitle: "Reglamento de la Ley del Impuesto sobre el Valor Agregado",
+        norma: "Decreto Ejecutivo 41779",
+        articulo: "Artículo 11",
+        url: null,
+      },
+    ];
+    const chips = () => screen.queryAllByRole("button", { name: /^Fuente/ });
 
-    it("renders each marker as a superscript named for its source", () => {
+    it("renders each marker as a chip named for its source", () => {
       render(
         <AnswerProse
           text="La tarifa general es del 13%[1] y hay exenciones[2]."
-          references={REFERENCES}
+          citations={CITATIONS}
         />,
       );
 
-      const links = screen.getAllByRole("link");
-      expect(links.map((link) => link.textContent)).toEqual(["1", "2"]);
-      expect(screen.getByRole("link", { name: "fuente 1" })).toHaveProperty(
-        "hash",
-        "#a1-fuente-1",
-      );
-      expect(screen.getByRole("link", { name: "fuente 2" })).toHaveProperty(
-        "hash",
-        "#a1-fuente-2",
-      );
-      // The digits are references, not prose.
-      expect(links.every((link) => link.closest("sup") !== null)).toBe(true);
+      expect(chips().map((chip) => chip.textContent)).toEqual(["1", "2"]);
+      expect(chips().map((chip) => chip.getAttribute("aria-label"))).toEqual([
+        "Fuente 1: Ley IVA · Art. 8",
+        "Fuente 2: Reglamento IVA · Art. 11",
+      ]);
+      // Not a link any more: the chip brings the card, it goes nowhere.
+      expect(screen.queryAllByRole("link")).toHaveLength(0);
+    });
+
+    it("keeps the chip on the word it qualifies — no line break between them", () => {
+      render(<AnswerProse text="exenciones[2]." citations={CITATIONS} />);
+
+      // An inline span, not an atomic button: the line cannot break before it.
+      const chip = chips()[0];
+      expect(chip.tagName).toBe("SPAN");
+      expect(chip.previousSibling?.textContent).toBe("exenciones");
     });
 
     it("keeps the reference in the claim it belongs to", () => {
       render(
         <AnswerProse
           text={["- Inscribirse[1]", "- Facturar[2]"].join("\n")}
-          references={REFERENCES}
+          citations={CITATIONS}
         />,
       );
 
       const items = screen.getAllByRole("listitem");
       expect(items[0].textContent).toBe("Inscribirse1");
       expect(
-        within(items[0]).getByRole("link", { name: "fuente 1" }),
+        within(items[0]).getByRole("button", { name: /^Fuente 1/ }),
       ).toBeTruthy();
       expect(
-        within(items[1]).getByRole("link", { name: "fuente 2" }),
+        within(items[1]).getByRole("button", { name: /^Fuente 2/ }),
       ).toBeTruthy();
     });
 
     it("cites the same source twice with the same number", () => {
       render(
-        <AnswerProse
-          text="Primero[1]. Y otra vez[1]."
-          references={REFERENCES}
-        />,
+        <AnswerProse text="Primero[1]. Y otra vez[1]." citations={CITATIONS} />,
       );
 
-      const links = screen.getAllByRole("link", { name: "fuente 1" });
-      expect(links).toHaveLength(2);
-      expect(new Set(links.map((link) => link.getAttribute("href")))).toEqual(
-        new Set(["#a1-fuente-1"]),
-      );
+      expect(chips().map((chip) => chip.textContent)).toEqual(["1", "1"]);
     });
 
     it("renders inside bold and table cells too", () => {
@@ -426,39 +440,141 @@ describe("AnswerProse", () => {
             "| --- | --- |",
             "| Primero[2] | 10% |",
           ].join("\n")}
-          references={REFERENCES}
+          citations={CITATIONS}
         />,
       );
 
-      expect(screen.getAllByRole("link", { name: "fuente 1" })).toHaveLength(1);
+      expect(screen.getAllByRole("button", { name: /^Fuente 1/ })).toHaveLength(
+        1,
+      );
       const cell = screen.getByRole("cell", { name: /Primero/ });
-      expect(within(cell).getByRole("link", { name: "fuente 2" })).toBeTruthy();
+      expect(
+        within(cell).getByRole("button", { name: /^Fuente 2/ }),
+      ).toBeTruthy();
     });
 
-    it("drops a marker with no source and never invents a link", () => {
+    it("drops a marker with no source and never turns markdown into a link", () => {
       const { container } = render(
         <AnswerProse
           text="Sin respaldo[7] y con enlace [click](https://evil.example)."
-          references={REFERENCES}
+          citations={CITATIONS}
         />,
       );
 
-      expect(screen.queryByRole("link", { name: "fuente 7" })).toBeNull();
+      expect(chips()).toHaveLength(0);
       expect(container.textContent).not.toContain("[7]");
-      // The only anchors this renders are same-page fragments it built.
-      expect(
-        Array.from(container.querySelectorAll("a")).every((a) =>
-          a.getAttribute("href")?.startsWith("#a1-fuente-"),
-        ),
-      ).toBe(true);
+      expect(container.querySelectorAll("a")).toHaveLength(0);
       expect(container.textContent).toContain("https://evil.example");
     });
 
-    it("renders markers as inert text when the answer has no sources", () => {
+    it("renders markers as nothing when the answer has no sources", () => {
       const { container } = render(<AnswerProse text="Una cosa[1]." />);
 
-      expect(container.querySelectorAll("a")).toHaveLength(0);
+      expect(chips()).toHaveLength(0);
       expect(container.textContent).toBe("Una cosa.");
+    });
+  });
+
+  describe("official links", () => {
+    const links = () => screen.queryAllByRole("link");
+
+    it("links an official URL, showing it without scheme or www.", () => {
+      render(
+        <AnswerProse text="Inscríbase en https://aissfa.ccss.sa.cr/afiliacion o en https://www.ccss.sa.cr/." />,
+      );
+
+      expect(links().map((a) => a.getAttribute("href"))).toEqual([
+        "https://aissfa.ccss.sa.cr/afiliacion",
+        "https://www.ccss.sa.cr/",
+      ]);
+      expect(links().map((a) => a.textContent)).toEqual([
+        "aissfa.ccss.sa.cr/afiliacion",
+        "ccss.sa.cr",
+      ]);
+      for (const a of links()) {
+        expect(a.getAttribute("target")).toBe("_blank");
+        expect(a.getAttribute("rel")).toBe("noopener noreferrer");
+      }
+    });
+
+    it("leaves the sentence's punctuation out of the link", () => {
+      const { container } = render(
+        <AnswerProse text="Confírmelo en https://www.hacienda.go.cr. Y (https://sinalevi.go.cr/x), listo." />,
+      );
+
+      expect(links().map((a) => a.getAttribute("href"))).toEqual([
+        "https://www.hacienda.go.cr/",
+        "https://sinalevi.go.cr/x",
+      ]);
+      expect(container.textContent).toBe(
+        "Confírmelo en hacienda.go.cr. Y (sinalevi.go.cr/x), listo.",
+      );
+    });
+
+    it("keeps an official link right before its reference chip", () => {
+      render(
+        <AnswerProse
+          text="Inscríbase en https://aissfa.ccss.sa.cr/afiliacion[1]."
+          citations={[
+            {
+              docKey: "ccss-faq",
+              docTitle: "Preguntas frecuentes",
+              norma: null,
+              articulo: null,
+              url: null,
+            },
+          ]}
+        />,
+      );
+
+      expect(links()[0].getAttribute("href")).toBe(
+        "https://aissfa.ccss.sa.cr/afiliacion",
+      );
+      expect(screen.getByRole("button", { name: /^Fuente 1/ })).toBeTruthy();
+    });
+
+    it("leaves every other URL as text", () => {
+      const { container } = render(
+        <AnswerProse
+          text={[
+            "http://www.ccss.sa.cr",
+            "https://ccss.sa.cr.evil.example/x",
+            "https://www.contadorescr.com/guia",
+            "https://ccss.sa.cr@evil.example",
+            "javascript:alert(1)",
+          ].join(" ")}
+        />,
+      );
+
+      expect(container.querySelectorAll("a")).toHaveLength(0);
+      expect(container.textContent).toContain(
+        "https://ccss.sa.cr.evil.example/x",
+      );
+    });
+
+    it("links an official email address and leaves any other as text", () => {
+      render(
+        <AnswerProse text="Escriba a cobros@ccss.sa.cr o a alguien@gmail.com." />,
+      );
+
+      expect(links().map((a) => a.getAttribute("href"))).toEqual([
+        "mailto:cobros@ccss.sa.cr",
+      ]);
+      expect(links()[0].textContent).toBe("cobros@ccss.sa.cr");
+    });
+
+    it("fades a link in whole during the reveal (#219)", () => {
+      const { container } = render(
+        <AnswerProse
+          text="Vea https://www.hacienda.go.cr hoy."
+          reveal={{ delayFor: (i) => i * 10 }}
+        />,
+      );
+
+      const tokens = Array.from(
+        container.querySelectorAll<HTMLElement>(".animate-word-fade"),
+      ).map((token) => token.textContent);
+      expect(tokens).toEqual(["Vea ", "hacienda.go.cr", " ", "hoy."]);
     });
   });
 
