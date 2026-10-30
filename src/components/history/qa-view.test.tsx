@@ -86,7 +86,7 @@ describe("QAView", () => {
     );
   });
 
-  it("renders the persisted markers as superscripts anchored to the sellos (#133)", () => {
+  it("renders the persisted markers as chips named for their sellos (#133)", () => {
     render(
       <QAView
         item={{
@@ -115,12 +115,14 @@ describe("QAView", () => {
       />,
     );
 
-    const sellos = screen.getAllByRole("listitem");
-    expect(sellos.map((li) => li.id)).toEqual(["q-1-fuente-1", "q-1-fuente-2"]);
-    for (const [i, name] of ["fuente 1", "fuente 2"].entries()) {
-      const href = screen.getByRole("link", { name }).getAttribute("href")!;
-      expect(document.getElementById(href.slice(1))).toBe(sellos[i]);
-    }
+    expect(
+      screen
+        .getAllByRole("button", { name: /^Fuente \d/ })
+        .map((chip) => chip.getAttribute("aria-label")),
+    ).toEqual([
+      "Fuente 1: Reglamento IVA · Art. 11",
+      "Fuente 2: Ley 9635 · Art. 4",
+    ]);
   });
 
   it("drops a persisted marker no sello backs", () => {
@@ -143,14 +145,15 @@ describe("QAView", () => {
       />,
     );
 
-    expect(screen.queryByRole("link", { name: "fuente 2" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^Fuente 2/ })).toBeNull();
+    expect(screen.getByRole("button", { name: /^Fuente 1/ })).toBeTruthy();
     expect(document.body.textContent).toContain("Y algo más.");
   });
 
   it("renders a pre-#133 answer with no markers unchanged", () => {
     render(<QAView item={baseItem} onBack={vi.fn()} />);
 
-    expect(screen.queryByRole("link", { name: /^fuente/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^Fuente/ })).toBeNull();
     expect(
       screen.getByText("Sí, debe emitir factura electrónica."),
     ).toBeTruthy();
