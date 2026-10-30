@@ -177,7 +177,7 @@ run's setup and deltas.
 
 | Command                                                  | Answers                                                                                              | Cost                             |
 | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------- |
-| `pnpm requirement-coverage <transcript…>`                | Tier 1 requirements stated, per case, from committed transcripts                                     | free                             |
+| `pnpm requirement-coverage <transcript…>`                | Tier 1 requirements stated, per case, and the central claim stated (`tier1-central.json`)            | free                             |
 | `pnpm absence-backtest [--openings]`                     | false absence claims and count hedges, reader's-case slips and typo runs in every committed answer   | free                             |
 | `pnpm hitrate-all-targets <lane.log…>`                   | hit-rate beside «all expected targets reached» (#570), from committed lane logs                      | free                             |
 | `pnpm answer-set-compare a.json b.json`                  | the first stage where two probe runs part, per case                                                  | free                             |
@@ -2451,8 +2451,9 @@ not change until the next paid run.
 
 - `ho-cabys-paginas-web` (Tier 1 adequacy FAIL, #289 A2) — the v4.4 «Anexos y
   Estructuras» annex stays out of the corpus: field-level comprobante
-  structure is outside the release promise (BRIEF §5). The claim «cada línea
-  de detalle lleva su código CABYS» lived only in that annex and is rewritten
+  structure is outside the release promise (#254: rules and steps, not a
+  technical specification). The claim «cada línea de detalle lleva su código
+  CABYS» lived only in that annex and is rewritten
   to what the ingested corpus states: Reglamento de Comprobantes art. 13
   inciso 10 requires a «código de producto» per bien o servicio in the
   detail. That the code is CABYS is the annex's sentence, not the
@@ -4216,3 +4217,52 @@ that would settle it are in
   Conflicting sources: the answer gives both decrees but never says they
   discrepan, and a lane on 2026-10-08 passed the same opening. No gate constant
   moved, and nothing was re-run: the owner's call.
+
+## The central requirement per Tier 1 case (2026-10-29)
+
+The requirement count weighs every claim the same. «The cuota is 2,89 %» and
+«the obligation is in the Ley Constitutiva» are one requirement each, and the
+reader came for the first. [`tier1-central.json`](tier1-central.json) names
+one claim per Tier 1 case, the one that answers the question as the person
+asked it, and `pnpm requirement-coverage` prints how many answers state it.
+It is reported, never gated: the Tier 1 requirement gate already watches
+completeness, and a second gate on one judge verdict per case would fail on
+judge noise.
+
+**How the 27 were chosen.** The agent proposed one claim per case from the
+question and its requirements alone. The owner approved the list on
+2026-10-29 before any count was taken. The agent said beforehand that earlier
+reads had shown it some requirements that miss, and named the two picks that
+knowledge touches. `ho-ademas-tengo-salario` keeps its two-scales claim, a
+known miss. `ho-tiquete-en-vez-de-factura` takes the claim that the tiquete is
+an authorized comprobante, not art. 9's list, also a known miss, because the
+question asks whether the tiquete is valid, not which comprobantes exist. Five
+picks were flagged as ambiguous and kept as proposed:
+`ccss-pedir-prescripcion-cuotas`, `multa-iva-no-declarado`,
+`ho-desde-cuanta-plata-caja`, `ho-minimo-caja-independiente-2026` and
+`ho-desinscribir-debiendo-declaraciones`.
+
+**The read, on map #497's two latest lanes.** Both are clean: every miss they
+record names a requirement the dataset still declares.
+
+| Read                        | Wave G | Confirming |
+| --------------------------- | ------ | ---------- |
+| Tier 1 central claim stated | 24/27  | 25/27      |
+| Tier 1 requirements stated  | 93/116 | 88/116     |
+| Tier 1 cases fully adequate | 15/27  | 8/27       |
+
+- `ho-ademas-tengo-salario` misses on both. Neither answer says that salary
+  and activity are taxed on different scales, the miss #614's prompt round
+  did not move.
+- `desinscripcion-dejar-actividad` misses on both by the judge's verdict.
+  Both answers give the Oficina Virtual path, «Mis datos» → «Solicitar
+  desinscripción», with motivo and fecha. The claim also says ATV «quedó
+  deshabilitada», which neither answer does.
+- `ho-cabys-paginas-web` misses on Wave G only. Both answers give CABYS
+  8314100000200, and the judge read near-identical text both ways.
+
+**Older lanes don't read.** A transcript stores each requirement's wording on
+its day, so a central claim reworded since then never matches a recorded miss
+and reads as stated. Of the 38 committed transcripts that carry all 27 cases,
+only 6 are clean, Wave G and the confirming lane among them, and the
+script prints a warning under any lane that isn't.

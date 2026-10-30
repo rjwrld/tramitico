@@ -1,0 +1,99 @@
+name: Audit
+
+# Why this exists (#626): ci.yml gates the production tree on high/critical
+# advisories (#122), but only when someone pushes. In October 2026 main
+# carried two critical next advisories, high undici and high zod for two
+# weeks: the repo was quiet, and Dependabot alerts never listed them, so
+# `pnpm audit` was the only signal and nothing ran it. This runs the same
+# audit on a schedule. A failure files an issue, as canary.yml does, because a
+# scheduled workflow's own failure email is easy to miss.
+#
+# No install: `pnpm audit` reads the lockfile and asks the registry, so no
+# package code runs in a job that can write issues. Moderate/low stays
+# ungated, the accepted risk ci.yml records (#121, revisited on #358).
+# GitHub disables this, like every scheduled workflow here, after 60 days
+# without a commit (runbook §7, #553).
+on:
+  schedule:
+    # 12:41 UTC daily (06:41 in Costa Rica): the step takes seconds, and off
+    # the hour GitHub's scheduler is least loaded.
+    - cron: "41 12 * * *"
+  workflow_dispatch:
+    inputs:
+      tree:
+        description: "prod (the gate) or all (dev tooling too: forces a failure while dev alerts are open)"
+        required: false
+        default: prod
+        type: choice
+        options: [prod, all]
+
+concurrency:
+  group: audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - name: Audit the production tree
+        env:
+          # Through env, never interpolated into the script: a dispatch input
+          # is caller text. Empty on a schedule, which reads as prod.
+          TREE: ${{ inputs.tree }}
+        run: |
+          scope=--prod
+          if [ "$TREE" = all ]; then scope=; fi
+          set +e
+          # shellcheck disable=SC2086 # empty scope must vanish, not pass ""
+          pnpm audit $scope --audit-level=high --ignore-registry-errors > audit.txt 2>&1
+          status=$?
+          set -e
+          cat audit.txt
+          exit "$status"
+      # One open issue at a time: an advisory that stays unfixed for a week is
+      # one finding, so later failures comment on the open issue rather than
+      # filing seven.
+      - name: Report failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TREE: ${{ inputs.tree }}
+        run: |
+          title="Dependency audit failed"
+          {
+            printf '%s\n\n' "Run log: $RUN_URL · tree: ${TREE:-prod}"
+            if [ -f audit.txt ]; then
+              printf '%s\n' '```text'
+              cat audit.txt
+              printf '%s\n' '```'
+            else
+              printf '%s\n' 'The audit stopped before running; the run log names the step.'
+            fi
+          } > report.md
+
+          existing=$(gh issue list --state open --search "\"$title\" in:title" \
+            --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -n 1)
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body-file report.md
+            exit 0
+          fi
+
+          {
+            printf '%s\n\n' '`pnpm audit --prod --audit-level=high` found a high or critical advisory in the production tree on `main`, with no push needed to see it. Carry the bump on a branch, or merge the Dependabot group PR if it already fixes it; runbook §3.4 has the steps. Later failures comment here until this is closed.'
+            printf '%s\n\n' 'Contract: [docs/runbook.md §3.4](https://github.com/rjwrld/tramitico/blob/main/docs/runbook.md#34-the-scheduled-audit-626) · #626.'
+            cat report.md
+          } > body.md
+          gh issue create --title "$title" --label needs-triage --body-file body.md
