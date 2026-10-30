@@ -7,6 +7,9 @@
  * finer count the groundedness lane now prints beside the Tier 1 gate, so a
  * new run is compared against a before-state that was never paid for twice.
  *
+ * Beside it, the central count: of the Tier 1 cases, how many answers state
+ * the one claim that answers the question (`eval/tier1-central.json`).
+ *
  * Usage:
  *   pnpm requirement-coverage eval/runs/<dir>/groundedness-….jsonl [more…]
  */
@@ -17,12 +20,19 @@ import {
   type AdequacyMisses,
 } from "../src/lib/eval/adequacy";
 import {
+  CENTRAL_PATH,
+  centralCoverage,
+  parseCentral,
+  staleMisses,
+} from "../src/lib/eval/central";
+import {
   DATASET_PATH,
   isRobustness,
   parseDataset,
 } from "../src/lib/eval/dataset";
 
 const dataset = parseDataset(readFileSync(DATASET_PATH, "utf8"));
+const central = parseCentral(readFileSync(CENTRAL_PATH, "utf8"));
 
 for (const file of process.argv.slice(2)) {
   const rows = readFileSync(file, "utf8")
@@ -43,6 +53,32 @@ for (const file of process.argv.slice(2)) {
   );
   const { stated, total } = requirementCoverage(tier1);
   console.log(`${file}\n  tier 1 requirements stated: ${stated}/${total}`);
+  const centralRead = centralCoverage(
+    tier1.map((row) => ({ id: row.evalCase.id, adequacy: row.adequacy })),
+    central,
+  );
+  console.log(
+    `  tier 1 central requirement stated: ${centralRead.stated}/${centralRead.total}` +
+      (centralRead.missed.length > 0
+        ? ` (missed: ${centralRead.missed.join(", ")})`
+        : ""),
+  );
+  const stale = tier1.filter(
+    (row) =>
+      row.adequacy !== null &&
+      staleMisses(
+        [
+          ...(row.evalCase.requiredClaims ?? []).map((c) => c.claim),
+          ...(row.evalCase.requiredSteps ?? []),
+        ],
+        row.adequacy,
+      ).length > 0,
+  ).length;
+  if (stale > 0) {
+    console.log(
+      `  (${stale} case(s) miss requirements the dataset has since reworded, so the central count may read high)`,
+    );
+  }
   const block = read.filter((row) => isRobustness(row.evalCase));
   if (block.length > 0) {
     const blockCount = requirementCoverage(block);
