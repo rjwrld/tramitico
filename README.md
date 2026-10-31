@@ -13,16 +13,16 @@ of _trámite_, the Costa Rican word for paperwork.
 
 **Live:** [tramitico.com](https://tramitico.com).
 
-![A Spanish CCSS question becomes a cited answer; focusing a source seal previews its document, and opening it shows the official article in a new tab.](docs/assets/demo.gif)
+![A Spanish CCSS question becomes a cited answer with inline seals and an official CCSS link; hovering a seal opens its source card, then the official article opens in a new tab.](docs/assets/demo.gif)
 
-<sub>Recorded on the live app on October 6, 2026, in an anonymous session. Processing waits, idle pauses and source-page loading are shortened; shortened waits are marked “Espera abreviada”. The answer reveal plays at normal speed.</sub>
+<sub>Recorded on the live app on October 31, 2026, in an anonymous session. Processing waits, idle pauses and source-page loading are shortened; shortened waits are marked “Espera abreviada”. The answer reveal plays at normal speed.</sub>
 
 <details>
 <summary>See the current interface</summary>
 
-![The landing page with institution-tagged questions, a floating composer and site links beneath it.](docs/assets/landing.png)
+![The light-theme landing page names 25 official documents and shows institution-tagged questions, a floating composer and site links beneath it.](docs/assets/landing.png)
 
-![A focused CCSS source seal previews the document title, regulation and article, alongside the source dates.](docs/assets/source-preview.png)
+![A clicked inline CCSS citation seal pins a source card with the document title, board resolution, article 10 and a link to open it on sinalevi.go.cr.](docs/assets/source-preview.png)
 
 </details>
 
@@ -40,7 +40,7 @@ of _trámite_, the Costa Rican word for paperwork.
   <details>
   <summary>Watch a question routed to Migración</summary>
 
-  ![A passport-renewal question in Spanish is declined and directed to Migración and its official URL.](docs/assets/demo-routed.gif)
+  ![A passport-renewal question in Spanish is declined and directed to Migración; the cursor hovers its official migracion.go.cr link with a Landmark icon.](docs/assets/demo-routed.gif)
 
   </details>
 
